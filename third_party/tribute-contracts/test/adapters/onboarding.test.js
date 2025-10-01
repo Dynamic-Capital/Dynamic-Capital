@@ -111,7 +111,7 @@ describe("Adapter - Onboarding", () => {
     let applicantTokenBalance = await oltContract.balanceOf.call(applicant);
     // applicant account must be initialized with 2**161 OLT Tokens
     expect(initialTokenBalance.toString()).equal(
-      applicantTokenBalance.toString()
+      applicantTokenBalance.toString(),
     );
 
     // Pre-approve spender (onboarding adapter) to transfer proposer tokens
@@ -123,7 +123,7 @@ describe("Adapter - Onboarding", () => {
       {
         from: applicant,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     const proposalId = getProposalCounter();
@@ -138,15 +138,15 @@ describe("Adapter - Onboarding", () => {
         {
           from: applicant,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("revert");
 
     // In case of failures the funds must be in the applicant account
     applicantTokenBalance = await oltContract.balanceOf.call(applicant);
     // "applicant account should contain 2**161 OLT Tokens when the onboard fails"
     expect(initialTokenBalance.toString()).equal(
-      applicantTokenBalance.toString()
+      applicantTokenBalance.toString(),
     );
   });
 
@@ -174,7 +174,7 @@ describe("Adapter - Onboarding", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -188,7 +188,7 @@ describe("Adapter - Onboarding", () => {
         from: daoOwner,
         value: ethAmount,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal has not been voted on yet");
 
     await advanceTime(10000);
@@ -202,7 +202,7 @@ describe("Adapter - Onboarding", () => {
     const myAccountBalance = await getBalance(daoOwner);
     // daoOwner did not receive remaining amount in excess of multiple of unitsPerChunk
     expect(
-      myAccountInitialBalance.sub(ethAmount).add(remaining).toString()
+      myAccountInitialBalance.sub(ethAmount).add(remaining).toString(),
     ).equal(myAccountBalance.toString());
 
     const myAccountUnits = await bank.balanceOf(daoOwner, UNITS);
@@ -210,7 +210,7 @@ describe("Adapter - Onboarding", () => {
     const nonMemberAccountUnits = await bank.balanceOf(nonMemberAccount, UNITS);
     expect(myAccountUnits.toString()).equal("1");
     expect(applicantUnits.toString()).equal(
-      numberOfUnits.mul(toBN("3")).toString()
+      numberOfUnits.mul(toBN("3")).toString(),
     );
     expect(nonMemberAccountUnits.toString()).equal("0");
     await checkBalance(bank, GUILD, ETH_TOKEN, unitPrice.mul(toBN("3")));
@@ -220,7 +220,7 @@ describe("Adapter - Onboarding", () => {
     expect(applicantIsActiveMember).equal(true);
     const nonMemberAccountIsActiveMember = await isMember(
       bank,
-      nonMemberAccount
+      nonMemberAccount,
     );
     expect(nonMemberAccountIsActiveMember).equal(false);
   });
@@ -252,7 +252,7 @@ describe("Adapter - Onboarding", () => {
     const initialTokenBalance = toBN("10000000000");
     let myAccountTokenBalance = await oltContract.balanceOf.call(daoOwner);
     expect(myAccountTokenBalance.toString()).to.be.equal(
-      initialTokenBalance.toString()
+      initialTokenBalance.toString(),
     );
 
     // Total of OLTs to be sent to the DAO in order to get the units
@@ -271,7 +271,7 @@ describe("Adapter - Onboarding", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -284,7 +284,7 @@ describe("Adapter - Onboarding", () => {
       onboarding.processProposal(dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal has not been voted on yet");
 
     await advanceTime(10000);
@@ -292,7 +292,7 @@ describe("Adapter - Onboarding", () => {
       onboarding.processProposal(dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
 
     // Pre-approve spender (onboarding adapter) to transfer proposer tokens
@@ -309,7 +309,7 @@ describe("Adapter - Onboarding", () => {
     myAccountTokenBalance = await oltContract.balanceOf.call(daoOwner);
     // "myAccount did not receive remaining amount in excess of multiple of unitsPerChunk"
     expect(myAccountTokenBalance.toString()).equal(
-      initialTokenBalance.sub(tokenAmount).add(erc20Remaining).toString()
+      initialTokenBalance.sub(tokenAmount).add(erc20Remaining).toString(),
     );
 
     const myAccountUnits = await bank.balanceOf(daoOwner, UNITS);
@@ -325,7 +325,7 @@ describe("Adapter - Onboarding", () => {
     expect(applicantIsActiveMember).equal(true);
     const nonMemberAccountIsActiveMember = await isMember(
       bank,
-      nonMemberAccount
+      nonMemberAccount,
     );
     expect(nonMemberAccountIsActiveMember).equal(false);
   });
@@ -346,10 +346,10 @@ describe("Adapter - Onboarding", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith(
-      "total units for this member must be lower than the maximum"
+      "total units for this member must be lower than the maximum",
     );
   });
 
@@ -404,7 +404,7 @@ describe("Adapter - Onboarding", () => {
       daoRegistryAdapter.updateDelegateKey(dao.address, accounts[3], {
         from: delegate,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("only member");
   });
 
@@ -427,7 +427,7 @@ describe("Adapter - Onboarding", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 2, {
@@ -450,7 +450,7 @@ describe("Adapter - Onboarding", () => {
     const myAccountBalance = await getBalance(daoOwner);
     // "myAccount did not receive refund of ETH contribution"
     expect(myAccountBalance.toString()).equal(
-      myAccountInitialBalance.toString()
+      myAccountInitialBalance.toString(),
     );
 
     const myAccountUnits = await bank.balanceOf(daoOwner, UNITS);
@@ -517,7 +517,7 @@ describe("Adapter - Onboarding", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // try to update the delegated key using the address of another member
@@ -525,7 +525,7 @@ describe("Adapter - Onboarding", () => {
       daoRegistryAdapter.updateDelegateKey(dao.address, applicant, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("cannot overwrite existing delegated keys");
   });
 
@@ -548,7 +548,7 @@ describe("Adapter - Onboarding", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -570,7 +570,7 @@ describe("Adapter - Onboarding", () => {
       daoRegistryAdapter.updateDelegateKey(dao.address, applicant, {
         from: applicant,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("address already taken as delegated key");
   });
 
@@ -591,8 +591,8 @@ describe("Adapter - Onboarding", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("invalid member address");
 
     let isMember = await dao.isMember(applicant);
@@ -607,7 +607,7 @@ describe("Adapter - Onboarding", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -620,7 +620,7 @@ describe("Adapter - Onboarding", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

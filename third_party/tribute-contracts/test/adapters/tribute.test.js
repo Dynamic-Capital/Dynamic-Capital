@@ -91,7 +91,7 @@ describe("Adapter - Tribute", () => {
     const initialTokenBalance = toBN("1000000");
     let daoOwnerTokenBalance = await oltContract.balanceOf.call(daoOwner);
     expect(daoOwnerTokenBalance.toString()).equal(
-      initialTokenBalance.toString()
+      initialTokenBalance.toString(),
     );
 
     // Number of OLTs to be sent to the DAO in exchange for number of requested units
@@ -111,7 +111,7 @@ describe("Adapter - Tribute", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -125,7 +125,7 @@ describe("Adapter - Tribute", () => {
       tribute.processProposal(dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
 
     // Pre-approve spender (tribute adapter) to transfer proposer tokens
@@ -149,7 +149,7 @@ describe("Adapter - Tribute", () => {
       bank,
       GUILD,
       oltContract.address,
-      tributeAmount.toString()
+      tributeAmount.toString(),
     );
 
     // test active member status
@@ -157,7 +157,7 @@ describe("Adapter - Tribute", () => {
     expect(applicantIsActiveMember).equal(true);
     const nonMemberAccountIsActiveMember = await isMember(
       bank,
-      nonMemberAccount
+      nonMemberAccount,
     );
     expect(nonMemberAccountIsActiveMember).equal(false);
   });
@@ -179,7 +179,7 @@ describe("Adapter - Tribute", () => {
     let daoOwnerTokenBalance = await oltContract.balanceOf.call(daoOwner);
     // "daoOwner must be initialized with 100 OLT Tokens"
     expect(daoOwnerTokenBalance.toString()).equal(
-      initialTokenBalance.toString()
+      initialTokenBalance.toString(),
     );
 
     // Number of OLTs to be sent to the DAO in exchange for number of requested units
@@ -200,7 +200,7 @@ describe("Adapter - Tribute", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 2, {
@@ -233,11 +233,11 @@ describe("Adapter - Tribute", () => {
     expect(guildBalance.toString()).equal("0");
     const applicantBalance = await bank.balanceOf(
       applicant,
-      oltContract.address
+      oltContract.address,
     );
     expect(applicantBalance.toString()).equal("0");
     const tributeAdapterBalance = await oltContract.balanceOf.call(
-      tribute.address
+      tribute.address,
     );
     expect(tributeAdapterBalance.toString()).equal("0");
 
@@ -248,7 +248,7 @@ describe("Adapter - Tribute", () => {
     // check if ERC20 tokens are still owned by the original owner
     daoOwnerTokenBalance = await oltContract.balanceOf.call(daoOwner);
     expect(daoOwnerTokenBalance.toString()).equal(
-      initialTokenBalance.toString()
+      initialTokenBalance.toString(),
     );
   });
 
@@ -260,7 +260,7 @@ describe("Adapter - Tribute", () => {
       tribute.processProposal(dao.address, "0x1", {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal does not exist");
   });
 
@@ -313,7 +313,7 @@ describe("Adapter - Tribute", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -336,9 +336,9 @@ describe("Adapter - Tribute", () => {
       tribute.processProposal(dao.address, proposalId, {
         from: applicant,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith(
-      "token amount exceeds the maximum limit for external tokens"
+      "token amount exceeds the maximum limit for external tokens",
     );
   });
 
@@ -357,7 +357,7 @@ describe("Adapter - Tribute", () => {
     const initialTokenBalance = toBN("1000000");
     let daoOwnerTokenBalance = await oltContract.balanceOf.call(daoOwner);
     expect(daoOwnerTokenBalance.toString()).equal(
-      initialTokenBalance.toString()
+      initialTokenBalance.toString(),
     );
 
     // Number of OLTs to be sent to the DAO in exchange for number of requested units
@@ -380,7 +380,7 @@ describe("Adapter - Tribute", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -401,9 +401,9 @@ describe("Adapter - Tribute", () => {
       tribute.processProposal(dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith(
-      "token amount exceeds the maximum limit for internal tokens"
+      "token amount exceeds the maximum limit for internal tokens",
     );
   });
 
@@ -415,7 +415,7 @@ describe("Adapter - Tribute", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -428,7 +428,7 @@ describe("Adapter - Tribute", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

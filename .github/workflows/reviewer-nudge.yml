@@ -25,4 +25,3 @@ jobs:
                 gh pr comment "$num" -b "⏰ Gentle reminder: checklist still pending. Please review and check items in \`docs/dynamic-capital-checklist.md\`."
               fi
             done
-

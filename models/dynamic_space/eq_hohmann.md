@@ -4,13 +4,14 @@
 
 ## Overview
 
-Delta-v requirements for transferring between circular coplanar orbits using a Hohmann maneuver.
+Delta-v requirements for transferring between circular coplanar orbits using a
+Hohmann maneuver.
 
 ## Equation
 
-\[
-\Delta v = \sqrt{\frac{\mu}{r_1}}\left(\sqrt{\frac{2 r_2}{r_1 + r_2}} - 1\right) + \sqrt{\frac{\mu}{r_2}}\left(1 - \sqrt{\frac{2 r_1}{r_1 + r_2}}\right).
-\]
+\[ \Delta v = \sqrt{\frac{\mu}{r_1}}\left(\sqrt{\frac{2 r_2}{r_1 + r_2}} -
+1\right) + \sqrt{\frac{\mu}{r_2}}\left(1 - \sqrt{\frac{2 r_1}{r_1 +
+r_2}}\right). \]
 
 - $r_1$, $r_2$ — initial and target orbital radii.
 - $\mu$ — gravitational parameter.

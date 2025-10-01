@@ -79,7 +79,7 @@ describe("Extension - Executor", () => {
   describe("Factory", async () => {
     it("should be possible to create an extension using the factory", async () => {
       const { logs } = await this.factories.executorExtFactory.create(
-        this.dao.address
+        this.dao.address,
       );
       const log = logs[0];
       expect(log.event).to.be.equal("ExecutorCreated");
@@ -89,17 +89,17 @@ describe("Extension - Executor", () => {
 
     it("should be possible to get an extension address by dao", async () => {
       await this.factories.executorExtFactory.create(this.dao.address);
-      const extAddress =
-        await this.factories.executorExtFactory.getExtensionAddress(
-          this.dao.address
+      const extAddress = await this.factories.executorExtFactory
+        .getExtensionAddress(
+          this.dao.address,
         );
       expect(extAddress).to.not.be.equal(ZERO_ADDRESS);
     });
 
     it("should return zero address if there is no extension address by dao", async () => {
       const daoAddress = accounts[2];
-      const extAddress =
-        await this.factories.executorExtFactory.getExtensionAddress(daoAddress);
+      const extAddress = await this.factories.executorExtFactory
+        .getExtensionAddress(daoAddress);
       expect(extAddress).to.be.equal(ZERO_ADDRESS);
     });
 
@@ -113,7 +113,7 @@ describe("Extension - Executor", () => {
     it("should not be possible to call initialize more than once", async () => {
       const extension = this.extensions.executorExt;
       await expect(
-        extension.initialize(this.dao.address, daoOwner)
+        extension.initialize(this.dao.address, daoOwner),
       ).to.be.revertedWith("already initialized");
     });
 
@@ -140,7 +140,7 @@ describe("Extension - Executor", () => {
             extensions: {},
           }),
         ],
-        { from: daoOwner }
+        { from: daoOwner },
       );
 
       await factories.daoFactory.configureExtension(
@@ -152,7 +152,7 @@ describe("Extension - Executor", () => {
             extensions: {}, // no access granted
           }),
         ],
-        { from: daoOwner }
+        { from: daoOwner },
       );
 
       await dao.finalizeDao({ from: daoOwner });
@@ -166,7 +166,7 @@ describe("Extension - Executor", () => {
       await expect(
         erc20Minter.execute(dao.address, proxToken.address, toBN("10000"), {
           from: daoOwner,
-        })
+        }),
       ).to.be.revertedWith("accessDenied");
     });
   });
@@ -196,7 +196,7 @@ describe("Extension - Executor", () => {
           extensions: {},
         }),
       ],
-      { from: daoOwner }
+      { from: daoOwner },
     );
 
     await factories.daoFactory.configureExtension(
@@ -211,7 +211,7 @@ describe("Extension - Executor", () => {
           },
         }),
       ],
-      { from: daoOwner }
+      { from: daoOwner },
     );
 
     await dao.finalizeDao({ from: daoOwner });
@@ -227,7 +227,7 @@ describe("Extension - Executor", () => {
       toBN("10000"),
       {
         from: daoOwner,
-      }
+      },
     );
     // The adapter should call itself via proxy and mint the token
     await expectEvent(
@@ -235,7 +235,7 @@ describe("Extension - Executor", () => {
       "Minted",
       erc20Minter.address,
       proxToken.address,
-      "10000"
+      "10000",
     );
     // The token mint call should be triggered from the adapter, but the
     // sender is actually the proxy executor contract
@@ -262,7 +262,7 @@ describe("Extension - Executor", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("executorExt::accessDenied");
   });
 });

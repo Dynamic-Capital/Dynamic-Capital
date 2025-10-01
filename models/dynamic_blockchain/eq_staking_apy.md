@@ -14,10 +14,12 @@ $$\text{APY} \approx \frac{R_{\text{epoch}}}{\text{TotalStake}} \times \text{epo
 
 - $R_{\text{epoch}}$ — rewards per epoch in $\theta$.
 - $\text{TotalStake}$ — aggregate stake tracked in $x_t$.
-- $\text{epochs}_{\text{year}}$ — schedule parameter controlling compounding horizon.
+- $\text{epochs}_{\text{year}}$ — schedule parameter controlling compounding
+  horizon.
 - $\text{slashing\_risk}$ — expected penalty rate from validator misbehavior.
 
 ## Notes
 
 - Controls $u_t$ can rebalance delegations to target desired APY.
-- Output metrics compare realized yield versus the approximation to detect drift.
+- Output metrics compare realized yield versus the approximation to detect
+  drift.

@@ -89,7 +89,7 @@ describe("Adapter - Distribute", () => {
     amount,
     unitHolderArr,
     sender,
-    proposalId = null
+    proposalId = null,
   ) => {
     const newProposalId = proposalId ? proposalId : getProposalCounter();
     await distributeContract.submitProposal(
@@ -102,7 +102,7 @@ describe("Adapter - Distribute", () => {
       {
         from: sender,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     return { proposalId: newProposalId };
@@ -124,7 +124,7 @@ describe("Adapter - Distribute", () => {
       daoMember,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Checks the Guild Bank Balance
@@ -143,7 +143,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       amountToDistribute,
       daoMember,
-      daoOwner
+      daoOwner,
     );
 
     // Vote YES on the proposal
@@ -198,7 +198,7 @@ describe("Adapter - Distribute", () => {
       daoOwner,
       unitPrice,
       UNITS,
-      toBN(5) // asking for 5 units
+      toBN(5), // asking for 5 units
     );
 
     await onboardingNewMember(
@@ -209,7 +209,7 @@ describe("Adapter - Distribute", () => {
       daoMemberB,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Checks the Guild Bank Balance
@@ -231,7 +231,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       amountToDistribute,
       "0x0000000000000000000000000000000000000000", //indicates the funds should be distributed to all active members
-      daoOwner
+      daoOwner,
     );
 
     // Vote YES on the proposal
@@ -274,7 +274,7 @@ describe("Adapter - Distribute", () => {
     expect(ownerBalance.toString()).equal("0");
     let factoryBalance = await bank.balanceOf(
       this.factories.daoFactory.address,
-      ETH_TOKEN
+      ETH_TOKEN,
     );
     expect(factoryBalance.toString()).equal("0");
     memberBBalance = await bank.balanceOf(daoMemberB, ETH_TOKEN);
@@ -300,8 +300,8 @@ describe("Adapter - Distribute", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("invalid amount");
   });
 
@@ -322,8 +322,8 @@ describe("Adapter - Distribute", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("token not allowed");
   });
 
@@ -343,8 +343,8 @@ describe("Adapter - Distribute", () => {
         {
           from: nonMember, // The sender is not a member
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -364,7 +364,7 @@ describe("Adapter - Distribute", () => {
       advisor,
       daoOwner,
       unitPrice,
-      LOOT
+      LOOT,
     );
 
     // Submit distribute proposal with a non active member
@@ -379,8 +379,8 @@ describe("Adapter - Distribute", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("not enough units");
   });
 
@@ -401,8 +401,8 @@ describe("Adapter - Distribute", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("not enough units");
   });
 
@@ -421,7 +421,7 @@ describe("Adapter - Distribute", () => {
       daoMember,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit distribute proposal for the 1st time
@@ -431,7 +431,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       10,
       daoMember,
-      daoOwner
+      daoOwner,
     );
 
     // Submit distribute proposal using the same id
@@ -446,8 +446,8 @@ describe("Adapter - Distribute", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("proposalId must be unique");
   });
 
@@ -466,7 +466,7 @@ describe("Adapter - Distribute", () => {
       daoMemberA,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit distribute proposal for the 1st time
@@ -476,7 +476,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       5,
       daoMemberA,
-      daoOwner
+      daoOwner,
     );
 
     // Starts to process the proposal
@@ -484,7 +484,7 @@ describe("Adapter - Distribute", () => {
       distributeContract.processProposal(dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal has not been voted on");
   });
 
@@ -503,7 +503,7 @@ describe("Adapter - Distribute", () => {
       daoMemberA,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit distribute proposal for the 1st time
@@ -513,7 +513,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       5,
       daoMemberA,
-      daoOwner
+      daoOwner,
     );
 
     // Vote YES on the proposal
@@ -540,7 +540,7 @@ describe("Adapter - Distribute", () => {
       distributeContract.distribute(dao.address, 0, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("distrib completed or not exist");
   });
 
@@ -560,7 +560,7 @@ describe("Adapter - Distribute", () => {
       daoMemberA,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit distribute proposal for the 1st time
@@ -570,7 +570,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       5,
       daoMemberA,
-      daoOwner
+      daoOwner,
     );
 
     // Vote NO on the proposal
@@ -597,7 +597,7 @@ describe("Adapter - Distribute", () => {
       distributeContract.distribute(dao.address, 0, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("distrib completed or not exist");
   });
 
@@ -616,7 +616,7 @@ describe("Adapter - Distribute", () => {
       daoMemberA,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit distribute proposal for the 1st time
@@ -626,7 +626,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       5,
       daoMemberA,
-      daoOwner
+      daoOwner,
     );
 
     // Vote YES on the proposal
@@ -647,7 +647,7 @@ describe("Adapter - Distribute", () => {
       distributeContract.processProposal(dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("flag already set");
   });
 
@@ -666,7 +666,7 @@ describe("Adapter - Distribute", () => {
       daoMemberA,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit distribute proposal for the 1st time
@@ -676,7 +676,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       5,
       daoMemberA,
-      daoOwner
+      daoOwner,
     );
 
     // Vote YES on the proposal
@@ -699,7 +699,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       5,
       daoMemberA,
-      daoOwner
+      daoOwner,
     );
 
     // Vote YES on the proposal
@@ -714,7 +714,7 @@ describe("Adapter - Distribute", () => {
       distributeContract.processProposal(dao.address, result.proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("another proposal already in progress");
   });
 
@@ -733,7 +733,7 @@ describe("Adapter - Distribute", () => {
       daoMemberA,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit distribute proposal for the 1st time
@@ -743,7 +743,7 @@ describe("Adapter - Distribute", () => {
       ETH_TOKEN,
       5,
       daoMemberA,
-      daoOwner
+      daoOwner,
     );
 
     // Try to distribute funds when the proposal is not in progress
@@ -751,7 +751,7 @@ describe("Adapter - Distribute", () => {
       distributeContract.distribute(dao.address, 1, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("distrib completed or not exist");
   });
 
@@ -763,7 +763,7 @@ describe("Adapter - Distribute", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -776,7 +776,7 @@ describe("Adapter - Distribute", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

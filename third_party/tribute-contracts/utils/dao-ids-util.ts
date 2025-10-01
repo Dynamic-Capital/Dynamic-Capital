@@ -31,7 +31,7 @@ export const adaptersIdsMap: Record<string, string> = {
   LEND_NFT_ADAPTER: "lend-nft",
   ERC20_TRANSFER_STRATEGY_ADAPTER: "erc20-transfer-strategy",
   REIMBURSEMENT_ADAPTER: "reimbursement",
-  MANAGER_ADAPTER: "manager"
+  MANAGER_ADAPTER: "manager",
 };
 
 /** Extensions */

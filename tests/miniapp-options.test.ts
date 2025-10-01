@@ -1,6 +1,6 @@
-import test from 'node:test';
-import { equal as assertEquals } from 'node:assert/strict';
-import { freshImport } from './utils/freshImport.ts';
+import test from "node:test";
+import { equal as assertEquals } from "node:assert/strict";
+import { freshImport } from "./utils/freshImport.ts";
 import process from "node:process";
 
 interface SupaMockState {
@@ -14,11 +14,11 @@ const globalWithSupaMock = globalThis as GlobalWithSupaMock;
 globalWithSupaMock.__SUPA_MOCK__ = supaState;
 
 function setEnv() {
-  process.env.TELEGRAM_BOT_TOKEN = 'testtoken';
-  process.env.TELEGRAM_WEBHOOK_SECRET = 'testsecret';
-  process.env.SUPABASE_URL = 'http://local';
-  process.env.SUPABASE_SERVICE_ROLE_KEY = 'svc';
-  process.env.SUPABASE_ANON_KEY = 'anon';
+  process.env.TELEGRAM_BOT_TOKEN = "testtoken";
+  process.env.TELEGRAM_WEBHOOK_SECRET = "testsecret";
+  process.env.SUPABASE_URL = "http://local";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "svc";
+  process.env.SUPABASE_ANON_KEY = "anon";
 }
 
 function cleanup() {
@@ -30,10 +30,13 @@ function cleanup() {
   supaState.tables = {};
 }
 
-test('sendMiniAppOrBotOptions uses nav:plans callback', async () => {
+test("sendMiniAppOrBotOptions uses nav:plans callback", async () => {
   setEnv();
   supaState.tables = {
-    kv_config: [{ key: "features:published", value: { data: { mini_app_enabled: false } } }],
+    kv_config: [{
+      key: "features:published",
+      value: { data: { mini_app_enabled: false } },
+    }],
   };
   const calls: Array<{ body: string }> = [];
   const originalFetch = globalThis.fetch;
@@ -50,10 +53,15 @@ test('sendMiniAppOrBotOptions uses nav:plans callback', async () => {
     return Promise.resolve(new Response("{}", { status: 200 }));
   }) as typeof globalThis.fetch;
   try {
-    const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
+    const mod = await freshImport(
+      new URL("../supabase/functions/telegram-bot/index.ts", import.meta.url),
+    );
     await mod.sendMiniAppOrBotOptions(1);
     const payload = JSON.parse(calls[0].body);
-    assertEquals(payload.reply_markup.inline_keyboard[0][0].callback_data, "nav:plans");
+    assertEquals(
+      payload.reply_markup.inline_keyboard[0][0].callback_data,
+      "nav:plans",
+    );
   } finally {
     globalThis.fetch = originalFetch;
     cleanup();

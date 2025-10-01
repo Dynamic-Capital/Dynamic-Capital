@@ -11,7 +11,8 @@ Describes propagation of waves with speed $c$ across spatial domain.
 $$\frac{\partial^2 u}{\partial t^2} = c^2 \nabla^2 u.$$
 
 - $u$ — field variable stored in state $x_t$ (e.g., displacement).
-- Wave speed $c$ resides in parameters $\theta$ with relation $c = f \lambda$ when wavelength $\lambda$ and frequency $f$ are known.
+- Wave speed $c$ resides in parameters $\theta$ with relation $c = f \lambda$
+  when wavelength $\lambda$ and frequency $f$ are known.
 
 ## Notes
 

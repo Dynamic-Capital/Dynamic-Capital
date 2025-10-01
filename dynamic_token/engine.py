@@ -103,6 +103,8 @@ class DCTEngineReport:
         return self.effective_plan.final_mint - self.allocation_total
 
     def to_dict(self) -> MutableMapping[str, object]:
+        allocation_total = self.allocation_total
+        allocation_residual = self.effective_plan.final_mint - allocation_total
         payload: MutableMapping[str, object] = {
             "timestamp": _ensure_timezone(self.snapshot.as_of).isoformat(),
             "price_inputs": asdict(self.price_inputs),
@@ -111,8 +113,8 @@ class DCTEngineReport:
             "production_plan": self.production_plan.to_dict(),
             "effective_plan": self.effective_plan.to_dict(),
             "allocations": [allocation.to_dict() for allocation in self.allocations],
-            "allocation_total": round(self.allocation_total, 6),
-            "allocation_residual": round(self.allocation_residual, 6),
+            "allocation_total": round(allocation_total, 6),
+            "allocation_residual": round(allocation_residual, 6),
             "treasury_balance_before": round(self.treasury_balance_before, 2),
             "treasury_balance_after": round(self.treasury_balance_after, 2),
         }
@@ -182,9 +184,7 @@ class DynamicCapitalTokenEngine:
     ) -> DCTEngineReport:
         signals = signals or DCTCommitteeSignals()
 
-        price_inputs = snapshot.price_inputs()
-        if signals.adjustment:
-            price_inputs = signals.adjustment.apply_to_price_inputs(price_inputs)
+        price_inputs = signals.apply_to_price_inputs(snapshot.price_inputs())
 
         breakdown = self._price_calculator.compute(price_inputs)
 

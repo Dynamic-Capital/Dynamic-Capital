@@ -32,17 +32,17 @@ task("deploy", "Deploy the list of contracts", async (_args, hre) => {
   } = require(`../configs/networks/${network}.config`);
   const hardhatImports = await require("../utils/hardhat-util.js")(
     contractConfigs,
-    network
+    network,
   );
 
   const daoArtifacts = await getOrCreateDaoArtifacts(hre, hardhatImports);
   const deployFunction = await hardhatImports.deployFunctionFactory(
     hre,
-    daoArtifacts
+    daoArtifacts,
   );
   const accounts = await hre.ethers.getSigners();
   info(
-    `\nAvailable Accounts\n-----------------------------------------------------------`
+    `\nAvailable Accounts\n-----------------------------------------------------------`,
   );
   accounts.map((a, i) => log(`  Account ${i}: ${a.address}`));
   info(`-----------------------------------------------------------`);
@@ -82,7 +82,7 @@ task("deploy", "Deploy the list of contracts", async (_args, hre) => {
     };
 
     info(
-      `\nIdentity Contracts\n-----------------------------------------------------------`
+      `\nIdentity Contracts\n-----------------------------------------------------------`,
     );
     log(`DaoRegistry: ${addresses.identities.DaoRegistry}`);
     Object.values(extensions)
@@ -93,7 +93,7 @@ task("deploy", "Deploy the list of contracts", async (_args, hre) => {
       });
 
     info(
-      `\nDAO Contracts\n-----------------------------------------------------------`
+      `\nDAO Contracts\n-----------------------------------------------------------`,
     );
     log(`DaoOwner: ${owner}`);
     log(`DaoRegistry: ${dao.address}`);
@@ -109,7 +109,9 @@ task("deploy", "Deploy the list of contracts", async (_args, hre) => {
 
     saveDeployedContracts(network, addresses);
     log(
-      `Deployment to ${network} network was completed at ${new Date().toISOString()}`
+      `Deployment to ${network} network was completed at ${
+        new Date().toISOString()
+      }`,
     );
   } else {
     log("-------------------------------------------------");
@@ -146,27 +148,27 @@ const deployGoerliDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycSignerAddress: getOptionalEnvVar(
       "KYC_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN(1000)),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
     offchainAdmin: getOptionalEnvVar(
       "OFFCHAIN_ADMIN_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     deployTestTokens: false,
     supplyTestToken1: 1000000,
@@ -179,7 +181,7 @@ const deployGoerliDao = async ({
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     weth: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
@@ -214,27 +216,27 @@ const deploySepoliaDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycSignerAddress: getOptionalEnvVar(
       "KYC_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN(1000)),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
     offchainAdmin: getOptionalEnvVar(
       "OFFCHAIN_ADMIN_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     deployTestTokens: false,
     supplyTestToken1: 1000000,
@@ -247,7 +249,7 @@ const deploySepoliaDao = async ({
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     weth: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
@@ -280,28 +282,28 @@ const deployMainnetDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycSignerAddress: getOptionalEnvVar(
       "KYC_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN("100")),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     maxChunks: getOptionalEnvVar("MAX_CHUNKS", maximumChunks),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
     offchainAdmin: getOptionalEnvVar(
       "OFFCHAIN_ADMIN_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     weth: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
     gasPriceLimit: getOptionalEnvVar("GAS_PRICE_LIMIT", 0 /* disabled */),
@@ -309,7 +311,7 @@ const deployMainnetDao = async ({
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
   });
@@ -341,28 +343,28 @@ const deployGnosisDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycSignerAddress: getOptionalEnvVar(
       "KYC_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN("100")),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     maxChunks: getOptionalEnvVar("MAX_CHUNKS", maximumChunks),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
     offchainAdmin: getOptionalEnvVar(
       "OFFCHAIN_ADMIN_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     weth: "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d", // wrapped xdai
     gasPriceLimit: getOptionalEnvVar("GAS_PRICE_LIMIT", 0 /* disabled */),
@@ -370,7 +372,7 @@ const deployGnosisDao = async ({
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
   });
@@ -409,18 +411,18 @@ const deployGanacheDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      daoOwnerAddress
+      daoOwnerAddress,
     ),
     kycSignerAddress: getOptionalEnvVar("KYC_SIGNER_ADDR", daoOwnerAddress),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN(1000)),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     daoName: getEnvVar("DAO_NAME"),
     owner: daoOwnerAddress,
@@ -436,7 +438,7 @@ const deployGanacheDao = async ({
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     weth: weth.address,
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
@@ -481,7 +483,7 @@ const deployTestDao = async ({
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     offchainAdmin: daoOwnerAddress,
     daoName: getEnvVar("DAO_NAME"),
@@ -492,7 +494,7 @@ const deployTestDao = async ({
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
   });
@@ -530,7 +532,7 @@ const deployHarmonyDao = async ({
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
@@ -541,7 +543,7 @@ const deployHarmonyDao = async ({
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
   });
@@ -575,27 +577,27 @@ const deployHarmonyTestDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycSignerAddress: getOptionalEnvVar(
       "KYC_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN(1000)),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
     offchainAdmin: getOptionalEnvVar(
       "OFFCHAIN_ADMIN_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     deployTestTokens: true,
     supplyTestToken1: 1000000,
@@ -638,36 +640,36 @@ const deployPolygonDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycSignerAddress: getOptionalEnvVar(
       "KYC_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN("100")),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     maxChunks: getOptionalEnvVar("MAX_CHUNKS", maximumChunks),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
     offchainAdmin: getOptionalEnvVar(
       "OFFCHAIN_ADMIN_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
-    weth: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270" /* WMATIC */,
+    weth: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", /* WMATIC */
     gasPriceLimit: getOptionalEnvVar("GAS_PRICE_LIMIT", 0 /* disabled */),
     spendLimitPeriod: getOptionalEnvVar("SPEND_LIMIT_PERIOD", 0 /* disabled */),
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
   });
@@ -703,27 +705,27 @@ const deployPolygonTestDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycSignerAddress: getOptionalEnvVar(
       "KYC_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN(1000)),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
     offchainAdmin: getOptionalEnvVar(
       "OFFCHAIN_ADMIN_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     deployTestTokens: true,
     supplyTestToken1: 1000000,
@@ -768,27 +770,27 @@ const deployAvalancheTestDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycSignerAddress: getOptionalEnvVar(
       "KYC_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN(1000)),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
     offchainAdmin: getOptionalEnvVar(
       "OFFCHAIN_ADMIN_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     deployTestTokens: true,
     supplyTestToken1: 1000000,
@@ -801,7 +803,7 @@ const deployAvalancheTestDao = async ({
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     weth: "0xc778417e063141139fce010982780140aa0cd5ab",
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
@@ -836,27 +838,27 @@ const deployAvalancheDao = async ({
     maxExternalTokens: 100,
     managerSignerAddress: getOptionalEnvVar(
       "MANAGER_COUPON_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     couponCreatorAddress: getOptionalEnvVar(
       "COUPON_CREATOR_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycSignerAddress: getOptionalEnvVar(
       "KYC_SIGNER_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     kycMaxMembers: getOptionalEnvVar("KYC_MAX_MEMBERS", toBN(1000)),
     kycCanTopUp: getOptionalEnvVar("KYC_CAN_TOP_UP", 0),
     kycFundTargetAddress: getOptionalEnvVar(
       "KYC_MULTISIG_FUND_ADDR",
-      ZERO_ADDRESS
+      ZERO_ADDRESS,
     ),
     daoName: getEnvVar("DAO_NAME"),
     owner: getEnvVar("DAO_OWNER_ADDR"),
     offchainAdmin: getOptionalEnvVar(
       "OFFCHAIN_ADMIN_ADDR",
-      getEnvVar("DAO_OWNER_ADDR")
+      getEnvVar("DAO_OWNER_ADDR"),
     ),
     deployTestTokens: true,
     supplyTestToken1: 1000000,
@@ -869,7 +871,7 @@ const deployAvalancheDao = async ({
     spendLimitEth: getOptionalEnvVar("SPEND_LIMIT_ETH", 0 /* disabled */),
     gelato: getOptionalEnvVar(
       "GELATO_ADDR",
-      "0xDe6ab16a4015c680daab58021815D09ddB57db8E"
+      "0xDe6ab16a4015c680daab58021815D09ddB57db8E",
     ),
     weth: "0xc778417e063141139fce010982780140aa0cd5ab",
     maintainerTokenAddress: getOptionalEnvVar("MAINTAINER_TOKEN_ADDR", UNITS),
@@ -888,12 +890,12 @@ const getOrCreateDaoArtifacts = async (hre, hardHatImports) => {
   const DaoArtifacts = hardHatImports.DaoArtifacts;
   let daoArtifacts;
   const factory = await hre.ethers.getContractFactory(
-    DaoArtifacts.contractName
+    DaoArtifacts.contractName,
   );
   if (process.env.DAO_ARTIFACTS_CONTRACT_ADDR) {
     log("Attach to existing DaoArtifacts contract");
     daoArtifacts = await factory.attach(
-      process.env.DAO_ARTIFACTS_CONTRACT_ADDR
+      process.env.DAO_ARTIFACTS_CONTRACT_ADDR,
     );
   } else {
     log("Creating new DaoArtifacts contract");

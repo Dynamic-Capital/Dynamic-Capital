@@ -1,6 +1,7 @@
 # AR(1) Process
 
-**Modules:** `dynamic_forecast`, `dynamic_predictive`, `dynamic_indicators`, `dynamic_candles`
+**Modules:** `dynamic_forecast`, `dynamic_predictive`, `dynamic_indicators`,
+`dynamic_candles`
 
 ## Overview
 
@@ -15,4 +16,5 @@ $$y_t = \phi y_{t-1} + \epsilon_t.$$
 
 ## Notes
 
-- State $x_t$ stores lagged observations; controls may adjust $\phi$ via learning routines.
+- State $x_t$ stores lagged observations; controls may adjust $\phi$ via
+  learning routines.

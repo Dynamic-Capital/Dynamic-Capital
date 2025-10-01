@@ -50,11 +50,12 @@ const getConfigsWithFactories = (configs) => {
 const deployFunction = ({ deployer, daoArtifacts, allConfigs, network }) => {
   const deploy = async (contractInterface, args, contractConfig) => {
     const restored = await restore(contractInterface, contractConfig, network);
-    if (restored)
+    if (restored) {
       return {
         ...restored,
         configs: contractConfig,
       };
+    }
 
     if (args) {
       await deployer.deploy(contractInterface, ...args);
@@ -73,12 +74,13 @@ const deployFunction = ({ deployer, daoArtifacts, allConfigs, network }) => {
     if (!contractInterface) return null; //throw Error("Invalid contract interface");
 
     const contractConfig = allConfigs.find(
-      (c) => c.name === contractInterface.contractName
+      (c) => c.name === contractInterface.contractName,
     );
-    if (!contractConfig)
+    if (!contractConfig) {
       throw Error(
-        `${contractInterface.contractName} contract not found in configs/contracts.config`
+        `${contractInterface.contractName} contract not found in configs/contracts.config`,
       );
+    }
 
     if (
       // Always deploy core, extension and test contracts
@@ -98,7 +100,7 @@ const deployFunction = ({ deployer, daoArtifacts, allConfigs, network }) => {
       sha3(contractConfig.name),
       artifactsOwner,
       toHex(contractConfig.version),
-      contractConfig.type
+      contractConfig.type,
     );
     if (address && address !== ZERO_ADDRESS) {
       log(`Attached to existing contract ${contractConfig.name}: ${address}`);
@@ -112,7 +114,7 @@ const deployFunction = ({ deployer, daoArtifacts, allConfigs, network }) => {
       deployedContract = await deploy(
         contractInterface,
         [identity.address],
-        contractConfig
+        contractConfig,
       );
     } else {
       deployedContract = await deploy(contractInterface, args, contractConfig);
@@ -128,7 +130,7 @@ const deployFunction = ({ deployer, daoArtifacts, allConfigs, network }) => {
         sha3(contractConfig.name),
         toHex(contractConfig.version),
         deployedContract.address,
-        contractConfig.type
+        contractConfig.type,
       );
     }
 
@@ -149,8 +151,9 @@ module.exports = (configs, network) => {
     ...interfaces,
     attachFunction: attach,
     deployFunctionFactory: (deployer, daoArtifacts) => {
-      if (!deployer || !daoArtifacts)
+      if (!deployer || !daoArtifacts) {
         throw Error("Missing deployer or DaoArtifacts contract");
+      }
       return deployFunction({ deployer, daoArtifacts, allConfigs, network });
     },
   };

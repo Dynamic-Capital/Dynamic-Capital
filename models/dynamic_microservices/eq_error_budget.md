@@ -8,9 +8,8 @@ Monitors SLO consumption via remaining error budget and burn rate.
 
 ## Equations
 
-\[
-E = 1 - \text{SLO}, \qquad b = \frac{\text{errors in window}}{E \cdot \text{window}}.
-\]
+\[ E = 1 - \text{SLO}, \qquad b = \frac{\text{errors in window}}{E \cdot
+\text{window}}. \]
 
 ## Usage
 

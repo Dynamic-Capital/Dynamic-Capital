@@ -45,7 +45,7 @@ describe("Utils - DaoArtifacts", () => {
     const daoArtifacts = await DaoArtifacts.new();
     expect(daoArtifacts.address).to.not.be.null;
     expect(daoArtifacts.address).to.not.be.equal(
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
     );
   });
 
@@ -56,7 +56,7 @@ describe("Utils - DaoArtifacts", () => {
       sha3("adapter1"),
       sha3("v1.0.0"),
       adapterAddress,
-      ContractType.Adapter
+      ContractType.Adapter,
     );
     await expectEvent(
       call,
@@ -65,7 +65,7 @@ describe("Utils - DaoArtifacts", () => {
       daoOwner,
       sha3("v1.0.0"),
       adapterAddress,
-      "3"
+      "3",
     );
   });
 
@@ -79,14 +79,14 @@ describe("Utils - DaoArtifacts", () => {
       sha3("v1.0.0"),
       adapterAddress,
       ContractType.Adapter,
-      { from: owner }
+      { from: owner },
     );
 
     const address = await daoArtifacts.getArtifactAddress(
       sha3("adapter1"),
       owner,
       sha3("v1.0.0"),
-      ContractType.Adapter
+      ContractType.Adapter,
     );
     expect(address).to.be.equal(adapterAddress);
   });
@@ -100,7 +100,7 @@ describe("Utils - DaoArtifacts", () => {
       sha3("v1.0.0"),
       extensionAddress,
       ContractType.Factory,
-      { from: owner }
+      { from: owner },
     );
     await expectEvent(
       call,
@@ -109,7 +109,7 @@ describe("Utils - DaoArtifacts", () => {
       owner,
       sha3("v1.0.0"),
       extensionAddress,
-      "1"
+      "1",
     );
   });
 
@@ -122,14 +122,14 @@ describe("Utils - DaoArtifacts", () => {
       sha3("v1.0.0"),
       extensionAddress,
       ContractType.Factory,
-      { from: owner }
+      { from: owner },
     );
 
     const address = await daoArtifacts.getArtifactAddress(
       sha3("extFactory2"),
       owner,
       sha3("v1.0.0"),
-      ContractType.Factory
+      ContractType.Factory,
     );
     expect(address).to.be.equal(extensionAddress);
   });
@@ -154,7 +154,7 @@ describe("Utils - DaoArtifacts", () => {
           _type: ContractType.Factory,
         },
       ],
-      { from: owner }
+      { from: owner },
     );
 
     expect(
@@ -162,8 +162,8 @@ describe("Utils - DaoArtifacts", () => {
         sha3("adapter1"),
         owner,
         sha3("v1.0.0"),
-        ContractType.Adapter
-      )
+        ContractType.Adapter,
+      ),
     ).to.be.equal(accounts[4]);
 
     expect(
@@ -171,8 +171,8 @@ describe("Utils - DaoArtifacts", () => {
         sha3("extFactory2"),
         owner,
         sha3("v1.0.0"),
-        ContractType.Factory
-      )
+        ContractType.Factory,
+      ),
     ).to.be.equal(accounts[5]);
   });
 
@@ -198,8 +198,8 @@ describe("Utils - DaoArtifacts", () => {
             _type: ContractType.Factory,
           },
         ],
-        { from: anotherUser }
-      )
+        { from: anotherUser },
+      ),
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 
@@ -235,7 +235,7 @@ describe("Utils - DaoArtifacts", () => {
     }
 
     await expect(
-      daoArtifacts.updateArtifacts(artifacts, { from: owner })
+      daoArtifacts.updateArtifacts(artifacts, { from: owner }),
     ).to.be.revertedWith("Maximum artifacts limit exceeded");
   });
 });

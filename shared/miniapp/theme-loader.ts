@@ -127,7 +127,9 @@ function safeJsonParse<T = unknown>(value: unknown): T | null {
 function normaliseCssVariables(source: unknown): Record<string, string> {
   const result: Record<string, string> = {};
   if (!source || typeof source !== "object") return result;
-  for (const [key, rawValue] of Object.entries(source as Record<string, unknown>)) {
+  for (
+    const [key, rawValue] of Object.entries(source as Record<string, unknown>)
+  ) {
     if (typeof rawValue !== "string") continue;
     const normalisedKey = normaliseVarName(key);
     result[normalisedKey] = rawValue;
@@ -135,28 +137,28 @@ function normaliseCssVariables(source: unknown): Record<string, string> {
   return result;
 }
 
-function normaliseAccessibilityPairs(source: unknown): ThemeAccessibilityPair[] {
+function normaliseAccessibilityPairs(
+  source: unknown,
+): ThemeAccessibilityPair[] {
   if (!Array.isArray(source)) return [];
   const result: ThemeAccessibilityPair[] = [];
   for (const item of source) {
     if (!item || typeof item !== "object") continue;
     const candidate = item as Record<string, unknown>;
-    const foreground =
-      typeof candidate.foreground === "string"
-        ? candidate.foreground
-        : typeof candidate.foregroundVar === "string"
-        ? `var(${normaliseVarName(candidate.foregroundVar)})`
-        : typeof candidate.fg === "string"
-        ? candidate.fg
-        : null;
-    const background =
-      typeof candidate.background === "string"
-        ? candidate.background
-        : typeof candidate.backgroundVar === "string"
-        ? `var(${normaliseVarName(candidate.backgroundVar)})`
-        : typeof candidate.bg === "string"
-        ? candidate.bg
-        : null;
+    const foreground = typeof candidate.foreground === "string"
+      ? candidate.foreground
+      : typeof candidate.foregroundVar === "string"
+      ? `var(${normaliseVarName(candidate.foregroundVar)})`
+      : typeof candidate.fg === "string"
+      ? candidate.fg
+      : null;
+    const background = typeof candidate.background === "string"
+      ? candidate.background
+      : typeof candidate.backgroundVar === "string"
+      ? `var(${normaliseVarName(candidate.backgroundVar)})`
+      : typeof candidate.bg === "string"
+      ? candidate.bg
+      : null;
     if (!foreground || !background) continue;
     const pair: ThemeAccessibilityPair = { foreground, background };
     const minRatio = typeof candidate.minRatio === "number"
@@ -189,9 +191,10 @@ function normaliseFonts(source: unknown): ThemeFontDefinition[] {
       ? candidate.url
       : null;
     if (!family || !src) continue;
-    const descriptors = candidate.descriptors && typeof candidate.descriptors === "object"
-      ? candidate.descriptors as FontFaceDescriptors
-      : undefined;
+    const descriptors =
+      candidate.descriptors && typeof candidate.descriptors === "object"
+        ? candidate.descriptors as FontFaceDescriptors
+        : undefined;
     fonts.push({ family, src, descriptors });
   }
   return fonts;
@@ -218,7 +221,9 @@ function normaliseSounds(source: unknown): ThemeSoundDefinition[] {
       : typeof candidate.key === "string"
       ? candidate.key
       : `sound-${index}`;
-    const type = typeof candidate.type === "string" ? candidate.type : undefined;
+    const type = typeof candidate.type === "string"
+      ? candidate.type
+      : undefined;
     sounds.push({ id, src, type });
   });
   return sounds;
@@ -369,7 +374,10 @@ function resolveGatewayUrl(uri: string): string {
   return uri;
 }
 
-async function fetchJson(uri: string, signal?: AbortSignal): Promise<Record<string, unknown> | null> {
+async function fetchJson(
+  uri: string,
+  signal?: AbortSignal,
+): Promise<Record<string, unknown> | null> {
   const url = resolveGatewayUrl(uri);
   try {
     const response = await fetch(url, { cache: "no-store", signal });
@@ -406,7 +414,9 @@ async function fetchThemeNfts(
     }
     const payload = await response.json() as TonApiAccountNftsResponse;
     if (!payload?.nft_items) return [];
-    return payload.nft_items.filter((item): item is TonApiNftItem => Boolean(item?.address));
+    return payload.nft_items.filter((item): item is TonApiNftItem =>
+      Boolean(item?.address)
+    );
   } catch (error) {
     if ((signal?.aborted) ?? false) return [];
     throw error;
@@ -445,7 +455,8 @@ function resolveColorValue(
       return null;
     }
     seen.add(normalisedKey);
-    const nextValue = candidateVars[normalisedKey] ?? manager.getCurrentVarValue(normalisedKey);
+    const nextValue = candidateVars[normalisedKey] ??
+      manager.getCurrentVarValue(normalisedKey);
     if (!nextValue) return null;
     return resolveColorValue(manager, nextValue, candidateVars, seen);
   }
@@ -471,7 +482,9 @@ function parseColor(value: string): { r: number; g: number; b: number } | null {
   }
   const rgbMatch = value
     .replace(/\s+/g, "")
-    .match(/^rgba?\((?<r>\d{1,3}),(?<g>\d{1,3}),(?<b>\d{1,3})(?:,(?<a>[\d.]+))?\)$/i);
+    .match(
+      /^rgba?\((?<r>\d{1,3}),(?<g>\d{1,3}),(?<b>\d{1,3})(?:,(?<a>[\d.]+))?\)$/i,
+    );
   if (rgbMatch?.groups) {
     const r = Number(rgbMatch.groups.r);
     const g = Number(rgbMatch.groups.g);
@@ -538,7 +551,10 @@ class ThemeMetadataCache {
         return JSON.parse(stored) as CacheEntry;
       }
     } catch (error) {
-      console.debug("[miniapp-theme] Unable to parse localStorage cache", error);
+      console.debug(
+        "[miniapp-theme] Unable to parse localStorage cache",
+        error,
+      );
     }
     const db = await this.openDb();
     if (!db) return null;
@@ -628,7 +644,11 @@ export class MiniAppThemeManager {
     if (!normalised) {
       this.abortController?.abort();
       this.abortController = undefined;
-      this.setState({ walletAddress: undefined, availableThemes: [], activeThemeId: null });
+      this.setState({
+        walletAddress: undefined,
+        availableThemes: [],
+        activeThemeId: null,
+      });
       void this.resetTheme();
       if (this.contentCleanup) {
         this.contentCleanup();
@@ -651,7 +671,11 @@ export class MiniAppThemeManager {
     this.abortController = controller;
     this.setState({ isLoading: true, error: null });
     try {
-      const nftItems = await fetchThemeNfts(address, controller.signal, this.tonApiBaseUrl);
+      const nftItems = await fetchThemeNfts(
+        address,
+        controller.signal,
+        this.tonApiBaseUrl,
+      );
       if (controller.signal.aborted) return;
       const themes: MiniAppThemeOption[] = [];
       for (const nft of nftItems) {
@@ -677,7 +701,9 @@ export class MiniAppThemeManager {
       this.setState({
         isLoading: false,
         isReady: true,
-        error: error instanceof Error ? error.message : "Unable to load theme NFTs",
+        error: error instanceof Error
+          ? error.message
+          : "Unable to load theme NFTs",
       });
     }
   }
@@ -725,16 +751,23 @@ export class MiniAppThemeManager {
 
   private readStoredSelection(address?: string): string | null {
     if (!ensureBrowserEnvironment()) return null;
-    const walletKey = address ? `${ACTIVE_THEME_WALLET_PREFIX}${address}` : null;
+    const walletKey = address
+      ? `${ACTIVE_THEME_WALLET_PREFIX}${address}`
+      : null;
     try {
       if (walletKey) {
         const stored = globalThis.localStorage.getItem(walletKey);
         if (stored) return stored;
       }
-      const fallback = globalThis.localStorage.getItem(ACTIVE_THEME_STORAGE_KEY);
+      const fallback = globalThis.localStorage.getItem(
+        ACTIVE_THEME_STORAGE_KEY,
+      );
       return fallback ?? null;
     } catch (error) {
-      console.debug("[miniapp-theme] Unable to read stored theme selection", error);
+      console.debug(
+        "[miniapp-theme] Unable to read stored theme selection",
+        error,
+      );
       return null;
     }
   }
@@ -782,9 +815,13 @@ export class MiniAppThemeManager {
   }
 
   async selectTheme(themeId: string) {
-    const theme = this.state.availableThemes.find((candidate) => candidate.id === themeId);
+    const theme = this.state.availableThemes.find((candidate) =>
+      candidate.id === themeId
+    );
     if (!theme) {
-      console.warn(`[miniapp-theme] Theme ${themeId} not found in unlocked set`);
+      console.warn(
+        `[miniapp-theme] Theme ${themeId} not found in unlocked set`,
+      );
       return;
     }
     await this.applyTheme(theme, { persist: true });
@@ -885,7 +922,11 @@ export class MiniAppThemeManager {
         const key = `${font.family}::${font.src}`;
         if (this.loadedFonts.has(key)) continue;
         try {
-          const fontFace = new FontFace(font.family, `url(${font.src})`, font.descriptors);
+          const fontFace = new FontFace(
+            font.family,
+            `url(${font.src})`,
+            font.descriptors,
+          );
           const loadPromise = fontFace
             .load()
             .then((loaded) => {
@@ -893,11 +934,17 @@ export class MiniAppThemeManager {
               this.loadedFonts.add(key);
             })
             .catch((error) => {
-              console.warn(`[miniapp-theme] Failed to load font ${font.family}`, error);
+              console.warn(
+                `[miniapp-theme] Failed to load font ${font.family}`,
+                error,
+              );
             });
           fontPromises.push(loadPromise);
         } catch (error) {
-          console.warn(`[miniapp-theme] Unable to construct font ${font.family}`, error);
+          console.warn(
+            `[miniapp-theme] Unable to construct font ${font.family}`,
+            error,
+          );
         }
       }
     }
@@ -915,7 +962,10 @@ export class MiniAppThemeManager {
           audio.load();
           this.loadedSounds.set(key, audio);
         } catch (error) {
-          console.warn(`[miniapp-theme] Unable to initialise sound ${sound.id}`, error);
+          console.warn(
+            `[miniapp-theme] Unable to initialise sound ${sound.id}`,
+            error,
+          );
         }
       }
     }
@@ -931,12 +981,30 @@ export class MiniAppThemeManager {
     const pairs = theme.accessibility.pairs.length
       ? theme.accessibility.pairs
       : [
-        { foreground: "var(--tg-text)", background: "var(--tg-bg)", minRatio: DEFAULT_CONTRAST_REQUIREMENT },
-        { foreground: "var(--tg-button)", background: "var(--tg-bg)", minRatio: SECONDARY_CONTRAST_REQUIREMENT },
+        {
+          foreground: "var(--tg-text)",
+          background: "var(--tg-bg)",
+          minRatio: DEFAULT_CONTRAST_REQUIREMENT,
+        },
+        {
+          foreground: "var(--tg-button)",
+          background: "var(--tg-bg)",
+          minRatio: SECONDARY_CONTRAST_REQUIREMENT,
+        },
       ];
     for (const pair of pairs) {
-      const foreground = resolveColorValue(this, pair.foreground, candidateVars, new Set());
-      const background = resolveColorValue(this, pair.background, candidateVars, new Set());
+      const foreground = resolveColorValue(
+        this,
+        pair.foreground,
+        candidateVars,
+        new Set(),
+      );
+      const background = resolveColorValue(
+        this,
+        pair.background,
+        candidateVars,
+        new Set(),
+      );
       if (!foreground || !background) {
         continue;
       }
@@ -988,7 +1056,8 @@ export class MiniAppThemeManager {
         if (response.ok) {
           const payload = await response.json() as TonApiEventsResponse;
           const event = payload.events?.[0];
-          const eventId = event?.event_id ?? event?.timestamp?.toString() ?? null;
+          const eventId = event?.event_id ?? event?.timestamp?.toString() ??
+            null;
           if (event && eventId && eventId !== lastEventId) {
             lastEventId = eventId;
             console.debug(
@@ -1069,20 +1138,30 @@ export function attachTonConnect(
   let cleanup: (() => void) | undefined;
   if (typeof tonConnect.onStatusChange === "function") {
     try {
-      const result = tonConnect.onStatusChange((wallet) => updateFromWallet(wallet));
+      const result = tonConnect.onStatusChange((wallet) =>
+        updateFromWallet(wallet)
+      );
       if (typeof result === "function") {
         cleanup = result;
-      } else if (result && typeof (result as Promise<unknown>).then === "function") {
+      } else if (
+        result && typeof (result as Promise<unknown>).then === "function"
+      ) {
         (result as Promise<void | (() => void)>).then((value) => {
           if (typeof value === "function") {
             cleanup = value;
           }
         }).catch((error) => {
-          console.debug("[miniapp-theme] TonConnect onStatusChange rejected", error);
+          console.debug(
+            "[miniapp-theme] TonConnect onStatusChange rejected",
+            error,
+          );
         });
       }
     } catch (error) {
-      console.debug("[miniapp-theme] Unable to attach TonConnect listener", error);
+      console.debug(
+        "[miniapp-theme] Unable to attach TonConnect listener",
+        error,
+      );
     }
   }
 
@@ -1092,7 +1171,9 @@ export function attachTonConnect(
   };
 }
 
-export function attachGlobalTonConnect(manager: MiniAppThemeManager): () => void {
+export function attachGlobalTonConnect(
+  manager: MiniAppThemeManager,
+): () => void {
   if (!ensureBrowserEnvironment()) return () => {};
   let cleanup: (() => void) | undefined;
   let disposed = false;
@@ -1101,8 +1182,8 @@ export function attachGlobalTonConnect(manager: MiniAppThemeManager): () => void
     if (disposed) return true;
     const globalCandidate =
       (window as unknown as Record<string, unknown>).TonConnectUI ??
-      (window as unknown as Record<string, unknown>).tonConnectUI ??
-      (window as unknown as Record<string, unknown>).tonConnect ?? null;
+        (window as unknown as Record<string, unknown>).tonConnectUI ??
+        (window as unknown as Record<string, unknown>).tonConnect ?? null;
     if (globalCandidate) {
       cleanup = attachTonConnect(manager, globalCandidate as TonConnectLike);
       return true;
@@ -1129,4 +1210,3 @@ export function attachGlobalTonConnect(manager: MiniAppThemeManager): () => void
     cleanup?.();
   };
 }
-

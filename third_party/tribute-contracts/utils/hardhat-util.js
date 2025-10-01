@@ -29,7 +29,7 @@ const { ContractType } = require("../configs/contracts.config");
 
 const attach = async (contractInterface, address) => {
   const factory = await hre.ethers.getContractFactory(
-    contractInterface.contractName
+    contractInterface.contractName,
   );
   return factory.attach(address);
 };
@@ -40,16 +40,17 @@ const deployFunction = async ({ allConfigs, network, daoArtifacts }) => {
       contractInterface,
       contractConfig,
       attach,
-      network
+      network,
     );
-    if (restored)
+    if (restored) {
       return {
         ...restored,
         configs: contractConfig,
       };
+    }
 
     const contractFactory = await hre.ethers.getContractFactory(
-      contractConfig.name
+      contractConfig.name,
     );
 
     let res;
@@ -75,7 +76,7 @@ const deployFunction = async ({ allConfigs, network, daoArtifacts }) => {
         configs: contractConfig,
         address: tx.contractAddress,
       },
-      network
+      network,
     );
   };
 
@@ -83,12 +84,13 @@ const deployFunction = async ({ allConfigs, network, daoArtifacts }) => {
     if (!contractInterface) throw Error("Invalid contract interface");
 
     const contractConfig = allConfigs.find(
-      (c) => c.name === contractInterface.contractName
+      (c) => c.name === contractInterface.contractName,
     );
-    if (!contractConfig)
+    if (!contractConfig) {
       throw Error(
-        `${contractInterface.contractName} contract not found in configs/contracts.config`
+        `${contractInterface.contractName} contract not found in configs/contracts.config`,
       );
+    }
 
     if (
       // Always deploy core, extension and test contracts
@@ -108,7 +110,7 @@ const deployFunction = async ({ allConfigs, network, daoArtifacts }) => {
       sha3(contractConfig.name),
       artifactsOwner,
       fromAscii(contractConfig.version).padEnd(66, "0"),
-      contractConfig.type
+      contractConfig.type,
     );
 
     if (contractAddress && contractAddress !== ZERO_ADDRESS) {
@@ -140,7 +142,7 @@ const deployFunction = async ({ allConfigs, network, daoArtifacts }) => {
       // 1. first create a new identity contract
       const identityInterface = args.flat()[0];
       const identityConfig = allConfigs.find(
-        (c) => c.name === identityInterface.contractName
+        (c) => c.name === identityInterface.contractName,
       );
       const identityContract = await deploy(identityInterface, identityConfig);
 
@@ -170,8 +172,8 @@ const deployFunction = async ({ allConfigs, network, daoArtifacts }) => {
           sha3(contractConfig.name),
           fromAscii(contractConfig.version).padEnd(66, "0"),
           deployedContract.address,
-          contractConfig.type
-        )
+          contractConfig.type,
+        ),
       );
     }
 
@@ -206,8 +208,9 @@ module.exports = (configs, network) => {
     ...interfaces,
     attachFunction: attach,
     deployFunctionFactory: (deployer, daoArtifacts) => {
-      if (!deployer || !daoArtifacts)
+      if (!deployer || !daoArtifacts) {
         throw Error("Missing deployer or DaoArtifacts contract");
+      }
       return deployFunction({ deployer, daoArtifacts, allConfigs, network });
     },
   };

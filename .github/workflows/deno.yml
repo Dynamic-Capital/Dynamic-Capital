@@ -12,19 +12,19 @@ on:
   push:
     branches: ["main"]
     paths:
-      - 'supabase/**'
-      - 'tests/**'
-      - 'deno.json'
-      - 'deno.lock'
-      - '.github/workflows/deno.yml'
+      - "supabase/**"
+      - "tests/**"
+      - "deno.json"
+      - "deno.lock"
+      - ".github/workflows/deno.yml"
   pull_request:
     branches: ["main"]
     paths:
-      - 'supabase/**'
-      - 'tests/**'
-      - 'deno.json'
-      - 'deno.lock'
-      - '.github/workflows/deno.yml'
+      - "supabase/**"
+      - "tests/**"
+      - "deno.json"
+      - "deno.lock"
+      - ".github/workflows/deno.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

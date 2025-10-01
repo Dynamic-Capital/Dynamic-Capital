@@ -54,7 +54,9 @@ function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
-function toComparable(value: unknown): { kind: "number" | "string"; value: number | string } | null {
+function toComparable(
+  value: unknown,
+): { kind: "number" | "string"; value: number | string } | null {
   if (value === null || value === undefined) return null;
   if (typeof value === "number") {
     return { kind: "number", value };
@@ -125,12 +127,16 @@ class QueryBuilder<T extends Record<string, unknown>> {
     return payload;
   }
 
-  async maybeSingle(): Promise<{ data: T | null; error: { message: string } | null }> {
+  async maybeSingle(): Promise<
+    { data: T | null; error: { message: string } | null }
+  > {
     const filtered = this.applyFilters().map((row) => clone(row));
     return { data: filtered[0] ?? null, error: null };
   }
 
-  async single(): Promise<{ data: T | null; error: { message: string } | null }> {
+  async single(): Promise<
+    { data: T | null; error: { message: string } | null }
+  > {
     const filtered = this.applyFilters().map((row) => clone(row));
     if (filtered.length === 1) {
       return { data: filtered[0], error: null };
@@ -142,11 +148,16 @@ class QueryBuilder<T extends Record<string, unknown>> {
   }
 
   then<TResult1 = QueryResult<T>, TResult2 = never>(
-    onfulfilled?: ((value: QueryResult<T>) => TResult1 | PromiseLike<TResult1>) | null,
+    onfulfilled?:
+      | ((value: QueryResult<T>) => TResult1 | PromiseLike<TResult1>)
+      | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResult1 | TResult2> {
     const promise = Promise.resolve(this.buildResult());
-    return promise.then(onfulfilled ?? (value => value as unknown as TResult1), onrejected ?? undefined);
+    return promise.then(
+      onfulfilled ?? ((value) => value as unknown as TResult1),
+      onrejected ?? undefined,
+    );
   }
 }
 
@@ -199,10 +210,14 @@ export function __setAnalyticsDataStubState(
     state.payments = partial.payments.map((row) => clone(row));
   }
   if (partial.userSubscriptions) {
-    state.userSubscriptions = partial.userSubscriptions.map((row) => clone(row));
+    state.userSubscriptions = partial.userSubscriptions.map((row) =>
+      clone(row)
+    );
   }
   if (partial.subscriptionPlans) {
-    state.subscriptionPlans = partial.subscriptionPlans.map((row) => clone(row));
+    state.subscriptionPlans = partial.subscriptionPlans.map((row) =>
+      clone(row)
+    );
   }
   if (partial.botUsers) {
     state.botUsers = partial.botUsers.map((row) => clone(row));

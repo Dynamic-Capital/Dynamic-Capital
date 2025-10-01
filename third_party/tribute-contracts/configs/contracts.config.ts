@@ -1,22 +1,22 @@
 import {
-  daoAccessFlagsMap,
+  ACLBuilder,
   bankExtensionAclFlagsMap,
-  erc721ExtensionAclFlagsMap,
-  erc1155ExtensionAclFlagsMap,
-  erc1271ExtensionAclFlagsMap,
-  vestingExtensionAclFlagsMap,
+  daoAccessFlagsMap,
   entryBank,
-  entryERC20,
-  entryERC721,
   entryERC1155,
   entryERC1271,
+  entryERC20,
+  entryERC721,
   entryExecutor,
   entryVesting,
-  ACLBuilder,
+  erc1155ExtensionAclFlagsMap,
+  erc1271ExtensionAclFlagsMap,
+  erc721ExtensionAclFlagsMap,
   SelectedACLs,
+  vestingExtensionAclFlagsMap,
 } from "../utils/access-control-util";
 
-import { extensionsIdsMap, adaptersIdsMap } from "../utils/dao-ids-util";
+import { adaptersIdsMap, extensionsIdsMap } from "../utils/dao-ids-util";
 import { governanceRoles } from "../utils/governance-util";
 
 // Matches the DaoArtifacts.sol ArtifactType enum
@@ -339,7 +339,8 @@ export const contracts: Array<ContractConfig> = [
     id: "vesting-extension-factory",
     name: "InternalTokenVestingExtensionFactory",
     alias: "vestingExtFactory",
-    path: "../../contracts/extensions/token/erc20/InternalTokenVestingExtensionFactory",
+    path:
+      "../../contracts/extensions/token/erc20/InternalTokenVestingExtensionFactory",
     enabled: true,
     version: "1.0.0",
     type: ContractType.Factory,
@@ -449,7 +450,8 @@ export const contracts: Array<ContractConfig> = [
     id: extensionsIdsMap.VESTING_EXT,
     name: "InternalTokenVestingExtension",
     alias: "vestingExt",
-    path: "../../contracts/extensions/token/erc20/InternalTokenVestingExtension",
+    path:
+      "../../contracts/extensions/token/erc20/InternalTokenVestingExtension",
     enabled: true,
     version: "1.0.0",
     type: ContractType.Extension,
@@ -541,7 +543,7 @@ export const contracts: Array<ContractConfig> = [
       [
         "daoAddress",
         "erc20TokenName",
-        "erc20TokenSymbol"
+        "erc20TokenSymbol",
       ],
     ],
   },
@@ -631,7 +633,7 @@ export const contracts: Array<ContractConfig> = [
     daoConfigs: [
       [
         "daoAddress",
-        "managerSignerAddress"
+        "managerSignerAddress",
       ],
     ],
   },
@@ -942,7 +944,7 @@ export const contracts: Array<ContractConfig> = [
       [
         "daoAddress",
         "couponCreatorAddress",
-        "unitTokenToMint"
+        "unitTokenToMint",
       ],
     ],
   },
@@ -962,7 +964,7 @@ export const contracts: Array<ContractConfig> = [
       //config to mint coupons
       [
         "daoAddress",
-        "couponCreatorAddress"
+        "couponCreatorAddress",
       ],
     ],
   },

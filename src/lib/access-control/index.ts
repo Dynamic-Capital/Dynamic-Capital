@@ -74,7 +74,10 @@ function resolveContextValue(
     if (
       typeof current === "object" &&
       current !== null &&
-      Object.prototype.hasOwnProperty.call(current as Record<string, unknown>, part)
+      Object.prototype.hasOwnProperty.call(
+        current as Record<string, unknown>,
+        part,
+      )
     ) {
       current = (current as Record<string, unknown>)[part];
     } else {
@@ -274,10 +277,12 @@ export class AccessRule {
     this.resources = normalizeStringArray(init.resources, "resource");
     this.roles = normalizeStringArray(init.roles, "role");
     const conditions = init.conditions
-      ? Array.from(init.conditions, (condition) =>
-        condition instanceof AccessCondition
-          ? condition
-          : new AccessCondition(condition)
+      ? Array.from(
+        init.conditions,
+        (condition) =>
+          condition instanceof AccessCondition
+            ? condition
+            : new AccessCondition(condition),
       )
       : [];
     this.conditions = Object.freeze(conditions);

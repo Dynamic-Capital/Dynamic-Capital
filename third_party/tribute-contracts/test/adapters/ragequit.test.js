@@ -96,7 +96,7 @@ describe("Adapter - Ragequit", () => {
       newMember,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //Check Guild Bank Balance
@@ -118,8 +118,8 @@ describe("Adapter - Ragequit", () => {
         {
           from: nonMember,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("insufficient units");
   });
 
@@ -138,7 +138,7 @@ describe("Adapter - Ragequit", () => {
       newMember,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //Check Guild Bank Balance
@@ -159,8 +159,8 @@ describe("Adapter - Ragequit", () => {
         {
           from: newMember,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("insufficient units");
   });
 
@@ -179,7 +179,7 @@ describe("Adapter - Ragequit", () => {
       newMember,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //Check Guild Bank Balance
@@ -199,7 +199,7 @@ describe("Adapter - Ragequit", () => {
       {
         from: newMember,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     //Check Guild Bank Balance
@@ -224,7 +224,7 @@ describe("Adapter - Ragequit", () => {
       newMember,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //Check Guild Bank Balance
@@ -245,7 +245,7 @@ describe("Adapter - Ragequit", () => {
       ETH_TOKEN,
       requestedAmount,
       fromUtf8(""),
-      { from: owner }
+      { from: owner },
     );
 
     //New Member votes YES on the Financing proposal
@@ -264,7 +264,7 @@ describe("Adapter - Ragequit", () => {
       {
         from: newMember,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     //Check Guild Bank Balance
@@ -289,7 +289,7 @@ describe("Adapter - Ragequit", () => {
       newMember,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //Check Guild Bank Balance
@@ -310,7 +310,7 @@ describe("Adapter - Ragequit", () => {
       ETH_TOKEN,
       requestedAmount,
       fromUtf8(""),
-      { from: owner }
+      { from: owner },
     );
 
     //New Member votes NO on the Financing proposal
@@ -329,7 +329,7 @@ describe("Adapter - Ragequit", () => {
       {
         from: newMember,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     //Check Guild Bank Balance
@@ -390,7 +390,7 @@ describe("Adapter - Ragequit", () => {
       {
         from: owner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // Vote on the new proposal to accept the new Advisor
@@ -424,7 +424,7 @@ describe("Adapter - Ragequit", () => {
       {
         from: advisorAccount,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     //Check Guild Bank Balance
@@ -447,7 +447,7 @@ describe("Adapter - Ragequit", () => {
       memberAddr,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //Check Guild Bank Balance
@@ -467,7 +467,7 @@ describe("Adapter - Ragequit", () => {
       {
         from: memberAddr,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     //Member attempts to sponsor a proposal after the ragequit
@@ -481,15 +481,15 @@ describe("Adapter - Ragequit", () => {
         memberAddr,
         memberAddr,
         unitPrice,
-        UNITS
-      )
+        UNITS,
+      ),
     ).to.be.revertedWith("onlyMember");
 
     await expect(
       voting.submitVote(this.dao.address, proposalId, 1, {
         from: memberAddr,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -511,8 +511,8 @@ describe("Adapter - Ragequit", () => {
         {
           from: owner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("token not allowed");
   });
 
@@ -531,7 +531,7 @@ describe("Adapter - Ragequit", () => {
       newMember,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //Check Guild Bank Balance
@@ -551,8 +551,8 @@ describe("Adapter - Ragequit", () => {
         {
           from: newMember,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("duplicate token");
   });
 
@@ -571,7 +571,7 @@ describe("Adapter - Ragequit", () => {
       memberA,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     const memberAUnits = await bank.balanceOf(memberA, UNITS);
@@ -585,7 +585,7 @@ describe("Adapter - Ragequit", () => {
       {
         from: memberA,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     expect((await bank.balanceOf(memberA, UNITS)).toString()).equal("0");
@@ -599,7 +599,7 @@ describe("Adapter - Ragequit", () => {
         from: owner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -612,7 +612,7 @@ describe("Adapter - Ragequit", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -633,7 +633,7 @@ describe("Adapter - Ragequit", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     const memberUnits = await bank.balanceOf(newMember, UNITS);
@@ -648,7 +648,7 @@ describe("Adapter - Ragequit", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     await this.adapters.ragequit.ragequit(
@@ -659,7 +659,7 @@ describe("Adapter - Ragequit", () => {
       {
         from: memberToKick,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     expect((await bank.balanceOf(memberToKick, UNITS)).toString()).equal("0");
@@ -682,7 +682,7 @@ describe("Adapter - Ragequit", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     const memberUnits = await bank.balanceOf(newMember, UNITS);
@@ -697,7 +697,7 @@ describe("Adapter - Ragequit", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     const burnUnits = toBN(50000);
@@ -709,11 +709,11 @@ describe("Adapter - Ragequit", () => {
       {
         from: memberToKick,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     expect(await bank.balanceOf(memberToKick, UNITS)).to.be.equal(
-      memberUnits.sub(burnUnits)
+      memberUnits.sub(burnUnits),
     );
   });
 
@@ -734,7 +734,7 @@ describe("Adapter - Ragequit", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     const memberUnits = await bank.balanceOf(newMember, UNITS);
@@ -749,7 +749,7 @@ describe("Adapter - Ragequit", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     const burnUnits = toBN(50000);
@@ -761,24 +761,24 @@ describe("Adapter - Ragequit", () => {
       {
         from: memberToKick,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     expect(await bank.balanceOf(memberToKick, UNITS)).to.be.equal(
-      memberUnits.sub(burnUnits)
+      memberUnits.sub(burnUnits),
     );
 
     const { erc20Ext } = this.extensions;
     const erc20 = new Contract(
       erc20Ext.address,
       erc20Ext.abi,
-      await hre.ethers.getSigner(newMember)
+      await hre.ethers.getSigner(newMember),
     );
 
     // After the partial ragequit the member must be in jail
     // so moving the funds are not allowed
     await expect(
-      erc20.transfer(owner, 1, { from: memberToKick })
+      erc20.transfer(owner, 1, { from: memberToKick }),
     ).to.be.revertedWith("no transfer from jail");
   });
 });

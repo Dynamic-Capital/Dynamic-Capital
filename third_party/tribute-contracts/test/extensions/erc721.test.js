@@ -85,7 +85,7 @@ describe("Extension - ERC721", () => {
   describe("Factory", async () => {
     it("should be possible to create an extension using the factory", async () => {
       const { logs } = await this.factories.erc721ExtFactory.create(
-        this.dao.address
+        this.dao.address,
       );
       const log = logs[0];
       expect(log.event).to.be.equal("NFTCollectionCreated");
@@ -95,17 +95,17 @@ describe("Extension - ERC721", () => {
 
     it("should be possible to get an extension address by dao", async () => {
       await this.factories.erc721ExtFactory.create(this.dao.address);
-      const extAddress =
-        await this.factories.erc721ExtFactory.getExtensionAddress(
-          this.dao.address
+      const extAddress = await this.factories.erc721ExtFactory
+        .getExtensionAddress(
+          this.dao.address,
         );
       expect(extAddress).to.not.be.equal(ZERO_ADDRESS);
     });
 
     it("should return zero address if there is no extension address by dao", async () => {
       const daoAddress = accounts[2];
-      const extAddress =
-        await this.factories.erc721ExtFactory.getExtensionAddress(daoAddress);
+      const extAddress = await this.factories.erc721ExtFactory
+        .getExtensionAddress(daoAddress);
       expect(extAddress).to.be.equal(ZERO_ADDRESS);
     });
 
@@ -119,7 +119,7 @@ describe("Extension - ERC721", () => {
     it("should not be possible to call initialize more than once", async () => {
       const extension = this.extensions.erc721Ext;
       await expect(
-        extension.initialize(this.dao.address, daoOwner)
+        extension.initialize(this.dao.address, daoOwner),
       ).to.be.revertedWith("already initialized");
     });
 
@@ -137,8 +137,8 @@ describe("Extension - ERC721", () => {
           this.dao.address,
           accounts[1],
           pixelNFT.address,
-          1
-        )
+          1,
+        ),
       ).to.be.revertedWith("erc721::accessDenied");
     });
 
@@ -146,7 +146,7 @@ describe("Extension - ERC721", () => {
       const nftExtension = this.extensions.erc721Ext;
       const pixelNFT = this.testContracts.pixelNFT;
       await expect(
-        nftExtension.collect(this.dao.address, pixelNFT.address, 1)
+        nftExtension.collect(this.dao.address, pixelNFT.address, 1),
       ).to.be.revertedWith("erc721::accessDenied");
     });
 
@@ -158,8 +158,8 @@ describe("Extension - ERC721", () => {
           this.dao.address,
           pixelNFT.address,
           1,
-          creator
-        )
+          creator,
+        ),
       ).to.be.revertedWith("erc721::accessDenied");
     });
   });
@@ -202,7 +202,7 @@ describe("Extension - ERC721", () => {
       encodeDaoInfo(dao.address),
       {
         from: nftOwner,
-      }
+      },
     );
 
     // Make sure it was collected in the NFT Extension
@@ -238,7 +238,7 @@ describe("Extension - ERC721", () => {
       tokenId,
       {
         from: nftOwner,
-      }
+      },
     );
 
     // The NFT was sent via transferFrom, so we need to manually update the metadata
@@ -280,7 +280,7 @@ describe("Extension - ERC721", () => {
       encodeDaoInfo(this.dao.address),
       {
         from: nftOwner,
-      }
+      },
     );
 
     // The NFT belongs to the GUILD after it is collected via ERC721 Extension
@@ -291,12 +291,12 @@ describe("Extension - ERC721", () => {
       this.dao.address,
       anotherOwner,
       pixelNFT.address,
-      tokenId
+      tokenId,
     );
 
     // The NFT belongs to the AnotherOwner address after the internal transfer
     expect(await nftExtension.getNFTOwner(pixelNFT.address, tokenId)).equal(
-      anotherOwner
+      anotherOwner,
     );
 
     // The actual owner of the NFT is the ERC721 Extension
@@ -324,7 +324,7 @@ describe("Extension - ERC721", () => {
       encodeDaoInfo(this.dao.address),
       {
         from: nftOwner,
-      }
+      },
     );
 
     // The NFT belongs to the GUILD after it is collected via ERC721 Extension
@@ -335,19 +335,19 @@ describe("Extension - ERC721", () => {
       this.dao.address,
       anotherOwner,
       pixelNFT.address,
-      tokenId
+      tokenId,
     );
 
     // The NFT belongs to the AnotherOwner address after the internal transfer
     expect(await nftExtension.getNFTOwner(pixelNFT.address, tokenId)).equal(
-      anotherOwner
+      anotherOwner,
     );
 
     await erc721TestAdapter.withdraw(
       this.dao.address,
       pixelNFT.address,
       tokenId,
-      { from: anotherOwner }
+      { from: anotherOwner },
     );
 
     // After the withdraw the actual owner of the NFT is the AnotherOwner address
@@ -357,7 +357,7 @@ describe("Extension - ERC721", () => {
     await expect(nftExtension.getNFTAddress(0)).to.be.reverted;
     await expect(nftExtension.getNFT(pixelNFT.address, 0)).to.be.reverted;
     expect(
-      await nftExtension.getNFTOwner(pixelNFT.address, tokenId)
+      await nftExtension.getNFTOwner(pixelNFT.address, tokenId),
     ).to.be.equal(ZERO_ADDRESS);
   });
 
@@ -403,7 +403,7 @@ describe("Extension - ERC721", () => {
       encodeDaoInfo(this.dao.address),
       {
         from: jailedNftOwner,
-      }
+      },
     );
 
     await onboardingNewMember(
@@ -414,7 +414,7 @@ describe("Extension - ERC721", () => {
       jailedNftOwner,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Move the NFT to the jailedNftOwner account before the Guild Kick starts
@@ -423,7 +423,7 @@ describe("Extension - ERC721", () => {
       jailedNftOwner,
       pixelNFT.address,
       tokenId,
-      { from: daoOwner }
+      { from: daoOwner },
     );
 
     // Start a new kick proposal
@@ -435,7 +435,7 @@ describe("Extension - ERC721", () => {
       guildkickContract,
       memberToKick,
       daoOwner,
-      kickProposalId
+      kickProposalId,
     );
 
     // Jailed member attempts to move the NFT again, but now it should not be possible
@@ -445,8 +445,8 @@ describe("Extension - ERC721", () => {
         daoOwner,
         pixelNFT.address,
         tokenId,
-        { from: jailedNftOwner }
-      )
+        { from: jailedNftOwner },
+      ),
     ).to.be.revertedWith("member is jailed");
   });
 
@@ -472,7 +472,7 @@ describe("Extension - ERC721", () => {
       encodeDaoInfo(this.dao.address),
       {
         from: jailedNftOwner,
-      }
+      },
     );
 
     await onboardingNewMember(
@@ -483,7 +483,7 @@ describe("Extension - ERC721", () => {
       jailedNftOwner,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Move the NFT to the jailedNftOwner account before the Guild Kick starts
@@ -492,7 +492,7 @@ describe("Extension - ERC721", () => {
       jailedNftOwner,
       pixelNFT.address,
       tokenId,
-      { from: daoOwner }
+      { from: daoOwner },
     );
 
     // Start a new kick proposal
@@ -504,14 +504,14 @@ describe("Extension - ERC721", () => {
       guildkickContract,
       memberToKick,
       daoOwner,
-      kickProposalId
+      kickProposalId,
     );
 
     await erc721TestAdapter.withdraw(
       this.dao.address,
       pixelNFT.address,
       tokenId,
-      { from: jailedNftOwner }
+      { from: jailedNftOwner },
     );
 
     // After the withdraw the actual owner of the NFT is the jailedNftOwner address
@@ -521,7 +521,7 @@ describe("Extension - ERC721", () => {
     await expect(nftExtension.getNFTAddress(0)).to.be.reverted;
     await expect(nftExtension.getNFT(pixelNFT.address, 0)).to.be.reverted;
     expect(
-      await nftExtension.getNFTOwner(pixelNFT.address, tokenId)
+      await nftExtension.getNFTOwner(pixelNFT.address, tokenId),
     ).to.be.equal(ZERO_ADDRESS);
   });
 
@@ -529,7 +529,7 @@ describe("Extension - ERC721", () => {
     const nftExtension = this.extensions.erc721Ext;
     const pixelNFT = this.testContracts.pixelNFT;
     await expect(nftExtension.getNFT(pixelNFT.address, 0)).to.be.revertedWith(
-      "revert"
+      "revert",
     );
   });
 
@@ -546,7 +546,7 @@ describe("Extension - ERC721", () => {
     expect(firstOwner).equal(nftOwner);
 
     await expect(
-      nftExtension.updateCollection(pixelNFT.address, tokenId)
+      nftExtension.updateCollection(pixelNFT.address, tokenId),
     ).to.be.revertedWith("update not allowed");
   });
 
@@ -568,7 +568,7 @@ describe("Extension - ERC721", () => {
       tokenId,
       {
         from: nftOwner,
-      }
+      },
     );
 
     // The actual holder of the NFT is the ERC721 Extension
@@ -578,7 +578,7 @@ describe("Extension - ERC721", () => {
     await expect(nftExtension.getNFTAddress(0)).to.be.reverted;
     await expect(nftExtension.getNFT(pixelNFT.address, 0)).to.be.reverted;
     expect(
-      await nftExtension.getNFTOwner(pixelNFT.address, tokenId)
+      await nftExtension.getNFTOwner(pixelNFT.address, tokenId),
     ).to.be.equal(ZERO_ADDRESS);
   });
 
@@ -601,22 +601,22 @@ describe("Extension - ERC721", () => {
       tokenId,
       {
         from: nftOwner,
-      }
+      },
     );
 
     await erc721TestAdapter.collect(
       this.dao.address,
       pixelNFT.address,
-      tokenId
+      tokenId,
     );
 
     expect(await pixelNFT.ownerOf(tokenId)).equal(nftExtension.address);
     expect(await nftExtension.getNFTAddress(0)).to.be.equal(pixelNFT.address);
     expect(
-      (await nftExtension.getNFT(pixelNFT.address, 0)).toString()
+      (await nftExtension.getNFT(pixelNFT.address, 0)).toString(),
     ).to.be.equal(tokenId.toString());
     expect(
-      (await nftExtension.getNFTOwner(pixelNFT.address, tokenId)).toLowerCase()
+      (await nftExtension.getNFTOwner(pixelNFT.address, tokenId)).toLowerCase(),
     ).to.be.equal(GUILD);
   });
 
@@ -628,7 +628,7 @@ describe("Extension - ERC721", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -641,7 +641,7 @@ describe("Extension - ERC721", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

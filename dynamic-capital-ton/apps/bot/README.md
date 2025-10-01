@@ -1,6 +1,7 @@
 # Dynamic Capital Telegram Bot
 
-A minimal Telegraf bot that welcomes users and links them to the Dynamic Capital mini app.
+A minimal Telegraf bot that welcomes users and links them to the Dynamic Capital
+mini app.
 
 ## Environment variables
 

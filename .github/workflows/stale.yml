@@ -2,7 +2,7 @@ name: Close Stale Pull Requests
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch:
 
 permissions:
@@ -25,4 +25,4 @@ jobs:
           days-before-pr-close: 7
           operations-per-run: 200
           remove-stale-when-updated: true
-          exempt-pr-labels: 'automerge-candidate'
+          exempt-pr-labels: "automerge-candidate"

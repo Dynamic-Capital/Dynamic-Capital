@@ -26,10 +26,10 @@ standard jetton template with the following extensions:
 5. Emit governance messages for front-ends and off-chain indexers when actions
    are scheduled/executed.
 
-Refer to `config.yaml` for the default deployment parameters. The pool
-allocator (`../pool_allocator.tact`) expects the timelocked router and treasury
-addresses exposed by the master contract, so deploy it alongside the jetton and
-reuse the same multisig administrator when configuring the vault.
+Refer to `config.yaml` for the default deployment parameters. The pool allocator
+(`../pool_allocator.tact`) expects the timelocked router and treasury addresses
+exposed by the master contract, so deploy it alongside the jetton and reuse the
+same multisig administrator when configuring the vault.
 
 ## Metadata
 

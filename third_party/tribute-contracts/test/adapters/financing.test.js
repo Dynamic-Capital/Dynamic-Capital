@@ -101,7 +101,7 @@ describe("Adapter - Financing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(this.dao.address, proposalId, 1, {
@@ -114,7 +114,7 @@ describe("Adapter - Financing", () => {
         from: daoOwner,
         value: unitPrice.mul(toBN(10)).add(remaining),
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal has not been voted on yet");
 
     await advanceTime(10000);
@@ -137,7 +137,7 @@ describe("Adapter - Financing", () => {
       ETH_TOKEN,
       requestedAmount,
       fromUtf8(""),
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     //Member votes on the Financing proposal
@@ -161,7 +161,7 @@ describe("Adapter - Financing", () => {
       bank,
       GUILD,
       ETH_TOKEN,
-      expectedGuildBalance.sub(requestedAmount)
+      expectedGuildBalance.sub(requestedAmount),
     );
     //Check the applicant token balance to make sure the funds are available in the bank for the applicant account
     await checkBalance(bank, applicant, ETH_TOKEN, requestedAmount);
@@ -174,7 +174,7 @@ describe("Adapter - Financing", () => {
     await checkBalance(bank, applicant, ETH_TOKEN, 0);
     const ethBalance2 = await getBalance(applicant);
     expect(ethBalance.add(requestedAmount).toString()).equal(
-      ethBalance2.toString()
+      ethBalance2.toString(),
     );
   });
 
@@ -195,7 +195,7 @@ describe("Adapter - Financing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(this.dao.address, proposalId, 1, {
@@ -223,7 +223,7 @@ describe("Adapter - Financing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     //Member votes on the Financing proposal
@@ -238,7 +238,7 @@ describe("Adapter - Financing", () => {
       financing.processProposal(this.dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal needs to pass");
   });
 
@@ -259,7 +259,7 @@ describe("Adapter - Financing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(this.dao.address, proposalId, 1, {
@@ -285,8 +285,8 @@ describe("Adapter - Financing", () => {
         applicant,
         invalidToken,
         requestedAmount,
-        fromUtf8("")
-      )
+        fromUtf8(""),
+      ),
     ).to.be.revertedWith("token not allowed");
   });
 
@@ -307,7 +307,7 @@ describe("Adapter - Financing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(this.dao.address, proposalId, 1, {
@@ -332,8 +332,8 @@ describe("Adapter - Financing", () => {
         applicant,
         ETH_TOKEN,
         requestedAmount,
-        fromUtf8("")
-      )
+        fromUtf8(""),
+      ),
     ).to.be.revertedWith("invalid requested amount");
   });
 
@@ -348,8 +348,8 @@ describe("Adapter - Financing", () => {
         applicant,
         ETH_TOKEN,
         toBN(10),
-        fromUtf8("")
-      )
+        fromUtf8(""),
+      ),
     ).to.be.revertedWith("invalid proposalId");
   });
 
@@ -370,7 +370,7 @@ describe("Adapter - Financing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     let reusedProposalId = proposalId;
@@ -381,8 +381,8 @@ describe("Adapter - Financing", () => {
         applicant,
         ETH_TOKEN,
         toBN(50000),
-        fromUtf8("")
-      )
+        fromUtf8(""),
+      ),
     ).to.be.revertedWith("proposalId must be unique");
   });
 
@@ -392,7 +392,7 @@ describe("Adapter - Financing", () => {
       this.adapters.financing.processProposal(this.dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("adapter not found");
   });
 
@@ -404,7 +404,7 @@ describe("Adapter - Financing", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -417,7 +417,7 @@ describe("Adapter - Financing", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

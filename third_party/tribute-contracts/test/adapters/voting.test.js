@@ -94,7 +94,7 @@ describe("Adapter - Voting", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -124,7 +124,7 @@ describe("Adapter - Voting", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -136,7 +136,7 @@ describe("Adapter - Voting", () => {
       voting.submitVote(dao.address, proposalId, 2, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("member has already voted");
   });
 
@@ -158,14 +158,14 @@ describe("Adapter - Voting", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await expect(
       voting.submitVote(dao.address, proposalId, 1, {
         from: account3,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -188,7 +188,7 @@ describe("Adapter - Voting", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await daoRegistryAdapter.updateDelegateKey(dao.address, account3, {
@@ -214,7 +214,7 @@ describe("Adapter - Voting", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -227,7 +227,7 @@ describe("Adapter - Voting", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -251,8 +251,8 @@ describe("Adapter - Voting", () => {
     const configKey = sha3(
       web3.utils.encodePacked(
         "governance.role.",
-        utils.getAddress(configuration.address)
-      )
+        utils.getAddress(configuration.address),
+      ),
     );
 
     // Make sure the governance token configuration was created
@@ -268,7 +268,7 @@ describe("Adapter - Voting", () => {
       maintainer,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     const key = sha3("key");
@@ -287,7 +287,7 @@ describe("Adapter - Voting", () => {
         },
       ],
       [],
-      { from: maintainer, gasPrice: toBN("0") }
+      { from: maintainer, gasPrice: toBN("0") },
     );
 
     let value = await dao.getConfiguration(key);
@@ -322,8 +322,8 @@ describe("Adapter - Voting", () => {
     const configKey = sha3(
       web3.utils.encodePacked(
         "governance.role.",
-        utils.getAddress(configuration.address)
-      )
+        utils.getAddress(configuration.address),
+      ),
     );
 
     // Make sure the governance token configuration was created
@@ -339,7 +339,7 @@ describe("Adapter - Voting", () => {
       maintainer,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     const key = sha3("key");
@@ -358,7 +358,7 @@ describe("Adapter - Voting", () => {
         },
       ],
       [],
-      { from: maintainer, gasPrice: toBN("0") }
+      { from: maintainer, gasPrice: toBN("0") },
     );
 
     let value = await dao.getConfiguration(key);
@@ -407,7 +407,7 @@ describe("Adapter - Voting", () => {
       maintainer,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     const key = sha3("key");
@@ -426,7 +426,7 @@ describe("Adapter - Voting", () => {
         },
       ],
       [],
-      { from: maintainer, gasPrice: toBN("0") }
+      { from: maintainer, gasPrice: toBN("0") },
     );
 
     let value = await dao.getConfiguration(key);
@@ -484,7 +484,7 @@ describe("Adapter - Voting", () => {
       maintainer,
       daoOwner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     const key = sha3("key");
@@ -503,7 +503,7 @@ describe("Adapter - Voting", () => {
         },
       ],
       [],
-      { from: maintainer, gasPrice: toBN("0") }
+      { from: maintainer, gasPrice: toBN("0") },
     );
 
     let value = await dao.getConfiguration(key);
@@ -547,8 +547,8 @@ describe("Adapter - Voting", () => {
     const configKey = sha3(
       web3.utils.encodePacked(
         "governance.role.",
-        utils.getAddress(configuration.address)
-      )
+        utils.getAddress(configuration.address),
+      ),
     );
 
     // Make sure the governance token configuration was created
@@ -572,8 +572,8 @@ describe("Adapter - Voting", () => {
           },
         ],
         [],
-        { from: maintainer, gasPrice: toBN("0") }
-      )
+        { from: maintainer, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -594,8 +594,8 @@ describe("Adapter - Voting", () => {
     const configKey = sha3(
       web3.utils.encodePacked(
         "governance.role.",
-        utils.getAddress(configuration.address)
-      )
+        utils.getAddress(configuration.address),
+      ),
     );
 
     // Make sure the governance token configuration was created
@@ -622,7 +622,7 @@ describe("Adapter - Voting", () => {
       {
         from: daoOwner, // The DAO Owner is not a maintainer because does not hold any OLT Tokens
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     let value = await dao.getConfiguration(key);
@@ -635,7 +635,7 @@ describe("Adapter - Voting", () => {
       voting.submitVote(dao.address, proposalId, 1, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("vote not allowed");
   });
 
@@ -658,8 +658,8 @@ describe("Adapter - Voting", () => {
     const configKey = sha3(
       web3.utils.encodePacked(
         "governance.role.",
-        utils.getAddress(configuration.address)
-      )
+        utils.getAddress(configuration.address),
+      ),
     );
 
     // Make sure the governance token configuration was created
@@ -686,7 +686,7 @@ describe("Adapter - Voting", () => {
       {
         from: daoOwner, // The DAO Owner is not a maintainer because does not hold any OLT Tokens
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     let value = await dao.getConfiguration(key);
@@ -699,7 +699,7 @@ describe("Adapter - Voting", () => {
       voting.submitVote(dao.address, proposalId, 1, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("getPriorAmount not implemented");
   });
 });

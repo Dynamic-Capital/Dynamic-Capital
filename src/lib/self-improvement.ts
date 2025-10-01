@@ -20,8 +20,7 @@ export interface SelfImprovementInputs {
 export interface SelfImprovementCycle
   extends Omit<SelfImprovementInputs, "currentState"> {}
 
-const FINITE_ERROR_MESSAGE =
-  "Self-improvement inputs must be finite numbers.";
+const FINITE_ERROR_MESSAGE = "Self-improvement inputs must be finite numbers.";
 
 /**
  * Computes the next self state using the self-improvement recurrence:

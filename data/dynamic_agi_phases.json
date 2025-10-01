@@ -39,7 +39,11 @@
       "minimum_maturity": 0.5,
       "target_maturity": 0.88,
       "dependencies": ["phase3"],
-      "practices": ["shared_workspaces", "automated_standups", "blocker_tracking"]
+      "practices": [
+        "shared_workspaces",
+        "automated_standups",
+        "blocker_tracking"
+      ]
     },
     {
       "key": "phase5",
@@ -49,7 +53,11 @@
       "minimum_maturity": 0.48,
       "target_maturity": 0.83,
       "dependencies": ["phase4"],
-      "practices": ["telemetry_dashboards", "alert_thresholds", "sentiment_digests"]
+      "practices": [
+        "telemetry_dashboards",
+        "alert_thresholds",
+        "sentiment_digests"
+      ]
     },
     {
       "key": "phase6",
@@ -59,7 +67,11 @@
       "minimum_maturity": 0.46,
       "target_maturity": 0.84,
       "dependencies": ["phase5"],
-      "practices": ["scenario_modeling", "capacity_reallocation", "mitigation_playbooks"]
+      "practices": [
+        "scenario_modeling",
+        "capacity_reallocation",
+        "mitigation_playbooks"
+      ]
     },
     {
       "key": "phase7",
@@ -89,7 +101,11 @@
       "minimum_maturity": 0.44,
       "target_maturity": 0.82,
       "dependencies": ["phase8"],
-      "practices": ["lifecycle_campaigns", "referral_automation", "community_programs"]
+      "practices": [
+        "lifecycle_campaigns",
+        "referral_automation",
+        "community_programs"
+      ]
     },
     {
       "key": "phase10",
@@ -99,7 +115,11 @@
       "minimum_maturity": 0.46,
       "target_maturity": 0.84,
       "dependencies": ["phase9"],
-      "practices": ["retrospective_reports", "knowledge_graph", "playbook_updates"]
+      "practices": [
+        "retrospective_reports",
+        "knowledge_graph",
+        "playbook_updates"
+      ]
     }
   ],
   "pulses": [

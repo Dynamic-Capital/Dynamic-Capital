@@ -1,6 +1,7 @@
 # Forgetting Curve
 
-**Modules:** `dynamic_memory`, `dynamic_implicit_memory`, `dynamic_memory_reconsolidation`
+**Modules:** `dynamic_memory`, `dynamic_implicit_memory`,
+`dynamic_memory_reconsolidation`
 
 ## Overview
 

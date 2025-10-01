@@ -86,7 +86,7 @@ describe("Adapter - Coupon Burn", () => {
     const bank = this.extensions.bankExt;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-onboarding.signerAddress")
+      sha3("coupon-onboarding.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -110,7 +110,7 @@ describe("Adapter - Coupon Burn", () => {
       couponData,
       dao.address,
       couponBurn.address,
-      chainId
+      chainId,
     );
     let solHash = await couponBurn.hashCouponMessage(dao.address, couponData);
     expect(jsHash).equal(solHash);
@@ -119,14 +119,14 @@ describe("Adapter - Coupon Burn", () => {
       couponData,
       dao.address,
       couponBurn.address,
-      chainId
+      chainId,
     );
 
     var signatureOnboarding = signerUtil(
       couponData2,
       dao.address,
       this.adapters.couponOnboarding.address,
-      chainId
+      chainId,
     );
 
     let balance = await bank.balanceOf(otherAccount, UNITS);
@@ -137,7 +137,7 @@ describe("Adapter - Coupon Burn", () => {
       otherAccount,
       15,
       1,
-      signatureOnboarding
+      signatureOnboarding,
     );
 
     balance = await bank.balanceOf(otherAccount, UNITS);
@@ -161,7 +161,7 @@ describe("Adapter - Coupon Burn", () => {
     const bank = this.extensions.bankExt;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-burn.signerAddress")
+      sha3("coupon-burn.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -178,7 +178,7 @@ describe("Adapter - Coupon Burn", () => {
       couponData,
       dao.address,
       couponBurn.address,
-      1
+      1,
     );
 
     var signature = signerUtil(couponData, dao.address, couponBurn.address, 1);
@@ -186,7 +186,7 @@ describe("Adapter - Coupon Burn", () => {
     const isValid = await couponBurn.isValidSignature(
       signer.address,
       jsHash,
-      signature
+      signature,
     );
 
     expect(isValid).equal(true);
@@ -195,7 +195,7 @@ describe("Adapter - Coupon Burn", () => {
     expect(balance.toString()).equal("0");
 
     await expect(
-      couponBurn.redeemCoupon(dao.address, otherAccount, 100, 1, signature)
+      couponBurn.redeemCoupon(dao.address, otherAccount, 100, 1, signature),
     ).to.be.revertedWith("invalid sig");
 
     const daoOwnerUnits = await bank.balanceOf(daoOwner, UNITS);
@@ -216,7 +216,7 @@ describe("Adapter - Coupon Burn", () => {
     const bank = this.extensions.bankExt;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-burn.signerAddress")
+      sha3("coupon-burn.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -233,7 +233,7 @@ describe("Adapter - Coupon Burn", () => {
       couponData,
       dao.address,
       couponBurn.address,
-      1
+      1,
     );
 
     var signature = signerUtil(couponData, dao.address, couponBurn.address, 1);
@@ -241,7 +241,7 @@ describe("Adapter - Coupon Burn", () => {
     const isValid = await couponBurn.isValidSignature(
       signer.address,
       jsHash,
-      signature
+      signature,
     );
 
     expect(isValid).equal(true);
@@ -249,7 +249,7 @@ describe("Adapter - Coupon Burn", () => {
     expect(balance.toString()).equal("0");
 
     await expect(
-      couponBurn.redeemCoupon(dao.address, daoOwner, 10, 1, signature)
+      couponBurn.redeemCoupon(dao.address, daoOwner, 10, 1, signature),
     ).to.be.revertedWith("invalid sig");
 
     const daoOwnerUnits = await bank.balanceOf(daoOwner, UNITS);
@@ -269,7 +269,7 @@ describe("Adapter - Coupon Burn", () => {
     const bank = this.extensions.bankExt;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-onboarding.signerAddress")
+      sha3("coupon-onboarding.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -293,7 +293,7 @@ describe("Adapter - Coupon Burn", () => {
       couponData,
       dao.address,
       couponBurn.address,
-      chainId
+      chainId,
     );
     let solHash = await couponBurn.hashCouponMessage(dao.address, couponData);
     expect(jsHash).equal(solHash);
@@ -302,14 +302,14 @@ describe("Adapter - Coupon Burn", () => {
       couponData,
       dao.address,
       couponBurn.address,
-      chainId
+      chainId,
     );
 
     var signatureOnboarding = signerUtil(
       couponData2,
       dao.address,
       this.adapters.couponOnboarding.address,
-      chainId
+      chainId,
     );
 
     let balance = await bank.balanceOf(otherAccount, UNITS);
@@ -320,7 +320,7 @@ describe("Adapter - Coupon Burn", () => {
       otherAccount,
       15,
       1,
-      signatureOnboarding
+      signatureOnboarding,
     );
 
     balance = await bank.balanceOf(otherAccount, UNITS);
@@ -335,7 +335,7 @@ describe("Adapter - Coupon Burn", () => {
     expect(otherAccountUnits.toString()).equal("10");
 
     await expect(
-      couponBurn.redeemCoupon(dao.address, daoOwner, 10, 1, signature)
+      couponBurn.redeemCoupon(dao.address, daoOwner, 10, 1, signature),
     ).to.be.revertedWith("coupon already redeemed");
   });
 
@@ -347,7 +347,7 @@ describe("Adapter - Coupon Burn", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -360,7 +360,7 @@ describe("Adapter - Coupon Burn", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

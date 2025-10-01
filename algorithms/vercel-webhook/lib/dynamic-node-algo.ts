@@ -1,5 +1,5 @@
-export const ORDER_ACTION_BUY = 'BUY';
-export const ORDER_ACTION_SELL = 'SELL';
+export const ORDER_ACTION_BUY = "BUY";
+export const ORDER_ACTION_SELL = "SELL";
 export const SUCCESS_RETCODE = 10009;
 
 export type HedgeSide = string;
@@ -12,8 +12,16 @@ export interface TradeSignalLike {
 export interface TradeConnector {
   buy?(symbol: string, lot: number): MaybePromise<ConnectorExecution>;
   sell?(symbol: string, lot: number): MaybePromise<ConnectorExecution>;
-  openHedge?(symbol: string, lot: number, side: HedgeSide): MaybePromise<ConnectorExecution>;
-  closeHedge?(symbol: string, lot: number, side: HedgeSide): MaybePromise<ConnectorExecution>;
+  openHedge?(
+    symbol: string,
+    lot: number,
+    side: HedgeSide,
+  ): MaybePromise<ConnectorExecution>;
+  closeHedge?(
+    symbol: string,
+    lot: number,
+    side: HedgeSide,
+  ): MaybePromise<ConnectorExecution>;
 }
 
 export interface TradeRequest {
@@ -88,16 +96,24 @@ export class TradeExecutionResult {
       symbol: this.symbol,
       lot: this.lot,
       price: this.price,
-      rawResponse: this.rawResponse
+      rawResponse: this.rawResponse,
     };
   }
 }
 
 class PaperBroker {
-  async execute(action: OrderAction, symbol: string, lot: number): Promise<TradeExecutionResult> {
+  async execute(
+    action: OrderAction,
+    symbol: string,
+    lot: number,
+  ): Promise<TradeExecutionResult> {
     const drift = randomBetween(-1, 1);
     const baseProfit = lot * 100;
-    const multiplier = action === ORDER_ACTION_BUY ? 1 : action === ORDER_ACTION_SELL ? 0.6 : 0.8;
+    const multiplier = action === ORDER_ACTION_BUY
+      ? 1
+      : action === ORDER_ACTION_SELL
+      ? 0.6
+      : 0.8;
     const profit = round2(baseProfit * multiplier + drift);
 
     return new TradeExecutionResult({
@@ -107,15 +123,23 @@ class PaperBroker {
       ticket: randomInt(10_000, 99_999),
       symbol,
       lot,
-      rawResponse: { simulated: true }
+      rawResponse: { simulated: true },
     });
   }
 
-  async openHedge(symbol: string, lot: number, side: HedgeSide): Promise<TradeExecutionResult> {
+  async openHedge(
+    symbol: string,
+    lot: number,
+    side: HedgeSide,
+  ): Promise<TradeExecutionResult> {
     return this.execute(determineHedgeAction(side, false), symbol, lot);
   }
 
-  async closeHedge(symbol: string, lot: number, side: HedgeSide): Promise<TradeExecutionResult> {
+  async closeHedge(
+    symbol: string,
+    lot: number,
+    side: HedgeSide,
+  ): Promise<TradeExecutionResult> {
     return this.execute(determineHedgeAction(side, true), symbol, lot);
   }
 }
@@ -128,7 +152,10 @@ export class DynamicNodeAlgo {
     this.connector = connector ?? new PaperBroker();
   }
 
-  async executeTrade(signal: unknown, request: TradeRequest): Promise<TradeExecutionResult> {
+  async executeTrade(
+    signal: unknown,
+    request: TradeRequest,
+  ): Promise<TradeExecutionResult> {
     const action = this.extractAction(signal);
 
     if (action === ORDER_ACTION_BUY) {
@@ -141,17 +168,19 @@ export class DynamicNodeAlgo {
 
     return new TradeExecutionResult({
       retcode: 0,
-      message: 'No trade executed for neutral signal',
+      message: "No trade executed for neutral signal",
       profit: 0,
       symbol: request.symbol,
-      lot: request.lot
+      lot: request.lot,
     });
   }
 
   async executeHedge(request: HedgeRequest): Promise<TradeExecutionResult> {
     const { symbol, lot, side, close = false } = request;
 
-    return close ? this.closeHedge(symbol, lot, side) : this.openHedge(symbol, lot, side);
+    return close
+      ? this.closeHedge(symbol, lot, side)
+      : this.openHedge(symbol, lot, side);
   }
 
   private async buy(request: TradeRequest): Promise<TradeExecutionResult> {
@@ -184,7 +213,11 @@ export class DynamicNodeAlgo {
     return this.paperExecute(ORDER_ACTION_SELL, symbol, lot);
   }
 
-  private async openHedge(symbol: string, lot: number, side: HedgeSide): Promise<TradeExecutionResult> {
+  private async openHedge(
+    symbol: string,
+    lot: number,
+    side: HedgeSide,
+  ): Promise<TradeExecutionResult> {
     const action = determineHedgeAction(side, false);
 
     if (this.connector.openHedge) {
@@ -199,7 +232,11 @@ export class DynamicNodeAlgo {
     return this.paperExecute(action, symbol, lot);
   }
 
-  private async closeHedge(symbol: string, lot: number, side: HedgeSide): Promise<TradeExecutionResult> {
+  private async closeHedge(
+    symbol: string,
+    lot: number,
+    side: HedgeSide,
+  ): Promise<TradeExecutionResult> {
     const action = determineHedgeAction(side, true);
 
     if (this.connector.closeHedge) {
@@ -214,14 +251,19 @@ export class DynamicNodeAlgo {
     return this.paperExecute(action, symbol, lot);
   }
 
-  private async paperExecute(action: OrderAction, symbol: string, lot: number, error?: unknown): Promise<TradeExecutionResult> {
+  private async paperExecute(
+    action: OrderAction,
+    symbol: string,
+    lot: number,
+    error?: unknown,
+  ): Promise<TradeExecutionResult> {
     const broker = this.getPaperBroker();
     const result = await broker.execute(action, symbol, lot);
 
     if (error) {
       result.rawResponse = {
-        fallback: 'paper',
-        error: errorToString(error)
+        fallback: "paper",
+        error: errorToString(error),
       };
     }
 
@@ -238,14 +280,14 @@ export class DynamicNodeAlgo {
 
   private extractAction(signal: unknown): OrderAction {
     if (!signal) {
-      return 'NEUTRAL';
+      return "NEUTRAL";
     }
 
-    if (typeof signal === 'string') {
+    if (typeof signal === "string") {
       return signal.trim().toUpperCase();
     }
 
-    if (typeof signal === 'object') {
+    if (typeof signal === "object") {
       const maybeAction = (signal as TradeSignalLike).action;
       if (maybeAction !== undefined && maybeAction !== null) {
         return String(maybeAction).trim().toUpperCase();
@@ -259,7 +301,7 @@ export class DynamicNodeAlgo {
     response: ConnectorExecution | TradeExecutionResult | null | undefined,
     symbol: string,
     lot: number,
-    action: OrderAction
+    action: OrderAction,
   ): TradeExecutionResult {
     if (response instanceof TradeExecutionResult) {
       if (!response.symbol) {
@@ -274,18 +316,20 @@ export class DynamicNodeAlgo {
     if (!response) {
       return new TradeExecutionResult({
         retcode: 0,
-        message: 'Trade connector returned no response.',
+        message: "Trade connector returned no response.",
         profit: 0,
         symbol,
         lot,
-        rawResponse: response ?? null
+        rawResponse: response ?? null,
       });
     }
 
-    const retcode = typeof response.retcode === 'number' ? response.retcode : 0;
-    const profit = typeof response.profit === 'number' ? response.profit : 0;
+    const retcode = typeof response.retcode === "number" ? response.retcode : 0;
+    const profit = typeof response.profit === "number" ? response.profit : 0;
     const ticket = firstNumber(response.ticket, response.order);
-    const price = typeof response.price === 'number' ? response.price : undefined;
+    const price = typeof response.price === "number"
+      ? response.price
+      : undefined;
     const message = pickMessage(response, action);
     const payload = new TradeExecutionResult({
       retcode,
@@ -293,9 +337,9 @@ export class DynamicNodeAlgo {
       profit,
       ticket,
       price,
-      symbol: typeof response.symbol === 'string' ? response.symbol : symbol,
-      lot: typeof response.lot === 'number' ? response.lot : lot,
-      rawResponse: response
+      symbol: typeof response.symbol === "string" ? response.symbol : symbol,
+      lot: typeof response.lot === "number" ? response.lot : lot,
+      rawResponse: response,
     });
 
     return payload;
@@ -303,31 +347,38 @@ export class DynamicNodeAlgo {
 }
 
 function determineHedgeAction(side: HedgeSide, closing: boolean): OrderAction {
-  const normalised = String(side ?? '').trim().toUpperCase();
+  const normalised = String(side ?? "").trim().toUpperCase();
 
   if (closing) {
-    return normalised === 'LONG_HEDGE' ? ORDER_ACTION_SELL : ORDER_ACTION_BUY;
+    return normalised === "LONG_HEDGE" ? ORDER_ACTION_SELL : ORDER_ACTION_BUY;
   }
 
-  return normalised === 'LONG_HEDGE' ? ORDER_ACTION_BUY : ORDER_ACTION_SELL;
+  return normalised === "LONG_HEDGE" ? ORDER_ACTION_BUY : ORDER_ACTION_SELL;
 }
 
 function firstNumber(...values: Array<number | undefined>): number | undefined {
   for (const value of values) {
-    if (typeof value === 'number' && Number.isFinite(value)) {
+    if (typeof value === "number" && Number.isFinite(value)) {
       return value;
     }
   }
   return undefined;
 }
 
-function pickMessage(response: ConnectorExecution, action: OrderAction): string {
-  const comment = typeof response.comment === 'string' ? response.comment.trim() : '';
+function pickMessage(
+  response: ConnectorExecution,
+  action: OrderAction,
+): string {
+  const comment = typeof response.comment === "string"
+    ? response.comment.trim()
+    : "";
   if (comment) {
     return comment;
   }
 
-  const message = typeof response.message === 'string' ? response.message.trim() : '';
+  const message = typeof response.message === "string"
+    ? response.message.trim()
+    : "";
   if (message) {
     return message;
   }
@@ -352,7 +403,7 @@ function errorToString(error: unknown): string {
     return error.message;
   }
 
-  if (typeof error === 'string') {
+  if (typeof error === "string") {
     return error;
   }
 

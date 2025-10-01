@@ -53,7 +53,7 @@ function getMessageERC712Hash(m, verifyingContract, actionId, chainId) {
     m,
     verifyingContract,
     actionId,
-    chainId
+    chainId,
   );
   const msgParams = {
     domain,
@@ -77,7 +77,7 @@ function getDomainDefinition(message, verifyingContract, actionId, chainId) {
       return getVoteResultRootDomainDefinition(
         verifyingContract,
         actionId,
-        chainId
+        chainId,
       );
     case "coupon":
       return getCouponDomainDefinition(verifyingContract, actionId, chainId);
@@ -87,7 +87,7 @@ function getDomainDefinition(message, verifyingContract, actionId, chainId) {
       return getCouponDelegateKeyDomainDefinition(
         verifyingContract,
         actionId,
-        chainId
+        chainId,
       );
     case "manager":
       return getManagerDomainDefinition(verifyingContract, actionId, chainId);
@@ -252,7 +252,7 @@ function getDraftDomainDefinition(verifyingContract, actionId, chainId) {
 function getVoteResultRootDomainDefinition(
   verifyingContract,
   actionId,
-  chainId
+  chainId,
 ) {
   const domain = getMessageDomainType(chainId, verifyingContract, actionId);
 
@@ -282,7 +282,7 @@ function getCouponDomainDefinition(verifyingContract, actionId, chainId) {
 function getCouponDelegateKeyDomainDefinition(
   verifyingContract,
   actionId,
-  chainId
+  chainId,
 ) {
   const domain = getMessageDomainType(chainId, verifyingContract, actionId);
 
@@ -318,13 +318,13 @@ function validateMessage(
   verifyingContract,
   actionId,
   chainId,
-  signature
+  signature,
 ) {
   const { domain, types } = getDomainDefinition(
     message,
     verifyingContract,
     actionId,
-    chainId
+    chainId,
   );
 
   const msgParams = {
@@ -348,7 +348,7 @@ function Web3JsSigner(web3, account) {
       message,
       verifyingContract,
       actionId,
-      chainId
+      chainId,
     );
     const msgParams = JSON.stringify({
       domain,
@@ -368,7 +368,7 @@ function Web3JsSigner(web3, account) {
             return reject(err);
           }
           return resolve(result);
-        }
+        },
       );
     });
 
@@ -383,7 +383,7 @@ function Web3Signer(ethers, account) {
       message,
       verifyingContract,
       actionId,
-      chainId
+      chainId,
     );
     const signer = ethers.getSigner(account);
     return signer._signTypedData(domain, types, message);
@@ -401,7 +401,7 @@ function SigUtilSigner(privateKeyStr) {
       message,
       verifyingContract,
       actionId,
-      chainId
+      chainId,
     );
     const msgParams = {
       domain,
@@ -469,7 +469,7 @@ function prepareProposalPayload(payload) {
   });
 }
 /**
-     * {      
+     * {
       nbNo: 1,
       nbYes: 0,
       weight: BN {
@@ -493,7 +493,12 @@ function toStepNode(step, verifyingContract, actionId, chainId, merkleTree) {
     timestamp: step.timestamp,
     proposalId: step.proposalId,
     proof: merkleTree.getHexProof(
-      buildVoteLeafHashForMerkleTree(step, verifyingContract, actionId, chainId)
+      buildVoteLeafHashForMerkleTree(
+        step,
+        verifyingContract,
+        actionId,
+        chainId,
+      ),
     ),
   };
 }
@@ -521,12 +526,12 @@ function buildVoteLeafHashForMerkleTree(
   leaf,
   verifyingContract,
   actionId,
-  chainId
+  chainId,
 ) {
   const { domain, types } = getVoteStepDomainDefinition(
     verifyingContract,
     actionId,
-    chainId
+    chainId,
   );
   const msgParams = {
     domain,
@@ -560,7 +565,7 @@ async function prepareVoteResult(votes, dao, actionId, chainId) {
   const tree = new MerkleTree(
     votes.map((vote) =>
       buildVoteLeafHashForMerkleTree(vote, dao.address, actionId, chainId)
-    )
+    ),
   );
 
   const result = votes.map((vote) =>
@@ -571,7 +576,7 @@ async function prepareVoteResult(votes, dao, actionId, chainId) {
 }
 
 /**
- * 
+ *
  struct ProposalMessage {
         uint256 timestamp;
         bytes32 spaceHash;
@@ -604,7 +609,7 @@ function prepareVoteProposalData(data, web3) {
       payload: prepareVoteProposalPayload(data.payload),
       sig: data.sig || "0x",
       submitter: data.submitter,
-    }
+    },
   );
 }
 

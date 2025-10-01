@@ -5,7 +5,7 @@ const exec = util.promisify(require("child_process").exec);
 
 task(
   "deployTributeERC721",
-  "Task that deploys a TributeERC721 proxy collection and implementation (will reuse existing implementation)"
+  "Task that deploys a TributeERC721 proxy collection and implementation (will reuse existing implementation)",
 )
   .addPositionalParam("daoAddress")
   .setAction(async (taskArgs, hre) => {
@@ -14,7 +14,7 @@ task(
 
     log(`Deployment started at ${new Date().toISOString()}`);
     log(
-      `Deploying TributeERC721 for daoAddress ${daoAddress} to ${network} network`
+      `Deploying TributeERC721 for daoAddress ${daoAddress} to ${network} network`,
     );
 
     const TributeERC721 = await ethers.getContractFactory("TributeERC721");
@@ -24,34 +24,34 @@ task(
     await proxy.deployed();
     log(`Proxy deployed: ${proxy.address}`);
     const implementation = await upgrades.erc1967.getImplementationAddress(
-      proxy.address
+      proxy.address,
     );
     log(`Implementation deployed: ${implementation}\n`);
 
     // Verifying the proxy and implementation.
     log(
-      `Verifying the proxy and implementation: npx hardhat verify --network ${network} ${proxy.address}`
+      `Verifying the proxy and implementation: npx hardhat verify --network ${network} ${proxy.address}`,
     );
     const { stderr, stdout } = await exec(
-      `npx hardhat verify --network ${network} ${proxy.address}`
+      `npx hardhat verify --network ${network} ${proxy.address}`,
     );
     stdout ? log(`Contracts verified: `) : log(stderr);
     const etherscanNetwork = network === "mainnet" ? "" : network + ".";
     log(
-      `-- Proxy (go to etherscan and complete proxy verification): https://${etherscanNetwork}etherscan.io/address/${proxy.address}}`
+      `-- Proxy (go to etherscan and complete proxy verification): https://${etherscanNetwork}etherscan.io/address/${proxy.address}}`,
     );
     log(
-      `-- Implementation: https://${etherscanNetwork}etherscan.io/address/${implementation}}`
+      `-- Implementation: https://${etherscanNetwork}etherscan.io/address/${implementation}}`,
     );
     log(`Deployment and verification completed at ${new Date().toISOString()}`);
     log(
-      `*** Use the Manager to set collection size, transferability, and the coupon signing address so minting can begin. ***`
+      `*** Use the Manager to set collection size, transferability, and the coupon signing address so minting can begin. ***`,
     );
   });
 
 task(
   "upgradeTributeERC721",
-  "Task to upgrade a TributeERC721 proxy's implementation"
+  "Task to upgrade a TributeERC721 proxy's implementation",
 )
   .addPositionalParam("proxyAddress")
   .setAction(async (taskArgs, hre) => {
@@ -62,7 +62,7 @@ task(
     log(`Upgrading TributeERC721 at ${proxyAddress} on ${network} network`);
 
     const oldImplementation = await upgrades.erc1967.getImplementationAddress(
-      proxyAddress
+      proxyAddress,
     );
 
     // Upgrading proxy. If new implementation already deployed, it will be reused.
@@ -72,7 +72,7 @@ task(
     log(`Proxy implementation upgraded:`);
 
     const newImplementation = await upgrades.erc1967.getImplementationAddress(
-      proxyAddress
+      proxyAddress,
     );
 
     log(`-- Old implementation address: ${oldImplementation}`);
@@ -80,18 +80,18 @@ task(
 
     // Verifying the proxy and implementation.
     log(
-      `Verifying the proxy and implementation: npx hardhat verify --network ${network} ${proxyAddress}`
+      `Verifying the proxy and implementation: npx hardhat verify --network ${network} ${proxyAddress}`,
     );
     const { stderr, stdout } = await exec(
-      `npx hardhat verify --network ${network} ${proxyAddress}`
+      `npx hardhat verify --network ${network} ${proxyAddress}`,
     );
     stdout ? log(`Contracts verified: `) : log(stderr);
     const etherscanNetwork = network === "mainnet" ? "" : network + ".";
     log(
-      `-- Proxy: https://${etherscanNetwork}etherscan.io/address/${proxyAddress}}`
+      `-- Proxy: https://${etherscanNetwork}etherscan.io/address/${proxyAddress}}`,
     );
     log(
-      `-- Implementation: https://${etherscanNetwork}etherscan.io/address/${newImplementation}}`
+      `-- Implementation: https://${etherscanNetwork}etherscan.io/address/${newImplementation}}`,
     );
     log(`Upgrade and verification completed at ${new Date().toISOString()}`);
   });

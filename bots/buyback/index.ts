@@ -1,10 +1,10 @@
-import { readFile } from 'node:fs/promises';
-import { resolve as resolvePath } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { readFile } from "node:fs/promises";
+import { resolve as resolvePath } from "node:path";
+import { pathToFileURL } from "node:url";
 
-const DEFAULT_CONFIG_URL = new URL('./config.json', import.meta.url);
+const DEFAULT_CONFIG_URL = new URL("./config.json", import.meta.url);
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 export type OutcomeLogger = (
   level: LogLevel,
@@ -34,7 +34,7 @@ interface OrderSubmission {
 }
 
 interface OrderExecution {
-  status: 'filled' | 'rejected';
+  status: "filled" | "rejected";
   executedAmount: number;
   reason?: string;
 }
@@ -46,7 +46,7 @@ export interface OrderRequest {
 }
 
 export interface OrderResult {
-  status: 'filled' | 'rejected' | 'rate_limited';
+  status: "filled" | "rejected" | "rate_limited";
   venue: string;
   requestedAmount: number;
   executedAmount: number;
@@ -63,34 +63,34 @@ export class BuybackBot {
   ) {}
 
   async fetchBurnTarget(): Promise<number | null> {
-    this.logOutcome('debug', 'Fetching burn target from treasury inputs');
+    this.logOutcome("debug", "Fetching burn target from treasury inputs");
     return null;
   }
 
   async placeOrder(request: OrderRequest): Promise<OrderResult> {
     if (!this.isVenueAllowed(request.venue)) {
-      this.logOutcome('warn', 'Rejected order: venue not allowlisted', {
+      this.logOutcome("warn", "Rejected order: venue not allowlisted", {
         venue: request.venue,
       });
       return {
-        status: 'rejected',
+        status: "rejected",
         venue: request.venue,
         requestedAmount: request.amount,
         executedAmount: 0,
-        reason: 'VENUE_NOT_ALLOWLISTED',
+        reason: "VENUE_NOT_ALLOWLISTED",
       };
     }
 
     if (!this.consumeRateLimitSlot()) {
-      this.logOutcome('warn', 'Rejected order: rate limit exceeded', {
+      this.logOutcome("warn", "Rejected order: rate limit exceeded", {
         venue: request.venue,
       });
       return {
-        status: 'rate_limited',
+        status: "rate_limited",
         venue: request.venue,
         requestedAmount: request.amount,
         executedAmount: 0,
-        reason: 'RATE_LIMIT_EXCEEDED',
+        reason: "RATE_LIMIT_EXCEEDED",
       };
     }
 
@@ -102,14 +102,14 @@ export class BuybackBot {
     });
 
     const result: OrderResult = {
-      status: execution.status === 'rejected' ? 'rejected' : 'filled',
+      status: execution.status === "rejected" ? "rejected" : "filled",
       venue: request.venue,
       requestedAmount: request.amount,
       executedAmount: execution.executedAmount,
       reason: execution.reason,
     };
 
-    this.logOutcome('info', 'Processed buyback order', {
+    this.logOutcome("info", "Processed buyback order", {
       venue: result.venue,
       requestedAmount: result.requestedAmount,
       executedAmount: result.executedAmount,
@@ -126,7 +126,7 @@ export class BuybackBot {
 
   private getCappedAmount(venue: string, amount: number): number {
     const cap = this.config.venueCaps[venue];
-    if (typeof cap !== 'number') {
+    if (typeof cap !== "number") {
       return amount;
     }
 
@@ -152,12 +152,14 @@ export class BuybackBot {
     return true;
   }
 
-  protected async executeOrder(order: OrderSubmission): Promise<OrderExecution> {
-    this.logOutcome('debug', 'Executing order with trading venue', order);
+  protected async executeOrder(
+    order: OrderSubmission,
+  ): Promise<OrderExecution> {
+    this.logOutcome("debug", "Executing order with trading venue", order);
     return {
-      status: 'filled',
+      status: "filled",
       executedAmount: order.amount,
-      reason: order.amount ? undefined : 'NO_AMOUNT_PROVIDED',
+      reason: order.amount ? undefined : "NO_AMOUNT_PROVIDED",
     };
   }
 
@@ -171,13 +173,13 @@ export class BuybackBot {
       return;
     }
 
-    const method: keyof Console = level === 'debug'
-      ? 'debug'
-      : level === 'info'
-      ? 'info'
-      : level === 'warn'
-      ? 'warn'
-      : 'error';
+    const method: keyof Console = level === "debug"
+      ? "debug"
+      : level === "info"
+      ? "info"
+      : level === "warn"
+      ? "warn"
+      : "error";
 
     const consoleMethod = console[method] ?? console.log;
     consoleMethod.call(console, `[buyback] ${message}`, context);
@@ -216,9 +218,11 @@ export async function loadBuybackConfig(
   };
 }
 
-async function readConfigFromFile(url: URL): Promise<Partial<BuybackBotConfig>> {
+async function readConfigFromFile(
+  url: URL,
+): Promise<Partial<BuybackBotConfig>> {
   try {
-    const contents = await readFile(url, 'utf-8');
+    const contents = await readFile(url, "utf-8");
     return JSON.parse(contents) as Partial<BuybackBotConfig>;
   } catch (error) {
     if (isMissingFileError(error)) {
@@ -238,7 +242,7 @@ function resolveConfigUrl(path?: string | URL): URL {
     return path;
   }
 
-  if (path.startsWith('file://')) {
+  if (path.startsWith("file://")) {
     return new URL(path);
   }
 
@@ -254,9 +258,9 @@ function parseAllowlist(value: unknown): string[] | undefined {
     return value.map((entry) => String(entry)).filter(Boolean);
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return value
-      .split(',')
+      .split(",")
       .map((entry) => entry.trim())
       .filter((entry) => entry.length > 0);
   }
@@ -271,7 +275,7 @@ function parseVenueCaps(value: unknown): Record<string, number> {
 
   let source: Record<string, unknown>;
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     if (!value.trim()) {
       return {};
     }
@@ -279,7 +283,7 @@ function parseVenueCaps(value: unknown): Record<string, number> {
     try {
       source = JSON.parse(value) as Record<string, unknown>;
     } catch (error) {
-      throw new Error('BUYBACK_VENUE_CAPS must be valid JSON');
+      throw new Error("BUYBACK_VENUE_CAPS must be valid JSON");
     }
   } else {
     source = value as Record<string, unknown>;
@@ -287,7 +291,7 @@ function parseVenueCaps(value: unknown): Record<string, number> {
 
   const caps: Record<string, number> = {};
   for (const [venue, cap] of Object.entries(source)) {
-    const numericCap = typeof cap === 'number' ? cap : Number(cap);
+    const numericCap = typeof cap === "number" ? cap : Number(cap);
     if (!Number.isFinite(numericCap) || numericCap < 0) {
       throw new Error(`Invalid order cap for venue "${venue}"`);
     }
@@ -299,19 +303,21 @@ function parseVenueCaps(value: unknown): Record<string, number> {
 }
 
 function parseRateLimit(value: unknown): number {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return 0;
   }
 
-  const numeric = typeof value === 'number' ? value : Number(value);
+  const numeric = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(numeric) || numeric < 0) {
-    throw new Error('BUYBACK_RATE_LIMIT_PER_MINUTE must be a positive number');
+    throw new Error("BUYBACK_RATE_LIMIT_PER_MINUTE must be a positive number");
   }
 
   return numeric;
 }
 
 function isMissingFileError(error: unknown): error is NodeJS.ErrnoException {
-  return Boolean(error && typeof error === 'object' && 'code' in error &&
-    (error as NodeJS.ErrnoException).code === 'ENOENT');
+  return Boolean(
+    error && typeof error === "object" && "code" in error &&
+      (error as NodeJS.ErrnoException).code === "ENOENT",
+  );
 }

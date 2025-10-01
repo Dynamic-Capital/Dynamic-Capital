@@ -242,9 +242,14 @@ function selectTasks(tasks, { only, skip }) {
 
 function readPackageScripts() {
   try {
-    const contents = readFileSync(new URL("./package.json", import.meta.url), "utf8");
+    const contents = readFileSync(
+      new URL("./package.json", import.meta.url),
+      "utf8",
+    );
     const parsed = JSON.parse(contents);
-    if (parsed && typeof parsed.scripts === "object" && parsed.scripts !== null) {
+    if (
+      parsed && typeof parsed.scripts === "object" && parsed.scripts !== null
+    ) {
       return { scripts: parsed.scripts };
     }
     return { scripts: {} };
@@ -343,7 +348,9 @@ async function runTasksWithLimit(tasks, concurrency, runner) {
 
 function summariseResult(result) {
   const status = result.code === 0 ? "✅" : "❌";
-  const parts = [`${status} ${result.label} (${formatDuration(result.durationMs)})`];
+  const parts = [
+    `${status} ${result.label} (${formatDuration(result.durationMs)})`,
+  ];
   if (result.reason) {
     parts.push(`– ${result.reason}`);
   }
@@ -357,9 +364,14 @@ async function runTask(task, packageScripts, baseEnv) {
 
   if (task.script && !packageScripts[task.script]) {
     const duration = performance.now() - start;
-    logError(`${task.label} failed. Required npm script '${task.script}' is not defined.`, {
-      details: ["Add the script to package.json or adjust the build filters."],
-    });
+    logError(
+      `${task.label} failed. Required npm script '${task.script}' is not defined.`,
+      {
+        details: [
+          "Add the script to package.json or adjust the build filters.",
+        ],
+      },
+    );
     divider();
     return {
       id: task.id,
@@ -549,10 +561,11 @@ const envSkip = parseListInput(process.env.LOVABLE_BUILD_SKIP);
 const combinedOnly = [...cliOptions.only, ...envOnly];
 const combinedSkip = [...cliOptions.skip, ...envSkip];
 
-const { selected: selectedTasks, filteredOut, unknownOnly, unknownSkip } = selectTasks(
-  buildTasks,
-  { only: combinedOnly, skip: combinedSkip },
-);
+const { selected: selectedTasks, filteredOut, unknownOnly, unknownSkip } =
+  selectTasks(
+    buildTasks,
+    { only: combinedOnly, skip: combinedSkip },
+  );
 
 if (unknownOnly.length > 0) {
   warn("Unknown task identifiers supplied to --only.", {
@@ -587,10 +600,13 @@ note("Executing build tasks:", {
   details: selectedTasks.map((task) => `${task.label} (${task.id})`),
 });
 
-const { scripts: packageScripts, error: packageScriptsError } = readPackageScripts();
+const { scripts: packageScripts, error: packageScriptsError } =
+  readPackageScripts();
 if (packageScriptsError) {
   warn("Unable to verify npm scripts before running builds.", {
-    details: packageScriptsError.message ? [packageScriptsError.message] : undefined,
+    details: packageScriptsError.message
+      ? [packageScriptsError.message]
+      : undefined,
   });
 }
 
@@ -605,21 +621,22 @@ if (envMaxWorkersValue) {
   }
 }
 
-let workerCount = runSerial
-  ? 1
-  : cliOptions.maxWorkers ?? envMaxWorkers ?? determineDefaultWorkers(selectedTasks.length);
+let workerCount = runSerial ? 1 : cliOptions.maxWorkers ?? envMaxWorkers ??
+  determineDefaultWorkers(selectedTasks.length);
 workerCount = Math.max(1, Math.min(workerCount, selectedTasks.length));
 
 const concurrencyDetail = runSerial
   ? undefined
   : cliOptions.maxWorkers
-    ? `configured via --max-workers=${cliOptions.maxWorkers}`
-    : envMaxWorkers
-      ? `configured via LOVABLE_BUILD_MAX_WORKERS=${envMaxWorkers}`
-      : (() => {
-          const cpuCount = Math.max(1, (cpus() || []).length || 1);
-          return `auto-detected from ${cpuCount} CPU core${cpuCount === 1 ? "" : "s"}`;
-        })();
+  ? `configured via --max-workers=${cliOptions.maxWorkers}`
+  : envMaxWorkers
+  ? `configured via LOVABLE_BUILD_MAX_WORKERS=${envMaxWorkers}`
+  : (() => {
+    const cpuCount = Math.max(1, (cpus() || []).length || 1);
+    return `auto-detected from ${cpuCount} CPU core${
+      cpuCount === 1 ? "" : "s"
+    }`;
+  })();
 
 if (workerCount === 1) {
   if (runSerial && selectedTasks.length > 1) {
@@ -627,13 +644,18 @@ if (workerCount === 1) {
   } else if (selectedTasks.length === 1) {
     info("Single build task selected; running sequentially.");
   } else {
-    info("Concurrency limited to a single worker; build tasks will run sequentially.", {
-      details: concurrencyDetail ? [concurrencyDetail] : undefined,
-    });
+    info(
+      "Concurrency limited to a single worker; build tasks will run sequentially.",
+      {
+        details: concurrencyDetail ? [concurrencyDetail] : undefined,
+      },
+    );
   }
 } else {
   info(
-    `Running build tasks with up to ${workerCount} concurrent worker${workerCount === 1 ? "" : "s"}.`,
+    `Running build tasks with up to ${workerCount} concurrent worker${
+      workerCount === 1 ? "" : "s"
+    }.`,
     {
       details: concurrencyDetail ? [concurrencyDetail] : undefined,
     },

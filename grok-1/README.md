@@ -1,8 +1,10 @@
 # Grok-1
 
-This repository contains JAX example code for loading and running the Grok-1 open-weights model.
+This repository contains JAX example code for loading and running the Grok-1
+open-weights model.
 
-Make sure to download the checkpoint and place the `ckpt-0` directory in `checkpoints` - see [Downloading the weights](#downloading-the-weights)
+Make sure to download the checkpoint and place the `ckpt-0` directory in
+`checkpoints` - see [Downloading the weights](#downloading-the-weights)
 
 Then, run
 
@@ -17,25 +19,36 @@ to test the code. On developer workstations that only expose a single GPU, keep
 
 The script loads the checkpoint and samples from the model on a test input.
 
-Due to the large size of the model (314B parameters), a machine with enough GPU memory is required to test the model with the example code.
-The implementation of the MoE layer in this repository is not efficient. The implementation was chosen to avoid the need for custom kernels to validate the correctness of the model.
+Due to the large size of the model (314B parameters), a machine with enough GPU
+memory is required to test the model with the example code. The implementation
+of the MoE layer in this repository is not efficient. The implementation was
+chosen to avoid the need for custom kernels to validate the correctness of the
+model.
 
 # Utility helpers
 
-Two deterministic helpers emulate Grok-guided business planning so the repository remains testable without the 314B parameter weights:
+Two deterministic helpers emulate Grok-guided business planning so the
+repository remains testable without the 314B parameter weights:
 
 ## VIP pricing generator (`vip_pricing.py`)
 
-The VIP generator accepts market demand and loyalty signals and emits a ladder of VIP bundles, each with tier names, perk bundles, price recommendations, and promo codes. See `tests/test_vip_pricing.py` for concrete expectations.
+The VIP generator accepts market demand and loyalty signals and emits a ladder
+of VIP bundles, each with tier names, perk bundles, price recommendations, and
+promo codes. See `tests/test_vip_pricing.py` for concrete expectations.
 
 ## Founders Circle allocator (`founders_circle.py`)
 
-``generate_founders_circle_plan`` synthesises a token-aligned allocation plan for the “Founders Circle” programme. The helper:
+`generate_founders_circle_plan` synthesises a token-aligned allocation plan for
+the “Founders Circle” programme. The helper:
 
-- Loads the canonical token supply and treasury split defaults from `dynamic-capital-ton/config.yaml` unless callers inject custom values.
-- Accepts membership counts for the VIP channel, VIP group, mentorship channel, mentorship group, and trading pool channel.
-- Weights each cohort with engagement multipliers and guard rails to ensure every group receives a baseline share of the allocation pool.
-- Returns a `FoundersCirclePlan` object containing the total pool size, per-channel allocation, per-member award, and suggested eligibility notes.
+- Loads the canonical token supply and treasury split defaults from
+  `dynamic-capital-ton/config.yaml` unless callers inject custom values.
+- Accepts membership counts for the VIP channel, VIP group, mentorship channel,
+  mentorship group, and trading pool channel.
+- Weights each cohort with engagement multipliers and guard rails to ensure
+  every group receives a baseline share of the allocation pool.
+- Returns a `FoundersCirclePlan` object containing the total pool size,
+  per-channel allocation, per-member award, and suggested eligibility notes.
 
 Example usage:
 
@@ -89,6 +102,7 @@ magnet:?xt=urn:btih:5f96d43576e3d386c9ba65b883210a393b68210e&tr=https%3A%2F%2Fac
 ```
 
 or directly using [HuggingFace 🤗 Hub](https://huggingface.co/xai-org/grok-1):
+
 ```
 git clone https://github.com/xai-org/grok-1.git && cd grok-1
 pip install huggingface_hub[hf_transfer]
@@ -97,14 +111,16 @@ huggingface-cli download xai-org/grok-1 --repo-type model --include ckpt-0/* --l
 
 ## Tokenizer
 
-The SentencePiece tokenizer file (`tokenizer.model`) is not included in this repository because it is a large binary artifact.
-Download it directly from the Grok-1 release before running the example scripts:
+The SentencePiece tokenizer file (`tokenizer.model`) is not included in this
+repository because it is a large binary artifact. Download it directly from the
+Grok-1 release before running the example scripts:
 
 ```shell
 huggingface-cli download xai-org/grok-1 --repo-type model --include tokenizer.model --local-dir . --local-dir-use-symlinks False
 ```
 
-Place the downloaded `tokenizer.model` in the repository root (`grok-1/tokenizer.model`).
+Place the downloaded `tokenizer.model` in the repository root
+(`grok-1/tokenizer.model`).
 
 # License
 

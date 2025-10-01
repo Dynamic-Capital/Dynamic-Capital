@@ -96,7 +96,7 @@ describe("Adapter - Managing", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -109,7 +109,7 @@ describe("Adapter - Managing", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -138,8 +138,8 @@ describe("Adapter - Managing", () => {
         },
         [], //configs
         [], //data
-        { from: daoOwner, gasPrice: toBN("0") }
-      )
+        { from: daoOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("must be an equal number of config keys and values");
   });
 
@@ -163,8 +163,8 @@ describe("Adapter - Managing", () => {
         },
         [], //configs
         [], //data
-        { from: daoOwner, gasPrice: toBN("0") }
-      )
+        { from: daoOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("must be an equal number of config keys and values");
   });
 
@@ -188,8 +188,8 @@ describe("Adapter - Managing", () => {
         },
         [], //configs
         [], //data
-        { from: daoOwner, gasPrice: toBN("0") }
-      )
+        { from: daoOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("address is reserved");
 
     await expect(
@@ -208,8 +208,8 @@ describe("Adapter - Managing", () => {
         },
         [], //configs
         [], //data
-        { from: daoOwner, gasPrice: toBN("0") }
-      )
+        { from: daoOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("address is reserved");
   });
 
@@ -238,7 +238,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -254,7 +254,7 @@ describe("Adapter - Managing", () => {
 
     //Check if the adapter was removed from the Registry
     await expect(dao.getAdapterAddress(adapterIdToRemove)).to.be.revertedWith(
-      "adapter not found"
+      "adapter not found",
     );
   });
 
@@ -282,16 +282,16 @@ describe("Adapter - Managing", () => {
       },
       [], //configs
       [], //data
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     //set new delegate key
     const daoRegistryAdapterAddress = await dao.getAdapterAddress(
-      sha3("daoRegistry")
+      sha3("daoRegistry"),
     );
 
     const daoRegistryAdapter = await DaoRegistryAdapterContract.at(
-      daoRegistryAdapterAddress
+      daoRegistryAdapterAddress,
     );
 
     await daoRegistryAdapter.updateDelegateKey(dao.address, delegateKey, {
@@ -309,7 +309,7 @@ describe("Adapter - Managing", () => {
       voting.submitVote(dao.address, proposalId, 1, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("call with your delegate key");
 
     // The same member attempts to vote again
@@ -317,7 +317,7 @@ describe("Adapter - Managing", () => {
       voting.submitVote(dao.address, proposalId, 1, {
         from: delegateKey,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("member has already voted");
 
     await advanceTime(10000);
@@ -328,7 +328,7 @@ describe("Adapter - Managing", () => {
 
     //Check if the onboarding adapter was added to the Registry
     const newOnboardingAddress = await dao.getAdapterAddress(
-      sha3("onboarding")
+      sha3("onboarding"),
     );
     expect(newOnboardingAddress.toString()).equal(newAdapterAddress.toString());
   });
@@ -357,7 +357,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await expect(
@@ -379,8 +379,8 @@ describe("Adapter - Managing", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("proposalId must be unique");
   });
 
@@ -415,7 +415,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -455,7 +455,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, newProposalId, 1, {
@@ -470,7 +470,7 @@ describe("Adapter - Managing", () => {
     });
 
     await expect(dao.getAdapterAddress(financingAdapterId)).to.be.revertedWith(
-      "adapter not found"
+      "adapter not found",
     );
   });
 
@@ -504,7 +504,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -539,8 +539,8 @@ describe("Adapter - Managing", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("accessDenied");
   });
 
@@ -568,8 +568,8 @@ describe("Adapter - Managing", () => {
         },
         [], //configs
         [], //data
-        { from: nonMember, gasPrice: toBN("0") }
-      )
+        { from: nonMember, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -600,8 +600,8 @@ describe("Adapter - Managing", () => {
         {
           from: nonMemberAddress,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -631,7 +631,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -674,7 +674,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // Voting NO = 2
@@ -688,7 +688,7 @@ describe("Adapter - Managing", () => {
       managing.processProposal(dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal did not pass");
   });
 
@@ -716,7 +716,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -756,7 +756,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -770,7 +770,7 @@ describe("Adapter - Managing", () => {
       managing.processProposal(dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("adapterAddress already in use");
   });
 
@@ -815,7 +815,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -849,54 +849,54 @@ describe("Adapter - Managing", () => {
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        0 //ADD_TO_BALANCE
-      )
+        0, //ADD_TO_BALANCE
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        1 // SUB_FROM_BALANCE
-      )
+        1, // SUB_FROM_BALANCE
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        2 // INTERNAL_TRANSFER
-      )
+        2, // INTERNAL_TRANSFER
+      ),
     ).equal(true);
 
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        3 // WITHDRAW
-      )
+        3, // WITHDRAW
+      ),
     ).equal(false);
 
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        4 // REGISTER_NEW_TOKEN
-      )
+        4, // REGISTER_NEW_TOKEN
+      ),
     ).equal(false);
 
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        5 // REGISTER_NEW_INTERNAL_TOKEN
-      )
+        5, // REGISTER_NEW_INTERNAL_TOKEN
+      ),
     ).equal(false);
 
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        6 // UPDATE_TOKEN
-      )
+        6, // UPDATE_TOKEN
+      ),
     ).equal(false);
   });
 
@@ -950,7 +950,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -967,11 +967,11 @@ describe("Adapter - Managing", () => {
 
     expect(await dao.getAdapterAddress(newAdapterId)).equal(newAdapterAddress);
     const numericConfig = await dao.getConfiguration(
-      sha3("some.numeric.config")
+      sha3("some.numeric.config"),
     );
     expect(numericConfig.toString()).equal("32");
     const addressConfig = await dao.getAddressConfiguration(
-      sha3("some.address.config")
+      sha3("some.address.config"),
     );
     expect(addressConfig.toLowerCase()).equal(DAI_TOKEN);
   });
@@ -1006,7 +1006,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -1022,7 +1022,7 @@ describe("Adapter - Managing", () => {
     });
 
     expect(await dao.getExtensionAddress(newExtensionId)).equal(
-      newExtensionAddr
+      newExtensionAddr,
     );
   });
 
@@ -1069,7 +1069,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -1085,14 +1085,14 @@ describe("Adapter - Managing", () => {
     });
 
     expect(await dao.getExtensionAddress(newExtensionId)).equal(
-      newExtensionAddr
+      newExtensionAddr,
     );
     const numericConfig = await dao.getConfiguration(
-      sha3("some.numeric.config")
+      sha3("some.numeric.config"),
     );
     expect(numericConfig.toString()).equal("32");
     const addressConfig = await dao.getAddressConfiguration(
-      sha3("some.address.config")
+      sha3("some.address.config"),
     );
     expect(addressConfig.toLowerCase()).equal(DAI_TOKEN);
   });
@@ -1127,7 +1127,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -1143,7 +1143,7 @@ describe("Adapter - Managing", () => {
     });
 
     await expect(dao.getExtensionAddress(removeExtensionId)).to.be.revertedWith(
-      "extension not found"
+      "extension not found",
     );
   });
 
@@ -1177,7 +1177,7 @@ describe("Adapter - Managing", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -1191,7 +1191,7 @@ describe("Adapter - Managing", () => {
       managing.processProposal(dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("unknown update type");
   });
 });

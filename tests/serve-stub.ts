@@ -7,7 +7,9 @@ export function serve(
   return Promise.resolve();
 }
 
-export function registerHandler(handler: (req: Request) => Promise<Response> | Response) {
+export function registerHandler(
+  handler: (req: Request) => Promise<Response> | Response,
+) {
   capturedHandler = handler;
   return handler;
 }

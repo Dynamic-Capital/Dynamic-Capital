@@ -1,8 +1,8 @@
-import test from 'node:test';
-import { equal as assertEquals, ok as assert } from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import test from "node:test";
+import { equal as assertEquals, ok as assert } from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 
-import { freshImport } from './utils/freshImport.ts';
+import { freshImport } from "./utils/freshImport.ts";
 
 const globalAny = globalThis as any;
 const supaState: any = { tables: {} };
@@ -14,9 +14,9 @@ let lastEnvKeys: string[] = [];
 
 function setupEnv(extra: Record<string, string> = {}): TestEnvMap {
   const values: TestEnvMap = {
-    SUPABASE_URL: 'http://localhost',
-    SUPABASE_SERVICE_ROLE_KEY: 'service-role',
-    SUPABASE_ANON_KEY: 'anon-key',
+    SUPABASE_URL: "http://localhost",
+    SUPABASE_SERVICE_ROLE_KEY: "service-role",
+    SUPABASE_ANON_KEY: "anon-key",
     ...extra,
   };
 
@@ -45,7 +45,7 @@ function cleanupEnv() {
   lastEnvKeys = [];
 }
 
-test('miniapp version endpoint returns expected fields', async () => {
+test("miniapp version endpoint returns expected fields", async () => {
   const envValues = setupEnv();
   const originalDeno = globalAny.Deno;
   const createdDeno = originalDeno === undefined;
@@ -53,7 +53,7 @@ test('miniapp version endpoint returns expected fields', async () => {
   const originalEnv = denoRef?.env;
   const originalReadTextFile = denoRef?.readTextFile;
   const originalReadFile = denoRef?.readFile;
-  const baseGet = typeof originalEnv?.get === 'function'
+  const baseGet = typeof originalEnv?.get === "function"
     ? originalEnv.get.bind(originalEnv)
     : undefined;
 
@@ -65,23 +65,27 @@ test('miniapp version endpoint returns expected fields', async () => {
     ...(originalEnv ?? {}),
     get: (name: string) => {
       if (name in envValues) return envValues[name];
-      return baseGet ? baseGet(name) ?? '' : '';
+      return baseGet ? baseGet(name) ?? "" : "";
     },
   };
-  denoRef.readTextFile = (path: string) => readFile(path, 'utf8');
+  denoRef.readTextFile = (path: string) => readFile(path, "utf8");
   denoRef.readFile = readFile;
 
   try {
-    const mod = await freshImport(new URL('../supabase/functions/miniapp/index.ts', import.meta.url));
+    const mod = await freshImport(
+      new URL("../supabase/functions/miniapp/index.ts", import.meta.url),
+    );
     const handler: (req: Request) => Promise<Response> | Response = mod.default;
-    const res = await handler(new Request('https://example.com/miniapp/version'));
+    const res = await handler(
+      new Request("https://example.com/miniapp/version"),
+    );
     assertEquals(res.status, 200);
     const body = await res.json();
-    assert(typeof body === 'object' && body);
-    assertEquals(body.name, 'miniapp');
-    assert(typeof body.ts === 'string' && body.ts.length > 0);
-    assert('serveFromStorage' in body);
-    assert('htmlCompressionDisabled' in body);
+    assert(typeof body === "object" && body);
+    assertEquals(body.name, "miniapp");
+    assert(typeof body.ts === "string" && body.ts.length > 0);
+    assert("serveFromStorage" in body);
+    assert("htmlCompressionDisabled" in body);
   } finally {
     if (createdDeno) {
       delete globalAny.Deno;
@@ -105,4 +109,3 @@ test('miniapp version endpoint returns expected fields', async () => {
     cleanupEnv();
   }
 });
-

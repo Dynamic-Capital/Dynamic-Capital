@@ -16,5 +16,6 @@ $$b_{t+1} = \min\big(B,\; b_t + \rho \Delta t - \text{cost}_t\big).$$
 
 ## Notes
 
-- Enforce $b_{t+1} \ge 0$ via constraints; reject or defer traffic when depleted.
+- Enforce $b_{t+1} \ge 0$ via constraints; reject or defer traffic when
+  depleted.
 - Output metrics include instantaneous token levels and rejection counts.

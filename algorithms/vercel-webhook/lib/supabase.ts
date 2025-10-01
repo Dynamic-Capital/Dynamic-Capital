@@ -1,5 +1,5 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { NormalizedAlert } from './validation.js';
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { NormalizedAlert } from "./validation.js";
 
 let cachedClient: SupabaseClient | null = null;
 
@@ -12,13 +12,13 @@ export function getSupabaseClient(): SupabaseClient {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceKey) {
-    throw new Error('Supabase credentials are not configured.');
+    throw new Error("Supabase credentials are not configured.");
   }
 
   cachedClient = createClient(url, serviceKey, {
     auth: {
-      persistSession: false
-    }
+      persistSession: false,
+    },
   });
 
   return cachedClient;
@@ -32,7 +32,7 @@ export interface SupabaseAlertRecord {
   price: number | null;
   action: string | null;
   comment: string | null;
-  payload: NormalizedAlert['rawPayload'];
+  payload: NormalizedAlert["rawPayload"];
   ingested_at: string;
 }
 
@@ -46,17 +46,17 @@ export function toSupabaseRecord(alert: NormalizedAlert): SupabaseAlertRecord {
     action: alert.action,
     comment: alert.comment,
     payload: alert.rawPayload,
-    ingested_at: new Date().toISOString()
+    ingested_at: new Date().toISOString(),
   };
 }
 
 export async function upsertAlert(
   client: SupabaseClient,
   tableName: string,
-  record: SupabaseAlertRecord
+  record: SupabaseAlertRecord,
 ): Promise<void> {
   const { error } = await client.from(tableName).upsert(record, {
-    onConflict: 'alert_uuid'
+    onConflict: "alert_uuid",
   });
 
   if (error) {

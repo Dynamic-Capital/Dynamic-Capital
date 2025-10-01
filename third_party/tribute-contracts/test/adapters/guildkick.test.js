@@ -99,7 +99,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //Check Guild Bank Balance
@@ -120,7 +120,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       owner,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -157,7 +157,7 @@ describe("Adapter - GuildKick", () => {
       member,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Non member attemps to submit a guild kick proposal
@@ -168,8 +168,8 @@ describe("Adapter - GuildKick", () => {
         this.adapters.guildkick,
         member,
         nonMember,
-        newProposalId
-      )
+        newProposalId,
+      ),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -187,7 +187,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Start a new kick poposal
@@ -198,7 +198,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       owner,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -223,8 +223,8 @@ describe("Adapter - GuildKick", () => {
         this.adapters.guildkick,
         owner,
         memberToKick,
-        newProposalId
-      )
+        newProposalId,
+      ),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -245,7 +245,7 @@ describe("Adapter - GuildKick", () => {
       newMemberA,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Start a new kick poposal
@@ -256,7 +256,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -288,7 +288,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Start a new kick poposal
@@ -299,7 +299,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -320,7 +320,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract.processProposal(this.dao.address, kickProposalId, {
         from: member,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("flag already set");
   });
 
@@ -340,7 +340,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Start a new kick poposal
@@ -351,7 +351,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     // Vote YES on kick proposal
@@ -370,8 +370,8 @@ describe("Adapter - GuildKick", () => {
         {
           from: member,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("proposal does not exist for this dao");
   });
 
@@ -391,7 +391,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     const bank = this.extensions.bankExt;
@@ -403,7 +403,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote NO on kick proposal
@@ -441,7 +441,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // The member attemps to process the kick proposal, but the Advisor does not have any UNITS, only LOOT
@@ -452,8 +452,8 @@ describe("Adapter - GuildKick", () => {
         guildkickContract,
         nonMember,
         newMember,
-        getProposalCounter()
-      )
+        getProposalCounter(),
+      ),
     ).to.be.revertedWith("no units or loot");
   });
 
@@ -473,7 +473,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //SubGuildKick
@@ -484,7 +484,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -513,7 +513,7 @@ describe("Adapter - GuildKick", () => {
       newMemberB,
       unitPrice,
       UNITS,
-      toBN(10)
+      toBN(10),
     );
   });
 
@@ -533,7 +533,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit guild kick proposal
@@ -544,7 +544,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     // Vote YES on a kick proposal
@@ -574,7 +574,7 @@ describe("Adapter - GuildKick", () => {
       newMemberB,
       unitPrice,
       UNITS,
-      toBN(10)
+      toBN(10),
     );
 
     // kicked member attemps to vote
@@ -582,7 +582,7 @@ describe("Adapter - GuildKick", () => {
       voting.submitVote(this.dao.address, onboardProposalId, 1, {
         from: kickedMember,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -603,7 +603,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //SubGuildKick
@@ -614,7 +614,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -643,8 +643,8 @@ describe("Adapter - GuildKick", () => {
         ETH_TOKEN,
         requestedAmount,
         [],
-        { from: kickedMember, gasPrice: toBN("0") }
-      )
+        { from: kickedMember, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -665,7 +665,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //SubGuildKick
@@ -676,7 +676,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -715,8 +715,8 @@ describe("Adapter - GuildKick", () => {
         },
         [], //configs
         [], //data
-        { from: kickedMember, gasPrice: toBN("0") }
-      )
+        { from: kickedMember, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -737,7 +737,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     //SubGuildKick
@@ -748,7 +748,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -786,8 +786,8 @@ describe("Adapter - GuildKick", () => {
         },
         [], //configs
         [], //data
-        { from: kickedMember, gasPrice: toBN("0") }
-      )
+        { from: kickedMember, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("onlyMember");
   });
 
@@ -808,7 +808,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit GuildKick
@@ -819,7 +819,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -862,7 +862,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit GuildKick
@@ -873,7 +873,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -902,8 +902,8 @@ describe("Adapter - GuildKick", () => {
         guildkickContract,
         memberToKick,
         member,
-        getProposalCounter()
-      )
+        getProposalCounter(),
+      ),
     ).to.be.revertedWith("use ragequit");
   });
 
@@ -924,7 +924,7 @@ describe("Adapter - GuildKick", () => {
       memberA,
       owner,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     await daoRegistryAdapter.updateDelegateKey(
@@ -932,7 +932,7 @@ describe("Adapter - GuildKick", () => {
       memberADelegate,
       {
         from: memberA,
-      }
+      },
     );
 
     // Attempt to kick yourself
@@ -942,8 +942,8 @@ describe("Adapter - GuildKick", () => {
         guildkickContract,
         memberA,
         memberADelegate,
-        getProposalCounter()
-      )
+        getProposalCounter(),
+      ),
     ).to.be.revertedWith("use ragequit");
   });
 
@@ -964,7 +964,7 @@ describe("Adapter - GuildKick", () => {
       memberB,
       memberA,
       unitPrice,
-      UNITS
+      UNITS,
     );
     await onboardingNewMember(
       getProposalCounter(),
@@ -974,7 +974,7 @@ describe("Adapter - GuildKick", () => {
       memberC,
       memberA,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Submit the first guild kick with proposalId 0x1
@@ -984,7 +984,7 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberB,
       memberA,
-      kickProposalId
+      kickProposalId,
     );
 
     //Vote YES on kick proposal
@@ -1006,8 +1006,8 @@ describe("Adapter - GuildKick", () => {
         guildkickContract,
         memberC,
         memberA,
-        kickProposalId
-      )
+        kickProposalId,
+      ),
     ).to.be.revertedWith("proposalId must be unique");
   });
 
@@ -1019,7 +1019,7 @@ describe("Adapter - GuildKick", () => {
         from: owner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -1032,7 +1032,7 @@ describe("Adapter - GuildKick", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -1052,7 +1052,7 @@ describe("Adapter - GuildKick", () => {
       newMember,
       member,
       unitPrice,
-      UNITS
+      UNITS,
     );
 
     // Start a new kick poposal
@@ -1064,7 +1064,7 @@ describe("Adapter - GuildKick", () => {
     const erc20 = new Contract(
       erc20Ext.address,
       erc20Ext.abi,
-      await hre.ethers.getSigner(newMember)
+      await hre.ethers.getSigner(newMember),
     );
 
     await erc20.transfer(owner, 1, { from: memberToKick });
@@ -1074,10 +1074,10 @@ describe("Adapter - GuildKick", () => {
       guildkickContract,
       memberToKick,
       member,
-      kickProposalId
+      kickProposalId,
     );
     await expect(
-      erc20.transfer(owner, 1, { from: memberToKick })
+      erc20.transfer(owner, 1, { from: memberToKick }),
     ).to.be.revertedWith("no transfer from jail");
 
     //Vote YES on kick proposal

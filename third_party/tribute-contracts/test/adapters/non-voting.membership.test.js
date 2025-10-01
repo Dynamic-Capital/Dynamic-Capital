@@ -79,7 +79,7 @@ describe("Adapter - Non Voting Onboarding", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // Vote on the new proposal to accept the new Advisor
@@ -103,7 +103,7 @@ describe("Adapter - Non Voting Onboarding", () => {
     // Guild balance must not change when Loot units are issued
     const guildBalance = await bank.balanceOf(
       GUILD,
-      "0x0000000000000000000000000000000000000000"
+      "0x0000000000000000000000000000000000000000",
     );
     expect(guildBalance.toString()).equal("360000000000000000");
   });
@@ -131,7 +131,7 @@ describe("Adapter - Non Voting Onboarding", () => {
     // Transfer 1000 OLTs to the Advisor account
     await oltContract.transfer(advisorAccount, 100);
     const advisorTokenBalance = await oltContract.balanceOf.call(
-      advisorAccount
+      advisorAccount,
     );
     expect(advisorTokenBalance.toString()).equal("100");
 
@@ -152,8 +152,8 @@ describe("Adapter - Non Voting Onboarding", () => {
         {
           from: advisorAccount,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("revert");
 
     // Pre-approve spender (onboarding adapter) to transfer proposer tokens
@@ -171,7 +171,7 @@ describe("Adapter - Non Voting Onboarding", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // Vote on the new proposal to accept the new Advisor

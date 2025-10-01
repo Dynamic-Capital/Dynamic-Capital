@@ -26,4 +26,3 @@ jobs:
           [ -z "$num" ] && { echo "Milestone '$title' not found"; exit 0; }
           pr=$(jq -r '.number' "$FILE")
           gh api -X PATCH repos/${{ github.repository }}/issues/$pr -f milestone="$num"
-

@@ -1,11 +1,15 @@
-if (typeof Deno !== 'undefined') {
-  const { assertEquals } = await import('https://deno.land/std@0.224.0/assert/mod.ts');
-  const { COMMIT_ENV_KEYS } = await import('../apps/web/utils/commit.ts');
+if (typeof Deno !== "undefined") {
+  const { assertEquals } = await import(
+    "https://deno.land/std@0.224.0/assert/mod.ts"
+  );
+  const { COMMIT_ENV_KEYS } = await import("../apps/web/utils/commit.ts");
 
   type CommitEnvKey = (typeof COMMIT_ENV_KEYS)[number];
 
   function ensureProcessEnv() {
-    const g = globalThis as { process?: { env?: Record<string, string | undefined> } };
+    const g = globalThis as {
+      process?: { env?: Record<string, string | undefined> };
+    };
     if (!g.process) {
       g.process = { env: {} };
     }
@@ -65,35 +69,35 @@ if (typeof Deno !== 'undefined') {
     }
   }
 
-  Deno.test('health payload defaults commit to dev when env missing', async () => {
+  Deno.test("health payload defaults commit to dev when env missing", async () => {
     await withCommitEnvCleared(async () => {
       const { healthPayload } = await import(
         `../apps/web/utils/commit.ts?cache=${crypto.randomUUID()}`
       );
       const payload = healthPayload();
-      assertEquals(payload.status, 'ok');
-      assertEquals(payload.commit, 'dev');
+      assertEquals(payload.status, "ok");
+      assertEquals(payload.commit, "dev");
     });
   });
 
-  Deno.test('health payload prefers NEXT_PUBLIC_COMMIT_SHA when present', async () => {
+  Deno.test("health payload prefers NEXT_PUBLIC_COMMIT_SHA when present", async () => {
     await withCommitEnvCleared(async () => {
       const processEnv = ensureProcessEnv();
-      Deno.env.set('COMMIT_SHA', 'commit-sha');
-      processEnv.COMMIT_SHA = 'commit-sha';
-      Deno.env.set('NEXT_PUBLIC_COMMIT_SHA', 'public-sha');
-      processEnv.NEXT_PUBLIC_COMMIT_SHA = 'public-sha';
+      Deno.env.set("COMMIT_SHA", "commit-sha");
+      processEnv.COMMIT_SHA = "commit-sha";
+      Deno.env.set("NEXT_PUBLIC_COMMIT_SHA", "public-sha");
+      processEnv.NEXT_PUBLIC_COMMIT_SHA = "public-sha";
 
       const { healthPayload } = await import(
         `../apps/web/utils/commit.ts?cache=${crypto.randomUUID()}`
       );
       const payload = healthPayload();
-      assertEquals(payload.status, 'ok');
-      assertEquals(payload.commit, 'public-sha');
+      assertEquals(payload.status, "ok");
+      assertEquals(payload.commit, "public-sha");
     });
   });
 } else {
-  const { default: test } = await import('node:test');
-  test.skip('health payload defaults commit to dev when env missing (Deno only)', () => {});
-  test.skip('health payload prefers NEXT_PUBLIC_COMMIT_SHA when present (Deno only)', () => {});
+  const { default: test } = await import("node:test");
+  test.skip("health payload defaults commit to dev when env missing (Deno only)", () => {});
+  test.skip("health payload prefers NEXT_PUBLIC_COMMIT_SHA when present (Deno only)", () => {});
 }

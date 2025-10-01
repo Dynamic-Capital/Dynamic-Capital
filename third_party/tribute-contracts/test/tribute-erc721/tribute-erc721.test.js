@@ -77,7 +77,7 @@ const setNftConfigurations = async (
   tokenName,
   tokenSymbol,
   tokenMediaPt1,
-  tokenMediaPt2
+  tokenMediaPt2,
 ) => {
   const nonce = (await manager.nonces(daoAddress)).toNumber() + 1;
   const proposal = {
@@ -150,7 +150,7 @@ const setNftConfigurations = async (
     proposal,
     configs,
     nonce,
-    signature
+    signature,
   );
 };
 
@@ -163,7 +163,7 @@ const deployAndConfigureCollection = async (
   manager,
   daoAddress,
   transferable,
-  collectionSize
+  collectionSize,
 ) => {
   const TributeERC721 = await hre.ethers.getContractFactory("TributeERC721");
   const proxy = await upgrades.deployProxy(TributeERC721, [daoAddress]);
@@ -176,7 +176,7 @@ const deployAndConfigureCollection = async (
     COLLECTION_NAME,
     COLLECTION_SYMBOL,
     TOKEN_MEDIA.slice(0, 23),
-    TOKEN_MEDIA.slice(23)
+    TOKEN_MEDIA.slice(23),
   );
 
   return { proxy };
@@ -211,7 +211,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
 
     const name = await proxy.name();
@@ -226,19 +226,19 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
 
-    const originalImplementationAddr =
-      await upgrades.erc1967.getImplementationAddress(proxy.address);
+    const originalImplementationAddr = await upgrades.erc1967
+      .getImplementationAddress(proxy.address);
 
     const TributeERC721V2 = await hre.ethers.getContractFactory(
-      "TributeERC721V2"
+      "TributeERC721V2",
     );
     await upgrades.upgradeProxy(proxy.address, TributeERC721V2);
 
-    const upgradedImplementationAddr =
-      await upgrades.erc1967.getImplementationAddress(proxy.address);
+    const upgradedImplementationAddr = await upgrades.erc1967
+      .getImplementationAddress(proxy.address);
 
     expect(originalImplementationAddr !== upgradedImplementationAddr).to.be
       .true;
@@ -249,7 +249,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     const signature = generateNFTCouponSignature({
@@ -270,7 +270,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     const signature = generateNFTCouponSignature({
@@ -282,7 +282,7 @@ describe.skip("nft test", () => {
     });
 
     const TributeERC721V2 = await hre.ethers.getContractFactory(
-      "TributeERC721V2"
+      "TributeERC721V2",
     );
     await upgrades.upgradeProxy(proxy.address, TributeERC721V2);
     await proxy.mint(owner, nonce, signature);
@@ -295,7 +295,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     const signature = generateNFTCouponSignature({
@@ -308,7 +308,7 @@ describe.skip("nft test", () => {
     await proxy.mint(owner, nonce, signature);
 
     const TributeERC721V2 = await hre.ethers.getContractFactory(
-      "TributeERC721V2"
+      "TributeERC721V2",
     );
     await upgrades.upgradeProxy(proxy.address, TributeERC721V2);
 
@@ -320,7 +320,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     const signature = generateNFTCouponSignature({
@@ -339,13 +339,13 @@ describe.skip("nft test", () => {
     });
 
     await expect(
-      proxy.mint(owner, nonce, sigForWrongCollection)
+      proxy.mint(owner, nonce, sigForWrongCollection),
     ).to.be.revertedWith("invalid sig"); // Incorrect collection address.
     await expect(proxy.mint(owner, 12, signature)).to.be.revertedWith(
-      "invalid sig"
+      "invalid sig",
     ); // Nonce used in sig and tx differ.
     await expect(proxy.mint(ZERO_ADDRESS, nonce, signature)).to.be.revertedWith(
-      "invalid sig"
+      "invalid sig",
     ); // Incorrect owner.
   });
 
@@ -354,7 +354,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     const signature = generateNFTCouponSignature({
@@ -367,7 +367,7 @@ describe.skip("nft test", () => {
     await proxy.mint(owner, nonce, signature);
 
     await expect(proxy.mint(owner, nonce, signature)).to.be.revertedWith(
-      "ERC721: token already minted"
+      "ERC721: token already minted",
     );
   });
 
@@ -376,7 +376,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     const signature = generateNFTCouponSignature({
@@ -389,12 +389,12 @@ describe.skip("nft test", () => {
     await proxy.mint(owner, nonce, signature);
 
     const TributeERC721V2 = await hre.ethers.getContractFactory(
-      "TributeERC721V2"
+      "TributeERC721V2",
     );
     await upgrades.upgradeProxy(proxy.address, TributeERC721V2);
 
     await expect(proxy.mint(owner, nonce, signature)).to.be.revertedWith(
-      "ERC721: token already minted"
+      "ERC721: token already minted",
     );
   });
 
@@ -403,7 +403,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      1
+      1,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     const signature1 = generateNFTCouponSignature({
@@ -423,7 +423,7 @@ describe.skip("nft test", () => {
     await proxy.mint(owner, nonce, signature1);
 
     await expect(proxy.mint(owner, nonce + 1, signature2)).to.be.revertedWith(
-      "Collection fully minted"
+      "Collection fully minted",
     );
   });
 
@@ -432,7 +432,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     const signature = generateNFTCouponSignature({
@@ -448,7 +448,7 @@ describe.skip("nft test", () => {
     await proxy["safeTransferFrom(address,address,uint256)"](
       owner,
       accounts[1],
-      1
+      1,
     );
 
     expect((await proxy.balanceOf(owner)).toNumber()).to.equal(0);
@@ -466,7 +466,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       0,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     const signature = generateNFTCouponSignature({
@@ -479,10 +479,10 @@ describe.skip("nft test", () => {
     await proxy.mint(owner, nonce, signature);
 
     await expect(
-      proxy["safeTransferFrom(address,address,uint256)"](owner, accounts[1], 1)
+      proxy["safeTransferFrom(address,address,uint256)"](owner, accounts[1], 1),
     ).to.be.revertedWith("Collection is not transferable");
     await expect(
-      proxy["transferFrom(address,address,uint256)"](owner, accounts[1], 1)
+      proxy["transferFrom(address,address,uint256)"](owner, accounts[1], 1),
     ).to.be.revertedWith("Collection is not transferable");
   });
 
@@ -491,14 +491,14 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
 
     let blockNumber = (await hre.ethers.provider.getBlock("latest")).number;
 
     expect(
-      (await proxy.getPriorAmount(owner, blockNumber - 1)).toNumber()
+      (await proxy.getPriorAmount(owner, blockNumber - 1)).toNumber(),
     ).to.equal(0);
 
     await proxy.mint(
@@ -510,7 +510,7 @@ describe.skip("nft test", () => {
         nonce,
         chainId,
         daoAddress,
-      })
+      }),
     );
     await proxy.mint(
       owner,
@@ -521,11 +521,11 @@ describe.skip("nft test", () => {
         nonce: nonce + 1,
         chainId,
         daoAddress,
-      })
+      }),
     );
 
     expect(
-      (await proxy.getPriorAmount(owner, blockNumber + 1)).toNumber()
+      (await proxy.getPriorAmount(owner, blockNumber + 1)).toNumber(),
     ).to.equal(1);
     expect((await proxy.getPriorAmount(owner, 0)).toNumber()).to.equal(0);
 
@@ -538,11 +538,11 @@ describe.skip("nft test", () => {
         nonce: nonce + 2,
         chainId,
         daoAddress,
-      })
+      }),
     );
 
     expect(
-      (await proxy.getPriorAmount(owner, blockNumber + 2)).toNumber()
+      (await proxy.getPriorAmount(owner, blockNumber + 2)).toNumber(),
     ).to.equal(2);
   });
 
@@ -551,7 +551,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     await proxy.mint(
@@ -563,7 +563,7 @@ describe.skip("nft test", () => {
         nonce,
         chainId,
         daoAddress,
-      })
+      }),
     );
     await proxy.mint(
       owner,
@@ -574,7 +574,7 @@ describe.skip("nft test", () => {
         nonce: nonce + 1,
         chainId,
         daoAddress,
-      })
+      }),
     );
     const [uri1, uri2] = await Promise.all([
       proxy.tokenURI(1),
@@ -589,7 +589,7 @@ describe.skip("nft test", () => {
       this.adapters.manager,
       daoAddress,
       1,
-      100
+      100,
     );
     const [collectionAddress, owner, nonce] = [proxy.address, accounts[0], 1];
     await proxy.mint(
@@ -601,7 +601,7 @@ describe.skip("nft test", () => {
         nonce,
         chainId,
         daoAddress,
-      })
+      }),
     );
 
     const uri = await proxy.tokenURI(1);
@@ -630,7 +630,7 @@ const generateManagerCouponSignature = ({
     messageData,
     daoAddress,
     managerAddress,
-    chainId
+    chainId,
   );
 
   return signature;
@@ -653,7 +653,7 @@ const generateNFTCouponSignature = ({
     messageData,
     daoAddress,
     collectionAddress,
-    chainId
+    chainId,
   );
 
   return signature;

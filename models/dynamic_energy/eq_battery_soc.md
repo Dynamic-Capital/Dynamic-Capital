@@ -4,7 +4,8 @@
 
 ## Overview
 
-Discrete-time update for battery state of charge including charge/discharge efficiencies.
+Discrete-time update for battery state of charge including charge/discharge
+efficiencies.
 
 ## Equation
 

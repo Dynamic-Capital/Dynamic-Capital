@@ -88,19 +88,22 @@ export const LIVE_INTEL_SNAPSHOTS: LiveIntelSnapshot[] = [
         title: "Desk sync complete",
         status: "complete",
         timestamp: "Live",
-        description: "Wallet handshake verified. Desk now mirroring Grok-1 allocations in real time.",
+        description:
+          "Wallet handshake verified. Desk now mirroring Grok-1 allocations in real time.",
       },
       {
         title: "Momentum sleeve deployment",
         status: "pending",
         timestamp: "Next cycle",
-        description: "Auto-invest queue will deploy into TON/USDT ladder at the 30-minute bar close.",
+        description:
+          "Auto-invest queue will deploy into TON/USDT ladder at the 30-minute bar close.",
       },
       {
         title: "Liquidity caution window",
         status: "upcoming",
         timestamp: "18:00 UTC",
-        description: "DeepSeek-V2 recommends trimming leverage ahead of the thin liquidity band.",
+        description:
+          "DeepSeek-V2 recommends trimming leverage ahead of the thin liquidity band.",
       },
     ],
     models: {
@@ -178,19 +181,22 @@ export const LIVE_INTEL_SNAPSHOTS: LiveIntelSnapshot[] = [
         title: "Cross-chain vault top-up",
         status: "complete",
         timestamp: "12:20",
-        description: "Desk executed vault rebalance; Grok-1 confirmatory ping received.",
+        description:
+          "Desk executed vault rebalance; Grok-1 confirmatory ping received.",
       },
       {
         title: "Mentorship workshop",
         status: "pending",
         timestamp: "15:00 UTC",
-        description: "Live playbook review walking through the rotation with cohort leaders.",
+        description:
+          "Live playbook review walking through the rotation with cohort leaders.",
       },
       {
         title: "Data risk window",
         status: "upcoming",
         timestamp: "18:00 UTC",
-        description: "DeepSeek-V2 to re-run stress test immediately after macro print.",
+        description:
+          "DeepSeek-V2 to re-run stress test immediately after macro print.",
       },
     ],
     models: {
@@ -269,7 +275,8 @@ export const LIVE_INTEL_SNAPSHOTS: LiveIntelSnapshot[] = [
         title: "Cycle wrap",
         status: "complete",
         timestamp: "20:45",
-        description: "Desk captured profits and redistributed into the overnight vault.",
+        description:
+          "Desk captured profits and redistributed into the overnight vault.",
       },
       {
         title: "Protective overlay",
@@ -281,7 +288,8 @@ export const LIVE_INTEL_SNAPSHOTS: LiveIntelSnapshot[] = [
         title: "Asia prep",
         status: "upcoming",
         timestamp: "23:30 UTC",
-        description: "Grok-1 running new playbooks for tomorrow's Asia session entries.",
+        description:
+          "Grok-1 running new playbooks for tomorrow's Asia session entries.",
       },
     ],
     models: {

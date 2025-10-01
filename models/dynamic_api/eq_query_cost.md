@@ -15,5 +15,6 @@ $$C(q) = \sum_{f \in q} \kappa_f \cdot \text{fanout}_f.$$
 
 ## Notes
 
-- Controls $u_t$ apply query shaping or throttling when $C(q)$ exceeds thresholds.
+- Controls $u_t$ apply query shaping or throttling when $C(q)$ exceeds
+  thresholds.
 - Output metrics track cumulative query cost to enforce budgets.

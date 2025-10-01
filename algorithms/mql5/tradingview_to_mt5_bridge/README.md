@@ -28,34 +28,36 @@ Capital EA can operate against managed services.
 
 ## 2. Runtime commands
 
-| Command | Description |
-| --- | --- |
-| `python run.py supabase-listener` | Poll Supabase for `status = pending` signals, claim them, and enqueue them in Redis. |
-| `python run.py worker` | Consume queued signals, apply EA risk controls, execute the trade in MT5 (simulated when `MT5_DEMO_MODE=true`), and post the ticket status back to Supabase. |
-| `python run.py demo-dry-run` | Enqueue a synthetic signal and process it through the worker in demo mode. Use this before connecting to live services to validate configuration. |
+| Command                           | Description                                                                                                                                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `python run.py supabase-listener` | Poll Supabase for `status = pending` signals, claim them, and enqueue them in Redis.                                                                         |
+| `python run.py worker`            | Consume queued signals, apply EA risk controls, execute the trade in MT5 (simulated when `MT5_DEMO_MODE=true`), and post the ticket status back to Supabase. |
+| `python run.py demo-dry-run`      | Enqueue a synthetic signal and process it through the worker in demo mode. Use this before connecting to live services to validate configuration.            |
 
 Both long-running services log health metrics into Redis (`mt5_bridge:health` by
-default), recording heartbeats, queue depth, and processing counts. Monitor these
-keys with `redis-cli HGETALL mt5_bridge:health` to verify liveness.
+default), recording heartbeats, queue depth, and processing counts. Monitor
+these keys with `redis-cli HGETALL mt5_bridge:health` to verify liveness.
 
 ## 3. Supabase integration
 
-- The listener polls `SUPABASE_SIGNALS_TABLE` for `status = SUPABASE_PENDING_STATUS`.
+- The listener polls `SUPABASE_SIGNALS_TABLE` for
+  `status = SUPABASE_PENDING_STATUS`.
 - Claiming a row updates it to `SUPABASE_QUEUED_STATUS` and stamps
   `bridge_claimed_at`, `bridge_node_id`, and `bridge_expires_at` for optimistic
   locking.
 - The worker marks the row `SUPABASE_IN_PROGRESS_STATUS` before trading and uses
-  `SUPABASE_FILLED_STATUS` or `SUPABASE_ERROR_STATUS` after execution. Fills record
-  the MT5 ticket, executed price, and volume. Failures log the error message.
+  `SUPABASE_FILLED_STATUS` or `SUPABASE_ERROR_STATUS` after execution. Fills
+  record the MT5 ticket, executed price, and volume. Failures log the error
+  message.
 - API calls use the Supabase service role key; secure it in Windows Credential
   Manager or environment variables that never leave the VPS.
 
 ## 4. Risk controls
 
-`src/services/risk.py` mirrors the EA's risk-per-trade logic. Signals inherit the
-configured balance, risk fraction, and default pip values from the environment.
-Missing stop-loss or take-profit instructions are derived from offsets around the
-entry price so even minimal signals remain bounded.
+`src/services/risk.py` mirrors the EA's risk-per-trade logic. Signals inherit
+the configured balance, risk fraction, and default pip values from the
+environment. Missing stop-loss or take-profit instructions are derived from
+offsets around the entry price so even minimal signals remain bounded.
 
 ## 5. Health, logging, and retries
 
@@ -70,8 +72,8 @@ entry price so even minimal signals remain bounded.
 
 1. Open **Credential Manager → Windows Credentials**.
 2. Add a **Generic Credential** named `DynamicCapital-Supabase-ServiceKey` (or
-   the value you set in `SUPABASE_CREDENTIAL_TARGET`). Paste the Supabase service
-   role key into the password field.
+   the value you set in `SUPABASE_CREDENTIAL_TARGET`). Paste the Supabase
+   service role key into the password field.
 3. Optional: repeat for the MT5 password with `MT5_PASSWORD_CREDENTIAL_TARGET`.
 4. Ensure the bridge services run under the same Windows user that owns the
    credential so lookups succeed.

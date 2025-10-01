@@ -3,12 +3,12 @@ name: Docker local smoke test
 on:
   push:
     paths:
-      - 'docker/**'
-      - '.github/workflows/docker-local-smoke.yml'
+      - "docker/**"
+      - ".github/workflows/docker-local-smoke.yml"
   pull_request:
     paths:
-      - 'docker/**'
-      - '.github/workflows/docker-local-smoke.yml'
+      - "docker/**"
+      - ".github/workflows/docker-local-smoke.yml"
   workflow_dispatch:
 
 concurrency:
