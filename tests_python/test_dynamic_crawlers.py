@@ -64,6 +64,15 @@ def test_scrapegraphai_plan_serialises_schema(tmp_path: Path) -> None:
     assert payload["schema"]["properties"]["title"]["type"] == "string"
     assert payload["metadata"]["team"] == "research"
     assert plan.environment["SCRAPEGRAPH_OUTPUT_PATH"].endswith("records.json")
+    assert plan.commands[0].startswith(
+        "python -m pip install --upgrade --disable-pip-version-check -r "
+    )
+    assert plan.commands[1] == (
+        f"python -m scrapegraphai.cli run {config_file.path}"
+    )
+    requirements_file = plan.files[1]
+    assert requirements_file.path.endswith("requirements.txt")
+    assert "git+https://github.com/ScrapeGraphAI/Scrapegraph-ai" in requirements_file.content
 
 
 def test_crawlee_plan_toggles_browser_mode(tmp_path: Path) -> None:
