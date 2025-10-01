@@ -2,6 +2,7 @@
 
 from .engine import (
     DynamicWeb3Engine,
+    GoLiveBlockedError,
     NetworkTelemetry,
     NetworkHealthSummary,
     Web3UnifiedBuild,
@@ -22,4 +23,5 @@ __all__ = [
     "Web3Action",
     "Web3Network",
     "TransactionProfile",
+    "GoLiveBlockedError",
 ]

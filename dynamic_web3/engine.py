@@ -17,6 +17,7 @@ __all__ = [
     "Web3UnifiedBuild",
     "Web3GoLiveReadiness",
     "DynamicWeb3Engine",
+    "GoLiveBlockedError",
 ]
 
 
@@ -266,6 +267,36 @@ class Web3GoLiveReadiness:
         self.critical_actions = tuple(self.critical_actions)
         self.total_pending_transactions = _ensure_non_negative_int(self.total_pending_transactions)
         self.metadata = MappingProxyType(_ensure_mapping(self.metadata))
+
+
+class GoLiveBlockedError(RuntimeError):
+    """Raised when a go-live attempt is blocked by outstanding issues."""
+
+    def __init__(self, readiness: Web3GoLiveReadiness):
+        detail_sections: list[str] = []
+
+        if readiness.networks_requiring_attention:
+            networks = ", ".join(readiness.networks_requiring_attention)
+            detail_sections.append(f"networks requiring attention: {networks}")
+
+        if readiness.blocking_alerts:
+            alerts = ", ".join(readiness.blocking_alerts)
+            detail_sections.append(f"blocking alerts: {alerts}")
+
+        if readiness.critical_actions:
+            actions = ", ".join(
+                action.description for action in readiness.critical_actions
+            )
+            detail_sections.append(f"critical actions: {actions}")
+
+        detail_text = f" ({'; '.join(detail_sections)})" if detail_sections else ""
+        message = (
+            f"Project '{readiness.project}' is not ready to go live"
+            f" (status: {readiness.status}){detail_text}"
+        )
+
+        super().__init__(message)
+        self.readiness: Web3GoLiveReadiness = readiness
 
 
 class DynamicWeb3Engine:
@@ -572,3 +603,29 @@ class DynamicWeb3Engine:
             total_pending_transactions=unified.total_pending_transactions,
             metadata=combined_metadata,
         )
+        
+    def go_live(
+        self,
+        telemetry_map: Mapping[str, NetworkTelemetry],
+        *,
+        project_name: str = "Dynamic Capital",
+        metadata: Mapping[str, object] | None = None,
+    ) -> Web3GoLiveReadiness:
+        """Validate readiness and return the go-live summary.
+
+        The method wraps :meth:`compile_project_build` and enforces that the
+        resulting readiness status is ``"ready"``. If the project still has
+        blocking alerts or networks requiring attention, a
+        :class:`GoLiveBlockedError` is raised describing the outstanding work.
+        """
+
+        readiness = self.compile_project_build(
+            telemetry_map,
+            project_name=project_name,
+            metadata=metadata,
+        )
+
+        if readiness.status != "ready":
+            raise GoLiveBlockedError(readiness)
+
+        return readiness
