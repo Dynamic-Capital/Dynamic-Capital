@@ -5,7 +5,10 @@ import {
   TonConnectUIProvider,
   useTonConnectUI,
 } from "@tonconnect/ui-react";
-import type { WalletsListConfiguration } from "@tonconnect/ui-react";
+import type {
+  SendTransactionRequest,
+  WalletsListConfiguration,
+} from "@tonconnect/ui-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useMiniAppThemeManager,
@@ -16,6 +19,7 @@ import {
   linkTonMiniAppWallet,
   type Plan,
   processTonMiniAppSubscription,
+  deriveTonTransactionHash,
 } from "../lib/ton-miniapp-helper";
 
 import type {
@@ -110,6 +114,24 @@ type PlanSyncStatus = {
   updatedAt?: string;
   error?: string | null;
 };
+
+const DEFAULT_OPS_TREASURY_ADDRESS =
+  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
+
+const OPS_TREASURY_ADDRESS = (() => {
+  const candidate =
+    process.env.NEXT_PUBLIC_TON_OPS_TREASURY ??
+    process.env.NEXT_PUBLIC_OPS_TREASURY ??
+    process.env.NEXT_PUBLIC_TON_TREASURY ??
+    DEFAULT_OPS_TREASURY_ADDRESS;
+
+  if (typeof candidate !== "string") {
+    return DEFAULT_OPS_TREASURY_ADDRESS;
+  }
+
+  const trimmed = candidate.trim();
+  return trimmed.length > 0 ? trimmed : DEFAULT_OPS_TREASURY_ADDRESS;
+})();
 
 const RECOMMENDED_WALLETS: NonNullable<
   WalletsListConfiguration["includeWallets"]
@@ -992,34 +1014,88 @@ function HomeInner() {
       return;
     }
 
-    setIsProcessing(true);
-    setStatusMessage(null);
-
-    const fakeHash = `FAKE_TX_HASH_${Date.now()}`;
-    setTxHash(fakeHash);
-
-    const result = await processTonMiniAppSubscription({
-      telegramId,
-      plan,
-      txHash: fakeHash,
-    });
-
-    setIsProcessing(false);
-
-    if (!result.ok) {
-      console.error("[miniapp] Subscription request failed", result.error);
+    const tonAmount = selectedPlan?.meta.tonAmount;
+    if (!tonAmount || !Number.isFinite(tonAmount) || tonAmount <= 0) {
       setStatusMessage(
-        result.error ??
-          "We couldn't start the subscription. Give it another try after checking your connection.",
+        "Subscription pricing unavailable right now. Refresh and try again shortly.",
       );
       return;
     }
 
-    setStatusMessage(
-      `Subscription for ${
-        selectedPlan?.name ?? "your plan"
-      } submitted. Desk will confirm shortly.`,
-    );
+    const treasuryAddress = OPS_TREASURY_ADDRESS;
+    if (!treasuryAddress) {
+      setStatusMessage(
+        "Desk intake wallet unavailable. Please contact support to continue.",
+      );
+      return;
+    }
+
+    setIsProcessing(true);
+    setStatusMessage("Confirm the transfer in your TON wallet…");
+    setTxHash("");
+
+    const nanotons = BigInt(Math.ceil(tonAmount * 1_000_000_000));
+    const transaction: SendTransactionRequest = {
+      validUntil: Math.floor(Date.now() / 1000) + 60 * 10,
+      messages: [
+        {
+          address: treasuryAddress,
+          amount: nanotons.toString(),
+        },
+      ],
+    };
+
+    try {
+      const walletResponse = await tonConnectUI.sendTransaction(transaction);
+      const boc = walletResponse?.boc;
+
+      if (!boc) {
+        throw new Error("Wallet did not return a signed transaction");
+      }
+
+      const derivedHash = deriveTonTransactionHash(boc);
+      if (!derivedHash) {
+        throw new Error("Unable to derive transaction hash from wallet response");
+      }
+
+      setTxHash(derivedHash);
+      setStatusMessage("Transaction broadcasted. Verifying with the desk…");
+
+      const result = await processTonMiniAppSubscription({
+        telegramId,
+        plan,
+        txHash: derivedHash,
+      });
+
+      if (!result.ok) {
+        console.error("[miniapp] Subscription request failed", result.error);
+        setStatusMessage(
+          result.error ??
+            "We couldn't start the subscription. Give it another try after checking your connection.",
+        );
+        return;
+      }
+
+      setStatusMessage(
+        `Subscription for ${
+          selectedPlan?.name ?? "your plan"
+        } submitted. Desk will confirm shortly.`,
+      );
+    } catch (error) {
+      console.error("[miniapp] TON transaction request failed", error);
+      const rejection =
+        typeof (error as { code?: number })?.code === "number" &&
+          (error as { code: number }).code === 300
+          ? "Transaction cancelled in wallet. No funds were moved."
+          : null;
+
+      setStatusMessage(
+        rejection ??
+          "We couldn't start the subscription. Give it another try after checking your connection.",
+      );
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   function scrollToSection(sectionId: SectionId) {

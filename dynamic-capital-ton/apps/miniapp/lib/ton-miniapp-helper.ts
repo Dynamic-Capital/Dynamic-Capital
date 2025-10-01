@@ -1,3 +1,6 @@
+import { Cell } from "@ton/core";
+import { Buffer } from "buffer";
+
 export const PLAN_IDS = [
   "vip_bronze",
   "vip_silver",
@@ -54,6 +57,52 @@ function sanitiseHash(raw: string): string {
 function sanitiseAddress(raw: string | null | undefined): string | null {
   const trimmed = typeof raw === "string" ? raw.trim() : null;
   return trimmed && trimmed.length > 0 ? trimmed : null;
+}
+
+function toBase64Url(buffer: Buffer): string {
+  return buffer.toString("base64").replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/u, "");
+}
+
+function normaliseBocEncoding(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const base64 = trimmed.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = base64.length % 4;
+  if (padding === 0) {
+    return base64;
+  }
+
+  return `${base64}${"=".repeat(4 - padding)}`;
+}
+
+export function deriveTonTransactionHash(boc: string): string | null {
+  try {
+    const normalised = typeof boc === "string" ? normaliseBocEncoding(boc) : "";
+    if (!normalised) {
+      return null;
+    }
+
+    const cells = Cell.fromBoc(Buffer.from(normalised, "base64"));
+    const cell = cells[0];
+    if (!cell) {
+      return null;
+    }
+
+    const hash = cell.hash();
+    const hashBuffer = Buffer.isBuffer(hash) ? hash : Buffer.from(hash);
+    return toBase64Url(hashBuffer);
+  } catch (error) {
+    console.error(
+      "[ton-miniapp-helper] Failed to derive transaction hash from BOC",
+      error,
+    );
+    return null;
+  }
 }
 
 async function extractErrorMessage(

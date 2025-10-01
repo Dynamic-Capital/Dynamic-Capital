@@ -15,6 +15,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_FN_URL=https://<project>.functions.supabase.co
 # Optional but recommended so server-side proxy calls include an API key
 SUPABASE_ANON_KEY=<anon-key>
+# Optional override if the operations treasury rotates
+NEXT_PUBLIC_TON_OPS_TREASURY=<ops-treasury-wallet>
 ```
 
 The `NEXT_PUBLIC_SUPABASE_*` values enable live subscription plan updates inside
