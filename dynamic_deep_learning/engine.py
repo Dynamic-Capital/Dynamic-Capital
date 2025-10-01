@@ -9,6 +9,8 @@ import random
 from typing import Callable, Iterable, Mapping, Sequence
 
 __all__ = [
+    "LayerBlueprint",
+    "DynamicLayerEngineConfig",
     "DeepLearningLayerSpec",
     "DeepLearningModelSpec",
     "TrainingSample",
@@ -38,6 +40,39 @@ def _to_float_sequence(values: Iterable[float], *, name: str) -> tuple[float, ..
     if not converted:
         raise ValueError(f"{name} must contain at least one value")
     return tuple(converted)
+
+
+@dataclass(slots=True)
+class LayerBlueprint:
+    """High-level configuration describing a dense layer."""
+
+    name: str
+    units: int
+    activation: str = "relu"
+    dropout: float = 0.0
+
+    def __post_init__(self) -> None:
+        self.name = self.name.strip() or "layer"
+        if self.units <= 0:
+            raise ValueError("units must be positive")
+        activation = self.activation.lower().strip()
+        if activation not in _SUPPORTED_ACTIVATIONS:
+            raise ValueError(f"activation must be one of {_SUPPORTED_ACTIVATIONS}")
+        self.activation = activation
+        self.dropout = float(self.dropout)
+        if not 0.0 <= self.dropout < 1.0:
+            raise ValueError("dropout must be in [0, 1)")
+
+    def as_spec(self, input_dim: int) -> "DeepLearningLayerSpec":
+        """Create a concrete :class:`DeepLearningLayerSpec` for ``input_dim``."""
+
+        return DeepLearningLayerSpec(
+            name=self.name,
+            input_dim=input_dim,
+            output_dim=self.units,
+            activation=self.activation,
+            dropout=self.dropout,
+        )
 
 
 @dataclass(slots=True)
@@ -105,6 +140,83 @@ class DeepLearningModelSpec:
     @property
     def output_dim(self) -> int:
         return self.layers[-1].output_dim
+
+
+@dataclass(slots=True)
+class DynamicLayerEngineConfig:
+    """Composable configuration for stacking dense layers."""
+
+    input_dim: int
+    input_layers: Sequence[LayerBlueprint] = ()
+    hidden_layers: Sequence[LayerBlueprint] = ()
+    output_layers: Sequence[LayerBlueprint] = ()
+    learning_rate: float = 0.01
+    momentum: float = 0.0
+    l2_regularisation: float = 0.0
+    gradient_clip: float | None = 5.0
+    seed: int | None = None
+    shuffle_training: bool = True
+
+    def __post_init__(self) -> None:
+        self.input_dim = int(self.input_dim)
+        if self.input_dim <= 0:
+            raise ValueError("input_dim must be positive")
+        self.input_layers = self._coerce_layers(self.input_layers, "input_layers")
+        self.hidden_layers = self._coerce_layers(self.hidden_layers, "hidden_layers")
+        self.output_layers = self._coerce_layers(self.output_layers, "output_layers")
+        if not self.output_layers:
+            raise ValueError("configuration requires at least one output layer")
+        if not (self.input_layers or self.hidden_layers or self.output_layers):
+            raise ValueError("configuration requires at least one layer")
+        self.learning_rate = max(1e-5, float(self.learning_rate))
+        self.momentum = max(0.0, min(0.99, float(self.momentum)))
+        self.l2_regularisation = max(0.0, float(self.l2_regularisation))
+        if self.gradient_clip is not None:
+            self.gradient_clip = max(0.01, float(self.gradient_clip))
+        self.seed = int(self.seed) if self.seed is not None else None
+        self.shuffle_training = bool(self.shuffle_training)
+
+    def _coerce_layers(
+        self,
+        layers: Sequence[LayerBlueprint] | Sequence[Mapping[str, object]],
+        name: str,
+    ) -> tuple[LayerBlueprint, ...]:
+        normalised: list[LayerBlueprint] = []
+        for index, layer in enumerate(layers):
+            if isinstance(layer, LayerBlueprint):
+                normalised.append(layer)
+            elif isinstance(layer, Mapping):
+                normalised.append(LayerBlueprint(**layer))
+            else:  # pragma: no cover - guard against invalid data
+                raise TypeError(f"{name}[{index}] must be LayerBlueprint or mapping")
+        return tuple(normalised)
+
+    @property
+    def layers(self) -> tuple[LayerBlueprint, ...]:
+        return self.input_layers + self.hidden_layers + self.output_layers
+
+    @property
+    def output_dim(self) -> int:
+        return self.layers[-1].units
+
+    def build_model_spec(self) -> DeepLearningModelSpec:
+        """Create a :class:`DeepLearningModelSpec` from the configuration."""
+
+        specs: list[DeepLearningLayerSpec] = []
+        previous = self.input_dim
+        for layer in self.layers:
+            spec = layer.as_spec(previous)
+            specs.append(spec)
+            previous = spec.output_dim
+        return DeepLearningModelSpec(
+            layers=specs,
+            learning_rate=self.learning_rate,
+            momentum=self.momentum,
+            l2_regularisation=self.l2_regularisation,
+            gradient_clip=self.gradient_clip,
+            seed=self.seed,
+            shuffle_training=self.shuffle_training,
+        )
 
 
 @dataclass(slots=True)
