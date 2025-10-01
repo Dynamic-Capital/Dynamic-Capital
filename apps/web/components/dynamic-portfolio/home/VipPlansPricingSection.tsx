@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -72,10 +72,13 @@ export function VipPlansPricingSection() {
     return list;
   }, [plans, popularPlanId]);
 
-  const handleSubscribe = (plan: Plan) => {
-    connectWallet({ planId: plan.id });
-    router.push(`/checkout?plan=${encodeURIComponent(plan.id)}`);
-  };
+  const handleSubscribe = useCallback(
+    async (plan: Plan) => {
+      await connectWallet({ planId: plan.id });
+      router.push(`/checkout?plan=${encodeURIComponent(plan.id)}`);
+    },
+    [connectWallet, router],
+  );
 
   if (loading) {
     return (

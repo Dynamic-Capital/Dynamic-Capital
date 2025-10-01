@@ -6,9 +6,10 @@ import { motion, useScroll, useSpring } from "framer-motion";
 import { LifeBuoy } from "lucide-react";
 
 import BrandLogo from "@/components/BrandLogo";
+import { useAuth } from "@/hooks/useAuth";
+import { useWalletConnect } from "@/hooks/useWalletConnect";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
-import { useAuth } from "@/hooks/useAuth";
 
 import { DesktopNav } from "./DesktopNav";
 import { MobileMenu } from "./MobileMenu";
@@ -16,6 +17,7 @@ import { MobileMenu } from "./MobileMenu";
 export function SiteHeader() {
   const headerRef = useRef<HTMLElement | null>(null);
   const { user, signOut } = useAuth();
+  const connectWallet = useWalletConnect();
   const { scrollYProgress } = useScroll();
   const scrollProgress = useSpring(scrollYProgress, {
     stiffness: 120,
@@ -76,6 +78,15 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-3">
           <Button
+            size="sm"
+            className="hidden md:inline-flex"
+            onClick={() => {
+              void connectWallet();
+            }}
+          >
+            Connect wallet
+          </Button>
+          <Button
             asChild
             variant="ghost"
             size="sm"
@@ -105,6 +116,15 @@ export function SiteHeader() {
               </Button>
             )}
           <div className="flex items-center gap-2 md:hidden">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                void connectWallet();
+              }}
+            >
+              Connect
+            </Button>
             <Button
               asChild
               variant="ghost"
