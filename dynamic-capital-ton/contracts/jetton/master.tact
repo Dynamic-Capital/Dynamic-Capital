@@ -45,6 +45,9 @@ contract DynamicCapitalMaster with JettonMaster {
   pendingRouter?: TimelockPayload;
 
   init(admin: Address, content: Cell, walletCode: Cell, treasury: Address, dexRouter: Address, timelockHours: Int) {
+    self.requireBaseWorkchain(admin, "master: admin workchain");
+    self.requireBaseWorkchain(treasury, "master: treasury workchain");
+    self.requireBaseWorkchain(dexRouter, "master: router workchain");
     self.admin = admin;
     self.jettonContent = content;
     self.jettonWalletCode = walletCode;
@@ -116,6 +119,7 @@ contract DynamicCapitalMaster with JettonMaster {
     if (op == OP_SCHEDULE_TREASURY) {
       self.requireAdmin(msg.info.src);
       Address newTreasury = sc.loadMsgAddress();
+      self.requireBaseWorkchain(newTreasury, "master: treasury workchain");
       self.pendingTreasury = TimelockPayload{ executeAfter: now() + self.timelockSeconds, boolValue: false, intValue: 0, addressValue: newTreasury };
       return;
     }
@@ -129,6 +133,7 @@ contract DynamicCapitalMaster with JettonMaster {
     if (op == OP_SCHEDULE_ROUTER) {
       self.requireAdmin(msg.info.src);
       Address newRouter = sc.loadMsgAddress();
+      self.requireBaseWorkchain(newRouter, "master: router workchain");
       self.pendingRouter = TimelockPayload{ executeAfter: now() + self.timelockSeconds, boolValue: false, intValue: 0, addressValue: newRouter };
       return;
     }
@@ -186,12 +191,14 @@ contract DynamicCapitalMaster with JettonMaster {
     }
 
     if (kind == TimelockKind::Treasury) {
+      self.requireBaseWorkchain(payload.addressValue, "master: treasury workchain");
       self.treasury = payload.addressValue;
       self.pendingTreasury = null;
       return;
     }
 
     if (kind == TimelockKind::Router) {
+      self.requireBaseWorkchain(payload.addressValue, "master: router workchain");
       self.dexRouter = payload.addressValue;
       self.pendingRouter = null;
       return;
@@ -200,5 +207,10 @@ contract DynamicCapitalMaster with JettonMaster {
 
   fun requireAdmin(addr: Address) {
     require(addr == self.admin, "not admin");
+  }
+
+  fun requireBaseWorkchain(addr: Address, err: String) {
+    StdAddress components = parseStdAddress(addr.asSlice());
+    require(components.workchain == 0, err);
   }
 }

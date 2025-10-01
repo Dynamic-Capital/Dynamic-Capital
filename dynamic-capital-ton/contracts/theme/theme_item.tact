@@ -20,6 +20,8 @@ contract ThemeItem with NftItem {
     priority: Int,
     frozen: Bool,
   ) {
+    self.requireBaseWorkchain(collection, "theme-item: collection workchain");
+    self.requireBaseWorkchain(owner, "theme-item: owner workchain");
     self.collection = collection;
     self.owner = owner;
     self.index = index;
@@ -62,6 +64,11 @@ contract ThemeItem with NftItem {
 
   fun requireCollection(sender: Address) {
     require(sender == self.collection, "theme-item: unauthorized");
+  }
+
+  fun requireBaseWorkchain(addr: Address, err: String) {
+    StdAddress components = parseStdAddress(addr.asSlice());
+    require(components.workchain == 0, err);
   }
 
   get fun get_nft_data(): (Int, Address, Address, Slice, Int, Bool) {

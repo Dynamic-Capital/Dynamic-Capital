@@ -48,6 +48,11 @@ contract TonPoolAllocator {
     dctMaster: Address,
     timelockHours: Int,
   ) {
+    self.requireBaseWorkchain(admin, "allocator: admin workchain");
+    self.requireBaseWorkchain(treasury, "allocator: treasury workchain");
+    self.requireBaseWorkchain(dexRouter, "allocator: router workchain");
+    self.requireBaseWorkchain(usdtJetton, "allocator: usdt workchain");
+    self.requireBaseWorkchain(dctMaster, "allocator: dct master workchain");
     self.admin = admin;
     self.treasury = treasury;
     self.dexRouter = dexRouter;
@@ -88,6 +93,7 @@ contract TonPoolAllocator {
 
     if (op == OP_SCHEDULE_ROUTER) {
       Address next = body.loadMsgAddress();
+      self.requireBaseWorkchain(next, "allocator: router workchain");
       self.pendingRouter = TimelockAction{
         executeAfter: now() + self.timelockSeconds,
         addressValue: next,
@@ -103,6 +109,7 @@ contract TonPoolAllocator {
 
     if (op == OP_SCHEDULE_TREASURY) {
       Address nextTreasury = body.loadMsgAddress();
+      self.requireBaseWorkchain(nextTreasury, "allocator: treasury workchain");
       self.pendingTreasury = TimelockAction{
         executeAfter: now() + self.timelockSeconds,
         addressValue: nextTreasury,
@@ -182,7 +189,9 @@ contract TonPoolAllocator {
     require(pending != null(), "allocator: nothing scheduled");
     require(now() >= pending?.executeAfter, "allocator: timelock");
     require(pending?.addressValue != null(), "allocator: invalid address");
-    return pending?.addressValue as Address;
+    Address value = pending?.addressValue as Address;
+    self.requireBaseWorkchain(value, "allocator: workchain mismatch");
+    return value;
   }
 
   fun requirePause(pending?: PauseAction): Bool {
@@ -203,5 +212,10 @@ contract TonPoolAllocator {
         body: beginCell().storeUint(op::transfer_notification, 32).storeString(err).endCell(),
       },
     );
+  }
+
+  fun requireBaseWorkchain(addr: Address, err: String) {
+    StdAddress components = parseStdAddress(addr.asSlice());
+    require(components.workchain == 0, err);
   }
 }
