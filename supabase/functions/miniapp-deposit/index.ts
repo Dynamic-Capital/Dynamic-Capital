@@ -1,5 +1,5 @@
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
-import { ok, bad, unauth, mna } from "../_shared/http.ts";
+import { bad, mna, ok, unauth } from "../_shared/http.ts";
 
 export async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") return mna();

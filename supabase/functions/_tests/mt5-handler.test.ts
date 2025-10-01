@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertEquals,
-} from "std/assert/mod.ts";
+import { assert, assertEquals } from "std/assert/mod.ts";
 import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
 function withStubbedServe<T>(fn: () => Promise<T>): Promise<T> {

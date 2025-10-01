@@ -11,7 +11,9 @@ Deno.test("health function responds with commit", async () => {
     `../health/index.ts?cache=${crypto.randomUUID()}`
   );
 
-  const res = await handler(new Request("http://localhost/functions/v1/health"));
+  const res = await handler(
+    new Request("http://localhost/functions/v1/health"),
+  );
   assertEquals(res.status, 200);
   const body = await res.json() as { status: string; commit: string };
   assertEquals(body.status, "ok");

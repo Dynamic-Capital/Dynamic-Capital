@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { buildCorsHeaders } from '@/utils/http.ts';
+import { NextRequest, NextResponse } from "next/server";
+import { buildCorsHeaders } from "@/utils/http.ts";
 
-const LEGACY_LOCALE_PREFIX = '/en';
+const LEGACY_LOCALE_PREFIX = "/en";
 
 export function middleware(req: NextRequest) {
-  if (req.nextUrl.pathname.startsWith('/api')) {
-    const origin = req.headers.get('origin');
+  if (req.nextUrl.pathname.startsWith("/api")) {
+    const origin = req.headers.get("origin");
     const headers = buildCorsHeaders(origin);
 
-    if (req.method === 'OPTIONS') {
-      if (origin && !headers['access-control-allow-origin']) {
+    if (req.method === "OPTIONS") {
+      if (origin && !headers["access-control-allow-origin"]) {
         return new NextResponse(null, { status: 403 });
       }
       return new NextResponse(null, { status: 204, headers });
     }
 
-    if (origin && !headers['access-control-allow-origin']) {
-      return new NextResponse('Origin not allowed', { status: 403 });
+    if (origin && !headers["access-control-allow-origin"]) {
+      return new NextResponse("Origin not allowed", { status: 403 });
     }
 
     const res = NextResponse.next();
@@ -26,9 +26,12 @@ export function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  if (pathname === LEGACY_LOCALE_PREFIX || pathname.startsWith(`${LEGACY_LOCALE_PREFIX}/`)) {
+  if (
+    pathname === LEGACY_LOCALE_PREFIX ||
+    pathname.startsWith(`${LEGACY_LOCALE_PREFIX}/`)
+  ) {
     const rewrited = req.nextUrl.clone();
-    const nextPath = pathname.slice(LEGACY_LOCALE_PREFIX.length) || '/';
+    const nextPath = pathname.slice(LEGACY_LOCALE_PREFIX.length) || "/";
     rewrited.pathname = nextPath;
     return NextResponse.rewrite(rewrited);
   }
@@ -38,8 +41,8 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/',
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-    '/api/:path*',
+    "/",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    "/api/:path*",
   ],
 };

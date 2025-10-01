@@ -1,13 +1,14 @@
 import { registerHandler } from "../_shared/serve.ts";
 import { createClient, createSupabaseClient } from "../_shared/client.ts";
 import { getEnv } from "../_shared/env.ts";
-import { bad, mna, oops, json } from "../_shared/http.ts";
+import { bad, json, mna, oops } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 type Body = {
@@ -19,7 +20,7 @@ type Body = {
 };
 
 export async function handler(req: Request): Promise<Response> {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -30,13 +31,16 @@ export async function handler(req: Request): Promise<Response> {
   // Check for web auth first
   const authHeader = req.headers.get("Authorization");
   let telegramId: string | null = null;
-  
+
   if (authHeader) {
     // Web user authentication
     const supaAuth = createSupabaseClient(
       getEnv("SUPABASE_URL"),
       getEnv("SUPABASE_ANON_KEY"),
-      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+      {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false },
+      },
     );
 
     const { data: { user } } = await supaAuth.auth.getUser();
@@ -81,8 +85,9 @@ export async function handler(req: Request): Promise<Response> {
 
   // Generate unique file path
   const timestamp = Date.now();
-  const randomId = crypto.randomUUID().split('-')[0];
-  const fileName = body.filename || `receipt_${body.payment_id}_${timestamp}_${randomId}`;
+  const randomId = crypto.randomUUID().split("-")[0];
+  const fileName = body.filename ||
+    `receipt_${body.payment_id}_${timestamp}_${randomId}`;
   const key = `receipts/${finalTelegramId}/${crypto.randomUUID()}-${fileName}`;
 
   const { data: signed, error } = await supa.storage
@@ -92,12 +97,16 @@ export async function handler(req: Request): Promise<Response> {
     return oops(error.message);
   }
 
-  return json({
-    ok: true,
-    bucket: "payment-receipts",
-    file_path: key,
-    upload_url: signed.signedUrl
-  }, 200, corsHeaders);
+  return json(
+    {
+      ok: true,
+      bucket: "payment-receipts",
+      file_path: key,
+      upload_url: signed.signedUrl,
+    },
+    200,
+    corsHeaders,
+  );
 }
 
 registerHandler(handler);

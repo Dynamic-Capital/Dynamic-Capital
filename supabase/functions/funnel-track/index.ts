@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
-import { bad, json, ok, mna } from "../_shared/http.ts";
+import { bad, json, mna, ok } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 
 export async function handler(req: Request): Promise<Response> {

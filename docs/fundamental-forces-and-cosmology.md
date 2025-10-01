@@ -206,17 +206,16 @@ drifting toward unproductive equilibria.
 
 ### Big Freeze — Low-Volatility Drift
 
-\[
-\frac{dP}{dt} \propto \frac{\Lambda_{\text{info}}}{1 + e^{\alpha P}} - \Gamma_{\text{volatility}}
-\]
+\[ \frac{dP}{dt} \propto \frac{\Lambda_{\text{info}}}{1 + e^{\alpha P}} -
+\Gamma_{\text{volatility}} \]
 
 - **\(\Lambda_{\text{info}}\)** → Background signal trickle. Daily telemetry,
   new listings, and small partner updates nudge price upward without exciting
   catalysts.
-- **\(\alpha\)** → Market saturation dampener. As AUM and operational
-  efficiency improve, each incremental data point produces a smaller reaction.
-- **\(\Gamma_{\text{volatility}}\)** → Volatility decay. Orderflow and
-  liquidity smoothing tools absorb shocks, flattening realized variance.
+- **\(\alpha\)** → Market saturation dampener. As AUM and operational efficiency
+  improve, each incremental data point produces a smaller reaction.
+- **\(\Gamma_{\text{volatility}}\)** → Volatility decay. Orderflow and liquidity
+  smoothing tools absorb shocks, flattening realized variance.
 
 **Playbook triggers**
 
@@ -229,12 +228,11 @@ drifting toward unproductive equilibria.
 
 ### Big Crunch — Self-Reinforcing Deleveraging
 
-\[
-\frac{d^{2}P}{dt^{2}} \propto -\frac{G_{\text{greed}} \cdot M_{\text{debt}}}{P^{2}} + \Lambda_{\text{optimism}}
-\]
+\[ \frac{d^{2}P}{dt^{2}} \propto -\frac{G_{\text{greed}} \cdot
+M_{\text{debt}}}{P^{2}} + \Lambda_{\text{optimism}} \]
 
-- **\(G_{\text{greed}}\)** → Speculative leverage appetite. Aggressive
-  position sizing and relaxed guardrails amplify positive feedback loops.
+- **\(G_{\text{greed}}\)** → Speculative leverage appetite. Aggressive position
+  sizing and relaxed guardrails amplify positive feedback loops.
 - **\(M_{\text{debt}}\)** → Accumulated counterparty exposure. Unwound credit
   lines and leverage caps accelerate the crash.
 - **\(\Lambda_{\text{optimism}}\)** → Narrative optimism. Product marketing,
@@ -251,9 +249,8 @@ drifting toward unproductive equilibria.
 
 ### Big Rip — Runaway Fear Dynamics
 
-\[
-\frac{d^{2}P}{dt^{2}} \propto \omega_{\text{fear}}(t) \cdot P, \qquad \omega_{\text{fear}}(t) < -1
-\]
+\[ \frac{d^{2}P}{dt^{2}} \propto \omega_{\text{fear}}(t) \cdot P, \qquad
+\omega_{\text{fear}}(t) < -1 \]
 
 - **\(\omega_{\text{fear}}(t)\)** → Time-varying panic coefficient. Social
   feeds, macro shocks, and rumor velocity accelerate disorder as time passes.

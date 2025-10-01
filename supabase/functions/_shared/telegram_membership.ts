@@ -1,14 +1,18 @@
 import { optionalEnv } from "./env.ts";
 import type { SupabaseClient } from "./client.ts";
 
-export async function getVipChannels(supa: SupabaseClient | null): Promise<string[]> {
+export async function getVipChannels(
+  supa: SupabaseClient | null,
+): Promise<string[]> {
   const envVal = optionalEnv("VIP_CHANNELS");
   if (envVal) {
     return envVal.split(",").map((s) => s.trim()).filter(Boolean);
   }
   if (!supa) return [];
   try {
-    const { data, error } = await supa.from("bot_settings").select("setting_value").eq(
+    const { data, error } = await supa.from("bot_settings").select(
+      "setting_value",
+    ).eq(
       "setting_key",
       "vip_channels",
     ).eq("is_active", true).maybeSingle();
@@ -51,7 +55,8 @@ export async function getChatMemberStatus(
 }
 
 export function isMemberLike(status: string | null): boolean {
-  return status === "member" || status === "administrator" || status === "creator";
+  return status === "member" || status === "administrator" ||
+    status === "creator";
 }
 
 export async function checkUserAcrossChannels(
@@ -59,7 +64,9 @@ export async function checkUserAcrossChannels(
   channels: string[],
   userId: string,
 ): Promise<Array<{ channel: string; status: string | null; active: boolean }>> {
-  const out: Array<{ channel: string; status: string | null; active: boolean }> = [];
+  const out: Array<
+    { channel: string; status: string | null; active: boolean }
+  > = [];
   for (const ch of channels) {
     const status = await getChatMemberStatus(botToken, ch, userId);
     out.push({ channel: ch, status, active: isMemberLike(status) });
@@ -90,10 +97,11 @@ export async function recomputeVipFlag(
   graceDays = 0,
 ): Promise<{ is_vip: boolean; by: string } | null> {
   try {
-    const { data: chan } = await supa.from("channel_memberships").select("id").eq(
-      "telegram_user_id",
-      userId,
-    ).eq("is_active", true).limit(1).maybeSingle();
+    const { data: chan } = await supa.from("channel_memberships").select("id")
+      .eq(
+        "telegram_user_id",
+        userId,
+      ).eq("is_active", true).limit(1).maybeSingle();
     const vipByChannel = !!chan;
 
     const { data: sub } = await supa.from("user_subscriptions").select(
@@ -124,4 +132,3 @@ export async function recomputeVipFlag(
     return null;
   }
 }
-

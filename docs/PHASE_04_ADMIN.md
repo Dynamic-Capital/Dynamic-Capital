@@ -17,13 +17,15 @@
   - A misformatted or missing ID results in a `401 Unauthorized`
 - TELEGRAM_BOT_TOKEN (for user notifications)
 
-To debug 401 responses from admin endpoints, generate a known-good `initData` via:
+To debug 401 responses from admin endpoints, generate a known-good `initData`
+via:
 
 ```bash
 deno run --no-npm -A scripts/make-initdata.ts --id=<your_telegram_id>
 ```
 
-Then pass that string to `/verify-initdata` to confirm the signature and admin check succeed.
+Then pass that string to `/verify-initdata` to confirm the signature and admin
+check succeed.
 
 ## Flows
 

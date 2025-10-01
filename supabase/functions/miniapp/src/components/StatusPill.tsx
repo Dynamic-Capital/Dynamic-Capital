@@ -8,7 +8,7 @@ const variants = {
 const labels = {
   AWAITING: "Pending",
   VERIFIED: "Approved",
-  REJECTED: "Rejected", 
+  REJECTED: "Rejected",
   REVIEW: "Under Review",
 } as const;
 
@@ -19,5 +19,6 @@ interface Props {
 }
 
 export default function StatusPill({ status }: Props) {
-  return <span className={`dc-chip ${variants[status]}`}>{labels[status]}</span>;
+  return <span className={`dc-chip ${variants[status]}`}>{labels[status]}
+  </span>;
 }

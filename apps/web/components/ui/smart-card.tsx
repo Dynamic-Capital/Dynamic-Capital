@@ -15,68 +15,70 @@ const smartCardVariants = cva(
         default: [
           "shadow-sm hover:shadow-md",
           "hover:scale-[1.02] active:scale-[0.98]",
-          "border-border/50 hover:border-primary/30"
+          "border-border/50 hover:border-primary/30",
         ],
         elevated: [
           "shadow-md hover:shadow-lg",
           "hover:scale-[1.03] active:scale-[0.97]",
-          "border-border/30 hover:border-primary/40"
+          "border-border/30 hover:border-primary/40",
         ],
         glass: [
           "bg-background/40 backdrop-blur-md",
           "shadow-lg hover:shadow-xl",
           "border-border/20 hover:border-primary/50",
-          "hover:bg-background/60"
+          "hover:bg-background/60",
         ],
         interactive: [
           "cursor-pointer shadow-sm hover:shadow-lg",
           "hover:scale-[1.03] active:scale-[0.97]",
           "border-border/50 hover:border-primary/40",
-          "transition-all duration-200"
+          "transition-all duration-200",
         ],
         trading: [
           "bg-gradient-to-br from-card via-card/90 to-primary/5",
           "shadow-md hover:shadow-lg hover:shadow-primary/10",
           "border-border/30 hover:border-primary/50",
-          "hover:scale-[1.02]"
+          "hover:scale-[1.02]",
         ],
         status: [
           "border-2 transition-all duration-300",
-          "hover:scale-[1.02] active:scale-[0.98]"
-        ]
+          "hover:scale-[1.02] active:scale-[0.98]",
+        ],
       },
       size: {
         sm: "p-3",
         default: "p-4",
         lg: "p-6",
-        xl: "p-8"
+        xl: "p-8",
       },
       spacing: {
         compact: "space-y-2",
         default: "space-y-3",
         relaxed: "space-y-4",
-        loose: "space-y-6"
+        loose: "space-y-6",
       },
       status: {
         none: "",
-        success: "border-success/50 bg-success/5 hover:border-success hover:bg-success/10",
-        warning: "border-warning/50 bg-warning/5 hover:border-warning hover:bg-warning/10",
-        error: "border-error/50 bg-error/5 hover:border-error hover:bg-error/10",
-        info: "border-info/50 bg-info/5 hover:border-info hover:bg-info/10"
-      }
+        success:
+          "border-success/50 bg-success/5 hover:border-success hover:bg-success/10",
+        warning:
+          "border-warning/50 bg-warning/5 hover:border-warning hover:bg-warning/10",
+        error:
+          "border-error/50 bg-error/5 hover:border-error hover:bg-error/10",
+        info: "border-info/50 bg-info/5 hover:border-info hover:bg-info/10",
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
       spacing: "default",
-      status: "none"
+      status: "none",
     },
-  }
+  },
 );
 
 export interface SmartCardProps
-  extends MotionDivProps,
-    VariantProps<typeof smartCardVariants> {
+  extends MotionDivProps, VariantProps<typeof smartCardVariants> {
   header?: React.ReactNode;
   footer?: React.ReactNode;
   loading?: boolean;
@@ -108,14 +110,16 @@ export const SmartCard = React.forwardRef<HTMLDivElement, SmartCardProps>(
       lift: "hover:-translate-y-2",
       glow: "hover:shadow-primary/20",
       scale: "hover:scale-[1.02]",
-      none: ""
+      none: "",
     };
 
-    const motionProps = interactive ? {
-      whileHover: { y: -2, scale: 1.01 },
-      whileTap: { scale: 0.98 },
-      transition: { duration: 0.2 }
-    } : {};
+    const motionProps = interactive
+      ? {
+        whileHover: { y: -2, scale: 1.01 },
+        whileTap: { scale: 0.98 },
+        transition: { duration: 0.2 },
+      }
+      : {};
 
     return (
       <motion.div
@@ -124,7 +128,7 @@ export const SmartCard = React.forwardRef<HTMLDivElement, SmartCardProps>(
           smartCardVariants({ variant, size, spacing, status }),
           hoverEffects[hoverEffect],
           interactive && "cursor-pointer",
-          className
+          className,
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -171,7 +175,7 @@ export const SmartCard = React.forwardRef<HTMLDivElement, SmartCardProps>(
         <motion.div
           className={cn(
             "relative",
-            contentPadding && "space-y-3"
+            contentPadding && "space-y-3",
           )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -200,20 +204,18 @@ export const SmartCard = React.forwardRef<HTMLDivElement, SmartCardProps>(
         )}
       </motion.div>
     );
-  }
+  },
 );
 
 SmartCard.displayName = "SmartCard";
 
 // Card components for specific use cases
 export const TradingCard = React.forwardRef<HTMLDivElement, SmartCardProps>(
-  (props, ref) => (
-    <SmartCard ref={ref} variant="trading" {...props} />
-  )
+  (props, ref) => <SmartCard ref={ref} variant="trading" {...props} />,
 );
 
 export const StatusCard = React.forwardRef<
-  HTMLDivElement, 
+  HTMLDivElement,
   SmartCardProps & { statusType: "success" | "warning" | "error" | "info" }
 >(({ statusType, ...props }, ref) => (
   <SmartCard ref={ref} variant="status" status={statusType} {...props} />
@@ -221,8 +223,14 @@ export const StatusCard = React.forwardRef<
 
 export const InteractiveCard = React.forwardRef<HTMLDivElement, SmartCardProps>(
   (props, ref) => (
-    <SmartCard ref={ref} variant="interactive" interactive hoverEffect="lift" {...props} />
-  )
+    <SmartCard
+      ref={ref}
+      variant="interactive"
+      interactive
+      hoverEffect="lift"
+      {...props}
+    />
+  ),
 );
 
 TradingCard.displayName = "TradingCard";

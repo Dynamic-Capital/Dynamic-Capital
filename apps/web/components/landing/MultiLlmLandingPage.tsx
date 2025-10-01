@@ -116,8 +116,7 @@ const FORECAST_HIGHLIGHTS = [
 const FORECAST_CATEGORIES = [
   {
     label: "Countries",
-    description:
-      "Growth, inflation, and policy paths for 150+ economies.",
+    description: "Growth, inflation, and policy paths for 150+ economies.",
   },
   {
     label: "Indicators",
@@ -131,13 +130,11 @@ const FORECAST_CATEGORIES = [
   },
   {
     label: "Indexes",
-    description:
-      "Equity and volatility benchmarks synced to macro drivers.",
+    description: "Equity and volatility benchmarks synced to macro drivers.",
   },
   {
     label: "Currencies",
-    description:
-      "FX crosses modeled on rate differentials and trade balances.",
+    description: "FX crosses modeled on rate differentials and trade balances.",
   },
   {
     label: "Crypto",
@@ -146,8 +143,7 @@ const FORECAST_CATEGORIES = [
   },
   {
     label: "Bonds",
-    description:
-      "Sovereign and credit curves linked to inflation and growth.",
+    description: "Sovereign and credit curves linked to inflation and growth.",
   },
 ] as const;
 

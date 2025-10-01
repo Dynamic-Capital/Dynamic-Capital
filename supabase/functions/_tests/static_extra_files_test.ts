@@ -8,11 +8,17 @@ Deno.test("serve robots.txt and sitemap.xml with correct content-type", async ()
     extraFiles: ["/robots.txt", "/sitemap.xml"],
   };
 
-  const robots = await serveStatic(new Request("https://example.com/robots.txt"), opts);
+  const robots = await serveStatic(
+    new Request("https://example.com/robots.txt"),
+    opts,
+  );
   assertEquals(robots.status, 200);
   assert(robots.headers.get("content-type")?.startsWith("text/plain"));
 
-  const sitemap = await serveStatic(new Request("https://example.com/sitemap.xml"), opts);
+  const sitemap = await serveStatic(
+    new Request("https://example.com/sitemap.xml"),
+    opts,
+  );
   assertEquals(sitemap.status, 200);
   assertEquals(sitemap.headers.get("content-type"), "application/xml");
 });

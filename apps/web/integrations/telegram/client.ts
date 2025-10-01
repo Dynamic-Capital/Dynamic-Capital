@@ -1,6 +1,6 @@
-import { getEnvVar } from '@/utils/env.ts';
+import { getEnvVar } from "@/utils/env.ts";
 
-export const TELEGRAM_API_BASE = 'https://api.telegram.org';
+export const TELEGRAM_API_BASE = "https://api.telegram.org";
 
 export interface TelegramClientOptions {
   token?: string;
@@ -31,7 +31,7 @@ export interface TelegramMessage {
 export interface SendMessagePayload {
   chat_id: number | string;
   text: string;
-  parse_mode?: 'MarkdownV2' | 'HTML' | 'Markdown';
+  parse_mode?: "MarkdownV2" | "HTML" | "Markdown";
   disable_web_page_preview?: boolean;
   reply_markup?: Record<string, unknown>;
 }
@@ -56,13 +56,13 @@ export class TelegramBotClient {
   readonly baseUrl: string;
 
   constructor(options: TelegramClientOptions = {}) {
-    const token = options.token ?? getEnvVar('TELEGRAM_BOT_TOKEN');
+    const token = options.token ?? getEnvVar("TELEGRAM_BOT_TOKEN");
     if (!token) {
-      throw new Error('Missing TELEGRAM_BOT_TOKEN');
+      throw new Error("Missing TELEGRAM_BOT_TOKEN");
     }
     this.token = token;
     const base = options.apiBaseUrl ?? TELEGRAM_API_BASE;
-    this.baseUrl = base.replace(/\/$/, '');
+    this.baseUrl = base.replace(/\/$/, "");
   }
 
   private endpoint(method: string) {
@@ -71,37 +71,39 @@ export class TelegramBotClient {
 
   private async request<T>(method: string, payload: unknown): Promise<T> {
     const res = await fetch(this.endpoint(method), {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify(payload ?? {}),
     });
     const json = (await res.json()) as TelegramApiResponse<T>;
     if (!json.ok || !json.result) {
       throw new Error(
-        json.description ? `Telegram API error: ${json.description}` : 'Telegram API request failed',
+        json.description
+          ? `Telegram API error: ${json.description}`
+          : "Telegram API request failed",
       );
     }
     return json.result;
   }
 
   sendMessage(payload: SendMessagePayload): Promise<TelegramMessage> {
-    return this.request<TelegramMessage>('sendMessage', payload);
+    return this.request<TelegramMessage>("sendMessage", payload);
   }
 
   answerCallbackQuery(payload: AnswerCallbackPayload): Promise<true> {
-    return this.request<true>('answerCallbackQuery', payload);
+    return this.request<true>("answerCallbackQuery", payload);
   }
 
   setWebhook(payload: SetWebhookPayload): Promise<true> {
-    return this.request<true>('setWebhook', payload);
+    return this.request<true>("setWebhook", payload);
   }
 }
 
 export function getTelegramAppCredentials() {
-  const appId = getEnvVar('TELEGRAM_APP_ID');
-  const appHash = getEnvVar('TELEGRAM_APP_HASH');
+  const appId = getEnvVar("TELEGRAM_APP_ID");
+  const appHash = getEnvVar("TELEGRAM_APP_HASH");
   if (!appId || !appHash) {
-    throw new Error('Missing Telegram mini app credentials');
+    throw new Error("Missing Telegram mini app credentials");
   }
   return { appId, appHash } as const;
 }

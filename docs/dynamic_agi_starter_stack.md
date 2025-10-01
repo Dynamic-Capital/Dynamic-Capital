@@ -31,8 +31,8 @@ experimentation, and governance.
 
 - **Role:** Acts as the autonomous mission planner that expands prompts into
   sequenced research, tooling, and validation steps.
-- **Why it matters:** Creates deterministic action graphs the Dynamic AGI control
-  plane can score, trace, and replay.
+- **Why it matters:** Creates deterministic action graphs the Dynamic AGI
+  control plane can score, trace, and replay.
 - **Dynamic Capital use case:** Drive multi-stage market investigations—news
   scanning, liquidity checks, compliance sign-offs—before handing a decision to
   downstream agents.

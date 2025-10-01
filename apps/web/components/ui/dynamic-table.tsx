@@ -274,8 +274,8 @@ export function DynamicTable() {
       (sum, position) => sum + position.exposure,
       0,
     );
-    const averageChange =
-      sortedPositions.reduce((sum, position) => sum + position.change, 0) /
+    const averageChange = sortedPositions.reduce((sum, position) =>
+      sum + position.change, 0) /
       sortedPositions.length;
     const flagged = sortedPositions.reduce(
       (count, position) => count + (position.flagged ? 1 : 0),

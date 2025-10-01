@@ -84,8 +84,8 @@ export const DynamicMotionFlex = React.forwardRef<
     },
     ref,
   ) => {
-    const { variants, initial, whileInView, viewport: resolvedViewport } =
-      React.useMemo(
+    const { variants, initial, whileInView, viewport: resolvedViewport } = React
+      .useMemo(
         () =>
           resolveMotionPreset({
             animateIn,
@@ -153,8 +153,8 @@ export const DynamicMotionColumn = React.forwardRef<
     },
     ref,
   ) => {
-    const { variants, initial, whileInView, viewport: resolvedViewport } =
-      React.useMemo(
+    const { variants, initial, whileInView, viewport: resolvedViewport } = React
+      .useMemo(
         () =>
           resolveMotionPreset({
             animateIn,
@@ -222,8 +222,8 @@ export const DynamicMotionRow = React.forwardRef<
     },
     ref,
   ) => {
-    const { variants, initial, whileInView, viewport: resolvedViewport } =
-      React.useMemo(
+    const { variants, initial, whileInView, viewport: resolvedViewport } = React
+      .useMemo(
         () =>
           resolveMotionPreset({
             animateIn,

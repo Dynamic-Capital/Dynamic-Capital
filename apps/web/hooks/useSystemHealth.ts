@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEdgeFunction } from '@/hooks/useEdgeFunction';
-import { SUPABASE_ENV_ERROR } from '@/config/supabase';
-import type { SystemHealthResponse } from '@/types/system-health';
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEdgeFunction } from "@/hooks/useEdgeFunction";
+import { SUPABASE_ENV_ERROR } from "@/config/supabase";
+import type { SystemHealthResponse } from "@/types/system-health";
 
-const SYSTEM_HEALTH_QUERY_KEY = ['system-health'];
+const SYSTEM_HEALTH_QUERY_KEY = ["system-health"];
 const DEFAULT_REFRESH_INTERVAL = 5 * 60 * 1000;
 
 interface UseSystemHealthOptions {
@@ -37,10 +37,12 @@ export function useSystemHealth({
       throw new Error(SUPABASE_ENV_ERROR);
     }
 
-    const { data, error } = await callEdgeFunction<SystemHealthResponse>('WEB_APP_HEALTH');
+    const { data, error } = await callEdgeFunction<SystemHealthResponse>(
+      "WEB_APP_HEALTH",
+    );
 
     if (error || !data) {
-      throw new Error(error?.message || 'Unable to load system health');
+      throw new Error(error?.message || "Unable to load system health");
     }
 
     return data;

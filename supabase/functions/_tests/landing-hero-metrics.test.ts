@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertEquals,
-} from "std/assert/mod.ts";
+import { assert, assertEquals } from "std/assert/mod.ts";
 
 type FetchCall = {
   url: URL;

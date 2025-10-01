@@ -31,13 +31,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
 
   const { data: profile } = useQuery({
-    queryKey: ['profile', user?.id],
+    queryKey: ["profile", user?.id],
     queryFn: () => user ? getProfile(user.id) : Promise.resolve(null),
     enabled: !!user?.id,
   });
 
   useEffect(() => {
-    setIsAdmin(profile?.role === 'admin');
+    setIsAdmin(profile?.role === "admin");
   }, [profile]);
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     lastName?: string,
   ) => {
     const getRedirectUrl = () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         return `${window.location.origin}/`;
       }
       return process.env.NEXT_PUBLIC_SITE_URL || undefined;
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const redirectUrl = getRedirectUrl();
     if (!redirectUrl) {
       console.warn(
-        'NEXT_PUBLIC_SITE_URL is not set; auth emails may contain an invalid redirect URL.'
+        "NEXT_PUBLIC_SITE_URL is not set; auth emails may contain an invalid redirect URL.",
       );
     }
 
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("selectedPlanId");
       localStorage.removeItem("paymentId");
       localStorage.removeItem("pending_payment_id");
-      queryClient.removeQueries({ queryKey: ['profile'] });
+      queryClient.removeQueries({ queryKey: ["profile"] });
     } catch {
       /* ignore */
     }

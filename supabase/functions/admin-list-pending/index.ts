@@ -1,6 +1,6 @@
-import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
+import { isAdmin, verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
-import { ok, bad, unauth, mna, oops } from "../_shared/http.ts";
+import { bad, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 export const handler = registerHandler(async (req) => {
@@ -29,7 +29,7 @@ export const handler = registerHandler(async (req) => {
   const { data: rows, error } = await supa
     .from("payments")
     .select(
-      "id,created_at,user_id,plan_id,amount,currency,status,webhook_data, bot_users!inner(telegram_id), subscription_plans!inner(name,duration_months)"
+      "id,created_at,user_id,plan_id,amount,currency,status,webhook_data, bot_users!inner(telegram_id), subscription_plans!inner(name,duration_months)",
     )
     .eq("status", "pending")
     .order("created_at", { ascending: false })
@@ -44,7 +44,10 @@ export const handler = registerHandler(async (req) => {
     const bucket = r.webhook_data?.storage_bucket || "receipts";
     const path = r.webhook_data?.storage_path || null;
     if (path) {
-      const { data: signed } = await supa.storage.from(bucket).createSignedUrl(path, 600); // 10 min
+      const { data: signed } = await supa.storage.from(bucket).createSignedUrl(
+        path,
+        600,
+      ); // 10 min
       signed_url = signed?.signedUrl || null;
     }
     out.push({

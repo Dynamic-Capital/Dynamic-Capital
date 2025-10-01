@@ -6,26 +6,27 @@ Tonstarter diligence team.
 
 ## Allocation Summary
 
-| Bucket                               | Amount (DCT) | Percent of Supply | Unlock & Vesting Notes |
-| ------------------------------------ | ------------- | ----------------- | ---------------------- |
-| Community Mining (PoTr / PoU / PoI)  | 40,000,000    | 40%               | Phase I (Years 1–2) 20M, Phase II (Years 3–4) 12M, Phase III (Years 5–6) 8M with monthly exponential decay (k ≈ 0.08–0.12). |
-| Ecosystem & Partnerships             | 20,000,000    | 20%               | Milestone-based grants released over 36 months; 2M unlocked at TGE for pilot integrations. |
-| Treasury & R&D                       | 15,000,000    | 15%               | 60-month linear release with governance pause controls. |
-| Team                                 | 10,000,000    | 10%               | 12-month cliff followed by 48-month linear vesting with clawback provisions. |
-| Investors                            | 7,000,000     | 7%                | 6-month cliff followed by 36-month linear vesting tied to quarterly reporting. |
-| Liquidity Bootstrapping              | 5,000,000     | 5%                | Seeded at TGE across TON:DCT and USDT:DCT pools, treasury-rebalanced. |
-| Strategic Reserve                    | 3,000,000     | 3%                | Time-locked emergency buffer governed by a 48-hour activation timelock. |
+| Bucket                              | Amount (DCT) | Percent of Supply | Unlock & Vesting Notes                                                                                                      |
+| ----------------------------------- | ------------ | ----------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Community Mining (PoTr / PoU / PoI) | 40,000,000   | 40%               | Phase I (Years 1–2) 20M, Phase II (Years 3–4) 12M, Phase III (Years 5–6) 8M with monthly exponential decay (k ≈ 0.08–0.12). |
+| Ecosystem & Partnerships            | 20,000,000   | 20%               | Milestone-based grants released over 36 months; 2M unlocked at TGE for pilot integrations.                                  |
+| Treasury & R&D                      | 15,000,000   | 15%               | 60-month linear release with governance pause controls.                                                                     |
+| Team                                | 10,000,000   | 10%               | 12-month cliff followed by 48-month linear vesting with clawback provisions.                                                |
+| Investors                           | 7,000,000    | 7%                | 6-month cliff followed by 36-month linear vesting tied to quarterly reporting.                                              |
+| Liquidity Bootstrapping             | 5,000,000    | 5%                | Seeded at TGE across TON:DCT and USDT:DCT pools, treasury-rebalanced.                                                       |
+| Strategic Reserve                   | 3,000,000    | 3%                | Time-locked emergency buffer governed by a 48-hour activation timelock.                                                     |
 
-_Source: [`docs/dynamic-capital-ton-whitepaper.md`](../dynamic-capital-ton-whitepaper.md)_
+_Source:
+[`docs/dynamic-capital-ton-whitepaper.md`](../dynamic-capital-ton-whitepaper.md)_
 
 ## Sale Round Breakdown
 
-| Round                        | Allocation (DCT) | Price / Basis              | Unlock Schedule                            | Notes                                                                                       |
-| ---------------------------- | ----------------- | -------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Community Genesis Drop       | 3,000,000         | ≈0.12 TON (Dutch auction)  | 100% at TGE with optional 90-day boosters  | Fuels quests and proof-of-training cohorts; represents the 3% Phase I starter pool.         |
-| Liquidity Bootstrapping Pool | 5,000,000         | Treasury basis ≈$0.10      | 100% at TGE, deployed to TON and USDT pools | Seeds two-sided liquidity across TON pairs under treasury supervision.                      |
-| Strategic Partnerships Unlock | 2,000,000         | N/A                        | 3% strategic reserve unlock at TGE         | Supports integrations, custodians, and exchange collaborations tied to milestone delivery.  |
-| Investor Alignment Round     | 7,000,000         | $0.08 (funding agreements) | 6-month cliff followed by 36-month vesting  | Aligns strategic capital with fund performance reviews and quarterly reporting covenants.   |
+| Round                         | Allocation (DCT) | Price / Basis              | Unlock Schedule                             | Notes                                                                                      |
+| ----------------------------- | ---------------- | -------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Community Genesis Drop        | 3,000,000        | ≈0.12 TON (Dutch auction)  | 100% at TGE with optional 90-day boosters   | Fuels quests and proof-of-training cohorts; represents the 3% Phase I starter pool.        |
+| Liquidity Bootstrapping Pool  | 5,000,000        | Treasury basis ≈$0.10      | 100% at TGE, deployed to TON and USDT pools | Seeds two-sided liquidity across TON pairs under treasury supervision.                     |
+| Strategic Partnerships Unlock | 2,000,000        | N/A                        | 3% strategic reserve unlock at TGE          | Supports integrations, custodians, and exchange collaborations tied to milestone delivery. |
+| Investor Alignment Round      | 7,000,000        | $0.08 (funding agreements) | 6-month cliff followed by 36-month vesting  | Aligns strategic capital with fund performance reviews and quarterly reporting covenants.  |
 
 The pricing ladder and unlock schedules align with the projections generated by
 the Tonstarter sale planner (`algorithms/python/dct_tonstarter_sale.py`) and

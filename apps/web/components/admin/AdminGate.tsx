@@ -27,7 +27,9 @@ export function AdminGate({ children }: AdminGateProps) {
   const { isAdmin, initData, loading } = useTelegramAuth();
   const { toast } = useToast();
   const [manualInitData, setManualInitData] = useState("");
-  const [adminToken, setAdminToken] = useState(() => localStorage.getItem(ADMIN_STORAGE_KEY));
+  const [adminToken, setAdminToken] = useState(() =>
+    localStorage.getItem(ADMIN_STORAGE_KEY)
+  );
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const hasValidToken = () => {
@@ -35,8 +37,12 @@ export function AdminGate({ children }: AdminGateProps) {
       return false;
     }
     try {
-      const payload = JSON.parse(atob(adminToken.split(".")[1])) as { exp?: number; admin?: boolean };
-      return Boolean(payload?.admin) && Number(payload?.exp) > Date.now() / 1000;
+      const payload = JSON.parse(atob(adminToken.split(".")[1])) as {
+        exp?: number;
+        admin?: boolean;
+      };
+      return Boolean(payload?.admin) &&
+        Number(payload?.exp) > Date.now() / 1000;
     } catch {
       return false;
     }
@@ -65,7 +71,9 @@ export function AdminGate({ children }: AdminGateProps) {
   const authenticateWithInitData = async (data: string) => {
     setIsAuthenticating(true);
     try {
-      const { data: response, error } = await callEdgeFunction<{ token?: string; error?: string }>("ADMIN_SESSION", {
+      const { data: response, error } = await callEdgeFunction<
+        { token?: string; error?: string }
+      >("ADMIN_SESSION", {
         method: "POST",
         body: { initData: data },
       });
@@ -88,7 +96,9 @@ export function AdminGate({ children }: AdminGateProps) {
       console.error("Admin auth failed", err);
       toast({
         title: "Authentication failed",
-        description: err instanceof Error ? err.message : "Unable to authenticate admin session",
+        description: err instanceof Error
+          ? err.message
+          : "Unable to authenticate admin session",
         variant: "destructive",
       });
     } finally {
@@ -145,8 +155,13 @@ export function AdminGate({ children }: AdminGateProps) {
       >
         <Column gap="12" align="center">
           <Heading variant="display-strong-xs">Admin access required</Heading>
-          <Text variant="body-default-m" onBackground="neutral-weak" align="center">
-            Authenticate with Telegram initData or an existing admin token to open the control room.
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            align="center"
+          >
+            Authenticate with Telegram initData or an existing admin token to
+            open the control room.
           </Text>
         </Column>
         <Column gap="16">
@@ -158,27 +173,42 @@ export function AdminGate({ children }: AdminGateProps) {
           >
             Open in Telegram
           </Button>
-          {initData ? (
-            <Column gap="12" background="page" border="neutral-alpha-weak" radius="m" padding="m">
-              <Row horizontal="between" vertical="center">
-                <Tag size="s" prefixIcon="telegram">
-                  initData detected
-                </Tag>
-                <Button size="s" variant="secondary" data-border="rounded" onClick={copyInitData}>
-                  Copy
-                </Button>
-              </Row>
-              <Button
-                size="m"
-                variant="secondary"
-                data-border="rounded"
-                onClick={() => authenticateWithInitData(initData)}
-                disabled={isAuthenticating}
+          {initData
+            ? (
+              <Column
+                gap="12"
+                background="page"
+                border="neutral-alpha-weak"
+                radius="m"
+                padding="m"
               >
-                {isAuthenticating ? "Authenticating…" : "Authenticate via Telegram"}
-              </Button>
-            </Column>
-          ) : null}
+                <Row horizontal="between" vertical="center">
+                  <Tag size="s" prefixIcon="telegram">
+                    initData detected
+                  </Tag>
+                  <Button
+                    size="s"
+                    variant="secondary"
+                    data-border="rounded"
+                    onClick={copyInitData}
+                  >
+                    Copy
+                  </Button>
+                </Row>
+                <Button
+                  size="m"
+                  variant="secondary"
+                  data-border="rounded"
+                  onClick={() => authenticateWithInitData(initData)}
+                  disabled={isAuthenticating}
+                >
+                  {isAuthenticating
+                    ? "Authenticating…"
+                    : "Authenticate via Telegram"}
+                </Button>
+              </Column>
+            )
+            : null}
           <Column gap="8">
             <Text variant="body-default-s" onBackground="neutral-weak">
               Paste Telegram initData

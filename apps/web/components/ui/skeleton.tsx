@@ -1,5 +1,5 @@
 import { cn } from "@/utils";
-import { motion, type HTMLMotionProps } from "framer-motion";
+import { type HTMLMotionProps, motion } from "framer-motion";
 
 type SkeletonShape = "line" | "circle" | "block";
 type SkeletonSizeToken = "xs" | "s" | "m" | "l" | "xl";
@@ -80,7 +80,11 @@ function Skeleton({
       )}
       initial={{ opacity: 0.6 }}
       animate={{ opacity: [0.6, 1, 0.6] }}
-      transition={{ duration: 1.6, repeat: Infinity, delay: resolvedTransitionDelay }}
+      transition={{
+        duration: 1.6,
+        repeat: Infinity,
+        delay: resolvedTransitionDelay,
+      }}
       style={{
         ...style,
       }}

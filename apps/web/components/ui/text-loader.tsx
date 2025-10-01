@@ -15,9 +15,13 @@ export function TextLoader({
   dotColorClass = "text-primary",
   size = "md",
   showBar = false,
-  barWidthClass = "w-40"
+  barWidthClass = "w-40",
 }: TextLoaderProps) {
-  const dotSize = size === "sm" ? "w-1.5 h-1.5" : size === "lg" ? "w-3 h-3" : "w-2 h-2";
+  const dotSize = size === "sm"
+    ? "w-1.5 h-1.5"
+    : size === "lg"
+    ? "w-3 h-3"
+    : "w-2 h-2";
   const gap = size === "sm" ? "gap-1.5" : size === "lg" ? "gap-2.5" : "gap-2";
 
   return (
@@ -33,14 +37,19 @@ export function TextLoader({
               duration: 0.8,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: i * 0.15
+              delay: i * 0.15,
             }}
           />
         ))}
       </div>
       {showBar && (
         <div className="relative overflow-hidden mt-2 rounded-full bg-muted h-2 w-full">
-          <div className={cn("absolute inset-y-0 left-0 rounded-full bg-muted-foreground/20", barWidthClass)} />
+          <div
+            className={cn(
+              "absolute inset-y-0 left-0 rounded-full bg-muted-foreground/20",
+              barWidthClass,
+            )}
+          />
           <motion.div
             className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/40 to-transparent"
             animate={{ x: ["-100%", "100%"] }}

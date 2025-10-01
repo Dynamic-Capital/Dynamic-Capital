@@ -11,7 +11,8 @@ interface CheckoutPageProps {
 
 export const metadata = {
   title: "Checkout – Dynamic Capital",
-  description: "Complete your Dynamic Capital VIP membership purchase and unlock the trading desk.",
+  description:
+    "Complete your Dynamic Capital VIP membership purchase and unlock the trading desk.",
 };
 
 export default function CheckoutPage({ searchParams }: CheckoutPageProps) {
@@ -24,8 +25,13 @@ export default function CheckoutPage({ searchParams }: CheckoutPageProps) {
         <Heading variant="display-strong-s" align="center">
           Secure checkout
         </Heading>
-        <Text variant="body-default-m" onBackground="neutral-weak" align="center">
-          Review your plan, select a payment method, and submit proof if you’re joining via bank transfer or crypto.
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          align="center"
+        >
+          Review your plan, select a payment method, and submit proof if you’re
+          joining via bank transfer or crypto.
         </Text>
       </Column>
       <WebCheckout selectedPlanId={selectedPlan} promoCode={promoCode} />

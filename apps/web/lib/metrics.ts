@@ -8,7 +8,9 @@ interface MetricPayload {
 }
 
 async function sendToSupabase(payload: MetricPayload) {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || typeof fetch === "undefined") return;
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || typeof fetch === "undefined") {
+    return;
+  }
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/miniapp_metrics`, {
       method: "POST",
@@ -23,7 +25,11 @@ async function sendToSupabase(payload: MetricPayload) {
     });
 
     if (!response.ok && process.env.NODE_ENV !== "production") {
-      console.debug("[metric] supabase noop", response.status, response.statusText);
+      console.debug(
+        "[metric] supabase noop",
+        response.status,
+        response.statusText,
+      );
     }
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
@@ -32,7 +38,10 @@ async function sendToSupabase(payload: MetricPayload) {
   }
 }
 
-export async function track(event: string, props: Record<string, unknown> = {}) {
+export async function track(
+  event: string,
+  props: Record<string, unknown> = {},
+) {
   const payload: MetricPayload = {
     event,
     props,

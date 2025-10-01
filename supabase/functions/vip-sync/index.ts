@@ -1,4 +1,4 @@
-import { ok, mna, unauth, bad } from "../_shared/http.ts";
+import { bad, mna, ok, unauth } from "../_shared/http.ts";
 import { recomputeVipForUser } from "../_shared/vip_sync.ts";
 import { createClient } from "../_shared/client.ts";
 import { optionalEnv } from "../_shared/env.ts";
@@ -28,10 +28,11 @@ async function handler(req: Request): Promise<Response> {
   if (path === "batch") {
     const { limit } = await req.json().catch(() => ({}));
     const lim = Number(limit ?? optionalEnv("SYNC_BATCH_SIZE") ?? "200");
-    const { data: users } = await supa.from("bot_users").select("telegram_id").order(
-      "updated_at",
-      { ascending: true },
-    ).limit(lim);
+    const { data: users } = await supa.from("bot_users").select("telegram_id")
+      .order(
+        "updated_at",
+        { ascending: true },
+      ).limit(lim);
     for (const u of users ?? []) {
       await recomputeVipForUser(u.telegram_id, supa);
     }
@@ -48,10 +49,11 @@ async function handler(req: Request): Promise<Response> {
     let processed = 0;
     let offset = 0;
     while (processed < max) {
-      const { data: users } = await supa.from("bot_users").select("telegram_id").order(
-        "updated_at",
-        { ascending: true },
-      ).range(offset, offset + chunk - 1);
+      const { data: users } = await supa.from("bot_users").select("telegram_id")
+        .order(
+          "updated_at",
+          { ascending: true },
+        ).range(offset, offset + chunk - 1);
       const arr = users ?? [];
       if (arr.length === 0) break;
       for (const u of arr) {

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { cn } from '@/utils';
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion, PanInfo } from "framer-motion";
+import { cn } from "@/utils";
 
 interface MobileSwipeContainerProps {
   children: React.ReactNode;
@@ -17,7 +17,7 @@ export const MobileSwipeContainer: React.FC<MobileSwipeContainerProps> = ({
   onSwipeLeft,
   onSwipeRight,
   className = "",
-  threshold = 100
+  threshold = 100,
 }) => {
   const handleDragEnd = (event: any, info: PanInfo) => {
     if (Math.abs(info.offset.x) > threshold) {
@@ -52,7 +52,7 @@ interface MobilePullToRefreshProps {
 export const MobilePullToRefresh: React.FC<MobilePullToRefreshProps> = ({
   onRefresh,
   children,
-  threshold = 60
+  threshold = 60,
 }) => {
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -95,11 +95,13 @@ export const MobilePullToRefresh: React.FC<MobilePullToRefreshProps> = ({
           >
             <motion.div
               animate={isRefreshing ? { rotate: 360 } : {}}
-              transition={isRefreshing ? { duration: 1, repeat: Infinity, ease: "linear" } : {}}
+              transition={isRefreshing
+                ? { duration: 1, repeat: Infinity, ease: "linear" }
+                : {}}
               className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
             />
             <span className="ml-2 text-sm text-muted-foreground">
-              {isRefreshing ? 'Refreshing...' : 'Pull to refresh'}
+              {isRefreshing ? "Refreshing..." : "Pull to refresh"}
             </span>
           </motion.div>
         )}
@@ -126,7 +128,7 @@ export const MobileBottomSheet: React.FC<MobileBottomSheetProps> = ({
   isOpen,
   onClose,
   children,
-  height = "50vh"
+  height = "50vh",
 }) => {
   const [dragY, setDragY] = useState(0);
 
@@ -189,10 +191,10 @@ export const TouchFeedback: React.FC<TouchFeedbackProps> = ({
   children,
   haptic = true,
   className = "",
-  onClick
+  onClick,
 }) => {
   const handleTap = () => {
-    if (haptic && 'vibrate' in navigator) {
+    if (haptic && "vibrate" in navigator) {
       navigator.vibrate(10);
     }
     onClick?.();
@@ -217,7 +219,7 @@ interface MobileScrollIndicatorProps {
 
 export const MobileScrollIndicator: React.FC<MobileScrollIndicatorProps> = ({
   scrollableRef,
-  className = ""
+  className = "",
 }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -232,12 +234,17 @@ export const MobileScrollIndicator: React.FC<MobileScrollIndicatorProps> = ({
       setScrollProgress(progress);
     };
 
-    element.addEventListener('scroll', handleScroll);
-    return () => element.removeEventListener('scroll', handleScroll);
+    element.addEventListener("scroll", handleScroll);
+    return () => element.removeEventListener("scroll", handleScroll);
   }, [scrollableRef]);
 
   return (
-    <div className={cn("fixed top-0 left-0 right-0 h-1 bg-muted/30 z-50", className)}>
+    <div
+      className={cn(
+        "fixed top-0 left-0 right-0 h-1 bg-muted/30 z-50",
+        className,
+      )}
+    >
       <motion.div
         className="h-full bg-primary"
         style={{ scaleX: scrollProgress }}
@@ -253,5 +260,5 @@ export default {
   MobilePullToRefresh,
   MobileBottomSheet,
   TouchFeedback,
-  MobileScrollIndicator
+  MobileScrollIndicator,
 };

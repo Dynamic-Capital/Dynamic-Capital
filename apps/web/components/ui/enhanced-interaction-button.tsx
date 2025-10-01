@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/utils";
 
@@ -17,55 +17,55 @@ const enhancedInteractionButtonVariants = cva(
           "shadow-md hover:shadow-lg hover:shadow-primary/25",
           "hover:scale-105 active:scale-95",
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
-          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
+          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
         ],
         secondary: [
           "bg-secondary text-secondary-foreground",
           "shadow-sm hover:shadow-md",
-          "hover:scale-105 active:scale-95"
+          "hover:scale-105 active:scale-95",
         ],
         outline: [
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
           "hover:border-primary/50 hover:shadow-md",
-          "hover:scale-105 active:scale-95"
+          "hover:scale-105 active:scale-95",
         ],
         ghost: [
           "hover:bg-accent hover:text-accent-foreground",
-          "hover:scale-105 active:scale-95"
+          "hover:scale-105 active:scale-95",
         ],
         success: [
           "bg-gradient-success text-success-foreground",
           "shadow-md hover:shadow-lg hover:shadow-success/25",
-          "hover:scale-105 active:scale-95"
+          "hover:scale-105 active:scale-95",
         ],
         warning: [
           "bg-gradient-warning text-warning-foreground",
           "shadow-md hover:shadow-lg hover:shadow-warning/25",
-          "hover:scale-105 active:scale-95"
+          "hover:scale-105 active:scale-95",
         ],
         info: [
           "bg-gradient-info text-info-foreground",
           "shadow-md hover:shadow-lg hover:shadow-info/25",
-          "hover:scale-105 active:scale-95"
+          "hover:scale-105 active:scale-95",
         ],
         error: [
           "bg-gradient-error text-error-foreground",
           "shadow-md hover:shadow-lg hover:shadow-error/25",
-          "hover:scale-105 active:scale-95"
+          "hover:scale-105 active:scale-95",
         ],
         telegram: [
           "bg-gradient-telegram text-telegram-foreground",
           "shadow-md hover:shadow-lg hover:shadow-telegram/25",
           "hover:scale-105 active:scale-95",
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/15 before:to-transparent",
-          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500"
+          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500",
         ],
         floating: [
           "bg-background/80 backdrop-blur-md border border-border/50 text-foreground",
           "shadow-lg hover:shadow-xl",
           "hover:bg-background/90 hover:border-primary/30",
-          "hover:scale-110 active:scale-95"
-        ]
+          "hover:scale-110 active:scale-95",
+        ],
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -79,19 +79,20 @@ const enhancedInteractionButtonVariants = cva(
         none: "",
         subtle: "hover:brightness-110",
         medium: "hover:brightness-115 hover:saturate-110",
-        strong: "hover:brightness-125 hover:saturate-125"
-      }
+        strong: "hover:brightness-125 hover:saturate-125",
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
       feedback: "medium",
     },
-  }
+  },
 );
 
 export interface EnhancedInteractionButtonProps
-  extends MotionButtonProps,
+  extends
+    MotionButtonProps,
     VariantProps<typeof enhancedInteractionButtonVariants> {
   loading?: boolean;
   loadingText?: React.ReactNode;
@@ -121,7 +122,9 @@ export const EnhancedInteractionButton = React.forwardRef<
   ...props
 }, ref) => {
   const [isPressed, setIsPressed] = React.useState(false);
-  const [ripples, setRipples] = React.useState<Array<{ id: number; x: number; y: number }>>([]);
+  const [ripples, setRipples] = React.useState<
+    Array<{ id: number; x: number; y: number }>
+  >([]);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   React.useImperativeHandle(ref, () => buttonRef.current!);
@@ -130,7 +133,7 @@ export const EnhancedInteractionButton = React.forwardRef<
     if (disabled || loading) return;
 
     // Haptic feedback for mobile
-    if (haptic && 'vibrate' in navigator) {
+    if (haptic && "vibrate" in navigator) {
       navigator.vibrate(10);
     }
 
@@ -140,12 +143,12 @@ export const EnhancedInteractionButton = React.forwardRef<
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       const id = Date.now();
-      
-      setRipples(prev => [...prev, { id, x, y }]);
-      
+
+      setRipples((prev) => [...prev, { id, x, y }]);
+
       // Remove ripple after animation
       setTimeout(() => {
-        setRipples(prev => prev.filter(r => r.id !== id));
+        setRipples((prev) => prev.filter((r) => r.id !== id));
       }, 600);
     }
 
@@ -163,7 +166,10 @@ export const EnhancedInteractionButton = React.forwardRef<
   return (
     <motion.button
       ref={buttonRef}
-      className={cn(enhancedInteractionButtonVariants({ variant, size, feedback }), className)}
+      className={cn(
+        enhancedInteractionButtonVariants({ variant, size, feedback }),
+        className,
+      )}
       disabled={disabled || loading}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
@@ -191,7 +197,7 @@ export const EnhancedInteractionButton = React.forwardRef<
       <motion.div
         className={cn(
           "flex items-center gap-2 relative z-10",
-          loading && "opacity-0"
+          loading && "opacity-0",
         )}
         animate={{ opacity: loading ? 0 : 1 }}
         transition={{ duration: 0.2 }}
@@ -204,11 +210,11 @@ export const EnhancedInteractionButton = React.forwardRef<
             {icon}
           </motion.div>
         )}
-        
+
         <span>
           {loading ? loadingText : (children as React.ReactNode)}
         </span>
-        
+
         {icon && iconPosition === "right" && (
           <motion.div
             animate={{ rotate: isPressed ? -5 : 0 }}

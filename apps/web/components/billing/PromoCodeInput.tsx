@@ -10,7 +10,15 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import logger from "@/utils/logger";
-import { Sparkles, Tag, Percent, DollarSign, Loader2, Check, X } from "lucide-react";
+import {
+  Check,
+  DollarSign,
+  Loader2,
+  Percent,
+  Sparkles,
+  Tag,
+  X,
+} from "lucide-react";
 
 interface PromoCodeInputProps {
   planId: string;
@@ -33,7 +41,9 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
   const [isValidating, setIsValidating] = useState(false);
   const [validation, setValidation] = useState<PromoValidation | null>(null);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<"idle" | "success" | "error">("idle");
+  const [feedback, setFeedback] = useState<"idle" | "success" | "error">(
+    "idle",
+  );
   const { toast } = useToast();
 
   const validatePromoCode = async () => {
@@ -42,19 +52,27 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
     setIsValidating(true);
     try {
       // Use UUID validation to ensure we pass a valid plan_id
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      const apiPlanId = uuidRegex.test(planId) ? planId : "6e07f718-606e-489d-9626-2a5fa3e84eec";
-      
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const apiPlanId = uuidRegex.test(planId)
+        ? planId
+        : "6e07f718-606e-489d-9626-2a5fa3e84eec";
+
       // Try using Telegram data first, fall back to demo user
-      const telegramId = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || "123456789";
-      
-      const { data, error } = await supabase.functions.invoke("promo-validate", {
-        body: {
-          code: promoCode.trim().toUpperCase(),
-          telegram_id: telegramId,
-          plan_id: apiPlanId,
+      const telegramId =
+        (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id
+          ?.toString() || "123456789";
+
+      const { data, error } = await supabase.functions.invoke(
+        "promo-validate",
+        {
+          body: {
+            code: promoCode.trim().toUpperCase(),
+            telegram_id: telegramId,
+            plan_id: apiPlanId,
+          },
         },
-      });
+      );
 
       logger.log("Promo validation response:", { data, error });
 
@@ -70,13 +88,17 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
         setAppliedPromo(promoCode.trim().toUpperCase());
         onApplied?.(promoCode.trim().toUpperCase(), {
           ok: true,
-          type: data.discount_type === 'percentage' ? 'percentage' : 'fixed',
+          type: data.discount_type === "percentage" ? "percentage" : "fixed",
           value: data.discount_value,
-          final_amount: data.final_amount
+          final_amount: data.final_amount,
         });
         toast({
           title: "Promo code applied! 🎉",
-          description: `You saved ${data.discount_type === "percentage" ? `${data.discount_value}%` : `$${data.discount_value}`}`,
+          description: `You saved ${
+            data.discount_type === "percentage"
+              ? `${data.discount_value}%`
+              : `$${data.discount_value}`
+          }`,
         });
       } else {
         setFeedback("error");
@@ -107,14 +129,16 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
 
   const getDiscountBadge = () => {
     if (!validation?.valid) return null;
-    
+
     return (
-      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+      <Badge
+        variant="secondary"
+        className="bg-primary/10 text-primary border-primary/20"
+      >
         <Sparkles className="w-3 h-3 mr-1" />
-        {validation.discount_type === "percentage" 
-          ? `${validation.discount_value}% OFF` 
-          : `$${validation.discount_value} OFF`
-        }
+        {validation.discount_type === "percentage"
+          ? `${validation.discount_value}% OFF`
+          : `$${validation.discount_value} OFF`}
       </Badge>
     );
   };
@@ -125,13 +149,11 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
       <div className="space-y-3">
         <motion.div
           className="flex gap-2"
-          animate={
-            feedback === "success"
-              ? { scale: [1, 1.05, 1] }
-              : feedback === "error"
-                ? { x: [0, -8, 8, -8, 8, 0] }
-                : {}
-          }
+          animate={feedback === "success"
+            ? { scale: [1, 1.05, 1] }
+            : feedback === "error"
+            ? { x: [0, -8, 8, -8, 8, 0] }
+            : {}}
         >
           <div className="relative flex-1">
             <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -143,29 +165,29 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
               disabled={isValidating || !!appliedPromo}
             />
           </div>
-          
-          {appliedPromo ? (
-            <Button
-              variant="outline"
-              size="default"
-              onClick={clearPromoCode}
-              className="shrink-0"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          ) : (
-            <Button
-              onClick={validatePromoCode}
-              disabled={!promoCode.trim() || isValidating}
-              className="shrink-0"
-            >
-              {isValidating ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Apply"
-              )}
-            </Button>
-          )}
+
+          {appliedPromo
+            ? (
+              <Button
+                variant="outline"
+                size="default"
+                onClick={clearPromoCode}
+                className="shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )
+            : (
+              <Button
+                onClick={validatePromoCode}
+                disabled={!promoCode.trim() || isValidating}
+                className="shrink-0"
+              >
+                {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                  "Apply"
+                )}
+              </Button>
+            )}
         </motion.div>
 
         {/* Popular Promo Codes */}
@@ -188,24 +210,24 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
 
       {/* Validation Result */}
       {validation && (
-        <Card className={`border transition-all duration-300 ${
-          validation.valid 
-            ? "border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20" 
-            : "border-destructive/50 bg-destructive/5"
-        }`}>
+        <Card
+          className={`border transition-all duration-300 ${
+            validation.valid
+              ? "border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20"
+              : "border-destructive/50 bg-destructive/5"
+          }`}
+        >
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 mb-2">
-              {validation.valid ? (
-                <Check className="w-4 h-4 text-green-600" />
-              ) : (
-                <X className="w-4 h-4 text-destructive" />
-              )}
+              {validation.valid
+                ? <Check className="w-4 h-4 text-green-600" />
+                : <X className="w-4 h-4 text-destructive" />}
               <span className="font-medium">
                 {validation.valid ? "Promo code applied" : "Invalid code"}
               </span>
               {validation.valid && getDiscountBadge()}
             </div>
-            
+
             {validation.valid && validation.final_amount !== undefined && (
               <div className="space-y-2">
                 <Separator />
@@ -216,19 +238,20 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Discount:</span>
                   <span className="text-green-600 font-medium">
-                    -{validation.discount_type === "percentage" 
-                      ? `${validation.discount_value}%` 
-                      : `$${validation.discount_value}`
-                    }
+                    -{validation.discount_type === "percentage"
+                      ? `${validation.discount_value}%`
+                      : `$${validation.discount_value}`}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Final price:</span>
-                  <span className="text-primary">${validation.final_amount}</span>
+                  <span className="text-primary">
+                    ${validation.final_amount}
+                  </span>
                 </div>
               </div>
             )}
-            
+
             {!validation.valid && validation.reason && (
               <p className="text-sm text-muted-foreground mt-1">
                 {validation.reason}

@@ -1,20 +1,20 @@
 "use client";
 
 import {
+  type ComponentPropsWithoutRef,
   createContext,
+  type ElementRef,
+  forwardRef,
+  type MutableRefObject,
   useContext,
+  useEffect,
   useRef,
   useState,
-  useEffect,
-  forwardRef,
-  type ElementRef,
-  type ComponentPropsWithoutRef,
-  type MutableRefObject,
 } from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "@/utils";
-import { motion, LayoutGroup } from "framer-motion";
+import { LayoutGroup, motion } from "framer-motion";
 
 const TabsIndicatorContext = createContext(false);
 
@@ -37,7 +37,7 @@ const TabsList = forwardRef<
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
     const list = (
       <TabsIndicatorContext.Provider value={animateIndicator}>
@@ -58,7 +58,7 @@ const TabsList = forwardRef<
       </TabsIndicatorContext.Provider>
     );
     return animateIndicator ? <LayoutGroup>{list}</LayoutGroup> : list;
-  }
+  },
 );
 TabsList.displayName = TabsPrimitive.List.displayName;
 
@@ -71,7 +71,9 @@ const TabsTrigger = forwardRef<
   const combinedRef = (node: HTMLButtonElement | null) => {
     internalRef.current = node;
     if (typeof ref === "function") ref(node);
-    else if (ref) (ref as MutableRefObject<HTMLButtonElement | null>).current = node;
+    else if (ref) {
+      (ref as MutableRefObject<HTMLButtonElement | null>).current = node;
+    }
   };
 
   const [isActive, setIsActive] = useState(false);
@@ -81,7 +83,10 @@ const TabsTrigger = forwardRef<
     const observer = new MutationObserver(() => {
       setIsActive(node.getAttribute("data-state") === "active");
     });
-    observer.observe(node, { attributes: true, attributeFilter: ["data-state"] });
+    observer.observe(node, {
+      attributes: true,
+      attributeFilter: ["data-state"],
+    });
     setIsActive(node.getAttribute("data-state") === "active");
     return () => observer.disconnect();
   }, []);

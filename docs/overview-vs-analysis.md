@@ -17,12 +17,12 @@ structure documentation, dashboards, or stakeholder communications.
 
 ### Dynamic Capital Use Cases
 
-| Artifact | Overview Focus | Typical Length |
-| --- | --- | --- |
-| Investor memo | Market shift, treasury posture, runway impact | 2–3 paragraphs |
-| Product release note | Feature summary, target user, success metrics | 5–7 bullet points |
-| Trading strategy outline | Objective, allocation, risk guardrails | One short section |
-| Runbook or SOP | Scope, triggers, related systems | 3–4 sentences |
+| Artifact                 | Overview Focus                                | Typical Length    |
+| ------------------------ | --------------------------------------------- | ----------------- |
+| Investor memo            | Market shift, treasury posture, runway impact | 2–3 paragraphs    |
+| Product release note     | Feature summary, target user, success metrics | 5–7 bullet points |
+| Trading strategy outline | Objective, allocation, risk guardrails        | One short section |
+| Runbook or SOP           | Scope, triggers, related systems              | 3–4 sentences     |
 
 ### Common Overview Types
 
@@ -37,8 +37,8 @@ structure documentation, dashboards, or stakeholder communications.
 
 ## Analysis Fundamentals
 
-- **Purpose**: Break information into components to interpret drivers,
-  evaluate trade-offs, and surface insights that shape decisions.
+- **Purpose**: Break information into components to interpret drivers, evaluate
+  trade-offs, and surface insights that shape decisions.
 - **Tone**: Critical but balanced—clarify assumptions, limitations, and
   reliability of data.
 - **Placement**: Follow the overview with analysis in strategy docs, risk
@@ -46,12 +46,12 @@ structure documentation, dashboards, or stakeholder communications.
 
 ### Dynamic Capital Use Cases
 
-| Artifact | Analysis Emphasis | Decision Enabled |
-| --- | --- | --- |
-| Treasury risk review | Liquidity ratios, counterparty exposure, stress tests | Adjust reserve allocations |
-| Trading post-mortem | Entry/exit timing, signal reliability, slippage | Improve guardrails |
-| Product adoption report | Cohort retention, funnel drop-off, support load | Prioritize roadmap |
-| Incident retrospective | Root causes, mitigation effectiveness, follow-up owners | Harden operations |
+| Artifact                | Analysis Emphasis                                       | Decision Enabled           |
+| ----------------------- | ------------------------------------------------------- | -------------------------- |
+| Treasury risk review    | Liquidity ratios, counterparty exposure, stress tests   | Adjust reserve allocations |
+| Trading post-mortem     | Entry/exit timing, signal reliability, slippage         | Improve guardrails         |
+| Product adoption report | Cohort retention, funnel drop-off, support load         | Prioritize roadmap         |
+| Incident retrospective  | Root causes, mitigation effectiveness, follow-up owners | Harden operations          |
 
 ### Common Analysis Types
 
@@ -69,8 +69,8 @@ structure documentation, dashboards, or stakeholder communications.
 ## Stitching the Narrative Together
 
 1. **Overview** — Set context: what problem, audience, and desired outcome.
-2. **Summary** — Condense key findings, decisions needed, or KPIs in two to
-   five bullets or sentences.
+2. **Summary** — Condense key findings, decisions needed, or KPIs in two to five
+   bullets or sentences.
 3. **Analysis** — Dive into supporting evidence, assumptions, and competing
    interpretations.
 4. **Recommendations** — Translate analysis into clear next steps, owners, and

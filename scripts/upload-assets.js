@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { readdir, readFile } from "fs/promises";
 import path from "node:path";
 import { getCacheControl, getContentType } from "./utils/static-assets.js";
@@ -18,7 +18,9 @@ const cdnEndpointId = (process.env.CDN_ENDPOINT_ID || "").trim();
 const purgePaths = parsePurgePaths(process.env.CDN_PURGE_PATHS);
 
 if (!bucket || !accessKeyId || !secretAccessKey) {
-  console.error("Missing CDN configuration (CDN_BUCKET, CDN_ACCESS_KEY, CDN_SECRET_KEY).");
+  console.error(
+    "Missing CDN configuration (CDN_BUCKET, CDN_ACCESS_KEY, CDN_SECRET_KEY).",
+  );
   process.exit(1);
 }
 
@@ -89,19 +91,23 @@ function parsePurgePaths(value) {
 }
 
 async function purgeCdnCache(endpointId, token, files) {
-  const response = await fetch(`https://api.digitalocean.com/v2/cdn/endpoints/${endpointId}/cache`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      "User-Agent": "dynamic-capital-upload-assets/1.0",
+  const response = await fetch(
+    `https://api.digitalocean.com/v2/cdn/endpoints/${endpointId}/cache`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": "dynamic-capital-upload-assets/1.0",
+      },
+      body: JSON.stringify({ files }),
     },
-    body: JSON.stringify({ files }),
-  });
+  );
 
   if (!response.ok) {
-    let message = `DigitalOcean API cache purge failed with status ${response.status}`;
+    let message =
+      `DigitalOcean API cache purge failed with status ${response.status}`;
     try {
       const payload = await response.json();
       if (payload?.message) {
@@ -133,7 +139,7 @@ async function uploadDir(dir, prefix = "") {
           ACL: "public-read",
           ContentType: type,
           CacheControl: cacheControl,
-        })
+        }),
       );
       console.log(`Uploaded ${key}`);
     }

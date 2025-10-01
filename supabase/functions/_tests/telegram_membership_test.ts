@@ -1,5 +1,8 @@
 import { assert, assertEquals } from "std/assert/mod.ts";
-import { isMemberLike, getChatMemberStatus } from "../_shared/telegram_membership.ts";
+import {
+  getChatMemberStatus,
+  isMemberLike,
+} from "../_shared/telegram_membership.ts";
 import { recomputeVipForUser } from "../_shared/vip_sync.ts";
 import { createMockSupabaseClient } from "./mock_supabase.ts";
 
@@ -11,7 +14,8 @@ Deno.test("isMemberLike works", () => {
 
 Deno.test("getChatMemberStatus parses", async () => {
   const oldFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response(JSON.stringify({ ok: true, result: { status: "left" } }));
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ ok: true, result: { status: "left" } }));
   try {
     const status = await getChatMemberStatus("t", "-100", "1");
     assertEquals(status, "left");
@@ -26,7 +30,8 @@ Deno.test("recomputeVipForUser sets VIP", async () => {
   Deno.env.set("TELEGRAM_BOT_TOKEN", "t");
   Deno.env.set("VIP_CHANNELS", "-1001");
   const oldFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response(JSON.stringify({ ok: true, result: { status: "member" } }));
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ ok: true, result: { status: "member" } }));
   try {
     const res = await recomputeVipForUser("1", supa as any);
     assert(res?.is_vip);

@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { NODE_ENV } from '@/config/node-env';
+import { NextResponse } from "next/server";
+import { NODE_ENV } from "@/config/node-env";
 
 export function GET() {
   return NextResponse.json({
-    status: 'ok', 
+    status: "ok",
     timestamp: new Date().toISOString(),
-    environment: NODE_ENV
+    environment: NODE_ENV,
   });
 }

@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertEquals,
-} from "std/assert/mod.ts";
+import { assert, assertEquals } from "std/assert/mod.ts";
 
 Deno.test("economic calendar function returns normalized events", async () => {
   const originalFetch = globalThis.fetch;

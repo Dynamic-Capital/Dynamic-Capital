@@ -24,21 +24,21 @@ control areas:
 
 ## Evidence Inventory
 
-| Control Area | Primary Evidence | Supporting Artefacts |
-| --- | --- | --- |
-| Certificate governance | [`docs/compliance/README.md`](README.md) | [`docs/compliance/certificates.json`](certificates.json) |
-| Token utility & governance | [`docs/dynamic-capital-ton-whitepaper.md`](../dynamic-capital-ton-whitepaper.md) | [`docs/dct-budget-audit.md`](../dct-budget-audit.md) |
-| Jurisdictional guardrails | [`docs/tonstarter-launch-readiness.md`](../tonstarter-launch-readiness.md) | [`docs/dynamic-capital-ecosystem-anatomy.md`](../dynamic-capital-ecosystem-anatomy.md) |
-| Legal engagement | [`docs/team-operations-algorithm.md`](../team-operations-algorithm.md) | [`docs/dct-budget-audit.md`](../dct-budget-audit.md) |
+| Control Area               | Primary Evidence                                                                 | Supporting Artefacts                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Certificate governance     | [`docs/compliance/README.md`](README.md)                                         | [`docs/compliance/certificates.json`](certificates.json)                               |
+| Token utility & governance | [`docs/dynamic-capital-ton-whitepaper.md`](../dynamic-capital-ton-whitepaper.md) | [`docs/dct-budget-audit.md`](../dct-budget-audit.md)                                   |
+| Jurisdictional guardrails  | [`docs/tonstarter-launch-readiness.md`](../tonstarter-launch-readiness.md)       | [`docs/dynamic-capital-ecosystem-anatomy.md`](../dynamic-capital-ecosystem-anatomy.md) |
+| Legal engagement           | [`docs/team-operations-algorithm.md`](../team-operations-algorithm.md)           | [`docs/dct-budget-audit.md`](../dct-budget-audit.md)                                   |
 
 ## Summary of Results
 
-| Control Area | Status | Notes |
-| --- | --- | --- |
-| Certificate governance | **Effective** | End-to-end inventory, verification workflow, and renewal calendar exist in markdown and JSON for automation. |
-| Token utility & governance | **Effective** | Whitepaper and budget audit align utility-first framing with treasury oversight and legal spend guardrails. |
-| Jurisdictional guardrails | **Effective** | Launch readiness plan enforces KYC, geofencing, and segregated investor economics, backed by compliance automation in ecosystem design. |
-| Legal engagement | **Effective** | Legal advisor SOP and budget audit earmark continuous monitoring, counsel engagement, and evidence logging. |
+| Control Area               | Status        | Notes                                                                                                                                   |
+| -------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Certificate governance     | **Effective** | End-to-end inventory, verification workflow, and renewal calendar exist in markdown and JSON for automation.                            |
+| Token utility & governance | **Effective** | Whitepaper and budget audit align utility-first framing with treasury oversight and legal spend guardrails.                             |
+| Jurisdictional guardrails  | **Effective** | Launch readiness plan enforces KYC, geofencing, and segregated investor economics, backed by compliance automation in ecosystem design. |
+| Legal engagement           | **Effective** | Legal advisor SOP and budget audit earmark continuous monitoring, counsel engagement, and evidence logging.                             |
 
 ## Detailed Findings
 
@@ -78,10 +78,10 @@ control areas:
   directly addressing higher-friction jurisdictions before market expansion.
 - The action checklist links to vesting audits, liquidity SOPs, and transparency
   cadences that can be inspected by Tonstarter or regulators.
-- `docs/dynamic-capital-ecosystem-anatomy.md` embeds compliance automation in the
-  Skeleton layer (Dynamic Compliance Algo) and references AML/KYC reporting and
-  transparency dashboards, showing that guardrails are part of the core system
-  design rather than bolt-on controls.
+- `docs/dynamic-capital-ecosystem-anatomy.md` embeds compliance automation in
+  the Skeleton layer (Dynamic Compliance Algo) and references AML/KYC reporting
+  and transparency dashboards, showing that guardrails are part of the core
+  system design rather than bolt-on controls.
 - **Residual Risk:** Ensure that geofencing logic and KYC tooling remain updated
   with regional policy changes; no gaps identified in documentation.
 

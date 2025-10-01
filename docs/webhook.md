@@ -6,17 +6,18 @@
 
 The `telegram-webhook` edge function runs with `verify_jwt = false` in
 `supabase/config.toml`. Telegram does not sign requests with Supabase JWTs, so
-JWT checks would reject legitimate webhook deliveries. Instead, Telegram includes
-our shared secret in the `X-Telegram-Bot-Api-Secret-Token` header
+JWT checks would reject legitimate webhook deliveries. Instead, Telegram
+includes our shared secret in the `X-Telegram-Bot-Api-Secret-Token` header
 ([docs](https://core.telegram.org/bots/api#setwebhook)). The function validates
 this header for every request, so disabling JWT verification is safe.
 
 ### Rotating the secret
 
 1. Update the `TELEGRAM_WEBHOOK_SECRET` in the environment or database.
-2. Re-deploy the function (`supabase functions deploy telegram-webhook --no-verify-jwt`).
-3. Run `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) to register the new
-   webhook URL and secret.
+2. Re-deploy the function
+   (`supabase functions deploy telegram-webhook --no-verify-jwt`).
+3. Run `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) to
+   register the new webhook URL and secret.
 
 ### Mini App initData validation
 
@@ -27,10 +28,10 @@ fails consistently.
 
 ## TradingView Webhook
 
-The Python integration at `integrations/tradingview.py` exposes a Flask
-endpoint for direct TradingView alerts. Each request must include the shared
-secret in the `X-Tradingview-Secret` header; the handler rejects missing or
-invalid values before any trading logic runs.
+The Python integration at `integrations/tradingview.py` exposes a Flask endpoint
+for direct TradingView alerts. Each request must include the shared secret in
+the `X-Tradingview-Secret` header; the handler rejects missing or invalid values
+before any trading logic runs.
 
 ### Configuration
 
@@ -128,4 +129,3 @@ this endpoint.
 1. Update `OPENAI_WEBHOOK_SECRET` in the environment.
 2. Re-deploy the function (`supabase functions deploy openai-webhook`).
 3. Update the webhook endpoint in the OpenAI dashboard with the same secret.
-

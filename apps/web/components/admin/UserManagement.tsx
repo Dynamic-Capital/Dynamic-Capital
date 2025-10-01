@@ -325,9 +325,7 @@ export function UserManagement() {
 
       toast({
         title: "Success",
-        description: `Payment ${
-          approve ? "completed" : "failed"
-        } successfully`,
+        description: `Payment ${approve ? "completed" : "failed"} successfully`,
       });
 
       loadData();

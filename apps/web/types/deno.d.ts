@@ -11,7 +11,7 @@ declare global {
 declare const Deno:
   | undefined
   | {
-      env: {
-        get(name: string): string | undefined
-      }
+    env: {
+      get(name: string): string | undefined;
     };
+  };

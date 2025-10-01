@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import {
+  motion,
+  useMotionValueEvent,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import { cn } from "@/utils";
 
 interface ScrollProgressBarProps {
@@ -9,9 +14,9 @@ interface ScrollProgressBarProps {
   color?: string;
 }
 
-export const ScrollProgressBar: React.FC<ScrollProgressBarProps> = ({ 
-  className, 
-  color = "hsl(var(--primary))" 
+export const ScrollProgressBar: React.FC<ScrollProgressBarProps> = ({
+  className,
+  color = "hsl(var(--primary))",
 }) => {
   const { scrollYProgress } = useScroll();
   const scaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
@@ -26,7 +31,7 @@ export const ScrollProgressBar: React.FC<ScrollProgressBarProps> = ({
       <motion.div
         className={cn(
           "fixed top-0 left-0 right-0 h-1 z-50 origin-left",
-          className
+          className,
         )}
         style={{
           scaleX,
@@ -61,9 +66,9 @@ export const ParallaxElement: React.FC<ParallaxElementProps> = ({
   const ref = React.useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "end start"]
+    offset: ["start end", "end start"],
   });
-  
+
   const y = useTransform(scrollYProgress, [0, 1], [-offset, offset]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 

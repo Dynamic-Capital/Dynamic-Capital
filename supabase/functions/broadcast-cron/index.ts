@@ -19,7 +19,9 @@ export const handler = registerHandler(async (req) => {
       Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
     };
     const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/broadcast_messages?delivery_status=eq.scheduled&scheduled_at=lte.${new Date().toISOString()}&select=id`,
+      `${SUPABASE_URL}/rest/v1/broadcast_messages?delivery_status=eq.scheduled&scheduled_at=lte.${
+        new Date().toISOString()
+      }&select=id`,
       { headers },
     );
     const rows = await r.json();

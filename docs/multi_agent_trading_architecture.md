@@ -65,12 +65,12 @@ Failover: <retries, circuit breaker, fallback>
 
 ## 3. Coordination Patterns
 
-| Pattern | Best For | Notes |
-| --- | --- | --- |
-| **Market Mechanism** | Liquidity allocation among Portfolio, Hedger, Execution agents | Budget-capped bids adjudicated by PolicyAgent safeguards. |
-| **Blackboard** | Shared context (volatility regimes, exchange halts) | Kafka topic `strategy.blackboard.v1` acts as immutable fact store; consumers dedupe. |
-| **Consensus** | Compliance checkpoints and kill-switch authorization | Three-node Raft quorum before mutating ledgers or kill commands. |
-| **Swarm Heuristics** | Exploration and anomaly scouting | Local diversity rules trigger upstream scouting reports. |
+| Pattern              | Best For                                                       | Notes                                                                                |
+| -------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Market Mechanism** | Liquidity allocation among Portfolio, Hedger, Execution agents | Budget-capped bids adjudicated by PolicyAgent safeguards.                            |
+| **Blackboard**       | Shared context (volatility regimes, exchange halts)            | Kafka topic `strategy.blackboard.v1` acts as immutable fact store; consumers dedupe. |
+| **Consensus**        | Compliance checkpoints and kill-switch authorization           | Three-node Raft quorum before mutating ledgers or kill commands.                     |
+| **Swarm Heuristics** | Exploration and anomaly scouting                               | Local diversity rules trigger upstream scouting reports.                             |
 
 ## 4. Communication & Interoperability
 
@@ -257,10 +257,10 @@ Failover: <retries, circuit breaker, fallback>
 
 ## 17. Quick Start Checklist
 
-| Step | Outcome |
-| --- | --- |
-| Platform setup | Choose Kafka or NATS and Ray or Kubernetes to establish the runtime. |
-| Contract design | Define ≥5 message types and ≥3 agents to clarify interfaces. |
-| Policy guardrails | Extend the Ray example with RiskAgent enforcement to cap exposure. |
-| Reliability hardening | Add metrics plus DLQ coverage and run ≥1 hour soak tests. |
-| Operability | Draft one-page runbooks per agent via the canvas template. |
+| Step                  | Outcome                                                              |
+| --------------------- | -------------------------------------------------------------------- |
+| Platform setup        | Choose Kafka or NATS and Ray or Kubernetes to establish the runtime. |
+| Contract design       | Define ≥5 message types and ≥3 agents to clarify interfaces.         |
+| Policy guardrails     | Extend the Ray example with RiskAgent enforcement to cap exposure.   |
+| Reliability hardening | Add metrics plus DLQ coverage and run ≥1 hour soak tests.            |
+| Operability           | Draft one-page runbooks per agent via the canvas template.           |

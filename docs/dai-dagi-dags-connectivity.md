@@ -8,11 +8,11 @@ AGS (DAGS) domains plug into the platform data plane, focusing on three pillars:
   ([`EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg`](https://1drv.ms/f/c/2ff0428a2f57c7a4/EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg?e=jT5qg0))
 - Logging surfaces that record operational telemetry
 
-| Domain | Supabase coverage | OneDrive mirror | Logging footprint |
-| ------ | ----------------- | --------------- | ----------------- |
-| **DAI** | ✅ Tables and Edge Functions catalogued | ✅ Uses mirrored share via `one_drive_assets` | ✅ Edge Function analytics feeds |
-| **DAGI** | ✅ Tables and Edge Functions catalogued | ✅ Reuses mirrored share via `one_drive_assets` | ✅ Orchestration health telemetry |
-| **DAGS** | ✅ Governance tables defined | ✅ Mirror live via `one_drive_assets` manifest | ✅ Structured audit trails in Supabase |
+| Domain   | Supabase coverage                       | OneDrive mirror                                 | Logging footprint                      |
+| -------- | --------------------------------------- | ----------------------------------------------- | -------------------------------------- |
+| **DAI**  | ✅ Tables and Edge Functions catalogued | ✅ Uses mirrored share via `one_drive_assets`   | ✅ Edge Function analytics feeds       |
+| **DAGI** | ✅ Tables and Edge Functions catalogued | ✅ Reuses mirrored share via `one_drive_assets` | ✅ Orchestration health telemetry      |
+| **DAGS** | ✅ Governance tables defined            | ✅ Mirror live via `one_drive_assets` manifest  | ✅ Structured audit trails in Supabase |
 
 > Continue to audit the DAGS mirror during environment reviews so governance
 > artefacts remain available through the shared manifest.
@@ -51,10 +51,11 @@ For the end-to-end tasks required to stand up these integrations, consult the
   `one_drive_assets` manifest, keeping the DAGS mirror aligned with Supabase
   Storage. The `dags-domain-health` function now surfaces a sample manifest
   object so smoke tests can confirm connectivity from the Edge Function to the
-  mirrored share.【F:supabase/functions/dags-domain-health/index.ts†L40-L78】【F:supabase/migrations/20251104090000_enable_s3_wrapper.sql†L1-L97】
+  mirrored
+  share.【F:supabase/functions/dags-domain-health/index.ts†L40-L78】【F:supabase/migrations/20251104090000_enable_s3_wrapper.sql†L1-L97】
 - **Logging & telemetry**: Runbooks emphasise Supabase-based audit trails,
-  structured logs, and metrics with mirrored artefacts preserved in
-  OneDrive for redundancy.【F:docs/dynamic-ags-playbook.md†L145-L173】【F:supabase/functions/dags-domain-health/index.ts†L66-L78】
+  structured logs, and metrics with mirrored artefacts preserved in OneDrive for
+  redundancy.【F:docs/dynamic-ags-playbook.md†L145-L173】【F:supabase/functions/dags-domain-health/index.ts†L66-L78】
 
 ## Domain Notes
 
@@ -95,12 +96,14 @@ For the end-to-end tasks required to stand up these integrations, consult the
   task/step/approval/artifact/audit tables, and ties workflows to
   Supabase-centric memory, observability, and sync
   patterns.【F:docs/dynamic-ags-playbook.md†L36-L177】
-- The shared memory guidance now codifies the OneDrive mirror alongside
-  Supabase Storage, making the `EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg`
-  share part of the governance backup posture.【F:docs/dynamic-ags-playbook.md†L104-L173】
+- The shared memory guidance now codifies the OneDrive mirror alongside Supabase
+  Storage, making the `EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg` share
+  part of the governance backup
+  posture.【F:docs/dynamic-ags-playbook.md†L104-L173】
 - Logging remains Supabase-native (structured JSON logs, metrics, and audit
   tables) with mirrored artefacts captured for long-term recall across both
-  storage surfaces.【F:docs/dynamic-ags-playbook.md†L145-L173】【F:supabase/functions/dags-domain-health/index.ts†L66-L78】
+  storage
+  surfaces.【F:docs/dynamic-ags-playbook.md†L145-L173】【F:supabase/functions/dags-domain-health/index.ts†L66-L78】
 
 ## Connection Verification Checklist
 
@@ -125,8 +128,9 @@ select
 ```
 
 DAI and DAGI rely on the catalogued Supabase blueprints, while the DAGS playbook
-defines the governance tables referenced above, so all entries should resolve
-to their `public.*` names in a healthy deployment.【F:dynamic_supabase/domain_catalogue.py†L70-L140】【F:dynamic_supabase/domain_catalogue.py†L142-L176】【F:docs/dynamic-ags-playbook.md†L145-L169】
+defines the governance tables referenced above, so all entries should resolve to
+their `public.*` names in a healthy
+deployment.【F:dynamic_supabase/domain_catalogue.py†L70-L140】【F:dynamic_supabase/domain_catalogue.py†L142-L176】【F:docs/dynamic-ags-playbook.md†L145-L169】
 
 ### 2. Edge Function coverage
 
@@ -139,7 +143,8 @@ supabase functions list | grep -E 'analysis-ingest|analytics-collector|lorentzia
 
 You should see the four DAI collectors and the four DAGI orchestration endpoints
 registered; AGS currently leans on database triggers and will gain an explicit
-Edge Function set once the mirror integration lands.【F:dynamic_supabase/domain_catalogue.py†L82-L138】【F:dynamic_supabase/domain_catalogue.py†L142-L176】【F:docs/dynamic-ags-playbook.md†L156-L173】
+Edge Function set once the mirror integration
+lands.【F:dynamic_supabase/domain_catalogue.py†L82-L138】【F:dynamic_supabase/domain_catalogue.py†L142-L176】【F:docs/dynamic-ags-playbook.md†L156-L173】
 
 ### 3. OneDrive mirror availability
 
@@ -159,9 +164,10 @@ standardised. Treat an empty DAGS result as an incident requiring investigation
 into the OneDrive sync or governance manifest health so the mirror stays
 authoritative.【F:supabase/migrations/20251104090000_enable_s3_wrapper.sql†L60-L97】【F:apps/web/integrations/wrappers/index.ts†L44-L115】【F:supabase/functions/dags-domain-health/index.ts†L40-L78】
 
-If the SQL probe fails (e.g., missing foreign table), rerun the wrapper migration
-and double-check the S3-compatible credentials documented in the wrappers
-integration guide before retrying the manifest query.【F:docs/WRAPPERS_INTEGRATION.md†L1-L78】
+If the SQL probe fails (e.g., missing foreign table), rerun the wrapper
+migration and double-check the S3-compatible credentials documented in the
+wrappers integration guide before retrying the manifest
+query.【F:docs/WRAPPERS_INTEGRATION.md†L1-L78】
 
 ### 4. DAGS health smoke test
 
@@ -177,7 +183,8 @@ supabase functions invoke dags-domain-health \
 Inspect the JSON response for an `onedrive:mirror` entry with `status` set to
 `healthy` (or `error` if the manifest is empty) and a `metadata.sample`
 containing an `object_key`/`last_modified` pair. That payload confirms the smoke
-test successfully reached the mirrored DAGS artefacts through Supabase.【F:supabase/functions/dags-domain-health/index.ts†L40-L78】【F:supabase/functions/_shared/domain-health.ts†L101-L167】
+test successfully reached the mirrored DAGS artefacts through
+Supabase.【F:supabase/functions/dags-domain-health/index.ts†L40-L78】【F:supabase/functions/_shared/domain-health.ts†L101-L167】
 
 ## Integration Gaps and Follow-ups
 

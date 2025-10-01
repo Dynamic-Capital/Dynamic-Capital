@@ -10,37 +10,44 @@ adapt to feedback and stay energized.
 ## Step 1: Define Input (Definite Major Purpose)
 
 - Ask, "What is my definite major purpose today?"
-- Write the purpose as a single, unambiguous sentence that acts as your north star.
+- Write the purpose as a single, unambiguous sentence that acts as your north
+  star.
 
 ## Step 2: Prime the System (Faith & Autosuggestion)
 
 - Begin the day by repeating your purpose as an affirmation.
-- Visualize yourself already living the purpose and layer in strong positive emotion.
-- Reinforce the desired state so your subconscious works toward it automatically.
+- Visualize yourself already living the purpose and layer in strong positive
+  emotion.
+- Reinforce the desired state so your subconscious works toward it
+  automatically.
 
 ## Step 3: Filter Noise (Accurate Thinking)
 
 - When evaluating information, separate facts from opinions.
-- Confirm whether a choice moves you closer to your definite purpose before acting.
+- Confirm whether a choice moves you closer to your definite purpose before
+  acting.
 - Retain only the thoughts and data that are aligned with truth and intent.
 
 ## Step 4: Generate Power (Mastermind & Positive Mental Attitude)
 
-- Connect with allies—mentors, peers, and collaborators who can amplify your ideas.
-- Maintain a Positive Mental Attitude (PMA) by looking for opportunity inside each
-  challenge.
+- Connect with allies—mentors, peers, and collaborators who can amplify your
+  ideas.
+- Maintain a Positive Mental Attitude (PMA) by looking for opportunity inside
+  each challenge.
 - Combine collaboration with optimism to multiply creative and strategic power.
 
 ## Step 5: Execute (Personal Initiative & Action)
 
 - Take the first step without waiting for perfect conditions or full certainty.
-- Apply the "extra mile" rule by delivering more value than expected in every action.
+- Apply the "extra mile" rule by delivering more value than expected in every
+  action.
 - Let momentum build through consistent, purpose-aligned output.
 
 ## Step 6: Monitor Feedback (Adversity & Controlled Attention)
 
 - Treat resistance or failure as signals containing lessons.
-- Ask, "What insight is hidden here?" and adjust your tactics while holding the goal.
+- Ask, "What insight is hidden here?" and adjust your tactics while holding the
+  goal.
 - Re-center your attention on the definite purpose after each review.
 
 ## Step 7: Recharge the System (Health & Discipline)
@@ -56,11 +63,9 @@ adapt to feedback and stay energized.
 
 ## Formula Summary
 
-Definite Purpose + Faith
-→ Accurate Thinking + Mastermind + Positive Mental Attitude
-→ Initiative + Extra Mile
-→ Persistence + Lessons from Failure
-= Success
+Definite Purpose + Faith → Accurate Thinking + Mastermind + Positive Mental
+Attitude → Initiative + Extra Mile → Persistence + Lessons from Failure =
+Success
 
 ## Daily Checklist
 

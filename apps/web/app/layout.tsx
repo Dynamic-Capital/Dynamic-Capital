@@ -253,7 +253,7 @@ export default async function RootLayout(
       );
     } catch (error) {
       console.error(
-        'Failed to load static landing snapshot markup. Falling back to dynamic layout rendering.',
+        "Failed to load static landing snapshot markup. Falling back to dynamic layout rendering.",
         error,
       );
     }

@@ -26,17 +26,17 @@ export function useSubscriptionPlans(
 ): UseSubscriptionPlansResult {
   const { enabled = true } = options;
   const [plans, setPlans] = useState<Plan[]>(() =>
-    enabled ? getCachedSubscriptionPlans() : [],
+    enabled ? getCachedSubscriptionPlans() : []
   );
   const [loading, setLoading] = useState(() =>
     enabled
       ? getCachedSubscriptionPlans().length === 0 &&
         !getCachedSubscriptionPlansError() &&
         !isFetchingSubscriptionPlans()
-      : false,
+      : false
   );
   const [error, setError] = useState<string | null>(() =>
-    enabled ? getCachedSubscriptionPlansError() : null,
+    enabled ? getCachedSubscriptionPlansError() : null
   );
 
   const loadPlans = useCallback(
@@ -53,10 +53,9 @@ export function useSubscriptionPlans(
         setPlans(result);
         return result;
       } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Failed to load subscription plans.";
+        const message = err instanceof Error
+          ? err.message
+          : "Failed to load subscription plans.";
         setError(message);
         setPlans([]);
         return [];

@@ -1,9 +1,9 @@
 // supabase/functions/_shared/static.ts
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-import { mna, nf, ok } from './http.ts';
-import { contentType } from 'mime-types';
-import { extname } from 'node:path';
+import { mna, nf, ok } from "./http.ts";
+import { contentType } from "mime-types";
+import { extname } from "node:path";
 
 export type StaticOpts = {
   rootDir: URL; // e.g., new URL("../miniapp/static/", import.meta.url)
@@ -29,23 +29,28 @@ function mime(p: string) {
   return contentType(extname(p)) ?? "application/octet-stream";
 }
 
-async function readFileFrom(rootDir: URL, relPath: string): Promise<Response | null> {
+async function readFileFrom(
+  rootDir: URL,
+  relPath: string,
+): Promise<Response | null> {
   try {
     const rel = relPath.replace(/^\/+/, "");
     const url = new URL(`./${rel}`, rootDir);
     if (!url.pathname.startsWith(rootDir.pathname)) return null; // prevent path traversal
-    
+
     console.log(`[static] Attempting to read file: ${url.pathname}`);
     const data = await Deno.readFile
       ? await Deno.readFile(url)
-      : await (await import('node:fs/promises')).readFile(url);
+      : await (await import("node:fs/promises")).readFile(url);
     const h = new Headers({
       "content-type": mime(relPath),
       "cache-control": relPath.endsWith(".html")
         ? "no-cache"
         : "public, max-age=31536000, immutable",
     });
-    console.log(`[static] Successfully read file: ${url.pathname}, size: ${data.length}`);
+    console.log(
+      `[static] Successfully read file: ${url.pathname}, size: ${data.length}`,
+    );
     return new Response(data, { headers: h });
   } catch (e) {
     console.error(`[static] Failed to read file: ${relPath}`, e);
@@ -53,7 +58,10 @@ async function readFileFrom(rootDir: URL, relPath: string): Promise<Response | n
   }
 }
 
-export async function serveStatic(req: Request, opts: StaticOpts): Promise<Response> {
+export async function serveStatic(
+  req: Request,
+  opts: StaticOpts,
+): Promise<Response> {
   const url = new URL(req.url);
   // Normalize Supabase's default /functions/v1 prefix so the same handler
   // works whether the function is invoked at /miniapp or /functions/v1/miniapp.
@@ -70,13 +78,15 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
     return new Response(resp.body, { headers: h, status: resp.status });
   };
 
-  const extra = new Set(opts.extraFiles ?? [
-    "/favicon.svg",
-    "/favicon.ico",
-    "/site.webmanifest",
-    "/robots.txt",
-    "/sitemap.xml",
-  ]);
+  const extra = new Set(
+    opts.extraFiles ?? [
+      "/favicon.svg",
+      "/favicon.ico",
+      "/site.webmanifest",
+      "/robots.txt",
+      "/sitemap.xml",
+    ],
+  );
 
   // HEAD allowed on SPA roots
   if (req.method === "HEAD") {
@@ -84,7 +94,9 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
       return setSec(new Response(null, { status: 200 }));
     }
     if (url.pathname.endsWith("/version")) {
-      const h = new Headers({ "content-type": "application/json; charset=utf-8" });
+      const h = new Headers({
+        "content-type": "application/json; charset=utf-8",
+      });
       for (const [k, v] of Object.entries(sec)) h.set(k, v);
       return new Response(null, { headers: h, status: 200 });
     }
@@ -106,7 +118,10 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
     const r = ok({ name: "miniapp", ts: new Date().toISOString() });
     const h = new Headers(r.headers);
     for (const [k, v] of Object.entries(sec)) h.set(k, v);
-    return new Response(await r.arrayBuffer(), { headers: h, status: r.status });
+    return new Response(await r.arrayBuffer(), {
+      headers: h,
+      status: r.status,
+    });
   }
 
   // Serve explicitly allowed root files first (e.g., robots.txt, sitemap.xml)
@@ -125,7 +140,8 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
   const normPath = path === "" ? "/" : path;
   if (
     spaRoots.some((root) =>
-      normPath === root || normPath.startsWith((root ? root : "") + "/"))
+      normPath === root || normPath.startsWith((root ? root : "") + "/")
+    )
   ) {
     console.log(`[static] Serving index.html for SPA root: ${url.pathname}`);
     const idx = await readFileFrom(opts.rootDir, "index.html");
@@ -134,7 +150,9 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
       for (const [k, v] of Object.entries(sec)) h.set(k, v);
       return new Response(idx.body, { headers: h, status: idx.status });
     }
-    console.error(`[static] index.html not found in rootDir: ${opts.rootDir.pathname}`);
+    console.error(
+      `[static] index.html not found in rootDir: ${opts.rootDir.pathname}`,
+    );
     return nf("index.html missing");
   }
 

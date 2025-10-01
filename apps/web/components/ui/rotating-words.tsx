@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/utils";
 
 interface RotatingWordsProps {
@@ -11,11 +11,11 @@ interface RotatingWordsProps {
   colorClass?: string;
 }
 
-export function RotatingWords({ 
-  words, 
-  interval = 3000, 
+export function RotatingWords({
+  words,
+  interval = 3000,
   className,
-  colorClass = "text-primary"
+  colorClass = "text-primary",
 }: RotatingWordsProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -40,7 +40,7 @@ export function RotatingWords({
             ease: [0.4, 0, 0.2, 1],
             type: "spring",
             stiffness: 100,
-            damping: 15
+            damping: 15,
           }}
           className={cn("inline-block font-semibold", colorClass)}
         >

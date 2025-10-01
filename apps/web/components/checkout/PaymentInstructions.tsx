@@ -2,10 +2,10 @@
 
 import React from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, Building, Coins, AlertCircle, FileText } from "lucide-react";
-import type { PaymentMethod, BankAccount, CheckoutStep } from "./types";
+import { AlertCircle, Building, Coins, FileText, Upload } from "lucide-react";
+import type { BankAccount, CheckoutStep, PaymentMethod } from "./types";
 
 interface PaymentInstructionsProps {
   paymentMethod: PaymentMethod;
@@ -13,12 +13,15 @@ interface PaymentInstructionsProps {
   setCurrentStep: (step: CheckoutStep) => void;
 }
 
-export const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({ paymentMethod, bankAccounts, setCurrentStep }) => (
+export const PaymentInstructions: React.FC<PaymentInstructionsProps> = (
+  { paymentMethod, bankAccounts, setCurrentStep },
+) => (
   <div className="space-y-4">
     <Alert>
       <FileText className="h-4 w-4" />
       <AlertDescription>
-        <strong>Step 1:</strong> Complete your payment using the details below, then upload your receipt.
+        <strong>Step 1:</strong>{" "}
+        Complete your payment using the details below, then upload your receipt.
       </AlertDescription>
     </Alert>
 
@@ -35,9 +38,15 @@ export const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({ paymen
             <div key={idx} className="p-4 border rounded-lg space-y-2">
               <div className="font-medium">{bank.bank_name}</div>
               <div className="text-sm space-y-1">
-                <div><strong>Account Name:</strong> {bank.account_name}</div>
-                <div><strong>Account Number:</strong> {bank.account_number}</div>
-                <div><strong>Currency:</strong> {bank.currency}</div>
+                <div>
+                  <strong>Account Name:</strong> {bank.account_name}
+                </div>
+                <div>
+                  <strong>Account Number:</strong> {bank.account_number}
+                </div>
+                <div>
+                  <strong>Currency:</strong> {bank.currency}
+                </div>
               </div>
             </div>
           ))}
@@ -57,7 +66,8 @@ export const PaymentInstructions: React.FC<PaymentInstructionsProps> = ({ paymen
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Send payment to the crypto address provided via Telegram. Upload your transaction receipt below.
+              Send payment to the crypto address provided via Telegram. Upload
+              your transaction receipt below.
             </AlertDescription>
           </Alert>
         </CardContent>

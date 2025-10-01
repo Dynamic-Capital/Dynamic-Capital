@@ -1,5 +1,5 @@
 import { assertEquals } from "std/assert/mod.ts";
-import { setTestEnv, clearTestEnv } from "./env-mock.ts";
+import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
 async function sign(body: string, secret: string) {
   const enc = new TextEncoder();

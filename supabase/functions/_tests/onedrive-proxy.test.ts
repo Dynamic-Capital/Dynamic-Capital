@@ -30,7 +30,7 @@ Deno.test("onedrive-proxy lists drive items", async () => {
 
   globalThis.fetch =
     (async (input: Request | URL | string, init?: RequestInit) => {
-  await Promise.resolve(); // satisfy require-await
+      await Promise.resolve(); // satisfy require-await
 
       const url = typeof input === "string"
         ? input

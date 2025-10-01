@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from 'react';
-import type { JSX } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/utils';
+import * as React from "react";
+import type { JSX } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/utils";
 
 interface AnimatedHeadingProps {
   children: React.ReactNode;
@@ -22,21 +22,25 @@ export const AnimatedHeading: React.FC<AnimatedHeadingProps> = ({
   gradient = false,
   glow = false,
   typewriter = false,
-  delay = 0
+  delay = 0,
 }) => {
   const Component = `h${level}` as keyof JSX.IntrinsicElements;
-  
+
   const baseClasses = {
     1: "text-4xl md:text-5xl font-bold",
     2: "text-3xl md:text-4xl font-bold",
     3: "text-2xl md:text-3xl font-semibold",
     4: "text-xl md:text-2xl font-semibold",
     5: "text-lg md:text-xl font-medium",
-    6: "text-base md:text-lg font-medium"
+    6: "text-base md:text-lg font-medium",
   };
 
-  const gradientClass = gradient ? "bg-gradient-to-r from-primary via-brand-secondary to-primary bg-clip-text text-transparent" : "";
-  const glowClass = glow ? "drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)]" : "";
+  const gradientClass = gradient
+    ? "bg-gradient-to-r from-primary via-brand-secondary to-primary bg-clip-text text-transparent"
+    : "";
+  const glowClass = glow
+    ? "drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)]"
+    : "";
 
   return (
     <motion.div
@@ -51,10 +55,10 @@ export const AnimatedHeading: React.FC<AnimatedHeadingProps> = ({
             baseClasses[level],
             gradientClass,
             glowClass,
-            className
-          )
+            className,
+          ),
         },
-        typewriter ? <TypewriterText text={children as string} /> : children
+        typewriter ? <TypewriterText text={children as string} /> : children,
       )}
     </motion.div>
   );
@@ -66,20 +70,20 @@ interface TypewriterTextProps {
   delay?: number;
 }
 
-const TypewriterText: React.FC<TypewriterTextProps> = ({ 
-  text, 
-  speed = 50, 
-  delay = 0 
+const TypewriterText: React.FC<TypewriterTextProps> = ({
+  text,
+  speed = 50,
+  delay = 0,
 }) => {
-  const [displayText, setDisplayText] = React.useState('');
+  const [displayText, setDisplayText] = React.useState("");
   const [currentIndex, setCurrentIndex] = React.useState(0);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
       if (currentIndex < text.length) {
         const timeout = setTimeout(() => {
-          setDisplayText(prev => prev + text[currentIndex]);
-          setCurrentIndex(prev => prev + 1);
+          setDisplayText((prev) => prev + text[currentIndex]);
+          setCurrentIndex((prev) => prev + 1);
         }, speed);
         return () => clearTimeout(timeout);
       }
@@ -109,13 +113,13 @@ interface GradientTextProps {
 export const GradientText: React.FC<GradientTextProps> = ({
   children,
   className = "",
-  colors = "from-primary via-brand-secondary to-primary"
+  colors = "from-primary via-brand-secondary to-primary",
 }) => {
   return (
-    <span 
+    <span
       className={cn(
         `bg-gradient-to-r ${colors} bg-clip-text text-transparent`,
-        className
+        className,
       )}
     >
       {children}
@@ -132,22 +136,22 @@ interface PulsingTextProps {
 export const PulsingText: React.FC<PulsingTextProps> = ({
   children,
   className = "",
-  duration = 2
+  duration = 2,
 }) => {
   return (
     <motion.span
-      animate={{ 
+      animate={{
         scale: [1, 1.05, 1],
         textShadow: [
           "0 0 0px rgba(var(--primary-rgb), 0)",
           "0 0 10px rgba(var(--primary-rgb), 0.5)",
-          "0 0 0px rgba(var(--primary-rgb), 0)"
-        ]
+          "0 0 0px rgba(var(--primary-rgb), 0)",
+        ],
       }}
-      transition={{ 
-        duration, 
+      transition={{
+        duration,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut",
       }}
       className={className}
     >
@@ -171,7 +175,7 @@ export const CountUp: React.FC<CountUpProps> = ({
   duration = 2,
   suffix = "",
   prefix = "",
-  className = ""
+  className = "",
 }) => {
   const [count, setCount] = React.useState(start);
 
@@ -183,9 +187,9 @@ export const CountUp: React.FC<CountUpProps> = ({
       const now = Date.now();
       const progress = Math.min((now - startTime) / (endTime - startTime), 1);
       const currentCount = Math.floor(start + (end - start) * progress);
-      
+
       setCount(currentCount);
-      
+
       if (progress < 1) {
         requestAnimationFrame(updateCount);
       }
@@ -200,7 +204,9 @@ export const CountUp: React.FC<CountUpProps> = ({
       animate={{ opacity: 1, scale: 1 }}
       className={className}
     >
-      {prefix}{count.toLocaleString()}{suffix}
+      {prefix}
+      {count.toLocaleString()}
+      {suffix}
     </motion.span>
   );
 };
@@ -209,5 +215,5 @@ export default {
   AnimatedHeading,
   GradientText,
   PulsingText,
-  CountUp
+  CountUp,
 };

@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { usePathname } from 'next/navigation';
+import React from "react";
+import { AnimatePresence, motion, Variants } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 // Route transition variants
 const routeVariants: Variants = {
@@ -10,7 +10,7 @@ const routeVariants: Variants = {
     opacity: 0,
     scale: 0.98,
     y: 20,
-    filter: "blur(4px)"
+    filter: "blur(4px)",
   },
   animate: {
     opacity: 1,
@@ -38,7 +38,9 @@ interface RouteTransitionsProps {
   children: React.ReactNode;
 }
 
-export const RouteTransitions: React.FC<RouteTransitionsProps> = ({ children }) => {
+export const RouteTransitions: React.FC<RouteTransitionsProps> = (
+  { children },
+) => {
   const pathname = usePathname();
   return (
     <AnimatePresence mode="wait" initial={false}>

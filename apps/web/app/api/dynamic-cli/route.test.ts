@@ -63,7 +63,8 @@ function base64UrlEncode(input: string | Buffer): string {
 
 function createAdminToken(
   secret: string,
-  claims: Partial<{ sub: string; admin: boolean; exp: number; iat: number }> = {},
+  claims: Partial<{ sub: string; admin: boolean; exp: number; iat: number }> =
+    {},
 ): string {
   const header = { alg: "HS256", typ: "JWT" };
   const now = Math.floor(Date.now() / 1000);

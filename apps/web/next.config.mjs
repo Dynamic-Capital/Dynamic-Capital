@@ -1,29 +1,27 @@
-import { fileURLToPath } from 'url';
-import path from 'path';
-import nextPWA from 'next-pwa';
-import bundleAnalyzer from '@next/bundle-analyzer';
-import createMDX from '@next/mdx';
-import localeConfig from './config/locales.json' with { type: 'json' };
+import { fileURLToPath } from "url";
+import path from "path";
+import nextPWA from "next-pwa";
+import bundleAnalyzer from "@next/bundle-analyzer";
+import createMDX from "@next/mdx";
+import localeConfig from "./config/locales.json" with { type: "json" };
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Only enable Sentry when explicitly requested to avoid build-time issues
 let withSentry = (config) => config;
-if (process.env.ENABLE_SENTRY === 'true') {
+if (process.env.ENABLE_SENTRY === "true") {
   try {
-    const { withSentryConfig } = await import('@sentry/nextjs');
+    const { withSentryConfig } = await import("@sentry/nextjs");
     withSentry = withSentryConfig;
   } catch {
-    console.warn('@sentry/nextjs not installed; skipping Sentry configuration');
+    console.warn("@sentry/nextjs not installed; skipping Sentry configuration");
   }
 }
 
-const SUPABASE_URL =
-  process.env.SUPABASE_URL ||
+const SUPABASE_URL = process.env.SUPABASE_URL ||
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
   "https://stub.supabase.co";
-const SUPABASE_ANON_KEY =
-  process.env.SUPABASE_ANON_KEY ||
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "stub-anon-key";
 
@@ -32,7 +30,7 @@ function coerceSiteUrl(raw) {
   const trimmed = `${raw}`.trim();
   if (!trimmed) return undefined;
   try {
-    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    const candidate = trimmed.includes("://") ? trimmed : `https://${trimmed}`;
     return new URL(candidate).origin;
   } catch {
     return undefined;
@@ -44,7 +42,7 @@ function coerceHost(raw) {
   const trimmed = `${raw}`.trim();
   if (!trimmed) return undefined;
   try {
-    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    const candidate = trimmed.includes("://") ? trimmed : `https://${trimmed}`;
     return new URL(candidate).hostname;
   } catch {
     return undefined;
@@ -66,9 +64,7 @@ const siteUrlSources = [
   ],
   [
     "VERCEL_URL",
-    process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : undefined,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
   ],
 ];
 
@@ -135,7 +131,7 @@ if (!CANONICAL_HOST) {
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS || SITE_URL;
 
 function normalizeLocale(value) {
-  if (typeof value !== 'string') return undefined;
+  if (typeof value !== "string") return undefined;
   const trimmed = value.trim();
   if (!trimmed) return undefined;
   return trimmed;
@@ -143,12 +139,14 @@ function normalizeLocale(value) {
 
 const configuredLocales = Array.isArray(localeConfig?.locales)
   ? localeConfig.locales
-      .map((locale) => normalizeLocale(locale))
-      .filter((locale) => Boolean(locale))
+    .map((locale) => normalizeLocale(locale))
+    .filter((locale) => Boolean(locale))
   : [];
 
-const FALLBACK_LOCALE = 'en';
-const LOCALES = configuredLocales.length > 0 ? configuredLocales : [FALLBACK_LOCALE];
+const FALLBACK_LOCALE = "en";
+const LOCALES = configuredLocales.length > 0
+  ? configuredLocales
+  : [FALLBACK_LOCALE];
 
 const configuredDefaultLocale = normalizeLocale(localeConfig?.defaultLocale);
 const DEFAULT_LOCALE =
@@ -185,8 +183,8 @@ const modularizeImportRules = {};
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  output: "standalone",
+  pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
   experimental: {
     optimizePackageImports,
   },
@@ -205,22 +203,22 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  transpilePackages: ['lucide-react'],
+  transpilePackages: ["lucide-react"],
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '**',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "**",
+        pathname: "/**",
       },
     ],
   },
   webpack: (config) => {
     config.cache = {
-      type: 'filesystem',
-      cacheDirectory: path.join(__dirname, '.next/cache/webpack'),
+      type: "filesystem",
+      cacheDirectory: path.join(__dirname, ".next/cache/webpack"),
       buildDependencies: {
         config: [__filename],
       },
@@ -229,66 +227,66 @@ const nextConfig = {
   },
 };
 
-if (nextConfig.output !== 'export') {
+if (nextConfig.output !== "export") {
   nextConfig.redirects = async () => {
-    if (process.env.DISABLE_HTTP_REDIRECTS === 'true') {
+    if (process.env.DISABLE_HTTP_REDIRECTS === "true") {
       return [];
     }
     const httpProtoHeader = {
-      type: 'header',
-      key: 'x-forwarded-proto',
-      value: 'http',
+      type: "header",
+      key: "x-forwarded-proto",
+      value: "http",
     };
     return [
       {
-        source: '/',
+        source: "/",
         has: [httpProtoHeader],
         destination: `https://${CANONICAL_HOST}`,
         permanent: true,
       },
       {
-        source: '/:path((?!healthz$).+)',
+        source: "/:path((?!healthz$).+)",
         has: [httpProtoHeader],
         destination: `https://${CANONICAL_HOST}/:path`,
         permanent: true,
       },
       ...(process.env.LEGACY_HOST
         ? [
-            {
-              source: '/:path*',
-              has: [{ type: 'host', value: process.env.LEGACY_HOST }],
-              destination: `https://${CANONICAL_HOST}/:path*`,
-              permanent: true,
-            },
-          ]
+          {
+            source: "/:path*",
+            has: [{ type: "host", value: process.env.LEGACY_HOST }],
+            destination: `https://${CANONICAL_HOST}/:path*`,
+            permanent: true,
+          },
+        ]
         : []),
     ];
   };
   nextConfig.headers = async () => [
     {
-      source: '/_next/static/:path*',
+      source: "/_next/static/:path*",
       headers: [
         {
-          key: 'Cache-Control',
-          value: 'public, max-age=31536000, immutable',
+          key: "Cache-Control",
+          value: "public, max-age=31536000, immutable",
         },
       ],
     },
     {
-      source: '/:all*(js|css|svg|jpg|png|gif|ico|woff2?)',
+      source: "/:all*(js|css|svg|jpg|png|gif|ico|woff2?)",
       headers: [
         {
-          key: 'Cache-Control',
-          value: 'public, max-age=31536000, immutable',
+          key: "Cache-Control",
+          value: "public, max-age=31536000, immutable",
         },
       ],
     },
     {
-      source: '/:path*',
+      source: "/:path*",
       headers: [
         {
-          key: 'Cache-Control',
-          value: 'public, max-age=0, must-revalidate',
+          key: "Cache-Control",
+          value: "public, max-age=0, must-revalidate",
         },
       ],
     },
@@ -296,12 +294,14 @@ if (nextConfig.output !== 'export') {
 }
 
 const withPWA = nextPWA({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
   maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
   buildExcludes: [/.*\.map$/],
 });
-const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 const withMDX = createMDX({
   extension: /\.mdx?$/,
 });
@@ -317,5 +317,5 @@ export default withBundleAnalyzer(
 );
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: ["/api/:path*"],
 };

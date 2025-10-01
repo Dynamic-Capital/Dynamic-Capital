@@ -122,10 +122,10 @@ DeepSeek-V3↔Kimi K2 for exploratory macro narratives).
 
 ### External Reasoning Framework References
 
-To complement the native adapter roster, Dynamic AI maintains direct
-integration guides for prominent open-source reasoning frameworks. These
-references help operators evaluate when to dispatch workloads to specialised
-stacks and provide a single source of truth for onboarding playbooks:
+To complement the native adapter roster, Dynamic AI maintains direct integration
+guides for prominent open-source reasoning frameworks. These references help
+operators evaluate when to dispatch workloads to specialised stacks and provide
+a single source of truth for onboarding playbooks:
 
 - **[AutoGPT — Autonomous Task Orchestration](https://github.com/Significant-Gravitas/AutoGPT):**
   Mission-driven planner that expands prompts into auditable multi-step
@@ -144,11 +144,10 @@ stacks and provide a single source of truth for onboarding playbooks:
 
 ### Internal Adapter Extensions
 
-Dynamic AI keeps external frameworks self-contained by wrapping them as
-internal adapters with reproducible guardrails. Every adapter implementation is
-reviewed with the same step-by-step activation loop so schedulers can treat them
-like any other model while still gaining the specialised behaviours they
-provide.
+Dynamic AI keeps external frameworks self-contained by wrapping them as internal
+adapters with reproducible guardrails. Every adapter implementation is reviewed
+with the same step-by-step activation loop so schedulers can treat them like any
+other model while still gaining the specialised behaviours they provide.
 
 **Adapter activation loop**
 
@@ -178,8 +177,8 @@ provide.
 
 **Optimization levers**
 
-- Cache mission graphs keyed by market regime to bypass redundant planning
-  steps during live trading bursts.
+- Cache mission graphs keyed by market regime to bypass redundant planning steps
+  during live trading bursts.
 - Prefetch AutoGPT context windows in the ingress layer whenever the dispatcher
   detects correlated alerts, reducing perceived latency for multi-instrument
   events.
@@ -194,8 +193,8 @@ provide.
    Capital risk governors and persist the mapping in the control plane registry.
 2. Use the consensus microservice to launch SuperAGI debates as deterministic
    batches, ensuring each persona receives the same market snapshot.
-3. Convert SuperAGI voting outcomes into `ConsensusFrame` payloads so the
-   egress layer can reconcile them with DynamicFusion consensus logic.
+3. Convert SuperAGI voting outcomes into `ConsensusFrame` payloads so the egress
+   layer can reconcile them with DynamicFusion consensus logic.
 
 **Optimization levers**
 

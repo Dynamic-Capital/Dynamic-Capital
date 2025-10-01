@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Promo {
@@ -25,7 +25,10 @@ export function ActivePromosSection() {
   }, []);
 
   return (
-    <div className="relative h-32 w-full flex items-center justify-center" style={{ perspective: 1000 }}>
+    <div
+      className="relative h-32 w-full flex items-center justify-center"
+      style={{ perspective: 1000 }}
+    >
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
@@ -39,7 +42,9 @@ export function ActivePromosSection() {
           <Card className="w-64 shadow-lg">
             <CardContent className="p-4 text-center">
               <div className="font-bold text-lg">{promos[index].code}</div>
-              <p className="text-sm text-muted-foreground">{promos[index].description}</p>
+              <p className="text-sm text-muted-foreground">
+                {promos[index].description}
+              </p>
             </CardContent>
           </Card>
         </motion.div>

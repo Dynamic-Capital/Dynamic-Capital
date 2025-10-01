@@ -1,9 +1,11 @@
 import { createClient } from "../../_shared/client.ts";
 import { requireEnv } from "../../_shared/env.ts";
 
-const { TELEGRAM_BOT_TOKEN: BOT_TOKEN } = requireEnv([
-  "TELEGRAM_BOT_TOKEN",
-] as const);
+const { TELEGRAM_BOT_TOKEN: BOT_TOKEN } = requireEnv(
+  [
+    "TELEGRAM_BOT_TOKEN",
+  ] as const,
+);
 
 export const supabaseAdmin: ReturnType<typeof createClient> = (() => {
   try {
@@ -22,8 +24,8 @@ export function setCallbackMessageId(id: number | null) {
 // Sanitize markdown to prevent Telegram parsing errors
 function sanitizeMarkdown(text: string): string {
   return text
-    .replace(/[[\]_()*~`>#+=|{}.!-]/g, '\\$&')
-    .replace(/\n/g, '\\n');
+    .replace(/[[\]_()*~`>#+=|{}.!-]/g, "\\$&")
+    .replace(/\n/g, "\\n");
 }
 
 async function callTelegram(
@@ -41,14 +43,17 @@ async function callTelegram(
     if (!response.ok) {
       const errorData = await response.text();
       console.error(`❌ Telegram API error [${method}]:`, errorData);
-      
+
       // If markdown parsing failed and we haven't retried yet, try with plain text
-      if (errorData.includes("can't parse entities") && !retryWithPlainText && payload.parse_mode === "Markdown") {
+      if (
+        errorData.includes("can't parse entities") && !retryWithPlainText &&
+        payload.parse_mode === "Markdown"
+      ) {
         console.log("Retrying with plain text due to markdown parsing error");
         const plainPayload = { ...payload, parse_mode: undefined };
         return callTelegram(method, plainPayload, true);
       }
-      
+
       return null;
     }
     return await response.json();
@@ -69,7 +74,7 @@ export async function sendMessage(
     const chunks = [];
     let currentChunk = "";
     const lines = text.split("\\n");
-    
+
     for (const line of lines) {
       if ((currentChunk + line + "\\n").length > MAX_MESSAGE_LENGTH) {
         if (currentChunk) chunks.push(currentChunk.trim());
@@ -79,12 +84,12 @@ export async function sendMessage(
       }
     }
     if (currentChunk) chunks.push(currentChunk.trim());
-    
+
     // Send all chunks except the last one without reply markup
     for (let i = 0; i < chunks.length - 1; i++) {
       await sendMessage(chatId, chunks[i]);
     }
-    
+
     // Send the last chunk with reply markup
     if (chunks.length > 0) {
       return sendMessage(chatId, chunks[chunks.length - 1], replyMarkup);
@@ -110,4 +115,3 @@ export async function sendMessage(
   currentMessageId = res?.result?.message_id ?? null;
   return res;
 }
-

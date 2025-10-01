@@ -29,7 +29,9 @@ async function loadUnicornStudioScript(): Promise<void> {
   }
 
   unicornStudioScriptPromise = new Promise((resolve, reject) => {
-    const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_SRC}"]`);
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      `script[src="${SCRIPT_SRC}"]`,
+    );
 
     if (existingScript) {
       if (existingScript.dataset.loaded === "true") {
@@ -43,7 +45,7 @@ async function loadUnicornStudioScript(): Promise<void> {
           existingScript.dataset.loaded = "true";
           resolve();
         },
-        { once: true }
+        { once: true },
       );
 
       existingScript.addEventListener(
@@ -52,7 +54,7 @@ async function loadUnicornStudioScript(): Promise<void> {
           unicornStudioScriptPromise = null;
           reject(new Error("Failed to load the Unicorn Studio script."));
         },
-        { once: true }
+        { once: true },
       );
 
       return;
@@ -113,7 +115,9 @@ export function ChromaBackground({
   dpi = 1,
 }: ChromaBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const projectId = useMemo(() => PROJECT_IDS[variant] ?? PROJECT_IDS.liquid, [variant]);
+  const projectId = useMemo(() => PROJECT_IDS[variant] ?? PROJECT_IDS.liquid, [
+    variant,
+  ]);
 
   useEffect(() => {
     let cancelled = false;

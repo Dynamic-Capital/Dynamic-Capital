@@ -70,9 +70,7 @@ export function AnalyticsView({ onBack }: AnalyticsViewProps) {
         if (!isMounted) return;
         console.error("Error loading analytics data:", err);
         setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load analytics data",
+          err instanceof Error ? err.message : "Failed to load analytics data",
         );
         setAnalytics(null);
       } finally {
@@ -167,143 +165,169 @@ export function AnalyticsView({ onBack }: AnalyticsViewProps) {
         </Alert>
       )}
 
-      {loading ? (
-        renderSkeleton()
-      ) : analytics ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
-              <div className="space-y-2 text-center">
-                <p className="text-sm text-muted-foreground">Total revenue</p>
-                <p className="text-2xl font-bold text-green-500">
-                  {formatCurrency(packageStats.totalRevenue, analytics.currency)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Timeframe: {timeframeOptions.find((t) => t.value === timeframe)?.label}
-                </p>
-              </div>
-            </Card>
-            <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
-              <div className="space-y-2 text-center">
-                <p className="text-sm text-muted-foreground">Packages sold</p>
-                <p className="text-2xl font-bold text-blue-500">
-                  {packageStats.totalSales}
-                </p>
-                <p className="text-xs text-muted-foreground">Across active plans</p>
-              </div>
-            </Card>
-            <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
-              <div className="space-y-2 text-center">
-                <p className="text-sm text-muted-foreground">Avg revenue per sale</p>
-                <p className="text-2xl font-bold text-purple-500">
-                  {formatCurrency(packageStats.avgRevenue, analytics.currency)}
-                </p>
-                <p className="text-xs text-muted-foreground">Based on completed sales</p>
-              </div>
-            </Card>
-            <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
-              <div className="space-y-2 text-center">
-                <p className="text-sm text-muted-foreground">Pending payments</p>
-                <p className="text-2xl font-bold text-telegram">
-                  {analytics.pending_payments ?? 0}
-                </p>
-                <p className="text-xs text-muted-foreground">Awaiting completion</p>
-              </div>
-            </Card>
-          </div>
-
-          <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">Audience overview</h3>
-                <p className="text-sm text-muted-foreground">
-                  Snapshot generated at {formatIsoDateTime(analytics.generated_at ?? new Date())}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm font-medium">
-                    {analytics.total_users ?? 0} total users
-                  </span>
+      {loading
+        ? (
+          renderSkeleton()
+        )
+        : analytics
+        ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
+                <div className="space-y-2 text-center">
+                  <p className="text-sm text-muted-foreground">Total revenue</p>
+                  <p className="text-2xl font-bold text-green-500">
+                    {formatCurrency(
+                      packageStats.totalRevenue,
+                      analytics.currency,
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Timeframe:{" "}
+                    {timeframeOptions.find((t) => t.value === timeframe)?.label}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                  <span className="text-sm font-medium">
-                    {analytics.vip_users ?? 0} VIP members
-                  </span>
+              </Card>
+              <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
+                <div className="space-y-2 text-center">
+                  <p className="text-sm text-muted-foreground">Packages sold</p>
+                  <p className="text-2xl font-bold text-blue-500">
+                    {packageStats.totalSales}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Across active plans
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm font-medium">
-                    {analytics.package_performance.length} active plans
-                  </span>
+              </Card>
+              <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
+                <div className="space-y-2 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Avg revenue per sale
+                  </p>
+                  <p className="text-2xl font-bold text-purple-500">
+                    {formatCurrency(
+                      packageStats.avgRevenue,
+                      analytics.currency,
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Based on completed sales
+                  </p>
                 </div>
-              </div>
+              </Card>
+              <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
+                <div className="space-y-2 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Pending payments
+                  </p>
+                  <p className="text-2xl font-bold text-telegram">
+                    {analytics.pending_payments ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Awaiting completion
+                  </p>
+                </div>
+              </Card>
             </div>
-          </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Package performance</h3>
-            <div className="space-y-4">
-              {analytics.package_performance.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No package performance data available for this timeframe.
-                </p>
-              ) : (
-                analytics.package_performance.map((pkg) => (
-                  <div
-                    key={pkg.id}
-                    className="flex flex-col gap-2 rounded-lg border border-border/40 bg-background/40 p-4 md:flex-row md:items-center md:justify-between"
-                  >
-                    <div>
-                      <h4 className="font-semibold">{pkg.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {pkg.sales} sale{pkg.sales === 1 ? "" : "s"}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                      <span>
-                        Revenue: {formatCurrency(pkg.revenue, pkg.currency)}
-                      </span>
-                      <span>
-                        Avg sale: {formatCurrency(
-                          pkg.sales > 0 ? pkg.revenue / pkg.sales : 0,
-                          pkg.currency,
-                        )}
-                      </span>
-                    </div>
+            <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Audience overview</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Snapshot generated at{" "}
+                    {formatIsoDateTime(analytics.generated_at ?? new Date())}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm font-medium">
+                      {analytics.total_users ?? 0} total users
+                    </span>
                   </div>
-                ))
-              )}
-            </div>
-          </Card>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-medium">
+                      {analytics.vip_users ?? 0} VIP members
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-purple-500" />
+                    <span className="text-sm font-medium">
+                      {analytics.package_performance.length} active plans
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Analytics actions</h3>
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" size="sm" className="gap-2">
-                <BarChart3 className="w-4 h-4" />
-                Export revenue report
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Package className="w-4 h-4" />
-                Package performance report
-              </Button>
-              <Button variant="default" size="sm" className="gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Share with team
-              </Button>
-            </div>
+            <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
+              <h3 className="text-lg font-semibold mb-4">
+                Package performance
+              </h3>
+              <div className="space-y-4">
+                {analytics.package_performance.length === 0
+                  ? (
+                    <p className="text-sm text-muted-foreground">
+                      No package performance data available for this timeframe.
+                    </p>
+                  )
+                  : (
+                    analytics.package_performance.map((pkg) => (
+                      <div
+                        key={pkg.id}
+                        className="flex flex-col gap-2 rounded-lg border border-border/40 bg-background/40 p-4 md:flex-row md:items-center md:justify-between"
+                      >
+                        <div>
+                          <h4 className="font-semibold">{pkg.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {pkg.sales} sale{pkg.sales === 1 ? "" : "s"}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                          <span>
+                            Revenue: {formatCurrency(pkg.revenue, pkg.currency)}
+                          </span>
+                          <span>
+                            Avg sale: {formatCurrency(
+                              pkg.sales > 0 ? pkg.revenue / pkg.sales : 0,
+                              pkg.currency,
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
+              <h3 className="text-lg font-semibold mb-4">Analytics actions</h3>
+              <div className="flex flex-wrap gap-3">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Export revenue report
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Package className="w-4 h-4" />
+                  Package performance report
+                </Button>
+                <Button variant="default" size="sm" className="gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  Share with team
+                </Button>
+              </div>
+            </Card>
+          </>
+        )
+        : (
+          <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg text-center">
+            <p className="text-muted-foreground">
+              No analytics data available for the selected timeframe.
+            </p>
           </Card>
-        </>
-      ) : (
-        <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg text-center">
-          <p className="text-muted-foreground">
-            No analytics data available for the selected timeframe.
-          </p>
-        </Card>
-      )}
+        )}
     </div>
   );
 }

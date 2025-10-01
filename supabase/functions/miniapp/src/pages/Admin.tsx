@@ -37,8 +37,8 @@ export default function Admin() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error('Admin check error:', err);
-        setError('Failed to verify admin access');
+        console.error("Admin check error:", err);
+        setError("Failed to verify admin access");
         setLoading(false);
       });
   }, [api]);
@@ -46,20 +46,20 @@ export default function Admin() {
   const handleApprove = async (id: string) => {
     try {
       await api.approve(id);
-      setItems(items.filter(item => item.id !== id));
+      setItems(items.filter((item) => item.id !== id));
     } catch (err) {
-      console.error('Approve error:', err);
-      setError('Failed to approve item');
+      console.error("Approve error:", err);
+      setError("Failed to approve item");
     }
   };
 
   const handleReject = async (id: string) => {
     try {
       await api.reject(id);
-      setItems(items.filter(item => item.id !== id));
+      setItems(items.filter((item) => item.id !== id));
     } catch (err) {
-      console.error('Reject error:', err);
-      setError('Failed to reject item');
+      console.error("Reject error:", err);
+      setError("Failed to reject item");
     }
   };
 
@@ -95,13 +95,13 @@ export default function Admin() {
   return (
     <div className="dc-screen">
       <TopBar title="Admin Dashboard" />
-      
+
       {error && (
         <GlassPanel>
           <div className="text-red-400 text-sm text-center">{error}</div>
         </GlassPanel>
       )}
-      
+
       <GlassPanel>
         <div className="text-center mb-4">
           <div className="text-lg font-semibold text-dc-primary">
@@ -113,45 +113,51 @@ export default function Admin() {
         </div>
       </GlassPanel>
 
-      {items.length === 0 ? (
-        <GlassPanel>
-          <div className="text-center text-dc-text-dim">
-            No pending items to review
-          </div>
-        </GlassPanel>
-      ) : (
-        items.map((r) => (
-          <GlassRow
-            key={r.id}
-            left={
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">#{r.id.slice(0, 8)}</span>
-                <span className="text-xs text-dc-text-dim">${r.amount}</span>
-                {r.payment_method && (
-                  <span className="text-xs text-dc-text-dim">{r.payment_method}</span>
-                )}
-                {r.created_at && (
-                  <span className="text-xs text-dc-text-dim">
-                    {new Date(r.created_at).toLocaleDateString()}
+      {items.length === 0
+        ? (
+          <GlassPanel>
+            <div className="text-center text-dc-text-dim">
+              No pending items to review
+            </div>
+          </GlassPanel>
+        )
+        : (
+          items.map((r) => (
+            <GlassRow
+              key={r.id}
+              left={
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">
+                    #{r.id.slice(0, 8)}
                   </span>
-                )}
-              </div>
-            }
-            right={
-              <div className="flex gap-2">
-                <ApproveButton
-                  label="Approve"
-                  onClick={() => handleApprove(r.id)}
-                />
-                <RejectButton 
-                  label="Reject" 
-                  onClick={() => handleReject(r.id)} 
-                />
-              </div>
-            }
-          />
-        ))
-      )}
+                  <span className="text-xs text-dc-text-dim">${r.amount}</span>
+                  {r.payment_method && (
+                    <span className="text-xs text-dc-text-dim">
+                      {r.payment_method}
+                    </span>
+                  )}
+                  {r.created_at && (
+                    <span className="text-xs text-dc-text-dim">
+                      {new Date(r.created_at).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              }
+              right={
+                <div className="flex gap-2">
+                  <ApproveButton
+                    label="Approve"
+                    onClick={() => handleApprove(r.id)}
+                  />
+                  <RejectButton
+                    label="Reject"
+                    onClick={() => handleReject(r.id)}
+                  />
+                </div>
+              }
+            />
+          ))
+        )}
     </div>
   );
 }

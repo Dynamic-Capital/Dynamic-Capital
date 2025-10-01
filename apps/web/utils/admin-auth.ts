@@ -96,7 +96,9 @@ function verifyAdminToken(
   return payload;
 }
 
-async function verifyAdminInitData(initData: string): Promise<AdminVerificationResult> {
+async function verifyAdminInitData(
+  initData: string,
+): Promise<AdminVerificationResult> {
   const url = buildFunctionUrl("ADMIN_CHECK");
   try {
     const response = await fetch(url, {

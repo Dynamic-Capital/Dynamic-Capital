@@ -4,14 +4,14 @@ import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  TrendingUp,
-  Star,
-  Shield,
-  Users,
-  Sparkles,
-  MessageSquare,
   Award,
   type LucideIcon,
+  MessageSquare,
+  Shield,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import { cn } from "@/utils";
 
@@ -37,48 +37,54 @@ function parseServices(servicesText: string): ServiceItem[] {
       .trim();
 
     const data = (text: string) => {
-      if (text.includes("Signal"))
+      if (text.includes("Signal")) {
         return {
           icon: TrendingUp,
           title: "Trading Signals",
           description: "Real-time market signals with entry and exit points",
           color: "text-green-500",
         };
-      if (text.includes("Analysis"))
+      }
+      if (text.includes("Analysis")) {
         return {
           icon: Star,
           title: "Market Analysis",
           description: "Daily market research and technical insights",
           color: "text-blue-500",
         };
-      if (text.includes("Risk"))
+      }
+      if (text.includes("Risk")) {
         return {
           icon: Shield,
           title: "Risk Management",
           description: "Guidance on protecting your trading capital",
           color: "text-primary",
         };
-      if (text.includes("Mentor"))
+      }
+      if (text.includes("Mentor")) {
         return {
           icon: Users,
           title: "Personal Mentor",
           description: "One-on-one coaching from experienced traders",
           color: "text-orange-500",
         };
-      if (text.includes("VIP"))
+      }
+      if (text.includes("VIP")) {
         return {
           icon: Sparkles,
           title: "VIP Community",
           description: "Exclusive access to premium trading community",
           color: "text-accent",
         };
-      if (text.includes("Support"))
+      }
+      if (text.includes("Support")) {
         return {
           icon: MessageSquare,
           title: "24/7 Support",
           description: "Round-the-clock customer assistance",
           color: "text-cyan-500",
         };
+      }
       return {
         icon: Award,
         title: clean,

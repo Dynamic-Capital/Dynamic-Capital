@@ -1,13 +1,16 @@
 # GitHub Personal Access Tokens
 
-Use a GitHub Personal Access Token (PAT) to authenticate when pushing changes or running CI tasks that need elevated permissions.
+Use a GitHub Personal Access Token (PAT) to authenticate when pushing changes or
+running CI tasks that need elevated permissions.
 
 ## Create a minimal-scope PAT
 
-1. Visit [github.com/settings/tokens](https://github.com/settings/tokens) and choose **Fine-grained tokens**.
+1. Visit [github.com/settings/tokens](https://github.com/settings/tokens) and
+   choose **Fine-grained tokens**.
 2. Select only the scopes required:
    - For local pushes and PRs: `Contents: read & write`.
-   - For CI automation: `Contents`, `Pull requests`, and any additional scopes the workflow needs.
+   - For CI automation: `Contents`, `Pull requests`, and any additional scopes
+     the workflow needs.
 3. Set an expiration date and copy the token once.
 
 ## Configure local tooling
@@ -37,7 +40,8 @@ Avoid committing the token or embedding it in remote URLs.
 
 ## Using PAT in GitHub Actions
 
-Workflows that require more permissions than the default `GITHUB_TOKEN` should use the `PAT_WORKFLOW` secret:
+Workflows that require more permissions than the default `GITHUB_TOKEN` should
+use the `PAT_WORKFLOW` secret:
 
 ```yaml
 env:

@@ -50,7 +50,7 @@ balances so auditors can independently replay the queries.
 | Check                      | Result | Evidence                                                                                        |
 | -------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
 | Jetton metadata published  | ✅     | `metadata.json` committed with symbol/decimals/logo fields.                                     |
-| Explorer links archived    | ✅     | `_static/ton/dct-jetton/*` transcript snapshots listed above.                                            |
+| Explorer links archived    | ✅     | `_static/ton/dct-jetton/*` transcript snapshots listed above.                                   |
 | Supply controls documented | ✅     | Deployment runbook in `contracts/README.md` and burn flow instrumentation in Supabase function. |
 
 All verification artifacts are now tracked in-repo, satisfying Tonstarter’s

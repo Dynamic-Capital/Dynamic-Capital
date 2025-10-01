@@ -17,8 +17,8 @@ function deriveTimeZoneName(
       timeZoneName: "short",
     });
     const parts = formatter.formatToParts(date);
-    const timeZoneName = parts.find((part) => part.type === "timeZoneName")?.
-      value;
+    const timeZoneName = parts.find((part) => part.type === "timeZoneName")
+      ?.value;
     if (!timeZoneName) {
       return DEFAULT_SUFFIX;
     }
@@ -51,4 +51,3 @@ export function formatWithDeskTimezone(
     timeZone: DESK_TIME_ZONE,
   }).format(date);
 }
-
