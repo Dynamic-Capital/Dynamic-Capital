@@ -7,6 +7,7 @@ from dynamic_web3 import (
     NetworkTelemetry,
     SmartContract,
     TransactionProfile,
+    Web3GoLiveReadiness,
     Web3Network,
 )
 
@@ -160,3 +161,72 @@ def test_build_unified_status_requires_all_networks(engine: DynamicWeb3Engine) -
 
     with pytest.raises(ValueError):
         engine.build_unified_status({"Dynamic Chain": telemetry})
+
+
+def test_compile_project_build_ready_state(engine: DynamicWeb3Engine) -> None:
+    secondary = Web3Network(
+        name="Velocity Chain",
+        chain_id=2051,
+        rpc_endpoint="https://rpc.velocity",
+        finality_threshold=6,
+        reliability_target=0.97,
+    )
+    engine.register_network(secondary)
+
+    _register_contract(engine, success_rate=0.95, latency_ms=140.0, pending=15)
+
+    telemetry_map = {
+        "Dynamic Chain": NetworkTelemetry(
+            block_gap=2,
+            uptime_ratio=0.99,
+            utilisation=0.55,
+            latency_ms=150.0,
+            pending_transactions=40,
+        ),
+        "Velocity Chain": NetworkTelemetry(
+            block_gap=2,
+            uptime_ratio=0.98,
+            utilisation=0.5,
+            latency_ms=140.0,
+            pending_transactions=35,
+        ),
+    }
+
+    readiness = engine.compile_project_build(
+        telemetry_map,
+        project_name="Launch",
+        metadata={"owner": "Ops"},
+    )
+
+    assert isinstance(readiness, Web3GoLiveReadiness)
+    assert readiness.status == "ready"
+    assert set(readiness.ready_networks) == {"Dynamic Chain", "Velocity Chain"}
+    assert readiness.networks_requiring_attention == ()
+    assert readiness.blocking_alerts == ()
+    assert readiness.critical_actions == ()
+    assert readiness.metadata["project"] == "Launch"
+    assert readiness.metadata["owner"] == "Ops"
+    assert readiness.total_pending_transactions >= 75
+
+
+def test_compile_project_build_flags_attention(engine: DynamicWeb3Engine) -> None:
+    _register_contract(engine, success_rate=0.7, latency_ms=320.0, pending=160)
+
+    telemetry_map = {
+        "Dynamic Chain": NetworkTelemetry(
+            block_gap=15,
+            uptime_ratio=0.82,
+            utilisation=0.88,
+            latency_ms=340.0,
+            pending_transactions=600,
+        )
+    }
+
+    readiness = engine.compile_project_build(telemetry_map)
+
+    assert readiness.status == "blocked"
+    assert readiness.ready_networks == ()
+    assert readiness.networks_requiring_attention == ("Dynamic Chain",)
+    assert readiness.blocking_alerts
+    assert any(action.priority == "high" for action in readiness.critical_actions)
+    assert readiness.total_pending_transactions >= 600
