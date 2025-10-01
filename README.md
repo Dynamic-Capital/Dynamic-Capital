@@ -177,19 +177,19 @@ toolchain.
 
 ### Dynamic Capital Modules
 
-| Module | Focus |
-| --- | --- |
-| **DYNAMIC CAPITAL WEB3** | Bridges custody, settlement, and network access across leading blockchains. |
-| **DYNAMIC CAPITAL TOKEN** | Structures treasury incentives, access tiers, and on-chain governance hooks. |
-| **DYNAMIC AGS** | Coordinates governance services to align stakeholders and automate policy enforcement. |
-| **DYNAMIC AGI** | Drives the self-improving intelligence loop that continuously retrains and redeploys AI agents. |
-| **DYNAMIC AI** | Bundles research assistants, copilots, and analytics dashboards for decision support. |
-| **DYNAMIC TRADING LOGIC** | Captures risk rules, execution parameters, and guardrails for discretionary traders. |
-| **DYNAMIC TRADING ALGO** | Automates systematic strategies with parameterized bots and adaptive hedging. |
-| **DYNAMIC ENGINES** | Powers low-latency execution services, routing, and connectivity with market venues. |
-| **DYNAMIC TOOLS** | Provides developer and operator utilities, from observability to workflow orchestration. |
-| **DYNAMIC MODELS** | Houses predictive, quantitative, and sentiment models that feed trading decisions. |
-| **DYNAMIC** | Represents the shared brand system and experience layer that unites every module. |
+| No. | Module | Focus |
+| --- | --- | --- |
+| 1 | **DYNAMIC CAPITAL WEB3** | Bridges custody, settlement, and network access across leading blockchains. |
+| 2 | **DYNAMIC CAPITAL TOKEN** | Structures treasury incentives, access tiers, and on-chain governance hooks. |
+| 3 | **DYNAMIC AGS** | Coordinates governance services to align stakeholders and automate policy enforcement. |
+| 4 | **DYNAMIC AGI** | Drives the self-improving intelligence loop that continuously retrains and redeploys AI agents. |
+| 5 | **DYNAMIC AI** | Bundles research assistants, copilots, and analytics dashboards for decision support. |
+| 6 | **DYNAMIC TRADING LOGIC** | Captures risk rules, execution parameters, and guardrails for discretionary traders. |
+| 7 | **DYNAMIC TRADING ALGO** | Automates systematic strategies with parameterized bots and adaptive hedging. |
+| 8 | **DYNAMIC ENGINES** | Powers low-latency execution services, routing, and connectivity with market venues. |
+| 9 | **DYNAMIC TOOLS** | Provides developer and operator utilities, from observability to workflow orchestration. |
+| 10 | **DYNAMIC MODELS** | Houses predictive, quantitative, and sentiment models that feed trading decisions. |
+| 11 | **DYNAMIC** | Represents the shared brand system and experience layer that unites every module. |
 
 These modules operate together to deliver a cohesive ecosystem—from the
 on-chain Web3 foundation and token mechanics to intelligence systems, trading
