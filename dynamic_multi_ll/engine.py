@@ -1,10 +1,10 @@
-"""Deterministic orchestration for multi-LLM ensembles."""
+"""Lightweight orchestration utilities for coordinating multiple LLMs."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
-from typing import Callable, Iterable, Mapping, MutableMapping, Sequence
+from typing import Callable, Iterable, Mapping, Sequence
 
 __all__ = [
     "LLModelDescriptor",
@@ -14,6 +14,8 @@ __all__ = [
     "MultiLLAggregate",
     "MultiLLResult",
     "DynamicMultiLLEngine",
+    "AggregateBuilder",
+    "Adapter",
 ]
 
 
@@ -25,7 +27,7 @@ def _clamp(value: float, *, lower: float = 0.0, upper: float = 1.0) -> float:
     return max(lower, min(upper, float(value)))
 
 
-def _normalise_text(value: str, *, field: str) -> str:
+def _ensure_text(value: str, *, field: str) -> str:
     if not isinstance(value, str):  # pragma: no cover - defensive guard
         raise TypeError(f"{field} must be a string")
     cleaned = value.strip()
@@ -34,11 +36,11 @@ def _normalise_text(value: str, *, field: str) -> str:
     return cleaned
 
 
-def _normalise_lower(value: str, *, field: str) -> str:
-    return _normalise_text(value, field=field).lower()
+def _ensure_lower(value: str, *, field: str) -> str:
+    return _ensure_text(value, field=field).lower()
 
 
-def _normalise_tuple(values: Iterable[str] | None) -> tuple[str, ...]:
+def _ensure_tuple(values: Iterable[str] | None) -> tuple[str, ...]:
     if not values:
         return ()
     normalised: list[str] = []
@@ -49,7 +51,7 @@ def _normalise_tuple(values: Iterable[str] | None) -> tuple[str, ...]:
     return tuple(normalised)
 
 
-def _coerce_mapping(mapping: Mapping[str, object] | None, *, field: str) -> Mapping[str, object] | None:
+def _ensure_mapping(mapping: Mapping[str, object] | None, *, field: str) -> Mapping[str, object] | None:
     if mapping is None:
         return None
     if not isinstance(mapping, Mapping):  # pragma: no cover - defensive guard
@@ -59,21 +61,18 @@ def _coerce_mapping(mapping: Mapping[str, object] | None, *, field: str) -> Mapp
 
 @dataclass(slots=True)
 class LLModelDescriptor:
-    """Static description of an underlying language model endpoint."""
+    """Static description of an underlying LLM endpoint."""
 
     name: str
     provider: str
     weight: float = 1.0
     temperature: float = 0.7
     max_tokens: int = 1024
-    top_p: float = 1.0
-    frequency_penalty: float = 0.0
-    presence_penalty: float = 0.0
     metadata: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
-        self.name = _normalise_text(self.name, field="name")
-        self.provider = _normalise_lower(self.provider, field="provider")
+        self.name = _ensure_text(self.name, field="name")
+        self.provider = _ensure_lower(self.provider, field="provider")
         if self.weight <= 0.0:
             raise ValueError("weight must be positive")
         self.weight = float(self.weight)
@@ -81,15 +80,12 @@ class LLModelDescriptor:
         if self.max_tokens <= 0:
             raise ValueError("max_tokens must be positive")
         self.max_tokens = int(self.max_tokens)
-        self.top_p = _clamp(self.top_p, lower=0.0, upper=1.0)
-        self.frequency_penalty = _clamp(self.frequency_penalty, lower=0.0, upper=2.0)
-        self.presence_penalty = _clamp(self.presence_penalty, lower=0.0, upper=2.0)
-        self.metadata = _coerce_mapping(self.metadata, field="metadata")
+        self.metadata = _ensure_mapping(self.metadata, field="metadata")
 
 
 @dataclass(slots=True)
 class MultiLLModel:
-    """Container describing an ensemble of language models."""
+    """Describes the ensemble of language models."""
 
     models: Sequence[LLModelDescriptor]
     aggregation_strategy: str = "weighted_confidence"
@@ -100,10 +96,10 @@ class MultiLLModel:
         if not self.models:
             raise ValueError("at least one model descriptor is required")
         self.models = tuple(self.models)
-        self.aggregation_strategy = _normalise_lower(
+        self.aggregation_strategy = _ensure_lower(
             self.aggregation_strategy, field="aggregation_strategy"
         )
-        self.fallback_language = _normalise_lower(
+        self.fallback_language = _ensure_lower(
             self.fallback_language, field="fallback_language"
         )
         self.consensus_threshold = _clamp(self.consensus_threshold)
@@ -120,7 +116,6 @@ class MultiLLModel:
             raise KeyError(f"unknown model: {name}") from exc
 
     def reweighted(self, adjustments: Mapping[str, float]) -> "MultiLLModel":
-        adjustments = dict(adjustments)
         if not adjustments:
             return self
         updated: list[LLModelDescriptor] = []
@@ -147,11 +142,11 @@ class MultiLLPrompt:
     metadata: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
-        self.task = _normalise_text(self.task, field="task")
+        self.task = _ensure_text(self.task, field="task")
         self.context = self.context.strip() if isinstance(self.context, str) else None
-        self.language = _normalise_lower(self.language, field="language")
-        self.hints = _normalise_tuple(self.hints)
-        self.metadata = _coerce_mapping(self.metadata, field="metadata")
+        self.language = _ensure_lower(self.language, field="language")
+        self.hints = _ensure_tuple(self.hints)
+        self.metadata = _ensure_mapping(self.metadata, field="metadata")
 
 
 @dataclass(slots=True)
@@ -168,9 +163,9 @@ class MultiLLResponse:
     metadata: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
-        self.model_name = _normalise_text(self.model_name, field="model_name")
-        self.provider = _normalise_lower(self.provider, field="provider")
-        self.content = _normalise_text(self.content, field="content")
+        self.model_name = _ensure_text(self.model_name, field="model_name")
+        self.provider = _ensure_lower(self.provider, field="provider")
+        self.content = _ensure_text(self.content, field="content")
         self.confidence = _clamp(self.confidence)
         if self.latency is not None:
             latency = float(self.latency)
@@ -182,8 +177,8 @@ class MultiLLResponse:
             if tokens_used <= 0:
                 raise ValueError("tokens_used must be positive")
             self.tokens_used = tokens_used
-        self.annotations = _normalise_tuple(self.annotations)
-        self.metadata = _coerce_mapping(self.metadata, field="metadata")
+        self.annotations = _ensure_tuple(self.annotations)
+        self.metadata = _ensure_mapping(self.metadata, field="metadata")
 
 
 @dataclass(slots=True)
@@ -197,11 +192,11 @@ class MultiLLAggregate:
     metadata: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
-        self.content = _normalise_text(self.content, field="content")
+        self.content = _ensure_text(self.content, field="content")
         self.confidence = _clamp(self.confidence)
-        self.strategy = _normalise_lower(self.strategy, field="strategy")
-        self.supporting_models = tuple(dict.fromkeys(_normalise_tuple(self.supporting_models)))
-        self.metadata = _coerce_mapping(self.metadata, field="metadata")
+        self.strategy = _ensure_lower(self.strategy, field="strategy")
+        self.supporting_models = tuple(dict.fromkeys(_ensure_tuple(self.supporting_models)))
+        self.metadata = _ensure_mapping(self.metadata, field="metadata")
 
 
 @dataclass(slots=True)
@@ -232,7 +227,7 @@ Adapter = Callable[[LLModelDescriptor, MultiLLPrompt], MultiLLResponse]
 
 
 class DynamicMultiLLEngine:
-    """Coordinates multiple language models to produce a single narrative."""
+    """Coordinates multiple LLMs to produce a single narrative."""
 
     def __init__(self, model: MultiLLModel, *, aggregator: AggregateBuilder | None = None) -> None:
         self._model = model
@@ -243,31 +238,27 @@ class DynamicMultiLLEngine:
         return self._model
 
     def calibrate(self, feedback: Mapping[str, float]) -> MultiLLModel:
-        """Adjust model weights based on feedback scores."""
+        """Adjust the stored ensemble weights using external feedback."""
 
         self._model = self._model.reweighted(feedback)
         return self._model
 
     def aggregate(self, responses: Sequence[MultiLLResponse]) -> MultiLLAggregate:
-        """Aggregate already captured responses."""
-
         return self._aggregator(tuple(responses), self._model)
 
     def generate(self, prompt: MultiLLPrompt, adapter: Adapter) -> MultiLLResult:
-        """Fan out a prompt and aggregate the ensemble result."""
-
         if not callable(adapter):  # pragma: no cover - defensive guard
             raise TypeError("adapter must be callable")
 
-        collected: list[MultiLLResponse] = []
+        responses: list[MultiLLResponse] = []
         for descriptor in self._model.models:
             response = adapter(descriptor, prompt)
             if not isinstance(response, MultiLLResponse):
                 raise TypeError("adapter must return MultiLLResponse instances")
-            collected.append(response)
+            responses.append(response)
 
-        aggregate = self.aggregate(collected)
-        return MultiLLResult(prompt=prompt, responses=tuple(collected), aggregate=aggregate)
+        aggregate = self.aggregate(responses)
+        return MultiLLResult(prompt=prompt, responses=tuple(responses), aggregate=aggregate)
 
     # ------------------------------------------------------------------
     # default aggregation strategy
@@ -284,9 +275,11 @@ class DynamicMultiLLEngine:
                 metadata={"reason": "no responses"},
             )
 
-        weights: MutableMapping[str, float] = {
-            descriptor.name: descriptor.weight for descriptor in model.models
+        weights = {
+            descriptor.name: max(float(descriptor.weight), 0.0) or 1.0
+            for descriptor in model.models
         }
+
         total_weight = sum(weights.get(response.model_name, 1.0) for response in responses)
         if total_weight <= 0.0:  # pragma: no cover - defensive guard
             total_weight = float(len(responses)) or 1.0
@@ -298,44 +291,47 @@ class DynamicMultiLLEngine:
 
         grouped: dict[str, dict[str, object]] = {}
         for index, response in enumerate(responses):
-            content = response.content.strip()
+            text = response.content.strip()
             entry = grouped.setdefault(
-                content,
+                text,
                 {
-                    "score": 0.0,
+                    "weight": 0.0,
                     "models": [],
                     "first_index": index,
+                    "text": text,
                 },
             )
-            weight = weights.get(response.model_name, 1.0)
-            entry["score"] = float(entry["score"]) + weight * _clamp(response.confidence)
+            weight = weights.get(response.model_name, 1.0) * _clamp(response.confidence)
+            entry["weight"] = float(entry["weight"]) + weight
             entry["models"].append(response)
 
         ordered = sorted(
-            grouped.items(),
-            key=lambda item: (-float(item[1]["score"]), int(item[1]["first_index"])),
+            grouped.values(),
+            key=lambda item: (-float(item["weight"]), int(item["first_index"])),
         )
 
-        best_text, best_details = ordered[0]
-        consensus_score = float(best_details["score"])
-        consensus_ratio = consensus_score / total_weight
+        best = ordered[0]
+        consensus_weight = float(best["weight"])
+        consensus_ratio = consensus_weight / total_weight
 
         if consensus_ratio >= model.consensus_threshold:
             strategy = "consensus"
-            aggregate_content = best_text
-            supporting = tuple(response.model_name for response in best_details["models"])
+            aggregate_content = str(best["text"])
+            supporting = tuple(response.model_name for response in best["models"])
             confidence = max(weighted_confidence, consensus_ratio)
         else:
             strategy = "blended"
+            snippets: list[str] = []
             supporting_names: list[str] = []
-            blended_sections: list[str] = []
-            for text, details in ordered[:3]:
-                names = [response.model_name for response in details["models"]]
-                for name in names:
+            for entry in ordered[:3]:
+                models = [response.model_name for response in entry["models"]]
+                for name in models:
                     if name not in supporting_names:
                         supporting_names.append(name)
-                blended_sections.append(f"{text} (via {', '.join(names)})")
-            aggregate_content = "\n".join(blended_sections)
+                snippet = str(entry["text"])
+                snippet_line = snippet.replace("\n", " ").strip()
+                snippets.append(f"- {snippet_line} (via {', '.join(models)})")
+            aggregate_content = "\n".join(snippets)
             confidence = (weighted_confidence + consensus_ratio) / 2.0
             supporting = tuple(supporting_names)
 
