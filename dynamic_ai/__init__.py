@@ -116,6 +116,7 @@ from .hedge import (
     NewsEvent,
     VolatilitySnapshot,
 )
+from .multi_ll import DynamicAIMultiLLCoordinator, EnsembleAISignal, TradingAdapter
 
 __all__ = [
     "Agent",
@@ -227,4 +228,7 @@ __all__ = [
     "PhaseThreePlan",
     "build_phase_three_plan",
     "build_default_infrastructure",
+    "DynamicAIMultiLLCoordinator",
+    "EnsembleAISignal",
+    "TradingAdapter",
 ]

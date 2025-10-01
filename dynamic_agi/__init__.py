@@ -44,6 +44,12 @@ from .self_improvement import (
     LearningSnapshot,
     __all__ as _self_improvement_all,
 )
+from .multi_ll import (
+    AGIAdapter,
+    DynamicAGIMultiLLCoordinator,
+    EnsembleAGIPlan,
+    __all__ as _multi_ll_all,
+)
 
 __all__ = [
     *_build_all,
@@ -52,4 +58,5 @@ __all__ = [
     *_fine_tune_all,
     *_local_machine_all,
     *_training_models_all,
+    *_multi_ll_all,
 ]
