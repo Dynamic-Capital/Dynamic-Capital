@@ -77,6 +77,7 @@
     - [Docker](#docker)
 - [Automation & Data Pipelines](#automation--data-pipelines)
   - [Analyst Insights Collector](#analyst-insights-collector)
+  - [LLM-native crawling stack](#llm-native-crawling-stack)
   - [Dynamic Hedge Model](#dynamic-hedge-model)
 - [GitHub Integration](#github-integration)
 - [Hybrid Development Workflow](#hybrid-development-workflow)
@@ -1066,6 +1067,30 @@ now modelled end-to-end:
 
 Set `TRADINGVIEW_LOG_LEVEL=DEBUG` locally to inspect scraping output when
 troubleshooting.
+
+### LLM-native crawling stack
+
+- **Crawl4AI** ([GitHub](https://github.com/unclecode/crawl4ai)) — open-source
+  crawler that turns sites into LLM-ready Markdown, adds controllable
+  concurrency, and supports LLM-driven structured extraction for tables and
+  other complex layouts.
+- **ScrapeGraphAI** ([GitHub](https://github.com/ScrapeGraphAI/Scrapegraph-ai)) —
+  Python toolkit that combines LLMs with graph-based workflows, integrates with
+  LangChain, LlamaIndex, CrewAI, and other agents, and runs pipelines against
+  websites or local documents.
+- **Firecrawl** ([GitHub](https://github.com/firecrawl/firecrawl)) — unified API
+  for scraping, crawling, site mapping, search, and AI extraction with
+  production guards for proxies, dynamic content, batching, and change
+  tracking.
+- **Crawlee** ([JS/TS](https://github.com/apify/crawlee),
+  [Python](https://github.com/apify/crawlee-python)) — full-featured scraping
+  frameworks with HTTP and headless browser crawlers, persistent queues,
+  pluggable storage, proxy/session rotation, and CLIs for bootstrapping
+  projects.
+- **LLM Scraper** ([GitHub](https://github.com/mishushakov/llm-scraper)) —
+  TypeScript Playwright library that uses LLM function calling with Zod or JSON
+  Schema definitions to stream structured data in multiple formats (HTML,
+  Markdown, text, images).
 
 ### Dynamic Hedge Model
 
