@@ -6,6 +6,10 @@ const auction_start_duration = 604800; ;; 1 week = 60 * 60 * 24 * 7; in testnet 
 const auction_end_duration = 3600; ;; 1 hour = 60 * 60; in testnet 1 min
 const auction_prolongation = 3600; ;; 1 hour = 60 * 60; in testnet 1 min
 
+int muldiv(int value, int multiplier, int divisor) inline {
+    return (value * multiplier) / divisor;
+}
+
 ;;  MsgAddressInt max_bid_address
 ;;  Coins max_bid_amount
 ;;  int auction_end_time
