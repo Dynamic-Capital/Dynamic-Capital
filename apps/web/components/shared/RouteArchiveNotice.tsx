@@ -11,7 +11,7 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import { home, person, social } from "@/resources";
+import { home, social } from "@/resources";
 import { DESK_TIME_ZONE, formatWithDeskTimezone } from "@/utils/deskTime";
 import { useEffect, useState } from "react";
 import { useDeskOnboardingSteps } from "@/hooks/useDeskOnboardingSteps";
@@ -20,7 +20,8 @@ import { DEFAULT_DESK_ONBOARDING_STEPS } from "@/services/deskOnboardingSteps";
 const TELEGRAM_LINK = social.find((item) => item.name === "Telegram")?.link ||
   "https://t.me/DynamicCapital_Support";
 
-const SUPPORT_EMAIL = `mailto:${person.email}`;
+const SUPPORT_EMAIL = social.find((item) => item.name === "Support")?.link ||
+  "mailto:support@dynamiccapital.ton";
 
 const SOCIAL_PROOF = [
   {

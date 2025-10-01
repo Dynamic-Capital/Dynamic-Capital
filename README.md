@@ -13,6 +13,7 @@
 - [Quick Links](#quick-links)
   - [Saved GitHub queries](#saved-github-queries)
   - [GitHub CLI one-liners](#github-cli-one-liners)
+  - [Contact](#contact)
 - [Platform Capabilities](#platform-capabilities)
   - [Telegram Mini App — Next.js + React + Icons](#telegram-mini-app--nextjs--react--icons)
   - [Install](#install)
@@ -123,6 +124,12 @@ gh api 'search/issues?q=repo:Dynamic-Capital/Dynamic-Capital+is:pr+author:Dynami
 # Your commits in this repo
 gh api 'repos/Dynamic-Capital/Dynamic-Capital/commits?author=Dynamic-Capital' -q '.[].html_url'
 ```
+
+### Contact
+
+- Inquiries: [hello@dynamiccapital.ton](mailto:hello@dynamiccapital.ton)
+- Support: [support@dynamiccapital.ton](mailto:support@dynamiccapital.ton)
+- Marketing: [marketing@dynamiccapital.ton](mailto:marketing@dynamiccapital.ton)
 
 ## Platform Capabilities
 

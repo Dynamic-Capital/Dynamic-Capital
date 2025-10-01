@@ -198,7 +198,7 @@ const schema: SchemaConfig = {
   type: "Organization",
   name: brandingMetadata.name,
   description: home.description,
-  email: brandingMetadata.supportEmail,
+  email: brandingMetadata.inquiriesEmail,
 };
 
 const sameAs: SameAsConfig = {

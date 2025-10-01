@@ -116,8 +116,7 @@ const FORECAST_HIGHLIGHTS = [
 const FORECAST_CATEGORIES = [
   {
     label: "Countries",
-    description:
-      "Growth, inflation, and policy paths for 150+ economies.",
+    description: "Growth, inflation, and policy paths for 150+ economies.",
   },
   {
     label: "Indicators",
@@ -131,13 +130,11 @@ const FORECAST_CATEGORIES = [
   },
   {
     label: "Indexes",
-    description:
-      "Equity and volatility benchmarks synced to macro drivers.",
+    description: "Equity and volatility benchmarks synced to macro drivers.",
   },
   {
     label: "Currencies",
-    description:
-      "FX crosses modeled on rate differentials and trade balances.",
+    description: "FX crosses modeled on rate differentials and trade balances.",
   },
   {
     label: "Crypto",
@@ -146,8 +143,7 @@ const FORECAST_CATEGORIES = [
   },
   {
     label: "Bonds",
-    description:
-      "Sovereign and credit curves linked to inflation and growth.",
+    description: "Sovereign and credit curves linked to inflation and growth.",
   },
 ] as const;
 
@@ -342,7 +338,7 @@ function TradingViewWidget(
       background="surface"
       border="neutral-alpha-weak"
       data-border="rounded"
-      className="flex-1 min-w-[260px] bg-background/70 shadow-lg shadow-primary/5"
+      className="flex-1 min-w-full bg-background/70 shadow-lg shadow-primary/5 sm:min-w-[260px]"
     >
       <Column gap="8">
         <Text
@@ -365,7 +361,7 @@ function TradingViewWidget(
         <div
           id={containerId}
           ref={containerRef}
-          className="h-64 w-full rounded-xl border border-border/60 bg-gradient-to-br from-background/60 via-background/40 to-background/60"
+          className="h-[clamp(220px,45vw,360px)] w-full rounded-xl border border-border/60 bg-gradient-to-br from-background/60 via-background/40 to-background/60"
         />
       </div>
       {error
@@ -392,9 +388,17 @@ function Section({ anchor, children, className, delay }: SectionProps) {
       <section
         id={anchor}
         data-section-anchor={anchor}
-        className={cn("w-full", className)}
+        className={cn(
+          "w-full scroll-mt-[calc(var(--site-header-height,64px)+2rem)]",
+          className,
+        )}
       >
-        <Column fillWidth gap="24" paddingX="16" className="mx-auto max-w-6xl">
+        <Column
+          fillWidth
+          gap="24"
+          paddingX="16"
+          className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8"
+        >
           {children}
         </Column>
       </section>
@@ -444,12 +448,7 @@ export function MultiLlmLandingPage() {
               {HERO_DESCRIPTION}
             </Text>
           </Column>
-          <Row
-            gap="12"
-            wrap
-            horizontal="center"
-            className="justify-center gap-3"
-          >
+          <div className="flex w-full flex-wrap justify-center gap-3">
             {HERO_BADGES.map((badge) => (
               <Row
                 key={badge.label}
@@ -462,7 +461,7 @@ export function MultiLlmLandingPage() {
                 horizontal="center"
                 vertical="center"
                 data-border="rounded"
-                className="shadow-md shadow-brand/10"
+                className="w-full max-w-xs shadow-md shadow-brand/10 sm:w-auto"
               >
                 <Icon name={badge.icon} size="s" />
                 <Text variant="body-default-s" onBackground="neutral-strong">
@@ -470,8 +469,8 @@ export function MultiLlmLandingPage() {
                 </Text>
               </Row>
             ))}
-          </Row>
-          <Row gap="16" wrap horizontal="center" className="gap-4">
+          </div>
+          <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:justify-center sm:gap-4 md:gap-6">
             <Button
               size="m"
               href={CTA_LINKS.telegram}
@@ -480,6 +479,7 @@ export function MultiLlmLandingPage() {
               variant="primary"
               data-border="rounded"
               arrowIcon
+              className="w-full sm:w-auto"
             >
               Join Telegram
             </Button>
@@ -488,6 +488,7 @@ export function MultiLlmLandingPage() {
               href={CTA_LINKS.invest}
               variant="secondary"
               data-border="rounded"
+              className="w-full sm:w-auto"
             >
               Invest now
             </Button>
@@ -496,10 +497,11 @@ export function MultiLlmLandingPage() {
               href={CTA_LINKS.learn}
               variant="tertiary"
               data-border="rounded"
+              className="w-full sm:w-auto"
             >
               Learn more
             </Button>
-          </Row>
+          </div>
         </Column>
       </Section>
 
@@ -523,7 +525,7 @@ export function MultiLlmLandingPage() {
               investor dashboards.
             </Text>
           </Column>
-          <Row gap="16" wrap className="gap-6">
+          <div className="grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {TOKEN_FEATURES.map((feature) => (
               <Column
                 key={feature.title}
@@ -533,7 +535,7 @@ export function MultiLlmLandingPage() {
                 background="surface"
                 border="neutral-alpha-weak"
                 data-border="rounded"
-                className="flex-1 min-w-[240px] bg-background/70 shadow-lg shadow-primary/5"
+                className="h-full bg-background/70 shadow-lg shadow-primary/5"
               >
                 <Icon name={feature.icon} size="m" />
                 <Heading variant="heading-strong-xs">{feature.title}</Heading>
@@ -546,7 +548,7 @@ export function MultiLlmLandingPage() {
                 </Text>
               </Column>
             ))}
-          </Row>
+          </div>
         </Column>
       </Section>
 
@@ -570,7 +572,7 @@ export function MultiLlmLandingPage() {
               flows.
             </Text>
           </Column>
-          <Row gap="16" wrap className="gap-6">
+          <div className="grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {WALLET_FEATURES.map((feature) => (
               <Column
                 key={feature.title}
@@ -580,7 +582,7 @@ export function MultiLlmLandingPage() {
                 background="surface"
                 border="neutral-alpha-weak"
                 data-border="rounded"
-                className="flex-1 min-w-[240px] bg-background/70 shadow-lg shadow-primary/5"
+                className="h-full bg-background/70 shadow-lg shadow-primary/5"
               >
                 <Icon name={feature.icon} size="m" />
                 <Heading variant="heading-strong-xs">{feature.title}</Heading>
@@ -593,7 +595,7 @@ export function MultiLlmLandingPage() {
                 </Text>
               </Column>
             ))}
-          </Row>
+          </div>
           <Column gap="12" className="max-w-3xl">
             <Heading variant="heading-strong-s">Guardrails baked in</Heading>
             <Column gap="8" as="ul">
@@ -642,11 +644,11 @@ export function MultiLlmLandingPage() {
               forex, and crypto strategies.
             </Text>
           </Column>
-          <Row gap="16" wrap className="gap-6">
+          <div className="grid w-full gap-6 md:grid-cols-2 xl:grid-cols-3">
             {MARKET_WIDGETS.map((widget) => (
               <TradingViewWidget key={widget.symbol} {...widget} />
             ))}
-          </Row>
+          </div>
         </Column>
       </Section>
 
@@ -703,7 +705,7 @@ export function MultiLlmLandingPage() {
               ))}
             </Column>
           </Column>
-          <Row gap="16" wrap className="gap-6">
+          <div className="grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {FORECAST_CATEGORIES.map((category) => (
               <Column
                 key={category.label}
@@ -713,7 +715,7 @@ export function MultiLlmLandingPage() {
                 background="surface"
                 border="neutral-alpha-weak"
                 data-border="rounded"
-                className="flex-1 min-w-[220px] bg-background/70 shadow-lg shadow-primary/5"
+                className="h-full bg-background/70 shadow-lg shadow-primary/5"
               >
                 <Heading variant="heading-strong-xs">
                   {category.label}
@@ -727,7 +729,7 @@ export function MultiLlmLandingPage() {
                 </Text>
               </Column>
             ))}
-          </Row>
+          </div>
         </Column>
       </Section>
 
@@ -750,7 +752,7 @@ export function MultiLlmLandingPage() {
               treasury and strategy data powers every update.
             </Text>
           </Column>
-          <Row gap="16" wrap className="gap-6">
+          <div className="grid w-full gap-6 sm:grid-cols-2">
             <Column
               gap="12"
               padding="20"
@@ -758,7 +760,7 @@ export function MultiLlmLandingPage() {
               background="surface"
               border="neutral-alpha-weak"
               data-border="rounded"
-              className="flex-1 min-w-[260px] bg-background/70 shadow-lg shadow-primary/5"
+              className="h-full bg-background/70 shadow-lg shadow-primary/5"
             >
               <Heading variant="heading-strong-xs">ދިވެހި</Heading>
               <Text
@@ -776,7 +778,7 @@ export function MultiLlmLandingPage() {
               background="surface"
               border="neutral-alpha-weak"
               data-border="rounded"
-              className="flex-1 min-w-[260px] bg-background/70 shadow-lg shadow-primary/5"
+              className="h-full bg-background/70 shadow-lg shadow-primary/5"
             >
               <Heading variant="heading-strong-xs">English</Heading>
               <Text
@@ -787,7 +789,7 @@ export function MultiLlmLandingPage() {
                 {COMMUNITY_MESSAGES.english}
               </Text>
             </Column>
-          </Row>
+          </div>
         </Column>
       </Section>
 

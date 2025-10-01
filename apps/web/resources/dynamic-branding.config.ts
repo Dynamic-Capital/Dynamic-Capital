@@ -286,7 +286,9 @@ const metadata: BrandingMetadata = {
     "financial education",
   ],
   primaryUrl: "https://dynamic-capital.ondigitalocean.app",
-  supportEmail: "dynamiccaptialapp@gmail.com",
+  inquiriesEmail: "hello@dynamiccapital.ton",
+  supportEmail: "support@dynamiccapital.ton",
+  marketingEmail: "marketing@dynamiccapital.ton",
 };
 
 const tokens = createBrandingTokens({ palette, gradients, motion });

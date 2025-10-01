@@ -34,7 +34,7 @@ const person: Person = {
   name: "Abdul Mumin Ibun Aflhal",
   role: "Founder",
   avatar: supabaseAsset("images/avatar.jpg"),
-  email: "dynamiccaptialapp@gmail.com",
+  email: "hello@dynamiccapital.ton",
   location: DESK_TIME_ZONE,
   locationLabel: DESK_TIME_ZONE_LABEL,
 };
@@ -62,6 +62,21 @@ const social: Social = [
     link: "https://t.me/DynamicCapital_Support",
   },
   {
+    name: "Inquiries",
+    icon: "email",
+    link: "mailto:hello@dynamiccapital.ton",
+  },
+  {
+    name: "Support",
+    icon: "email",
+    link: "mailto:support@dynamiccapital.ton",
+  },
+  {
+    name: "Marketing",
+    icon: "sparkles",
+    link: "mailto:marketing@dynamiccapital.ton",
+  },
+  {
     name: "Instagram",
     icon: "instagram",
     link: "https://www.instagram.com/dynamic.capital",
@@ -75,11 +90,6 @@ const social: Social = [
     name: "TradingView",
     icon: "tradingview",
     link: "https://www.tradingview.com/u/DynamicCapital-FX/",
-  },
-  {
-    name: "Email",
-    icon: "email",
-    link: `mailto:${person.email}`,
   },
   {
     name: "Phone",

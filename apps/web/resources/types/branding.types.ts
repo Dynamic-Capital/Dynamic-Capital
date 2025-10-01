@@ -94,7 +94,9 @@ export type BrandingMetadata = {
   description: string;
   keywords: string[];
   primaryUrl: string;
+  inquiriesEmail: string;
   supportEmail: string;
+  marketingEmail: string;
 };
 
 /**
