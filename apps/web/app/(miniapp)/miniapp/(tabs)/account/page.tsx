@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { BadgeCheck, CreditCard, Settings } from "lucide-react";
 import { Sheet } from "@/components/miniapp/Sheet";
-import { haptic, hideMainButton, setMainButton, tg } from "@/lib/telegram";
+import {
+  getTelegramWebApp,
+  haptic,
+  hideMainButton,
+  setMainButton,
+} from "@/lib/telegram";
 import { track } from "@/lib/metrics";
 
 export default function AccountTab() {
@@ -14,8 +19,9 @@ export default function AccountTab() {
     haptic("medium");
     void track("account_concierge_support");
     setShowSheet(false);
-    if (tg?.openTelegramLink) {
-      tg.openTelegramLink(conciergeUrl);
+    const telegram = getTelegramWebApp();
+    if (telegram?.openTelegramLink) {
+      telegram.openTelegramLink(conciergeUrl);
     } else {
       window.open(conciergeUrl, "_blank");
     }

@@ -22,7 +22,7 @@ export default function MiniAppProviders(
   const router = useRouter();
 
   useEffect(() => {
-    initTelegram();
+    void initTelegram();
     applyThemeVars();
     const themeManager = getMiniAppThemeManager();
     const detachTonConnect = attachGlobalTonConnect(themeManager);
