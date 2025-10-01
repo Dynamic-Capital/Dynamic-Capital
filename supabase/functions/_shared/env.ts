@@ -58,7 +58,12 @@ export type EnvKey =
   | "PROMO_AUTOGEN_SECRET"
   | "VIP_PRICING_LOOKBACK_DAYS"
   | "PROMO_AUTOGEN_MIN_USERS"
-  | "PROMO_AUTOGEN_MIN_REVENUE";
+  | "PROMO_AUTOGEN_MIN_REVENUE"
+  | "RESEND_API_KEY"
+  | "COLD_EMAIL_FROM_ADDRESS"
+  | "COLD_EMAIL_FROM_NAME"
+  | "COLD_EMAIL_REPLY_TO"
+  | "COLD_EMAIL_MAX_BATCH";
 
 /** Test-only env injection type */
 type TestEnv = Partial<Record<EnvKey, string>>;
