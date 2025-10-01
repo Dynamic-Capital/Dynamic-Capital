@@ -5,6 +5,10 @@ from .hierarchy import (
     HierarchyNode,
     HierarchySnapshot,
 )
+from .engine import (
+    HierarchyBlueprint,
+    HierarchyEngine,
+)
 from .model import (
     HIERARCHY_MODEL,
     HierarchyCharacteristic,
@@ -18,6 +22,8 @@ __all__ = [
     "DynamicHierarchy",
     "HierarchyNode",
     "HierarchySnapshot",
+    "HierarchyBlueprint",
+    "HierarchyEngine",
     "HIERARCHY_MODEL",
     "HierarchyCharacteristic",
     "HierarchyExample",
