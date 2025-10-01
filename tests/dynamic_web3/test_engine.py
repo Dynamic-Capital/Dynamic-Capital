@@ -4,6 +4,7 @@ import pytest
 
 from dynamic_web3 import (
     DynamicWeb3Engine,
+    GoLiveBlockedError,
     NetworkTelemetry,
     SmartContract,
     TransactionProfile,
@@ -230,3 +231,66 @@ def test_compile_project_build_flags_attention(engine: DynamicWeb3Engine) -> Non
     assert readiness.blocking_alerts
     assert any(action.priority == "high" for action in readiness.critical_actions)
     assert readiness.total_pending_transactions >= 600
+
+
+def test_go_live_returns_ready_summary(engine: DynamicWeb3Engine) -> None:
+    secondary = Web3Network(
+        name="Velocity Chain",
+        chain_id=2051,
+        rpc_endpoint="https://rpc.velocity",
+        finality_threshold=6,
+        reliability_target=0.97,
+    )
+    engine.register_network(secondary)
+
+    _register_contract(engine, success_rate=0.95, latency_ms=140.0, pending=15)
+
+    telemetry_map = {
+        "Dynamic Chain": NetworkTelemetry(
+            block_gap=2,
+            uptime_ratio=0.99,
+            utilisation=0.55,
+            latency_ms=150.0,
+            pending_transactions=40,
+        ),
+        "Velocity Chain": NetworkTelemetry(
+            block_gap=2,
+            uptime_ratio=0.98,
+            utilisation=0.5,
+            latency_ms=140.0,
+            pending_transactions=35,
+        ),
+    }
+
+    readiness = engine.go_live(
+        telemetry_map,
+        project_name="Launch",
+        metadata={"owner": "Ops"},
+    )
+
+    assert readiness.status == "ready"
+    assert set(readiness.ready_networks) == {"Dynamic Chain", "Velocity Chain"}
+    assert readiness.metadata["project"] == "Launch"
+    assert readiness.metadata["owner"] == "Ops"
+
+
+def test_go_live_raises_when_not_ready(engine: DynamicWeb3Engine) -> None:
+    _register_contract(engine, success_rate=0.7, latency_ms=320.0, pending=160)
+
+    telemetry_map = {
+        "Dynamic Chain": NetworkTelemetry(
+            block_gap=15,
+            uptime_ratio=0.82,
+            utilisation=0.88,
+            latency_ms=340.0,
+            pending_transactions=600,
+        )
+    }
+
+    with pytest.raises(GoLiveBlockedError) as exc_info:
+        engine.go_live(telemetry_map)
+
+    readiness = exc_info.value.readiness
+    assert readiness.status == "blocked"
+    assert readiness.blocking_alerts
+    assert any(action.priority == "high" for action in readiness.critical_actions)
