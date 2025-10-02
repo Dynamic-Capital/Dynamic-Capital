@@ -101,6 +101,11 @@ Supabase access, authentication, and other server-side features.
 The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
 backed by Supabase.
 
+> **Browser fallback:** Traditional DNS resolvers cannot resolve `.ton` domains
+> and may return `DNS_PROBE_FINISHED_NXDOMAIN`. Use the public gateway at
+> <https://ton.site/dynamiccapital.ton> or install a TON-enabled wallet
+> extension (e.g., MyTonWallet) to access the production site.
+
 ## What's New
 
 <!-- WHATS_NEW:START -->
@@ -230,18 +235,19 @@ Explore the broader platform anatomy and contributor guides:
 
 #### Dynamic AGI self-improvement loop
 
-`dynamic.intelligence.agi.DynamicAGIModel` now accepts an optional `DynamicSelfImprovement`
-manager that records each evaluation and emits an iterative improvement plan.
-Provide realised performance telemetry or human feedback when calling
-`evaluate()` so the manager can accumulate session snapshots. The returned
-`AGIOutput` includes an `improvement` payload with ranked focus areas,
-aggregated metrics, and the latest introspection reports. See
-`tests/dynamic.intelligence.agi/test_dynamic_self_improvement.py` for an end-to-end example.
+`dynamic.intelligence.agi.DynamicAGIModel` now accepts an optional
+`DynamicSelfImprovement` manager that records each evaluation and emits an
+iterative improvement plan. Provide realised performance telemetry or human
+feedback when calling `evaluate()` so the manager can accumulate session
+snapshots. The returned `AGIOutput` includes an `improvement` payload with
+ranked focus areas, aggregated metrics, and the latest introspection reports.
+See `tests/dynamic.intelligence.agi/test_dynamic_self_improvement.py` for an
+end-to-end example.
 
 **Dynamic AGI** abbreviates **Driving Yield of New Advancements in Minds,
 Intelligence & Creation — Adapting Global Intelligence**. The
-`dynamic.intelligence.agi.DynamicAGIModel.identity` helper exposes this expansion and its
-three pillars (`Driving Yield of New Advancements in Minds`,
+`dynamic.intelligence.agi.DynamicAGIModel.identity` helper exposes this
+expansion and its three pillars (`Driving Yield of New Advancements in Minds`,
 `Intelligence &
 Creation`, `Adapting Global Intelligence`) so downstream
 services can surface consistent branding while reinforcing the platform's
@@ -1074,14 +1080,13 @@ troubleshooting.
   crawler that turns sites into LLM-ready Markdown, adds controllable
   concurrency, and supports LLM-driven structured extraction for tables and
   other complex layouts.
-- **ScrapeGraphAI** ([GitHub](https://github.com/ScrapeGraphAI/Scrapegraph-ai)) —
-  Python toolkit that combines LLMs with graph-based workflows, integrates with
-  LangChain, LlamaIndex, CrewAI, and other agents, and runs pipelines against
-  websites or local documents.
+- **ScrapeGraphAI** ([GitHub](https://github.com/ScrapeGraphAI/Scrapegraph-ai))
+  — Python toolkit that combines LLMs with graph-based workflows, integrates
+  with LangChain, LlamaIndex, CrewAI, and other agents, and runs pipelines
+  against websites or local documents.
 - **Firecrawl** ([GitHub](https://github.com/firecrawl/firecrawl)) — unified API
   for scraping, crawling, site mapping, search, and AI extraction with
-  production guards for proxies, dynamic content, batching, and change
-  tracking.
+  production guards for proxies, dynamic content, batching, and change tracking.
 - **Crawlee** ([JS/TS](https://github.com/apify/crawlee),
   [Python](https://github.com/apify/crawlee-python)) — full-featured scraping
   frameworks with HTTP and headless browser crawlers, persistent queues,
