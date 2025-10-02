@@ -15,6 +15,8 @@ import {
   listInstruments,
 } from "@/data/instruments";
 
+export const DYNAMIC_REST_CACHE_TAG = "dynamic-rest" as const;
+
 const ASSET_CLASSES = [
   "commodities",
   "currencies",

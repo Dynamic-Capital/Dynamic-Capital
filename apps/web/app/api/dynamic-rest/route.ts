@@ -1,15 +1,40 @@
+import { unstable_cache } from "next/cache";
+
 import { withApiMetrics } from "@/observability/server-metrics.ts";
-import { buildDynamicRestResponse } from "@/services/dynamic-rest";
+import {
+  buildDynamicRestResponse,
+  DYNAMIC_REST_CACHE_TAG,
+} from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 const ROUTE_NAME = "/api/dynamic-rest";
+const CACHE_KEY = "dynamic-rest-response";
+const REVALIDATE_SECONDS = 300;
 
-export const dynamic = "force-dynamic";
+export const revalidate = REVALIDATE_SECONDS;
+
+const getDynamicRestResponse = unstable_cache(
+  async () => buildDynamicRestResponse(),
+  [CACHE_KEY],
+  {
+    revalidate: REVALIDATE_SECONDS,
+    tags: [DYNAMIC_REST_CACHE_TAG],
+  },
+);
 
 export async function GET(req: Request) {
   return withApiMetrics(req, ROUTE_NAME, async () => {
-    const payload = buildDynamicRestResponse();
-    return jsonResponse(payload, {}, req);
+    const payload = await getDynamicRestResponse();
+    return jsonResponse(
+      payload,
+      {
+        headers: {
+          "cache-control":
+            "public, max-age=0, s-maxage=300, stale-while-revalidate=86400",
+        },
+      },
+      req,
+    );
   });
 }
 
