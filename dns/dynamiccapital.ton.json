@@ -20,6 +20,7 @@
     }
   },
   "ton_site": {
+    "content_id": "kQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
     "adnl_address": "0:192631d3bc9dd251d3b6d5cd4e807c68e53e1b6126499d8c5db3e7bb4ccc9243",
     "public_key_base64": "0PiJ9VlwxSxHP7XyEV5sKzgj9jkgWOH8bCWdSPM5LGc=",
     "generated": {
@@ -73,6 +74,7 @@
     "TON Site ADNL 0:192631d3bc9dd251d3b6d5cd4e807c68e53e1b6126499d8c5db3e7bb4ccc9243 (see ton_site.public_key_base64)",
     "Verify resolution through TON DNS tools before going live",
     "Supabase custom domains require `_acme-challenge.api.dynamiccapital.ton` TXT records during verification. Capture the issued tokens in this repo before activation and pin them to TON Storage/IPFS with the hash recorded in the operations multisig memo.",
+    "Update `ton_site.content_id` with the TON Storage bag hash for each published bundle so the on-chain resolver and repo history stay in sync.",
     "Use a low TTL (e.g., 60–300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
     "After activation, emit a `custom_domain_activated` event into Supabase `tx_logs` referencing the DNS bundle hash so auditors can verify the Web3 linkage.",
     "Treat https://dynamiccapital.ton as the canonical production surface; keep the DigitalOcean, Lovable, and Vercel hosts warm as failover origins and document rollovers in Supabase `tx_logs`."

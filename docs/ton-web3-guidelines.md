@@ -27,6 +27,9 @@ keep the TON surfaces aligned with the broader platform roadmap.
   format` (which runs `deno fmt`).
 - **Supabase CLI** — manages local migrations and deploys the TON-focused edge
   functions (`supabase functions deploy`).
+- **Ton Console dashboard** — install with
+  [`node scripts/tonconsole/install.mjs`](./ton-console-installation.md) to
+  manage payment flows, analytics, and partner integrations locally.
 - **toncli or tondev** — use either toolkit to compile contracts, interact with
   TON DNS, publish sites, and manage storage providers.
 - **Access to a TON wallet** with deployment permissions for the DNS resolver
@@ -36,7 +39,41 @@ keep the TON surfaces aligned with the broader platform roadmap.
   [`config.yaml`](../dynamic-capital-ton/config.yaml) `network.liteservers` list
   (`31.57.199.1:5053` and `163.5.62.1:5053`, shared `publicKeyBase64`
   `Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=`) when configuring tonlib
-  clients or fall back to TON Access for redundancy.
+  clients or fall back to TON Access for redundancy. For application code, use
+  `dynamic_ton.build_tonlib_liteservers()` or `dynamic_ton.TON_MAINNET_LITESERVERS`
+  to hydrate tonlib configs without duplicating the hard-coded endpoints.
+
+### Dynamic TON API webhooks
+
+The Dynamic TON API broadcasts liquidity and treasury snapshots via signed
+webhooks. To consume those events safely:
+
+1. **Store the shared secret** exposed by the API (`DYNAMIC_TON_API_KEY`) in the
+   Supabase environment and local `.env` files. Treat it like any other HMAC
+   secret.
+2. **Verify signatures** using `dynamic_ton.webhooks.verify_webhook_signature`.
+   The helper supports both hexadecimal and base64 encoded signatures and uses
+   HMAC SHA-256 under the hood. Use
+   `dynamic_ton.webhooks.get_webhook_secret()` to read the shared secret from
+   `DYNAMIC_TON_API_KEY` so runtime environments fail fast when the secret is
+   missing.
+3. **Parse envelopes** with `dynamic_ton.webhooks.parse_ton_webhook` or call
+   `build_plan_from_webhook` directly to materialise a
+   `TonExecutionPlan`. Payloads must include the `liquidity`, `telemetry`, and
+   `treasury` sections mirrored in the API contract.
+4. **Persist and act** on the resulting plan through Supabase Edge Functions or
+   orchestration jobs. The dataclass exposes metadata such as the event ID,
+   delivery timestamp, and retry count so duplicate suppression is trivial.
+
+When wiring new automation, capture the inbound payloads in Supabase (for
+example, `ton_api_webhook_events`) alongside the computed execution plan. This
+keeps auditors aligned on what the on-chain allocator observed and how the
+engine responded.
+
+> **Operations note:** The production shared secret lives in the 1Password vault
+> entry titled "Dynamic TON API Webhook". Rotate it alongside the upstream API
+> token issuance workflow and update the Supabase, Vercel, and DigitalOcean
+> secrets in the same change window.
 
 > **Tip:** Run `npm run format` before committing documentation updates so the
 > repo-wide formatter normalizes Markdown tables.
