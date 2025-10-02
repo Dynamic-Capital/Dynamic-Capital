@@ -51,7 +51,7 @@ export function QuadrantChart() {
 
           return (
             <div
-              key={currency.code}
+              key={currency.currency}
               className="absolute transform -translate-x-1/2 -translate-y-1/2"
               style={{
                 left: `${x}%`,
@@ -59,7 +59,7 @@ export function QuadrantChart() {
               }}
             >
               <div className="bg-background border-2 border-foreground rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
-                <span className="text-xs font-bold">{currency.code}</span>
+                <span className="text-xs font-bold">{currency.currency}</span>
               </div>
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap">
                 {currency.x > 0 ? "+" : ""}{currency.x.toFixed(1)}%

@@ -5,9 +5,9 @@ import { TonConnectProvider } from "@/integrations/tonconnect";
 import { DynamicGuiShowcase } from "./components/DynamicGuiShowcase";
 import CheckoutPage from "~/pages/CheckoutPage";
 import NotFoundPage from "~/pages/NotFoundPage";
-import DashboardPage from "~/pages/DashboardPage";
-import MarketPage from "~/pages/MarketPage";
-import SnapshotPage from "~/pages/SnapshotPage";
+import DashboardPage from "@/pages/DashboardPage";
+import MarketPage from "@/pages/MarketPage";
+import SnapshotPage from "@/pages/SnapshotPage";
 import Web3Page from "~/pages/Web3Page";
 import { LayoutDashboard, TrendingUp, Camera, Wallet } from "lucide-react";
 
