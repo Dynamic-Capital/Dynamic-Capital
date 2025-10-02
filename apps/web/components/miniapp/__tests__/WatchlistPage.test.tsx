@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 import { useMarketWatchlistData } from "@/components/dynamic-portfolio/home/MarketWatchlist";
 
@@ -119,7 +119,7 @@ describe("WatchlistPage", () => {
     expect(screen.getByText("42,000.00")).toBeInTheDocument();
     expect(screen.getByText(/Synced/)).toBeInTheDocument();
     const mockedUseMarketWatchlistData =
-      useMarketWatchlistData as unknown as vi.Mock;
+      useMarketWatchlistData as unknown as Mock;
     expect(mockedUseMarketWatchlistData).toHaveBeenCalledWith({
       enabled: true,
     });

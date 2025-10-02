@@ -88,14 +88,13 @@ registerHandler(async (req: Request): Promise<Response> => {
       logger.error('Failed to save user message:', userMsgError);
     }
 
-    // Call Dynamic AGI API
-    const agiUrl = Deno.env.get('DYNAMIC_AGI_CHAT_URL');
-    const agiKey = Deno.env.get('DYNAMIC_AGI_CHAT_KEY');
+    // Call Lovable AI Gateway
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!agiUrl || !agiKey) {
-      logger.error('Missing AGI configuration');
+    if (!lovableApiKey) {
+      logger.error('Missing LOVABLE_API_KEY');
       return new Response(
-        JSON.stringify({ error: 'AGI service not configured' }),
+        JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -106,14 +105,17 @@ registerHandler(async (req: Request): Promise<Response> => {
       { role: 'user', content: message },
     ];
 
-    logger.info('Calling Dynamic AGI API');
-    const agiResponse = await fetch(agiUrl, {
+    logger.info('Calling Lovable AI Gateway');
+    const agiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${agiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ messages: agiMessages }),
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: agiMessages,
+      }),
     });
 
     if (!agiResponse.ok) {

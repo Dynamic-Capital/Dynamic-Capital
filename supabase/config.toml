@@ -1,4 +1,4 @@
-project_id = "your-project-ref"
+project_id = "qeejuomcapbdlhnjqjcc"
 
 [global]
   site_url = "https://dynamiccapital.ton"
@@ -19,3 +19,6 @@ project_id = "your-project-ref"
     ALLOWED_ORIGINS = "https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://dynamic-capital.ondigitalocean.app,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app"
     MINIAPP_ORIGIN = "https://dynamiccapital.ton"
     TELEGRAM_WEBHOOK_URL = "https://dynamiccapital.ton/webhook"
+
+[functions.agi-chat]
+verify_jwt = true
