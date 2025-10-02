@@ -48,3 +48,8 @@ gateway always serves the latest content.
 Document any anomalies (gateway downtime, stale caches) in Supabase `tx_logs`
 and rotate to an alternate gateway if required. The helper constants exposed in
 `shared/ton/site.ts` allow quick updates when a new gateway is promoted.
+
+- The Supabase Edge reverse proxy deployed at `/functions/v1/ton-site-proxy/*`
+  mirrors the TON Site bundle with CORS headers. Use it when browser extensions
+  strip custom resolvers or when you need to script health checks from
+  infrastructure that cannot resolve `.ton` domains directly.

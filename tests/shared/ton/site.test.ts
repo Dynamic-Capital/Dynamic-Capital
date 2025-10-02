@@ -2,14 +2,18 @@ import { describe, it } from "std/testing/bdd.ts";
 import { assertEquals } from "std/assert/mod.ts";
 
 import {
+  resolveTonSiteProxyPath,
+  resolveTonSiteProxyUrl,
   resolveTonSiteUrl,
   TON_SITE_DOMAIN,
   TON_SITE_GATEWAY_BASE,
   TON_SITE_GATEWAY_ORIGIN,
   TON_SITE_GATEWAY_URL,
   TON_SITE_ICON_URL,
+  TON_SITE_PROXY_FUNCTION_NAME,
+  TON_SITE_PROXY_PATH_PREFIX,
   TON_SITE_SOCIAL_PREVIEW_URL,
-} from "../../../shared/ton/site";
+} from "../../../shared/ton/site.ts";
 
 describe("ton site gateway helpers", () => {
   it("exposes canonical constants", () => {
@@ -28,6 +32,8 @@ describe("ton site gateway helpers", () => {
       TON_SITE_SOCIAL_PREVIEW_URL,
       "https://ton.site/dynamiccapital.ton/social/social-preview.svg",
     );
+    assertEquals(TON_SITE_PROXY_FUNCTION_NAME, "ton-site-proxy");
+    assertEquals(TON_SITE_PROXY_PATH_PREFIX, "/ton-site-proxy");
   });
 
   describe("resolveTonSiteUrl", () => {
@@ -90,5 +96,64 @@ describe("ton site gateway helpers", () => {
         assertEquals(resolveTonSiteUrl(...testCase.args), testCase.expected);
       });
     }
+  });
+
+  describe("resolveTonSiteProxyPath", () => {
+    type ResolveArgs = [] | [string];
+
+    const cases: Array<{
+      name: string;
+      args: ResolveArgs;
+      expected: string;
+    }> = [
+      {
+        name: "returns the proxy root when no path is provided",
+        args: [],
+        expected: `${TON_SITE_PROXY_PATH_PREFIX}/`,
+      },
+      {
+        name: "normalises leading slashes and whitespace",
+        args: [" //icon.png"],
+        expected: `${TON_SITE_PROXY_PATH_PREFIX}/icon.png`,
+      },
+      {
+        name: "collapses duplicate path separators",
+        args: ["/social//preview.svg"],
+        expected: `${TON_SITE_PROXY_PATH_PREFIX}/social/preview.svg`,
+      },
+      {
+        name: "preserves query and hash segments",
+        args: ["/asset.png?q=1#hash"],
+        expected: `${TON_SITE_PROXY_PATH_PREFIX}/asset.png?q=1#hash`,
+      },
+    ];
+
+    for (const testCase of cases) {
+      it(testCase.name, () => {
+        assertEquals(
+          resolveTonSiteProxyPath(...testCase.args),
+          testCase.expected,
+        );
+      });
+    }
+  });
+
+  describe("resolveTonSiteProxyUrl", () => {
+    it("joins the Supabase functions base with the proxy path", () => {
+      assertEquals(
+        resolveTonSiteProxyUrl(
+          "https://project.functions.supabase.co/",
+          "/icon.png",
+        ),
+        "https://project.functions.supabase.co/ton-site-proxy/icon.png",
+      );
+    });
+
+    it("trims extraneous slashes from the base URL", () => {
+      assertEquals(
+        resolveTonSiteProxyUrl("https://project.functions.supabase.co////"),
+        "https://project.functions.supabase.co/ton-site-proxy/",
+      );
+    });
   });
 });
