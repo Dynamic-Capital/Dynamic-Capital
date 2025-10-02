@@ -8,6 +8,7 @@ from .engine import (
     TrainingSample,
     TrainingMetrics,
     DynamicDeepLearningEngine,
+    generate_input_layers,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "TrainingSample",
     "TrainingMetrics",
     "DynamicDeepLearningEngine",
+    "generate_input_layers",
 ]

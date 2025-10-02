@@ -11,6 +11,7 @@ from dynamic_deep_learning import (  # noqa: E402 - runtime path mutation for te
     DynamicDeepLearningEngine,
     DynamicLayerEngineConfig,
     LayerBlueprint,
+    generate_input_layers,
 )
 
 
@@ -65,3 +66,33 @@ def test_layer_blueprint_accepts_mappings() -> None:
 
     assert spec.input_dim == 2
     assert spec.output_dim == 1
+
+
+def test_generate_input_layers_progressive_stack() -> None:
+    layers = generate_input_layers(
+        input_dim=5,
+        depth=3,
+        expansion_factor=2.0,
+        activation="tanh",
+        dropout=0.1,
+        prefix="ingest",
+        max_units=32,
+    )
+
+    assert [layer.name for layer in layers] == ["ingest_1", "ingest_2", "ingest_3"]
+    assert [layer.units for layer in layers] == [10, 20, 32]
+    assert all(layer.activation == "tanh" for layer in layers)
+    assert all(pytest.approx(0.1, rel=1e-9) == layer.dropout for layer in layers)
+
+    config = DynamicLayerEngineConfig(
+        input_dim=5,
+        input_layers=layers,
+        output_layers=[LayerBlueprint(name="decide", units=2, activation="softmax")],
+    )
+
+    spec = config.build_model_spec()
+
+    assert spec.layers[0].input_dim == 5
+    assert spec.layers[0].output_dim == 10
+    assert spec.layers[1].input_dim == 10
+    assert spec.layers[2].output_dim == 32

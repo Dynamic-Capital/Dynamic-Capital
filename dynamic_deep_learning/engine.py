@@ -16,6 +16,7 @@ __all__ = [
     "TrainingSample",
     "TrainingMetrics",
     "DynamicDeepLearningEngine",
+    "generate_input_layers",
 ]
 
 
@@ -40,6 +41,75 @@ def _to_float_sequence(values: Iterable[float], *, name: str) -> tuple[float, ..
     if not converted:
         raise ValueError(f"{name} must contain at least one value")
     return tuple(converted)
+
+
+def generate_input_layers(
+    input_dim: int,
+    *,
+    depth: int,
+    expansion_factor: float = 1.5,
+    activation: str = "relu",
+    dropout: float = 0.0,
+    prefix: str = "input",
+    max_units: int | None = None,
+) -> tuple[LayerBlueprint, ...]:
+    """Generate a progressive stack of :class:`LayerBlueprint` instances.
+
+    Parameters
+    ----------
+    input_dim:
+        Size of the input vector flowing into the first generated layer.
+    depth:
+        Number of blueprint layers to generate. Must be a positive integer.
+    expansion_factor:
+        Multiplicative factor applied to the previous layer's output dimension
+        when selecting the number of units for the next layer. Values below
+        ``1.0`` shrink the layer width while larger values widen it.
+    activation:
+        Activation applied to every generated layer.
+    dropout:
+        Dropout probability applied to every generated layer.
+    prefix:
+        Human-friendly prefix for naming the generated layers. Layer indices
+        start at ``1``.
+    max_units:
+        Optional ceiling applied to the generated unit counts. When provided,
+        each layer will be clamped to ``max_units``.
+
+    Returns
+    -------
+    tuple[LayerBlueprint, ...]
+        A tuple of blueprints that can be supplied to
+        :class:`DynamicLayerEngineConfig`.
+    """
+
+    if depth <= 0:
+        raise ValueError("depth must be positive")
+    if input_dim <= 0:
+        raise ValueError("input_dim must be positive")
+    if expansion_factor == 0:
+        raise ValueError("expansion_factor must be non-zero")
+    if max_units is not None and max_units <= 0:
+        raise ValueError("max_units must be positive when provided")
+
+    current_units = float(input_dim)
+    layers: list[LayerBlueprint] = []
+    for index in range(depth):
+        current_units *= float(expansion_factor)
+        units = max(1, int(round(current_units)))
+        if max_units is not None:
+            units = min(units, int(max_units))
+        layer_name = f"{prefix}_{index + 1}" if prefix else f"layer_{index + 1}"
+        layers.append(
+            LayerBlueprint(
+                name=layer_name,
+                units=units,
+                activation=activation,
+                dropout=dropout,
+            )
+        )
+        current_units = float(units)
+    return tuple(layers)
 
 
 @dataclass(slots=True)
