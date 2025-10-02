@@ -227,6 +227,8 @@ Explore the broader platform anatomy and contributor guides:
 - [Dynamic Trading ALGO vs LOGIC](docs/dynamic-trading-algo-vs-logic.md)
 - [Model intelligence & infrastructure reference](docs/model-intelligence-infrastructure-reference.md)
 - [Protocol layering framework](docs/dynamic_protocol_layers.md)
+- [IQM cheat sheets sync instructions](docs/iqm-cheatsheets.md) — fetch the
+  external documentation without bloating Git history.
 
 #### Dynamic AGI self-improvement loop
 
