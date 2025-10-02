@@ -7,14 +7,20 @@ that the utilities can be embedded into lightweight data or ML pipelines.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import re
 import unicodedata
 from typing import Iterable, Iterator, Sequence
 
-THAANA_UNICODE_BLOCK = (0x0780, 0x07BF)
+THAANA_BLOCK_START = 0x0780
+THAANA_BLOCK_END = 0x07BF
 _WORD_BOUNDARY_RE = re.compile(r"[\s\u200c\u200d]+")
-_PUNCTUATION_RE = re.compile(r"[\u0600-\u06FF\u2010-\u206F\u2E00-\u2E7F\W]+", re.UNICODE)
+
+
+def _is_thaana(codepoint: int) -> bool:
+    """Return ``True`` when *codepoint* belongs to the Thaana Unicode block."""
+
+    return THAANA_BLOCK_START <= codepoint <= THAANA_BLOCK_END
 
 
 def detect_script(text: str) -> float:
@@ -26,19 +32,18 @@ def detect_script(text: str) -> float:
     if not text:
         return 0.0
 
+    meaningful_total = 0
     thaana_count = 0
-    total = 0
     for char in text:
-        codepoint = ord(char)
-        if unicodedata.category(char).startswith("C"):
-            # Skip control characters (e.g. zero-width joiner).
+        category = unicodedata.category(char)
+        if category[0] not in {"L", "M", "N"}:
             continue
-        total += 1
-        if THAANA_UNICODE_BLOCK[0] <= codepoint <= THAANA_UNICODE_BLOCK[1]:
+        meaningful_total += 1
+        if _is_thaana(ord(char)):
             thaana_count += 1
-    if total == 0:
+    if meaningful_total == 0:
         return 0.0
-    return thaana_count / total
+    return thaana_count / meaningful_total
 
 
 class DhivehiStopwords:
@@ -95,14 +100,24 @@ class DhivehiNormalizer:
         canonical = canonical.replace("\u200d", "").replace("\u200c", "")
         if self.preserve_punctuation:
             return canonical.strip()
-        return _PUNCTUATION_RE.sub(" ", canonical).strip()
+        cleaned_chars: list[str] = []
+        for char in canonical:
+            category = unicodedata.category(char)
+            if category[0] in {"L", "M", "N"}:
+                cleaned_chars.append(char)
+            else:
+                cleaned_chars.append(" ")
+        cleaned = "".join(cleaned_chars)
+        # Collapse multiple whitespace characters into a single space so that
+        # downstream tokenisation produces stable results.
+        return _WORD_BOUNDARY_RE.sub(" ", cleaned).strip()
 
 
 @dataclass(slots=True)
 class DhivehiTokenizer:
     """Tokenise Dhivehi text into word-like units."""
 
-    normalizer: DhivehiNormalizer
+    normalizer: DhivehiNormalizer = field(default_factory=DhivehiNormalizer)
 
     def tokenize(self, text: str, *, drop_stopwords: bool = False) -> list[str]:
         clean = self.normalizer.normalise(text)
@@ -200,11 +215,10 @@ class DhivehiTransliterator:
         "ް": "",
     }
 
+    _TRANSLATION_TABLE = {ord(char): roman for char, roman in _MAPPING.items()}
+
     def transliterate(self, text: str) -> str:
-        result = []
-        for char in text:
-            result.append(self._MAPPING.get(char, char))
-        return "".join(result)
+        return text.translate(self._TRANSLATION_TABLE)
 
 
 @dataclass(slots=True)
@@ -238,14 +252,16 @@ def fmean(values: Sequence[int]) -> float:
 class DhivehiNLPipeline:
     """Compose Dhivehi NLP helpers into a repeatable workflow."""
 
-    normalizer: DhivehiNormalizer = DhivehiNormalizer()
+    normalizer: DhivehiNormalizer = field(default_factory=DhivehiNormalizer)
     tokenizer: DhivehiTokenizer | None = None
-    morphology: DhivehiMorphology = DhivehiMorphology()
-    transliterator: DhivehiTransliterator = DhivehiTransliterator()
+    morphology: DhivehiMorphology = field(default_factory=DhivehiMorphology)
+    transliterator: DhivehiTransliterator = field(default_factory=DhivehiTransliterator)
 
     def __post_init__(self) -> None:
         if self.tokenizer is None:
             self.tokenizer = DhivehiTokenizer(self.normalizer)
+        else:
+            self.tokenizer.normalizer = self.normalizer
 
     def analyse(self, text: str) -> DhivehiLanguageProfile:
         tokens = self.tokenizer.tokenize(text)
@@ -256,7 +272,7 @@ class DhivehiNLPipeline:
     ) -> Iterator[str]:
         tokens = self.tokenizer.tokenize(text, drop_stopwords=drop_stopwords)
         if stem:
-            tokens = self.morphology.stems(tokens)
+            return (self.morphology.stem(token) for token in tokens)
         return iter(tokens)
 
     def encode_features(
