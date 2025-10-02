@@ -46,3 +46,32 @@ currently returns an anonymous access block from OneDrive. To ingest the book:
    succeeds.
 
 Track download attempts in `raw/Trading/README.md` to keep provenance clear.
+
+## Saheeh International Quran translation
+
+Run the extractor with the following parameters to rebuild the Saheeh International corpus:
+
+```bash
+python tools/books_corpus.py \
+  --pdf-dir data/knowledge_base/books/raw/islam \
+  --output-dir data/knowledge_base/books/extracted/islam_saheeh_international \
+  --jsonl-path data/knowledge_base/books/processed/islam_saheeh_international.jsonl \
+  --summary-path data/knowledge_base/books/processed/islam_saheeh_international_summary.json \
+  --no-structured
+```
+
+This produces:
+
+- Page-level JSONL corpus at `data/knowledge_base/books/processed/islam_saheeh_international.jsonl`.
+- Extraction summary metadata at `data/knowledge_base/books/processed/islam_saheeh_international_summary.json`.
+- Plain-text export under `data/knowledge_base/books/extracted/islam_saheeh_international/text/`.
+
+The source PDF is **not** stored in the repository to avoid committing large binaries. Download a fresh copy before extraction:
+
+```bash
+curl -L \
+  https://alrashidmosque.ca/wp-content/uploads/2019/05/The-Quran-Saheeh-International.pdf \
+  -o data/knowledge_base/books/raw/islam/the_quran_saheeh_international.pdf
+```
+
+See `data/knowledge_base/books/raw/islam/README.md` for provenance details and refresh guidance.
