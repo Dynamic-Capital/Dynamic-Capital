@@ -76,7 +76,7 @@ function createSupabaseMock() {
 function setEnv() {
   Deno.env.set("SUPABASE_URL", "https://example.supabase.co");
   Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
-  Deno.env.set("DYNAMIC_AI_CHAT_URL", "https://dynamic.ai/chat");
+  Deno.env.set("DYNAMIC_AI_CHAT_URL", "https://api.dynamiccapital.ton/chat");
   Deno.env.set("DYNAMIC_AI_CHAT_KEY", "dynamic-secret");
 }
 
