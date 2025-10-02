@@ -39,7 +39,9 @@ keep the TON surfaces aligned with the broader platform roadmap.
   [`config.yaml`](../dynamic-capital-ton/config.yaml) `network.liteservers` list
   (`31.57.199.1:5053` and `163.5.62.1:5053`, shared `publicKeyBase64`
   `Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=`) when configuring tonlib
-  clients or fall back to TON Access for redundancy.
+  clients or fall back to TON Access for redundancy. For application code, use
+  `dynamic_ton.build_tonlib_liteservers()` or `dynamic_ton.TON_MAINNET_LITESERVERS`
+  to hydrate tonlib configs without duplicating the hard-coded endpoints.
 
 ### Dynamic TON API webhooks
 

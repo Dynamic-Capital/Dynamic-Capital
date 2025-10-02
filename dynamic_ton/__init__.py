@@ -23,6 +23,11 @@ from .engine import (
     TonNetworkTelemetry,
     TonTreasuryPosture,
 )
+from .network import (
+    TON_MAINNET_LITESERVERS,
+    TonLiteserver,
+    build_tonlib_liteservers,
+)
 from .webhooks import (
     TonWebhookEnvelope,
     build_plan_from_webhook,
@@ -47,7 +52,10 @@ __all__ = [
     "TonLiquidityPool",
     "TonNetworkTelemetry",
     "TonTreasuryPosture",
+    "TonLiteserver",
+    "TON_MAINNET_LITESERVERS",
     "build_execution_plan",
+    "build_tonlib_liteservers",
     "build_plan_from_webhook",
     "compute_webhook_signature",
     "compute_webhook_signature_hex",
