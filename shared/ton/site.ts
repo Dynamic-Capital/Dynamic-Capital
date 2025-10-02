@@ -9,7 +9,8 @@ export const TON_SITE_GATEWAY_ORIGIN = `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMA
 export const TON_SITE_GATEWAY_URL = TON_SITE_GATEWAY_ORIGIN;
 
 /**
- * Resolves a path relative to the TON Site gateway origin, ensuring there are no duplicate slashes.
+ * Resolves a path relative to the TON Site gateway origin, ensuring duplicate
+ * slashes are collapsed while preserving query and hash suffixes.
  */
 export function resolveTonSiteUrl(path: string = "/"): string {
   const trimmed = path.trim();
@@ -17,8 +18,32 @@ export function resolveTonSiteUrl(path: string = "/"): string {
     return TON_SITE_GATEWAY_ORIGIN;
   }
 
-  const normalized = trimmed.startsWith("/") ? trimmed.slice(1) : trimmed;
-  return `${TON_SITE_GATEWAY_ORIGIN}/${normalized}`;
+  let working = trimmed;
+  let hash = "";
+
+  const hashIndex = working.indexOf("#");
+  if (hashIndex >= 0) {
+    hash = working.slice(hashIndex);
+    working = working.slice(0, hashIndex);
+  }
+
+  let query = "";
+  const queryIndex = working.indexOf("?");
+  if (queryIndex >= 0) {
+    query = working.slice(queryIndex);
+    working = working.slice(0, queryIndex);
+  }
+
+  const segments = working
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  const normalizedPath = segments.join("/");
+  const baseUrl = normalizedPath
+    ? `${TON_SITE_GATEWAY_ORIGIN}/${normalizedPath}`
+    : TON_SITE_GATEWAY_ORIGIN;
+
+  return `${baseUrl}${query}${hash}`;
 }
 
 export const TON_SITE_ICON_URL = resolveTonSiteUrl("icon.png");

@@ -30,5 +30,14 @@ describe("ton site gateway helpers", () => {
     expect(resolveTonSiteUrl("/nested/path")).toBe(
       "https://ton.site/dynamiccapital.ton/nested/path",
     );
+    expect(resolveTonSiteUrl("/nested//path//")).toBe(
+      "https://ton.site/dynamiccapital.ton/nested/path",
+    );
+    expect(resolveTonSiteUrl(" nested//path ?q=1 ")).toBe(
+      "https://ton.site/dynamiccapital.ton/nested/path?q=1",
+    );
+    expect(resolveTonSiteUrl("/path//with#hash")).toBe(
+      "https://ton.site/dynamiccapital.ton/path/with#hash",
+    );
   });
 });
