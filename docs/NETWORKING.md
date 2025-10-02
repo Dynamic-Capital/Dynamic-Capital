@@ -31,6 +31,37 @@ following guidance to expose the services and control access.
 - The resolver contract for `dynamiccapital.ton` is
   `EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo` (verified via
   [TON Contract Verifier](https://verifier.ton.org/EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo)).
+
+### TON ↔ Supabase bridge (`api.dynamiccapital.ton`)
+
+1. **Anchor the host selection.** Standardise on `api.dynamiccapital.ton` as the
+   Supabase surface so on-chain references, Mini App manifests, and back-office
+   automations all point to the same origin.
+2. **Publish the CNAME to the TON zone file.** Add a `CNAME` record for
+   `api → <project-ref>.supabase.co` and commit the update to
+   [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json). Keep the TTL
+   in the 60–300 second range during rollout so TON DNS clients pick up
+   certificate challenges quickly.
+3. **Mirror Supabase TXT challenges in Web3 storage.** When Supabase issues
+   `_acme-challenge.api.dynamiccapital.ton` TXT tokens, add them to the DNS
+   snapshot and pin the raw token bundle to TON Storage or IPFS. This creates a
+   tamper-evident audit trail that wallets and smart contracts can hash against.
+4. **Reverify from both worlds.** Trigger `supabase domains reverify` (or use
+   the dashboard) and separately resolve `api.dynamiccapital.ton` through
+   `toncli dns resolve` or Tonkeeper to confirm the blockchain resolver has
+   propagated the record.
+5. **Activate and harden.** After Supabase issues the TLS certificate, activate
+   the domain, raise the TTL to your steady-state value, and update OAuth
+   callbacks, Telegram Mini App origins, and edge-function allow lists to
+   reference `https://api.dynamiccapital.ton` alongside the legacy host.
+6. **Stream telemetry to the Web3 graph.** Emit a `custom_domain_activated`
+   event to the Supabase `tx_logs` table, hash the DNS bundle, and publish the
+   hash to the TON multisig memo so downstream analytics can verify the Web2 ↔
+   Web3 linkage.
+7. **Validate billing coverage.** Confirm the **Custom Domain** add-on remains
+   enabled in Supabase billing; without it the host will downgrade and the TON
+   resolver will strand requests.
+
 - Run `deno run -A scripts/configure-digitalocean-dns.ts --dry-run` to inspect
   the planned DNS state for `dynamic-capital.lovable.app`. Remove `--dry-run`
   once the plan looks correct to apply changes through `doctl`. The script keeps
