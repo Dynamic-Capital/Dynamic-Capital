@@ -31,6 +31,10 @@ const SUPABASE_OVERRIDE_SYMBOL = Symbol.for(
   "dynamic-capital.dynamic-ai.supabase",
 );
 
+const SESSION_OVERRIDE_SYMBOL = Symbol.for(
+  "dynamic-capital.dynamic-ai.session",
+);
+
 interface SupabaseInsert {
   interaction_type: string;
   telegram_user_id: string;
@@ -83,6 +87,8 @@ Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () =
     supabaseMock;
   (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
     createNoopApiMetrics();
+  (globalThis as Record<PropertyKey, unknown>)[SESSION_OVERRIDE_SYMBOL] =
+    async () => ({ user: { id: "session-user" } });
 
   const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> =
     [];
@@ -155,6 +161,9 @@ Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () =
   delete (globalThis as Record<PropertyKey, unknown>)[
     API_METRICS_OVERRIDE_SYMBOL
   ];
+  delete (globalThis as Record<PropertyKey, unknown>)[
+    SESSION_OVERRIDE_SYMBOL
+  ];
 });
 
 async function collectSseEvents(response: Response) {
@@ -197,6 +206,8 @@ Deno.test("POST /api/dynamic-ai/chat streams realtime updates", async () => {
     supabaseMock;
   (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
     createNoopApiMetrics();
+  (globalThis as Record<PropertyKey, unknown>)[SESSION_OVERRIDE_SYMBOL] =
+    async () => ({ user: { id: "session-user" } });
 
   (globalThis as Record<PropertyKey, unknown>)[DYNAMIC_AI_FETCH_OVERRIDE] =
     async () =>
@@ -260,6 +271,9 @@ Deno.test("POST /api/dynamic-ai/chat streams realtime updates", async () => {
   delete (globalThis as Record<PropertyKey, unknown>)[
     API_METRICS_OVERRIDE_SYMBOL
   ];
+  delete (globalThis as Record<PropertyKey, unknown>)[
+    SESSION_OVERRIDE_SYMBOL
+  ];
 });
 
 Deno.test("GET /api/dynamic-ai/chat returns persisted history", async () => {
@@ -273,6 +287,8 @@ Deno.test("GET /api/dynamic-ai/chat returns persisted history", async () => {
     supabaseMock;
   (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
     createNoopApiMetrics();
+  (globalThis as Record<PropertyKey, unknown>)[SESSION_OVERRIDE_SYMBOL] =
+    async () => ({ user: { id: "session-user" } });
 
   const { GET } = await import("../route.ts");
 
@@ -298,4 +314,44 @@ Deno.test("GET /api/dynamic-ai/chat returns persisted history", async () => {
   delete (globalThis as Record<PropertyKey, unknown>)[
     API_METRICS_OVERRIDE_SYMBOL
   ];
+  delete (globalThis as Record<PropertyKey, unknown>)[
+    SESSION_OVERRIDE_SYMBOL
+  ];
 });
+
+Deno.test(
+  "POST /api/dynamic-ai/chat rejects unauthenticated requests",
+  async () => {
+    setEnv();
+    (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
+      createNoopApiMetrics();
+    (globalThis as Record<PropertyKey, unknown>)[SESSION_OVERRIDE_SYMBOL] =
+      async () => null;
+
+    const { POST } = await import("../route.ts");
+
+    const response = await POST(
+      new Request("http://localhost/api/dynamic-ai/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: "unauth",
+          message: "Hi",
+          history: [],
+        }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    assertEquals(response.status, 401);
+    const payload = await response.json() as { ok?: boolean; error?: string };
+    assertCondition(payload.ok === false, "expected failure response");
+    assertEquals(payload.error, "Authentication required.");
+
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      API_METRICS_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      SESSION_OVERRIDE_SYMBOL
+    ];
+  },
+);
