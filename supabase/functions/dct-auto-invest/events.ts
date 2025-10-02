@@ -1,4 +1,13 @@
-import { enqueue } from "../../../queue/index.ts";
+// Queue system not compatible with Deno Edge Functions
+// Using direct logging approach instead
+async function enqueue(
+  type: string,
+  payload: unknown,
+  _opts?: { maxAttempts?: number; backoff?: string }
+): Promise<void> {
+  console.log(`[Event] ${type}`, JSON.stringify(payload));
+  // TODO: Implement proper event queue when Deno-compatible queue is available
+}
 
 export interface EventSplitConfig {
   operationsPct: number;
