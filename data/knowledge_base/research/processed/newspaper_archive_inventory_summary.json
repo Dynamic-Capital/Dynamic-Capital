@@ -1,0 +1,11 @@
+{
+  "collection": "newspaperarchive",
+  "documents_exported": 1000,
+  "source_statistics": {
+    "newspaperarchive": 1000
+  },
+  "duplicate_count": 0,
+  "elapsed_seconds": 1.211039731000028,
+  "limit": 1000,
+  "query": "collection:newspaperarchive"
+}
