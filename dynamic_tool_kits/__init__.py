@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import ast
 from ast import literal_eval
+from collections import defaultdict
 from importlib import import_module
 from pathlib import Path
-from typing import Dict, Iterable, Tuple
+from types import MappingProxyType
+from typing import Dict, Iterable, Mapping, MutableMapping, Tuple
 
 # Each entry points to the supporting data models, contexts, and helper classes
 # for a particular domain toolkit.  Symbols are resolved lazily to avoid pulling
@@ -51,6 +53,9 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DolphinModelConfig",
         "DolphinPromptTemplate",
         "DolphinSamplingConfig",
+        "KimiK2Adapter",
+        "KimiK2Config",
+        "KimiK2PromptTemplate",
         "LLMIntegrationError",
         "OllamaAdapter",
         "OllamaConfig",
@@ -335,7 +340,43 @@ def _discover_toolkits() -> Dict[str, Tuple[str, ...]]:
 
 _TOOLKIT_EXPORTS.update(_discover_toolkits())
 
-__all__ = sorted({symbol for symbols in _TOOLKIT_EXPORTS.values() for symbol in symbols})
+
+def _build_symbol_index(
+    exports: Mapping[str, Tuple[str, ...]]
+) -> Tuple[Dict[str, str], Dict[str, Tuple[str, ...]]]:
+    """Create a quick lookup map for symbols and record any collisions."""
+
+    symbol_to_module: Dict[str, str] = {}
+    collisions: MutableMapping[str, list[str]] = defaultdict(list)
+
+    for module_name, symbols in exports.items():
+        for symbol in symbols:
+            owner = symbol_to_module.get(symbol)
+            if owner is None:
+                symbol_to_module[symbol] = module_name
+                continue
+            if owner == module_name:
+                continue
+            owners = collisions[symbol]
+            if not owners:
+                owners.append(owner)
+            if module_name not in owners:
+                owners.append(module_name)
+
+    return symbol_to_module, {
+        name: tuple(modules) for name, modules in collisions.items()
+    }
+
+
+_SYMBOL_TO_MODULE, _SYMBOL_COLLISIONS = _build_symbol_index(_TOOLKIT_EXPORTS)
+
+_HELPER_EXPORTS = (
+    "available_toolkits",
+    "resolve_toolkit_symbol",
+    "toolkit_symbol_sources",
+)
+
+__all__ = sorted(set(_SYMBOL_TO_MODULE) | set(_HELPER_EXPORTS))
 
 
 def _load_symbol(module_name: str, symbol: str) -> object:
@@ -346,11 +387,49 @@ def _load_symbol(module_name: str, symbol: str) -> object:
 
 
 def __getattr__(name: str) -> object:
-    for module_name, symbols in _TOOLKIT_EXPORTS.items():
-        if name in symbols:
-            return _load_symbol(module_name, name)
+    module_name = _SYMBOL_TO_MODULE.get(name)
+    if module_name:
+        return _load_symbol(module_name, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def __dir__() -> Iterable[str]:
-    return sorted(__all__)
+    return __all__
+
+
+def available_toolkits() -> Mapping[str, Tuple[str, ...]]:
+    """Return a read-only mapping of all registered toolkit exports."""
+
+    return MappingProxyType(dict(_TOOLKIT_EXPORTS))
+
+
+def toolkit_symbol_sources(name: str) -> Tuple[str, ...]:
+    """Return the module(s) providing ``name`` when duplicates exist."""
+
+    module_name = _SYMBOL_TO_MODULE.get(name)
+    if module_name is None:
+        raise KeyError(f"Unknown toolkit symbol: {name!r}")
+    collisions = _SYMBOL_COLLISIONS.get(name)
+    if not collisions:
+        return (module_name,)
+    ordered = tuple(dict.fromkeys((module_name, *collisions)))
+    return ordered
+
+
+def resolve_toolkit_symbol(name: str, module_name: str | None = None) -> object:
+    """Explicitly resolve a toolkit symbol, optionally targeting a module."""
+
+    if module_name is None:
+        module_name = _SYMBOL_TO_MODULE.get(name)
+        if module_name is None:
+            raise AttributeError(
+                f"module {__name__!r} has no attribute {name!r}"
+            )
+        return _load_symbol(module_name, name)
+
+    symbols = _TOOLKIT_EXPORTS.get(module_name)
+    if not symbols or name not in symbols:
+        raise KeyError(
+            f"Symbol {name!r} is not exported by toolkit module {module_name!r}"
+        )
+    return _load_symbol(module_name, name)
