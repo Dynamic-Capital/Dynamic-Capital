@@ -37,8 +37,8 @@ Supabase-enabled, and productionized on the Windows host that runs MT5.
 - [ ] Remove or retire the upstream `src/scripts/init_db.py` workflow so
       migrations originate from the Dynamic Capital Supabase schema repo.
 - [ ] Map Supabase `signals` columns to the copier’s models
-      (`dynamic/models/dynamic_database`) and trim unused tables/fields that Supabase will
-      not expose.
+      (`dynamic/models/dynamic_database`) and trim unused tables/fields that
+      Supabase will not expose.
 - [ ] Use the new `trading_accounts`, `signals`, `signal_dispatches`, and
       `trades` tables from `20250920000000_trading_signals_pipeline.sql` as the
       source of truth (alert IDs remain unique).

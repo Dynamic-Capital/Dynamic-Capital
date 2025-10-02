@@ -55,4 +55,6 @@
 
 ## Simulation
 
-- Run `python -m dynamic_translation.dhivehi_simulation "ބާވަތް ބަލާލުން."` to generate a sample Dhivehi → English translation trace with glossary coverage, memory provenance, and post-edit prompts.
+- Run `python -m dynamic_translation.dhivehi_simulation "ބާވަތް ބަލާލުން."` to generate
+  a sample Dhivehi → English translation trace with glossary coverage, memory
+  provenance, and post-edit prompts.

@@ -28,8 +28,8 @@ Use this checklist when auditing an environment or planning improvements. Each
 subsection maps to the detailed guidance later in the document.
 
 - [ ] **Shim coverage** – inventory which orchestration engines are needed,
-      confirm they are exported via `dynamic.platform.engines`, and document any new
-      modules that must be registered in `_ENGINE_EXPORTS`.
+      confirm they are exported via `dynamic.platform.engines`, and document any
+      new modules that must be registered in `_ENGINE_EXPORTS`.
 - [ ] **Persona chain fit** – review the existing research → execution → risk
       flow, note where persona overrides are required, and schedule updates
       through `configure_dynamic_start_agents`.
@@ -48,10 +48,10 @@ into the team backlog.
 
 ## 1. Import engines through the `dynamic.platform.engines` shim
 
-The legacy-compatible `dynamic.platform.engines` module forwards attributes to the domain
-packages on demand, so you can keep call sites stable while implementations live
-beside their data models. Update `_ENGINE_EXPORTS` if you add a new engine so it
-becomes available via a single import path.
+The legacy-compatible `dynamic.platform.engines` module forwards attributes to
+the domain packages on demand, so you can keep call sites stable while
+implementations live beside their data models. Update `_ENGINE_EXPORTS` if you
+add a new engine so it becomes available via a single import path.
 
 ```python
 from dynamic.platform.engines import DynamicSpaceEngine, DynamicStateEngine
@@ -59,10 +59,11 @@ from dynamic.platform.engines import DynamicSpaceEngine, DynamicStateEngine
 
 _Optimisation tips:_
 
-- `dynamic.platform.engines.__getattr__` lazily imports the source module and caches the
-  symbol, covering engines such as `DynamicAssignEngine`, `DynamicSpaceEngine`,
-  and `DynamicStateEngine`. This keeps optional dependencies dormant until
-  needed and mirrors the historical surface area without duplicating
+- `dynamic.platform.engines.__getattr__` lazily imports the source module and
+  caches the symbol, covering engines such as `DynamicAssignEngine`,
+  `DynamicSpaceEngine`, and `DynamicStateEngine`. This keeps optional
+  dependencies dormant until needed and mirrors the historical surface area
+  without duplicating
   logic.【F:dynamic.platform.engines/**init**.py†L1-L123】【F:dynamic.platform.engines/**init**.py†L168-L212】
 - When adding a new engine, expose only the public entry points in
   `_ENGINE_EXPORTS` to avoid leaking experimental utilities.

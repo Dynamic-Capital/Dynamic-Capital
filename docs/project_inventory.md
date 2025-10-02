@@ -43,8 +43,8 @@ related assets to simplify discovery and onboarding.
   assets supporting persistence layers.
 - **`dynamic_memory/` & `dynamic_memory_reconsolidation/`** – Modules dedicated
   to memory storage, retrieval, and reinforcement strategies.
-- **`ml/`, `dynamic/models/`, `trainer/`** – Machine learning experiments, trained
-  artifacts, and tooling for iterative model development.
+- **`ml/`, `dynamic/models/`, `trainer/`** – Machine learning experiments,
+  trained artifacts, and tooling for iterative model development.
 - **`docs/`, `_static/`, `content/`** – Documentation, static assets, and
   curated knowledge bases that aid onboarding and research.
 

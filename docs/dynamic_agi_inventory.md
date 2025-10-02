@@ -1,8 +1,9 @@
 # Dynamic AGI Inventory
 
 This catalog summarises the modules, classes, and workflows that make up the
-`dynamic.intelligence.agi` package. Use it to understand how evaluation, self-improvement,
-and fine-tuning artifacts fit together and where inventory-sensitive hooks live.
+`dynamic.intelligence.agi` package. Use it to understand how evaluation,
+self-improvement, and fine-tuning artifacts fit together and where
+inventory-sensitive hooks live.
 
 ## Exported surface
 
@@ -28,7 +29,8 @@ for the full AGI toolchain.【F:dynamic.intelligence.agi/**init**.py†L1-L29】
 - **Evaluation pipeline** – `DynamicAGIModel.evaluate` prepares the market
   context, merges research, enforces risk, sizes exposure, and forwards treasury
   plus inventory state into the market-making layer before emitting diagnostics
-  and optional self-improvement feedback.【F:dynamic.intelligence.agi/model.py†L232-L326】
+  and optional self-improvement
+  feedback.【F:dynamic.intelligence.agi/model.py†L232-L326】
 - **Inventory-aware market making** – The orchestrator passes current inventory
   into `DynamicFusionAlgo.mm_parameters`, where elevated exposure increases the
   gamma setting to rein in quoting
@@ -71,14 +73,16 @@ for the full AGI toolchain.【F:dynamic.intelligence.agi/**init**.py†L1-L29】
 - **Telemetry-to-dataset bridge** – `DynamicAGIFineTuner` converts
   `LearningSnapshot` telemetry into prompt/completion examples, optionally
   batches them, and returns dataset summaries with default tag context for
-  downstream fine-tuning jobs.【F:dynamic.intelligence.agi/fine_tune.py†L233-L285】
+  downstream fine-tuning
+  jobs.【F:dynamic.intelligence.agi/fine_tune.py†L233-L285】
 
 ## Local machine integration (`local_machine.py`)
 
 - **Task configuration** – `AGILocalMachineTaskConfig` supplies default command
   templates plus category- or action-specific overrides, keeping working
   directory, environment, and resource estimates consistent when converting
-  plans into automation tasks.【F:dynamic.intelligence.agi/local_machine.py†L52-L117】
+  plans into automation
+  tasks.【F:dynamic.intelligence.agi/local_machine.py†L52-L117】
 - **Plan materialisers** – `build_local_machine_plan_from_improvement` and
   `build_local_machine_plan_from_output` translate improvement plans or AGI
   outputs into `LocalMachinePlan` instances so Dynamic AGI recommendations can

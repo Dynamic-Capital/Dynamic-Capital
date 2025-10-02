@@ -490,7 +490,7 @@ dialectical synthesis routines drive reflection and discourse.
 | `dynamic_reference`          | Citation and provenance management              | Knowledge graphs + LLM ranking                           | Reference parsing, PageRank heuristics              |
 | `dynamic_text`               | Reliable multi-format text generation           | Transformer-based language models + logic chains         | Coherence scoring, readability formulas             |
 | `dynamic_method`             | Method selection and composition                | Meta-learning + optimization                             | Utility maximization, dispatch logic                |
-| `dynamic.governance.ags`           | Adaptive workflow orchestration                 | Finite-state machines + rule engines                     | Flowchart heuristics, escalation matrices           |
+| `dynamic.governance.ags`     | Adaptive workflow orchestration                 | Finite-state machines + rule engines                     | Flowchart heuristics, escalation matrices           |
 | `dynamic_routine`            | Routine scheduling and adjustment               | Reinforcement learning schedulers + workflow mining      | Priority scoring, dynamic slotting                  |
 | `dynamic_energy`             | Distributed energy optimization                 | Multi-agent reinforcement learning + graph optimization  | Dispatch logic, load balancing, pricing             |
 | `dynamic_recycling`          | Waste processing optimization                   | Computer vision + reinforcement learning                 | Recycling rate maximization, sorting heuristics     |
@@ -501,9 +501,10 @@ dialectical synthesis routines drive reflection and discourse.
 
 ## Implementation Checklist
 
-The build scenario captured in `data/dynamic.intelligence.agi_modular_build.json` records
-telemetry pulses confirming the completion of the following integration
-milestones across each modular domain.
+The build scenario captured in
+`data/dynamic.intelligence.agi_modular_build.json` records telemetry pulses
+confirming the completion of the following integration milestones across each
+modular domain.
 
 ### Build Scenario Objective Tracker
 
@@ -599,8 +600,8 @@ evidence of delivery. Highlights include:
 
 - [x] Build meta-learning policy repositories to drive `dynamic_method`
       selections.
-- [x] Author adaptive incident response templates for `dynamic.governance.ags` with
-      branching logic tests.
+- [x] Author adaptive incident response templates for `dynamic.governance.ags`
+      with branching logic tests.
 - [x] Schedule reinforcement learning experiments for `dynamic_routine` to
       optimize recurring workflows.
 
@@ -625,12 +626,13 @@ evidence of delivery. Highlights include:
 ## Integrative Perspectives and Architectural Considerations
 
 To operationalize the modular landscape, we introduce a dedicated integrative
-blueprint captured in `data/dynamic.intelligence.agi_integrative_architecture.json`. This
-artifact codifies the cross-domain layers, interfaces, and governance contracts
-required to stitch telemetry, cognition, trust, and reflection into a unified
-capability fabric. The companion build scenario’s `objectives` ledger ensures
-that each integration is backed by observable telemetry pulses before it is
-promoted to production orchestration.
+blueprint captured in
+`data/dynamic.intelligence.agi_integrative_architecture.json`. This artifact
+codifies the cross-domain layers, interfaces, and governance contracts required
+to stitch telemetry, cognition, trust, and reflection into a unified capability
+fabric. The companion build scenario’s `objectives` ledger ensures that each
+integration is backed by observable telemetry pulses before it is promoted to
+production orchestration.
 
 ### Layered Architectural Stack
 

@@ -146,12 +146,13 @@ preserving observability, governance, and cost efficiency.
 
 ## Reference Implementation
 
-The `dynamic.intelligence.ai_apps.infrastructure` module materialises this playbook in code. It
-defines the shared role palette, per-domain blueprints, and a
-`DynamicInfrastructure` registry that can register modules, assign role owners,
-and emit operational playbooks. Use `build_default_infrastructure()` when you
-need a ready-to-run baseline covering core modules such as `dynamic_supabase`,
-`dynamic_memory`, `dynamic_task_manager`, and `dynamic_validator`.
+The `dynamic.intelligence.ai_apps.infrastructure` module materialises this
+playbook in code. It defines the shared role palette, per-domain blueprints, and
+a `DynamicInfrastructure` registry that can register modules, assign role
+owners, and emit operational playbooks. Use `build_default_infrastructure()`
+when you need a ready-to-run baseline covering core modules such as
+`dynamic_supabase`, `dynamic_memory`, `dynamic_task_manager`, and
+`dynamic_validator`.
 
 For hands-on experiments, the repo now provides lightweight compatibility
 packages for the core operational personas:

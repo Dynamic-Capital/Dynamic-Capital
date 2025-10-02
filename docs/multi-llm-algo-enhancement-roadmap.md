@@ -48,10 +48,10 @@ actions progressively reduce risk while layering in new capabilities.
 2. **Evolve the agent graph** – Introduce specialized Dynamic AI personas for
    research, risk, and execution review. Define explicit inputs/outputs and
    mediation protocols so the orchestrator can route complex requests through
-   multi-agent chains without losing context. The `dynamic.intelligence.ai_apps/agents.py` module
-   and `run_dynamic_agent_cycle` helper now supply the reference implementation
-   for this flow, so future roadmap work can extend or customise personas rather
-   than recreating the
+   multi-agent chains without losing context. The
+   `dynamic.intelligence.ai_apps/agents.py` module and `run_dynamic_agent_cycle`
+   helper now supply the reference implementation for this flow, so future
+   roadmap work can extend or customise personas rather than recreating the
    plumbing.【F:dynamic.intelligence.ai_apps/agents.py†L1-L365】【F:algorithms/python/dynamic.intelligence.ai_apps_sync.py†L64-L143】
 3. **Automate self-audits** – Schedule nightly replay jobs that compare provider
    rationales against historical market truth. Escalate regressions to analysts
