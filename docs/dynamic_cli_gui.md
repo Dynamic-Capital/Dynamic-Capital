@@ -1,6 +1,7 @@
 # Dynamic CLI/CD Web Workbench
 
-The Dynamic CLI/CD workbench exposes the Python `dynamic_framework` engine
+The Dynamic CLI/CD workbench exposes the Python `dynamic.intelligence.agi.build`
+CLI (backed by the `dynamic_framework` engine)
 through the Next.js application so product, platform, and operations teams can
 experiment with maturity scenarios without leaving the browser. This document
 summarises how the GUI maps to the existing CLI workflow and the environment
@@ -17,7 +18,7 @@ variables required for local development.
 - **Fine-tune tags**: Adds up to 16 default tags, forwarding them via the
   repeatable `--fine-tune-tag` CLI flag.
 - **Dataset toggle**: Streams the dataset inline by invoking
-  `--fine-tune-dataset -`, allowing the API to return both report text/JSON and
+  `--dataset -`, allowing the API to return both report text/JSON and
   the training payload.
 
 ## Admin access
@@ -31,8 +32,8 @@ session required" prompt—refresh the admin control room to generate a new toke
 
 ## Next.js API bridge
 
-`POST /api/dynamic-cli` executes `python -m dynamic_framework`, passes scenario
-JSON via STDIN, and normalises the output into a JSON response:
+`POST /api/dynamic-cli` executes `python -m dynamic.intelligence.agi.build`,
+passes scenario JSON via STDIN, and normalises the output into a JSON response:
 
 ```json
 {

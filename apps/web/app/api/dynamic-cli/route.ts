@@ -22,6 +22,7 @@ import {
 } from "@/utils/admin-auth.ts";
 
 const ROUTE_NAME = "/api/dynamic-cli";
+const CLI_MODULE = "dynamic.intelligence.agi.build";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -97,12 +98,14 @@ interface CliResult {
 async function executeCli(
   payload: z.infer<typeof requestSchema>,
 ): Promise<CliResult> {
-  const pythonBinary = process.env.DYNAMIC_CLI_PYTHON ?? process.env.PYTHON ??
+  const pythonBinary = process.env.DYNAMIC_AGI_PYTHON ??
+    process.env.DYNAMIC_CLI_PYTHON ??
+    process.env.PYTHON ??
     "python3";
 
   const args: string[] = [
     "-m",
-    "dynamic_framework",
+    CLI_MODULE,
     "--format",
     payload.format,
   ];
@@ -112,7 +115,7 @@ async function executeCli(
   }
 
   if (payload.exportDataset || payload.format === "fine-tune") {
-    args.push("--fine-tune-dataset", "-");
+    args.push("--dataset", "-");
   }
 
   for (const tag of payload.fineTuneTags) {

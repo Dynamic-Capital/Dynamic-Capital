@@ -27,8 +27,9 @@
 
 ## Page 1 — Preface & Audience
 
-The Dynamic CLI (command-line interface) orchestrates the `dynamic_framework`
-evaluation engine, enabling engineering leaders, delivery managers, and platform
+The Dynamic CLI (command-line interface) orchestrates the
+`dynamic.intelligence.agi.build` command—backed by the `dynamic_framework`
+evaluation engine—enabling engineering leaders, delivery managers, and platform
 strategists to transform scenario definitions into actionable maturity reports.
 This manual targets:
 
@@ -45,7 +46,7 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 ## Page 2 — Quick Start Synopsis
 
 1. Prepare a scenario definition in JSON (JavaScript Object Notation).
-2. Run `python -m dynamic_framework --scenario scenario.json`.
+2. Run `python -m dynamic.intelligence.agi.build --scenario scenario.json`.
 3. Review the text report summary in the terminal or request structured JSON
    using `--format json`.
 
@@ -67,10 +68,10 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 
 ### Invocation Patterns
 
-| Usage Form                    | Description                                                      | Synonyms              |
-| ----------------------------- | ---------------------------------------------------------------- | --------------------- |
-| `python -m dynamic_framework` | Execute the CLI using the module loader.                         | run, launch, initiate |
-| `dynamic-framework`           | If installed via an entry point script, invokes the same runner. | command, executable   |
+| Usage Form                                | Description                                                      | Synonyms              |
+| ----------------------------------------- | ---------------------------------------------------------------- | --------------------- |
+| `python -m dynamic.intelligence.agi.build` | Execute the enhanced Dynamic CLI module via the Python loader.   | run, launch, initiate |
+| `dynamic-framework`                       | If installed via an entry point script, invokes the same runner. | command, executable   |
 
 ### Core Flags
 
@@ -79,7 +80,7 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 | `--scenario PATH`                | _(optional)_   | Load scenario JSON from a file path or '-' for STDIN.                                                                | context file, input manifest, blueprint source |
 | `--format {text,json,fine-tune}` | `text`         | Choose plain text, JSON, or fine-tune dataset output.                                                                | output mode, rendering style, representation   |
 | `--indent N`                     | `2`            | Number of spaces applied to JSON pretty-printing.                                                                    | spacing, padding, indentation depth            |
-| `--fine-tune-dataset PATH`       | _(optional)_   | Write the Dynamic AGI training payload to `PATH` (use `-` for stdout). Parent directories are created automatically. | dataset export, training payload, AGI corpus   |
+| `--dataset PATH`                 | _(optional)_   | Write the Dynamic AGI training payload to `PATH` (use `-` for stdout). Parent directories are created automatically. | dataset export, training payload, AGI corpus   |
 | `--fine-tune-tag TAG`            | _(repeatable)_ | Apply default tags to generated fine-tune examples.                                                                  | label, classification marker, taxonomy token   |
 
 ---
@@ -91,7 +92,7 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 - **Filesystem path**: Absolute or relative path to a UTF-8 encoded JSON
   document.
 - **Standard input (`-`)**: Pipe a JSON payload directly, e.g.
-  `cat scenario.json | python -m dynamic_framework --scenario -`.
+  `cat scenario.json | python -m dynamic.intelligence.agi.build --scenario -`.
 - **Implicit default**: Omit `--scenario` to evaluate the baked-in exemplar
   scenario described in Appendix A.
 
@@ -168,7 +169,7 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 - Streams the Dynamic AGI training dataset derived from the current report.
 - Mirrors the structure returned by `build_fine_tune_dataset`, embedding the
   report payload alongside fine-tune examples and a dataset summary.
-- Combine with `--fine-tune-dataset PATH` to persist the JSON for ingestion by
+- Combine with `--dataset PATH` to persist the JSON for ingestion by
   the `DynamicAGIFineTuner` utility or orchestration pipelines.
 - Examples are ordered by node key so successive runs remain deterministic when
   the scenario input is unchanged.
@@ -236,11 +237,12 @@ can iterate on scenarios without a terminal.
   `-1` to minimise whitespace when exporting JSON.
 - **Fine-tune tags** — parallels the repeatable `--fine-tune-tag` flag. Enter up
   to 16 tags; they are forwarded to the CLI whenever datasets are generated.
-- **Dataset toggle** — invokes `--fine-tune-dataset -` when enabled so the API
-  response contains both the narrative report and the training dataset JSON.
+- **Dataset toggle** — invokes `--dataset -` when enabled so the API response
+  contains both the narrative report and the training dataset JSON.
 
 The underlying API route (`POST /api/dynamic-cli`) executes
-`python -m dynamic_framework`, streams scenario JSON over STDIN, and returns the
+`python -m dynamic.intelligence.agi.build`, streams scenario JSON over STDIN,
+and returns the
 serialised output—or CLI error—as a JSON response.
 
 > **Access control:** The web workbench is reserved for admin operators. The
@@ -255,7 +257,7 @@ serialised output—or CLI error—as a JSON response.
 ### Example 1: Evaluate Default Scenario
 
 ```bash
-python -m dynamic_framework
+python -m dynamic.intelligence.agi.build
 ```
 
 Produces the text summary for the built-in benchmark scenario.
@@ -264,7 +266,7 @@ Produces the text summary for the built-in benchmark scenario.
 
 ```bash
 jq '.pulses[0].momentum = 0.35' scenario.json \
-  | python -m dynamic_framework --scenario - --format json --indent 4
+  | python -m dynamic.intelligence.agi.build --scenario - --format json --indent 4
 ```
 
 Returns prettified JSON for integration into dashboards or alerting systems.
@@ -272,7 +274,7 @@ Returns prettified JSON for integration into dashboards or alerting systems.
 ### Example 3: Compact Machine Output
 
 ```bash
-python -m dynamic_framework --scenario scenario.json --format json --indent 0
+python -m dynamic.intelligence.agi.build --scenario scenario.json --format json --indent 0
 ```
 
 Useful for minimizing payload size in message queues.
