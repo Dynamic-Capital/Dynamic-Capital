@@ -33,3 +33,12 @@ acknowledge receipt within **72 hours** and aim to resolve verified issues
 within **14 days**.
 
 This security address is actively monitored by the maintainers.
+
+## Exposure Response Playbooks
+
+Dynamic Capital maintains focused remediation guides for high-risk incidents.
+Refer to [docs/security/telegram-data-exposure-response.md](docs/security/telegram-data-exposure-response.md)
+for the containment and recovery plan addressing leaked Telegram identifiers,
+student records, and related anonymous access concerns. Follow repository
+checklists alongside the playbook to ensure timely notification and hardening
+activities.
