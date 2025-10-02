@@ -76,6 +76,10 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_branch": ("DynamicBranchPlanner",),
     "dynamic_bridge": ("DynamicBridgeOrchestrator",),
     "dynamic_candles": ("DynamicCandles",),
+    "dynamic_cognition": (
+        "CognitiveAlignmentEngine",
+        "CognitiveAlignmentReport",
+    ),
     "dynamic_consciousness": ("DynamicConsciousness",),
     "dynamic_creative_thinking": ("DynamicCreativeThinking",),
     "dynamic_critical_thinking": ("DynamicCriticalThinking",),

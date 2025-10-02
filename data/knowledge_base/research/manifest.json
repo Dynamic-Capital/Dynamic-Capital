@@ -75,6 +75,27 @@
       "notes": "NVIDIA's synthetic persona corpus covering one million Japanese-language personas grounded in census-aligned demographics, geography, and cultural context for sovereign AI workloads."
     },
     {
+      "slug": "holy_quran_english_v1",
+      "source": {
+        "url": "https://files.alislam.cloud/pdf/Holy-Quran-English.pdf",
+        "notes": "Maulvi Sher Ali English translation distributed by Al Islam."
+      },
+      "processed_path": "data/knowledge_base/research/processed/holy_quran_english.jsonl",
+      "sample_path": "data/knowledge_base/research/processed/holy_quran_english_sample.jsonl",
+      "summary_path": "data/knowledge_base/research/processed/holy_quran_english_summary.json",
+      "rows": 1025,
+      "languages": {
+        "en": 1025
+      },
+      "tags": {
+        "religion": 1025,
+        "quran": 1025,
+        "islam": 1025,
+        "translation": 1025
+      },
+      "notes": "Page-level extraction of the 2021 Holy Quran English PDF with structured metadata for each page."
+    },
+    {
       "slug": "dynamic_trading_knowledge_base_v1",
       "source": {
         "one_drive_path": "OneDrive\\\\DynamicAI_D\\\\Bdatasets\\\\dynamic_trading_knowledge",
