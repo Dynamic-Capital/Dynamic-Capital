@@ -15,6 +15,7 @@ can be embedded in CLI tools, background workers, or notebooks.
 from __future__ import annotations
 
 from collections import Counter, deque
+from heapq import nlargest
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from statistics import fmean
@@ -152,6 +153,30 @@ class FineTuneRecordBatch:
         return payload
 
 
+@dataclass(slots=True)
+class _SourceAggregate:
+    count: int = 0
+    quality_sum: float = 0.0
+
+    def add(self, quality: float) -> None:
+        self.count += 1
+        self.quality_sum += quality
+
+    def remove(self, quality: float) -> None:
+        if self.count <= 1:
+            self.count = 0
+            self.quality_sum = 0.0
+        else:
+            self.count -= 1
+            self.quality_sum -= quality
+
+    @property
+    def average_quality(self) -> float:
+        if self.count == 0:
+            return 0.0
+        return self.quality_sum / self.count
+
+
 class DynamicFineTuneEngine:
     """Rolling dataset engine with prioritised batching."""
 
@@ -172,7 +197,7 @@ class DynamicFineTuneEngine:
         self._records: Deque[FineTuneRecord] = deque()
         self._fingerprints: set[str] = set()
         self._tag_counts: Counter[str] = Counter()
-        self._source_scores: Dict[str, List[float]] = {}
+        self._source_stats: Dict[str, _SourceAggregate] = {}
 
     def __len__(self) -> int:  # pragma: no cover - trivial
         return len(self._records)
@@ -216,16 +241,16 @@ class DynamicFineTuneEngine:
             raise ValueError("batch_size must be positive")
         minimum_quality = max(0.0, min(1.0, float(minimum_quality)))
 
-        candidates: List[Tuple[float, FineTuneRecord]] = []
-        for index, record in enumerate(self._records):
-            if record.quality < minimum_quality:
-                continue
-            age_penalty = self.decay * index
-            score = record.score - age_penalty
-            candidates.append((score, record))
+        def _candidates() -> Iterator[Tuple[float, FineTuneRecord]]:
+            for index, record in enumerate(self._records):
+                if record.quality < minimum_quality:
+                    continue
+                age_penalty = self.decay * index
+                yield (record.score - age_penalty, record)
 
-        candidates.sort(key=lambda item: item[0], reverse=True)
-        selected_records = tuple(record for _, record in candidates[:batch_size])
+        selected_records = tuple(
+            record for _, record in nlargest(batch_size, _candidates(), key=lambda item: item[0])
+        )
 
         if remove and selected_records:
             retained: Deque[FineTuneRecord] = deque()
@@ -243,37 +268,37 @@ class DynamicFineTuneEngine:
     def stats(self) -> Dict[str, object]:
         qualities = [record.quality for record in self._records]
         priorities = [record.priority for record in self._records]
-        token_estimates = [
-            record.token_estimate
+        token_estimate_total = sum(
+            record.token_estimate or 0
             for record in self._records
             if record.token_estimate is not None
-        ]
+        )
         return {
             "count": len(self._records),
             "capacity": self.capacity,
             "average_quality": fmean(qualities) if qualities else 0.0,
             "average_priority": fmean(priorities) if priorities else 0.0,
-            "token_estimate_total": sum(token_estimates) if token_estimates else 0,
+            "token_estimate_total": token_estimate_total,
             "tag_histogram": dict(sorted(self._tag_counts.items())),
             "sources": {
                 source: {
-                    "count": len(scores),
-                    "average_quality": fmean(scores) if scores else 0.0,
+                    "count": aggregate.count,
+                    "average_quality": aggregate.average_quality,
                 }
-                for source, scores in sorted(self._source_scores.items())
+                for source, aggregate in sorted(self._source_stats.items())
             },
         }
 
     def recent(self, limit: int = 5) -> Tuple[FineTuneRecord, ...]:
         if limit <= 0:
             raise ValueError("limit must be positive")
-        return tuple(list(self._records)[-limit:])
+        return tuple(deque(self._records, maxlen=limit))
 
     def clear(self) -> None:
         self._records.clear()
         self._fingerprints.clear()
         self._tag_counts.clear()
-        self._source_scores.clear()
+        self._source_stats.clear()
 
     def _coerce_record(self, payload: FineTuneRecord | Mapping[str, object]) -> FineTuneRecord:
         if isinstance(payload, FineTuneRecord):
@@ -302,7 +327,8 @@ class DynamicFineTuneEngine:
         self._fingerprints.add(record.fingerprint)
         for tag in record.tags:
             self._tag_counts[tag] += 1
-        self._source_scores.setdefault(record.source, []).append(record.quality)
+        aggregate = self._source_stats.setdefault(record.source, _SourceAggregate())
+        aggregate.add(record.quality)
 
     def _forget(self, record: FineTuneRecord) -> None:
         self._fingerprints.discard(record.fingerprint)
@@ -312,12 +338,9 @@ class DynamicFineTuneEngine:
                 self._tag_counts.pop(tag, None)
             else:
                 self._tag_counts[tag] = current - 1
-        scores = self._source_scores.get(record.source)
-        if scores:
-            try:
-                scores.remove(record.quality)
-            except ValueError:  # pragma: no cover - defensive
-                pass
-            if not scores:
-                self._source_scores.pop(record.source, None)
+        aggregate = self._source_stats.get(record.source)
+        if aggregate:
+            aggregate.remove(record.quality)
+            if aggregate.count == 0:
+                self._source_stats.pop(record.source, None)
 
