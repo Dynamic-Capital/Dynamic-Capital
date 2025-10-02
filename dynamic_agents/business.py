@@ -169,6 +169,10 @@ class DynamicBusinessAgent:
         self._accounting_history: Deque[AccountingSnapshot] = deque(maxlen=history_limit)
         self._marketing_history: Deque[MarketingSnapshot] = deque(maxlen=history_limit)
         self._psychology_history: Deque[PsychologySnapshot] = deque(maxlen=history_limit)
+        self._cached_growth: _GrowthRates | None = None
+        self._growth_marker: tuple[int, int, int, int] | None = None
+        self._cached_health: float | None = None
+        self._health_marker: tuple[int, int, int, int] | None = None
 
         self.ingest(
             sales=sales or SalesSnapshot(
@@ -209,18 +213,25 @@ class DynamicBusinessAgent:
     ) -> None:
         """Record new telemetry snapshots for any supplied domain."""
 
+        updated = False
         if sales is not None:
             sales.validate()
             self._sales_history.append(sales)
+            updated = True
         if accounting is not None:
             accounting.validate()
             self._accounting_history.append(accounting)
+            updated = True
         if marketing is not None:
             marketing.validate()
             self._marketing_history.append(marketing)
+            updated = True
         if psychology is not None:
             psychology.validate()
             self._psychology_history.append(psychology)
+            updated = True
+        if updated:
+            self._invalidate_cache()
 
     # ------------------------------------------------------------------
     # Accessors
@@ -415,6 +426,9 @@ class DynamicBusinessAgent:
         marketing: MarketingSnapshot,
         psychology: PsychologySnapshot,
     ) -> float:
+        marker = self._snapshot_marker()
+        if self._cached_health is not None and self._health_marker == marker:
+            return self._cached_health
         components: list[float] = []
         components.append(_clamp(sales.win_rate, 0.0, 1.0))
         pipeline_ratio = sales.pipeline_value / (sales.quarterly_revenue or 1.0)
@@ -429,8 +443,12 @@ class DynamicBusinessAgent:
         components.append(1.0 - _clamp(psychology.retention_risk, 0.0, 1.0))
 
         if not components:
-            return 0.0
-        return sum(components) / len(components) * 100.0
+            value = 0.0
+        else:
+            value = sum(components) / len(components) * 100.0
+        self._cached_health = value
+        self._health_marker = marker
+        return value
 
     @staticmethod
     def _growth_rate(history: Deque[SnapshotT], accessor: Callable[[SnapshotT], float]) -> float:
@@ -443,7 +461,10 @@ class DynamicBusinessAgent:
         return ((current - previous) / abs(previous)) * 100.0
 
     def _calculate_growth_rates(self) -> _GrowthRates:
-        return _GrowthRates(
+        marker = self._snapshot_marker()
+        if self._cached_growth is not None and self._growth_marker == marker:
+            return self._cached_growth
+        growth = _GrowthRates(
             sales=_SalesGrowthRates(
                 revenue_pct=self._growth_rate(
                     self._sales_history, lambda s: s.quarterly_revenue
@@ -477,6 +498,23 @@ class DynamicBusinessAgent:
                 ),
             ),
         )
+        self._cached_growth = growth
+        self._growth_marker = marker
+        return growth
+
+    def _snapshot_marker(self) -> tuple[int, int, int, int]:
+        return (
+            id(self._sales_history[-1]) if self._sales_history else 0,
+            id(self._accounting_history[-1]) if self._accounting_history else 0,
+            id(self._marketing_history[-1]) if self._marketing_history else 0,
+            id(self._psychology_history[-1]) if self._psychology_history else 0,
+        )
+
+    def _invalidate_cache(self) -> None:
+        self._cached_growth = None
+        self._growth_marker = None
+        self._cached_health = None
+        self._health_marker = None
 
 
 def _clamp(value: float, lower: float, upper: float) -> float:
