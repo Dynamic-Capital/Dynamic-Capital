@@ -8,7 +8,7 @@ governance mature.
 ## 1. Universal Webhook Endpoint
 
 Keep one FastAPI (or equivalent) webhook URL such as
-`https://api.dynamiccapital.app/webhook`.
+`https://api.dynamiccapital.ton/webhook`.
 
 TradingView alerts embed routing metadata:
 

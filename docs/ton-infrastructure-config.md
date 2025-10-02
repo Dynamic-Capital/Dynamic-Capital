@@ -95,6 +95,10 @@ TON Sites so they resolve under `.ton` domains.
     (`https://ton.site/dynamiccapital.ton`) so the fallback documented in
     [`docs/ton-site-gateway-access.md`](./ton-site-gateway-access.md) is covered
     in the runbook evidence.
+  - Step through the full
+    [`TON Site Verification Checklist`](./ton-site-verification.md) to validate
+    the DNS bundle, lite servers, and gateway fallbacks. Archive the verifier
+    output (`.out/ton_site.txt`) alongside the Supabase `tx_logs` entry.
   - Trigger the Supabase health check (`/supabase/functions/v1/link-wallet`)
     from the hosted site to confirm API connectivity; log the response payload
     in `tx_logs.metadata`.
