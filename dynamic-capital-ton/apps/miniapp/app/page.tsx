@@ -29,6 +29,7 @@ import type {
 } from "../data/live-intel";
 import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
 import { getSupabaseClient } from "../lib/supabase-client";
+import { DYNAMIC_TON_API_USER_ID, OPS_TREASURY_ADDRESS } from "../lib/config";
 
 type SectionId =
   | "overview"
@@ -123,24 +124,6 @@ type PlanSyncStatus = {
   updatedAt?: string;
   error?: string | null;
 };
-
-const DEFAULT_OPS_TREASURY_ADDRESS =
-  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
-
-const OPS_TREASURY_ADDRESS = (() => {
-  const candidate =
-    process.env.NEXT_PUBLIC_TON_OPS_TREASURY ??
-    process.env.NEXT_PUBLIC_OPS_TREASURY ??
-    process.env.NEXT_PUBLIC_TON_TREASURY ??
-    DEFAULT_OPS_TREASURY_ADDRESS;
-
-  if (typeof candidate !== "string") {
-    return DEFAULT_OPS_TREASURY_ADDRESS;
-  }
-
-  const trimmed = candidate.trim();
-  return trimmed.length > 0 ? trimmed : DEFAULT_OPS_TREASURY_ADDRESS;
-})();
 
 const RECOMMENDED_WALLETS: NonNullable<
   WalletsListConfiguration["includeWallets"]
@@ -725,12 +708,12 @@ function useTelegramId(): string {
   const isBrowser = typeof globalThis !== "undefined" &&
     typeof (globalThis as { window?: unknown }).window !== "undefined";
   if (!isBrowser) {
-    return "demo";
+    return DYNAMIC_TON_API_USER_ID;
   }
 
   const telegram = (globalThis as TelegramGlobal).Telegram;
   const telegramId = telegram?.WebApp?.initDataUnsafe?.user?.id;
-  return telegramId ? String(telegramId) : "demo";
+  return telegramId ? String(telegramId) : DYNAMIC_TON_API_USER_ID;
 }
 
 function formatWalletAddress(address?: string | null): string {
