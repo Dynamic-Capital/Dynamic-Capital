@@ -61,10 +61,16 @@ interface TransitionProps {
 const Transition = ({ value, children }: TransitionProps) => {
   const config = useContext(MotionConfigContext);
   const transition = value ?? config.transition;
+  const matchesParentTransition = Object.is(config.transition, transition);
+
   const contextValue = useMemo(
-    () => ({ ...config, transition }),
-    [config, transition],
+    () => (matchesParentTransition ? config : { ...config, transition }),
+    [config, matchesParentTransition, transition],
   );
+
+  if (matchesParentTransition) {
+    return <>{children}</>;
+  }
 
   return (
     <MotionConfigContext.Provider value={contextValue}>
