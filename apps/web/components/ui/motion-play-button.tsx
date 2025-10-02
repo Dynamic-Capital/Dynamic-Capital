@@ -1,10 +1,18 @@
 "use client";
 
-import { type PointerEvent, useRef, useState } from "react";
+import {
+  type PointerEvent,
+  type ReactNode,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   type HTMLMotionProps,
   motion,
-  MotionConfig,
+  MotionConfigContext,
+  type MotionConfigProps,
   type MotionValue,
   useMotionValue,
   useSpring,
@@ -42,6 +50,28 @@ interface MotionPlayButtonProps
   extends Omit<HTMLMotionProps<"button">, "children"> {
   label?: string;
 }
+
+type TransitionValue = MotionConfigProps["transition"];
+
+interface TransitionProps {
+  value?: TransitionValue;
+  children: ReactNode;
+}
+
+const Transition = ({ value, children }: TransitionProps) => {
+  const config = useContext(MotionConfigContext);
+  const transition = value ?? config.transition;
+  const contextValue = useMemo(
+    () => ({ ...config, transition }),
+    [config, transition],
+  );
+
+  return (
+    <MotionConfigContext.Provider value={contextValue}>
+      {children}
+    </MotionConfigContext.Provider>
+  );
+};
 
 interface FloatingShapesProps {
   mouseX: MotionValue<number>;
@@ -165,7 +195,7 @@ export function MotionPlayButton({
   };
 
   return (
-    <MotionConfig transition={transition}>
+    <Transition value={transition}>
       <motion.button
         ref={buttonRef}
         type="button"
@@ -231,6 +261,6 @@ export function MotionPlayButton({
           </span>
         </motion.div>
       </motion.button>
-    </MotionConfig>
+    </Transition>
   );
 }
