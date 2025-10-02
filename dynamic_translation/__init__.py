@@ -10,6 +10,11 @@ from .engine import (
     TranslationRequest,
     TranslationResult,
 )
+from .dhivehi_simulation import (
+    SimulationSample,
+    build_dhivehi_demo_engine,
+    simulate_dhivehi_translation,
+)
 
 __all__ = [
     "DynamicTranslationEngine",
@@ -20,4 +25,7 @@ __all__ = [
     "TranslationMemoryEntry",
     "TranslationRequest",
     "TranslationResult",
+    "build_dhivehi_demo_engine",
+    "simulate_dhivehi_translation",
+    "SimulationSample",
 ]
