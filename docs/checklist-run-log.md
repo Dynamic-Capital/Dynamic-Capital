@@ -8,6 +8,8 @@ is the best fit for the task at hand.
 
 - [Quick Reference](#quick-reference)
 - [Command Playbooks](#command-playbooks)
+  - [2025-10-17 — Modular Architecture Checklist Run](#2025-10-17--modular-architecture-checklist-run)
+  - [2025-10-17 — Automated Trading Build Checklist Run](#2025-10-17--automated-trading-build-checklist-run)
   - [2025-10-01 — Modular Architecture Checklist Run](#2025-10-01--modular-architecture-checklist-run)
   - [2025-10-01 — Automated Trading Build Checklist Run](#2025-10-01--automated-trading-build-checklist-run)
   - [2025-10-16 — Modular Architecture Checklist Run](#2025-10-16--modular-architecture-checklist-run)
@@ -182,6 +184,76 @@ Source: docs/web-site-map.md
 Stage: Stage 1 — Onboard & Orient
 
 Progress: 0/2 complete (0% done)
+```
+
+### 2025-10-17 — Modular Architecture Checklist Run
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist dynamic-modular-architecture
+```
+
+**Purpose**
+
+Reconfirm that the modular architecture automation still parses the
+implementation and verification tables after recent documentation updates.
+
+**Highlights**
+
+- Streams the status summary for both checklists with zero completed items
+  so teams know the roadmap remains pending.
+- Confirms the helper exits cleanly without requiring optional tasks or
+  additional flags.
+
+**Output Snapshot**
+
+```text
+Dynamic Capital Modular Architecture checklist status
+Source: docs/dynamic-capital-modular-architecture.md
+
+Implementation checklist — 5 tasks
+  Complete: 0
+  Pending: 5
+
+Verification checklist — 5 tasks
+  Complete: 0
+  Pending: 5
+```
+
+### 2025-10-17 — Automated Trading Build Checklist Run
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist build-implementation
+```
+
+**Purpose**
+
+Validate that the automated trading build report reflects the latest task
+inventory referenced during the TradingView ↔ MT5 architecture review.
+
+**Highlights**
+
+- Prints every section (TradingView signals, Vercel webhook, Supabase, MT5
+  EA, hosting, CI/CD, validation) with open task counts.
+- Captures the normalized alert schema and infrastructure TODOs, helping the
+  integration team prioritize implementation work.
+
+**Output Snapshot**
+
+```text
+Automated Trading System Build checklist status
+Source: docs/automated-trading-checklist.md
+
+1. TradingView Signal Generation — 6 tasks
+  Complete: 0
+  Pending: 6
+
+2. Vercel Webhook Receiver — 8 tasks
+  Complete: 0
+  Pending: 8
 ```
 
 ### 2025-10-16 — Knowledge Base Drop Verification
