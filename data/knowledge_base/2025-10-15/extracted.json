@@ -1,0 +1,67 @@
+{
+  "dropId": "2025-10-15",
+  "title": "Knowledge Base Expansion",
+  "generatedAt": "2025-10-02T03:48:55.890Z",
+  "sourceIndex": "data/knowledge_base/index.json",
+  "files": [
+    {
+      "path": "2025-10-15/modeling-overview.md",
+      "purpose": "Outline of the multi-pass retrieval strategy used in October experiments.",
+      "type": "markdown",
+      "size": 559,
+      "sha256": "28ac81a5c30cb9cb928be7e1fbb70f7b621da9ce0dd383d471ef39897bcab41a",
+      "extractedAt": "2025-10-02T03:48:55.892Z",
+      "data": "# October 2025 Retrieval Strategy Overview\n\nThe October drop introduces a richer set of customer narrative documents that\nsupport two-pass retrieval:\n\n1. **Context assembly:** Build a candidate set using cosine similarity over the\n   refreshed embeddings and enforce department diversity.\n2. **Grounding refinement:** Re-rank the candidates with the `summarize-v2`\n   reranker to prioritize entries with explicit resolution guidance.\n\nKeep the markdown file synchronized with `knowledge_base/2025-10-15` on OneDrive\nwhen updates land in the shared workspace.\n"
+    },
+    {
+      "path": "2025-10-15/rag-prompts.csv",
+      "purpose": "Prompt templates paired with retrieval hints for the updated corpus.",
+      "type": "csv",
+      "size": 399,
+      "sha256": "81b3f18a7681371e8880d2745ed7c75e2d35b216af169cdc4275b1438467d9aa",
+      "extractedAt": "2025-10-02T03:48:55.893Z",
+      "data": [
+        {
+          "prompt_id": "kb-2025-10-15-1",
+          "prompt_text": "Summarize the resolution path for the escalated billing anomaly using the October corpus.",
+          "intent": "billing"
+        },
+        {
+          "prompt_id": "kb-2025-10-15-2",
+          "prompt_text": "List three knowledge snippets that help a new agent onboard to the enterprise risk policy updates.",
+          "intent": "onboarding"
+        },
+        {
+          "prompt_id": "kb-2025-10-15-3",
+          "prompt_text": "Produce a troubleshooting checklist for the telemetry ingestion regression captured this month.",
+          "intent": "engineering"
+        }
+      ]
+    },
+    {
+      "path": "2025-10-15/eval-window.json",
+      "purpose": "Evaluation window metadata for replaying fine-tuning checkpoints.",
+      "type": "json",
+      "size": 308,
+      "sha256": "dcefeec9735b58f6da0be65637cd612596569a6f525129e8e2b4e02205dc48db",
+      "extractedAt": "2025-10-02T03:48:55.893Z",
+      "data": {
+        "drop": "2025-10-15",
+        "window_start": "2025-09-01T00:00:00Z",
+        "window_end": "2025-10-15T00:00:00Z",
+        "checkpoints": [
+          {
+            "id": "kb-october-pass-1",
+            "metric": "f1",
+            "value": 0.81
+          },
+          {
+            "id": "kb-october-pass-2",
+            "metric": "f1",
+            "value": 0.86
+          }
+        ]
+      }
+    }
+  ]
+}

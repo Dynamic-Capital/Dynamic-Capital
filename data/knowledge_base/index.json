@@ -19,6 +19,10 @@
         {
           "path": "2025-10-15/eval-window.json",
           "purpose": "Evaluation window metadata for replaying fine-tuning checkpoints."
+        },
+        {
+          "path": "2025-10-15/extracted.json",
+          "purpose": "Structured aggregate of the mirrored drop combining markdown, CSV, and JSON payloads."
         }
       ]
     }

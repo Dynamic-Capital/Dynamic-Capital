@@ -29,6 +29,7 @@ Run `npx tsx scripts/knowledge_base/sync-readme.ts` after updating `index.json` 
 | `2025-10-15/modeling-overview.md` | Outline of the multi-pass retrieval strategy used in October experiments. |
 | `2025-10-15/rag-prompts.csv` | Prompt templates paired with retrieval hints for the updated corpus. |
 | `2025-10-15/eval-window.json` | Evaluation window metadata for replaying fine-tuning checkpoints. |
+| `2025-10-15/extracted.json` | Structured aggregate of the mirrored drop combining markdown, CSV, and JSON payloads. |
 
 ### Active OneDrive shares
 
