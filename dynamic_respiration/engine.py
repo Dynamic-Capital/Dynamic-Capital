@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import math
 from collections import deque
 from dataclasses import dataclass, field
 from statistics import fmean
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
-__all__ = ["DynamicRespirationEngine", "InformationPulse", "RespirationSnapshot"]
+__all__ = [
+    "ChannelLoad",
+    "DynamicRespirationEngine",
+    "InformationPulse",
+    "RespirationSnapshot",
+]
 
 
 def _normalise_text(value: str, *, field_name: str) -> str:
@@ -33,10 +39,36 @@ def _normalise_tags(tags: Iterable[str] | None) -> tuple[str, ...]:
 
 
 def _clamp_ratio(value: float) -> float:
-    numeric = float(value)
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError) as exc:
+        raise TypeError("ratio values must be real numbers") from exc
+
+    if math.isnan(numeric) or math.isinf(numeric):
+        raise ValueError("ratio values must be finite")
     if numeric < 0.0:
         raise ValueError("ratio values must be non-negative")
     return numeric
+
+
+@dataclass(slots=True)
+class ChannelLoad:
+    """Aggregated respiration metrics for a single channel."""
+
+    channel: str
+    inflow: float
+    outflow: float
+    net: float
+    share: float
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "channel": self.channel,
+            "inflow": self.inflow,
+            "outflow": self.outflow,
+            "net": self.net,
+            "share": self.share,
+        }
 
 
 @dataclass(slots=True)
@@ -57,8 +89,10 @@ class InformationPulse:
         self.direction = direction
         self.magnitude = _clamp_ratio(self.magnitude)
         self.tags = _normalise_tags(self.tags)
-        if self.metadata is not None and not isinstance(self.metadata, Mapping):
-            raise TypeError("metadata must be a mapping if provided")
+        if self.metadata is not None:
+            if not isinstance(self.metadata, Mapping):
+                raise TypeError("metadata must be a mapping if provided")
+            self.metadata = dict(self.metadata)
 
     def as_dict(self) -> MutableMapping[str, object]:
         return {
@@ -172,6 +206,63 @@ class DynamicRespirationEngine:
             ratios.append(self._compute_balance(inflow_running, outflow_running))
         return fmean(ratios)
 
+    def channel_load(self, *, window: int | None = None) -> tuple[ChannelLoad, ...]:
+        candidates = self._select(window)
+        if not candidates:
+            return ()
+
+        totals = {"inflow": 0.0, "outflow": 0.0}
+        aggregated: dict[str, dict[str, float]] = {}
+        for pulse in candidates:
+            channel_bucket = aggregated.setdefault(pulse.channel, {"inflow": 0.0, "outflow": 0.0})
+            channel_bucket[pulse.direction] += pulse.magnitude
+            totals[pulse.direction] += pulse.magnitude
+
+        grand_total = totals["inflow"] + totals["outflow"]
+        loads: list[ChannelLoad] = []
+        for channel, metrics in aggregated.items():
+            inflow_total = metrics["inflow"]
+            outflow_total = metrics["outflow"]
+            channel_total = inflow_total + outflow_total
+            share = channel_total / grand_total if grand_total else 0.0
+            loads.append(
+                ChannelLoad(
+                    channel=channel,
+                    inflow=inflow_total,
+                    outflow=outflow_total,
+                    net=inflow_total - outflow_total,
+                    share=share,
+                )
+            )
+
+        loads.sort(key=lambda load: load.share, reverse=True)
+        return tuple(loads)
+
+    def momentum(self, *, short_window: int = 24, long_window: int = 96) -> float:
+        if short_window <= 0:
+            raise ValueError("short_window must be positive")
+        if long_window <= 0:
+            raise ValueError("long_window must be positive")
+        if short_window >= long_window:
+            raise ValueError("short_window must be smaller than long_window")
+
+        short_pulses = self._select(short_window)
+        long_pulses = self._select(long_window)
+        if not long_pulses:
+            return 0.0
+
+        def _totals(pulses: Sequence[InformationPulse]) -> tuple[float, float]:
+            inflow_total = sum(pulse.magnitude for pulse in pulses if pulse.direction == "inflow")
+            outflow_total = sum(pulse.magnitude for pulse in pulses if pulse.direction == "outflow")
+            return inflow_total, outflow_total
+
+        short_inflow, short_outflow = _totals(short_pulses)
+        long_inflow, long_outflow = _totals(long_pulses)
+
+        short_ratio = self._compute_balance(short_inflow, short_outflow) if short_pulses else 1.0
+        long_ratio = self._compute_balance(long_inflow, long_outflow)
+        return short_ratio - long_ratio
+
     def _coerce_pulse(self, pulse: InformationPulse | Mapping[str, object]) -> InformationPulse:
         if isinstance(pulse, InformationPulse):
             return pulse
@@ -186,10 +277,14 @@ class DynamicRespirationEngine:
         )
 
     def _select(self, window: int | None) -> tuple[InformationPulse, ...]:
-        if window is None or window >= len(self._pulses):
+        if window is None:
             return tuple(self._pulses)
+        if not isinstance(window, int):
+            raise TypeError("window must be an integer or None")
         if window <= 0:
-            return ()
+            raise ValueError("window must be a positive integer")
+        if window >= len(self._pulses):
+            return tuple(self._pulses)
         return tuple(list(self._pulses)[-window:])
 
     def _compute_balance(self, inflow_total: float, outflow_total: float) -> float:

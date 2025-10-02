@@ -253,6 +253,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_respiration": (
         "DynamicRespirationEngine",
         "InformationPulse",
+        "ChannelLoad",
         "RespirationSnapshot",
     ),
     "dynamic_quantitative.engine": (
