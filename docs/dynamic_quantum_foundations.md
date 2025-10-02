@@ -95,11 +95,48 @@ agent coordination that can be simulated on classical or quantum hardware.
   decision latency, and divergence between quantum-inspired forecasts and
   realised market outcomes.
 
+## Reference Implementation: Parameter-Shift Training Loop
+
+The repository now ships with a concrete training bridge between the classical
+resonance engine and parameterised quantum circuits:
+
+- `dynamic_quantum.training.fidelity_cost` and
+  `dynamic_quantum.training.expectation_value_cost` provide ready-to-use loss
+  functions for circuit fidelity and Hamiltonian expectation values so hybrid
+  loops can be expressed directly in quantum-native terms.
+- `dynamic_quantum.training.ParameterShiftTrainer` applies the parameter-shift
+  rule to evaluate exact gradients for cost functions expressed as circuit
+  expectation values or fidelities. It performs gradient-descent updates over a
+  sequence of parameters while returning telemetry (`ParameterShiftResult`) that
+  captures the step, loss, and gradients.
+- `dynamic_quantum.training.EngineTrainingAdapter` ingests
+  `DynamicQuantumEngine` pulses to initialise circuit parameters, compute mean
+  stability indices, and propagate environment metadata into the optimisation
+  log. This satisfies the requirement for a reference implementation that links
+  the analytics engine with genuine quantum evolution models.
+- See `tests/test_dynamic_quantum_training.py` for an executable walkthrough of
+  the workflow: pulses seed the initial circuit parameters, a quantum
+  environment contextualises the training step, and the telemetry verifies that
+  governance metadata is preserved.
+
+### Applying the Trainer to DAI/DAGI Workloads
+
+1. Use `DynamicQuantumEngine.register_pulse` to stream measurements from the
+   relevant DAI reasoning mesh or DAGI capability domain.
+2. Call `EngineTrainingAdapter.bootstrap_parameters(dimension=n)` to map the
+   resonance statistics onto \(n\) PQC rotation angles. The adapter scales the
+   aggregated coherence and entanglement metrics into \([0, \pi]\) amplitudes.
+3. Define a cost function representing your target Hamiltonian expectation or
+   fidelity score, then instantiate `ParameterShiftTrainer` with the initial
+   parameters.
+4. During each optimisation step, pass the current
+   `QuantumEnvironment` (e.g. observability noise, thermal load) into
+   `EngineTrainingAdapter.run_step` to retain governance-grade telemetry.
+5. Feed the resulting parameter updates into your quantum simulator or hardware
+   backend and iterate until convergence.
+
 ## Next Steps
 
-- Build a reference implementation that wires the
-  `dynamic_quantum.engine.DynamicQuantumEngine` data structures into the state
-  vector formalism described here.
 - Develop training curricula so research teams can translate domain heuristics
   into operator components of `\hat{H}_\text{dyn}`.
 - Establish a validation suite that stress-tests superposition planning,
