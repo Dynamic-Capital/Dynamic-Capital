@@ -156,6 +156,10 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_branch": ("BranchDefinition", "BranchStatus", "PromotionPlan"),
     "dynamic_bridge": ("BridgeEndpoint", "BridgeHealthReport", "BridgeIncident", "BridgeLink", "create_dynamic_mt5_bridge"),
     "dynamic_candles": ("Candle", "CandleAnalytics", "CandleSeries", "PatternSignal"),
+    "dynamic_cognition": (
+        "CognitiveAlignmentEngine",
+        "CognitiveAlignmentReport",
+    ),
     "dynamic_consciousness": ("ConsciousnessContext", "ConsciousnessSignal", "ConsciousnessState"),
     "dynamic_creative_thinking": ("CreativeContext", "CreativeFrame", "CreativeSignal"),
     "dynamic_critical_thinking": ("CriticalEvaluation", "CriticalSignal", "EvaluationContext"),
