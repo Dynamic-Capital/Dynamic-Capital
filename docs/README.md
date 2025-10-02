@@ -32,8 +32,9 @@ documenting which assets were consulted.
 | 1.10 | [INVENTORY.csv](./INVENTORY.csv)                                               | CSV export that tracks documentation counts, line totals, and repo metrics.                                                |
 | 1.11 | [CHANGELOG.md](./CHANGELOG.md)                                                 | Chronological release notes maintained by the release automation.                                                          |
 | 1.12 | [dynamic-capital-ecosystem-anatomy.md](./dynamic-capital-ecosystem-anatomy.md) | Biological metaphor guide detailing how every subsystem, feedback loop, and TradingView bridge maps to automation pillars. |
-| 1.13 | [dynamic-capital-code-of-conduct.md](./dynamic-capital-code-of-conduct.md)     | Community behavior expectations, reporting paths, and enforcement process.                                                 |
-| 1.14 | [dynamic-capital-milestones.md](./dynamic-capital-milestones.md)               | Stage-by-stage milestone ladder aligning infrastructure, treasury, governance, and community outcomes.                     |
+| 1.13 | [dynamic-training-model-architecture.md](./dynamic-training-model-architecture.md) | DAI, DAGI, and DAGS training mesh outline covering cores, capability domains, governance pillars, and phased rollout. |
+| 1.14 | [dynamic-capital-code-of-conduct.md](./dynamic-capital-code-of-conduct.md)     | Community behavior expectations, reporting paths, and enforcement process.                                                 |
+| 1.15 | [dynamic-capital-milestones.md](./dynamic-capital-milestones.md)               | Stage-by-stage milestone ladder aligning infrastructure, treasury, governance, and community outcomes.                     |
 
 ## 2. Development Workflow & Standards
 
