@@ -1,19 +1,16 @@
 import tradingDeskPlan from "@/data/trading-desk-plan.json" with {
   type: "json",
 };
+import {
+  getEconomicCalendarApiKey,
+  getEconomicCalendarUrl,
+} from "@/config/economic-calendar";
 import { callEdgeFunction } from "@/config/supabase";
 import { findInstrumentMetadata } from "@/data/instruments";
 import type { EconomicEvent, ImpactLevel } from "@/types/economic-event";
-import { optionalEnvVar } from "@/utils/env";
 
-const ECONOMIC_CALENDAR_URL = optionalEnvVar(
-  "NEXT_PUBLIC_ECONOMIC_CALENDAR_URL",
-  ["ECONOMIC_CALENDAR_URL"],
-);
-const ECONOMIC_CALENDAR_API_KEY = optionalEnvVar(
-  "NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY",
-  ["ECONOMIC_CALENDAR_API_KEY"],
-);
+const ECONOMIC_CALENDAR_URL = getEconomicCalendarUrl();
+const ECONOMIC_CALENDAR_API_KEY = getEconomicCalendarApiKey();
 
 type TradingDeskPlanSnapshot = {
   plan?: unknown;
@@ -30,6 +27,10 @@ type RawEconomicEvent = {
   code?: string | number | null;
   event_id?: string | number | null;
   external_id?: string | number | null;
+  uid?: string | number | null;
+  uuid?: string | number | null;
+  unique_id?: string | number | null;
+  uniqueId?: string | number | null;
   day?: string | null;
   date?: string | null;
   time?: string | null;
@@ -55,6 +56,13 @@ type RawEconomicEvent = {
   impact_level?: string | null;
   impactLevel?: string | null;
   importance?: string | null;
+  forecast?: string | number | null;
+  consensus?: string | number | null;
+  previous?: string | number | null;
+  revised?: string | number | null;
+  actual?: string | number | null;
+  country?: string | null;
+  currency?: string | null;
   market_focus?: unknown;
   marketFocus?: unknown;
   focus?: unknown;
@@ -75,6 +83,17 @@ type EconomicCalendarResponse =
   }
   | null
   | undefined;
+
+type OpenSourceCalendarEvent = {
+  title?: string | null;
+  date?: string | null;
+  impact?: string | null;
+  forecast?: string | number | null;
+  previous?: string | number | null;
+  actual?: string | number | null;
+  country?: string | null;
+  currency?: string | null;
+};
 
 type CalendarSource = "rest" | "edge";
 
@@ -466,6 +485,208 @@ function firstString(
   return null;
 }
 
+function extractCountry(raw: RawEconomicEvent): string | null {
+  const candidate = firstString(raw.country, raw.currency);
+  if (!candidate) {
+    return null;
+  }
+  const normalized = candidate.trim().toUpperCase();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function toIsoStringIfValid(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return parsed.toISOString();
+}
+
+function buildStatsCommentary(raw: RawEconomicEvent): string | null {
+  const segments: string[] = [];
+  const forecast = firstString(raw.forecast, raw.consensus);
+  if (forecast) {
+    segments.push(`Forecast: ${forecast}`);
+  }
+  const previous = firstString(raw.previous, raw.revised);
+  if (previous) {
+    segments.push(`Previous: ${previous}`);
+  }
+  const actual = firstString(raw.actual);
+  if (actual) {
+    segments.push(`Actual: ${actual}`);
+  }
+  return segments.length > 0 ? segments.join(" · ") : null;
+}
+
+function deriveEventId(
+  raw: RawEconomicEvent,
+  title: string,
+  index: number,
+): string | null {
+  const direct = firstString(
+    raw.id,
+    raw.slug,
+    raw.code,
+    raw.event_id,
+    raw.external_id,
+    raw.uid,
+    raw.uuid,
+    raw.unique_id,
+    raw.uniqueId,
+  );
+  if (direct) {
+    return direct;
+  }
+
+  const dateToken = firstString(
+    raw.scheduled_at,
+    raw.scheduledAt,
+    raw.start_at,
+    raw.startAt,
+    raw.timestamp,
+    raw.datetime,
+    raw.date_time,
+    raw.date,
+  );
+
+  const slugSegments = [
+    dateToken ? dateToken.replace(/[^0-9A-Za-z]/g, "") : null,
+    extractCountry(raw),
+    title,
+  ].filter((segment): segment is string => Boolean(segment));
+
+  const slug = slugSegments
+    .map((segment) =>
+      segment
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+    )
+    .filter((segment) => segment.length > 0)
+    .join("-")
+    .replace(/-{2,}/g, "-");
+
+  if (slug.length > 0) {
+    return slug;
+  }
+
+  return `event-${index}`;
+}
+
+function matchDeskPlanByTitle(
+  title: string,
+  raw: RawEconomicEvent,
+): string | null {
+  const normalizedTitle = title.toLowerCase();
+  const country = extractCountry(raw);
+
+  if (
+    normalizedTitle.includes("fomc") ||
+    normalizedTitle.includes("federal open market") ||
+    normalizedTitle.includes("powell")
+  ) {
+    return "fomc";
+  }
+
+  if (
+    normalizedTitle.includes("ecb") ||
+    normalizedTitle.includes("lagarde")
+  ) {
+    return "ecb-speeches";
+  }
+
+  if (
+    country === "GBP" &&
+    (normalizedTitle.includes("cpi") || normalizedTitle.includes("inflation"))
+  ) {
+    return "uk-cpi";
+  }
+
+  if (
+    (country === "USD" || country === "US") &&
+    normalizedTitle.includes("pmi")
+  ) {
+    return "us-pmi";
+  }
+
+  return null;
+}
+
+function isOpenSourceCalendarEvent(
+  value: unknown,
+): value is OpenSourceCalendarEvent {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const record = value as Record<string, unknown>;
+  return typeof record.title === "string" && typeof record.date === "string";
+}
+
+function mapOpenSourceCalendarEvent(
+  value: OpenSourceCalendarEvent,
+): RawEconomicEvent | null {
+  if (typeof value.title !== "string" || typeof value.date !== "string") {
+    return null;
+  }
+
+  const title = value.title.trim();
+  if (title.length === 0) {
+    return null;
+  }
+
+  const scheduledAt = toIsoStringIfValid(value.date) ?? value.date;
+  const impact = typeof value.impact === "string" ? value.impact : null;
+  const forecast = firstString(value.forecast);
+  const previous = firstString(value.previous);
+  const actual = firstString(value.actual);
+  const countryValue = firstString(value.country, value.currency);
+  const normalizedCountry = countryValue ? countryValue.toUpperCase() : null;
+
+  const base: RawEconomicEvent = {
+    title,
+    scheduled_at: scheduledAt,
+    date: value.date,
+    impact,
+    forecast,
+    previous,
+    actual,
+    country: normalizedCountry ?? null,
+    currency: normalizedCountry ?? null,
+    market_focus: normalizedCountry ? [normalizedCountry] : undefined,
+    notes: normalizedCountry ? `Country: ${normalizedCountry}` : undefined,
+  };
+
+  return base;
+}
+
+function extractRawEconomicEvents(
+  payload: EconomicCalendarResponse,
+): RawEconomicEvent[] {
+  const collection = Array.isArray(payload)
+    ? payload
+    : payload?.events ?? payload?.data ?? payload?.result ?? null;
+
+  if (!Array.isArray(collection)) {
+    return [];
+  }
+
+  if (collection.every(isOpenSourceCalendarEvent)) {
+    return collection
+      .map((entry) => mapOpenSourceCalendarEvent(entry))
+      .filter((entry): entry is RawEconomicEvent => entry !== null);
+  }
+
+  return collection as RawEconomicEvent[];
+}
+
 function sanitizeStrings(values: unknown[]): string[] {
   return values
     .filter((value): value is string => typeof value === "string")
@@ -506,7 +727,11 @@ function getDeskPlanFromSnapshot(eventId: string): string[] {
   return [];
 }
 
-function parseDeskPlan(raw: RawEconomicEvent, eventId: string): string[] {
+function parseDeskPlan(
+  raw: RawEconomicEvent,
+  eventId: string,
+  title: string,
+): string[] {
   const fromPayload = ensureStringArray(raw.desk_plan ?? raw.deskPlan);
   if (fromPayload.length > 0) {
     return fromPayload;
@@ -518,7 +743,8 @@ function parseDeskPlan(raw: RawEconomicEvent, eventId: string): string[] {
       return plan;
     }
   }
-  return getDeskPlanFromSnapshot(eventId);
+  const matchedPlanId = matchDeskPlanByTitle(title, raw) ?? eventId;
+  return getDeskPlanFromSnapshot(matchedPlanId);
 }
 
 function coerceImpact(value: unknown): ImpactLevel {
@@ -538,6 +764,8 @@ function parseMarketFocus(raw: RawEconomicEvent): string[] {
     raw.focus,
     raw.focus_markets,
     raw.focusMarkets,
+    raw.currency,
+    raw.country,
   ];
 
   for (const candidate of focusCandidates) {
@@ -624,29 +852,33 @@ function formatTime(date: Date | null, fallback: string | null): string {
 
 function normalizeEconomicEvent(
   raw: RawEconomicEvent,
+  index: number,
 ): { event: EconomicEvent; sortKey: number } | null {
-  const eventId = firstString(
-    raw.id,
-    raw.slug,
-    raw.code,
-    raw.event_id,
-    raw.external_id,
-  );
-  if (!eventId) {
-    return null;
-  }
-
   const title = firstString(raw.title, raw.name, raw.headline, raw.label);
   if (!title) {
     return null;
   }
 
-  const commentary = firstString(
+  const eventId = deriveEventId(raw, title, index);
+  if (!eventId) {
+    return null;
+  }
+
+  const baseCommentary = firstString(
     raw.commentary,
     raw.summary,
     raw.description,
     raw.notes,
-  ) ?? "";
+  );
+  const statsCommentary = buildStatsCommentary(raw);
+  const commentaryParts = [baseCommentary, statsCommentary]
+    .filter((part): part is string => Boolean(part && part.trim().length > 0));
+  const uniqueCommentary = commentaryParts.filter((part, index, array) =>
+    array.findIndex((value) => value === part) === index
+  );
+  const commentary = uniqueCommentary.length > 0
+    ? uniqueCommentary.join(" · ")
+    : "";
 
   const date = parseDate(raw);
   const sortKey = date ? date.getTime() : Number.POSITIVE_INFINITY;
@@ -662,7 +894,7 @@ function normalizeEconomicEvent(
     marketFocus: parseMarketFocus(raw),
     marketHighlights: [],
     commentary,
-    deskPlan: parseDeskPlan(raw, eventId),
+    deskPlan: parseDeskPlan(raw, eventId, title),
   };
 
   return { event, sortKey };
@@ -671,17 +903,14 @@ function normalizeEconomicEvent(
 function normalizeEconomicEvents(
   payload: EconomicCalendarResponse,
 ): EconomicEvent[] {
-  const collection: RawEconomicEvent[] | null | undefined =
-    Array.isArray(payload)
-      ? payload
-      : payload?.events ?? payload?.data ?? payload?.result ?? null;
+  const collection = extractRawEconomicEvents(payload);
 
-  if (!Array.isArray(collection)) {
+  if (collection.length === 0) {
     return [];
   }
 
   return collection
-    .map((raw) => normalizeEconomicEvent(raw))
+    .map((raw, index) => normalizeEconomicEvent(raw, index))
     .filter((entry): entry is { event: EconomicEvent; sortKey: number } =>
       entry !== null
     )

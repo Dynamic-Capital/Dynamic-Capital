@@ -6,6 +6,11 @@ The economic calendar feature aggregates macroeconomic events, trader sentiment,
 and Commitments of Traders (COT) positioning data into Supabase so the web
 application and edge functions can serve consistent dashboards.
 
+By default the web client hydrates upcoming events from the public Forex Factory
+feed (`https://nfs.faireconomy.media/ff_calendar_thisweek.json`). You can swap
+in a private provider by overriding `NEXT_PUBLIC_ECONOMIC_CALENDAR_URL` and, if
+needed, `NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY`.
+
 ## Database Tables
 
 The following tables are provisioned via the

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getEnvVar, optionalEnvVar } from "../utils/env.ts";
+import { DEFAULT_ECONOMIC_CALENDAR_URL } from "@/config/economic-calendar";
 import {
   DEFAULT_SUPABASE_ANON_KEY,
   DEFAULT_SUPABASE_URL,
@@ -25,6 +26,7 @@ export const publicSchema = z.object({
   NEXT_PUBLIC_API_URL: z.string().url().optional(),
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_MINI_APP_URL: z.string().url().optional(),
   NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_HOST: z.string().optional(),
@@ -50,6 +52,7 @@ export const serverSchema = z.object({
   SENTRY_DSN: z.string().optional(),
   LOG_LEVEL: z.string().optional(),
   SITE_URL: z.string().url().optional(),
+  ROUTE_GUARD_PASSWORD: z.string().min(1),
 });
 
 export const envDefinition = {
@@ -98,6 +101,10 @@ function validatePublicEnv(): ValidationResult {
       "SENTRY_DSN",
     ]),
     NEXT_PUBLIC_SITE_URL: optionalEnvVar("NEXT_PUBLIC_SITE_URL", ["SITE_URL"]),
+    NEXT_PUBLIC_MINI_APP_URL: optionalEnvVar(
+      "NEXT_PUBLIC_MINI_APP_URL",
+      ["MINI_APP_URL"],
+    ),
     NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET: optionalEnvVar(
       "NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET",
       ["TELEGRAM_WEBHOOK_SECRET"],
@@ -107,7 +114,7 @@ function validatePublicEnv(): ValidationResult {
     NEXT_PUBLIC_ECONOMIC_CALENDAR_URL: optionalEnvVar(
       "NEXT_PUBLIC_ECONOMIC_CALENDAR_URL",
       ["ECONOMIC_CALENDAR_URL"],
-    ),
+    ) ?? DEFAULT_ECONOMIC_CALENDAR_URL,
     NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY: optionalEnvVar(
       "NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY",
       ["ECONOMIC_CALENDAR_API_KEY"],
@@ -165,6 +172,7 @@ function validateServerEnv(): ValidationResult {
     SENTRY_DSN: optionalEnvVar("SENTRY_DSN", ["NEXT_PUBLIC_SENTRY_DSN"]),
     LOG_LEVEL: optionalEnvVar("LOG_LEVEL"),
     SITE_URL: optionalEnvVar("SITE_URL", ["NEXT_PUBLIC_SITE_URL"]),
+    ROUTE_GUARD_PASSWORD: getEnvVar("ROUTE_GUARD_PASSWORD"),
   } satisfies Record<string, string | undefined>;
 
   const result = serverSchema.safeParse(raw);

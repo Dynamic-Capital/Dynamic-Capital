@@ -133,6 +133,139 @@ test("economic calendar service normalizes REST payloads", async () => {
   }
 });
 
+test("economic calendar service supports open source calendar payload", async () => {
+  const prevUrl = process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL;
+  process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL =
+    "https://nfs.faireconomy.media/ff_calendar_thisweek.json";
+
+  const originalFetch = globalThis.fetch;
+  const awesomeRequests: string[] = [];
+
+  globalThis.fetch = async (input, init) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url === "https://nfs.faireconomy.media/ff_calendar_thisweek.json") {
+      const body = JSON.stringify([
+        {
+          title: "FOMC Statement",
+          date: "2024-03-20T14:00:00-04:00",
+          impact: "High",
+          forecast: "5.50%",
+          previous: "5.50%",
+          country: "USD",
+        },
+        {
+          title: "UK CPI y/y",
+          date: "2024-03-20T07:00:00+00:00",
+          impact: "Medium",
+          forecast: "3.1%",
+          previous: "3.2%",
+          country: "GBP",
+        },
+      ]);
+      return new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.startsWith("https://economia.awesomeapi.com.br/last/")) {
+      awesomeRequests.push(url);
+      const body = JSON.stringify({
+        EURUSD: {
+          bid: "1.0800",
+          pctChange: "0.20",
+          high: "1.0850",
+          low: "1.0700",
+          create_date: "2024-03-20 17:00:00",
+        },
+        USDJPY: {
+          bid: "151.000",
+          pctChange: "-0.10",
+          high: "151.500",
+          low: "150.500",
+          create_date: "2024-03-20 17:00:00",
+        },
+        GBPUSD: {
+          bid: "1.2600",
+          pctChange: "0.15",
+          high: "1.2650",
+          low: "1.2500",
+          create_date: "2024-03-20 07:05:00",
+        },
+        USDCAD: {
+          bid: "1.3500",
+          pctChange: "0.05",
+          high: "1.3550",
+          low: "1.3400",
+          create_date: "2024-03-20 17:00:00",
+        },
+        USDSEK: {
+          bid: "10.5000",
+          pctChange: "0.30",
+          high: "10.6000",
+          low: "10.4000",
+          create_date: "2024-03-20 17:00:00",
+        },
+        USDCHF: {
+          bid: "0.9000",
+          pctChange: "-0.05",
+          high: "0.9050",
+          low: "0.8950",
+          create_date: "2024-03-20 17:00:00",
+        },
+      });
+      return new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  try {
+    const service = await freshImport(
+      "../../apps/web/services/economic-calendar.ts",
+    );
+    const events = await service.fetchEconomicEvents({
+      force: true,
+      source: "rest",
+    });
+
+    strictEqual(events.length, 2);
+    strictEqual(awesomeRequests.length, 1);
+
+    const [ukCpi, fomc] = events;
+    ok(ukCpi.id.length > 0);
+    strictEqual(ukCpi.impact, "Medium");
+    strictEqual(ukCpi.time, "07:00 GMT");
+    ok(ukCpi.commentary.includes("Forecast: 3.1%"));
+    ok(ukCpi.commentary.includes("Previous: 3.2%"));
+    deepStrictEqual(ukCpi.marketFocus, ["GBP"]);
+    ok(ukCpi.deskPlan.length > 0);
+
+    strictEqual(fomc.impact, "High");
+    strictEqual(fomc.time, "18:00 GMT");
+    ok(fomc.commentary.includes("Forecast: 5.50%"));
+    deepStrictEqual(fomc.marketFocus, ["USD"]);
+    ok(fomc.deskPlan.length > 0);
+
+    service.resetEconomicCalendarCache();
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (prevUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL;
+    } else {
+      process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL = prevUrl;
+    }
+  }
+});
+
 test("economic calendar service falls back to desk plan snapshots", async () => {
   const prevUrl = process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL;
   process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL =
