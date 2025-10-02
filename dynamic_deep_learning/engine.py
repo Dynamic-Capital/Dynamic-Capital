@@ -13,6 +13,14 @@ __all__ = [
     "DynamicLayerEngineConfig",
     "DeepLearningLayerSpec",
     "DeepLearningModelSpec",
+    "DynamicLayer",
+    "DynamicModel",
+    "DynamicAgent",
+    "DynamicBuilder",
+    "DynamicHelper",
+    "DynamicKeeper",
+    "DynamicBot",
+    "DynamicCrawler",
     "TrainingSample",
     "TrainingMetrics",
     "DynamicDeepLearningEngine",
@@ -143,6 +151,37 @@ _DOMAIN_ALIASES = {
 
 ActivationForward = Callable[[Sequence[float]], list[float]]
 ActivationDerivative = Callable[[Sequence[float], Sequence[float]], list[float]]
+
+
+def _coerce_domain_profile_entry(
+    data: _DomainLayerSpec | Mapping[str, object],
+    *,
+    index: int,
+) -> _DomainLayerSpec:
+    """Convert mappings into :class:`_DomainLayerSpec` instances."""
+
+    if isinstance(data, _DomainLayerSpec):
+        return data
+    if not isinstance(data, Mapping):  # pragma: no cover - defensive guard
+        raise TypeError(
+            f"profile[{index}] must be _DomainLayerSpec or mapping, got {type(data)!r}"
+        )
+    try:
+        name = str(data["name"])
+    except KeyError as exc:  # pragma: no cover - defensive guard
+        raise KeyError(f"profile[{index}] missing required field 'name'") from exc
+    expansion = float(data.get("expansion", 1.0))
+    activation = str(data.get("activation", "relu"))
+    dropout = float(data.get("dropout", 0.0))
+    max_units_obj = data.get("max_units")
+    max_units = int(max_units_obj) if max_units_obj is not None else None
+    return _DomainLayerSpec(
+        name=name,
+        expansion=expansion,
+        activation=activation,
+        dropout=dropout,
+        max_units=max_units,
+    )
 
 
 def _to_float_sequence(values: Iterable[float], *, name: str) -> tuple[float, ...]:
@@ -332,6 +371,31 @@ class LayerBlueprint:
 
 
 @dataclass(slots=True)
+class DynamicLayer:
+    """Convenience wrapper that emits blueprints or layer specs."""
+
+    name: str
+    units: int
+    activation: str = "relu"
+    dropout: float = 0.0
+
+    def to_blueprint(self) -> LayerBlueprint:
+        """Return a :class:`LayerBlueprint` instance."""
+
+        return LayerBlueprint(
+            name=self.name,
+            units=self.units,
+            activation=self.activation,
+            dropout=self.dropout,
+        )
+
+    def to_spec(self, input_dim: int) -> "DeepLearningLayerSpec":
+        """Return a :class:`DeepLearningLayerSpec` for ``input_dim``."""
+
+        return self.to_blueprint().as_spec(input_dim)
+
+
+@dataclass(slots=True)
 class DeepLearningLayerSpec:
     """Declarative description of a dense layer."""
 
@@ -473,6 +537,201 @@ class DynamicLayerEngineConfig:
             seed=self.seed,
             shuffle_training=self.shuffle_training,
         )
+
+
+@dataclass(slots=True)
+class DynamicModel:
+    """High-level container for :class:`DeepLearningModelSpec` instances."""
+
+    spec: DeepLearningModelSpec
+
+    @classmethod
+    def from_config(cls, config: DynamicLayerEngineConfig) -> "DynamicModel":
+        """Build a model from an engine configuration."""
+
+        return cls(spec=config.build_model_spec())
+
+    @classmethod
+    def from_layer_groups(
+        cls,
+        input_dim: int,
+        *,
+        input_layers: Sequence[LayerBlueprint | Mapping[str, object]] = (),
+        hidden_layers: Sequence[LayerBlueprint | Mapping[str, object]] = (),
+        output_layers: Sequence[LayerBlueprint | Mapping[str, object]],
+        learning_rate: float = 0.01,
+        momentum: float = 0.0,
+        l2_regularisation: float = 0.0,
+        gradient_clip: float | None = 5.0,
+        seed: int | None = None,
+        shuffle_training: bool = True,
+    ) -> "DynamicModel":
+        """Construct a model from layer groups without manually instantiating config."""
+
+        config = DynamicLayerEngineConfig(
+            input_dim=input_dim,
+            input_layers=input_layers,
+            hidden_layers=hidden_layers,
+            output_layers=output_layers,
+            learning_rate=learning_rate,
+            momentum=momentum,
+            l2_regularisation=l2_regularisation,
+            gradient_clip=gradient_clip,
+            seed=seed,
+            shuffle_training=shuffle_training,
+        )
+        return cls.from_config(config)
+
+    def summary(self) -> str:
+        """Return a concise textual description of the model."""
+
+        return (
+            "DynamicModel("  # pragma: no cover - trivial formatting helper
+            f"layers={len(self.spec.layers)}, "
+            f"input_dim={self.spec.input_dim}, output_dim={self.spec.output_dim})"
+        )
+
+
+@dataclass(slots=True)
+class DynamicHelper:
+    """Utility for producing input layer stacks."""
+
+    domain: str | None = None
+    default_depth: int = 0
+    expansion_factor: float = 1.5
+    activation: str = "relu"
+    dropout: float = 0.0
+    prefix: str = "helper"
+
+    def build_input_layers(self, input_dim: int) -> tuple[LayerBlueprint, ...]:
+        """Return helper-managed input layers for ``input_dim``."""
+
+        if self.domain:
+            return generate_domain_input_layers(self.domain, input_dim)
+        if self.default_depth > 0:
+            return generate_input_layers(
+                input_dim,
+                depth=self.default_depth,
+                expansion_factor=self.expansion_factor,
+                activation=self.activation,
+                dropout=self.dropout,
+                prefix=self.prefix,
+            )
+        return ()
+
+
+class DynamicKeeper:
+    """Manage domain layer profiles and expose helper lookups."""
+
+    def __init__(self) -> None:
+        self._registry: dict[str, tuple[_DomainLayerSpec, ...]] = dict(
+            _DOMAIN_INPUT_LAYER_PROFILES
+        )
+
+    def register_domain(
+        self,
+        domain: str,
+        profile: Sequence[_DomainLayerSpec | Mapping[str, object]],
+    ) -> None:
+        """Register or override a domain profile."""
+
+        specs = [
+            _coerce_domain_profile_entry(entry, index=index)
+            for index, entry in enumerate(profile)
+        ]
+        if not specs:
+            raise ValueError("profile must contain at least one layer spec")
+        key = _normalise_domain_key(domain)
+        self._registry[key] = tuple(specs)
+
+    def domains(self) -> tuple[str, ...]:
+        """Return the known domain keys."""
+
+        return tuple(sorted(self._registry.keys()))
+
+    def has_domain(self, domain: str) -> bool:
+        """Return ``True`` if a domain profile exists."""
+
+        return _normalise_domain_key(domain) in self._registry
+
+    def get_profile(self, domain: str) -> tuple[_DomainLayerSpec, ...]:
+        """Return the stored profile for ``domain``."""
+
+        key = _normalise_domain_key(domain)
+        try:
+            return self._registry[key]
+        except KeyError as exc:  # pragma: no cover - defensive guard
+            raise ValueError(f"unknown domain: {domain}") from exc
+
+    def build_input_layers(self, domain: str, input_dim: int) -> tuple[LayerBlueprint, ...]:
+        """Render stored domain layers for ``input_dim``."""
+
+        if input_dim <= 0:
+            raise ValueError("input_dim must be positive")
+        profile = self.get_profile(domain)
+        current_units = float(input_dim)
+        layers: list[LayerBlueprint] = []
+        for spec in profile:
+            current_units *= spec.expansion
+            units = max(1, int(round(current_units)))
+            if spec.max_units is not None:
+                units = min(units, spec.max_units)
+            layers.append(
+                LayerBlueprint(
+                    name=spec.name,
+                    units=units,
+                    activation=spec.activation,
+                    dropout=spec.dropout,
+                )
+            )
+            current_units = float(units)
+        return tuple(layers)
+
+
+@dataclass(slots=True)
+class DynamicBuilder:
+    """Assemble :class:`DynamicModel` instances from helper-managed inputs."""
+
+    input_dim: int
+    helper: DynamicHelper | None = None
+
+    def __post_init__(self) -> None:
+        self.input_dim = int(self.input_dim)
+        if self.input_dim <= 0:
+            raise ValueError("input_dim must be positive")
+
+    def build(
+        self,
+        *,
+        hidden_layers: Sequence[LayerBlueprint | Mapping[str, object]] = (),
+        output_layers: Sequence[LayerBlueprint | Mapping[str, object]],
+        learning_rate: float = 0.01,
+        momentum: float = 0.0,
+        l2_regularisation: float = 0.0,
+        gradient_clip: float | None = 5.0,
+        seed: int | None = None,
+        shuffle_training: bool = True,
+    ) -> DynamicModel:
+        """Create a :class:`DynamicModel` using helper-defined inputs."""
+
+        input_layers: Sequence[LayerBlueprint | Mapping[str, object]]
+        if self.helper is not None:
+            input_layers = self.helper.build_input_layers(self.input_dim)
+        else:
+            input_layers = ()
+        config = DynamicLayerEngineConfig(
+            input_dim=self.input_dim,
+            input_layers=input_layers,
+            hidden_layers=hidden_layers,
+            output_layers=output_layers,
+            learning_rate=learning_rate,
+            momentum=momentum,
+            l2_regularisation=l2_regularisation,
+            gradient_clip=gradient_clip,
+            seed=seed,
+            shuffle_training=shuffle_training,
+        )
+        return DynamicModel.from_config(config)
 
 
 @dataclass(slots=True)
@@ -1024,3 +1283,101 @@ def _coerce_sample(sample: TrainingSample | Mapping[str, object]) -> TrainingSam
         weight=payload.get("weight", 1.0),
         metadata=payload.get("metadata"),
     )
+
+
+@dataclass(slots=True)
+class DynamicAgent:
+    """High-level façade that exposes the engine via ergonomic helpers."""
+
+    model: DynamicModel
+    engine: "DynamicDeepLearningEngine" = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.engine = DynamicDeepLearningEngine(self.model.spec)
+
+    def train(
+        self,
+        dataset: Sequence[TrainingSample] | Sequence[Mapping[str, object]],
+        *,
+        epochs: int = 1,
+        batch_size: int = 8,
+    ) -> list[TrainingMetrics]:
+        """Train the underlying engine."""
+
+        return self.engine.train(dataset, epochs=epochs, batch_size=batch_size)
+
+    def evaluate(
+        self,
+        dataset: Sequence[TrainingSample] | Sequence[Mapping[str, object]],
+    ) -> TrainingMetrics:
+        """Evaluate the underlying engine."""
+
+        return self.engine.evaluate(dataset)
+
+    def predict(self, features: Sequence[float]) -> tuple[float, ...]:
+        """Proxy prediction requests to the engine."""
+
+        return self.engine.predict(features)
+
+    def summary(self) -> str:
+        """Return the architecture summary."""
+
+        return self.engine.summary()
+
+
+@dataclass(slots=True)
+class DynamicBot:
+    """Schedule orchestrator that can iterate over multiple training batches."""
+
+    agent: DynamicAgent
+
+    def run_training_schedule(
+        self,
+        schedule: Sequence[Sequence[TrainingSample] | Sequence[Mapping[str, object]]],
+        *,
+        epochs: int = 1,
+        batch_size: int | None = None,
+    ) -> list[TrainingMetrics]:
+        """Train the agent over each dataset listed in ``schedule``."""
+
+        metrics: list[TrainingMetrics] = []
+        for dataset in schedule:
+            if not dataset:
+                continue
+            effective_batch = batch_size if batch_size is not None else max(1, len(dataset))
+            metrics.extend(
+                self.agent.train(
+                    dataset,
+                    epochs=epochs,
+                    batch_size=effective_batch,
+                )
+            )
+        return metrics
+
+    def evaluate(
+        self,
+        dataset: Sequence[TrainingSample] | Sequence[Mapping[str, object]],
+    ) -> TrainingMetrics:
+        """Evaluate the wrapped agent."""
+
+        return self.agent.evaluate(dataset)
+
+
+@dataclass(slots=True)
+class DynamicCrawler:
+    """Lightweight utility for collecting predictions and summaries."""
+
+    agent: DynamicAgent
+
+    def crawl_predictions(
+        self,
+        feature_sets: Sequence[Sequence[float]],
+    ) -> list[tuple[float, ...]]:
+        """Return predictions for each feature vector in ``feature_sets``."""
+
+        return [self.agent.predict(features) for features in feature_sets]
+
+    def crawl_summary(self) -> str:
+        """Return a cached architecture summary."""
+
+        return self.agent.summary()
