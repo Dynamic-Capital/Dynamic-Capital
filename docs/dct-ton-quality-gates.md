@@ -64,3 +64,27 @@ Supabase interactions and TON indexer validations.
   verification evidence.
 - Mirror the same commands in CI workflows or release candidate scripts to
   guarantee parity between local validation and automated pipelines.
+
+## Evidence Note Configuration
+
+- Capture each gate execution in a dedicated markdown note stored under
+  `docs/dct-ton-quality-gates-notes/<date>-<gate>.md` (for example,
+  `docs/dct-ton-quality-gates-notes/2025-02-14-allocator.md`) so reviewers can
+  locate the evidence history quickly.
+- Begin every note with a YAML header that standardizes metadata for log
+  aggregation:
+
+  ```yaml
+  ---
+  gate: allocator
+  command: $(bash scripts/deno_bin.sh) test -A dynamic-capital-ton/apps/tests/pool_allocator.test.ts
+  run_at: 2025-02-14T17:42:00Z
+  operator: qa@dynamic-capital.ai
+  artifact: s3://dynamic-capital/audit/ton/pool_allocator-2025-02-14.log
+  ---
+  ```
+
+- Record a short summary beneath the header outlining pass/fail results, links
+  to CI runs, and any follow-up actions. Keeping the structure consistent makes
+  it trivial to embed these notes into release announcements or attach them to
+  audit packages.

@@ -93,6 +93,9 @@
   quality gates (see
   [`docs/dct-ton-quality-gates.md`](../docs/dct-ton-quality-gates.md)), and
   routine repository commands are captured for release sign-off.
+- Evidence notes for each gate run follow the standardized template described in
+  the quality gate runbook, ensuring metadata, artifacts, and follow-ups are
+  recorded consistently.
 - Formatting, linting, and contract-focused checks were executed as part of the
   allocator fix validation flow, providing auditors with reproducible evidence
   of completion.

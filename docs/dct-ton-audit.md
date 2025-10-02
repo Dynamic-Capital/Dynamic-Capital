@@ -27,7 +27,8 @@
   evidence.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L66-L92】
 - Routine formatting, linting, allocator, and Supabase regression commands are
   captured in a dedicated quality gate runbook to guide contributors and CI
-  pipelines.【F:docs/dct-ton-quality-gates.md†L1-L74】
+  pipelines, including a standardized note configuration to log every gate
+  execution with consistent metadata.【F:docs/dct-ton-quality-gates.md†L1-L94】
 
 ## Governance, Tokenomics, and Treasury Controls
 
