@@ -32,7 +32,10 @@ const SESSION_OVERRIDE_SYMBOL = Symbol.for(
 );
 
 function setVoiceEnv() {
-  Deno.env.set("DYNAMIC_AI_VOICE_TO_TEXT_URL", "https://dynamic.ai/transcribe");
+  Deno.env.set(
+    "DYNAMIC_AI_VOICE_TO_TEXT_URL",
+    "https://api.dynamiccapital.ton/transcribe",
+  );
   Deno.env.set("DYNAMIC_AI_VOICE_TO_TEXT_KEY", "voice-secret");
   Deno.env.set("DYNAMIC_AI_VOICE_TO_TEXT_MODEL", "gpt-4o-mini-transcribe");
   Deno.env.set("ADMIN_API_SECRET", "admin-secret");

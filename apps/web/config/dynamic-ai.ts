@@ -4,6 +4,8 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_TRANSCRIPTION_TIMEOUT_MS = 120_000;
 const DEFAULT_TRANSCRIPTION_MODEL = "gpt-4o-mini-transcribe";
 const DEFAULT_TRANSCRIPTION_TEMPERATURE = 0;
+const DEFAULT_CHAT_URL = "https://api.dynamiccapital.ton/chat";
+const DEFAULT_TRANSCRIPTION_URL = "https://api.dynamiccapital.ton/transcribe";
 
 const timeoutFromEnv = Number.parseInt(
   getEnvVar("DYNAMIC_AI_CHAT_TIMEOUT_MS", ["DYNAMIC_AI_TIMEOUT_MS"]) ?? "",
@@ -23,7 +25,8 @@ const transcriptionTemperatureFromEnv = Number.parseFloat(
   ]) ?? "",
 );
 
-export const DYNAMIC_AI_CHAT_URL = getEnvVar("DYNAMIC_AI_CHAT_URL");
+export const DYNAMIC_AI_CHAT_URL = getEnvVar("DYNAMIC_AI_CHAT_URL") ??
+  DEFAULT_CHAT_URL;
 export const DYNAMIC_AI_CHAT_KEY = getEnvVar("DYNAMIC_AI_CHAT_KEY", [
   "DYNAMIC_AI_SERVICE_KEY",
 ]);
@@ -35,10 +38,10 @@ export const isDynamicAiConfigured = Boolean(
   DYNAMIC_AI_CHAT_URL && DYNAMIC_AI_CHAT_KEY,
 );
 
-export const DYNAMIC_AI_VOICE_TO_TEXT_URL = getEnvVar(
-  "DYNAMIC_AI_VOICE_TO_TEXT_URL",
-  ["DYNAMIC_AI_TRANSCRIPTION_URL"],
-);
+export const DYNAMIC_AI_VOICE_TO_TEXT_URL =
+  getEnvVar("DYNAMIC_AI_VOICE_TO_TEXT_URL", [
+    "DYNAMIC_AI_TRANSCRIPTION_URL",
+  ]) ?? DEFAULT_TRANSCRIPTION_URL;
 
 export const DYNAMIC_AI_VOICE_TO_TEXT_KEY = getEnvVar(
   "DYNAMIC_AI_VOICE_TO_TEXT_KEY",
