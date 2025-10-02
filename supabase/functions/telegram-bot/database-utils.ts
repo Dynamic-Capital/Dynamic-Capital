@@ -160,41 +160,35 @@ async function createDefaultContent(
   contentKey: string,
 ): Promise<string | null> {
   const defaultContents: Record<string, string> = {
-    "welcome_message": `🎯 Welcome to Dynamic Capital Bot!
+    "welcome_message": `🏁 Welcome to Dynamic Capital!
 
-📈 Get premium trading signals & education
-💎 Join our VIP community
+📊 Institutional-grade trade intelligence on demand
+⚡ Live signals with human + automation oversight
+🎓 Progression tracks to scale from first trade to managed capital
 
-Use the buttons below or try commands like /packages, /promo, /account, /support, /help, /faq, /education, /ask or /shouldibuy to get started.`,
-    "welcome_back_message": `👋 Welcome back to Dynamic Capital Bot!
+Use the menu or try commands like /packages, /education, /promo, /dashboard, or /support to get started.`,
+    "welcome_back_message": `👋 Welcome back to Dynamic Capital!
 
-🔥 VIP Packages:
-• 1 Month – access to premium signals
-• 3 Months – best value plan
-• Lifetime – one-time payment for lifetime access
+Here's what's live right now:
+• 📈 Alpha Signals – intraday & swing setups with risk levels
+• 🧠 Mentorship Tracks – tighten discipline and execution
+• 🤖 Automation Access – connect bots once your review clears
 
-Available commands:
-/start - Main menu
-/dashboard or /account - View account dashboard
-/packages - View VIP packages
-/promo - View active promotions
-/vip - VIP benefits
-/support - Contact support
-/help - Show help
-/faq - Frequently asked questions
-/education - View education packages
-/ask - Ask our AI assistant
-/shouldibuy - Get educational trade analysis
-/about - About us`,
+Quick commands:
+• /dashboard — view your status & receipts
+• /packages — compare VIP routes
+• /education — unlock training tracks
+• /support — reach the concierge desk
+
+Let us know if you need anything.`,
     "about_us": `🏢 About Dynamic Capital
 
-We are a leading trading education and signals provider with years of experience in financial markets.
+Dynamic Capital pairs senior analysts with automation so every member receives:
+• Institutional-grade trade ideas with transparent performance
+• Structured mentorship paths that level up risk governance
+• Concierge support that keeps you accountable to the playbook
 
-Our mission is to help traders succeed through:
-• Premium trading signals
-• Educational resources
-• Community support
-• Expert guidance`,
+We operate across timezones to keep members synced with the desk.`,
     "support_message": `🛟 *Need Help?*
 
 Our support team is here for you!
@@ -205,72 +199,67 @@ Our support team is here for you!
 🕐 Support Hours: 24/7
 
 We typically respond within 2-4 hours.`,
-    "terms_conditions": `📋 Terms & Conditions
+    "terms_conditions": `📋 Terms & Policies
 
-By using our services, you agree to:
+By using Dynamic Capital you acknowledge:
+• Trading involves risk; results are never guaranteed
+• Signals and automation are educational guidance only
+• Access is personal and monitored for compliance
+• Refunds follow the onboarding guarantee outlined in your plan
 
-• 🔒 Privacy Policy
-• 📊 Trading Risk Disclosures
-• 💼 Service Usage Guidelines
-• 🚫 No Financial Advice Disclaimer
+Full terms: https://dynamic.capital/terms`,
+    "help_message": `❓ Bot Commands & Shortcuts
 
-Read the full terms at: dynamiccapital.com/terms`,
-    "help_message": `❓ Bot Commands & Help
+/start — reopen the main menu
+/dashboard — view status, receipts, and automation
+/packages — compare VIP routes
+/promo — check active incentives
+/vip — review membership benefits
+/education — browse training tracks
+/support — contact the concierge desk
+/ask QUESTION — get AI coaching
+/shouldibuy SYMBOL — request an educational breakdown
+/about — learn more about Dynamic Capital
 
-Available commands:
-/start - Main menu
-/dashboard or /account - View account dashboard
-/packages - View VIP packages
-/promo - View active promotions
-/vip - VIP benefits
-/help - Show this help
-/support - Contact support
-/faq - Frequently asked questions
-/education - View education packages
-/ask QUESTION - Ask our AI assistant
-/shouldibuy SYMBOL - Get educational trade analysis
-/about - About us
+Need a human? Message @DynamicCapital_Support.`,
+    "faq_general": `❓ Frequently Asked Questions
 
-Need assistance? Contact @DynamicCapital_Support`,
-    "faq_general": `❓ **Frequently Asked Questions**
+🔹 How do I join VIP?
+Select a package, follow the payment instructions, and upload your receipt. The desk verifies within 24 hours.
 
-🔷 **Q: How do I join VIP?**
-A: Select a VIP package, complete payment, and you'll be added automatically after verification.
+🔹 What payments are supported?
+USDT (TRC20) and vetted bank transfers. Concierge will route you to the correct channel.
 
-🔷 **Q: What payment methods do you accept?**
-A: We accept USDT (TRC20) and bank transfers.
+🔹 How fast are signals delivered?
+The desk streams intraday calls in real time with clear entry, stop, and target guidance.
 
-🔷 **Q: How quickly are signals sent?**
-A: VIP signals are sent in real-time as market opportunities arise, typically 5-10 per day.
+🔹 What else is included?
+Mentorship pathways, automation access once approved, and daily debriefs so you stay aligned.
 
-🔷 **Q: Do you offer refunds?**
-A: We offer a 7-day satisfaction guarantee for new VIP members.
+🔹 Can I cancel?
+Yes. You retain access until the end of your current billing window.
 
-🔷 **Q: What's included in VIP membership?**
-A: Real-time signals, market analysis, educational content, priority support, and access to VIP community.
-
-🔷 **Q: Can I cancel my subscription?**
-A: Yes, you can cancel anytime. Access continues until your current period ends.
-
-🔷 **Q: Do you provide trading education?**
-A: Yes! We offer comprehensive courses for beginners to advanced traders.
-
-💡 **Still have questions?** Contact our support team!`,
+Still stuck? Reach out via /support.`,
     "vip_benefits": `💎 VIP Membership Benefits
 
-🚀 Premium Trading Signals
-📊 Daily Market Analysis
-💬 VIP Community Access
-🎓 Educational Resources
-📞 Priority Support
-💰 Exclusive Promotions`,
+🚀 Real-time signal desk with analyst commentary
+📊 Performance dashboards and accountability reviews
+🧠 Mentorship sprints tailored to your trading tier
+🤖 Automation hooks once your risk review clears
+🛎️ Concierge support around the clock
+🎁 Members-only promotions and capital unlocks`,
     "payment_instructions": `💳 Payment Instructions
 
-We accept:
-🏦 Bank Transfer
-🪙 USDT (TRC20)
+We currently accept:
+🏦 Bank transfer through our vetted partners
+🪙 USDT (TRC20) sent to the treasury address
 
-After payment, upload your receipt and our admin will verify it manually within 24 hours.`,
+After payment:
+1. Capture the receipt or transaction hash.
+2. Upload it here so the desk can verify ownership.
+3. Our team confirms and activates your access within 24 hours (often sooner).
+
+Need help with payment routing? Use /support.`,
   };
 
   const defaultValue = defaultContents[contentKey];
