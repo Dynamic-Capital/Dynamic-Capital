@@ -21,6 +21,41 @@ import {
 } from "./scripts/utils/static-assets.js";
 
 const port = process.env.PORT || 3000;
+
+function coerceListenHost(raw) {
+  if (!raw) return undefined;
+  const trimmed = `${raw}`.trim();
+  if (!trimmed) return undefined;
+  return trimmed;
+}
+
+const listenHostSources = [
+  ["HOST", process.env.HOST],
+  ["HOSTNAME", process.env.HOSTNAME],
+  ["SERVER_HOST", process.env.SERVER_HOST],
+  ["LISTEN_HOST", process.env.LISTEN_HOST],
+  ["BIND_HOST", process.env.BIND_HOST],
+];
+
+let listenHost;
+let listenHostSource;
+for (const [source, value] of listenHostSources) {
+  const normalized = coerceListenHost(value);
+  if (normalized) {
+    listenHost = normalized;
+    listenHostSource = source;
+    break;
+  }
+}
+
+if (!listenHost) {
+  listenHost = "0.0.0.0";
+  listenHostSource = "default";
+}
+
+if (!process.env.HOST) {
+  process.env.HOST = listenHost;
+}
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const configuredStaticRootValue = typeof process.env.STATIC_ROOT === "string"
   ? process.env.STATIC_ROOT.trim()
@@ -675,6 +710,16 @@ if (process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH) {
   server = http.createServer(handler);
 }
 
-server.listen(port, () => {
-  console.log(`API service listening on port ${port}`);
+const displayHost = listenHost.includes(":") && !listenHost.includes(".")
+  ? `[${listenHost}]`
+  : listenHost;
+
+server.listen(port, listenHost, () => {
+  if (listenHostSource && listenHostSource !== "default") {
+    console.log(
+      `API service listening on ${displayHost}:${port} (source: ${listenHostSource})`,
+    );
+  } else {
+    console.log(`API service listening on ${displayHost}:${port}`);
+  }
 });
