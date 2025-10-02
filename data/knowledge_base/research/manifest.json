@@ -105,6 +105,24 @@
       "notes": "Run tools/dynamic_trading_corpus.py to generate page-level JSONL entries with table payloads for each PDF."
     },
     {
+      "slug": "forexfactory_btmm_patterns_v1",
+      "source": {
+        "url": "https://www.forexfactory.com/attachment/file/3855498?d=1612496935",
+        "notes": "Fetched via the r.jina.ai proxy to capture the markdown attachment payload."
+      },
+      "processed_path": "data/knowledge_base/research/processed/forexfactory_btmm_patterns.jsonl",
+      "rows": 1,
+      "languages": {
+        "en": 1
+      },
+      "tags": {
+        "trading": 1,
+        "forex": 1,
+        "btmm": 1
+      },
+      "notes": "Normalized markdown export of the Beat The Market Maker ForexFactory attachment for pattern taxonomy work."
+    },
+    {
       "slug": "newspaper_archive_collection",
       "source": {
         "internet_archive_identifier": "newspaperarchive",
