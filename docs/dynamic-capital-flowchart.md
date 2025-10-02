@@ -61,12 +61,12 @@ and automation.
 
 ## Onboarding Screen Blueprint
 
-| Screen                      | Primary Goal                                             | Hero Content                                                                                                | Key Components                                                                                                         | Automation & Analytics                                                                             |
-| --------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **Welcome Launchpad**       | Orient newcomers with the Dynamic Capital value promise. | Headline + subheadline matching marketing copy, localized Dhivehi toggle, primary **Continue to Home** CTA. | Social proof cards, countdown-style clock, language switcher tooltip.                                                  | Track `cta_continue_home_clicked`; hydrate localization preference for downstream sessions.        |
-| **Personal Home Hub**       | Surface top actions after first login.                   | Personalized greeting from mentorship lead, highlight of DCT balance snapshot.                              | Quick-start checklist, mini watchlist, Learn & Earn teaser tile.                                                       | Fetch `/api/welcome-context`; emit `cta_explore_home_clicked` when checklist launched.             |
-| **Signals Primer**          | Explain how dynamic signals drive confident trades.      | Animated signal strength meter with Dhivehi legend.                                                         | Portfolio summary widget, long/short ratios, mentor commentary feed.                                                   | Connect to Supabase real-time stream; label analytics with `signals_stream_engaged`.               |
-| **Learn & Earn Invitation** | Motivate ongoing education and mentorship enrollment.    | Rotating mentorship avatars with cultural motifs.                                                           | Module carousel (Dynamic Mentorship, Free Course, Web3 Education, DC Token Literacy), ROI tracker, Connect Wallet CTA. | Start drip campaign via Gmail API when **Connect Wallet** tapped; sync Telegram tag for follow-up. |
+| Screen | Primary Goal | Hero Content | Key Components | Automation & Analytics |
+| --- | --- | --- | --- | --- |
+| **Welcome Launchpad** | Orient newcomers with the Dynamic Capital value promise. | Headline + subheadline matching marketing copy, localized Dhivehi toggle, primary **Continue to Home** CTA. | Social proof cards, countdown-style clock, language switcher tooltip. | Track `cta_continue_home_clicked`; hydrate localization preference for downstream sessions. |
+| **Personal Home Hub** | Surface top actions after first login. | Personalized greeting from mentorship lead, highlight of DCT balance snapshot. | Quick-start checklist, mini watchlist, Learn & Earn teaser tile. | Fetch `/api/welcome-context`; emit `cta_explore_home_clicked` when checklist launched. |
+| **Signals Primer** | Explain how dynamic signals drive confident trades. | Animated signal strength meter with Dhivehi legend. | Portfolio summary widget, long/short ratios, mentor commentary feed. | Connect to Supabase real-time stream; label analytics with `signals_stream_engaged`. |
+| **Learn & Earn Invitation** | Motivate ongoing education and mentorship enrollment. | Rotating mentorship avatars with cultural motifs. | Module carousel (Dynamic Mentorship, Free Course, Web3 Education, DC Token Literacy), ROI tracker, Connect Wallet CTA. | Start drip campaign via Gmail API when **Connect Wallet** tapped; sync Telegram tag for follow-up. |
 
 ## Onboarding Journey Sequence
 
@@ -98,13 +98,297 @@ and automation.
 
 ## Module Interaction Blueprint
 
-| Module                   | Core Views                                                             | Data Inputs                                                      | Automation Hooks                                                              | Integration Targets                                              |
-| ------------------------ | ---------------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| **Dynamic Market**       | Market Watchlist, Snapshot, Overview panels                            | Oracle pricing feeds, localized token labels, volatility metrics | Smart alerts, price momentum badges, heatmap refresh cadence                  | TradingView overlays, Oracle data lake, localization service     |
-| **Dynamic Signals**      | Portfolio Summary, Trade Actions, Live Wallet                          | Supabase real-time signals, wallet sync, mentor commentary       | Alert routing, transfer reminders, AGI score contributions                    | Supabase, MetaMask / TON wallet bridge, PostHog analytics        |
-| **Dynamic Learn & Earn** | Mentorship Modules, Growth Tracker, Promotions                         | Mentorship CMS, course completion data, ROI tracker inputs       | Drip campaign sequencer, reward unlocks, Telegram nudges                      | Gmail API, Telegram bot, Supabase profile store                  |
-| **Settings & Profile**   | Language, Notifications, Wallet Integration, Compliance                | Localization preferences, notification matrix, KYC status        | Dhivehi-first toggle persistence, compliance reminders, wallet binding events | MetaMask/TON connectors, compliance ledger, localization service |
-| **Intelligence Oracle**  | AGI Scoring Dashboard, Quantum Sync, Telegram bot, Feedback Visualizer | Aggregated signals, mentorship progress, compliance data         | Scoring recalculations, predictive prompts, anomaly alerts                    | AGI engine, Supabase analytics warehouse, PostHog funnels        |
+| Module | Core Views | Data Inputs | Automation Hooks | Integration Targets |
+| --- | --- | --- | --- | --- |
+| **Dynamic Market** | Market Watchlist, Snapshot, Overview panels | Oracle pricing feeds, localized token labels, volatility metrics | Smart alerts, price momentum badges, heatmap refresh cadence | TradingView overlays, Oracle data lake, localization service |
+| **Dynamic Signals** | Portfolio Summary, Trade Actions, Live Wallet | Supabase real-time signals, wallet sync, mentor commentary | Alert routing, transfer reminders, AGI score contributions | Supabase, MetaMask / TON wallet bridge, PostHog analytics |
+| **Dynamic Learn & Earn** | Mentorship Modules, Growth Tracker, Promotions | Mentorship CMS, course completion data, ROI tracker inputs | Drip campaign sequencer, reward unlocks, Telegram nudges | Gmail API, Telegram bot, Supabase profile store |
+| **Settings & Profile** | Language, Notifications, Wallet Integration, Compliance | Localization preferences, notification matrix, KYC status | Dhivehi-first toggle persistence, compliance reminders, wallet binding events | MetaMask/TON connectors, compliance ledger, localization service |
+| **Intelligence Oracle** | AGI Scoring Dashboard, Quantum Sync, Telegram bot, Feedback Visualizer | Aggregated signals, mentorship progress, compliance data | Scoring recalculations, predictive prompts, anomaly alerts | AGI engine, Supabase analytics warehouse, PostHog funnels |
+
+## Component Architecture & Usage Recommendations
+
+### Dashboard Flow Structure
+
+- Anchor a three-column mental model: fixed sidebar navigation, adaptive main content canvas, and optional tertiary panels for intelligence overlays.
+- Preserve the sitemap hierarchy with a flow similar to the diagram below to keep Market, Signals, and Learn & Earn interactions within a single scroll context while reserving space for future Oracle hooks.
+
+```mermaid
+flowchart LR
+    Dashboard[Dashboard Layout] --> TopNav[Top Navigation Bar]
+    Dashboard --> Sidebar[Sidebar Navigation]
+    Dashboard --> MainArea[Main Content Area]
+    MainArea --> Tabs[Tab Switcher]
+    MainArea --> Carousel[Card Grid Carousel]
+    Carousel --> MarketCards[Market Cards]
+    Carousel --> ChartWidgets[Chart Widgets]
+    Carousel --> InfoCards[Info Cards]
+    MainArea --> DetailPanels[Detail Panels]
+```
+
+### Tabbed Navigation & Status Filters
+
+Use pill-style buttons with rounded corners for the Market Watchlist ↔ Snapshot toggle. Variants should communicate state using brand hues.
+
+```tsx
+<Row gap="8" horizontal="center" paddingY="16">
+  <Button
+    size="m"
+    variant={activeTab === "watchlist" ? "primary" : "tertiary"}
+    onClick={() => setActiveTab("watchlist")}
+    data-border="rounded"
+  >
+    Dynamic Market Watchlist
+  </Button>
+  <Button
+    size="m"
+    variant={activeTab === "snapshot" ? "primary" : "tertiary"}
+    onClick={() => setActiveTab("snapshot")}
+    data-border="rounded"
+  >
+    Dynamic Market Snapshot
+  </Button>
+</Row>
+```
+
+Layer badge clusters for Hot, Favorites, Trending, and Live states so traders can filter volatility quickly.
+
+```tsx
+<Row gap="8" wrap horizontal="center">
+  <Tag size="s" background="error-strong" prefixIcon="flame">
+    Hot
+  </Tag>
+  <Tag size="s" background="error-medium" prefixIcon="heart">
+    Favorites
+  </Tag>
+  <Tag size="s" background="error-medium" prefixIcon="trending-up">
+    Trending
+  </Tag>
+</Row>
+```
+
+### Market Data Card Composition
+
+Cards should emphasize pair metrics, sparkline context, and contextual actions (e.g., Quick Entrance) with glassmorphism accents.
+
+```tsx
+<Column
+  background="surface"
+  border="brand-alpha-weak"
+  radius="xl"
+  padding="20"
+  gap="16"
+  minWidth={20}
+  fillWidth
+  style={{
+    backdropFilter: "blur(8px)",
+    transition: "all 0.2s ease"
+  }}
+  className="hover:shadow-lg hover:scale-[1.02]"
+>
+  <Row horizontal="space-between" vertical="center">
+    <Text variant="label-default-s" onBackground="neutral-weak">
+      DCT/TON
+    </Text>
+    <Row gap="4" vertical="center">
+      <Text variant="heading-strong-m" onBackground="success-strong">
+        +690.5
+      </Text>
+      <Tag size="s" background="success-alpha-weak">
+        +12.86%
+      </Tag>
+    </Row>
+  </Row>
+  <Row fillWidth style={{ height: "80px" }}>
+    {/* Sparkline component */}
+  </Row>
+  <Column gap="8">
+    <Row
+      background="surface-secondary"
+      radius="m"
+      padding="12"
+      gap="8"
+      vertical="center"
+    >
+      <Icon name="zap" size="s" onBackground="brand-medium" />
+      <Column gap="2" fillWidth>
+        <Text variant="label-strong-xs">Quick Entrance</Text>
+        <Text variant="body-default-xs" onBackground="neutral-weak">
+          Description text here
+        </Text>
+      </Column>
+      <Icon name="arrow-right" size="xs" />
+    </Row>
+  </Column>
+</Column>
+```
+
+### Horizontal Card Carousel
+
+Provide horizontal scroll with snap alignment to surface multiple pairs and mentorship promos without overwhelming the viewport.
+
+```tsx
+<Row
+  gap="16"
+  paddingX="16"
+  style={{
+    overflowX: "auto",
+    scrollSnapType: "x mandatory",
+    WebkitOverflowScrolling: "touch"
+  }}
+  className="scrollbar-hide"
+>
+  {marketData.map((item) => (
+    <div
+      key={item.id}
+      style={{
+        scrollSnapAlign: "start",
+        minWidth: "280px",
+        maxWidth: "320px"
+      }}
+    >
+      <MarketCard data={item} />
+    </div>
+  ))}
+</Row>
+```
+
+### Sidebar Navigation
+
+Keep the sidebar fixed with iconography mirroring Maldivian nautical motifs and provide 48px tappable targets for accessibility.
+
+```tsx
+<Column
+  position="fixed"
+  style={{ left: 0, top: "50%", transform: "translateY(-50%)" }}
+  gap="16"
+  paddingX="12"
+  paddingY="24"
+  background="surface"
+  border="brand-alpha-weak"
+  radius="r"
+>
+  {navItems.map((item) => (
+    <Button
+      key={item.id}
+      size="m"
+      variant={activeNav === item.id ? "primary" : "ghost"}
+      aria-label={item.label}
+      onClick={() => setActiveNav(item.id)}
+      style={{ width: "48px", height: "48px", padding: 0 }}
+    >
+      <Icon name={item.icon} />
+    </Button>
+  ))}
+</Column>
+```
+
+### Main Layout Skeleton
+
+The top navigation balances quick module switches with live status indicators. Center the Dynamic Capital brand and expose hero CTAs for Pool Trading, Learn & Earn, and Signals.
+
+```tsx
+<Column fillWidth minHeight="screen" background="page-background">
+  <Row
+    as="header"
+    fillWidth
+    paddingX="24"
+    paddingY="16"
+    background="surface"
+    border="neutral-alpha-weak"
+    horizontal="space-between"
+    vertical="center"
+  >
+    <Row gap="16" vertical="center">
+      <Heading variant="heading-strong-l" onBackground="brand-strong">
+        Dynamic Capital
+      </Heading>
+      <Row gap="8">
+        <Button variant="primary" size="s">Dynamic Pool Trading</Button>
+        <Button variant="tertiary" size="s">Dynamic Learn And Earn</Button>
+        <Button variant="tertiary" size="s" prefixIcon="activity">
+          <Badge>324</Badge> Dynamic Signals
+        </Button>
+      </Row>
+    </Row>
+    <Row gap="12" vertical="center">
+      <Row gap="6" vertical="center">
+        <Pulse size="xs" variant="success" />
+        <Text variant="label-default-s">Live</Text>
+      </Row>
+      <Text variant="heading-default-m">12:18 PM</Text>
+    </Row>
+  </Row>
+  <Row fillWidth flex style={{ minHeight: "calc(100vh - 80px)" }}>
+    <SidebarNavigation />
+    <Column flex fillWidth padding="24" gap="24">
+      <TabSwitcher />
+      <ScrollableCardGrid />
+      <DetailPanels />
+    </Column>
+  </Row>
+</Column>
+```
+
+### Styling & Responsiveness
+
+- Favor brand blues/cyans for primary actions, success greens for profit, and error reds for loss states. Neutrals carry typography and borders.
+- Apply a subtle gradient + blur background on cards to reinforce the premium financial aesthetic.
+
+```ts
+const cardStyle: React.CSSProperties = {
+  backgroundImage:
+    "linear-gradient(135deg, hsl(var(--brand) / 0.03) 0%, hsl(var(--accent) / 0.02) 100%)",
+  border: "1px solid hsl(var(--brand) / 0.12)",
+  backdropFilter: "blur(12px)",
+  boxShadow: "0 8px 32px hsl(var(--neutral) / 0.06)"
+};
+```
+
+- Build layouts mobile-first and allow card wrapping before tablet breakpoints.
+
+```tsx
+<Row gap="16" wrap horizontal="center" fillWidth>
+  <Column
+    gap="12"
+    fillWidth
+    style={{
+      minWidth: "280px",
+      maxWidth: "min(100%, 320px)"
+    }}
+  >
+    {/* Card content */}
+  </Column>
+</Row>
+```
+
+### Data Visualization & Interaction States
+
+- Use lightweight charts (Recharts or Visx) for sparklines and ensure updates animate smoothly when WebSocket data arrives.
+
+```tsx
+<ResponsiveContainer width="100%" height={80}>
+  <LineChart data={chartData}>
+    <Line
+      type="monotone"
+      dataKey="value"
+      stroke="hsl(var(--success-strong))"
+      strokeWidth={2}
+      dot={false}
+    />
+  </LineChart>
+</ResponsiveContainer>
+```
+
+- Provide tactile feedback with transition utilities and explicit loading pulses for asynchronous calls.
+
+```tsx
+<div className="transition-all duration-200 hover:shadow-xl hover:scale-[1.02] cursor-pointer">
+  <Pulse size="m" variant="brand" />
+</div>
+```
+
+These guidelines align the visual system with the sitemap deliverables, ensuring component reuse, Maldivian-inspired branding, and readiness for live market integrations.
 
 ## Future-facing Wireframe Notes
 
