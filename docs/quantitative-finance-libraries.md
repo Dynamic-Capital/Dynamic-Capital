@@ -8,17 +8,18 @@ analytics, or visualization within your preferred stack.
 ## Table of Contents
 
 - [Installation Quick Reference](#installation-quick-reference)
-- [Python](#python)
-- [R](#r)
+- [Dynamic Languages](#dynamic-languages)
+  - [Python](#python)
+  - [R](#r)
+  - [Julia](#julia)
+  - [JavaScript](#javascript)
+  - [Ruby](#ruby)
 - [Matlab](#matlab)
-- [Julia](#julia)
 - [Java](#java)
 - [C# and .NET](#csharp)
-- [JavaScript](#javascript)
 - [Data Visualization](#data-visualization)
 - [Haskell](#haskell)
 - [Scala](#scala)
-- [Ruby](#ruby)
 - [Elixir/Erlang](#elixirerlang)
 - [Golang](#golang)
 - [C++](#cpp)
@@ -148,6 +149,30 @@ from the catalog.
 - Verify connectivity after installation with the package's health-check or
   simple data download examples before integrating into larger systems.
 
+## Dynamic Languages
+
+Dynamic languages dominate a large share of quantitative research workflows
+thanks to rapid iteration, rich library ecosystems, and strong community
+support. Use the sections below to zero in on the best-in-class tooling per
+language:
+
+- **Python** – Extensive ecosystem for data wrangling, pricing, analytics, and
+  production research stacks. Highlights include `numpy`, `pandas`,
+  `PyPortfolioOpt`, `mlfinlab`, and `vectorbt` for full-stack strategy
+  development.
+- **R** – Deep statistical lineage with packages like `quantmod`,
+  `PerformanceAnalytics`, and `quantstrat`, plus tidyverse integrations for
+  reproducible research pipelines.
+- **Julia** – High-performance numerics with composable finance toolkits such as
+  `QuantLib.jl`, `Temporal.jl`, and `MarketTechnicals.jl` for fast research
+  prototyping.
+- **JavaScript/TypeScript** – Ideal for interactive analytics, dashboards, and
+  browser-based tooling with libraries like `ccxt`, `lightweight-charts`, and
+  `Ghostfolio`.
+- **Ruby** – Lightweight scripting options for brokerage integrations and quick
+  market data pulls via gems such as `iex-ruby-client`, `alphavantagerb`, and
+  `stock_quote`.
+
 ## Python
 
 ### Numerical Libraries & Data Structures
@@ -175,6 +200,10 @@ from the catalog.
 - **numba** – Just-in-time compiler that accelerates numerical Python code,
   especially vectorized computations in quantitative workflows.
 - **ArcticDB** – High performance datastore for time series and tick data.
+- **cvxpy** – Domain-specific language for convex optimization, useful for
+  portfolio construction, risk budgeting, and calibration workflows.
+- **cvxopt** – Convex optimization toolkit with dense and sparse solvers suited
+  to quadratic programming problems that appear in finance.
 
 ### Financial Instruments and Pricing
 
@@ -429,6 +458,8 @@ from the catalog.
 - **alphalens-reloaded** – Performance analysis of predictive (alpha) stock
   factors.
 - **Spectre** – GPU-accelerated Factors analysis library and Backtester
+- **linearmodels** – Suite of econometric estimators for panel data and factor
+  models, including Fama-MacBeth regressions and risk premia analysis.
 
 ### Sentiment Analysis
 
@@ -468,6 +499,8 @@ from the catalog.
   Facebook Prophet with autoregression and lagged regressors.
 - **StatsForecast** – Production-ready statistical forecasting library with
   scalable implementations of classic time-series models.
+- **sktime** – Unified interface for time-series machine learning covering
+  forecasting, classification, and feature engineering tasks.
 
 ### Calendars
 
@@ -502,6 +535,8 @@ from the catalog.
 - **finsymbols** – Obtains stock symbols and relating information for SP500,
   AMEX, NYSE, and NASDAQ.
 - **FRB** – Python Client for FRED® API.
+- **fredapi** – Lightweight wrapper for the Federal Reserve Economic Data (FRED)
+  service with convenience helpers for macroeconomic research.
 - **inquisitor** – Python Interface to Econdb.com API.
 - **yfi** – Yahoo! YQL library.
 - **chinesestockapi** – Python API to get Chinese stock price.
@@ -659,6 +694,8 @@ from the catalog.
 - **tidyfinance** – Tidy Finance helper functions to download financial data and
   process the raw data into a structured Format (tidy data), including date
   conversion, scaling factor values, and filtering by the specified date.
+- **BatchGetSymbols** – Convenience wrapper around multiple U.S. equity data
+  vendors with built-in caching and tidy outputs.
 
 ### Financial Instruments and Pricing
 
@@ -757,6 +794,8 @@ from the catalog.
 - **matrixprofile** – Time series data mining library built on top of the novel
   Matrix Profile data structure and algorithms.
 - **garchmodels** – A parsnip backend for GARCH models.
+- **prophet** – R interface to the Facebook Prophet forecasting library for
+  seasonality-rich time series.
 
 ### Calendars
 
@@ -797,6 +836,12 @@ from the catalog.
 - **DataFrames.jl** – In-memory tabular data in Julia
 - **TSFrames.jl** – Handle timeseries data on top of the powerful and mature
   DataFrames.jl
+- **Quandl.jl** – Client for downloading Quandl datasets directly into Julia
+  structures.
+- **AlphaVantage.jl** – Idiomatic Julia wrapper for the Alpha Vantage market
+  data APIs.
+- **YFinance.jl** – Lightweight Yahoo Finance price downloader for Julia
+  backtesting pipelines.
 
 ## Java
 
@@ -837,6 +882,14 @@ from the catalog.
   for more than 100 bitcoin/altcoin exchanges.
 - **PENDAX** – Javascript SDK for Trading/Data API and Websockets for FTX,
   FTXUS, OKX, Bybit, & More.
+- **lightweight-charts** – TradingView's open-source charting library for high-
+  performance financial visualizations on the web.
+- **trading-vue-js** – Vue components for building interactive trading
+  dashboards with candlesticks, indicators, and drawing tools.
+- **technicalindicators** – Popular collection of indicator calculations for
+  Node.js and browser environments.
+- **tulind** – Node bindings for the Tulip Indicators technical analysis
+  library, enabling fast native indicator computation.
 
 ## Data Visualization
 
@@ -866,6 +919,14 @@ from the catalog.
 
 - **Jiji** – Open Source Forex algorithmic trading framework using OANDA REST
   API.
+- **alphavantagerb** – Ruby interface to the Alpha Vantage market data API for
+  equities, FX, and crypto.
+- **iex-ruby-client** – Official Ruby SDK for the IEX Cloud data and trading
+  services.
+- **stock_quote** – Simple wrapper for pulling real-time and historical equity
+  quotes into Ruby scripts.
+- **quandl-ruby** – Quandl API client that streams datasets into idiomatic Ruby
+  objects for analysis.
 
 ## Elixir/Erlang
 
