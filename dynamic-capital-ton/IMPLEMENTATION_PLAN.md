@@ -71,18 +71,31 @@
 
 ## Implementation Checklist
 
-- [ ] Update `handleJettonTransfer` parsing order to follow TIP-3 transfer
+- [x] Update `handleJettonTransfer` parsing order to follow TIP-3 transfer
       structure (Steps 1.1–1.5).
-- [ ] Guard against malformed payloads by validating the deposit opcode
+- [x] Guard against malformed payloads by validating the deposit opcode
       extracted from the forward payload (Step 1.6).
-- [ ] Forward the parsed `forward_ton_amount` to `self.dexRouter` instead of
+- [x] Forward the parsed `forward_ton_amount` to `self.dexRouter` instead of
       halving the inbound TON (Step 2).
-- [ ] Emit `DepositEvent` fields using the parsed jetton and forward payload
+- [x] Emit `DepositEvent` fields using the parsed jetton and forward payload
       data without reparsing (Step 3).
-- [ ] Extend or add allocator regression tests to cover compliant transfers and
+- [x] Extend or add allocator regression tests to cover compliant transfers and
       rejection paths (Step 4).
-- [ ] Run formatting, linting, and contract/test suites relevant to the
+- [x] Run formatting, linting, and contract/test suites relevant to the
       allocator changes (Step 5).
+
+### Status Summary
+
+- TIP-3 parsing, opcode validation, and TON forwarding updates landed in
+  `contracts/pool_allocator.tact`, matching the plan requirements and preventing
+  value drift between deposits and router calls.
+- Allocator and Supabase regression suites are now part of the documented
+  quality gates (see
+  [`docs/dct-ton-quality-gates.md`](../docs/dct-ton-quality-gates.md)), and
+  routine repository commands are captured for release sign-off.
+- Formatting, linting, and contract-focused checks were executed as part of the
+  allocator fix validation flow, providing auditors with reproducible evidence
+  of completion.
 
 ## Dependencies & Open Questions
 
