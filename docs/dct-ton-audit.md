@@ -12,11 +12,12 @@
   documentation provide a clear flow from user acquisition to treasury routing
   with automated
   guards.【F:dynamic-capital-ton/supabase/schema.sql†L1-L74】【F:dynamic-capital-ton/supabase/functions/link-wallet/index.ts†L1-L113】【F:dynamic-capital-ton/supabase/functions/process-subscription/index.ts†L1-L120】【F:dynamic-capital-ton/apps/miniapp/README.md†L1-L52】
-- **Quality gates exist but need consistent execution:** Allocator parsing fixes
-  and Supabase flows are covered by Deno-based unit tests, yet the
-  implementation checklist remains unchecked and no CI evidence is captured;
-  formalizing routine test runs and updating plan status should be
-  prioritized.【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:dynamic-capital-ton/supabase/functions/link-wallet/index.test.ts†L1-L96】【F:dynamic-capital-ton/supabase/functions/process-subscription/index.test.ts†L1-L120】【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L47-L96】
+- **Quality gates are documented but require routine evidence capture:**
+  Allocator parsing fixes and Supabase flows remain covered by Deno-based unit
+  tests, and the implementation checklist plus quality-gate runbook now spell
+  out the expected verification steps; the remaining gap is ensuring every run
+  is recorded in CI or release notes for
+  auditors.【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:dynamic-capital-ton/supabase/functions/link-wallet/index.test.ts†L1-L96】【F:dynamic-capital-ton/supabase/functions/process-subscription/index.test.ts†L1-L120】【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L66-L103】【F:docs/dct-ton-quality-gates.md†L1-L74】
 
 ## Follow-Up Status (2025-02-14)
 
@@ -93,14 +94,16 @@
 
 ## Outstanding Risks and Recommendations
 
-1. **Formalize implementation checklist tracking:** The allocator improvement
-   checklist is still unchecked even though parsing and tests are present;
-   update the plan or backlog residual tasks to avoid ambiguity for
-   auditors.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L47-L96】
-2. **Document routine quality gates:** Capture the expected `deno`/`pnpm`
-   commands (e.g., allocator tests, Supabase unit tests) in CI docs or scripts
-   so future contributors run the same suites before
-   deploys.【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:dynamic-capital-ton/supabase/functions/link-wallet/index.test.ts†L1-L96】
+1. **Sustain implementation checklist evidence:** The allocator plan now marks
+   parsing, forwarding, and regression milestones complete, but each release
+   should continue linking to command output or audit trails so future reviews
+   can confirm the fixes remain
+   intact.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L66-L110】
+2. **Automate quality gate execution:** The runbook enumerates formatting,
+   linting, allocator, and Supabase regression commands; promote these into CI
+   workflows (or require attached logs in pull requests) to guarantee the
+   documented expectations are consistently
+   applied.【F:docs/dct-ton-quality-gates.md†L1-L74】【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:dynamic-capital-ton/supabase/functions/link-wallet/index.test.ts†L1-L96】
 3. **Extend monitoring playbooks:** While the whitepaper outlines analytics
    expectations, add operational runbooks tying on-chain events (DepositEvent,
    ThemeContentEvent) to observability dashboards to close the loop between
