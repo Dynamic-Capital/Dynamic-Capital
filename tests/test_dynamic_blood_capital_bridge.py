@@ -60,3 +60,12 @@ def test_capital_alignment_combines_blood_and_token_state() -> None:
 
     assert "DCT" in synthesis.narrative
     assert "Dynamic AI" in synthesis.narrative
+
+    operations = synthesis.operations
+    assert operations.managers[0].name == "treasury_manager"
+    operations_payload = synthesis.as_dict()["operations"]
+    assert operations_payload["keeper"]["domain"] == "dynamic_blood_capital"
+    assert len(operations_payload["managers"]) >= 2
+    assert len(operations_payload["workers"]) >= 2
+    assert len(operations_payload["bots"]) == 2
+    assert operations_payload["developer"]["model"]["iteration"].startswith("blood-capital")
