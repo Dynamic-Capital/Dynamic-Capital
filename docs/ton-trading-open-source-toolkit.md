@@ -8,9 +8,28 @@ assemble end-to-end pipelines without relying on closed SaaS dependencies.
 ## Installation Quickstart
 
 Set up a reproducible environment before integrating individual tools. The
-snippets below cover the primary ecosystems used throughout this catalogue.
+sections below outline both an automated bootstrapper and manual commands for
+each runtime.
 
-### Python
+### Automated Bootstrap (recommended)
+
+Run the bundled installer to provision a dedicated sandbox containing Python
+packages, JavaScript SDKs, and containerized data services:
+
+```bash
+npm run ton:install-toolkit -- --apply --extras=validation,rl,tracking
+```
+
+- Omit `--apply` to preview the actions the script will run.
+- Use `--skip-python`, `--skip-node`, or `--skip-containers` to target specific
+  stacks.
+- Optional extras mirror the documentation categories (`validation`, `rl`,
+  `tracking`). Pass `--extras=all` to install every group.
+
+Manual steps remain available below when you need to customise versions or use
+an alternative environment manager.
+
+### Python (manual setup)
 
 Create an isolated environment (via `venv`, Conda, or Poetry) and install the
 core analytics and trading dependencies:
@@ -30,7 +49,7 @@ Add optional packages as needed:
 - **Reinforcement learning** – `pip install stable-baselines3 finrl`
 - **Experiment tracking** – `pip install wandb tensorboard`
 
-### JavaScript / TypeScript
+### JavaScript / TypeScript (manual setup)
 
 Use Node.js (v18+) and install TON and automation SDKs with your preferred
 package manager:
@@ -46,9 +65,17 @@ Install browser binaries for Playwright-based scrapers or tests:
 npx playwright install
 ```
 
-### System Services
+### System Services (manual setup)
 
-Leverage containers or managed offerings for stateful components:
+Leverage containers or managed offerings for stateful components. A ready-made
+Compose file (`docker/ton-toolkit/docker-compose.yml`) mirrors the services used
+by the automated installer:
+
+```bash
+docker compose -f docker/ton-toolkit/docker-compose.yml up -d
+```
+
+Or start individual containers manually:
 
 ```bash
 # Kafka + Zookeeper

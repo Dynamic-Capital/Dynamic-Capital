@@ -70,7 +70,8 @@
     "screenshot:install": "npx playwright install --with-deps",
     "screenshot:preview": "npx playwright show-report",
     "tunnel:functions": "node scripts/ngrok-http.mjs",
-    "ton:generate-adnl": "tsx tools/ton/generate-adnl.ts"
+    "ton:generate-adnl": "tsx tools/ton/generate-adnl.ts",
+    "ton:install-toolkit": "tsx tools/ton/install-toolkit.ts"
   },
   "devDependencies": {
     "chokidar-cli": "^3.0.0",

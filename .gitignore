@@ -88,5 +88,7 @@ miniapp/
 bun.lockb
 .codex-workflow-state.json
 .project-cache/
+# TON toolkit sandbox artifacts
+.ton-toolkit/
 # Python bytecode cache directories
 __pycache__/
