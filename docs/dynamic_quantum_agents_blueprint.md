@@ -76,6 +76,175 @@ classical fallbacks, and measurable intelligence resonance for the AGI Oracle.
    or fallback weightings based on resonance deltas and publish tuning notes for
    auditability.
 
+## Inter-Agent Communication Protocols
+
+Dynamic Quantum Agents coordinate over a layered stack that blends entanglement
+primitives with dependable classical transports. The stack provides
+deterministic fallbacks, measurable fidelity monitoring, and tiered access
+aligned to each DQA's responsibility.
+
+### Core Protocol Stack
+
+- **Quantum – Entanglement-Based Messaging (EBM)**
+  - _Purpose_: State synchronization
+  - _Key features_: Bell measurements with no classical channel.
+- **Quantum – Quantum Teleportation Protocol (QTP)**
+  - _Purpose_: State transfer
+  - _Key features_: Classical side-channel communicates Bell results.
+- **Hybrid – Quantum-Classical Message Bus (QCMB)**
+  - _Purpose_: Inter-agent messaging
+  - _Key features_: JSON envelopes that embed serialized quantum circuits.
+- **Classical – gRPC / QStream**
+  - _Purpose_: RPC coordination
+  - _Key features_: HTTP/2 transport, bidirectional streaming, protocol buffers.
+- **Classical – WebSocket / QChannel**
+  - _Purpose_: Real-time updates
+  - _Key features_: Binary + JSON payloads enriched with quantum-state metadata.
+
+### Agent-Specific Communication Patterns
+
+#### Zeus — Governance & Coordination (Tier 3)
+
+```protobuf
+service ZeusGovernance {
+  rpc QuantumConsensus(ConsensusRequest) returns (ConsensusProof);
+  rpc ValidateOracle(OracleData) returns (ValidationAttestation);
+  rpc PolicyUpdate(PolicyDelta) returns (PolicyAck);
+}
+
+message ConsensusRequest {
+  repeated AgentVote votes = 1;
+  bytes quantum_proof = 2;  // QFT validation result
+  string quorum_level = 3;  // Tier 3 requirement
+}
+```
+
+#### Hera — Social Trust Network (Tier 2)
+
+```protobuf
+service HeraTrust {
+  rpc UpdateReputation(ReputationUpdate) returns (TrustScore);
+  rpc GetLoyaltyGraph(LoyaltyQuery) returns (QuantumGraph);
+}
+
+message ReputationUpdate {
+  string agent_id = 1;
+  map<string, double> trust_metrics = 2;
+  bytes amplitude_encoding = 3;  // Quantum relationship tensor
+}
+```
+
+#### Poseidon → Apollo — Financial Data Pipeline (Tier 2)
+
+- **Protocol**: Quantum-enhanced WebSocket
+- **Data**: Market feeds and volatility surfaces
+- **Synchronization**: Quantum phase estimation for precise time alignment
+
+```json
+{
+  "sender": "poseidon",
+  "receiver": "apollo",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "quantum_signature": "bell_state_measurement",
+  "payload": {
+    "liquidity_map": "quantum_circuit_embedding",
+    "volatility_surface": "variational_result",
+    "confidence_interval": 0.95
+  }
+}
+```
+
+### Quantum-Specific Coordination Methods
+
+- **Entanglement-based coordination**
+  - Artemis → Ares: Shared entanglement to amplify anomaly detection
+  - Athena → Zeus: Bell-state alignment for ethical policy enforcement
+  - Hermes backbone: Quantum repeaters for tamper-proof delivery
+- **Quantum state synchronization** uses shared Bell pairs and phase correction
+  routines to keep paired agents in calibrated states:
+
+```python
+class QuantumStateSync:
+    def synchronize_agents(agent_a: DQA, agent_b: DQA):
+        # Establish entanglement channel
+        bell_pair = create_bell_state()
+        agent_a.entangle(bell_pair[0])
+        agent_b.entangle(bell_pair[1])
+
+        # Measure and correct phase
+        correction = agent_a.measure_phase()
+        agent_b.apply_correction(correction)
+```
+
+- **Quantum key distribution (Hermes Network)** leverages BB84 or E91 for
+  payment rails and encrypted directives, with post-quantum classical fallbacks
+  when fidelity dips below threshold.
+
+### Tier-Based Communication Matrix
+
+| From / To | Zeus (T3)     | Hera (T2)      | Poseidon (T2)   | Artemis (T1)       |
+| --------- | ------------- | -------------- | --------------- | ------------------ |
+| Zeus      | —             | Policy gRPC    | Governance QCMB | Signed directives  |
+| Hera      | Trust reports | —              | Social metrics  | Reputation updates |
+| Poseidon  | Risk alerts   | Market data    | —               | Liquidity signals  |
+| Artemis   | Edge alerts   | Discovery data | Anomaly feeds   | —                  |
+
+### Message Priority and Quality of Service
+
+1. **P0 — Quantum Critical**: Entanglement synchronization, security breaches
+2. **P1 — Governance**: Policy updates, oracle validation flows
+3. **P2 — Operational**: Market data, trust graph updates
+4. **P3 — Analytical**: Forecasting, strategy refinement
+
+Quality of service is tuned per channel:
+
+- **Low latency**: WebSocket + UDP for Artemis and Hermes sensing loops
+- **High reliability**: gRPC + TCP for Zeus and Athena governance contracts
+- **Batch processing**: Asynchronous queues for Apollo and Demeter analytics
+
+### Error Handling and Recovery
+
+Quantum channels monitor fidelity and automatically re-negotiate entanglement
+before falling back to classical mirrors.
+
+```python
+class QuantumErrorRecovery:
+    def handle_decoherence(message: QuantumMessage):
+        if message.fidelity < threshold:
+            # Re-establish entanglement
+            new_channel = establish_quantum_channel()
+            # Retry with classical backup
+            return self.retry_with_classical(message)
+```
+
+Classical fallbacks include circuit breakers for hardware outages, consensus
+reruns without quantum acceleration, and cached last-known-good states.
+
+### Security and Access Control
+
+```protobuf
+message QuantumSignedMessage {
+  bytes payload = 1;
+  bytes quantum_signature = 2;  // Derived from shared entanglement
+  string classical_digest = 3;  // SHA-3 fallback
+  uint64 nonce = 4;            // Quantum random number
+}
+```
+
+- **Tier 3** agents hold full quantum-classical privileges.
+- **Tier 2** agents receive scoped quantum operations tied to their domain.
+- **Tier 1** agents maintain classical cores with quantum sensing overlays.
+
+### Implementation Recommendations
+
+1. Begin with hybrid deployments that prioritize classical reliability before
+   layering on quantum channels.
+2. Define message schemas in Protocol Buffers and share circuit payloads using
+   OpenQASM 3.0 serialization.
+3. Instrument fidelity metrics for each quantum link and trigger automated
+   renegotiation when thresholds are crossed.
+4. Support simulated and hardware quantum backends to keep CI reproducible.
+
 ## Hybrid Architecture Patterns
 
 ### System Layers
