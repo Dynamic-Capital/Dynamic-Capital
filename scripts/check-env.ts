@@ -17,15 +17,15 @@ if (!SUPABASE_ANON_KEY) {
   placeholders.push("SUPABASE_ANON_KEY → stub-anon-key");
 }
 if (!SITE_URL) {
-  const fallbackOrigin = "http://localhost:8080";
+  const fallbackOrigin = "http://localhost:3000";
   process.env.SITE_URL = fallbackOrigin;
   process.env.NEXT_PUBLIC_SITE_URL = fallbackOrigin;
   placeholders.push(
-    "SITE_URL & NEXT_PUBLIC_SITE_URL → http://localhost:8080",
+    "SITE_URL & NEXT_PUBLIC_SITE_URL → http://localhost:3000",
   );
   if (!process.env.MINIAPP_ORIGIN) {
     process.env.MINIAPP_ORIGIN = fallbackOrigin;
-    placeholders.push("MINIAPP_ORIGIN → http://localhost:8080");
+    placeholders.push("MINIAPP_ORIGIN → http://localhost:3000");
   }
 }
 

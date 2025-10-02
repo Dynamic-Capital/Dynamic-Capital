@@ -9,9 +9,9 @@ import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 const ROUTE_NAME = "/api/dynamic-rest";
 const CACHE_KEY = "dynamic-rest-response";
-const REVALIDATE_SECONDS = 300;
+export const revalidate = 300;
 
-export const revalidate = REVALIDATE_SECONDS;
+const REVALIDATE_SECONDS = revalidate;
 
 const getDynamicRestResponse = unstable_cache(
   async () => buildDynamicRestResponse(),
