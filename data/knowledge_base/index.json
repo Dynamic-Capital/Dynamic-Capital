@@ -19,6 +19,10 @@
         {
           "path": "2025-10-15/eval-window.json",
           "purpose": "Evaluation window metadata for replaying fine-tuning checkpoints."
+        },
+        {
+          "path": "2025-10-15/extracted.json",
+          "purpose": "Structured aggregate of the mirrored drop combining markdown, CSV, JSON, and PDF payloads."
         }
       ]
     }
@@ -42,7 +46,7 @@
     },
     {
       "id": "knowledge-base-books-2025-10-20",
-      "title": "Knowledge base — Books reference drop",
+      "title": "Knowledge base \u2014 Books reference drop",
       "share_link": "https://1drv.ms/f/c/2ff0428a2f57c7a4/Ekqbarlpv7hLjyb9tgPdMqcBZpxonB18K7RHjp2IV6ofmQ?e=PDXXJk",
       "graph_helper": "docs/onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md",
       "status": "Contains the curated PDF books staged under knowledge_base\\\\books; fetch metadata and mirror into the repository once access is available.",
@@ -54,7 +58,7 @@
     },
     {
       "id": "bdatasets-reference-2025-10-20",
-      "title": "DynamicAI_D — External datasets bundle",
+      "title": "DynamicAI_D \u2014 External datasets bundle",
       "share_link": "https://1drv.ms/f/c/2ff0428a2f57c7a4/Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA?e=d9WTwY",
       "graph_helper": "docs/onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md",
       "status": "Hosts the DynamicAI_D/Bdatasets drop; coordinate checksum validation before syncing into Supabase mirrors.",
@@ -67,7 +71,7 @@
     }
   ],
   "staging": {
-    "title": "Research — Staging Area Sync",
+    "title": "Research \u2014 Staging Area Sync",
     "source_location": "OneDrive\\\\DynamicAI_DB\\\\knowledge_base\\\\research",
     "supabase_mirror": "public.one_drive_assets/knowledge_base/research/*",
     "description": "New research datasets have been uploaded to OneDrive and are waiting on checksum validation before we promote them into the shared retrieval corpus. Track synchronization steps and dataset notes in the research/README.md control file.",
