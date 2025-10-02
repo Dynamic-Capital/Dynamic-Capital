@@ -7,6 +7,7 @@ from .crawler import ArchitectureTraversalStep, DynamicArchitectureCrawler
 from .engine import DynamicArchitectureEngine
 from .helper import DynamicArchitectureHelper
 from .keeper import DynamicArchitectureKeeper
+from .playbook import DynamicArchitecturePlaybook
 from .model import (
     ArchitectureDocument,
     ArchitectureFlow,
@@ -24,6 +25,7 @@ __all__ = [
     "DynamicArchitectureEngine",
     "DynamicArchitectureHelper",
     "DynamicArchitectureKeeper",
+    "DynamicArchitecturePlaybook",
     "ArchitectureDocument",
     "ArchitectureFlow",
     "ArchitectureLayer",
