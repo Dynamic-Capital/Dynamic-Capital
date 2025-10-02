@@ -7,7 +7,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
+from typing import Deque, Iterable, Literal, Mapping, MutableMapping, Sequence
 from urllib.parse import urljoin
 
 try:  # pragma: no cover - optional dependency
@@ -20,6 +20,7 @@ __all__ = [
     "SupabaseFunctionBlueprint",
     "SupabaseBucketBlueprint",
     "SupabaseQueryProfile",
+    "SupabaseOptimizationHint",
     "SupabaseResourceHealth",
     "SupabaseConnectionStatus",
     "DynamicSupabaseEngine",
@@ -248,6 +249,28 @@ class SupabaseQueryProfile:
             "status": self.status,
             "timestamp": self.timestamp.isoformat(),
             "metadata": dict(self.metadata or {}),
+        }
+
+
+@dataclass(slots=True)
+class SupabaseOptimizationHint:
+    """Actionable recommendation to improve a Supabase resource."""
+
+    target_type: Literal["table", "function", "bucket", "query"]
+    target: str
+    action: str
+    rationale: str
+    impact: Literal["low", "medium", "high"] = "medium"
+    metadata: Mapping[str, object] = field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "target_type": self.target_type,
+            "target": self.target,
+            "action": self.action,
+            "rationale": self.rationale,
+            "impact": self.impact,
+            "metadata": dict(self.metadata),
         }
 
 
@@ -540,6 +563,207 @@ class DynamicSupabaseEngine:
             dashboard["buckets"][bucket.canonical_name] = health.as_dict()
 
         return dashboard
+
+    # ----------------------------------------------------------- optimisation
+    def optimisation_hints(
+        self,
+        *,
+        table_row_threshold: int = 5_000,
+        table_latency_threshold_ms: float = 350.0,
+        query_scan_threshold: int = 10_000,
+        query_latency_threshold_ms: float = 400.0,
+        table_freshness_threshold: float = 0.35,
+        function_error_rate_threshold: float = 0.05,
+        function_latency_threshold_ms: float = 250.0,
+        max_hints: int | None = None,
+    ) -> tuple[SupabaseOptimizationHint, ...]:
+        """Generate optimisation suggestions for registered resources.
+
+        The heuristics inspect the registered blueprints and the recorded query
+        history to highlight potential bottlenecks. Thresholds are configurable
+        so callers can tune the engine for their workload. Returned hints are
+        sorted by their perceived impact (``high`` → ``medium`` → ``low``).
+        """
+
+        hints: list[SupabaseOptimizationHint] = []
+
+        history_by_resource: MutableMapping[str, list[SupabaseQueryProfile]] = {}
+        for entry in self._history:
+            history_by_resource.setdefault(entry.canonical_resource, []).append(entry)
+
+        def add_hint(hint: SupabaseOptimizationHint) -> None:
+            hints.append(hint)
+
+        # Table heuristics -------------------------------------------------
+        for table in self.tables:
+            canonical = table.canonical_identifier
+            resource_key = f"table:{canonical}"
+            table_history = history_by_resource.get(resource_key, [])
+
+            if not table.indexes and table.row_estimate >= table_row_threshold:
+                add_hint(
+                    SupabaseOptimizationHint(
+                        target_type="table",
+                        target=canonical,
+                        action="add_index",
+                        impact="high",
+                        rationale=(
+                            "Large table without supporting indexes; create covering"
+                            " indexes for frequent access patterns."
+                        ),
+                        metadata={
+                            "row_estimate": table.row_estimate,
+                            "observed_queries": len(table_history),
+                        },
+                    ),
+                )
+
+            if table.freshness_score < table_freshness_threshold:
+                add_hint(
+                    SupabaseOptimizationHint(
+                        target_type="table",
+                        target=canonical,
+                        action="improve_refresh",
+                        impact="medium",
+                        rationale=(
+                            "Table freshness score is low; schedule more frequent refresh"
+                            " or backfill jobs to keep AI signals up-to-date."
+                        ),
+                        metadata={
+                            "freshness_score": table.freshness_score,
+                            "retention_hours": table.retention_hours,
+                        },
+                    ),
+                )
+
+            if table_history:
+                slow = [
+                    entry
+                    for entry in table_history
+                    if entry.duration_ms >= table_latency_threshold_ms
+                    or entry.rows_processed >= query_scan_threshold
+                ]
+                if slow:
+                    add_hint(
+                        SupabaseOptimizationHint(
+                            target_type="table",
+                            target=canonical,
+                            action="optimise_queries",
+                            impact="high" if table.indexes else "medium",
+                            rationale=(
+                                "Historical queries scan many rows or run slowly; consider"
+                                " adding covering indexes or materialised views."
+                            ),
+                            metadata={
+                                "slow_queries": len(slow),
+                                "avg_duration_ms": sum(entry.duration_ms for entry in slow)
+                                / len(slow),
+                                "max_rows_processed": max(
+                                    entry.rows_processed for entry in slow
+                                ),
+                            },
+                        ),
+                    )
+
+        # Function heuristics ---------------------------------------------
+        for function in self.functions:
+            canonical = function.canonical_name
+            if function.error_rate > function_error_rate_threshold:
+                add_hint(
+                    SupabaseOptimizationHint(
+                        target_type="function",
+                        target=canonical,
+                        action="reduce_error_rate",
+                        impact="high"
+                        if function.error_rate > 2 * function_error_rate_threshold
+                        else "medium",
+                        rationale=(
+                            "Edge function is returning failures above the allowed error"
+                            " rate; add defensive guards or retries."
+                        ),
+                        metadata={
+                            "error_rate": function.error_rate,
+                            "invocation_count": function.invocation_count,
+                        },
+                    ),
+                )
+
+            if function.average_latency_ms > function_latency_threshold_ms:
+                add_hint(
+                    SupabaseOptimizationHint(
+                        target_type="function",
+                        target=canonical,
+                        action="improve_latency",
+                        impact="medium",
+                        rationale=(
+                            "Average latency is above the configured threshold; profile"
+                            " downstream calls and enable response caching where possible."
+                        ),
+                        metadata={
+                            "average_latency_ms": function.average_latency_ms,
+                            "threshold_ms": function_latency_threshold_ms,
+                        },
+                    ),
+                )
+
+        # Query telemetry heuristics --------------------------------------
+        for resource, entries in history_by_resource.items():
+            failures = [entry for entry in entries if entry.status != "success"]
+            if failures:
+                add_hint(
+                    SupabaseOptimizationHint(
+                        target_type="query",
+                        target=resource,
+                        action="review_errors",
+                        impact="medium",
+                        rationale=(
+                            "Recent telemetry shows repeated query failures; inspect logs"
+                            " for the affected resource."
+                        ),
+                        metadata={
+                            "failed_queries": len(failures),
+                            "last_error": failures[-1].status,
+                        },
+                    ),
+                )
+
+            slow_queries = [
+                entry for entry in entries if entry.duration_ms >= query_latency_threshold_ms
+            ]
+            if slow_queries:
+                sorted_latencies = sorted(entry.duration_ms for entry in slow_queries)
+                add_hint(
+                    SupabaseOptimizationHint(
+                        target_type="query",
+                        target=resource,
+                        action="profile_slow_query",
+                        impact="medium",
+                        rationale=(
+                            "One or more queries exceed the target latency; capture plans"
+                            " with EXPLAIN ANALYZE to validate indexing strategy."
+                        ),
+                        metadata={
+                            "slow_query_count": len(slow_queries),
+                            "p95_latency_ms": sorted_latencies[-1],
+                        },
+                    ),
+                )
+
+        impact_rank = {"high": 0, "medium": 1, "low": 2}
+        hints.sort(key=lambda hint: impact_rank.get(hint.impact, 3))
+
+        if max_hints is not None and max_hints >= 0:
+            hints = hints[:max_hints]
+
+        return tuple(hints)
+
+    def optimization_hints(
+        self,
+        **kwargs: object,
+    ) -> tuple[SupabaseOptimizationHint, ...]:
+        """US English alias for :meth:`optimisation_hints`."""
+
+        return self.optimisation_hints(**kwargs)
 
     # ------------------------------------------------------------ connectivity
     def verify_connection(
