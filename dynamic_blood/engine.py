@@ -7,12 +7,30 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from itertools import islice
 from statistics import fmean
-from typing import Deque, Mapping, MutableMapping, Sequence
+from typing import TYPE_CHECKING, Deque, Mapping, MutableMapping, Sequence
+from dynamic_deep_learning.engine import (
+    DynamicAgent,
+    DynamicBot,
+    DynamicKeeper,
+    DynamicModel,
+    LayerBlueprint,
+    build_dynamic_ags_input_layers,
+    build_dynamic_agi_input_layers,
+    build_dynamic_ai_input_layers,
+)
+
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard
+    from dynamic.platform.token.engine import DCTEngineReport
+    from dynamic_developer.agents import DeveloperAgentResultEnvelope
 
 __all__ = [
     "BloodSample",
     "BloodContext",
     "BloodInsight",
+    "BloodCapitalSynthesis",
+    "CapitalOperationsPersona",
+    "CapitalAutomationBot",
+    "CapitalOperationsSuite",
     "DynamicBlood",
 ]
 
@@ -215,6 +233,314 @@ class BloodInsight:
         }
 
 
+def _layer_to_dict(layer: LayerBlueprint) -> MutableMapping[str, object]:
+    return {
+        "name": layer.name,
+        "units": layer.units,
+        "activation": layer.activation,
+        "dropout": layer.dropout,
+    }
+
+
+def _normalise_layers(
+    layers: Sequence[LayerBlueprint],
+) -> tuple[LayerBlueprint, ...]:
+    return tuple(layers)
+
+
+def _summarise_token_report(
+    token_report: "DCTEngineReport" | Mapping[str, object]
+) -> tuple[MutableMapping[str, object], float, float, float, float]:
+    if isinstance(token_report, Mapping):
+        summary: MutableMapping[str, object] = dict(token_report)
+        price: float | None = None
+        minted: float | None = None
+        allocation_total: float | None = None
+        residual: float | None = None
+    else:
+        summary = token_report.to_dict()
+        price = None
+        minted = None
+        allocation_total = None
+        residual = None
+
+        if hasattr(token_report, "price_breakdown"):
+            price = getattr(token_report.price_breakdown, "final_price", None)
+        if hasattr(token_report, "effective_plan"):
+            minted = getattr(token_report.effective_plan, "final_mint", None)
+        if hasattr(token_report, "allocation_total"):
+            try:
+                allocation_total = float(token_report.allocation_total)
+            except TypeError:
+                allocation_total = None
+        if hasattr(token_report, "allocation_residual"):
+            try:
+                residual = float(token_report.allocation_residual)
+            except TypeError:
+                residual = None
+
+    if "price" in summary:
+        price = float(summary["price"])
+    else:
+        price = None
+
+    price_breakdown = summary.get("price_breakdown")
+    if price is None and isinstance(price_breakdown, Mapping):
+        extracted = price_breakdown.get("final_price")
+        price = float(extracted) if extracted is not None else None
+
+    if price is None:
+        price = 0.0
+    else:
+        price = float(price)
+
+    effective_plan = summary.get("effective_plan")
+    if minted is None and isinstance(effective_plan, Mapping):
+        minted_value = effective_plan.get("final_mint")
+        if minted_value is not None:
+            minted = float(minted_value)
+    if minted is None:
+        minted = 0.0
+
+    allocation_total_summary = summary.get("allocation_total")
+    if allocation_total_summary is not None:
+        allocation_total = float(allocation_total_summary)
+    if allocation_total is None:
+        allocation_total = 0.0
+
+    residual_summary = summary.get("allocation_residual")
+    if residual_summary is not None:
+        residual = float(residual_summary)
+    if residual is None:
+        residual = minted - allocation_total
+
+    summary["price"] = price
+    if not isinstance(summary.get("effective_plan"), Mapping):
+        summary["effective_plan"] = {"final_mint": minted}
+    else:
+        effective_plan_mapping = dict(summary["effective_plan"])
+        effective_plan_mapping.setdefault("final_mint", minted)
+        summary["effective_plan"] = effective_plan_mapping
+    summary["allocation_total"] = allocation_total
+    summary["allocation_residual"] = residual
+
+    return summary, price, minted, allocation_total, residual
+
+
+@dataclass(slots=True)
+class BloodCapitalSynthesis:
+    """Combined view aligning blood insights with Dynamic Capital Token outputs."""
+
+    insight: BloodInsight
+    token_summary: Mapping[str, object]
+    ai_layers: tuple[LayerBlueprint, ...]
+    agi_layers: tuple[LayerBlueprint, ...]
+    ags_layers: tuple[LayerBlueprint, ...]
+    token_price: float
+    minted_supply: float
+    allocation_total: float
+    residual_supply: float
+    narrative: str
+    operations: "CapitalOperationsSuite"
+
+    def __post_init__(self) -> None:
+        self.token_summary = dict(self.token_summary)
+        self.ai_layers = _normalise_layers(self.ai_layers)
+        self.agi_layers = _normalise_layers(self.agi_layers)
+        self.ags_layers = _normalise_layers(self.ags_layers)
+        self.token_price = float(self.token_price)
+        self.minted_supply = float(self.minted_supply)
+        self.allocation_total = float(self.allocation_total)
+        self.residual_supply = float(self.residual_supply)
+        self.narrative = _normalise_optional_text(self.narrative) or ""
+        if not isinstance(self.operations, CapitalOperationsSuite):  # pragma: no cover - defensive
+            raise TypeError("operations must be a CapitalOperationsSuite")
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "insight": self.insight.as_dict(),
+            "token": dict(self.token_summary),
+            "token_price": self.token_price,
+            "minted_supply": self.minted_supply,
+            "allocation_total": self.allocation_total,
+            "residual_supply": self.residual_supply,
+            "models": {
+                "dynamic_ai": [_layer_to_dict(layer) for layer in self.ai_layers],
+                "dynamic_agi": [_layer_to_dict(layer) for layer in self.agi_layers],
+                "dynamic_ags": [_layer_to_dict(layer) for layer in self.ags_layers],
+            },
+            "narrative": self.narrative,
+            "operations": self.operations.as_dict(),
+        }
+
+
+@dataclass(slots=True)
+class CapitalOperationsPersona:
+    """Role descriptor for capital operations managers and workers."""
+
+    name: str
+    focus: tuple[str, ...]
+    responsibilities: tuple[str, ...]
+    cadence: str = "daily"
+
+    def __post_init__(self) -> None:
+        self.name = _normalise_optional_text(self.name) or "operations"
+        self.focus = _normalise_tuple(self.focus)
+        self.responsibilities = _normalise_tuple(self.responsibilities)
+        self.cadence = _normalise_optional_text(self.cadence) or "daily"
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "name": self.name,
+            "focus": list(self.focus),
+            "responsibilities": list(self.responsibilities),
+            "cadence": self.cadence,
+        }
+
+
+@dataclass(slots=True)
+class CapitalAutomationBot:
+    """Automation bot wrapper exposing cadence and purpose."""
+
+    name: str
+    bot: DynamicBot
+    purpose: str
+    cadence: str = "hourly"
+
+    def __post_init__(self) -> None:
+        self.name = _normalise_optional_text(self.name) or "automation"
+        self.purpose = _normalise_optional_text(self.purpose) or ""
+        self.cadence = _normalise_optional_text(self.cadence) or "hourly"
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "name": self.name,
+            "purpose": self.purpose,
+            "cadence": self.cadence,
+            "agent_summary": self.bot.agent.summary(),
+        }
+
+
+@dataclass(slots=True)
+class _DeveloperFallbackEnvelope:
+    """Minimal stand-in when developer agents are unavailable."""
+
+    iteration: str
+    objectives: tuple[str, ...]
+    horizon_days: int
+    blockers: tuple[str, ...] = ()
+    notes: MutableMapping[str, object] = field(default_factory=dict)
+
+    def summary(self) -> str:
+        objectives = ", ".join(self.objectives) if self.objectives else "no objectives"
+        return f"{self.iteration} – {objectives}"
+
+    def to_dict(self) -> MutableMapping[str, object]:
+        return {
+            "model": {
+                "iteration": self.iteration,
+                "objectives": list(self.objectives),
+                "horizon_days": self.horizon_days,
+                "roles": {},
+                "summary": self.summary(),
+                "blueprint": {
+                    "scheduled_tasks": [],
+                    "deferred_tasks": [],
+                    "blockers": list(self.blockers),
+                },
+            },
+            "playbooks": {},
+            "blockers": list(self.blockers),
+            "notes": dict(self.notes),
+            "summary": self.summary(),
+        }
+
+
+def _build_developer_fallback(
+    iteration: str,
+    objectives: Sequence[str],
+    *,
+    horizon_days: int,
+    blockers: Sequence[str],
+    notes: Mapping[str, object],
+) -> _DeveloperFallbackEnvelope:
+    return _DeveloperFallbackEnvelope(
+        iteration=_normalise_optional_text(iteration) or "blood-capital-iteration",
+        objectives=_normalise_tuple(objectives),
+        horizon_days=int(horizon_days),
+        blockers=_normalise_tuple(blockers),
+        notes=dict(notes),
+    )
+
+
+@dataclass(slots=True)
+class CapitalOperationsSuite:
+    """Container bundling model, keeper, developers, and automation personas."""
+
+    model: DynamicModel
+    agent: DynamicAgent
+    keeper: DynamicKeeper
+    developer: "DeveloperAgentResultEnvelope | _DeveloperFallbackEnvelope"
+    managers: tuple[CapitalOperationsPersona, ...]
+    workers: tuple[CapitalOperationsPersona, ...]
+    bots: tuple[CapitalAutomationBot, ...]
+    keeper_domain: str = "dynamic_blood_capital"
+
+    def __post_init__(self) -> None:
+        self.managers = tuple(self.managers)
+        self.workers = tuple(self.workers)
+        self.bots = tuple(self.bots)
+        self.keeper_domain = _normalise_optional_text(self.keeper_domain) or "dynamic_blood_capital"
+        if not hasattr(self.developer, "to_dict"):
+            raise TypeError("developer must expose to_dict()")
+
+    def _keeper_profile(self) -> list[MutableMapping[str, object]]:
+        try:
+            profile = self.keeper.get_profile(self.keeper_domain)
+        except ValueError:
+            return []
+        payload: list[MutableMapping[str, object]] = []
+        for layer in profile:
+            payload.append(
+                {
+                    "name": layer.name,
+                    "expansion": layer.expansion,
+                    "activation": layer.activation,
+                    "dropout": layer.dropout,
+                    "max_units": layer.max_units,
+                }
+            )
+        return payload
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "model": {
+                "summary": self.model.summary(),
+                "input_dim": self.model.spec.input_dim,
+                "output_dim": self.model.spec.output_dim,
+                "layer_count": len(self.model.spec.layers),
+                "layers": [
+                    {
+                        "name": layer.name,
+                        "input_dim": layer.input_dim,
+                        "output_dim": layer.output_dim,
+                        "activation": layer.activation,
+                        "dropout": layer.dropout,
+                    }
+                    for layer in self.model.spec.layers
+                ],
+            },
+            "agent": {"summary": self.agent.summary()},
+            "keeper": {
+                "domain": self.keeper_domain,
+                "profile": self._keeper_profile(),
+            },
+            "developer": self.developer.to_dict(),
+            "managers": [persona.as_dict() for persona in self.managers],
+            "workers": [persona.as_dict() for persona in self.workers],
+            "bots": [bot.as_dict() for bot in self.bots],
+        }
+
 # ---------------------------------------------------------------------------
 # engine
 
@@ -416,3 +742,276 @@ class DynamicBlood:
         self._history.clear()
         self._oxygen_history.clear()
         self._signals_history.clear()
+
+    def synthesise_capital_alignment(
+        self,
+        token_report: "DCTEngineReport" | Mapping[str, object],
+        *,
+        context: BloodContext | None = None,
+        ai_base_dim: int | None = None,
+    ) -> BloodCapitalSynthesis:
+        """Fuse blood insights with Dynamic Capital Token outputs and model scaffolds."""
+
+        insight = self.assess(context=context)
+
+        if ai_base_dim is None:
+            ai_base_dim = max(4, int(round(insight.stability_index * 10)) + len(insight.flags))
+        else:
+            ai_base_dim = max(1, int(ai_base_dim))
+
+        summary, price, minted, allocation_total, residual = _summarise_token_report(
+            token_report
+        )
+
+        ai_layers = build_dynamic_ai_input_layers(ai_base_dim)
+        agi_layers = build_dynamic_agi_input_layers(ai_base_dim + 2)
+        ags_layers = build_dynamic_ags_input_layers(ai_base_dim + 4)
+
+        ai_tail = ai_layers[-1].units if ai_layers else ai_base_dim
+        agi_tail = agi_layers[-1].units if agi_layers else ai_base_dim + 2
+        ags_tail = ags_layers[-1].units if ags_layers else ai_base_dim + 4
+
+        notes = summary.get("notes")
+        if isinstance(notes, Sequence) and not isinstance(notes, (str, bytes)):
+            joined_notes = ", ".join(str(item) for item in notes if item)
+        else:
+            joined_notes = str(notes) if notes else ""
+
+        narrative_parts = [
+            f"DCT priced at {price:.2f} with {minted:.2f} tokens minted and {residual:.2f} residual supply.",
+            f"Blood stability holds at {insight.stability_index:.0%} with oxygen {insight.oxygen_delivery_score:.0%}.",
+            (
+                "Dynamic AI/AGI/AGS layers configured for treasury alignment "
+                f"({ai_tail}/{agi_tail}/{ags_tail} units)."
+            ),
+        ]
+        if joined_notes:
+            narrative_parts.append(f"Token notes: {joined_notes}.")
+
+        narrative = " ".join(narrative_parts)
+
+        output_units = max(1, int(round(max(insight.stability_index, 0.1) * 12)))
+        output_layers = ags_layers + (
+            LayerBlueprint(
+                name="dbc_alignment_head",
+                units=output_units,
+                activation="softmax",
+                dropout=0.0,
+            ),
+        )
+
+        learning_rate = 0.01 + (1.0 - insight.stability_index) * 0.05
+        model = DynamicModel.from_layer_groups(
+            input_dim=ai_base_dim,
+            input_layers=ai_layers,
+            hidden_layers=agi_layers,
+            output_layers=output_layers,
+            learning_rate=learning_rate,
+            momentum=0.1,
+            l2_regularisation=0.0005,
+        )
+        agent = DynamicAgent(model)
+
+        keeper = DynamicKeeper()
+        keeper_domain = "dynamic_blood_capital"
+        keeper.register_domain(
+            keeper_domain,
+            (
+                {
+                    "name": "dbc_oxygen_alignment",
+                    "expansion": 1.0 + insight.oxygen_delivery_score * 0.5,
+                    "activation": "relu",
+                    "dropout": 0.05,
+                    "max_units": 640,
+                },
+                {
+                    "name": "dbc_liquidity_bridge",
+                    "expansion": 1.0 + insight.stability_index * 0.3,
+                    "activation": "tanh",
+                    "dropout": 0.05,
+                    "max_units": 512,
+                },
+                {
+                    "name": "dbc_governance_head",
+                    "expansion": 0.9,
+                    "activation": "sigmoid",
+                    "dropout": 0.0,
+                    "max_units": 256,
+                },
+            ),
+        )
+
+        risk_bias = 1.0 - insight.stability_index
+        dev_tasks = [
+            {
+                "identifier": "treasury-alignment-bridge",
+                "description": (
+                    "Sync Dynamic Capital Token treasury automation with blood stability metrics"
+                    " and residual supply buffers."
+                ),
+                "effort_hours": 6.0 + len(insight.flags) * 1.5,
+                "impact": float(_clamp(0.8 + risk_bias * 0.2)),
+                "tags": ("blockchain", "treasury", "manager"),
+                "domain": "blockchain",
+            },
+            {
+                "identifier": "biomarker-telemetry-harness",
+                "description": (
+                    "Extend biomarker ingestion surfaces for frontline workers to monitor oxygen"
+                    " and hydration variance."
+                ),
+                "effort_hours": 4.0 + len(insight.recommendations) * 0.5,
+                "impact": float(_clamp(0.65 + risk_bias * 0.1)),
+                "tags": ("frontend", "worker", "analytics"),
+                "domain": "frontend",
+            },
+            {
+                "identifier": "operations-playbook-updates",
+                "description": (
+                    "Refresh capital operations playbooks with escalation paths for managers and"
+                    " worker rotations informed by blood insights."
+                ),
+                "effort_hours": 3.5,
+                "impact": float(_clamp(0.55 + risk_bias * 0.3)),
+                "tags": ("manager", "operations", "documentation"),
+                "domain": "general",
+            },
+        ]
+
+        developer_objectives = (
+            "Align DCT treasury controls with blood resilience metrics",
+            "Operationalise telemetry for hydration and immune drift",
+        )
+        developer_context: MutableMapping[str, object] = {
+            "token_price": price,
+            "minted_supply": minted,
+            "residual_supply": residual,
+            "allocation_total": allocation_total,
+            "flags": list(insight.flags),
+            "recommendations": list(insight.recommendations),
+            "stability_index": insight.stability_index,
+            "hydration_index": insight.hydration_index,
+        }
+        try:
+            from dynamic_developer.agents import DeveloperAgent
+        except Exception:  # pragma: no cover - optional dependency
+            developer_agent = None
+        else:
+            try:
+                developer_agent = DeveloperAgent()
+            except Exception:  # pragma: no cover - engine bootstrap fallback
+                developer_agent = None
+
+        if developer_agent is not None:
+            try:
+                developer_envelope = developer_agent.run(
+                    dev_tasks,
+                    iteration="blood-capital-alignment",
+                    objectives=developer_objectives,
+                    context=developer_context,
+                    horizon_days=7,
+                )
+            except Exception:  # pragma: no cover - runtime fallback
+                developer_envelope = _build_developer_fallback(
+                    "blood-capital-alignment",
+                    developer_objectives,
+                    horizon_days=7,
+                    blockers=insight.flags,
+                    notes={
+                        "context": dict(developer_context),
+                        "fallback": True,
+                    },
+                )
+        else:
+            developer_envelope = _build_developer_fallback(
+                "blood-capital-alignment",
+                developer_objectives,
+                horizon_days=7,
+                blockers=insight.flags,
+                notes={
+                    "context": dict(developer_context),
+                    "fallback": True,
+                },
+            )
+
+        manager_personas = (
+            CapitalOperationsPersona(
+                name="treasury_manager",
+                focus=("liquidity", "allocation_governance"),
+                responsibilities=(
+                    f"Track minted supply {minted:.2f} and residual {residual:.2f}",
+                    "Coordinate blockchain developer releases for treasury automation",
+                ),
+                cadence="daily",
+            ),
+            CapitalOperationsPersona(
+                name="health_operations_manager",
+                focus=("blood_stability", "preventive_actions"),
+                responsibilities=(
+                    "Translate blood recommendations into capital control updates",
+                    "Escalate hydration or immune flags to frontline workers",
+                ),
+                cadence="per-shift",
+            ),
+        )
+
+        worker_personas = (
+            CapitalOperationsPersona(
+                name="biomarker_worker",
+                focus=("blood_analytics", "sampling"),
+                responsibilities=(
+                    "Capture new blood samples and maintain telemetry ingestion",
+                    "Report lactate and hydration variance to managers",
+                ),
+                cadence="per-shift",
+            ),
+            CapitalOperationsPersona(
+                name="treasury_worker",
+                focus=("treasury_ops", "liquidity_execution"),
+                responsibilities=(
+                    "Execute mint and burn operations following developer playbooks",
+                    f"Monitor DCT price guardrails near {price:.2f}",
+                ),
+                cadence="hourly",
+            ),
+        )
+
+        bots = (
+            CapitalAutomationBot(
+                name="treasury_alignment_bot",
+                bot=DynamicBot(agent),
+                purpose="Run scheduled training for treasury alignment datasets",
+                cadence="hourly",
+            ),
+            CapitalAutomationBot(
+                name="biomarker_alert_bot",
+                bot=DynamicBot(agent),
+                purpose="Scan blood telemetry for anomalies and alert managers",
+                cadence="15-minute",
+            ),
+        )
+
+        operations = CapitalOperationsSuite(
+            model=model,
+            agent=agent,
+            keeper=keeper,
+            developer=developer_envelope,
+            managers=manager_personas,
+            workers=worker_personas,
+            bots=bots,
+            keeper_domain=keeper_domain,
+        )
+
+        return BloodCapitalSynthesis(
+            insight=insight,
+            token_summary=summary,
+            ai_layers=ai_layers,
+            agi_layers=agi_layers,
+            ags_layers=ags_layers,
+            token_price=price,
+            minted_supply=minted,
+            allocation_total=allocation_total,
+            residual_supply=residual,
+            narrative=narrative,
+            operations=operations,
+        )

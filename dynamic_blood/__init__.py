@@ -1,6 +1,7 @@
 """Dynamic blood intelligence toolkit."""
 
 from .engine import (
+    BloodCapitalSynthesis,
     BloodContext,
     BloodInsight,
     BloodSample,
@@ -8,6 +9,7 @@ from .engine import (
 )
 
 __all__ = [
+    "BloodCapitalSynthesis",
     "BloodContext",
     "BloodInsight",
     "BloodSample",
