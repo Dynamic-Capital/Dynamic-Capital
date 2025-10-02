@@ -11,18 +11,16 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from dai_architecture import (
+from dai_architecture import (  # noqa: E402 - configured sys.path above
     BaselineValidator,
-    ChatCPT2Adapter,
     ConstraintSet,
-    DolphinAdapter,
-    GrokAdapter,
     L0ContextManager,
     MinimalRouter,
     ResultEnvelope,
     TaskBus,
     TaskEnvelope,
     TaskValidationError,
+    build_phase1_mesh,
 )
 
 
@@ -44,6 +42,25 @@ def _make_envelope(task_id: str, *, intent: str = "accumulate", momentum: float 
     return TaskEnvelope(task_id=task_id, intent=intent, context=context, constraints=constraints)
 
 
+def test_phase1_mesh_contains_eleven_adapters() -> None:
+    mesh = build_phase1_mesh()
+    assert len(mesh) == 11
+    names = {adapter.name for adapter in mesh}
+    assert names == {
+        "core1_chatcpt2",
+        "core2_grok",
+        "core3_dolphin",
+        "core4_ollama",
+        "core5_kimi_k2",
+        "core6_deepseek_v3",
+        "core7_deepseek_r1",
+        "core8_qwen3",
+        "core9_minimax_m1",
+        "core10_zhipu",
+        "core11_hunyuan",
+    }
+
+
 def test_task_bus_round_trip() -> None:
     bus = TaskBus()
     envelope = _make_envelope("task-1")
@@ -59,7 +76,7 @@ def test_router_produces_valid_result() -> None:
     validator = BaselineValidator()
     context_manager = L0ContextManager()
     router = MinimalRouter(
-        adapters=(ChatCPT2Adapter(), GrokAdapter(), DolphinAdapter()),
+        adapters=build_phase1_mesh(),
         validator=validator,
         context_manager=context_manager,
         bus=bus,

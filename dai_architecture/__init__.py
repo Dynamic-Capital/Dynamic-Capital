@@ -20,6 +20,15 @@ from .core_adapters import (
     ChatCPT2Adapter,
     GrokAdapter,
     DolphinAdapter,
+    OllamaAdapter,
+    KimiK2Adapter,
+    DeepSeekV3Adapter,
+    DeepSeekR1Adapter,
+    Qwen3Adapter,
+    MiniMaxM1Adapter,
+    ZhipuAdapter,
+    HunyuanAdapter,
+    build_phase1_mesh,
 )
 
 __all__ = [
@@ -43,4 +52,13 @@ __all__ = [
     "ChatCPT2Adapter",
     "GrokAdapter",
     "DolphinAdapter",
+    "OllamaAdapter",
+    "KimiK2Adapter",
+    "DeepSeekV3Adapter",
+    "DeepSeekR1Adapter",
+    "Qwen3Adapter",
+    "MiniMaxM1Adapter",
+    "ZhipuAdapter",
+    "HunyuanAdapter",
+    "build_phase1_mesh",
 ]
