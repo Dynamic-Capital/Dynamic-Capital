@@ -7,12 +7,22 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from itertools import islice
 from statistics import fmean
-from typing import Deque, Mapping, MutableMapping, Sequence
+from typing import TYPE_CHECKING, Deque, Mapping, MutableMapping, Sequence
+from dynamic_deep_learning.engine import (
+    LayerBlueprint,
+    build_dynamic_ags_input_layers,
+    build_dynamic_agi_input_layers,
+    build_dynamic_ai_input_layers,
+)
+
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard
+    from dynamic.platform.token.engine import DCTEngineReport
 
 __all__ = [
     "BloodSample",
     "BloodContext",
     "BloodInsight",
+    "BloodCapitalSynthesis",
     "DynamicBlood",
 ]
 
@@ -215,6 +225,142 @@ class BloodInsight:
         }
 
 
+def _layer_to_dict(layer: LayerBlueprint) -> MutableMapping[str, object]:
+    return {
+        "name": layer.name,
+        "units": layer.units,
+        "activation": layer.activation,
+        "dropout": layer.dropout,
+    }
+
+
+def _normalise_layers(
+    layers: Sequence[LayerBlueprint],
+) -> tuple[LayerBlueprint, ...]:
+    return tuple(layers)
+
+
+def _summarise_token_report(
+    token_report: "DCTEngineReport" | Mapping[str, object]
+) -> tuple[MutableMapping[str, object], float, float, float, float]:
+    if isinstance(token_report, Mapping):
+        summary: MutableMapping[str, object] = dict(token_report)
+        price: float | None = None
+        minted: float | None = None
+        allocation_total: float | None = None
+        residual: float | None = None
+    else:
+        summary = token_report.to_dict()
+        price = None
+        minted = None
+        allocation_total = None
+        residual = None
+
+        if hasattr(token_report, "price_breakdown"):
+            price = getattr(token_report.price_breakdown, "final_price", None)
+        if hasattr(token_report, "effective_plan"):
+            minted = getattr(token_report.effective_plan, "final_mint", None)
+        if hasattr(token_report, "allocation_total"):
+            try:
+                allocation_total = float(token_report.allocation_total)
+            except TypeError:
+                allocation_total = None
+        if hasattr(token_report, "allocation_residual"):
+            try:
+                residual = float(token_report.allocation_residual)
+            except TypeError:
+                residual = None
+
+    if "price" in summary:
+        price = float(summary["price"])
+    else:
+        price = None
+
+    price_breakdown = summary.get("price_breakdown")
+    if price is None and isinstance(price_breakdown, Mapping):
+        extracted = price_breakdown.get("final_price")
+        price = float(extracted) if extracted is not None else None
+
+    if price is None:
+        price = 0.0
+    else:
+        price = float(price)
+
+    effective_plan = summary.get("effective_plan")
+    if minted is None and isinstance(effective_plan, Mapping):
+        minted_value = effective_plan.get("final_mint")
+        if minted_value is not None:
+            minted = float(minted_value)
+    if minted is None:
+        minted = 0.0
+
+    allocation_total_summary = summary.get("allocation_total")
+    if allocation_total_summary is not None:
+        allocation_total = float(allocation_total_summary)
+    if allocation_total is None:
+        allocation_total = 0.0
+
+    residual_summary = summary.get("allocation_residual")
+    if residual_summary is not None:
+        residual = float(residual_summary)
+    if residual is None:
+        residual = minted - allocation_total
+
+    summary["price"] = price
+    if not isinstance(summary.get("effective_plan"), Mapping):
+        summary["effective_plan"] = {"final_mint": minted}
+    else:
+        effective_plan_mapping = dict(summary["effective_plan"])
+        effective_plan_mapping.setdefault("final_mint", minted)
+        summary["effective_plan"] = effective_plan_mapping
+    summary["allocation_total"] = allocation_total
+    summary["allocation_residual"] = residual
+
+    return summary, price, minted, allocation_total, residual
+
+
+@dataclass(slots=True)
+class BloodCapitalSynthesis:
+    """Combined view aligning blood insights with Dynamic Capital Token outputs."""
+
+    insight: BloodInsight
+    token_summary: Mapping[str, object]
+    ai_layers: tuple[LayerBlueprint, ...]
+    agi_layers: tuple[LayerBlueprint, ...]
+    ags_layers: tuple[LayerBlueprint, ...]
+    token_price: float
+    minted_supply: float
+    allocation_total: float
+    residual_supply: float
+    narrative: str
+
+    def __post_init__(self) -> None:
+        self.token_summary = dict(self.token_summary)
+        self.ai_layers = _normalise_layers(self.ai_layers)
+        self.agi_layers = _normalise_layers(self.agi_layers)
+        self.ags_layers = _normalise_layers(self.ags_layers)
+        self.token_price = float(self.token_price)
+        self.minted_supply = float(self.minted_supply)
+        self.allocation_total = float(self.allocation_total)
+        self.residual_supply = float(self.residual_supply)
+        self.narrative = _normalise_optional_text(self.narrative) or ""
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "insight": self.insight.as_dict(),
+            "token": dict(self.token_summary),
+            "token_price": self.token_price,
+            "minted_supply": self.minted_supply,
+            "allocation_total": self.allocation_total,
+            "residual_supply": self.residual_supply,
+            "models": {
+                "dynamic_ai": [_layer_to_dict(layer) for layer in self.ai_layers],
+                "dynamic_agi": [_layer_to_dict(layer) for layer in self.agi_layers],
+                "dynamic_ags": [_layer_to_dict(layer) for layer in self.ags_layers],
+            },
+            "narrative": self.narrative,
+        }
+
 # ---------------------------------------------------------------------------
 # engine
 
@@ -416,3 +562,63 @@ class DynamicBlood:
         self._history.clear()
         self._oxygen_history.clear()
         self._signals_history.clear()
+
+    def synthesise_capital_alignment(
+        self,
+        token_report: "DCTEngineReport" | Mapping[str, object],
+        *,
+        context: BloodContext | None = None,
+        ai_base_dim: int | None = None,
+    ) -> BloodCapitalSynthesis:
+        """Fuse blood insights with Dynamic Capital Token outputs and model scaffolds."""
+
+        insight = self.assess(context=context)
+
+        if ai_base_dim is None:
+            ai_base_dim = max(4, int(round(insight.stability_index * 10)) + len(insight.flags))
+        else:
+            ai_base_dim = max(1, int(ai_base_dim))
+
+        summary, price, minted, allocation_total, residual = _summarise_token_report(
+            token_report
+        )
+
+        ai_layers = build_dynamic_ai_input_layers(ai_base_dim)
+        agi_layers = build_dynamic_agi_input_layers(ai_base_dim + 2)
+        ags_layers = build_dynamic_ags_input_layers(ai_base_dim + 4)
+
+        ai_tail = ai_layers[-1].units if ai_layers else ai_base_dim
+        agi_tail = agi_layers[-1].units if agi_layers else ai_base_dim + 2
+        ags_tail = ags_layers[-1].units if ags_layers else ai_base_dim + 4
+
+        notes = summary.get("notes")
+        if isinstance(notes, Sequence) and not isinstance(notes, (str, bytes)):
+            joined_notes = ", ".join(str(item) for item in notes if item)
+        else:
+            joined_notes = str(notes) if notes else ""
+
+        narrative_parts = [
+            f"DCT priced at {price:.2f} with {minted:.2f} tokens minted and {residual:.2f} residual supply.",
+            f"Blood stability holds at {insight.stability_index:.0%} with oxygen {insight.oxygen_delivery_score:.0%}.",
+            (
+                "Dynamic AI/AGI/AGS layers configured for treasury alignment "
+                f"({ai_tail}/{agi_tail}/{ags_tail} units)."
+            ),
+        ]
+        if joined_notes:
+            narrative_parts.append(f"Token notes: {joined_notes}.")
+
+        narrative = " ".join(narrative_parts)
+
+        return BloodCapitalSynthesis(
+            insight=insight,
+            token_summary=summary,
+            ai_layers=ai_layers,
+            agi_layers=agi_layers,
+            ags_layers=ags_layers,
+            token_price=price,
+            minted_supply=minted,
+            allocation_total=allocation_total,
+            residual_supply=residual,
+            narrative=narrative,
+        )
