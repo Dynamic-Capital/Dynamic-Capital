@@ -22,6 +22,21 @@ contains the artifacts required for retrieval-augmented training.
 Record additional drops by appending new sections that include the provenance
 and file descriptions from the corresponding OneDrive manifest.
 
+## 2025-10-02 — Research bundle (pending metadata dump)
+
+- **Share link:**
+  https://1drv.ms/f/c/2ff0428a2f57c7a4/ErBHFYCqf15AhFwIGWHjLfYB1sze-98g08jNtOzu0A3wKQ?e=WdUfh0
+- **Graph helper:** `docs/onedrive-shares/erbhfycq-folder.md`
+- **Status:** Anonymous access is still blocked; authenticate with Microsoft
+  Graph before enumerating contents. Once fetched, mirror the artefacts into
+  `data/knowledge_base/` and extend the research manifest with filenames,
+  checksums, and processing notes.
+
+> ⚠️ Run `tsx scripts/onedrive/dump-drive-item.ts` with the share link above
+> after obtaining an access token. Commit the resulting
+> `docs/onedrive-shares/erbhfycq-folder.metadata.json` snapshot together with
+> any mirrored files.
+
 ## Research — Staging Area Sync
 
 - **Source location:** `OneDrive\\DynamicAI_DB\\knowledge_base\\research`
