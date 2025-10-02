@@ -99,6 +99,15 @@ type NavItem = {
   icon: (props: { active: boolean }) => JSX.Element;
 };
 
+const SECTION_IDS: SectionId[] = [
+  "overview",
+  "plans",
+  "intel",
+  "activity",
+  "appearance",
+  "support",
+];
+
 type LiveIntelState = {
   status: "loading" | "ready" | "error";
   report?: LiveIntelSnapshot;
@@ -267,18 +276,54 @@ function coerceNumber(value: unknown): number | null {
   return null;
 }
 
+const currencyFormatterCache = new Map<string, Intl.NumberFormat>();
+
+function formatCurrencyAmount(
+  currency: string,
+  amount: number,
+  maximumFractionDigits: number,
+): string {
+  const key = `${currency}-${maximumFractionDigits}`;
+  let formatter = currencyFormatterCache.get(key);
+
+  if (!formatter) {
+    try {
+      formatter = new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency,
+        maximumFractionDigits,
+      });
+      currencyFormatterCache.set(key, formatter);
+    } catch (error) {
+      console.debug(
+        "[miniapp] Falling back to basic currency formatting",
+        currency,
+        error,
+      );
+    }
+  }
+
+  if (formatter) {
+    return formatter.format(amount);
+  }
+
+  const fixedDigits = maximumFractionDigits > 0
+    ? amount.toFixed(Math.min(4, maximumFractionDigits))
+    : Math.round(amount).toString();
+  return `${fixedDigits} ${currency}`;
+}
+
 function formatPlanLabel(
   currency: string,
   amount: number,
   isLifetime: boolean,
   durationMonths: number,
 ): string {
-  const formatter = new Intl.NumberFormat(undefined, {
-    style: "currency",
+  const formatted = formatCurrencyAmount(
     currency,
-    maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
-  });
-  const formatted = formatter.format(amount);
+    amount,
+    amount % 1 === 0 ? 0 : 2,
+  );
   if (isLifetime) {
     return `${formatted} lifetime`;
   }
@@ -412,18 +457,22 @@ function arePlanSyncStatusesEqual(
 }
 
 function resolvePlanUpdatedAt(options: PlanOption[]): string | undefined {
-  let latest: Date | undefined;
+  let latestTimestamp = Number.NEGATIVE_INFINITY;
   for (const option of options) {
     const timestamp = option.meta.updatedAt;
     if (!timestamp) continue;
-    const parsed = new Date(timestamp);
-    if (Number.isNaN(parsed.getTime())) continue;
-    if (!latest || parsed > latest) {
-      latest = parsed;
+    const parsed = Date.parse(timestamp);
+    if (!Number.isFinite(parsed)) continue;
+    if (parsed > latestTimestamp) {
+      latestTimestamp = parsed;
     }
   }
 
-  return latest?.toISOString();
+  if (!Number.isFinite(latestTimestamp) || latestTimestamp === Number.NEGATIVE_INFINITY) {
+    return undefined;
+  }
+
+  return new Date(latestTimestamp).toISOString();
 }
 
 declare global {
@@ -432,33 +481,63 @@ declare global {
   }
 }
 
+const relativeTimeFormatter = typeof Intl !== "undefined" &&
+    "RelativeTimeFormat" in Intl
+  ? new Intl.RelativeTimeFormat(undefined, {
+    style: "narrow",
+    numeric: "auto",
+  })
+  : null;
+
 function formatRelativeTime(iso?: string): string {
   if (!iso) {
     return "just now";
   }
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) {
+  const parsed = Date.parse(iso);
+  if (!Number.isFinite(parsed)) {
     return "just now";
   }
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+  const diffMs = Date.now() - parsed;
   if (diffMs <= 0) {
     return "just now";
   }
   const diffSeconds = Math.floor(diffMs / 1000);
-  if (diffSeconds < 60) {
-    return `${diffSeconds}s ago`;
+  if (!relativeTimeFormatter) {
+    if (diffSeconds < 60) {
+      return `${diffSeconds}s ago`;
+    }
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    if (diffMinutes < 60) {
+      return `${diffMinutes}m ago`;
+    }
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+      return `${diffHours}h ago`;
+    }
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
   }
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m ago`;
+
+  const divisions: Array<{ amount: number; unit: Intl.RelativeTimeFormatUnit }> = [
+    { amount: 60, unit: "second" },
+    { amount: 60, unit: "minute" },
+    { amount: 24, unit: "hour" },
+    { amount: 7, unit: "day" },
+    { amount: 4.34524, unit: "week" },
+    { amount: 12, unit: "month" },
+    { amount: Number.POSITIVE_INFINITY, unit: "year" },
+  ];
+
+  let duration = diffSeconds;
+  for (const division of divisions) {
+    if (Math.abs(duration) < division.amount) {
+      const value = Math.max(1, Math.floor(duration));
+      return relativeTimeFormatter.format(-value, division.unit);
+    }
+    duration /= division.amount;
   }
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) {
-    return `${diffHours}h ago`;
-  }
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
+
+  return "just now";
 }
 
 function formatConfidence(value?: number): string | null {
@@ -778,15 +857,7 @@ function HomeInner() {
       { rootMargin: "-45% 0px -45% 0px", threshold: 0.1 },
     );
 
-    const sectionIds: SectionId[] = [
-      "overview",
-      "plans",
-      "intel",
-      "activity",
-      "appearance",
-      "support",
-    ];
-    sectionIds.forEach((sectionId) => {
+    SECTION_IDS.forEach((sectionId) => {
       const element = document.getElementById(sectionId);
       if (element) {
         observer.observe(element);
