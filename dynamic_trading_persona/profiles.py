@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Sequence
+
 from dynamic_persona import (
     BackToBackChecklist,
     PersonaDimension,
@@ -25,6 +27,28 @@ __all__ = [
     "ALGORITHMIC_DEVELOPER_BACK_TO_BACK_CHECKLIST",
     "INSTITUTIONAL_INVESTOR_BACK_TO_BACK_CHECKLIST",
 ]
+
+
+def _build_trading_back_to_back_checklist(
+    *,
+    suffix: str,
+    review: Sequence[str],
+    verify: Sequence[str],
+    optimize: Sequence[str],
+    future_proof: Sequence[str],
+    cadence: str,
+    focus: str,
+) -> BackToBackChecklist:
+    """Normalise trading checklists into consistent review ➜ optimise loops."""
+
+    return build_back_to_back_checklist(
+        identifier=f"trading.{suffix}.back_to_back",
+        review=tuple(review),
+        verify=tuple(verify),
+        optimize=tuple(optimize),
+        future_proof=tuple(future_proof),
+        metadata={"cadence": cadence, "focus": focus},
+    )
 
 
 def build_retail_trader_persona() -> PersonaProfile:
@@ -100,8 +124,8 @@ RETAIL_TRADER_PERSONA = register_persona(build_retail_trader_persona())
 def build_retail_trader_back_to_back_checklist() -> BackToBackChecklist:
     """Checklist guiding the retail loop from review to optimisation."""
 
-    return build_back_to_back_checklist(
-        identifier="trading.retail.back_to_back",
+    return _build_trading_back_to_back_checklist(
+        suffix="retail",
         review=(
             "Audit active bots for drawdown, win-rate, and notification accuracy.",
             "Confirm educational nudges were delivered alongside performance summaries.",
@@ -112,15 +136,16 @@ def build_retail_trader_back_to_back_checklist() -> BackToBackChecklist:
             "Re-run wallet connectivity and exchange credential health checks.",
         ),
         optimize=(
-            "Tune alert cadences around the trader's workday availability windows.",
-            "Promote top-performing community strategies into the starter playlist.",
-            "Refresh UI copy to emphasise trust signals and easy reversibility.",
+            "Calibrate alert cadences using the engagement and missed-trade data surfaced during review.",
+            "Promote top-performing community strategies with explicit guardrail notes for small accounts.",
+            "Sequence onboarding polish tickets by the highest-friction feedback captured in review interviews.",
         ),
         future_proof=(
             "Log market changes that would warrant new conservative bot templates.",
             "Schedule follow-up interviews with traders reporting churn risks.",
         ),
-        metadata={"cadence": "bi-weekly", "focus": "retail enablement"},
+        cadence="bi-weekly",
+        focus="retail enablement",
     )
 
 
@@ -200,8 +225,8 @@ ALGORITHMIC_DEVELOPER_PERSONA = register_persona(build_algorithmic_developer_per
 def build_algorithmic_developer_back_to_back_checklist() -> BackToBackChecklist:
     """Checklist for keeping the developer experience tight and auditable."""
 
-    return build_back_to_back_checklist(
-        identifier="trading.algorithmic_developer.back_to_back",
+    return _build_trading_back_to_back_checklist(
+        suffix="algorithmic_developer",
         review=(
             "Inspect SDK releases for breaking changes and update migration guides.",
             "Validate data coverage for TON markets, including latency and completeness.",
@@ -212,15 +237,16 @@ def build_algorithmic_developer_back_to_back_checklist() -> BackToBackChecklist:
             "Confirm backtesting engines mirror live exchange fee and slippage models.",
         ),
         optimize=(
-            "Queue documentation sprints targeting the highest-friction integration steps.",
-            "Open-source reusable modules surfaced during office hours.",
-            "Iterate on licensing templates with legal review to support global usage.",
+            "Convert review gaps into roadmap issues with owners and delivery checkpoints.",
+            "Open-source reusable modules surfaced during office hours and tag them for peer reuse.",
+            "Iterate licensing templates with legal review to unblock the marketplace deals flagged in review surveys.",
         ),
         future_proof=(
             "Track TON roadmap updates that demand new primitives or contract libraries.",
             "Maintain a contributor ladder that rewards peer-reviewed pull requests.",
         ),
-        metadata={"cadence": "weekly", "focus": "developer velocity"},
+        cadence="weekly",
+        focus="developer velocity",
     )
 
 
@@ -302,8 +328,8 @@ INSTITUTIONAL_INVESTOR_PERSONA = register_persona(build_institutional_investor_p
 def build_institutional_investor_back_to_back_checklist() -> BackToBackChecklist:
     """Checklist ensuring institutional governance loops stay resilient."""
 
-    return build_back_to_back_checklist(
-        identifier="trading.institutional_investor.back_to_back",
+    return _build_trading_back_to_back_checklist(
+        suffix="institutional_investor",
         review=(
             "Reconcile performance, exposure, and compliance reports with custodial records.",
             "Confirm governance rituals (memos, briefings) were delivered on schedule.",
@@ -314,15 +340,16 @@ def build_institutional_investor_back_to_back_checklist() -> BackToBackChecklist
             "Validate audit logs capture approvals, policy changes, and exception handling.",
         ),
         optimize=(
-            "Enhance analytics with new attribution views requested by investment committees.",
-            "Tighten access controls or segregation of duties highlighted during reviews.",
-            "Automate compliance evidence collection for recurring regulator touchpoints.",
+            "Ship analytics enhancements requested during review and instrument adoption metrics.",
+            "Tighten access controls or segregation of duties highlighted by the governance review.",
+            "Automate compliance evidence capture for regulatory shifts logged in the review stage.",
         ),
         future_proof=(
             "Map forthcoming regulatory regimes to required product changes.",
             "Schedule cross-team tabletop exercises for emerging operational risks.",
         ),
-        metadata={"cadence": "monthly", "focus": "institutional governance"},
+        cadence="monthly",
+        focus="institutional governance",
     )
 
 
