@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildCorsHeaders } from "@/utils/http.ts";
+import { buildCorsHeaders, mergeVary } from "@/utils/http.ts";
 
 const LEGACY_LOCALE_PREFIX = "/en";
 
@@ -20,7 +20,13 @@ export function middleware(req: NextRequest) {
     }
 
     const res = NextResponse.next();
-    Object.entries(headers).forEach(([k, v]) => res.headers.set(k, v));
+    Object.entries(headers).forEach(([k, v]) => {
+      if (k.toLowerCase() === "vary") {
+        res.headers.set("vary", mergeVary(res.headers.get("vary"), v));
+      } else {
+        res.headers.set(k, v);
+      }
+    });
     return res;
   }
 

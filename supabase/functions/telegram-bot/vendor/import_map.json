@@ -10,6 +10,7 @@
     "@/": "../../../../apps/web/",
     "zod": "https://deno.land/x/zod@v3.22.4/mod.ts",
     "@opentelemetry/api": "../../../../tests/stubs/opentelemetry-api.ts",
+    "next/cache": "../../../../tests/stubs/next-cache.ts",
     "@supabase/ssr": "../../../../tests/supabase-ssr-stub.ts",
     "std/": "https://deno.land/std@0.224.0/"
   },
