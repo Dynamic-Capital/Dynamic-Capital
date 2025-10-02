@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 import json
+import re
 from typing import Callable, Mapping, MutableMapping, Sequence
 
 __all__ = [
@@ -639,12 +641,16 @@ def _normalise_urls(urls: Sequence[str]) -> tuple[str, ...]:
     return tuple(result)
 
 
+_NON_ALNUM_RE = re.compile(r"[^a-z0-9]+")
+
+
+@lru_cache(maxsize=256)
 def _slugify(value: str) -> str:
-    cleaned = value.strip().lower()
-    slug = "".join(char if char.isalnum() else "-" for char in cleaned)
-    while "--" in slug:
-        slug = slug.replace("--", "-")
-    return slug.strip("-") or "crawler"
+    cleaned = (value or "").strip().lower()
+    if not cleaned:
+        return "crawler"
+    slug = _NON_ALNUM_RE.sub("-", cleaned).strip("-")
+    return slug or "crawler"
 
 
 def _render_crawlee_script(job: CrawlJob, config: CrawlerConfig) -> str:

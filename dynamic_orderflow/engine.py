@@ -8,6 +8,8 @@ from datetime import datetime, timedelta, timezone
 from statistics import fmean
 from typing import Callable, Deque, Iterable, Mapping, MutableMapping
 
+import time
+
 __all__ = [
     "OrderEvent",
     "OrderFlowWindow",
@@ -257,6 +259,17 @@ class OrderFlowOrganizer:
             raise ValueError("horizon must be positive")
         if self.max_samples <= 0:
             raise ValueError("max_samples must be positive")
+        self._aggregate_cache: OrderFlowImbalance | None = None
+        self._aggregate_latency_sum: float = 0.0
+        self._aggregate_latency_count: int = 0
+        self._aggregate_cache_deadline: float = 0.0
+        self._aggregate_cache_ttl: float = 0.5
+
+    def _invalidate_aggregate_cache(self) -> None:
+        self._aggregate_cache = None
+        self._aggregate_latency_sum = 0.0
+        self._aggregate_latency_count = 0
+        self._aggregate_cache_deadline = 0.0
 
     def _flow_for(self, symbol: str) -> DynamicOrderFlow:
         key = symbol.strip().upper()
@@ -289,6 +302,7 @@ class OrderFlowOrganizer:
         flow = self._flow_for(event.symbol)
         flow.record(event)
         self._notify(event)
+        self._invalidate_aggregate_cache()
 
     def ingest(self, events: Iterable[OrderEvent]) -> None:
         for event in events:
@@ -305,27 +319,44 @@ class OrderFlowOrganizer:
         return tuple(sorted(self._flows))
 
     def aggregated_pressure(self) -> OrderFlowImbalance:
+        now = time.monotonic()
+        if self._aggregate_cache is not None and now <= self._aggregate_cache_deadline:
+            return self._aggregate_cache
+
         buy_notional = 0.0
         sell_notional = 0.0
         total_notional = 0.0
+        latency_sum = 0.0
+        latency_count = 0
+
         for flow in self._flows.values():
             imbalance = flow.pressure()
             buy_notional += imbalance.buy_notional
             sell_notional += imbalance.sell_notional
             total_notional += imbalance.total_notional
-        return OrderFlowImbalance(
+            samples = flow.latency_samples()
+            if samples:
+                latency_sum += sum(samples)
+                latency_count += len(samples)
+
+        aggregate = OrderFlowImbalance(
             buy_notional=buy_notional,
             sell_notional=sell_notional,
             total_notional=total_notional,
         )
+        self._aggregate_cache = aggregate
+        self._aggregate_latency_sum = latency_sum
+        self._aggregate_latency_count = latency_count
+        self._aggregate_cache_deadline = now + self._aggregate_cache_ttl
+        return aggregate
 
     def average_latency(self) -> float:
-        samples: list[float] = []
-        for flow in self._flows.values():
-            samples.extend(flow.latency_samples())
-        if not samples:
+        now = time.monotonic()
+        if self._aggregate_cache is None or now > self._aggregate_cache_deadline:
+            self.aggregated_pressure()
+        if self._aggregate_latency_count == 0:
             return 0.0
-        return fmean(samples)
+        return self._aggregate_latency_sum / self._aggregate_latency_count
 
     def health(self) -> Mapping[str, Mapping[str, float | str]]:
         """Return per-symbol telemetry alongside aggregate readings."""

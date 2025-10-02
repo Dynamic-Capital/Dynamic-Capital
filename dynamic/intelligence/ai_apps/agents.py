@@ -966,6 +966,8 @@ def _normalise_payload(value: Any) -> Dict[str, Any]:
 class TradingAgent:
     """Persona coordinating the Dynamic Trading Algo execution."""
 
+    __slots__ = ("trader",)
+
     name = "trading"
 
     def __init__(self, trader: Any | None = None) -> None:
@@ -983,11 +985,19 @@ class TradingAgent:
 
         alignment = run_dynamic_algo_alignment(context)
 
-        decision_payload = _normalise_payload(alignment.get("decision"))
-        trade_payload = _normalise_payload(alignment.get("trade")) or {"status": "skipped"}
-        agents_payload = _normalise_payload(alignment.get("agents"))
-        optimisation_payload = _normalise_payload(alignment.get("optimisation"))
-        treasury_event_payload = _normalise_payload(alignment.get("treasury_event"))
+        if isinstance(alignment, TradingAgentResult):
+            return alignment
+
+        payload_map = {
+            key: _normalise_payload(alignment.get(key))
+            for key in ("decision", "trade", "agents", "optimisation", "treasury_event")
+        }
+
+        decision_payload = payload_map["decision"]
+        trade_payload = payload_map["trade"] or {"status": "skipped"}
+        agents_payload = payload_map["agents"]
+        optimisation_payload = payload_map["optimisation"]
+        treasury_event_payload = payload_map["treasury_event"]
         if not treasury_event_payload:
             treasury_event_payload = None
 
