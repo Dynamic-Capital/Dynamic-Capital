@@ -9,8 +9,14 @@ them on-chain via a configured `toncli` wallet project.
 ## Prerequisites
 
 - `toncli` installed and configured (see [`docs/toncli-setup.md`](../docs/toncli-setup.md)).
-- Python 3 with [`tonsdk`](https://pypi.org/project/tonsdk/) available (for
-  example `pip install --user tonsdk`).
+- Python 3 with the helper dependencies installed:
+
+  ```bash
+  pip install -r dns/requirements-toncli.txt
+  ```
+
+  This pulls in [`tonsdk`](https://pypi.org/project/tonsdk/) so the payload
+  generator can build BOC cells.
 - Access to the wallet that owns `dynamiccapital.ton` (seed phrase or
   encrypted key pair) and enough TON to cover gas (~0.05 TON per update).
 - The resolver metadata JSON (for example

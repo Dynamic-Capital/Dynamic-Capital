@@ -26,6 +26,13 @@ or local workstations) before running any TON contract tooling.
    The command installs `toncli` alongside a compatible `bitstring` release and
    ensures `pkg_resources` is available for the CLI's version command.
 
+   To run the DNS payload helper included in this repository, install the
+   supplementary Python dependency bundle as well:
+
+   ```bash
+   pip install -r dns/requirements-toncli.txt
+   ```
+
 2. **Provide stub binaries (optional for CI smoke tests).** In environments where
    the real TON binaries are unavailable, create lightweight wrappers that emit
    valid version strings so `toncli` can complete its first-run checks:

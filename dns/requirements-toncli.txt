@@ -1,0 +1,3 @@
+# Python dependencies for TON DNS helper scripts
+# tonsdk 1.0 introduced the Builder helpers used by toncli_build_dns_update.py.
+tonsdk>=1.0.15,<2.0.0
