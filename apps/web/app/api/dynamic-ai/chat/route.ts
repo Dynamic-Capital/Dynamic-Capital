@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { getServerSession } from "next-auth";
+
 import { withApiMetrics } from "@/observability/server-metrics.ts";
 import { callDynamicAi } from "@/services/dynamic-ai/client";
 import {
@@ -16,6 +18,7 @@ import {
   chatRequestPayloadSchema,
   telegramAuthSchema,
 } from "@/services/dynamic-ai/schema";
+import { authOptions } from "@/auth/options";
 import { SUPABASE_URL } from "@/config/supabase-runtime";
 import type { Database } from "@/integrations/supabase/types";
 import {
@@ -24,8 +27,13 @@ import {
   jsonResponse,
   methodNotAllowed,
   oops,
+  unauth,
 } from "@/utils/http.ts";
 import { getEnvVar } from "@/utils/env.ts";
+import {
+  isAdminVerificationFailure,
+  verifyAdminRequest,
+} from "@/utils/admin-auth.ts";
 
 const ROUTE_NAME = "/api/dynamic-ai/chat";
 const SUPABASE_SERVICE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY", [
@@ -49,6 +57,10 @@ function normaliseLanguage(
 
 const SUPABASE_OVERRIDE_SYMBOL = Symbol.for(
   "dynamic-capital.dynamic-ai.supabase",
+);
+
+const SESSION_OVERRIDE_SYMBOL = Symbol.for(
+  "dynamic-capital.dynamic-ai.session",
 );
 
 type UserInteractionInsert =
@@ -83,6 +95,13 @@ let cachedClient: ServiceSupabaseClient | null = null;
 let supabaseModulePromise:
   | Promise<{ createClient: (...args: unknown[]) => unknown }>
   | null = null;
+
+type SessionLike =
+  | { user?: { id?: string | null } | null }
+  | null
+  | undefined;
+
+type SessionResolver = () => SessionLike | Promise<SessionLike>;
 
 async function loadSupabaseModule(): Promise<
   { createClient: (...args: unknown[]) => unknown }
@@ -121,6 +140,63 @@ async function getSupabaseClient(): Promise<ServiceSupabaseClient> {
   }) as unknown as ServiceSupabaseClient;
   cachedClient = client;
   return client;
+}
+
+async function resolveSession(): Promise<SessionLike> {
+  const override = (globalThis as Record<PropertyKey, unknown>)[
+    SESSION_OVERRIDE_SYMBOL
+  ];
+  if (typeof override === "function") {
+    return await (override as SessionResolver)();
+  }
+  return await getServerSession(authOptions);
+}
+
+interface AuthSuccess {
+  ok: true;
+  userId?: string;
+}
+
+interface AuthFailure {
+  ok: false;
+  status: number;
+  message: string;
+}
+
+type AuthResult = AuthSuccess | AuthFailure;
+
+async function requireAuthentication(req: Request): Promise<AuthResult> {
+  const session = await resolveSession();
+  const userId = session?.user && typeof session.user === "object"
+    ? (session.user as { id?: unknown })?.id
+    : undefined;
+  if (session?.user) {
+    return {
+      ok: true,
+      userId: typeof userId === "string" ? userId : undefined,
+    } satisfies AuthSuccess;
+  }
+
+  const adminCheck = await verifyAdminRequest(req);
+  if (!isAdminVerificationFailure(adminCheck)) {
+    return { ok: true, userId: adminCheck.userId } satisfies AuthSuccess;
+  }
+
+  return {
+    ok: false,
+    status: adminCheck.status,
+    message: adminCheck.message,
+  } satisfies AuthFailure;
+}
+
+function handleAuthFailure(result: AuthFailure, req: Request) {
+  if (result.status >= 500) {
+    return oops(result.message, undefined, req);
+  }
+  return unauth(
+    result.status === 401 ? "Authentication required." : result.message,
+    req,
+  );
 }
 
 async function persistMessage(entry: {
@@ -235,6 +311,11 @@ function buildPrompt({
 
 export async function GET(req: Request) {
   return withApiMetrics(req, ROUTE_NAME, async () => {
+    const authResult = await requireAuthentication(req);
+    if (authResult.ok === false) {
+      return handleAuthFailure(authResult, req);
+    }
+
     const url = new URL(req.url);
     const sessionId = url.searchParams.get("sessionId")?.trim();
 
@@ -384,6 +465,11 @@ function streamChatResponse(payload: ChatRequestPayload, req: Request) {
 
 export async function POST(req: Request) {
   return withApiMetrics(req, ROUTE_NAME, async () => {
+    const authResult = await requireAuthentication(req);
+    if (authResult.ok === false) {
+      return handleAuthFailure(authResult, req);
+    }
+
     let payload: ChatRequestPayload;
     try {
       const body = await req.json();
