@@ -8,11 +8,14 @@ from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
+from .settings import FrameworkSettings
+
 __all__ = [
     "FrameworkNode",
     "FrameworkPulse",
     "FrameworkSnapshot",
     "FrameworkReport",
+    "FrameworkSettings",
     "DynamicFrameworkEngine",
 ]
 
@@ -185,6 +188,7 @@ class DynamicFrameworkEngine:
         *,
         history: int = 64,
         decay: float = 0.08,
+        settings: FrameworkSettings | Mapping[str, object] | None = None,
     ) -> None:
         if history <= 0:
             raise ValueError("history must be positive")
@@ -194,6 +198,14 @@ class DynamicFrameworkEngine:
         self._decay = float(decay)
         self._nodes: MutableMapping[str, FrameworkNode] = {}
         self._pulses: MutableMapping[str, Deque[FrameworkPulse]] = {}
+        if settings is None:
+            self._settings = FrameworkSettings()
+        elif isinstance(settings, FrameworkSettings):
+            self._settings = settings
+        elif isinstance(settings, Mapping):
+            self._settings = FrameworkSettings(**dict(settings))
+        else:  # pragma: no cover - defensive guard
+            raise TypeError("settings must be a FrameworkSettings or mapping")
         if nodes:
             self.register_many(nodes)
 
@@ -208,6 +220,10 @@ class DynamicFrameworkEngine:
     @property
     def nodes(self) -> Mapping[str, FrameworkNode]:
         return MappingProxyType(self._nodes)
+
+    @property
+    def settings(self) -> FrameworkSettings:
+        return self._settings
 
     def register(self, node: FrameworkNode | Mapping[str, object]) -> FrameworkNode:
         if isinstance(node, Mapping):
@@ -301,7 +317,13 @@ class DynamicFrameworkEngine:
         status: str
         alerts: list[str] = []
         recommendations: list[str] = []
-        if maturity >= node.target_maturity and enablement >= 0.6 and resilience >= 0.6:
+        settings = self._settings
+
+        if (
+            maturity >= node.target_maturity
+            and enablement >= settings.enablement_integrated_threshold
+            and resilience >= settings.resilience_integrated_threshold
+        ):
             status = "integrated"
         elif maturity >= node.minimum_maturity:
             status = "calibrating"
@@ -313,17 +335,25 @@ class DynamicFrameworkEngine:
             alerts.append(
                 f"{node.title} maturity is below guardrails; deploy a recovery sprint."
             )
-        if enablement < 0.55:
+        if enablement < settings.enablement_guardrail:
             recommendations.append(f"Invest in enablement rituals for {node.title}.")
-            alerts.append(f"{node.title} enablement is lagging ({enablement:.2f}).")
-        if resilience < 0.5:
+            alerts.append(
+                f"{node.title} enablement is lagging ({enablement:.2f} < {settings.enablement_guardrail:.2f})."
+            )
+        if resilience < settings.resilience_guardrail:
             recommendations.append(f"Build resilience buffers within {node.title} workflows.")
-            alerts.append(f"{node.title} resilience is fragile ({resilience:.2f}).")
-        if momentum < -0.1:
+            alerts.append(
+                f"{node.title} resilience is fragile ({resilience:.2f} < {settings.resilience_guardrail:.2f})."
+            )
+        if momentum < settings.momentum_negative_threshold:
             recommendations.append(f"Counter negative momentum for {node.title} with fast wins.")
-            alerts.append(f"{node.title} momentum is deteriorating ({momentum:.2f}).")
-        if trend < -0.1:
-            alerts.append(f"{node.title} trend is declining ({trend:.2f}).")
+            alerts.append(
+                f"{node.title} momentum is deteriorating ({momentum:.2f} < {settings.momentum_negative_threshold:.2f})."
+            )
+        if trend < settings.trend_decline_threshold:
+            alerts.append(
+                f"{node.title} trend is declining ({trend:.2f} < {settings.trend_decline_threshold:.2f})."
+            )
         missing_dependencies = [
             dependency
             for dependency in node.dependencies

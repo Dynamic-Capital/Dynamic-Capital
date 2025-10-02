@@ -5,6 +5,7 @@ from .engine import (
     FrameworkNode,
     FrameworkPulse,
     FrameworkReport,
+    FrameworkSettings,
     FrameworkSnapshot,
 )
 
@@ -13,6 +14,7 @@ __all__ = [
     "FrameworkNode",
     "FrameworkPulse",
     "FrameworkReport",
+    "FrameworkSettings",
     "FrameworkSnapshot",
 ]
 
