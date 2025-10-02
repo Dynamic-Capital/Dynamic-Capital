@@ -1,13 +1,14 @@
 # Ekqbarlpv7hLjyb9tgPdMqcBZpxonB18K7RHjp2IV6ofmQ Share
 
 This note records the metadata helpers for the newly provided OneDrive folder
-that contains the trading PDFs. Mirror the information here into any runbooks or
+that contains the reference **books** mirrored under
+`knowledge_base\\books`. Mirror the information here into any runbooks or
 scripts that need to access the remote resources.
 
 ## Share details
 
 - **Original link:**
-  https://1drv.ms/f/c/2ff0428a2f57c7a4/Ekqbarlpv7hLjyb9tgPdMqcBZpxonB18K7RHjp2IV6ofmQ?e=fn9fo0
+  https://1drv.ms/f/c/2ff0428a2f57c7a4/Ekqbarlpv7hLjyb9tgPdMqcBZpxonB18K7RHjp2IV6ofmQ?e=PDXXJk
 - **Graph share identifier:**
   `u!aHR0cHM6Ly8xZHJ2Lm1zL2YvYy8yZmYwNDI4YTJmNTdjN2E0L0VrcWJhcmxwdjdoTGp5Yjl0Z1BkTXFjQlpweG9uQjE4SzdSSGpwMklWNm9mbVE`
 - **Decoded parameters:**

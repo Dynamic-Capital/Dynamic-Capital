@@ -1,13 +1,14 @@
 # Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA Share
 
-This folder hosts the external **datasets** that the trading agent reviews. The
-notes below capture the identifiers needed for Microsoft Graph workflows and
-repository scripts that sync the folder metadata.
+This folder hosts the external **datasets** mirrored from
+`OneDrive\\DynamicAI_D\\Bdatasets` that the trading agent reviews. The notes below
+capture the identifiers needed for Microsoft Graph workflows and repository
+scripts that sync the folder metadata.
 
 ## Share details
 
 - **Original link:**
-  https://1drv.ms/f/c/2ff0428a2f57c7a4/Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA?e=7mWyfY
+  https://1drv.ms/f/c/2ff0428a2f57c7a4/Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA?e=d9WTwY
 - **Graph share identifier:**
   `u!aHR0cHM6Ly8xZHJ2Lm1zL2YvYy8yZmYwNDI4YTJmNTdjN2E0L0V1OF90UmI2NUpkQnJMTDM5VDFHVndRQmFpZUJXMjRya1VVMTdXY3VrLUNfUUE`
 - **Decoded parameters:**
