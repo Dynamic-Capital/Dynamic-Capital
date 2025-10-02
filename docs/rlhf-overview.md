@@ -52,6 +52,42 @@ core workflow, benefits, limitations, and common applications of RLHF.
 - **Game development** – Produces more engaging and realistic non-player
   characters and opponents.
 
+## Dynamic RLHF model
+
+The `dynamic_rlhf` module provides a lightweight reward learner and harvesting
+policy that plug directly into the `dynamic_fine_tune_engine`. A typical loop is
+to accumulate human (or simulated) preference comparisons, optimise the reward
+model, and then convert high-reward completions into fine-tune records with rich
+metadata for downstream PPO or SFT runs.
+
+```python
+from dynamic_rlhf import DynamicRLHFModel, PreferenceExample
+
+model = DynamicRLHFModel()
+model.add_preferences(
+    [
+        PreferenceExample(
+            prompt="Summarise the meeting notes",
+            chosen="Key decisions: launch is on schedule; budget approved.",
+            rejected="Meeting summary: talk happened. The end.",
+            tags=("summary", "fintech"),
+        )
+    ]
+)
+stats = model.optimise_reward(epochs=3)
+records = model.build_fine_tune_records(
+    prompt="Summarise the meeting notes",
+    completions=[
+        "Launch remains on schedule with QA complete; finance approved the marketing budget.",
+        "Summary: meeting happened and people talked.",
+    ],
+    source="rlhf-human-feedback",
+)
+```
+
+Model schematics and optimisation equations live under
+`dynamic/models/dynamic_rlhf/` for deeper reference.
+
 ## Further Reading
 
 - [RLHF on Google Cloud](https://cloud.google.com/blog/products/ai-machine-learning/rlhf-on-google-cloud)
