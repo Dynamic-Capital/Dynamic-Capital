@@ -14,6 +14,10 @@ def test_build_dynamic_ags_playbook_payload() -> None:
     blueprint = payload["blueprint"]
     entries = payload["entries"]
 
+    assert payload["language"] == "en"
+    assert set(payload["supported_languages"]) == {"en", "dv"}
+    assert blueprint["language"] == "en"
+    assert set(blueprint["supported_languages"]) == {"en", "dv"}
     assert blueprint["mission_summary"].startswith(
         "Dynamic AGS Multi-Agent Governance Launch"
     )
@@ -35,6 +39,7 @@ def test_build_dynamic_ags_playbook_payload() -> None:
         "WITHDRAWAL",
     ]
     assert "dry_run_required" in policies_entry["metadata"]["approvals"]["T3"]
+    assert {entry["language"] for entry in entries} == {"en"}
 
 
 @pytest.mark.parametrize("cadence", ["Bi-weekly council sync", "Daily ops review"])
@@ -61,4 +66,13 @@ def test_additional_entries_extend_catalogue() -> None:
     assert payload["blueprint"]["total_entries"] == len(DEFAULT_DYNAMIC_AGS_ENTRIES) + 1
     titles = {entry["title"] for entry in payload["entries"]}
     assert "Stand Up Sandbox Environment" in titles
+
+
+def test_build_dynamic_ags_playbook_language_dhivehi() -> None:
+    payload = build_dynamic_ags_playbook(language="dv")
+
+    assert payload["language"] == "dv"
+    assert payload["blueprint"]["language"] == "dv"
+    assert set(payload["supported_languages"]) == {"en", "dv"}
+    assert {entry["language"] for entry in payload["entries"]} == {"dv"}
 

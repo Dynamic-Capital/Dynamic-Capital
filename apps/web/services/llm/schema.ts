@@ -28,6 +28,7 @@ export const chatRequestSchema = z.object({
   ),
   temperature: z.number().min(0).max(2).default(0.7),
   maxTokens: z.number().min(32).max(8192).default(512),
+  language: z.string().trim().min(2).max(32).optional(),
 });
 
 export type ChatRequestInput = z.infer<typeof chatRequestSchema>;

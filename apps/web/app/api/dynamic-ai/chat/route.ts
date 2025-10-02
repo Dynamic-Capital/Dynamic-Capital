@@ -32,6 +32,21 @@ const SUPABASE_SERVICE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY", [
   "SUPABASE_SERVICE_ROLE",
 ]);
 
+const SUPPORTED_LANGUAGES = new Set(["en", "dv"]);
+const LANGUAGE_PROMPTS: Record<string, string> = {
+  dv:
+    'Respond primarily in Dhivehi (Thaana script). Include a concise English checkpoint prefixed with "EN:" when compliance or numerical guidance is provided.',
+};
+
+function normaliseLanguage(
+  language: string | null | undefined,
+): string | undefined {
+  if (!language) return undefined;
+  const trimmed = language.trim().toLowerCase();
+  if (!trimmed) return undefined;
+  return SUPPORTED_LANGUAGES.has(trimmed) ? trimmed : undefined;
+}
+
 const SUPABASE_OVERRIDE_SYMBOL = Symbol.for(
   "dynamic-capital.dynamic-ai.supabase",
 );
@@ -113,6 +128,7 @@ async function persistMessage(entry: {
   role: "user" | "assistant";
   content: string;
   telegram?: z.infer<typeof telegramAuthSchema>;
+  language?: string;
 }) {
   const supabase = await getSupabaseClient();
   const payload: UserInteractionInsert = {
@@ -125,6 +141,10 @@ async function persistMessage(entry: {
       content: entry.content,
     },
   };
+  if (entry.language) {
+    (payload.interaction_data as Record<string, unknown>).language =
+      entry.language;
+  }
   const { error } = await supabase.from("user_interactions").insert(payload);
 
   if (error) {
@@ -159,12 +179,25 @@ function buildPrompt({
   history,
   message,
   telegram,
+  language,
 }: ChatRequestPayload): ChatRequestMessage[] {
   const trimmedHistory = history.slice(-MAX_REQUEST_HISTORY);
 
   const messages: ChatRequestMessage[] = [
     { role: "system", content: SYSTEM_PROMPT },
   ];
+
+  const normalisedLanguage = normaliseLanguage(language);
+  const languagePrompt = normalisedLanguage
+    ? LANGUAGE_PROMPTS[normalisedLanguage]
+    : undefined;
+  if (languagePrompt) {
+    messages.push({
+      role: "system",
+      content: languagePrompt,
+      language: normalisedLanguage,
+    });
+  }
 
   if (telegram) {
     const parsedTelegram = telegramAuthSchema.parse(telegram);
@@ -184,10 +217,18 @@ function buildPrompt({
   }
 
   for (const entry of trimmedHistory) {
-    messages.push({ role: entry.role, content: entry.content });
+    messages.push({
+      role: entry.role,
+      content: entry.content,
+      language: normaliseLanguage(entry.language) ?? normalisedLanguage,
+    });
   }
 
-  messages.push({ role: "user", content: message });
+  messages.push({
+    role: "user",
+    content: message,
+    language: normalisedLanguage,
+  });
 
   return messages;
 }
@@ -265,14 +306,17 @@ function streamChatResponse(payload: ChatRequestPayload, req: Request) {
 
       try {
         const prompt = buildPrompt(payload);
+        const normalisedLanguage = normaliseLanguage(payload.language);
         const response = await callDynamicAi({
           sessionId: payload.sessionId,
           messages: prompt,
+          language: normalisedLanguage,
         });
 
         const assistantMessage: ChatMessage = {
           role: "assistant",
           content: response.answer,
+          language: normalisedLanguage,
         };
 
         try {
@@ -281,6 +325,7 @@ function streamChatResponse(payload: ChatRequestPayload, req: Request) {
             role: "assistant",
             content: assistantMessage.content,
             telegram: payload.telegram,
+            language: normalisedLanguage,
           });
         } catch (error) {
           console.error("Failed to persist assistant message", error);
@@ -289,13 +334,16 @@ function streamChatResponse(payload: ChatRequestPayload, req: Request) {
         const userEntry: ChatMessage = {
           role: "user",
           content: payload.message,
+          language: normalisedLanguage,
         };
         const history: ChatMessage[] = [
-          ...payload.history,
+          ...payload.history.map((entry) => ({
+            ...entry,
+            language: normaliseLanguage(entry.language) ?? normalisedLanguage,
+          })),
           userEntry,
           assistantMessage,
-        ]
-          .slice(-MAX_HISTORY);
+        ].slice(-MAX_HISTORY);
 
         let aggregated = "";
         for (const token of chunkAnswer(assistantMessage.content)) {
@@ -345,12 +393,18 @@ export async function POST(req: Request) {
       return bad("Invalid request body", req);
     }
 
+    const normalisedLanguage = normaliseLanguage(payload.language);
+    if (normalisedLanguage && payload.language !== normalisedLanguage) {
+      payload = { ...payload, language: normalisedLanguage };
+    }
+
     try {
       await persistMessage({
         sessionId: payload.sessionId,
         role: "user",
         content: payload.message,
         telegram: payload.telegram,
+        language: normalisedLanguage,
       });
     } catch (error) {
       console.error("Failed to persist user message", error);
@@ -369,11 +423,13 @@ export async function POST(req: Request) {
       const response = await callDynamicAi({
         sessionId: payload.sessionId,
         messages: prompt,
+        language: normalisedLanguage,
       });
 
       const assistantMessage: ChatMessage = {
         role: "assistant",
         content: response.answer,
+        language: normalisedLanguage,
       };
 
       try {
@@ -382,6 +438,7 @@ export async function POST(req: Request) {
           role: "assistant",
           content: assistantMessage.content,
           telegram: payload.telegram,
+          language: normalisedLanguage,
         });
       } catch (error) {
         console.error("Failed to persist assistant message", error);
@@ -390,9 +447,13 @@ export async function POST(req: Request) {
       const userEntry: ChatMessage = {
         role: "user",
         content: payload.message,
+        language: normalisedLanguage,
       };
       const history: ChatMessage[] = [
-        ...payload.history,
+        ...payload.history.map((entry) => ({
+          ...entry,
+          language: normaliseLanguage(entry.language) ?? normalisedLanguage,
+        })),
         userEntry,
         assistantMessage,
       ]

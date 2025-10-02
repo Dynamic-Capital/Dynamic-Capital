@@ -147,6 +147,7 @@ export function DynamicChat() {
         })),
         temperature,
         maxTokens,
+        language: languageOption.lang,
       }),
       signal,
     });
@@ -161,7 +162,7 @@ export function DynamicChat() {
 
     const result = (await response.json()) as ChatResult;
     return result;
-  }, [maxTokens, selectedProvider, temperature]);
+  }, [languageOption.lang, maxTokens, selectedProvider, temperature]);
 
   const {
     conversation,
