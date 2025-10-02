@@ -32,16 +32,68 @@ const getEnv = (key: string): string | undefined => {
 
 const rawAllowedOrigins = getEnv("ALLOWED_ORIGINS");
 
+const LOCALHOST_HOSTNAMES = new Set([
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+]);
+
 const coerceOrigin = (raw?: string | null): string | undefined => {
   if (!raw) return undefined;
   const trimmed = `${raw}`.trim();
   if (!trimmed) return undefined;
   try {
-    const candidate = trimmed.includes("://") ? trimmed : `https://${trimmed}`;
-    return new URL(candidate).origin;
+    const hasScheme = trimmed.includes("://");
+    const candidate = hasScheme ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(candidate);
+    if (!hasScheme) {
+      const hostname = parsed.hostname.toLowerCase();
+      if (
+        LOCALHOST_HOSTNAMES.has(hostname) ||
+        hostname.endsWith(".localhost")
+      ) {
+        parsed.protocol = "http:";
+      }
+    }
+    return parsed.origin;
   } catch {
     return undefined;
   }
+};
+
+export const mergeVary = (
+  existing: string | null | undefined,
+  value: string,
+) => {
+  const existingList = typeof existing === "string"
+    ? existing.split(",").map((item) => item.trim()).filter(Boolean)
+    : [];
+  const valueList = value.split(",").map((item) => item.trim()).filter(Boolean);
+
+  if (existingList.length === 0) {
+    return valueList.join(", ");
+  }
+
+  const merged = [...existingList];
+  for (const candidate of valueList) {
+    if (!merged.includes(candidate)) {
+      merged.push(candidate);
+    }
+  }
+  return merged.join(", ");
+};
+
+const mergeHeaders = (target: Headers, source?: HeadersInit) => {
+  if (!source) return;
+  const normalized = source instanceof Headers ? source : new Headers(source);
+  normalized.forEach((value, key) => {
+    if (key.toLowerCase() === "vary") {
+      target.set("vary", mergeVary(target.get("vary"), value));
+    } else {
+      target.set(key, value);
+    }
+  });
 };
 
 const vercelUrl = getEnv("VERCEL_URL");
@@ -101,15 +153,56 @@ if (rawAllowedOrigins === undefined) {
     );
     allowedOrigins = [...inferredOrigins];
   } else {
-    const uniqueOrigins: string[] = [];
-    const parsedSet = new Set<string>();
+    const normalizedOrigins: string[] = [];
+    const invalidOrigins: string[] = [];
+    let allowAll = false;
+
     for (const origin of parsedOrigins) {
-      if (!parsedSet.has(origin)) {
-        parsedSet.add(origin);
-        uniqueOrigins.push(origin);
+      if (origin === "*") {
+        allowAll = true;
+        break;
+      }
+
+      const normalized = coerceOrigin(origin);
+      if (normalized) {
+        normalizedOrigins.push(normalized);
+      } else {
+        invalidOrigins.push(origin);
       }
     }
-    allowedOrigins = uniqueOrigins;
+
+    if (allowAll) {
+      allowedOrigins = ["*"];
+    } else if (normalizedOrigins.length === 0) {
+      if (invalidOrigins.length > 0) {
+        console.warn(
+          `[CORS] Ignoring invalid ALLOWED_ORIGINS entries: ${
+            invalidOrigins.join(", ")
+          }`,
+        );
+      }
+      console.warn(
+        `[CORS] ALLOWED_ORIGINS is empty; defaulting to ${defaultOrigin}`,
+      );
+      allowedOrigins = [...inferredOrigins];
+    } else {
+      if (invalidOrigins.length > 0) {
+        console.warn(
+          `[CORS] Ignoring invalid ALLOWED_ORIGINS entries: ${
+            invalidOrigins.join(", ")
+          }`,
+        );
+      }
+      const uniqueOrigins: string[] = [];
+      const parsedSet = new Set<string>();
+      for (const origin of normalizedOrigins) {
+        if (!parsedSet.has(origin)) {
+          parsedSet.add(origin);
+          uniqueOrigins.push(origin);
+        }
+      }
+      allowedOrigins = uniqueOrigins;
+    }
   }
 }
 
@@ -134,6 +227,7 @@ export function buildCorsHeaders(origin: string | null, methods?: string) {
     const normalizedOrigin = coerceOrigin(origin);
     if (normalizedOrigin && allowedOrigins.includes(normalizedOrigin)) {
       headers["access-control-allow-origin"] = origin;
+      headers["vary"] = mergeVary(headers["vary"], "Origin");
     }
   }
   return headers;
@@ -148,11 +242,13 @@ export function jsonResponse(
   init: ResponseInit = {},
   req?: Request,
 ) {
-  const headers: Record<string, string> = {
+  const headers = new Headers({
     "content-type": "application/json; charset=utf-8",
-    ...(init.headers as Record<string, string> | undefined),
-    ...(req ? corsHeaders(req) : {}),
-  };
+  });
+  mergeHeaders(headers, init.headers);
+  if (req) {
+    mergeHeaders(headers, corsHeaders(req));
+  }
   return new Response(JSON.stringify(data), { ...init, headers });
 }
 
