@@ -6,13 +6,14 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from statistics import fmean
-from typing import Deque, Iterable, Mapping, MutableMapping
+from typing import Callable, Deque, Iterable, Mapping, MutableMapping
 
 __all__ = [
     "OrderEvent",
     "OrderFlowWindow",
     "OrderFlowImbalance",
     "DynamicOrderFlow",
+    "OrderFlowOrganizer",
 ]
 
 
@@ -225,6 +226,11 @@ class DynamicOrderFlow:
             return 0.0
         return fmean(self._latencies)
 
+    def latency_samples(self) -> tuple[float, ...]:
+        """Return a snapshot of the recorded latency values."""
+
+        return tuple(self._latencies)
+
     def health(self) -> Mapping[str, float | str]:
         imbalance = self.pressure()
         return {
@@ -233,3 +239,105 @@ class DynamicOrderFlow:
             "bias": imbalance.bias,
             "average_latency": self.average_latency(),
         }
+
+
+@dataclass(slots=True)
+class OrderFlowOrganizer:
+    """Coordinate multiple orderflow streams by trading symbol."""
+
+    horizon: timedelta = field(default_factory=lambda: timedelta(seconds=120))
+    max_samples: int = 180
+    _flows: MutableMapping[str, DynamicOrderFlow] = field(default_factory=dict, init=False)
+    _listeners: list[Callable[[OrderEvent], None]] = field(default_factory=list, init=False)
+
+    def __post_init__(self) -> None:
+        if isinstance(self.horizon, (int, float)):
+            self.horizon = timedelta(seconds=float(self.horizon))
+        if self.horizon <= timedelta(0):
+            raise ValueError("horizon must be positive")
+        if self.max_samples <= 0:
+            raise ValueError("max_samples must be positive")
+
+    def _flow_for(self, symbol: str) -> DynamicOrderFlow:
+        key = symbol.strip().upper()
+        if not key:
+            raise ValueError("symbol must not be empty")
+        flow = self._flows.get(key)
+        if flow is None:
+            flow = DynamicOrderFlow(horizon=self.horizon, max_samples=self.max_samples)
+            self._flows[key] = flow
+        return flow
+
+    def _notify(self, event: OrderEvent) -> None:
+        for listener in tuple(self._listeners):
+            listener(event)
+
+    def subscribe(self, listener: Callable[[OrderEvent], None]) -> Callable[[], None]:
+        """Register a listener for every ingested event."""
+
+        self._listeners.append(listener)
+
+        def _unsubscribe() -> None:
+            try:
+                self._listeners.remove(listener)
+            except ValueError:  # pragma: no cover - defensive removal
+                pass
+
+        return _unsubscribe
+
+    def record(self, event: OrderEvent) -> None:
+        flow = self._flow_for(event.symbol)
+        flow.record(event)
+        self._notify(event)
+
+    def ingest(self, events: Iterable[OrderEvent]) -> None:
+        for event in events:
+            self.record(event)
+
+    def flow(self, symbol: str) -> DynamicOrderFlow:
+        """Return (or lazily create) the organiser-managed flow for ``symbol``."""
+
+        return self._flow_for(symbol)
+
+    def symbols(self) -> tuple[str, ...]:
+        """Return the sorted list of tracked symbols."""
+
+        return tuple(sorted(self._flows))
+
+    def aggregated_pressure(self) -> OrderFlowImbalance:
+        buy_notional = 0.0
+        sell_notional = 0.0
+        total_notional = 0.0
+        for flow in self._flows.values():
+            imbalance = flow.pressure()
+            buy_notional += imbalance.buy_notional
+            sell_notional += imbalance.sell_notional
+            total_notional += imbalance.total_notional
+        return OrderFlowImbalance(
+            buy_notional=buy_notional,
+            sell_notional=sell_notional,
+            total_notional=total_notional,
+        )
+
+    def average_latency(self) -> float:
+        samples: list[float] = []
+        for flow in self._flows.values():
+            samples.extend(flow.latency_samples())
+        if not samples:
+            return 0.0
+        return fmean(samples)
+
+    def health(self) -> Mapping[str, Mapping[str, float | str]]:
+        """Return per-symbol telemetry alongside aggregate readings."""
+
+        summary: MutableMapping[str, Mapping[str, float | str]] = {}
+        for symbol, flow in self._flows.items():
+            summary[symbol] = flow.health()
+        aggregate = self.aggregated_pressure()
+        summary["_aggregate"] = {
+            "dominant_side": aggregate.dominant_side,
+            "intensity": aggregate.intensity,
+            "bias": aggregate.bias,
+            "average_latency": self.average_latency(),
+        }
+        return summary
