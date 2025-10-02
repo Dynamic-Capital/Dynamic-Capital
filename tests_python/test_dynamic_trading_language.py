@@ -31,6 +31,12 @@ def test_trade_intent_rejects_non_positive_levels(base_intent_kwargs):
             TradeIntent(**base_intent_kwargs, **{field: -1.0})
 
 
+@pytest.mark.parametrize("invalid_level", [float("nan"), float("inf"), float("-inf")])
+def test_trade_intent_rejects_non_finite_levels(base_intent_kwargs, invalid_level):
+    with pytest.raises(ValueError):
+        TradeIntent(**base_intent_kwargs, entry=invalid_level)
+
+
 def test_trade_intent_accepts_naive_datetime(base_intent_kwargs):
     naive_created_at = datetime(2024, 1, 2, 12, 30, 0)
     intent = TradeIntent(**base_intent_kwargs, created_at=naive_created_at)
