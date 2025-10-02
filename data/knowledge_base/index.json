@@ -120,6 +120,10 @@
       {
         "path": "research/manifest.json",
         "purpose": "Structured manifest enumerating the staged research datasets."
+      },
+      {
+        "path": "research/processed/forexfactory_btmm_patterns.jsonl",
+        "purpose": "Markdown export of the ForexFactory Beat The Market Maker attachment for trading pattern taxonomy work."
       }
     ]
   }
