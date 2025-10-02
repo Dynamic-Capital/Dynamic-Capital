@@ -12,7 +12,7 @@ const CACHE_KEY = "dynamic-rest-response";
 export const revalidate = 300;
 
 const getDynamicRestResponse = unstable_cache(
-  async () => buildDynamicRestResponse(),
+  () => Promise.resolve(buildDynamicRestResponse()),
   [CACHE_KEY],
   {
     revalidate,
