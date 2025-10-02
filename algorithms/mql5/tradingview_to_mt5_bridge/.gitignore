@@ -1,2 +1,63 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Logs
+postgres-logs/
+
+logs/
+*.log
+
+# Environment variables
+.env
+*.env
+.env.*
+!.env.example
+
+# VS Code
+.vscode/
+
+# Database
+*.db
+*.sqlite3
+
+# Certificate files
+*.pem
+*.crt
+*.key
+token.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Data files
+symbol_mappings.json
+token.json
+symbol_specifications.xlsx
+
+# Docker volumes
+postgres_data/
+redis_data/
+
+tests/reports

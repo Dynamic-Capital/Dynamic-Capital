@@ -1,83 +1,193 @@
-"""Entry point for managing the TradingView → MT5 bridge services."""
-from __future__ import annotations
+"""CLI runner for TradingView Copier."""
 
 import argparse
-import threading
-import time
-
-from src.config.settings import Settings, get_settings
-from src.services.supabase_client import SupabaseClient
-from src.utils.logging import configure_logging
-from src.utils.redis_queue import RedisQueue
-from src.workers.mt5_worker import MT5Worker
-from src.workers.supabase_listener import SupabaseListener
+import asyncio
+import os
+import subprocess
+import sys
+from pathlib import Path
 
 
-def build_queue(settings: Settings) -> RedisQueue:
-    return RedisQueue(
-        url=settings.redis_url,
-        queue_name=settings.redis_queue_name,
-        processing_suffix=settings.redis_processing_suffix,
-        metrics_key=settings.redis_metrics_key,
-        health_ttl=settings.health_ttl_seconds,
-    )
+class Runner:
+    """Runner class for managing TradingView Copier operations."""
+    
+    def run_proxy(self):
+        """Start the TradingView proxy server."""
+        try:
+            subprocess.run(
+                [sys.executable, "src/scripts/start_proxy.py"],
+                check=True
+            )
+        except KeyboardInterrupt:
+            pass
+        except subprocess.CalledProcessError:
+            sys.exit(1)
+
+    def run_worker(self):
+        """Start the MT5 worker."""
+        subprocess.run(["python", "src/scripts/start_worker.py"])
+
+    def update_requirements(self):
+        """Update requirements.txt."""
+        subprocess.run(["python", "src/scripts/generate_requirements.py"])
+
+    def list_symbols(self):
+        """List MT5 symbols."""
+        subprocess.run(["python", "src/scripts/manage_symbols.py", "--mt5-symbols"])
+
+    def manage_symbols(self):
+        """Show symbol management help."""
+        print("\nSymbol Management Commands:")
+        print("---------------------------")
+        print("List symbols:   python run.py symbols")
+        print("Add mapping:    python run.py symbols-add BTCUSD BTCUSD.r")
+        print("Remove mapping: python run.py symbols-remove BTCUSD")
+        print("Update suffix:  python run.py symbols-suffix .r")
+
+    def test_db(self):
+        """Test database connection."""
+        subprocess.run([sys.executable, "-m", "tests.infrastructure.test_db"])
+
+    def test_redis(self):
+        """Test Redis connection."""
+        subprocess.run([sys.executable, "-m", "tests.infrastructure.test_redis"])
+
+    def test_mt5(self):
+        """Test MT5 connection."""
+        try:
+            from tests.infrastructure.test_mt5 import test_mt5_connection
+            asyncio.run(test_mt5_connection())
+        except Exception as e:
+            print(f"Error running MT5 test: {e}")
+            sys.exit(1)
+            
+    def test_tv(self):
+        """Test TradingView service."""
+        try:
+            from tests.infrastructure.test_tv import run_test
+            success = asyncio.run(run_test())
+            if not success:
+                sys.exit(1)
+        except Exception as e:
+            print(f"Error running TV test: {e}")
+            sys.exit(1)
+
+    def test_all(self):
+        """Run all infrastructure tests."""
+        try:
+            from tests.infrastructure.test_all import main
+            main()  # This already handles asyncio.run internally
+        except Exception as e:
+            print(f"Error running tests: {e}")
+            sys.exit(1)
+
+    def clean_redis(self):
+        """Clean Redis data."""
+        subprocess.run(["python", "src/scripts/clean_redis.py"])
+
+    def show_help(self):
+        """Show help message."""
+        print("\nAvailable commands:")
+        print("-" * 50)
+        commands = {
+            "proxy": "Start the TradingView proxy server",
+            "worker": "Start the MT5 worker",
+            "update-reqs": "Update requirements.txt",
+            "symbols": "List all MT5 symbols",
+            "symbols-help": "Show symbol management commands",
+            "test-db": "Test database connection",
+            "test-redis": "Test Redis connection",
+            "test-mt5": "Test MT5 connection",
+            "test-tv": "Test TradingView service",
+            "test-all": "Run all infrastructure tests",
+            "clean-redis": "Clean Redis data",
+            "help": "Show this help message"
+        }
+        for cmd, desc in commands.items():
+            print(f"python run.py {cmd:<15} - {desc}")
 
 
-def run_listener(settings: Settings) -> None:
-    configure_logging(settings.log_level)
-    client = SupabaseClient(settings)
-    queue = build_queue(settings)
-    listener = SupabaseListener(settings, client, queue)
-    listener.start()
+    def run_token_monitor(self):
+        """Start the Token Monitor."""
+        try:
+            # Get the virtual environment's Python executable
+            python_executable = sys.executable
+            
+            # Get absolute path to project root
+            project_root = os.path.dirname(os.path.abspath(__file__))
+            
+            # Get path to monitor script
+            script_path = os.path.join(project_root, 'src', 'scripts', 'token_monitor.py')
+            
+            # Print debug info
+            print(f"Starting token monitor with:")
+            print(f"Python: {python_executable}")
+            print(f"Script: {script_path}")
+            
+            # Check if script exists
+            if not os.path.exists(script_path):
+                print(f"Error: Token monitor script not found at {script_path}")
+                return
+
+            # Add the project root to PYTHONPATH so imports work correctly
+            env = os.environ.copy()
+            env['PYTHONPATH'] = project_root + os.pathsep + env.get('PYTHONPATH', '')
+            
+            # Run the monitor
+            subprocess.run(
+                [python_executable, script_path],
+                env=env,
+                check=True
+            )
+            
+        except subprocess.CalledProcessError as e:
+            print(f"Error running token monitor: {e}")
+        except Exception as e:
+            print(f"Failed to start token monitor: {e}")
+            import traceback
+            traceback.print_exc()
 
 
-def run_worker(settings: Settings) -> None:
-    configure_logging(settings.log_level)
-    client = SupabaseClient(settings)
-    queue = build_queue(settings)
-    worker = MT5Worker(settings, queue, client)
-    worker.start()
+def main():
+    """Main entry point for the CLI."""
+    parser = argparse.ArgumentParser(description="TradingView Copier CLI")
+    parser.add_argument('command', nargs='?', default='help',
+                       help="Command to execute")
+    parser.add_argument('args', nargs=argparse.REMAINDER,
+                       help="Additional arguments for the command")
 
-
-def run_demo(settings: Settings) -> None:
-    """Fire a single simulated signal through the worker."""
-    configure_logging(settings.log_level)
-    queue = build_queue(settings)
-    client = None
-    worker = MT5Worker(settings, queue, client)
-
-    fake_signal = {
-        "id": "demo-signal",
-        "symbol": "EURUSD",
-        "side": "buy",
-        "entry": 1.1000,
-        "stop_loss_pips": 35,
-        "take_profit_offset": 70,
-        "risk_fraction": 0.01,
-        "account_balance": 25_000,
-    }
-    queue.enqueue(fake_signal)
-
-    thread = threading.Thread(target=worker.run, daemon=True)
-    thread.start()
-    time.sleep(2)
-    worker.stop()
-    thread.join(timeout=5)
-
-
-COMMANDS = {
-    "supabase-listener": run_listener,
-    "worker": run_worker,
-    "demo-dry-run": run_demo,
-}
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="TradingView to MT5 bridge controller")
-    parser.add_argument("command", choices=COMMANDS.keys())
     args = parser.parse_args()
-    settings = get_settings()
-    COMMANDS[args.command](settings)
+    runner = Runner()
+
+    # Command mapping
+    commands = {
+        'proxy': runner.run_proxy,
+        'worker': runner.run_worker,
+        'update-reqs': runner.update_requirements,
+        'symbols': runner.list_symbols,
+        'symbols-help': runner.manage_symbols,
+        'test-db': runner.test_db,
+        'test-redis': runner.test_redis,
+        'test-mt5': runner.test_mt5,
+        'test-tv': runner.test_tv,
+        'test-all': runner.test_all,
+        'clean-redis': runner.clean_redis,
+        'token-monitor': runner.run_token_monitor,
+        'help': runner.show_help
+    }
+
+    if args.command in commands:
+        try:
+            commands[args.command]()
+        except KeyboardInterrupt:
+            print("\nOperation cancelled by user")
+        except Exception as e:
+            print(f"Error: {e}")
+            sys.exit(1)
+    else:
+        print(f"Unknown command: {args.command}")
+        runner.show_help()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
