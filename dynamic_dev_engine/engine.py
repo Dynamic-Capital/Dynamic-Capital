@@ -429,7 +429,41 @@ class DynamicDevEngine:
         for role in {task.role for task in backlog if not task.is_completed}:
             if role not in known_roles:
                 items.append(DevelopmentCapacity(role=role, available_hours=18.0))
-        return tuple(items)
+        return DynamicDevEngine._aggregate_capacity(tuple(items))
+
+    @staticmethod
+    def _aggregate_capacity(
+        items: Sequence[DevelopmentCapacity],
+    ) -> tuple[DevelopmentCapacity, ...]:
+        if not items:
+            return ()
+
+        aggregated: dict[str, DevelopmentCapacity] = {}
+        order: list[str] = []
+
+        for entry in items:
+            role = entry.role
+            if role not in aggregated:
+                aggregated[role] = DevelopmentCapacity(
+                    role=role,
+                    available_hours=entry.available_hours,
+                    hours_per_day=entry.hours_per_day,
+                    focus=entry.focus,
+                )
+                order.append(role)
+                continue
+
+            existing = aggregated[role]
+            aggregated[role] = DevelopmentCapacity(
+                role=role,
+                available_hours=existing.available_hours + entry.available_hours,
+                hours_per_day=existing.hours_per_day + entry.hours_per_day,
+                focus=tuple(
+                    dict.fromkeys((*existing.focus, *entry.focus))
+                ),
+            )
+
+        return tuple(aggregated[role] for role in order)
 
     @staticmethod
     def _order_tasks(backlog: Sequence[DevelopmentTask]) -> tuple[DevelopmentTask, ...]:
