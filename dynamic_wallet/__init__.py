@@ -7,6 +7,7 @@ from .engine import (
     WalletBalance,
     WalletExposure,
     WalletSummary,
+    WalletUserLink,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "WalletBalance",
     "WalletExposure",
     "WalletSummary",
+    "WalletUserLink",
 ]

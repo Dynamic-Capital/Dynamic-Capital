@@ -4,6 +4,10 @@ import nextPWA from "next-pwa";
 import bundleAnalyzer from "@next/bundle-analyzer";
 import createMDX from "@next/mdx";
 import localeConfig from "./config/locales.json" with { type: "json" };
+import {
+  PRODUCTION_ALLOWED_ORIGINS,
+  PRODUCTION_ALLOWED_ORIGINS_STRING,
+} from "../scripts/utils/allowed-origins.mjs";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -128,7 +132,20 @@ if (!CANONICAL_HOST) {
   }
 }
 
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS || SITE_URL;
+const ALLOWED_ORIGINS = (() => {
+  const raw = process.env.ALLOWED_ORIGINS;
+  if (raw && raw.trim().length > 0) {
+    return raw;
+  }
+
+  if (!SITE_URL) {
+    return PRODUCTION_ALLOWED_ORIGINS_STRING;
+  }
+
+  const allowed = new Set(PRODUCTION_ALLOWED_ORIGINS);
+  allowed.add(SITE_URL);
+  return Array.from(allowed).join(",");
+})();
 
 function normalizeLocale(value) {
   if (typeof value !== "string") return undefined;

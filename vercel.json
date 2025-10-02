@@ -7,7 +7,7 @@
   "env": {
     "SITE_URL": "https://dynamiccapital.ton",
     "NEXT_PUBLIC_SITE_URL": "https://dynamiccapital.ton",
-    "ALLOWED_ORIGINS": "https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://dynamic-capital.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app",
+    "ALLOWED_ORIGINS": "https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://dynamiccapital.to,https://www.dynamiccapital.to,https://dynamic-capital.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,tonsite://dynamiccapital.ton",
     "MINIAPP_ORIGIN": "https://dynamiccapital.ton",
     "TELEGRAM_WEBHOOK_URL": "https://dynamiccapital.ton/webhook"
   }
