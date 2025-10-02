@@ -30,7 +30,7 @@ const DEFAULT_DESCRIPTION = ogDefaults.description;
 const DEFAULT_DOMAIN = resolveDefaultDomain();
 
 function resolveDefaultDomain() {
-  const fallback = "dynamic-capital.ondigitalocean.app";
+  const fallback = "dynamiccapital.ton";
   const raw = process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.SITE_URL ||
     `https://${fallback}`;

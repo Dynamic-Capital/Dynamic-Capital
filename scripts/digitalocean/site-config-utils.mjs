@@ -1,6 +1,8 @@
 import { URL } from "node:url";
 
 export const PRODUCTION_ALLOWED_ORIGINS = [
+  "https://dynamiccapital.ton",
+  "https://www.dynamiccapital.ton",
   "https://dynamic-capital.ondigitalocean.app",
   "https://dynamic-capital-qazf2.ondigitalocean.app",
   "https://dynamic.capital",

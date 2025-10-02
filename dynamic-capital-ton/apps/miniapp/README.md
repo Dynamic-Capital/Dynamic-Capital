@@ -9,7 +9,7 @@ hooks.
 Create a `.env.local` file with the following values:
 
 ```bash
-NEXT_PUBLIC_APP_URL=https://dynamic-capital.ondigitalocean.app
+NEXT_PUBLIC_APP_URL=https://dynamiccapital.ton
 NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_FN_URL=https://<project>.functions.supabase.co

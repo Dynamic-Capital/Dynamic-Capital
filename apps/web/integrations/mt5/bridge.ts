@@ -19,7 +19,7 @@ export interface BridgeDispatchResponse {
 function resolveBaseUrl(explicit?: string): string {
   if (explicit) return explicit.replace(/\/$/, "");
   const host = optionalEnvVar("BRIDGE_HOST");
-  if (!host) return "https://bridge.dynamic-capital.ondigitalocean.app";
+  if (!host) return "https://bridge.dynamiccapital.ton";
   if (host.startsWith("http://") || host.startsWith("https://")) {
     return host.replace(/\/$/, "");
   }

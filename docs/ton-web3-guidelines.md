@@ -66,6 +66,17 @@ keep the TON surfaces aligned with the broader platform roadmap.
    front-end links or Mini App deep links.
 5. **Renew before expiry**; add an Ops reminder alongside the `PHASE_06_OPS.md`
    workstream when TTL thresholds approach.
+6. **Bridge Supabase services** by pointing `api.dynamiccapital.ton` to the
+   Supabase project host (`<project-ref>.supabase.co`) and capturing the
+   `_acme-challenge.api.dynamiccapital.ton` TXT tokens provided during
+   verification. Mirror the TXT bundle into TON Storage/IPFS, reference the
+   content hash in the multisig memo, and store the structured snapshot in
+   [`dns/`](../dns) so auditors can replay and cryptographically verify the Web2
+   ↔ Web3 linkup.
+7. **Emit resolver telemetry** after activation by logging a
+   `custom_domain_activated` event in Supabase `tx_logs` and broadcasting the
+   DNS bundle hash through the operations multisig. This creates an immutable
+   attestation that the resolver, Supabase, and on-chain state match.
 
 ### Resolver reference table
 

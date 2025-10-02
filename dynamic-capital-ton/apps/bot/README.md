@@ -7,7 +7,7 @@ mini app.
 
 ```bash
 TELEGRAM_BOT_TOKEN=xxxxxxxx
-APP_URL=https://dynamic-capital.ondigitalocean.app
+APP_URL=https://dynamiccapital.ton
 ```
 
 Install dependencies with `pnpm install` and run the bot locally using:
