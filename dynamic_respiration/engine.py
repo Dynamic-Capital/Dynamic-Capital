@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections import deque
 from dataclasses import dataclass, field
 from statistics import fmean
@@ -38,7 +39,13 @@ def _normalise_tags(tags: Iterable[str] | None) -> tuple[str, ...]:
 
 
 def _clamp_ratio(value: float) -> float:
-    numeric = float(value)
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError) as exc:
+        raise TypeError("ratio values must be real numbers") from exc
+
+    if math.isnan(numeric) or math.isinf(numeric):
+        raise ValueError("ratio values must be finite")
     if numeric < 0.0:
         raise ValueError("ratio values must be non-negative")
     return numeric
@@ -82,8 +89,10 @@ class InformationPulse:
         self.direction = direction
         self.magnitude = _clamp_ratio(self.magnitude)
         self.tags = _normalise_tags(self.tags)
-        if self.metadata is not None and not isinstance(self.metadata, Mapping):
-            raise TypeError("metadata must be a mapping if provided")
+        if self.metadata is not None:
+            if not isinstance(self.metadata, Mapping):
+                raise TypeError("metadata must be a mapping if provided")
+            self.metadata = dict(self.metadata)
 
     def as_dict(self) -> MutableMapping[str, object]:
         return {
@@ -268,10 +277,14 @@ class DynamicRespirationEngine:
         )
 
     def _select(self, window: int | None) -> tuple[InformationPulse, ...]:
-        if window is None or window >= len(self._pulses):
+        if window is None:
             return tuple(self._pulses)
+        if not isinstance(window, int):
+            raise TypeError("window must be an integer or None")
         if window <= 0:
-            return ()
+            raise ValueError("window must be a positive integer")
+        if window >= len(self._pulses):
+            return tuple(self._pulses)
         return tuple(list(self._pulses)[-window:])
 
     def _compute_balance(self, inflow_total: float, outflow_total: float) -> float:

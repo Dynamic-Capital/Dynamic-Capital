@@ -47,6 +47,13 @@ def test_channel_load_empty_history() -> None:
     assert engine.channel_load() == ()
 
 
+def test_channel_load_validates_window() -> None:
+    engine = DynamicRespirationEngine()
+
+    with pytest.raises(ValueError):
+        engine.channel_load(window=0)
+
+
 def test_momentum_detects_positive_trend() -> None:
     engine = DynamicRespirationEngine(history=20)
     engine.extend(
@@ -98,3 +105,35 @@ def test_channel_load_serialisation() -> None:
         "net": 1.0,
         "share": 0.5,
     }
+
+
+def test_assess_requires_positive_window() -> None:
+    engine = DynamicRespirationEngine()
+
+    with pytest.raises(ValueError):
+        engine.assess(window=0)
+
+
+def test_rolling_balance_requires_positive_window() -> None:
+    engine = DynamicRespirationEngine()
+
+    with pytest.raises(ValueError):
+        engine.rolling_balance(window=0)
+
+
+def test_information_pulse_rejects_non_mapping_metadata() -> None:
+    with pytest.raises(TypeError):
+        InformationPulse(channel="alpha", direction="inflow", magnitude=1.0, metadata="invalid")
+
+
+@pytest.mark.parametrize("magnitude", [float("nan"), float("inf"), -1.0])
+def test_information_pulse_rejects_invalid_magnitude(magnitude: float) -> None:
+    with pytest.raises((TypeError, ValueError)):
+        InformationPulse(channel="alpha", direction="inflow", magnitude=magnitude)
+
+
+def test_engine_record_requires_pulse_like_input() -> None:
+    engine = DynamicRespirationEngine()
+
+    with pytest.raises(TypeError):
+        engine.record("invalid")  # type: ignore[arg-type]
