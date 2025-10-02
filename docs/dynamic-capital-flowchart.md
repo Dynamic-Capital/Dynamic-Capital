@@ -28,6 +28,11 @@ flowchart TD
     Market --> MarketWatchlist["Market Watchlist\n(DCT pairs, trends, alerts)"]
     Market --> MarketSnapshot["Market Snapshot\nMomentum, Volatility, Heatmap"]
     Market --> MarketOverview["Market Overview\nTrend cards & panels"]
+    Market --> EconomicCalendar["Dynamic Economic Calendar\nMacro events & filters"]
+    Market --> FundamentalNews["Fundamental News Hub\nResearch feeds"]
+
+    FundamentalNews --> NewsOverview["News Overview\nSentiment & sources"]
+    FundamentalNews --> NewsAlerts["News Alerts\nPush & in-app"]
 
     Signals --> PortfolioSummary["Portfolio Summary\nBalance & P/L"]
     Signals --> Actions["Trade Actions\nTransfer / Pool Trading"]
@@ -67,6 +72,7 @@ and automation.
 | **Personal Home Hub** | Surface top actions after first login. | Personalized greeting from mentorship lead, highlight of DCT balance snapshot. | Quick-start checklist, mini watchlist, Learn & Earn teaser tile. | Fetch `/api/welcome-context`; emit `cta_explore_home_clicked` when checklist launched. |
 | **Signals Primer** | Explain how dynamic signals drive confident trades. | Animated signal strength meter with Dhivehi legend. | Portfolio summary widget, long/short ratios, mentor commentary feed. | Connect to Supabase real-time stream; label analytics with `signals_stream_engaged`. |
 | **Learn & Earn Invitation** | Motivate ongoing education and mentorship enrollment. | Rotating mentorship avatars with cultural motifs. | Module carousel (Dynamic Mentorship, Free Course, Web3 Education, DC Token Literacy), ROI tracker, Connect Wallet CTA. | Start drip campaign via Gmail API when **Connect Wallet** tapped; sync Telegram tag for follow-up. |
+| **Market Intelligence Pulse** | Encourage traders to configure macro and news alerts. | Animated macro countdown with Dhivehi annotations and top three headlines. | Economic calendar list, news sentiment heatmap, alert setup CTA. | Emit `calendar_alert_configured` and `news_alert_subscribed`; hydrate quiet-hour preferences from Settings. |
 
 ## Onboarding Journey Sequence
 
@@ -95,16 +101,45 @@ and automation.
      ROI baseline.
    - KPIs: `learn_invite_wallet_connected`, module enrollment conversions, drip
      open rates.
+5. **Personal Home Hub → Market Intelligence Pulse**
+   - Trigger: macro-heavy weeks, user enabling news alerts, or Oracle risk
+     advisory.
+   - Data preload: preferred assets, quiet-hour schedule, prior news alert
+     interactions.
+   - KPIs: `calendar_alert_configured`, alert engagement rate, time-to-first
+     headline read.
 
 ## Module Interaction Blueprint
 
 | Module | Core Views | Data Inputs | Automation Hooks | Integration Targets |
 | --- | --- | --- | --- | --- |
-| **Dynamic Market** | Market Watchlist, Snapshot, Overview panels | Oracle pricing feeds, localized token labels, volatility metrics | Smart alerts, price momentum badges, heatmap refresh cadence | TradingView overlays, Oracle data lake, localization service |
+| **Dynamic Market** | Market Watchlist, Snapshot, Overview panels, **Economic Calendar**, **Fundamental News Hub** | Oracle pricing feeds, localized token labels, volatility metrics, macro calendars, newsroom APIs | Smart alerts, price momentum badges, heatmap refresh cadence, news alerts, calendar reminders | TradingView overlays, Oracle data lake, localization service, ForexFactory/Calendar APIs, newswire integrations |
 | **Dynamic Signals** | Portfolio Summary, Trade Actions, Live Wallet | Supabase real-time signals, wallet sync, mentor commentary | Alert routing, transfer reminders, AGI score contributions | Supabase, MetaMask / TON wallet bridge, PostHog analytics |
 | **Dynamic Learn & Earn** | Mentorship Modules, Growth Tracker, Promotions | Mentorship CMS, course completion data, ROI tracker inputs | Drip campaign sequencer, reward unlocks, Telegram nudges | Gmail API, Telegram bot, Supabase profile store |
 | **Settings & Profile** | Language, Notifications, Wallet Integration, Compliance | Localization preferences, notification matrix, KYC status | Dhivehi-first toggle persistence, compliance reminders, wallet binding events | MetaMask/TON connectors, compliance ledger, localization service |
 | **Intelligence Oracle** | AGI Scoring Dashboard, Quantum Sync, Telegram bot, Feedback Visualizer | Aggregated signals, mentorship progress, compliance data | Scoring recalculations, predictive prompts, anomaly alerts | AGI engine, Supabase analytics warehouse, PostHog funnels |
+
+## Dynamic Economic Calendar Experience
+
+- **Primary outcomes**: keep traders ahead of macro catalysts and regional holidays impacting liquidity. Surface Dhivehi-localized notes for Maldivian market hours.
+- **Event tiers**: distinguish between global high-impact events (e.g., FOMC, CPI) and localized regional updates with color-coded intensity bars and countdown timers.
+- **User flows**:
+  - From **Market Watchlist**, allow a quick jump into the calendar filtered by relevant trading pairs.
+  - Offer “Add to Signals” CTA to convert a calendar event into a conditional alert routed through the Signals module.
+- **Automation**: sync event metadata via ForexFactory/ICS feeds, push reminders 24h/1h before the event, and archive outcomes to feed the Intelligence Oracle.
+
+## Fundamental News Overview & Alerts
+
+- **News overview panel**: group headlines by asset tags, sentiment, and source credibility. Offer toggleable lenses for Technical vs. Fundamental focus.
+- **Alerting model**: empower traders to subscribe to breaking news keywords and specify delivery (push, in-app banner, Telegram). Alerts should inherit localization and quiet-hour settings from Settings & Profile.
+- **Editorial insights**: weave mentor commentary or AI-generated summaries into each story card. Display confidence scores and link back to the Market Overview for impact tracking.
+- **Data partnerships**: integrate newsroom APIs (e.g., CryptoPanic, CoinDesk) and compliance filters to avoid disallowed jurisdictions.
+
+### Newsroom Component Patterns
+
+- **Headline cards**: use stacked layout with source badge, timestamp, and sentiment pill. Include quick actions for “Add Alert,” “Share,” and “Mark as Read.”
+- **Live ticker**: provide a horizontal marquee of urgent headlines atop the Market module. Employ throttled updates and pause-on-hover for accessibility.
+- **Alert composer**: modal with keyword inputs, asset filters, and frequency selectors. Prefill suggestions based on watchlist activity and mentorship recommendations.
 
 ## Component Architecture & Usage Recommendations
 
