@@ -2,6 +2,7 @@
   "datasets": [
     {
       "slug": "dhivehi_radheef_v1",
+      "description": "Deduplicated Dhivehi Radheef dictionary slices prepared for bilingual instruction tuning.",
       "source": {
         "one_drive_path": "OneDrive\\\\DynamicAI_DB\\\\knowledge_base\\\\research",
         "files": [
@@ -18,10 +19,11 @@
       "tags": {
         "trading": 515
       },
-      "notes": "Preprocessed Dhivehi Radheef dictionary batches; ready for LoRA fine-tuning once checksum verification completes."
+      "notes": "Processed corpus at `processed/dhivehi_training_corpus.jsonl`; training telemetry in `training_runs/dhivehi_radheef_v1.json`."
     },
     {
       "slug": "market_structure_notes_v1",
+      "description": "Refined market-structure corpus with tier hierarchy, execution discipline, timeframe playbooks, and top-down workflow quick references.",
       "source": {
         "one_drive_path": "OneDrive\\\\DynamicAI_DB\\\\knowledge_base\\\\research\\\\market_structure_slides",
         "files": [
@@ -48,10 +50,11 @@
         "top_down": 1,
         "checklist": 4
       },
-      "notes": "Refined transcription of the market structure slide deck highlighting the tier hierarchy, execution discipline, timeframe checklists, and the top-down workflow in quick-reference format."
+      "notes": "Processed corpus at `processed/trading_market_structure_corpus.jsonl`."
     },
     {
       "slug": "nemotron_personas_japan_v1",
+      "description": "One million Japanese-language synthetic personas aligned to census demographics, geography, and cultural context for sovereign AI prototyping.",
       "source": {
         "huggingface": "nvidia/Nemotron-Personas-Japan",
         "homepage": "https://huggingface.co/datasets/nvidia/Nemotron-Personas-Japan"
@@ -72,16 +75,37 @@
       },
       "license": "CC-BY-4.0",
       "release_date": "2025-09-23",
-      "notes": "NVIDIA's synthetic persona corpus covering one million Japanese-language personas grounded in census-aligned demographics, geography, and cultural context for sovereign AI workloads."
+      "notes": "Source maintained on Hugging Face at `nvidia/Nemotron-Personas-Japan` (CC BY 4.0). Export with `python ml/extract_nemotron_personas_japan.py`."
     },
     {
       "slug": "dynamic_trading_knowledge_base_v1",
+      "description": "Mirrored PDF corpus for the trading knowledge base with page-level extractions and table captures.",
       "source": {
         "one_drive_path": "OneDrive\\\\DynamicAI_D\\\\Bdatasets\\\\dynamic_trading_knowledge",
         "notes": "Mirror the PDF bundle into data/knowledge_base/dynamic_trading/raw before extraction."
       },
       "processed_path": "data/knowledge_base/dynamic_trading/processed/dynamic_trading_knowledge.jsonl",
-      "notes": "Run tools/dynamic_trading_corpus.py to generate page-level JSONL entries with table payloads for each PDF."
+      "notes": "Drop PDFs into `dynamic_trading/raw/` and run `python tools/dynamic_trading_corpus.py` to build `dynamic_trading/processed/dynamic_trading_knowledge.jsonl`."
+    },
+    {
+      "slug": "wav2vec2_dhivehi_base",
+      "description": "Pretrained Dhivehi wav2vec 2.0 checkpoint for automatic speech recognition bootstrapping and fine-tuning.",
+      "source": {
+        "huggingface": "flax-community/wav2vec2-dhivehi",
+        "homepage": "https://huggingface.co/flax-community/wav2vec2-dhivehi"
+      },
+      "artifact_type": "pretrained_model",
+      "pipeline_tag": "automatic-speech-recognition",
+      "languages": {
+        "dv": 1
+      },
+      "tags": {
+        "speech_recognition": 1,
+        "wav2vec2": 1,
+        "pretrained": 1
+      },
+      "last_modified": "2021-07-19",
+      "notes": "Hosted on Hugging Face at `flax-community/wav2vec2-dhivehi`; includes config, tokenizer, and Flax weights for ASR experiments."
     }
   ]
 }
