@@ -7,7 +7,12 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from dynamic_translation import corpus_preview, get_corpus_path, iter_corpus_lines  # noqa: E402
+from dynamic_translation import (  # noqa: E402
+    available_segments,
+    corpus_preview,
+    get_corpus_path,
+    iter_corpus_lines,
+)
 
 
 def test_corpus_path_exists() -> None:
@@ -43,3 +48,20 @@ def test_negative_limit_is_rejected() -> None:
         corpus_preview(limit=-1)
     with pytest.raises(ValueError):
         next(iter_corpus_lines(limit=-1))
+
+
+def test_additional_segment_metadata() -> None:
+    segments = available_segments()
+    assert "1-15" in segments
+    assert "16-30" in segments
+
+
+def test_alternate_segment_is_accessible() -> None:
+    preview = corpus_preview(limit=3, segment="16-30")
+    assert len(preview) == 3
+    assert all(isinstance(entry, str) and entry for entry in preview)
+
+
+def test_unknown_segment_is_rejected() -> None:
+    with pytest.raises(ValueError):
+        get_corpus_path(segment="99-105")  # type: ignore[arg-type]
