@@ -1298,11 +1298,18 @@ class DynamicTradingAlgo:
             response.version_info = self.version_metadata
             return response
 
-        retcode = getattr(response, "retcode", 0)
-        profit = getattr(response, "profit", 0.0)
-        ticket = getattr(response, "order", None) or getattr(response, "ticket", None)
-        price = getattr(response, "price", None)
-        comment = getattr(response, "comment", "")
+        if isinstance(response, Mapping):
+            retcode = response.get("retcode", response.get("code", 0))
+            profit = response.get("profit", 0.0)
+            ticket = response.get("order") or response.get("ticket")
+            price = response.get("price")
+            comment = response.get("comment", "")
+        else:
+            retcode = getattr(response, "retcode", 0)
+            profit = getattr(response, "profit", 0.0)
+            ticket = getattr(response, "order", None) or getattr(response, "ticket", None)
+            price = getattr(response, "price", None)
+            comment = getattr(response, "comment", "")
 
         return TradeExecutionResult(
             retcode=retcode,

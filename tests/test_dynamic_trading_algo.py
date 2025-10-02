@@ -49,6 +49,41 @@ class StubConnector:
         )
 
 
+def test_execute_trade_preserves_mapping_response_fields() -> None:
+    class MappingConnector:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, float]] = []
+
+        def buy(self, symbol: str, lot: float) -> dict[str, object]:
+            self.calls.append((symbol, lot))
+            return {
+                "retcode": 201,
+                "profit": 12.5,
+                "ticket": 512,
+                "price": 1.1111,
+                "comment": "dict response",
+            }
+
+    connector = MappingConnector()
+    algo = DynamicTradingAlgo(connector=connector)
+
+    result = algo.execute_trade({"action": ORDER_ACTION_BUY}, lot=0.05, symbol="eurusd")
+
+    assert connector.calls == [("EURUSD", 0.05)]
+    assert result.retcode == 201
+    assert result.profit == pytest.approx(12.5)
+    assert result.ticket == 512
+    assert result.price == pytest.approx(1.1111)
+    assert result.message == "dict response"
+    assert result.raw_response == {
+        "retcode": 201,
+        "profit": 12.5,
+        "ticket": 512,
+        "price": 1.1111,
+        "comment": "dict response",
+    }
+
+
 class StubHedgeConnector:
     def __init__(self) -> None:
         self.open_calls: list[tuple[str, float, str]] = []

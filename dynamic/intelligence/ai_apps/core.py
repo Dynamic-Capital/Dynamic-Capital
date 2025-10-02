@@ -50,6 +50,10 @@ ACTION_TOLERANCE = 1e-6
 
 _ACTION_TO_SCORE = {"BUY": 1.0, "SELL": -1.0}
 
+_DRAWDOWN_CONFIDENCE_THRESHOLD = 0.05
+_DRAWDOWN_CONFIDENCE_SCALE = 2.0
+_DRAWDOWN_NEUTRAL_THRESHOLD = -0.12
+
 
 @dataclass(frozen=True)
 class CompositeComponent:
@@ -535,8 +539,9 @@ class DynamicFusionAlgo:
 
         if context.drawdown is not None:
             drawdown_value = abs(context.drawdown)
-            if drawdown_value > 5:
-                confidence = max(0.0, confidence - min(0.25, (drawdown_value - 5) * 0.01))
+            if drawdown_value > _DRAWDOWN_CONFIDENCE_THRESHOLD:
+                reduction = (drawdown_value - _DRAWDOWN_CONFIDENCE_THRESHOLD) * _DRAWDOWN_CONFIDENCE_SCALE
+                confidence = max(0.0, confidence - min(0.3, reduction))
 
         if consensus_provider is None:
             consensus = self._indicator_consensus(context, action)
@@ -939,7 +944,7 @@ class DynamicFusionAlgo:
             updated_confidence = min(updated_confidence, 0.4)
             note = "High systemic risk reduced aggressiveness of the trade call."
 
-        if drawdown is not None and drawdown <= -10:
+        if drawdown is not None and drawdown <= _DRAWDOWN_NEUTRAL_THRESHOLD:
             updated_action = "NEUTRAL"
             updated_confidence = min(updated_confidence, 0.4)
             drawdown_note = "Recent drawdown triggered capital preservation mode."
