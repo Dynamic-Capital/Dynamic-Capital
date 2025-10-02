@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Mapping, MutableMapping, cast
 
+from dynamic_agents._insight import AgentInsight
 from dynamic_agents.business import (
     AccountingSnapshot,
     BusinessEngineInsight,
@@ -37,6 +38,8 @@ class DynamicBusinessManager:
             keeper=keeper,
         )
         self._bot = resolved_bot
+        self._last_insight: BusinessEngineInsight | None = None
+        self._last_marker: tuple[int, int, int, int] | None = None
 
     @property
     def bot(self) -> DynamicBusinessBot:
@@ -73,6 +76,7 @@ class DynamicBusinessManager:
             marketing=marketing,
             psychology=psychology,
         )
+        self._invalidate_cache()
 
     # ------------------------------------------------------------------
     # Reporting helpers
@@ -80,7 +84,10 @@ class DynamicBusinessManager:
     def capture(self) -> BusinessEngineInsight:
         """Capture and persist a detailed snapshot."""
 
-        return self.keeper.capture(self.agent)
+        insight = self.keeper.capture(self.agent)
+        self._last_insight = insight
+        self._last_marker = self._current_snapshot_marker()
+        return insight
 
     def publish_digest(self) -> str:
         """Generate a digest suitable for asynchronous notifications."""
@@ -90,21 +97,18 @@ class DynamicBusinessManager:
     def status_summary(self) -> Mapping[str, object]:
         """Return a structured summary of the latest insight."""
 
-        latest = self.keeper.latest
-        if latest is None:
-            detailed = self.agent.detailed_insight()
+        marker = self._current_snapshot_marker()
+        detailed = self._last_insight
+        if detailed is None:
+            detailed = self._resolve_detailed_insight()
+        elif self._last_marker != marker:
+            detailed = self._refresh_from_agent()
         else:
-            detailed = BusinessEngineInsight(
-                raw=latest,
-                sales=self.agent.sales_history[-1],
-                accounting=self.agent.accounting_history[-1],
-                marketing=self.agent.marketing_history[-1],
-                psychology=self.agent.psychology_history[-1],
-                sales_history=self.agent.sales_history,
-                accounting_history=self.agent.accounting_history,
-                marketing_history=self.agent.marketing_history,
-                psychology_history=self.agent.psychology_history,
-            )
+            latest = self.keeper.latest
+            if latest is not None and detailed.raw is not latest:
+                detailed = self._compose_from_raw(latest)
+        self._last_insight = detailed
+        self._last_marker = marker
         payload: MutableMapping[str, object] = {
             "generated_at": detailed.raw.generated_at,
             "overall_health": detailed.overall_health,
@@ -114,3 +118,40 @@ class DynamicBusinessManager:
             "psychology": asdict(detailed.psychology),
         }
         return payload
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+
+    def _invalidate_cache(self) -> None:
+        self._last_insight = None
+        self._last_marker = None
+
+    def _current_snapshot_marker(self) -> tuple[int, int, int, int]:
+        return (
+            id(self.agent.sales_history[-1]),
+            id(self.agent.accounting_history[-1]),
+            id(self.agent.marketing_history[-1]),
+            id(self.agent.psychology_history[-1]),
+        )
+
+    def _resolve_detailed_insight(self) -> BusinessEngineInsight:
+        latest = self.keeper.latest
+        if latest is None or self._last_marker is None:
+            return self._refresh_from_agent()
+        return self._compose_from_raw(latest)
+
+    def _refresh_from_agent(self) -> BusinessEngineInsight:
+        return self.agent.detailed_insight()
+
+    def _compose_from_raw(self, latest: AgentInsight) -> BusinessEngineInsight:
+        return BusinessEngineInsight(
+            raw=latest,
+            sales=self.agent.sales_history[-1],
+            accounting=self.agent.accounting_history[-1],
+            marketing=self.agent.marketing_history[-1],
+            psychology=self.agent.psychology_history[-1],
+            sales_history=self.agent.sales_history,
+            accounting_history=self.agent.accounting_history,
+            marketing_history=self.agent.marketing_history,
+            psychology_history=self.agent.psychology_history,
+        )

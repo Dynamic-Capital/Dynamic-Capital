@@ -117,6 +117,38 @@ class BusinessEngineInsight:
         return float(self.raw.metrics.get("overall_health_index", 0.0))
 
 
+@dataclass(slots=True, frozen=True)
+class _SalesGrowthRates:
+    revenue_pct: float
+    pipeline_pct: float
+
+
+@dataclass(slots=True, frozen=True)
+class _AccountingGrowthRates:
+    cash_on_hand_pct: float
+    profit_margin_pct: float
+
+
+@dataclass(slots=True, frozen=True)
+class _MarketingGrowthRates:
+    lead_velocity_pct: float
+    engagement_rate_pct: float
+
+
+@dataclass(slots=True, frozen=True)
+class _PsychologyGrowthRates:
+    wellbeing_pct: float
+    burnout_pct: float
+
+
+@dataclass(slots=True, frozen=True)
+class _GrowthRates:
+    sales: _SalesGrowthRates
+    accounting: _AccountingGrowthRates
+    marketing: _MarketingGrowthRates
+    psychology: _PsychologyGrowthRates
+
+
 class DynamicBusinessAgent:
     """Coordinate multi-domain business telemetry into actionable insights."""
 
@@ -252,15 +284,18 @@ class DynamicBusinessAgent:
         metrics["overall_health_index"] = self._calculate_health_index(
             sales, accounting, marketing, psychology
         )
-        metrics.update(self._trend_metrics())
+        growth = self._calculate_growth_rates()
+        metrics.update(self._trend_metrics(growth))
 
-        highlights = self._build_highlights(sales, accounting, marketing, psychology)
+        highlights = self._build_highlights(
+            sales, accounting, marketing, psychology, growth
+        )
         details: MutableMapping[str, object] = {
             "sales": asdict(sales),
             "accounting": asdict(accounting),
             "marketing": asdict(marketing),
             "psychology": asdict(psychology),
-            "trends": self._build_trend_details(),
+            "trends": self._build_trend_details(growth),
         }
 
         return AgentInsight(
@@ -291,41 +326,31 @@ class DynamicBusinessAgent:
     # ------------------------------------------------------------------
     # Internal helpers
 
-    def _trend_metrics(self) -> Mapping[str, float]:
+    def _trend_metrics(self, growth: _GrowthRates) -> Mapping[str, float]:
         return {
-            "sales_revenue_growth_pct": self._growth_rate(self._sales_history, lambda s: s.quarterly_revenue),
-            "sales_pipeline_growth_pct": self._growth_rate(self._sales_history, lambda s: s.pipeline_value),
-            "marketing_lead_velocity_growth_pct": self._growth_rate(
-                self._marketing_history, lambda s: s.lead_velocity
-            ),
-            "psychology_wellbeing_change_pct": self._growth_rate(
-                self._psychology_history, lambda s: s.wellbeing_index
-            ),
+            "sales_revenue_growth_pct": growth.sales.revenue_pct,
+            "sales_pipeline_growth_pct": growth.sales.pipeline_pct,
+            "marketing_lead_velocity_growth_pct": growth.marketing.lead_velocity_pct,
+            "psychology_wellbeing_change_pct": growth.psychology.wellbeing_pct,
         }
 
-    def _build_trend_details(self) -> Mapping[str, Mapping[str, float]]:
+    def _build_trend_details(self, growth: _GrowthRates) -> Mapping[str, Mapping[str, float]]:
         return {
             "sales": {
-                "quarterly_revenue_pct": self._growth_rate(self._sales_history, lambda s: s.quarterly_revenue),
-                "pipeline_value_pct": self._growth_rate(self._sales_history, lambda s: s.pipeline_value),
+                "quarterly_revenue_pct": growth.sales.revenue_pct,
+                "pipeline_value_pct": growth.sales.pipeline_pct,
             },
             "marketing": {
-                "lead_velocity_pct": self._growth_rate(self._marketing_history, lambda s: s.lead_velocity),
-                "engagement_rate_pct": self._growth_rate(
-                    self._marketing_history, lambda s: s.engagement_rate
-                ),
+                "lead_velocity_pct": growth.marketing.lead_velocity_pct,
+                "engagement_rate_pct": growth.marketing.engagement_rate_pct,
             },
             "psychology": {
-                "wellbeing_pct": self._growth_rate(self._psychology_history, lambda s: s.wellbeing_index),
-                "burnout_pct": self._growth_rate(self._psychology_history, lambda s: s.burnout_risk),
+                "wellbeing_pct": growth.psychology.wellbeing_pct,
+                "burnout_pct": growth.psychology.burnout_pct,
             },
             "accounting": {
-                "cash_on_hand_pct": self._growth_rate(
-                    self._accounting_history, lambda s: s.cash_on_hand
-                ),
-                "profit_margin_pct": self._growth_rate(
-                    self._accounting_history, lambda s: s.profit_margin
-                ),
+                "cash_on_hand_pct": growth.accounting.cash_on_hand_pct,
+                "profit_margin_pct": growth.accounting.profit_margin_pct,
             },
         }
 
@@ -335,17 +360,18 @@ class DynamicBusinessAgent:
         accounting: AccountingSnapshot,
         marketing: MarketingSnapshot,
         psychology: PsychologySnapshot,
+        growth: _GrowthRates,
     ) -> list[str]:
         highlights: list[str] = []
 
-        revenue_change = self._growth_rate(self._sales_history, lambda s: s.quarterly_revenue)
+        revenue_change = growth.sales.revenue_pct
         if abs(revenue_change) >= 1.0:
             direction = "up" if revenue_change >= 0 else "down"
             highlights.append(
                 f"Quarterly revenue {direction} {abs(revenue_change):.1f}% versus previous snapshot"
             )
 
-        pipeline_change = self._growth_rate(self._sales_history, lambda s: s.pipeline_value)
+        pipeline_change = growth.sales.pipeline_pct
         if pipeline_change > 3.0:
             highlights.append(
                 f"Sales pipeline expanded by {pipeline_change:.1f}% with win rate at {sales.win_rate:.0%}"
@@ -360,13 +386,13 @@ class DynamicBusinessAgent:
                 f"Profit margin healthy at {accounting.profit_margin:.0%} with {accounting.cash_on_hand:,.0f} cash on hand"
             )
 
-        engagement_change = self._growth_rate(self._marketing_history, lambda s: s.engagement_rate)
+        engagement_change = growth.marketing.engagement_rate_pct
         if engagement_change > 2.0:
             highlights.append(
                 f"Marketing engagement climbed {engagement_change:.1f}% with ROI {marketing.campaign_roi:.2f}x"
             )
 
-        wellbeing_change = self._growth_rate(self._psychology_history, lambda s: s.wellbeing_index)
+        wellbeing_change = growth.psychology.wellbeing_pct
         if wellbeing_change < -2.5 or psychology.burnout_risk > 0.25:
             highlights.append(
                 "People ops watch: wellbeing dipping and burnout risk rising"
@@ -415,6 +441,42 @@ class DynamicBusinessAgent:
         if abs(previous) <= 1e-9:
             return 0.0
         return ((current - previous) / abs(previous)) * 100.0
+
+    def _calculate_growth_rates(self) -> _GrowthRates:
+        return _GrowthRates(
+            sales=_SalesGrowthRates(
+                revenue_pct=self._growth_rate(
+                    self._sales_history, lambda s: s.quarterly_revenue
+                ),
+                pipeline_pct=self._growth_rate(
+                    self._sales_history, lambda s: s.pipeline_value
+                ),
+            ),
+            accounting=_AccountingGrowthRates(
+                cash_on_hand_pct=self._growth_rate(
+                    self._accounting_history, lambda s: s.cash_on_hand
+                ),
+                profit_margin_pct=self._growth_rate(
+                    self._accounting_history, lambda s: s.profit_margin
+                ),
+            ),
+            marketing=_MarketingGrowthRates(
+                lead_velocity_pct=self._growth_rate(
+                    self._marketing_history, lambda s: s.lead_velocity
+                ),
+                engagement_rate_pct=self._growth_rate(
+                    self._marketing_history, lambda s: s.engagement_rate
+                ),
+            ),
+            psychology=_PsychologyGrowthRates(
+                wellbeing_pct=self._growth_rate(
+                    self._psychology_history, lambda s: s.wellbeing_index
+                ),
+                burnout_pct=self._growth_rate(
+                    self._psychology_history, lambda s: s.burnout_risk
+                ),
+            ),
+        )
 
 
 def _clamp(value: float, lower: float, upper: float) -> float:
