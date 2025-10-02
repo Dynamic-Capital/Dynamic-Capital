@@ -147,6 +147,168 @@ keep the TON surfaces aligned with the broader platform roadmap.
 - Document verification screenshots in release notes to confirm parity across
   wallet vendors.
 
+### Next.js TON wallet connector implementation
+
+> Use this runbook when wiring a React/Next.js client (Mini App or web) to the
+> TON Connect ecosystem. It complements the manifest and DNS guidance above by
+> covering client-side wiring, session persistence, and telemetry hooks.
+
+1. **Install TON Connect dependencies.** In the relevant app package run:
+
+   ```bash
+   pnpm add @tonconnect/ui-react ton tonweb
+   ```
+
+   - `@tonconnect/ui-react` renders wallet buttons and session state helpers.
+   - `ton` (or `tonweb`) exposes low-level types for crafting payloads and
+     signing messages when you need more control than the UI widget exposes.
+
+2. **Expose the manifest URL.** Confirm the manifest is reachable at the `.ton`
+   domain (e.g., `https://dynamiccapital.ton/tonconnect-manifest.json`). Mirror
+   that URL in a typed config module so both Mini App and web builds reference
+   the same location:
+
+   ```ts
+   // apps/web/config/tonconnect.ts
+   export const TON_CONNECT = {
+     manifestUrl: "https://dynamiccapital.ton/tonconnect-manifest.json",
+     telemetryChannel: "ton-connect",
+   } as const;
+   ```
+
+3. **Wrap the React tree in the provider.** Create a dedicated provider module
+   so the pattern is reusable across apps:
+
+   ```tsx
+   // apps/web/src/providers/ton-connect-provider.tsx
+   "use client";
+
+   import { TonConnectUIProvider } from "@tonconnect/ui-react";
+   import type { PropsWithChildren } from "react";
+   import { TON_CONNECT } from "@/config/tonconnect";
+
+   export function TonConnectProvider({ children }: PropsWithChildren) {
+     return (
+       <TonConnectUIProvider
+         manifestUrl={TON_CONNECT.manifestUrl}
+         actionsConfiguration={{
+           twaReturnUrl: "https://t.me/dynamiccapital_bot/ton-connect",
+         }}
+       >
+         {children}
+       </TonConnectUIProvider>
+     );
+   }
+   ```
+
+   Add this provider to the app layout (e.g., `app/layout.tsx`) so every page
+   can access the connection context.
+
+4. **Render wallet controls.** Use the `TonConnectButton` component or wire your
+   own controls via the `useTonWallet` and `useTonConnectUI` hooks:
+
+   ```tsx
+   "use client";
+
+   import { TonConnectButton, useTonWallet } from "@tonconnect/ui-react";
+   import { useEffect } from "react";
+   import { track } from "@/lib/analytics";
+
+   export function WalletConnector() {
+     const wallet = useTonWallet();
+
+     useEffect(() => {
+       if (wallet?.account) {
+         track("ton_connect:linked", {
+           address: wallet.account.address,
+           chain: wallet.account.chain,
+         });
+       }
+     }, [wallet]);
+
+     return (
+       <div className="flex flex-col items-start gap-2">
+         <TonConnectButton className="w-full" />
+         {wallet?.account && (
+           <p className="text-sm text-muted-foreground">
+             Connected to {wallet.account.address.slice(0, 10)}…
+           </p>
+         )}
+       </div>
+     );
+   }
+   ```
+
+5. **Persist the wallet in Supabase.** When the TON session changes, call the
+   existing
+   [`link-wallet`](../dynamic-capital-ton/supabase/functions/link-wallet/index.ts)
+   function to correlate the wallet with the authenticated user:
+
+   ```ts
+   import { useEffect } from "react";
+   import { useTonConnectUI } from "@tonconnect/ui-react";
+   import { useSession } from "@supabase/auth-helpers-react";
+   import { supabaseClient } from "@/lib/supabase";
+
+   export function useSyncTonWallet() {
+     const session = useSession();
+     const [tonConnectUI] = useTonConnectUI();
+
+     useEffect(() => {
+       if (!session?.user || !tonConnectUI.wallet) return;
+
+       void supabaseClient.functions.invoke("link-wallet", {
+         body: {
+           walletAddress: tonConnectUI.wallet.account.address,
+           chain: tonConnectUI.wallet.account.chain,
+           userId: session.user.id,
+         },
+       });
+     }, [session?.user, tonConnectUI.wallet]);
+   }
+   ```
+
+   Invoke `useSyncTonWallet` inside authenticated routes so the Supabase ledger
+   reflects the latest TON account.
+
+6. **Handle transactions.** Use `tonConnectUI.sendTransaction` with prepared BOC
+   payloads or Jetton transfer cells from
+   [`dynamic_capital_ton` utilities](../dynamic-capital-ton):
+
+   ```ts
+   import { beginCell } from "ton";
+
+   const payload = beginCell()
+     .storeUint(0xf8a7ea5, 32) // transfer op code
+     .storeUint(0, 64) // query id
+     .storeCoins(1_000_000_000n) // 1 TON in nanotons
+     .storeAddress(recipient)
+     .endCell();
+
+   await tonConnectUI.sendTransaction({
+     validUntil: Math.floor(Date.now() / 1000) + 300,
+     messages: [
+       {
+         address: jettonWalletAddress,
+         amount: "100000000", // 0.1 TON for gas
+         payload: payload.toBoc().toString("base64"),
+       },
+     ],
+   });
+   ```
+
+7. **Instrument analytics and error handling.** Capture success/failure events
+   in Supabase `tx_logs` so operations can reconcile wallet link attempts with
+   Mini App telemetry. Emit descriptive errors to the UI and fall back to a
+   support channel when wallets reject signature requests.
+
+8. **Test across clients.** Validate flows in Tonkeeper, MyTonWallet, and the
+   Telegram Mini App environment. Each wallet surfaces slightly different UX
+   prompts—include screenshots in release notes for regression tracking.
+
+> **Reminder:** Run `npm run lint` and `npm run typecheck` after introducing the
+> provider to ensure the shared config and Supabase hooks remain type-safe.
+
 ### Management & proxy operations
 
 | Task                         | Owner     | Cadence    | Notes                                                                                 |
