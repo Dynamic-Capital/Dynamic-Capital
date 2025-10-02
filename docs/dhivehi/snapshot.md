@@ -52,3 +52,7 @@
 1. Extend domain taxonomy to cover fintech partners.
 2. Harden TTS latency for IVR deployments.
 3. Publish RTL accessibility checklist for partner integrations.
+
+## Simulation
+
+- Run `python -m dynamic_translation.dhivehi_simulation "ބާވަތް ބަލާލުން."` to generate a sample Dhivehi → English translation trace with glossary coverage, memory provenance, and post-edit prompts.
