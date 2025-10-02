@@ -66,13 +66,13 @@ and automation.
 
 ## Onboarding Screen Blueprint
 
-| Screen | Primary Goal | Hero Content | Key Components | Automation & Analytics |
-| --- | --- | --- | --- | --- |
-| **Welcome Launchpad** | Orient newcomers with the Dynamic Capital value promise. | Headline + subheadline matching marketing copy, localized Dhivehi toggle, primary **Continue to Home** CTA. | Social proof cards, countdown-style clock, language switcher tooltip. | Track `cta_continue_home_clicked`; hydrate localization preference for downstream sessions. |
-| **Personal Home Hub** | Surface top actions after first login. | Personalized greeting from mentorship lead, highlight of DCT balance snapshot. | Quick-start checklist, mini watchlist, Learn & Earn teaser tile. | Fetch `/api/welcome-context`; emit `cta_explore_home_clicked` when checklist launched. |
-| **Signals Primer** | Explain how dynamic signals drive confident trades. | Animated signal strength meter with Dhivehi legend. | Portfolio summary widget, long/short ratios, mentor commentary feed. | Connect to Supabase real-time stream; label analytics with `signals_stream_engaged`. |
-| **Learn & Earn Invitation** | Motivate ongoing education and mentorship enrollment. | Rotating mentorship avatars with cultural motifs. | Module carousel (Dynamic Mentorship, Free Course, Web3 Education, DC Token Literacy), ROI tracker, Connect Wallet CTA. | Start drip campaign via Gmail API when **Connect Wallet** tapped; sync Telegram tag for follow-up. |
-| **Market Intelligence Pulse** | Encourage traders to configure macro and news alerts. | Animated macro countdown with Dhivehi annotations and top three headlines. | Economic calendar list, news sentiment heatmap, alert setup CTA. | Emit `calendar_alert_configured` and `news_alert_subscribed`; hydrate quiet-hour preferences from Settings. |
+| Screen                        | Primary Goal                                             | Hero Content                                                                                                | Key Components                                                                                                         | Automation & Analytics                                                                                      |
+| ----------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Welcome Launchpad**         | Orient newcomers with the Dynamic Capital value promise. | Headline + subheadline matching marketing copy, localized Dhivehi toggle, primary **Continue to Home** CTA. | Social proof cards, countdown-style clock, language switcher tooltip.                                                  | Track `cta_continue_home_clicked`; hydrate localization preference for downstream sessions.                 |
+| **Personal Home Hub**         | Surface top actions after first login.                   | Personalized greeting from mentorship lead, highlight of DCT balance snapshot.                              | Quick-start checklist, mini watchlist, Learn & Earn teaser tile.                                                       | Fetch `/api/welcome-context`; emit `cta_explore_home_clicked` when checklist launched.                      |
+| **Signals Primer**            | Explain how dynamic signals drive confident trades.      | Animated signal strength meter with Dhivehi legend.                                                         | Portfolio summary widget, long/short ratios, mentor commentary feed.                                                   | Connect to Supabase real-time stream; label analytics with `signals_stream_engaged`.                        |
+| **Learn & Earn Invitation**   | Motivate ongoing education and mentorship enrollment.    | Rotating mentorship avatars with cultural motifs.                                                           | Module carousel (Dynamic Mentorship, Free Course, Web3 Education, DC Token Literacy), ROI tracker, Connect Wallet CTA. | Start drip campaign via Gmail API when **Connect Wallet** tapped; sync Telegram tag for follow-up.          |
+| **Market Intelligence Pulse** | Encourage traders to configure macro and news alerts.    | Animated macro countdown with Dhivehi annotations and top three headlines.                                  | Economic calendar list, news sentiment heatmap, alert setup CTA.                                                       | Emit `calendar_alert_configured` and `news_alert_subscribed`; hydrate quiet-hour preferences from Settings. |
 
 ## Onboarding Journey Sequence
 
@@ -111,42 +111,63 @@ and automation.
 
 ## Module Interaction Blueprint
 
-| Module | Core Views | Data Inputs | Automation Hooks | Integration Targets |
-| --- | --- | --- | --- | --- |
-| **Dynamic Market** | Market Watchlist, Snapshot, Overview panels, **Economic Calendar**, **Fundamental News Hub** | Oracle pricing feeds, localized token labels, volatility metrics, macro calendars, newsroom APIs | Smart alerts, price momentum badges, heatmap refresh cadence, news alerts, calendar reminders | TradingView overlays, Oracle data lake, localization service, ForexFactory/Calendar APIs, newswire integrations |
-| **Dynamic Signals** | Portfolio Summary, Trade Actions, Live Wallet | Supabase real-time signals, wallet sync, mentor commentary | Alert routing, transfer reminders, AGI score contributions | Supabase, MetaMask / TON wallet bridge, PostHog analytics |
-| **Dynamic Learn & Earn** | Mentorship Modules, Growth Tracker, Promotions | Mentorship CMS, course completion data, ROI tracker inputs | Drip campaign sequencer, reward unlocks, Telegram nudges | Gmail API, Telegram bot, Supabase profile store |
-| **Settings & Profile** | Language, Notifications, Wallet Integration, Compliance | Localization preferences, notification matrix, KYC status | Dhivehi-first toggle persistence, compliance reminders, wallet binding events | MetaMask/TON connectors, compliance ledger, localization service |
-| **Intelligence Oracle** | AGI Scoring Dashboard, Quantum Sync, Telegram bot, Feedback Visualizer | Aggregated signals, mentorship progress, compliance data | Scoring recalculations, predictive prompts, anomaly alerts | AGI engine, Supabase analytics warehouse, PostHog funnels |
+| Module                   | Core Views                                                                                   | Data Inputs                                                                                      | Automation Hooks                                                                              | Integration Targets                                                                                             |
+| ------------------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Dynamic Market**       | Market Watchlist, Snapshot, Overview panels, **Economic Calendar**, **Fundamental News Hub** | Oracle pricing feeds, localized token labels, volatility metrics, macro calendars, newsroom APIs | Smart alerts, price momentum badges, heatmap refresh cadence, news alerts, calendar reminders | TradingView overlays, Oracle data lake, localization service, ForexFactory/Calendar APIs, newswire integrations |
+| **Dynamic Signals**      | Portfolio Summary, Trade Actions, Live Wallet                                                | Supabase real-time signals, wallet sync, mentor commentary                                       | Alert routing, transfer reminders, AGI score contributions                                    | Supabase, MetaMask / TON wallet bridge, PostHog analytics                                                       |
+| **Dynamic Learn & Earn** | Mentorship Modules, Growth Tracker, Promotions                                               | Mentorship CMS, course completion data, ROI tracker inputs                                       | Drip campaign sequencer, reward unlocks, Telegram nudges                                      | Gmail API, Telegram bot, Supabase profile store                                                                 |
+| **Settings & Profile**   | Language, Notifications, Wallet Integration, Compliance                                      | Localization preferences, notification matrix, KYC status                                        | Dhivehi-first toggle persistence, compliance reminders, wallet binding events                 | MetaMask/TON connectors, compliance ledger, localization service                                                |
+| **Intelligence Oracle**  | AGI Scoring Dashboard, Quantum Sync, Telegram bot, Feedback Visualizer                       | Aggregated signals, mentorship progress, compliance data                                         | Scoring recalculations, predictive prompts, anomaly alerts                                    | AGI engine, Supabase analytics warehouse, PostHog funnels                                                       |
 
 ## Dynamic Economic Calendar Experience
 
-- **Primary outcomes**: keep traders ahead of macro catalysts and regional holidays impacting liquidity. Surface Dhivehi-localized notes for Maldivian market hours.
-- **Event tiers**: distinguish between global high-impact events (e.g., FOMC, CPI) and localized regional updates with color-coded intensity bars and countdown timers.
+- **Primary outcomes**: keep traders ahead of macro catalysts and regional
+  holidays impacting liquidity. Surface Dhivehi-localized notes for Maldivian
+  market hours.
+- **Event tiers**: distinguish between global high-impact events (e.g., FOMC,
+  CPI) and localized regional updates with color-coded intensity bars and
+  countdown timers.
 - **User flows**:
-  - From **Market Watchlist**, allow a quick jump into the calendar filtered by relevant trading pairs.
-  - Offer “Add to Signals” CTA to convert a calendar event into a conditional alert routed through the Signals module.
-- **Automation**: sync event metadata via ForexFactory/ICS feeds, push reminders 24h/1h before the event, and archive outcomes to feed the Intelligence Oracle.
+  - From **Market Watchlist**, allow a quick jump into the calendar filtered by
+    relevant trading pairs.
+  - Offer “Add to Signals” CTA to convert a calendar event into a conditional
+    alert routed through the Signals module.
+- **Automation**: sync event metadata via ForexFactory/ICS feeds, push reminders
+  24h/1h before the event, and archive outcomes to feed the Intelligence Oracle.
 
 ## Fundamental News Overview & Alerts
 
-- **News overview panel**: group headlines by asset tags, sentiment, and source credibility. Offer toggleable lenses for Technical vs. Fundamental focus.
-- **Alerting model**: empower traders to subscribe to breaking news keywords and specify delivery (push, in-app banner, Telegram). Alerts should inherit localization and quiet-hour settings from Settings & Profile.
-- **Editorial insights**: weave mentor commentary or AI-generated summaries into each story card. Display confidence scores and link back to the Market Overview for impact tracking.
-- **Data partnerships**: integrate newsroom APIs (e.g., CryptoPanic, CoinDesk) and compliance filters to avoid disallowed jurisdictions.
+- **News overview panel**: group headlines by asset tags, sentiment, and source
+  credibility. Offer toggleable lenses for Technical vs. Fundamental focus.
+- **Alerting model**: empower traders to subscribe to breaking news keywords and
+  specify delivery (push, in-app banner, Telegram). Alerts should inherit
+  localization and quiet-hour settings from Settings & Profile.
+- **Editorial insights**: weave mentor commentary or AI-generated summaries into
+  each story card. Display confidence scores and link back to the Market
+  Overview for impact tracking.
+- **Data partnerships**: integrate newsroom APIs (e.g., CryptoPanic, CoinDesk)
+  and compliance filters to avoid disallowed jurisdictions.
 
 ### Newsroom Component Patterns
 
-- **Headline cards**: use stacked layout with source badge, timestamp, and sentiment pill. Include quick actions for “Add Alert,” “Share,” and “Mark as Read.”
-- **Live ticker**: provide a horizontal marquee of urgent headlines atop the Market module. Employ throttled updates and pause-on-hover for accessibility.
-- **Alert composer**: modal with keyword inputs, asset filters, and frequency selectors. Prefill suggestions based on watchlist activity and mentorship recommendations.
+- **Headline cards**: use stacked layout with source badge, timestamp, and
+  sentiment pill. Include quick actions for “Add Alert,” “Share,” and “Mark as
+  Read.”
+- **Live ticker**: provide a horizontal marquee of urgent headlines atop the
+  Market module. Employ throttled updates and pause-on-hover for accessibility.
+- **Alert composer**: modal with keyword inputs, asset filters, and frequency
+  selectors. Prefill suggestions based on watchlist activity and mentorship
+  recommendations.
 
 ## Component Architecture & Usage Recommendations
 
 ### Dashboard Flow Structure
 
-- Anchor a three-column mental model: fixed sidebar navigation, adaptive main content canvas, and optional tertiary panels for intelligence overlays.
-- Preserve the sitemap hierarchy with a flow similar to the diagram below to keep Market, Signals, and Learn & Earn interactions within a single scroll context while reserving space for future Oracle hooks.
+- Anchor a three-column mental model: fixed sidebar navigation, adaptive main
+  content canvas, and optional tertiary panels for intelligence overlays.
+- Preserve the sitemap hierarchy with a flow similar to the diagram below to
+  keep Market, Signals, and Learn & Earn interactions within a single scroll
+  context while reserving space for future Oracle hooks.
 
 ```mermaid
 flowchart LR
@@ -163,7 +184,8 @@ flowchart LR
 
 ### Tabbed Navigation & Status Filters
 
-Use pill-style buttons with rounded corners for the Market Watchlist ↔ Snapshot toggle. Variants should communicate state using brand hues.
+Use pill-style buttons with rounded corners for the Market Watchlist ↔ Snapshot
+toggle. Variants should communicate state using brand hues.
 
 ```tsx
 <Row gap="8" horizontal="center" paddingY="16">
@@ -183,10 +205,11 @@ Use pill-style buttons with rounded corners for the Market Watchlist ↔ Snapsho
   >
     Dynamic Market Snapshot
   </Button>
-</Row>
+</Row>;
 ```
 
-Layer badge clusters for Hot, Favorites, Trending, and Live states so traders can filter volatility quickly.
+Layer badge clusters for Hot, Favorites, Trending, and Live states so traders
+can filter volatility quickly.
 
 ```tsx
 <Row gap="8" wrap horizontal="center">
@@ -199,12 +222,13 @@ Layer badge clusters for Hot, Favorites, Trending, and Live states so traders ca
   <Tag size="s" background="error-medium" prefixIcon="trending-up">
     Trending
   </Tag>
-</Row>
+</Row>;
 ```
 
 ### Market Data Card Composition
 
-Cards should emphasize pair metrics, sparkline context, and contextual actions (e.g., Quick Entrance) with glassmorphism accents.
+Cards should emphasize pair metrics, sparkline context, and contextual actions
+(e.g., Quick Entrance) with glassmorphism accents.
 
 ```tsx
 <Column
@@ -217,7 +241,7 @@ Cards should emphasize pair metrics, sparkline context, and contextual actions (
   fillWidth
   style={{
     backdropFilter: "blur(8px)",
-    transition: "all 0.2s ease"
+    transition: "all 0.2s ease",
   }}
   className="hover:shadow-lg hover:scale-[1.02]"
 >
@@ -255,12 +279,13 @@ Cards should emphasize pair metrics, sparkline context, and contextual actions (
       <Icon name="arrow-right" size="xs" />
     </Row>
   </Column>
-</Column>
+</Column>;
 ```
 
 ### Horizontal Card Carousel
 
-Provide horizontal scroll with snap alignment to surface multiple pairs and mentorship promos without overwhelming the viewport.
+Provide horizontal scroll with snap alignment to surface multiple pairs and
+mentorship promos without overwhelming the viewport.
 
 ```tsx
 <Row
@@ -269,7 +294,7 @@ Provide horizontal scroll with snap alignment to surface multiple pairs and ment
   style={{
     overflowX: "auto",
     scrollSnapType: "x mandatory",
-    WebkitOverflowScrolling: "touch"
+    WebkitOverflowScrolling: "touch",
   }}
   className="scrollbar-hide"
 >
@@ -279,18 +304,19 @@ Provide horizontal scroll with snap alignment to surface multiple pairs and ment
       style={{
         scrollSnapAlign: "start",
         minWidth: "280px",
-        maxWidth: "320px"
+        maxWidth: "320px",
       }}
     >
       <MarketCard data={item} />
     </div>
   ))}
-</Row>
+</Row>;
 ```
 
 ### Sidebar Navigation
 
-Keep the sidebar fixed with iconography mirroring Maldivian nautical motifs and provide 48px tappable targets for accessibility.
+Keep the sidebar fixed with iconography mirroring Maldivian nautical motifs and
+provide 48px tappable targets for accessibility.
 
 ```tsx
 <Column
@@ -315,12 +341,14 @@ Keep the sidebar fixed with iconography mirroring Maldivian nautical motifs and 
       <Icon name={item.icon} />
     </Button>
   ))}
-</Column>
+</Column>;
 ```
 
 ### Main Layout Skeleton
 
-The top navigation balances quick module switches with live status indicators. Center the Dynamic Capital brand and expose hero CTAs for Pool Trading, Learn & Earn, and Signals.
+The top navigation balances quick module switches with live status indicators.
+Center the Dynamic Capital brand and expose hero CTAs for Pool Trading, Learn &
+Earn, and Signals.
 
 ```tsx
 <Column fillWidth minHeight="screen" background="page-background">
@@ -362,13 +390,15 @@ The top navigation balances quick module switches with live status indicators. C
       <DetailPanels />
     </Column>
   </Row>
-</Column>
+</Column>;
 ```
 
 ### Styling & Responsiveness
 
-- Favor brand blues/cyans for primary actions, success greens for profit, and error reds for loss states. Neutrals carry typography and borders.
-- Apply a subtle gradient + blur background on cards to reinforce the premium financial aesthetic.
+- Favor brand blues/cyans for primary actions, success greens for profit, and
+  error reds for loss states. Neutrals carry typography and borders.
+- Apply a subtle gradient + blur background on cards to reinforce the premium
+  financial aesthetic.
 
 ```ts
 const cardStyle: React.CSSProperties = {
@@ -376,7 +406,7 @@ const cardStyle: React.CSSProperties = {
     "linear-gradient(135deg, hsl(var(--brand) / 0.03) 0%, hsl(var(--accent) / 0.02) 100%)",
   border: "1px solid hsl(var(--brand) / 0.12)",
   backdropFilter: "blur(12px)",
-  boxShadow: "0 8px 32px hsl(var(--neutral) / 0.06)"
+  boxShadow: "0 8px 32px hsl(var(--neutral) / 0.06)",
 };
 ```
 
@@ -389,17 +419,18 @@ const cardStyle: React.CSSProperties = {
     fillWidth
     style={{
       minWidth: "280px",
-      maxWidth: "min(100%, 320px)"
+      maxWidth: "min(100%, 320px)",
     }}
   >
     {/* Card content */}
   </Column>
-</Row>
+</Row>;
 ```
 
 ### Data Visualization & Interaction States
 
-- Use lightweight charts (Recharts or Visx) for sparklines and ensure updates animate smoothly when WebSocket data arrives.
+- Use lightweight charts (Recharts or Visx) for sparklines and ensure updates
+  animate smoothly when WebSocket data arrives.
 
 ```tsx
 <ResponsiveContainer width="100%" height={80}>
@@ -412,18 +443,21 @@ const cardStyle: React.CSSProperties = {
       dot={false}
     />
   </LineChart>
-</ResponsiveContainer>
+</ResponsiveContainer>;
 ```
 
-- Provide tactile feedback with transition utilities and explicit loading pulses for asynchronous calls.
+- Provide tactile feedback with transition utilities and explicit loading pulses
+  for asynchronous calls.
 
 ```tsx
 <div className="transition-all duration-200 hover:shadow-xl hover:scale-[1.02] cursor-pointer">
   <Pulse size="m" variant="brand" />
-</div>
+</div>;
 ```
 
-These guidelines align the visual system with the sitemap deliverables, ensuring component reuse, Maldivian-inspired branding, and readiness for live market integrations.
+These guidelines align the visual system with the sitemap deliverables, ensuring
+component reuse, Maldivian-inspired branding, and readiness for live market
+integrations.
 
 ## Future-facing Wireframe Notes
 
