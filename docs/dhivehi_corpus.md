@@ -71,6 +71,7 @@ to cover contiguous portions of the dictionary crawl:
 - `data/dhivehi_radheef_pages_1200_1299.jsonl`
 - `data/dhivehi_radheef_pages_1300_1399.jsonl`
 - `data/dhivehi_radheef_pages_1400_1499.jsonl`
+- `data/dhivehi_radheef_pages_1500_1588.jsonl`
 
 ## Downstream processing
 

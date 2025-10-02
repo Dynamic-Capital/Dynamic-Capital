@@ -1,8 +1,8 @@
 # Dhivehi Radheef Corpus Snapshot
 
 ## Page Coverage
-- Unique Radheef pages represented across the JSONL shards: **1,474**, spanning page 26 through page 1,499.
-- Combined, the shards contribute **29,282** prompt-response pairs extracted from the dictionary.
+- Unique Radheef pages represented across the JSONL shards: **1,563**, spanning page 26 through page 1,588.
+- Combined, the shards contribute **31,042** prompt-response pairs extracted from the dictionary.
 
 ## Shard Breakdown
 | JSONL shard | Prompt-response rows | Distinct Radheef pages |
@@ -19,5 +19,6 @@
 | `dhivehi_radheef_pages_1200_1299.jsonl` | 1,977 | 100 |
 | `dhivehi_radheef_pages_1300_1399.jsonl` | 1,983 | 100 |
 | `dhivehi_radheef_pages_1400_1499.jsonl` | 1,984 | 100 |
+| `dhivehi_radheef_pages_1500_1588.jsonl` | 1,760 | 89 |
 
-> **Note:** Page counts reflect distinct page identifiers per shard; page 999 appears in two adjacent shards, which reduces the overall distinct total to 1,374 when deduplicated across the corpus.
+> **Note:** Page counts reflect distinct page identifiers per shard. Pages 999–1,000 appear in overlapping exports, so the overall deduplicated corpus contains 1,563 distinct Radheef pages.
