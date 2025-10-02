@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
-from statistics import fmean
 from typing import Mapping, MutableMapping, Sequence
 
 __all__ = [
@@ -54,6 +53,36 @@ def _coerce_unique_sequence(values: Sequence[str] | None) -> tuple[str, ...]:
             seen.add(cleaned.lower())
             ordered.append(cleaned)
     return tuple(ordered)
+
+
+def _coerce_asset_like(asset: DhivehiLanguageAsset | Mapping[str, object]) -> DhivehiLanguageAsset:
+    if isinstance(asset, DhivehiLanguageAsset):
+        return asset
+    fields = {
+        "identifier": asset.get("identifier"),
+        "name": asset.get("name"),
+        "asset_type": asset.get("asset_type"),
+        "coverage": asset.get("coverage", 0.0),
+        "quality_score": asset.get("quality_score", 0.0),
+        "pending_reviews": asset.get("pending_reviews"),
+        "notes": asset.get("notes"),
+    }
+    return DhivehiLanguageAsset(**fields)  # type: ignore[arg-type]
+
+
+def _coerce_evaluation_like(
+    evaluation: DhivehiLanguageEvaluation | Mapping[str, object],
+) -> DhivehiLanguageEvaluation:
+    if isinstance(evaluation, DhivehiLanguageEvaluation):
+        return evaluation
+    fields = {
+        "category": evaluation.get("category"),
+        "metric": evaluation.get("metric"),
+        "score": evaluation.get("score", 0.0),
+        "weight": evaluation.get("weight", 1.0),
+        "comment": evaluation.get("comment"),
+    }
+    return DhivehiLanguageEvaluation(**fields)  # type: ignore[arg-type]
 
 
 @dataclass(slots=True)
@@ -170,31 +199,36 @@ class DynamicDhivehiLanguage:
 
     def generate_snapshot(self) -> DhivehiLanguageSnapshot:
         assets = self.list_assets()
-        average_coverage = fmean(asset.coverage for asset in assets) if assets else 0.0
-        average_quality = fmean(asset.quality_score for asset in assets) if assets else 0.0
+        asset_count = len(assets)
+        coverage_total = 0.0
+        quality_total = 0.0
+        at_risk_assets: list[DhivehiLanguageAsset] = []
+        for asset in assets:
+            coverage_total += asset.coverage
+            quality_total += asset.quality_score
+            if asset.at_risk:
+                at_risk_assets.append(asset)
+
+        average_coverage = coverage_total / asset_count if asset_count else 0.0
+        average_quality = quality_total / asset_count if asset_count else 0.0
 
         evaluations = self.evaluations()
-        total_weight = sum(evaluation.weight for evaluation in evaluations)
-        weighted_score = (
-            sum(evaluation.score * evaluation.weight for evaluation in evaluations) / total_weight
-            if total_weight
-            else 0.0
-        )
-
+        total_weight = 0.0
+        weighted_sum = 0.0
         category_totals: MutableMapping[str, list[float]] = {}
-        category_weights: MutableMapping[str, list[float]] = {}
         for evaluation in evaluations:
-            category_totals.setdefault(evaluation.category, []).append(evaluation.score * evaluation.weight)
-            category_weights.setdefault(evaluation.category, []).append(evaluation.weight)
+            weighted = evaluation.score * evaluation.weight
+            weighted_sum += weighted
+            total_weight += evaluation.weight
+            buckets = category_totals.setdefault(evaluation.category, [0.0, 0.0])
+            buckets[0] += weighted
+            buckets[1] += evaluation.weight
 
-        category_scores: dict[str, float] = {}
-        for category, totals in category_totals.items():
-            weights = category_weights[category]
-            total = sum(totals)
-            weight = sum(weights)
-            category_scores[category] = total / weight if weight else 0.0
-
-        at_risk_assets = tuple(asset for asset in assets if asset.at_risk)
+        weighted_score = weighted_sum / total_weight if total_weight else 0.0
+        category_scores = {
+            category: (totals[0] / totals[1] if totals[1] else 0.0)
+            for category, totals in category_totals.items()
+        }
 
         pending_actions = self._collect_pending_actions(assets, evaluations)
 
@@ -205,7 +239,7 @@ class DynamicDhivehiLanguage:
             average_quality=average_quality,
             weighted_evaluation_score=weighted_score,
             category_scores=category_scores,
-            at_risk_assets=at_risk_assets,
+            at_risk_assets=tuple(at_risk_assets),
             pending_actions=pending_actions,
         )
 
@@ -239,32 +273,12 @@ class DynamicDhivehiLanguage:
     def _coerce_asset(
         self, asset: DhivehiLanguageAsset | Mapping[str, object]
     ) -> DhivehiLanguageAsset:
-        if isinstance(asset, DhivehiLanguageAsset):
-            return asset
-        fields = {
-            "identifier": asset.get("identifier"),
-            "name": asset.get("name"),
-            "asset_type": asset.get("asset_type"),
-            "coverage": asset.get("coverage", 0.0),
-            "quality_score": asset.get("quality_score", 0.0),
-            "pending_reviews": asset.get("pending_reviews"),
-            "notes": asset.get("notes"),
-        }
-        return DhivehiLanguageAsset(**fields)  # type: ignore[arg-type]
+        return _coerce_asset_like(asset)
 
     def _coerce_evaluation(
         self, evaluation: DhivehiLanguageEvaluation | Mapping[str, object]
     ) -> DhivehiLanguageEvaluation:
-        if isinstance(evaluation, DhivehiLanguageEvaluation):
-            return evaluation
-        fields = {
-            "category": evaluation.get("category"),
-            "metric": evaluation.get("metric"),
-            "score": evaluation.get("score", 0.0),
-            "weight": evaluation.get("weight", 1.0),
-            "comment": evaluation.get("comment"),
-        }
-        return DhivehiLanguageEvaluation(**fields)  # type: ignore[arg-type]
+        return _coerce_evaluation_like(evaluation)
 
 
 class DynamicDhivehiLanguageBuilder:
@@ -357,13 +371,9 @@ class DynamicDhivehiLanguageBuilder:
     def _coerce_asset(
         self, asset: DhivehiLanguageAsset | Mapping[str, object]
     ) -> DhivehiLanguageAsset:
-        if isinstance(asset, DhivehiLanguageAsset):
-            return asset
-        return DynamicDhivehiLanguage()._coerce_asset(asset)
+        return _coerce_asset_like(asset)
 
     def _coerce_evaluation(
         self, evaluation: DhivehiLanguageEvaluation | Mapping[str, object]
     ) -> DhivehiLanguageEvaluation:
-        if isinstance(evaluation, DhivehiLanguageEvaluation):
-            return evaluation
-        return DynamicDhivehiLanguage()._coerce_evaluation(evaluation)
+        return _coerce_evaluation_like(evaluation)
