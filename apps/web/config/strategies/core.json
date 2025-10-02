@@ -79,11 +79,16 @@
     },
     "wyckoff": {
       "enabled": true,
-      "range_min_bars": 15,
-      "range_max_adr_ratio": 0.35,
-      "volume_spike_factor": 1.5,
-      "spring_reward": 2,
-      "utad_reward": 2
+      "range_min_bars": 18,
+      "range_max_adr_ratio": 1.1,
+      "volume_spike_factor": 1.6,
+      "spring_break_atr_factor": 0.28,
+      "utad_break_atr_factor": 0.28,
+      "structure_slope_threshold": 0.2,
+      "trend_lookback": 6,
+      "base_reward": 1.2,
+      "spring_reward": 2.6,
+      "utad_reward": 2.4
     },
     "elliott": {
       "enabled": true,
