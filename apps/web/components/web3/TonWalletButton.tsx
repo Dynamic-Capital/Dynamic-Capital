@@ -27,7 +27,7 @@ export function TonWalletButton() {
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          avatar_url: tonAddress // Store TON address temporarily in avatar_url
+          ton_wallet_address: tonAddress
         })
         .eq('id', user.id);
 

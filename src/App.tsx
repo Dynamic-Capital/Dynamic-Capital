@@ -9,7 +9,8 @@ import DashboardPage from "@/pages/DashboardPage";
 import MarketPage from "@/pages/MarketPage";
 import SnapshotPage from "@/pages/SnapshotPage";
 import Web3Page from "~/pages/Web3Page";
-import { LayoutDashboard, TrendingUp, Camera, Wallet } from "lucide-react";
+import ChatPage from "@/pages/ChatPage";
+import { LayoutDashboard, TrendingUp, Camera, Wallet, MessageSquare } from "lucide-react";
 
 function AppProviders({ children }: { children: ReactNode }) {
   return (
@@ -80,6 +81,13 @@ function SiteHeader() {
               <Wallet className="w-4 h-4" />
               Web3
             </Link>
+            <Link
+              to="/chat"
+              className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Chat
+            </Link>
           </nav>
         </div>
       </div>
@@ -100,6 +108,7 @@ function App() {
               <Route path="/market" element={<MarketPage />} />
               <Route path="/snapshot" element={<SnapshotPage />} />
               <Route path="/web3" element={<Web3Page />} />
+              <Route path="/chat" element={<ChatPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
