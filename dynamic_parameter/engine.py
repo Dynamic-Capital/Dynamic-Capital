@@ -500,10 +500,9 @@ class DynamicParameterEngine:
         )
 
     def evaluate_scenario(self, scenario: ParameterScenario) -> ParameterScenarioResult:
-        baseline_values: Dict[str, object | None] = {
+        resolved: Dict[str, object | None] = {
             name: state.value for name, state in self._states.items()
         }
-        resolved: Dict[str, object | None] = dict(baseline_values)
         changes: list[ParameterChange] = []
         warnings: list[str] = []
 
