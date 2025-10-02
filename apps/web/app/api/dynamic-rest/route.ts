@@ -11,13 +11,11 @@ const ROUTE_NAME = "/api/dynamic-rest";
 const CACHE_KEY = "dynamic-rest-response";
 export const revalidate = 300;
 
-const REVALIDATE_SECONDS = revalidate;
-
 const getDynamicRestResponse = unstable_cache(
   async () => buildDynamicRestResponse(),
   [CACHE_KEY],
   {
-    revalidate: REVALIDATE_SECONDS,
+    revalidate,
     tags: [DYNAMIC_REST_CACHE_TAG],
   },
 );
