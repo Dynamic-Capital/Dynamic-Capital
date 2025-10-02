@@ -32,11 +32,48 @@ const DEFAULT_CHAINS: Web3ChainConfig[] = [
     label: "Ethereum Mainnet",
     rpcUrl: "https://rpc.ankr.com/eth",
   },
+  {
+    id: "0xa4b1",
+    token: "ETH",
+    label: "Arbitrum One",
+    rpcUrl: "https://arb1.arbitrum.io/rpc",
+  },
+  {
+    id: "0xa",
+    token: "ETH",
+    label: "Optimism",
+    rpcUrl: "https://mainnet.optimism.io",
+  },
+  {
+    id: "0x2105",
+    token: "ETH",
+    label: "Base",
+    rpcUrl: "https://mainnet.base.org",
+  },
+  {
+    id: "0x89",
+    token: "MATIC",
+    label: "Polygon PoS",
+    rpcUrl: "https://polygon-rpc.com",
+  },
+  {
+    id: "0x38",
+    token: "BNB",
+    label: "BNB Smart Chain",
+    rpcUrl: "https://bsc-dataseed.binance.org",
+  },
+  {
+    id: "0xa86a",
+    token: "AVAX",
+    label: "Avalanche C-Chain",
+    rpcUrl: "https://api.avax.network/ext/bc/C/rpc",
+  },
 ];
 
 const DEFAULT_METADATA: Web3AppMetadata = {
   name: "Dynamic Capital",
-  description: "Dynamic Capital trading desk and portfolio tools",
+  description:
+    "Dynamic Capital trading desk, LayerZero v2 bridge routing, and portfolio tools",
   icon: "/logo.svg",
   recommendedInjectedWallets: [
     { name: "Bitget Wallet", url: "https://bitkeep.com" },

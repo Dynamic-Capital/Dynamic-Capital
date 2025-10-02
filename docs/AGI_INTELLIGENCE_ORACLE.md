@@ -158,6 +158,10 @@
 
 - Oracle scores can be mirrored to other chains via generalized messaging (e.g.,
   LayerZero) for external DeFi integrations or partner ecosystems.
+- LayerZero v2 generalized messaging reference implementation:
+  <https://github.com/LayerZero-Labs/LayerZero-v2> — study the canonical
+  endpoints, security modules, and upgrade pattern before rolling out Dynamic
+  Capital adapters.
 - Maintain compatibility with existing Dynamic Capital dashboards, Supabase
   datasets, and analytics notebooks.
 

@@ -35,6 +35,8 @@ export const publicSchema = z.object({
   NEXT_PUBLIC_WEB3_APP_DESCRIPTION: z.string().optional(),
   NEXT_PUBLIC_WEB3_APP_ICON: z.string().optional(),
   NEXT_PUBLIC_WEB3_RECOMMENDED_WALLETS: z.string().optional(),
+  NEXT_PUBLIC_LAYERZERO_ENV: z.string().optional(),
+  NEXT_PUBLIC_LAYERZERO_ENDPOINTS: z.string().optional(),
 });
 
 export const serverSchema = z.object({
@@ -118,6 +120,10 @@ function validatePublicEnv(): ValidationResult {
     NEXT_PUBLIC_WEB3_APP_ICON: optionalEnvVar("NEXT_PUBLIC_WEB3_APP_ICON"),
     NEXT_PUBLIC_WEB3_RECOMMENDED_WALLETS: optionalEnvVar(
       "NEXT_PUBLIC_WEB3_RECOMMENDED_WALLETS",
+    ),
+    NEXT_PUBLIC_LAYERZERO_ENV: optionalEnvVar("NEXT_PUBLIC_LAYERZERO_ENV"),
+    NEXT_PUBLIC_LAYERZERO_ENDPOINTS: optionalEnvVar(
+      "NEXT_PUBLIC_LAYERZERO_ENDPOINTS",
     ),
   } satisfies Record<string, string | undefined>;
 

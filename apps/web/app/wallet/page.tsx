@@ -6,6 +6,11 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+import {
+  LAYERZERO_CONFIG,
+  type LayerZeroEndpoint,
+  type LayerZeroEnvironment,
+} from "@/config/layerzero";
 
 const HERO_HIGHLIGHTS = [
   {
@@ -92,6 +97,64 @@ const SUPPORTED_WALLETS = [
   },
 ] as const;
 
+type LayerZeroFeature = {
+  icon: "sparkles" | "shield" | "repeat";
+  title: string;
+  description: string;
+};
+
+function createLayerZeroFeatures(
+  environment: LayerZeroEnvironment,
+): LayerZeroFeature[] {
+  return [
+    {
+      icon: "sparkles",
+      title: "Omnichain execution fabric",
+      description:
+        `LayerZero v2 keeps VIP triggers mirrored across the ${environment} endpoints we operate so routing stays deterministic.`,
+    },
+    {
+      icon: "shield",
+      title: "Security stack transparency",
+      description:
+        "DVN guardrails and executor health probes surface every anomaly before cross-chain capital leaves the desk.",
+    },
+    {
+      icon: "repeat",
+      title: "Composable settlement windows",
+      description:
+        "Bridged messages settle with predictable finality so treasury, auto-invest, and staking ledgers stay in sync.",
+    },
+  ];
+}
+
+function formatChainIdLabel(chainId?: number): string | null {
+  if (typeof chainId !== "number" || !Number.isFinite(chainId)) {
+    return null;
+  }
+  return chainId.toString(10);
+}
+
+function extractRpcHost(url?: string): string | null {
+  if (!url) {
+    return null;
+  }
+
+  try {
+    const { hostname } = new URL(url);
+    return hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+function describeEndpoint(
+  endpoint: LayerZeroEndpoint,
+  environment: LayerZeroEnvironment,
+): string {
+  return `Endpoint ${endpoint.eid} keeps ${endpoint.name} wired into Dynamic Capital's ${environment} LayerZero mesh so cross-chain receipts land instantly.`;
+}
+
 export const metadata = {
   title: "Dynamic Capital Wallet",
   description:
@@ -99,6 +162,10 @@ export const metadata = {
 };
 
 export default function WalletPage() {
+  const layerZeroEnvironment = LAYERZERO_CONFIG.environment;
+  const layerZeroEndpoints = LAYERZERO_CONFIG.endpoints;
+  const layerZeroFeatures = createLayerZeroFeatures(layerZeroEnvironment);
+
   return (
     <Column
       gap="40"
@@ -238,6 +305,101 @@ export default function WalletPage() {
             </Column>
           ))}
         </Row>
+      </Column>
+
+      <Column gap="24" maxWidth={40} fillWidth>
+        <Heading variant="heading-strong-l">
+          LayerZero v2 bridge support
+        </Heading>
+        <Text variant="body-default-m" onBackground="neutral-weak">
+          {`Dynamic Capital operates LayerZero v2 on the ${layerZeroEnvironment} mesh, so cross-chain automations stay aligned with the desk regardless of where investors originate.`}
+        </Text>
+        <Column gap="16">
+          {layerZeroFeatures.map((feature) => (
+            <Row
+              key={feature.title}
+              gap="16"
+              background="surface"
+              border="neutral-alpha-medium"
+              radius="l"
+              padding="16"
+              className="items-start"
+            >
+              <span className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <Icon name={feature.icon} size="s" />
+              </span>
+              <Column gap="4">
+                <Heading variant="heading-strong-xs">{feature.title}</Heading>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {feature.description}
+                </Text>
+              </Column>
+            </Row>
+          ))}
+        </Column>
+      </Column>
+
+      <Column gap="24" maxWidth={40} fillWidth>
+        <Heading variant="heading-strong-l">Connected endpoints</Heading>
+        <Text variant="body-default-m" onBackground="neutral-weak">
+          {`Endpoint IDs and RPC providers are ready out-of-the-box so wallets can bridge into Dynamic Capital without manual configuration.`}
+        </Text>
+        <Column gap="16">
+          {layerZeroEndpoints.map((endpoint) => {
+            const chainIdLabel = formatChainIdLabel(endpoint.chainId);
+            const rpcHost = extractRpcHost(endpoint.rpcUrl);
+            const description = describeEndpoint(
+              endpoint,
+              layerZeroEnvironment,
+            );
+
+            return (
+              <Column
+                key={endpoint.key}
+                gap="12"
+                padding="20"
+                radius="l"
+                background="surface"
+                border="neutral-alpha-medium"
+                data-border="rounded"
+                className="shadow-lg shadow-primary/5"
+              >
+                <Heading variant="heading-strong-xs">{endpoint.name}</Heading>
+                <Row gap="8" wrap>
+                  <Tag size="s" background="brand-alpha-weak">
+                    Endpoint {endpoint.eid}
+                  </Tag>
+                  <Tag size="s" background="neutral-alpha-medium">
+                    {layerZeroEnvironment}
+                  </Tag>
+                  {chainIdLabel && (
+                    <Tag size="s" background="neutral-alpha-medium">
+                      Chain ID {chainIdLabel}
+                    </Tag>
+                  )}
+                  {rpcHost && (
+                    <Tag size="s" background="neutral-alpha-medium">
+                      RPC {rpcHost}
+                    </Tag>
+                  )}
+                </Row>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {description}
+                </Text>
+                {endpoint.rpcUrl && (
+                  <Text variant="label-default-s" onBackground="brand-medium">
+                    {endpoint.rpcUrl}
+                  </Text>
+                )}
+                {endpoint.explorerUrl && (
+                  <Text variant="label-default-s" onBackground="brand-medium">
+                    {endpoint.explorerUrl}
+                  </Text>
+                )}
+              </Column>
+            );
+          })}
+        </Column>
       </Column>
     </Column>
   );
