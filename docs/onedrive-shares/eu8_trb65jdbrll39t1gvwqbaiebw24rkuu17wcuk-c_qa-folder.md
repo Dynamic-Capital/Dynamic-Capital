@@ -1,13 +1,14 @@
 # Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA Share
 
-This folder hosts the external **datasets** that the trading agent reviews. The
-notes below capture the identifiers needed for Microsoft Graph workflows and
-repository scripts that sync the folder metadata.
+This folder hosts the external **datasets** mirrored from
+`OneDrive\\DynamicAI_D\\Bdatasets` that the trading agent reviews. The notes below
+capture the identifiers needed for Microsoft Graph workflows and repository
+scripts that sync the folder metadata.
 
 ## Share details
 
 - **Original link:**
-  https://1drv.ms/f/c/2ff0428a2f57c7a4/Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA?e=7mWyfY
+  https://1drv.ms/f/c/2ff0428a2f57c7a4/Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA?e=d9WTwY
 - **Graph share identifier:**
   `u!aHR0cHM6Ly8xZHJ2Lm1zL2YvYy8yZmYwNDI4YTJmNTdjN2E0L0V1OF90UmI2NUpkQnJMTDM5VDFHVndRQmFpZUJXMjRya1VVMTdXY3VrLUNfUUE`
 - **Decoded parameters:**
@@ -67,3 +68,25 @@ The Graph response returns folder metadata and dataset files when the token is
 valid. Snapshot the payload in
 `docs/onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.metadata.json`
 so the repository can track changes to the external share.
+
+## Dynamic trading knowledge extraction
+
+The `dynamic_trading_knowledge` subfolder contains the PDF knowledge base that
+feeds the trading assistant. After mirroring the files into the repository, run
+the bundled helper to materialise plain text, table CSVs, and a page-level
+JSONL corpus ready for RAG ingestion.
+
+```bash
+python tools/dynamic_trading_corpus.py \
+  --pdf-dir data/knowledge_base/dynamic_trading/raw \
+  --output-dir data/knowledge_base/dynamic_trading/extracted \
+  --jsonl-path data/knowledge_base/dynamic_trading/processed/dynamic_trading_knowledge.jsonl
+```
+
+- `tools/dynamic_trading_corpus.py` wraps the shared PDF batch extractor, keeps
+  `--structured` enabled for table capture, and writes
+  `processed/dynamic_trading_summary.json` with run metadata.
+- Use `--no-skip-existing` when you need to refresh the artefacts after
+  updating OCR or extraction settings.
+- Promote the resulting JSONL to Supabase (or your preferred object store) once
+  QA is complete so downstream training jobs can consume a stable snapshot.
