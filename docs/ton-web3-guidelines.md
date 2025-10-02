@@ -51,7 +51,10 @@ webhooks. To consume those events safely:
    secret.
 2. **Verify signatures** using `dynamic_ton.webhooks.verify_webhook_signature`.
    The helper supports both hexadecimal and base64 encoded signatures and uses
-   HMAC SHA-256 under the hood.
+   HMAC SHA-256 under the hood. Use
+   `dynamic_ton.webhooks.get_webhook_secret()` to read the shared secret from
+   `DYNAMIC_TON_API_KEY` so runtime environments fail fast when the secret is
+   missing.
 3. **Parse envelopes** with `dynamic_ton.webhooks.parse_ton_webhook` or call
    `build_plan_from_webhook` directly to materialise a
    `TonExecutionPlan`. Payloads must include the `liquidity`, `telemetry`, and
@@ -64,6 +67,11 @@ When wiring new automation, capture the inbound payloads in Supabase (for
 example, `ton_api_webhook_events`) alongside the computed execution plan. This
 keeps auditors aligned on what the on-chain allocator observed and how the
 engine responded.
+
+> **Operations note:** The production shared secret lives in the 1Password vault
+> entry titled "Dynamic TON API Webhook". Rotate it alongside the upstream API
+> token issuance workflow and update the Supabase, Vercel, and DigitalOcean
+> secrets in the same change window.
 
 > **Tip:** Run `npm run format` before committing documentation updates so the
 > repo-wide formatter normalizes Markdown tables.

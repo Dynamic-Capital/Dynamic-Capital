@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import hmac
+import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -17,6 +18,7 @@ __all__ = [
     "build_plan_from_webhook",
     "compute_webhook_signature",
     "compute_webhook_signature_hex",
+    "get_webhook_secret",
     "parse_ton_webhook",
     "verify_webhook_signature",
 ]
@@ -64,6 +66,32 @@ def verify_webhook_signature(secret: str, payload: str, signature: str) -> bool:
     except ValueError:
         return False
     return hmac.compare_digest(expected, supplied)
+
+
+def get_webhook_secret(*, env_var: str = "DYNAMIC_TON_API_KEY") -> str:
+    """Return the webhook secret from :data:`os.environ`.
+
+    Parameters
+    ----------
+    env_var:
+        Name of the environment variable that stores the shared secret.
+        Defaults to ``"DYNAMIC_TON_API_KEY"`` to match the repository
+        conventions documented in ``docs/env.md``.
+
+    Raises
+    ------
+    RuntimeError
+        If the environment variable is missing or empty.  This mirrors the
+        defensive behaviour of other secret loaders in the repository so the
+        caller can decide how to handle the configuration gap.
+    """
+
+    secret = os.getenv(env_var, "").strip()
+    if not secret:
+        raise RuntimeError(
+            f"Environment variable {env_var!r} must be set with the webhook secret"
+        )
+    return secret
 
 
 def _normalise_timestamp(value: Any) -> datetime:

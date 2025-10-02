@@ -14,6 +14,7 @@ Functions, and DigitalOcean droplets).
 - TELEGRAM_APP_ID / TELEGRAM_APP_HASH _(Mini App helpers)_
 - BINANCE_PAY_API_KEY / BINANCE_PAY_SECRET
 - TRADING_SIGNALS_WEBHOOK_SECRET
+- DYNAMIC_TON_API_KEY _(Dynamic TON webhook verification)_
 - OPENAI_API_KEY _(if AI flows enabled)_
 - OPENAI_WEBHOOK_SECRET _(if webhooks enabled)_
 - EXNESS_MT5_LOGIN / EXNESS_MT5_PASSWORD / EXNESS_MT5_SERVER
@@ -31,6 +32,7 @@ Functions, and DigitalOcean droplets).
 - SUPABASE_SERVICE_ROLE (alias: SUPABASE_SERVICE_ROLE_KEY)
 - SUPABASE_PROJECT_REF _(Edge Function routing hints)_
 - NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET
+- DYNAMIC_TON_API_KEY _(server-side verification of Dynamic TON webhooks)_
 - SENTRY_DSN / NEXT_PUBLIC_SENTRY_DSN _(if enabled)_
 - NEXT_PUBLIC_POSTHOG_KEY / NEXT_PUBLIC_POSTHOG_HOST _(analytics)_
 - BINANCE_PAY_API_KEY / BINANCE_PAY_SECRET _(server-side payment status

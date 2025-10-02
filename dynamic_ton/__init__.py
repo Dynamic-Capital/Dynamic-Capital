@@ -28,6 +28,7 @@ from .webhooks import (
     build_plan_from_webhook,
     compute_webhook_signature,
     compute_webhook_signature_hex,
+    get_webhook_secret,
     parse_ton_webhook,
     verify_webhook_signature,
 )
@@ -50,6 +51,7 @@ __all__ = [
     "build_plan_from_webhook",
     "compute_webhook_signature",
     "compute_webhook_signature_hex",
+    "get_webhook_secret",
     "serialise_execution_plan",
     "check_domain_string",
     "get_min_price",

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import base64
+import os
 from datetime import datetime, timezone
+from unittest import mock
 
 import pytest
 
@@ -12,6 +14,7 @@ from dynamic_ton import (
     TonExecutionPlan,
     build_plan_from_webhook,
     compute_webhook_signature_hex,
+    get_webhook_secret,
     parse_ton_webhook,
     verify_webhook_signature,
 )
@@ -95,3 +98,14 @@ def test_build_plan_from_webhook_accepts_engine_override(sample_payload: dict[st
 def test_parse_ton_webhook_requires_required_sections() -> None:
     with pytest.raises(ValueError):
         parse_ton_webhook({"id": "evt", "type": "ton.plan", "data": {"liquidity": []}})
+
+
+def test_get_webhook_secret_reads_environment_variable() -> None:
+    with mock.patch.dict(os.environ, {"DYNAMIC_TON_API_KEY": "super-secret"}, clear=True):
+        assert get_webhook_secret() == "super-secret"
+
+
+def test_get_webhook_secret_raises_when_missing() -> None:
+    with mock.patch.dict(os.environ, {}, clear=True):
+        with pytest.raises(RuntimeError):
+            get_webhook_secret()
