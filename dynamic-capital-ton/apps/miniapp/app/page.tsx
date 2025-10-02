@@ -9,7 +9,14 @@ import type {
   SendTransactionRequest,
   WalletsListConfiguration,
 } from "@tonconnect/ui-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { CSSProperties } from "react";
 import {
   useMiniAppThemeManager,
 } from "../../../../shared/miniapp/use-miniapp-theme";
@@ -29,6 +36,7 @@ import type {
 } from "../data/live-intel";
 import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
 import { getSupabaseClient } from "../lib/supabase-client";
+import { DYNAMIC_TON_API_USER_ID, OPS_TREASURY_ADDRESS } from "../lib/config";
 
 type SectionId =
   | "overview"
@@ -123,24 +131,6 @@ type PlanSyncStatus = {
   updatedAt?: string;
   error?: string | null;
 };
-
-const DEFAULT_OPS_TREASURY_ADDRESS =
-  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
-
-const OPS_TREASURY_ADDRESS = (() => {
-  const candidate =
-    process.env.NEXT_PUBLIC_TON_OPS_TREASURY ??
-    process.env.NEXT_PUBLIC_OPS_TREASURY ??
-    process.env.NEXT_PUBLIC_TON_TREASURY ??
-    DEFAULT_OPS_TREASURY_ADDRESS;
-
-  if (typeof candidate !== "string") {
-    return DEFAULT_OPS_TREASURY_ADDRESS;
-  }
-
-  const trimmed = candidate.trim();
-  return trimmed.length > 0 ? trimmed : DEFAULT_OPS_TREASURY_ADDRESS;
-})();
 
 const RECOMMENDED_WALLETS: NonNullable<
   WalletsListConfiguration["includeWallets"]
@@ -264,6 +254,77 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
 const FALLBACK_PLAN_LOOKUP: Record<Plan, PlanOption> = Object.fromEntries(
   FALLBACK_PLAN_OPTIONS.map((option) => [option.id, option]),
 ) as Record<Plan, PlanOption>;
+
+type PlanVisual = {
+  accent: string;
+  accentStrong: string;
+  soft: string;
+  glow: string;
+  sheen: string;
+  surface: string;
+  shadow: string;
+  tagline: string;
+};
+
+const PLAN_VISUALS: Record<Plan | "default", PlanVisual> = {
+  default: {
+    accent: "#61d1ff",
+    accentStrong: "#3aa5ff",
+    soft: "rgba(97, 209, 255, 0.18)",
+    glow: "rgba(97, 209, 255, 0.35)",
+    sheen: "rgba(58, 165, 255, 0.28)",
+    surface: "rgba(18, 33, 71, 0.85)",
+    shadow: "rgba(15, 23, 42, 0.35)",
+    tagline: "Desk-aligned signal tier",
+  },
+  vip_bronze: {
+    accent: "#f59e0b",
+    accentStrong: "#d97706",
+    soft: "rgba(245, 158, 11, 0.18)",
+    glow: "rgba(245, 158, 11, 0.38)",
+    sheen: "rgba(120, 53, 15, 0.7)",
+    surface: "rgba(24, 16, 8, 0.78)",
+    shadow: "rgba(245, 158, 11, 0.32)",
+    tagline: "Momentum-aligned entries from the desk core",
+  },
+  vip_silver: {
+    accent: "#94a3b8",
+    accentStrong: "#64748b",
+    soft: "rgba(148, 163, 184, 0.2)",
+    glow: "rgba(148, 163, 184, 0.35)",
+    sheen: "rgba(30, 41, 59, 0.68)",
+    surface: "rgba(15, 23, 42, 0.78)",
+    shadow: "rgba(148, 163, 184, 0.28)",
+    tagline: "Leverage-managed mid-cycle rotations",
+  },
+  vip_gold: {
+    accent: "#facc15",
+    accentStrong: "#eab308",
+    soft: "rgba(250, 204, 21, 0.2)",
+    glow: "rgba(250, 204, 21, 0.38)",
+    sheen: "rgba(113, 63, 18, 0.7)",
+    surface: "rgba(32, 24, 8, 0.82)",
+    shadow: "rgba(250, 204, 21, 0.38)",
+    tagline: "Structured products and vault orchestration",
+  },
+  mentorship: {
+    accent: "#c084fc",
+    accentStrong: "#a855f7",
+    soft: "rgba(192, 132, 252, 0.2)",
+    glow: "rgba(192, 132, 252, 0.4)",
+    sheen: "rgba(76, 29, 149, 0.68)",
+    surface: "rgba(32, 12, 72, 0.82)",
+    shadow: "rgba(192, 132, 252, 0.36)",
+    tagline: "Direct mentorship with senior PM alignment",
+  },
+};
+
+function getPlanVisual(plan?: Plan | null): PlanVisual {
+  if (!plan) {
+    return PLAN_VISUALS.default;
+  }
+  return PLAN_VISUALS[plan] ?? PLAN_VISUALS.default;
+}
 
 function coerceNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -725,12 +786,12 @@ function useTelegramId(): string {
   const isBrowser = typeof globalThis !== "undefined" &&
     typeof (globalThis as { window?: unknown }).window !== "undefined";
   if (!isBrowser) {
-    return "demo";
+    return DYNAMIC_TON_API_USER_ID;
   }
 
   const telegram = (globalThis as TelegramGlobal).Telegram;
   const telegramId = telegram?.WebApp?.initDataUnsafe?.user?.id;
-  return telegramId ? String(telegramId) : "demo";
+  return telegramId ? String(telegramId) : DYNAMIC_TON_API_USER_ID;
 }
 
 function formatWalletAddress(address?: string | null): string {
@@ -794,6 +855,47 @@ function HomeInner() {
     () => planOptions.find((option) => option.id === plan),
     [plan, planOptions],
   );
+  const activePlanVisual = useMemo(
+    () => getPlanVisual(selectedPlan?.id ?? null),
+    [selectedPlan?.id],
+  );
+  const dynamicAccentStyles = useMemo<CSSProperties>(
+    () => ({
+      "--accent": activePlanVisual.accent,
+      "--accent-strong": activePlanVisual.accentStrong,
+      "--accent-soft": activePlanVisual.soft,
+      "--ui-accent": activePlanVisual.accent,
+      "--ui-accent-soft": activePlanVisual.soft,
+      "--ui-glow": activePlanVisual.glow,
+      "--ui-sheen": activePlanVisual.sheen,
+      "--ui-surface": activePlanVisual.surface,
+      "--ui-shadow": activePlanVisual.shadow,
+    }),
+    [activePlanVisual],
+  );
+  const planTonLabel = useMemo(() => {
+    const tonAmount = selectedPlan?.meta.tonAmount;
+    if (typeof tonAmount === "number") {
+      return tonAmount.toLocaleString(undefined, {
+        minimumFractionDigits: tonAmount % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: tonAmount % 1 === 0 ? 0 : 2,
+      });
+    }
+    return null;
+  }, [selectedPlan?.meta.tonAmount]);
+  const planDctLabel = useMemo(() => {
+    const dctAmount = selectedPlan?.meta.dctAmount;
+    if (typeof dctAmount === "number") {
+      return dctAmount.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      });
+    }
+    return null;
+  }, [selectedPlan?.meta.dctAmount]);
+  const planUpdatedLabel = useMemo(() => {
+    const updatedAt = selectedPlan?.meta.updatedAt;
+    return updatedAt ? formatRelativeTime(updatedAt) : null;
+  }, [selectedPlan?.meta.updatedAt]);
   const wallet = tonConnectUI?.account;
   const walletAddress = wallet?.address;
 
@@ -1183,7 +1285,11 @@ function HomeInner() {
 
   return (
     <div className="app-shell">
-      <main className="app-container">
+      <main
+        className="app-container"
+        style={dynamicAccentStyles}
+        data-selected-plan={selectedPlan?.id ?? "default"}
+      >
         <section className="hero-card" id="overview">
           <div className="sync-banner">
             <span
@@ -1258,6 +1364,10 @@ function HomeInner() {
               {isLinking ? "Linking…" : "Link wallet to desk"}
             </button>
           </div>
+
+          {activePlanVisual.tagline && (
+            <p className="hero-plan-tagline">{activePlanVisual.tagline}</p>
+          )}
 
           <div className="hero-status">
             <div>
@@ -1356,11 +1466,24 @@ function HomeInner() {
           <div className="plan-grid">
             {planOptions.map((option) => {
               const isActive = option.id === plan;
+              const visual = getPlanVisual(option.id);
               return (
                 <button
                   key={option.id}
+                  type="button"
                   className={`plan-card${isActive ? " plan-card--active" : ""}`}
                   onClick={() => setPlan(option.id)}
+                  aria-pressed={isActive}
+                  style={
+                    {
+                      "--plan-card-accent": visual.accent,
+                      "--plan-card-soft": visual.soft,
+                      "--plan-card-glow": visual.glow,
+                      "--plan-card-sheen": visual.sheen,
+                      "--plan-card-surface": visual.surface,
+                      "--plan-card-shadow": visual.shadow,
+                    } as CSSProperties
+                  }
                 >
                   <div className="plan-card-header">
                     <span className="plan-name">{option.name}</span>
@@ -1386,10 +1509,54 @@ function HomeInner() {
                       <li key={highlight}>{highlight}</li>
                     ))}
                   </ul>
+                  {visual.tagline && (
+                    <span className="plan-tagline">{visual.tagline}</span>
+                  )}
                 </button>
               );
             })}
           </div>
+
+          {selectedPlan && (
+            <aside
+              className="plan-detail"
+              aria-live="polite"
+              style={{
+                "--plan-detail-accent": activePlanVisual.accent,
+                "--plan-detail-soft": activePlanVisual.soft,
+                "--plan-detail-glow": activePlanVisual.glow,
+              } as CSSProperties}
+            >
+              <header className="plan-detail__header">
+                <span className="plan-detail__label">Currently selected</span>
+                <div className="plan-detail__name">
+                  {selectedPlan.name}
+                  <span className="plan-detail__badge">{selectedPlan.cadence}</span>
+                </div>
+              </header>
+              <div className="plan-detail__grid">
+                <div>
+                  <p className="plan-detail__metric-label">Desk contribution</p>
+                  <p className="plan-detail__metric-value">{selectedPlan.price}</p>
+                </div>
+                {planTonLabel && (
+                  <div>
+                    <p className="plan-detail__metric-label">TON equivalent</p>
+                    <p className="plan-detail__metric-value">{planTonLabel} TON</p>
+                  </div>
+                )}
+                {planDctLabel && (
+                  <div>
+                    <p className="plan-detail__metric-label">Desk credit</p>
+                    <p className="plan-detail__metric-value">{planDctLabel} DCT</p>
+                  </div>
+                )}
+              </div>
+              {planUpdatedLabel && (
+                <p className="plan-detail__footnote">Last repriced {planUpdatedLabel}</p>
+              )}
+            </aside>
+          )}
 
           <div className="plan-actions">
             <button
@@ -1575,37 +1742,22 @@ function HomeInner() {
         {statusMessage && <div className="status-banner">{statusMessage}</div>}
       </main>
 
-      <nav
-        aria-label="Breadcrumb"
-        className="fixed bottom-8 left-1/2 z-50 flex w-full max-w-xl -translate-x-1/2 justify-center px-4"
-      >
-        <div className="flex w-full items-center justify-center rounded-full border border-slate-500/50 bg-slate-900/80 px-4 py-3 text-[0.78rem] font-medium text-slate-300 shadow-[0_18px_46px_rgba(7,12,24,0.45)] backdrop-blur">
-          <ol className="flex w-full items-center gap-1">
-            {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-              const isActive = activeSection === id;
-              return (
-                <li
-                  key={id}
-                  className="flex min-w-0 flex-1 items-center after:mx-1 after:text-slate-600/70 after:content-['/'] last:after:hidden"
-                >
-                  <button
-                    type="button"
-                    onClick={() => scrollToSection(id)}
-                    aria-current={isActive ? "page" : undefined}
-                    className={`group flex w-full items-center gap-2 rounded-full px-3 py-2 transition-colors duration-150 ${
-                      isActive
-                        ? "bg-sky-500/20 text-sky-100"
-                        : "text-slate-300/70 hover:bg-white/5 hover:text-sky-100"
-                    }`}
-                  >
-                    <Icon active={isActive} />
-                    <span className="truncate">{label}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
+      <nav aria-label="Mini app sections" className="bottom-nav">
+        {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+          const isActive = activeSection === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => scrollToSection(id)}
+              aria-current={isActive ? "page" : undefined}
+              className={`nav-button${isActive ? " nav-button--active" : ""}`}
+            >
+              <Icon active={isActive} />
+              <span className="nav-button__label">{label}</span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );
@@ -1833,9 +1985,7 @@ function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
 function HomeIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
+      className={`nav-icon${active ? " nav-icon--active" : ""}`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -1854,9 +2004,7 @@ function HomeIcon({ active }: { active: boolean }) {
 function SparkIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
+      className={`nav-icon${active ? " nav-icon--active" : ""}`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -1875,9 +2023,7 @@ function SparkIcon({ active }: { active: boolean }) {
 function RadarIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
+      className={`nav-icon${active ? " nav-icon--active" : ""}`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -1913,9 +2059,7 @@ function RadarIcon({ active }: { active: boolean }) {
 function ActivityIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
+      className={`nav-icon${active ? " nav-icon--active" : ""}`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -1936,9 +2080,7 @@ function ActivityIcon({ active }: { active: boolean }) {
 function PaletteIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
+      className={`nav-icon${active ? " nav-icon--active" : ""}`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -1957,9 +2099,7 @@ function PaletteIcon({ active }: { active: boolean }) {
 function LifebuoyIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
+      className={`nav-icon${active ? " nav-icon--active" : ""}`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
