@@ -180,6 +180,18 @@ def _coerce_positive(value: float | None) -> float | None:
     return value
 
 
+def _coerce_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(numeric):
+        return None
+    return numeric
+
+
 def _extract_signal_numeric(signal: Any, *keys: str) -> float | None:
     if not keys:
         return None
@@ -246,6 +258,50 @@ _RISK_METRIC_CONFIG: tuple[tuple[str, float, float], ...] = (
     ("heat", 0.4, 0.45),
 )
 
+_INTELLIGENCE_SECTION_KEYS = (
+    "intelligence",
+    "intelligence_overlay",
+    "intelligence_context",
+    "intelligence_signal",
+    "intelligence_bundle",
+    "ai_overlay",
+    "ai_context",
+    "ai_signal",
+    "ai_bundle",
+    "ai",
+    "agi_overlay",
+    "agi_context",
+    "agi_signal",
+    "agi_bundle",
+    "agi",
+)
+
+_INTELLIGENCE_DIRECTIVE_WEIGHTS: Mapping[str, float] = {
+    "scale_aggressively": 1.35,
+    "scale_up": 1.2,
+    "scale": 1.12,
+    "add": 1.1,
+    "accumulate": 1.15,
+    "increase": 1.08,
+    "build": 1.08,
+    "maintain": 1.0,
+    "hold": 1.0,
+    "neutral": 1.0,
+    "watch": 0.92,
+    "slow": 0.88,
+    "defensive": 0.85,
+    "reduce": 0.78,
+    "trim": 0.75,
+    "lighten": 0.72,
+    "cut": 0.65,
+    "exit": 0.6,
+    "close": 0.6,
+    "flat": 0.6,
+    "pause": 0.5,
+    "defer": 0.5,
+    "suspend": 0.5,
+}
+
 
 def _interpret_flag(value: Any) -> Optional[bool]:
     if value is None:
@@ -285,6 +341,139 @@ def _normalise_signal_metrics(signal: Any) -> Dict[str, float | None]:
     for name, keys in _SIGNAL_NUMERIC_LOOKUPS.items():
         metrics[name] = _extract_signal_numeric(signal, *keys)
     return metrics
+
+
+def _normalise_intelligence_candidate(candidate: Any) -> Dict[str, Any] | None:
+    mapping = _normalise_sizing_candidate(candidate)
+    if mapping is not None:
+        return mapping
+    if isinstance(candidate, str):
+        return {"directive": candidate}
+    if isinstance(candidate, (list, tuple)):
+        directives = [str(item).strip() for item in candidate if str(item).strip()]
+        if directives:
+            return {"directive": directives[0], "directives": directives}
+    return None
+
+
+def _flatten_intelligence_payload(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    flattened: Dict[str, Any] = {}
+
+    def _walk(prefix: str, value: Any) -> None:
+        if isinstance(value, Mapping):
+            for key, nested in value.items():
+                key_name = f"{prefix}_{key}" if prefix else str(key)
+                _walk(key_name, nested)
+            return
+        if isinstance(value, (list, tuple)):
+            for index, nested in enumerate(value):
+                key_name = f"{prefix}_{index}" if prefix else str(index)
+                _walk(key_name, nested)
+            return
+        key_name = prefix or "value"
+        flattened[key_name.lower()] = value
+
+    for key, value in payload.items():
+        flattened[str(key).lower()] = value
+    _walk("", payload)
+    return {key: value for key, value in flattened.items() if value is not None}
+
+
+def _extract_intelligence_payload(signal: Any) -> Dict[str, Any]:
+    candidate = _extract_signal_section(signal, *_INTELLIGENCE_SECTION_KEYS)
+    if candidate is None:
+        return {}
+    normalised = _normalise_intelligence_candidate(candidate)
+    if not normalised:
+        return {}
+    return _flatten_intelligence_payload(normalised)
+
+
+def _intelligence_alignment(
+    signal: Any,
+    *,
+    metrics: Mapping[str, float | None],
+) -> float:
+    payload = _extract_intelligence_payload(signal)
+    if not payload:
+        return 1.0
+
+    multiplier = 1.0
+
+    ai_confidence = _coerce_float(
+        payload.get("ai_confidence")
+        or payload.get("confidence")
+        or metrics.get("confidence")
+    )
+    if ai_confidence is not None:
+        multiplier *= 0.72 + 0.56 * _clamp_unit(ai_confidence)
+
+    ai_conviction = _coerce_float(
+        payload.get("ai_conviction")
+        or payload.get("conviction")
+        or metrics.get("conviction")
+    )
+    if ai_conviction is not None:
+        multiplier *= 0.75 + 0.45 * _clamp_unit(ai_conviction)
+
+    ai_bias = _coerce_float(payload.get("ai_bias") or payload.get("bias"))
+    if ai_bias is not None:
+        bounded_bias = max(-1.0, min(1.0, ai_bias))
+        multiplier *= 1.0 + 0.18 * bounded_bias
+
+    exposure_bias = _coerce_float(payload.get("exposure_bias") or payload.get("ai_tilt"))
+    if exposure_bias is not None:
+        bounded_tilt = max(-1.0, min(1.0, exposure_bias))
+        multiplier *= 1.0 + 0.12 * bounded_tilt
+
+    agi_alignment = _coerce_float(payload.get("agi_alignment") or payload.get("alignment"))
+    if agi_alignment is not None:
+        bounded_alignment = max(-1.0, min(1.0, agi_alignment))
+        multiplier *= 1.0 + 0.15 * bounded_alignment
+
+    risk_signal = _coerce_float(
+        payload.get("agi_risk")
+        or payload.get("risk_override")
+        or payload.get("risk_signal")
+        or payload.get("risk")
+    )
+    if risk_signal is not None:
+        multiplier *= max(0.55, 1.0 - 0.6 * _clamp_unit(abs(risk_signal)))
+
+    stability_penalty = _coerce_float(payload.get("stability") or payload.get("ai_stability"))
+    if stability_penalty is not None:
+        # Treat stability below 0.5 as requiring defensive posture.
+        bounded_stability = _clamp_unit(stability_penalty)
+        if bounded_stability < 0.5:
+            multiplier *= 0.85 + 0.3 * bounded_stability
+
+    if _interpret_flag(payload.get("drawdown_alert")) is True or _interpret_flag(
+        payload.get("halt")
+    ) is True or _interpret_flag(payload.get("freeze")) is True:
+        multiplier *= 0.45
+
+    directive_weight = 1.0
+    directives: list[str] = []
+    for key, value in payload.items():
+        if key.endswith("directive") or key.endswith("stance") or key.endswith("play"):
+            if isinstance(value, str):
+                directives.append(value)
+            elif isinstance(value, (list, tuple)):
+                directives.extend(str(item) for item in value if str(item).strip())
+    for directive in directives:
+        normalised = directive.strip().lower()
+        for token in normalised.replace("-", " ").split():
+            weight = _INTELLIGENCE_DIRECTIVE_WEIGHTS.get(token)
+            if weight is not None:
+                directive_weight = weight
+                break
+        if directive_weight != 1.0:
+            break
+    multiplier *= directive_weight
+
+    if not math.isfinite(multiplier) or multiplier <= 0.0:
+        return 1.0
+    return max(0.3, min(multiplier, 2.0))
 
 
 def _band_scale(value: float | None, *, low: float, high: float) -> float:
@@ -1185,6 +1374,7 @@ class DynamicTradingAlgo:
             metrics.get("implied_volatility"),
             metrics.get("volatility"),
         )
+        multiplier *= _intelligence_alignment(signal, metrics=metrics)
 
         size_multiplier = metrics.get("size_multiplier")
         if size_multiplier is not None and size_multiplier > 0.0:
