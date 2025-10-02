@@ -1,11 +1,10 @@
 {
   "extends": "./apps/web/tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["apps/web/*"],
-      "~/*": ["src/*"],
-      "next/font/google": ["src/stubs/next-font-google.ts"]
+      "@/*": ["./apps/web/*"],
+      "~/*": ["./src/*"],
+      "next/font/google": ["./src/stubs/next-font-google.ts"]
     },
     "types": ["vite/client"]
   },
