@@ -6,7 +6,14 @@ from dataclasses import dataclass, field
 import math
 from typing import Dict, Mapping
 
-__all__ = ["CoreAllocationOptimizer"]
+__all__ = ["CoreAllocationOptimizer", "list_all_cores"]
+
+
+def list_all_cores() -> Dict[str, int]:
+    """Return the default allocation of DAI, DAGI, and DAGS cores."""
+
+    optimizer = CoreAllocationOptimizer()
+    return optimizer.baseline_allocation()
 
 
 def _coerce_positive(value: object, default: float = 0.0) -> float:

@@ -11,7 +11,7 @@ from .dynamic_core_models import (
     DynamicAGSCoreModel,
     DynamicCoreModel,
 )
-from .training_allocation import CoreAllocationOptimizer
+from .training_allocation import CoreAllocationOptimizer, list_all_cores
 from .fusion import DynamicFusionAlgo
 from .market_maker import DynamicMarketMaker
 
@@ -26,4 +26,5 @@ __all__ = [
     "DynamicAGICoreModel",
     "DynamicAGSCoreModel",
     "CoreAllocationOptimizer",
+    "list_all_cores",
 ]

@@ -9,7 +9,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-from core import CoreAllocationOptimizer  # noqa: E402  (runtime path mutation)
+from core import CoreAllocationOptimizer, list_all_cores  # noqa: E402  (runtime path mutation)
 
 
 def test_baseline_allocation_matches_defaults() -> None:
@@ -19,6 +19,10 @@ def test_baseline_allocation_matches_defaults() -> None:
 
     assert allocation == {"dai": 11, "dagi": 9, "dags": 5}
     assert optimizer.total_capacity == 25
+
+
+def test_list_all_cores_returns_defaults() -> None:
+    assert list_all_cores() == {"dai": 11, "dagi": 9, "dags": 5}
 
 
 def test_demand_weights_shift_allocations() -> None:
