@@ -1,0 +1,17 @@
+{
+  "name": "naming-engine",
+  "version": "1.1.0",
+  "description": "Optimized dynamic naming engine for short code injection across modular ecosystems",
+  "type": "module",
+  "main": "engine/index.ts",
+  "scripts": {
+    "replace": "ts-node --esm engine/cli.ts examples/sample.module.ts"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

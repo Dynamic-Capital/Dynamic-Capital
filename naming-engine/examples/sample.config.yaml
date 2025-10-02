@@ -1,0 +1,7 @@
+modules:
+  - name: Dynamic Capital Token
+    short: DCT
+  - name: AGI Intelligence Oracle
+    short: AGI-O
+  - name: Dynamic GUI Sync
+    short: DC-GUI
