@@ -1,5 +1,11 @@
 """Dynamic task manager utilities."""
 
+from .executor import (
+    AutomationTask,
+    AutomationTaskPriority,
+    AutomationTaskStatus,
+    TaskExecutor,
+)
 from .manager import (
     BlockedTask,
     DeferredTask,
@@ -13,6 +19,10 @@ from .manager import (
 )
 
 __all__ = [
+    "AutomationTask",
+    "AutomationTaskPriority",
+    "AutomationTaskStatus",
+    "TaskExecutor",
     "BlockedTask",
     "DeferredTask",
     "DynamicTaskManager",
