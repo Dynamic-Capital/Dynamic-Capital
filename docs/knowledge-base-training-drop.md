@@ -53,6 +53,23 @@ into Supabase Storage and the local repository when preparing new runs.
 - Capture evaluation metrics and push summaries back into the `knowledge_base/`
   folder so the OneDrive mirror remains the long-term archive.
 
+### Hardening enhancements (November 2025)
+
+- Follow the
+  [knowledge base enrichment checklist](../data/knowledge_base/2025-11-07/enrichment-checklist.md)
+  before promoting artefacts from staging.
+- Review telemetry in
+  [`ingestion-metrics.json`](../data/knowledge_base/2025-11-07/ingestion-metrics.json)
+  and log any deviations from the recall (≥ 0.92) or precision (≥ 0.88)
+  thresholds.
+- Run the regression prompts defined in the
+  [`rag-sanity-playbook.md`](../data/knowledge_base/2025-11-07/rag-sanity-playbook.md)
+  to confirm retrieval quality remained within the allowed delta.
+- Execute
+  `node scripts/checklists/knowledge-base-drop-verify.mjs --drop 2025-11-07` to
+  validate the manifest against the local mirror and README before promoting the
+  drop.
+
 ## Governance checklist
 
 - [ ] Metadata snapshot committed after every drop.

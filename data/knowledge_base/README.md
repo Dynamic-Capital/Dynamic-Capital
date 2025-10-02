@@ -18,9 +18,10 @@ to refresh this overview.
 
 ### Drops
 
-| Date       | Title                    | Manifest                                                                                                    | Supabase mirror                                       |
-| ---------- | ------------------------ | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| 2025-10-15 | Knowledge Base Expansion | [docs/onedrive-shares/evlumlqt-folder.metadata.json](../docs/onedrive-shares/evlumlqt-folder.metadata.json) | `public.one_drive_assets/knowledge_base/2025-10-15/*` |
+| Date       | Title                               | Manifest                                                                                                                                            | Supabase mirror                                       |
+| ---------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| 2025-10-15 | Knowledge Base Expansion            | [docs/onedrive-shares/evlumlqt-folder.metadata.json](../docs/onedrive-shares/evlumlqt-folder.metadata.json)                                         | `public.one_drive_assets/knowledge_base/2025-10-15/*` |
+| 2025-11-07 | Dynamic AI Knowledge Base Hardening | [docs/onedrive-shares/dynamic-ai-knowledge-base-hardening.metadata.json](../docs/onedrive-shares/dynamic-ai-knowledge-base-hardening.metadata.json) | `public.one_drive_assets/knowledge_base/2025-11-07/*` |
 
 ### 2025-10-15 — Knowledge Base Expansion
 
@@ -38,6 +39,24 @@ to refresh this overview.
 | `2025-10-15/rag-prompts.csv`      | Prompt templates paired with retrieval hints for the updated corpus.                       |
 | `2025-10-15/eval-window.json`     | Evaluation window metadata for replaying fine-tuning checkpoints.                          |
 | `2025-10-15/extracted.json`       | Structured aggregate of the mirrored drop combining markdown, CSV, JSON, and PDF payloads. |
+
+### 2025-11-07 — Dynamic AI Knowledge Base Hardening
+
+- **Source manifest:**
+  [docs/onedrive-shares/dynamic-ai-knowledge-base-hardening.metadata.json](../docs/onedrive-shares/dynamic-ai-knowledge-base-hardening.metadata.json)
+- **Supabase mirror:** `public.one_drive_assets/knowledge_base/2025-11-07/*`
+- **Description:** Documented the hardening initiative with governance,
+  telemetry, and regression assets for the November refresh.
+
+#### Files
+
+| Relative path                                  | Purpose                                                                                          |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `2025-11-07/hardening-overview.md`             | Narrative of the ingestion, schema, and telemetry upgrades introduced in the hardening drop.     |
+| `2025-11-07/enrichment-checklist.md`           | Operational checklist covering licensing, validation, and acceptance gates before promotion.     |
+| `2025-11-07/rag-sanity-playbook.md`            | Regression prompts and thresholds for validating retrieval and answer quality across key slices. |
+| `2025-11-07/ingestion-metrics.json`            | Telemetry snapshot capturing recall, precision, hallucination, and latency metrics for the drop. |
+| `2025-11-07/embedding-evaluation-template.csv` | Template for comparing baseline and refreshed embedding performance across dataset slices.       |
 
 ### Active OneDrive shares
 

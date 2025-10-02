@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -8,97 +9,192 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 
-const METADATA_PATH = path.join(
-  PROJECT_ROOT,
-  "docs/onedrive-shares/evlumlqt-folder.metadata.json",
-);
 const LOCAL_ROOT = path.join(PROJECT_ROOT, "data/knowledge_base");
+const INDEX_PATH = path.join(LOCAL_ROOT, "index.json");
+
+const USAGE = `Usage: node ${
+  path.relative(PROJECT_ROOT, __filename)
+} [--drop <id>] [--manifest <path>]`;
 
 function fail(message) {
   console.error(message);
   process.exitCode = 1;
 }
 
-function readMetadata() {
-  if (!fs.existsSync(METADATA_PATH)) {
-    fail(
-      `Metadata snapshot not found at ${
-        path.relative(PROJECT_ROOT, METADATA_PATH)
-      }.`,
-    );
-    return null;
+function parseArgs(argv) {
+  const result = { dropId: null, manifestOverride: null };
+  for (let i = 0; i < argv.length; i += 1) {
+    const value = argv[i];
+    if (value === "--help" || value === "-h") {
+      console.log(USAGE);
+      process.exit(0);
+    }
+
+    if (value === "--drop") {
+      const next = argv[i + 1];
+      if (!next) {
+        throw new Error("--drop requires an identifier");
+      }
+      result.dropId = next;
+      i += 1;
+      continue;
+    }
+
+    if (value === "--manifest") {
+      const next = argv[i + 1];
+      if (!next) {
+        throw new Error("--manifest requires a path");
+      }
+      result.manifestOverride = next;
+      i += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown argument: ${value}`);
   }
 
+  if (result.manifestOverride && !result.dropId) {
+    throw new Error("--manifest requires --drop to be specified");
+  }
+
+  return result;
+}
+
+function readJson(filePath) {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`File not found: ${path.relative(PROJECT_ROOT, filePath)}`);
+  }
+
+  const contents = fs.readFileSync(filePath, "utf8");
   try {
-    const contents = fs.readFileSync(METADATA_PATH, "utf8");
     return JSON.parse(contents);
   } catch (error) {
-    fail(
-      `Failed to parse metadata JSON: ${
+    throw new Error(
+      `Failed to parse JSON at ${path.relative(PROJECT_ROOT, filePath)}: ${
         error instanceof Error ? error.message : String(error)
       }`,
     );
-    return null;
   }
 }
 
-function ensureKnowledgeBaseNode(node) {
-  if (!node || typeof node !== "object") {
-    fail("Metadata root is missing or invalid.");
-    return null;
+function toPosixPath(value) {
+  return value.split(path.sep).join(path.posix.sep);
+}
+
+function normaliseDropPath(dropId, relativePath) {
+  if (!dropId) return toPosixPath(relativePath);
+  const normalised = toPosixPath(relativePath);
+  if (normalised.startsWith(`${dropId}/`) || normalised === dropId) {
+    return normalised;
+  }
+  return `${dropId}/${normalised}`;
+}
+
+function collectFromOneDriveManifest(manifest, dropId) {
+  function walk(item, prefix = "") {
+    const name = typeof item?.name === "string" ? item.name : "";
+    const currentPath = prefix ? path.posix.join(prefix, name) : name;
+    const results = [];
+
+    if (!name) {
+      return results;
+    }
+
+    if (item.folder) {
+      const children = Array.isArray(item.children) ? item.children : [];
+      for (const child of children) {
+        results.push(...walk(child, currentPath));
+      }
+      return results;
+    }
+
+    if (!item.file) {
+      fail(`Metadata entry for ${currentPath} is missing file details.`);
+      return results;
+    }
+
+    results.push({
+      path: normaliseDropPath(dropId, currentPath),
+      checksum: null,
+    });
+    return results;
   }
 
-  const children = Array.isArray(node.children) ? node.children : [];
+  if (!manifest || typeof manifest !== "object") {
+    fail("Metadata root is missing or invalid.");
+    return [];
+  }
+
+  const children = Array.isArray(manifest.children) ? manifest.children : [];
   const knowledgeNode = children.find((child) =>
     child?.name === "knowledge_base"
   );
 
   if (!knowledgeNode) {
     fail("knowledge_base folder not present in metadata snapshot.");
-    return null;
+    return [];
   }
 
   if (!knowledgeNode.folder) {
     fail(
       "knowledge_base entry is expected to be a folder in metadata snapshot.",
     );
-    return null;
+    return [];
   }
 
-  return knowledgeNode;
-}
-
-function collectFiles(item, prefix = "") {
-  const name = typeof item?.name === "string" ? item.name : "";
-  const currentPath = prefix ? path.posix.join(prefix, name) : name;
   const results = [];
-
-  if (!name) {
-    return results;
+  const knowledgeChildren = Array.isArray(knowledgeNode.children)
+    ? knowledgeNode.children
+    : [];
+  for (const child of knowledgeChildren) {
+    results.push(...walk(child));
+  }
+  if (results.length === 0) {
+    fail("No files recorded under knowledge_base in metadata snapshot.");
   }
 
-  if (item.folder) {
-    const children = Array.isArray(item.children) ? item.children : [];
-    for (const child of children) {
-      results.push(...collectFiles(child, currentPath));
-    }
-    return results;
-  }
-
-  if (!item.file) {
-    fail(`Metadata entry for ${currentPath} is missing file details.`);
-    return results;
-  }
-
-  results.push({
-    path: currentPath,
-    mimeType: item.file?.mimeType ?? "",
-    lastModified: item.lastModifiedDateTime ?? "",
-  });
   return results;
 }
 
-function verifyLocalMirror(files) {
+function collectFromDropManifest(manifest, dropId) {
+  if (!manifest || typeof manifest !== "object") {
+    fail("Manifest JSON is missing or invalid.");
+    return [];
+  }
+
+  const artifacts = Array.isArray(manifest.artifacts) ? manifest.artifacts : [];
+  if (artifacts.length === 0) {
+    fail("Manifest does not list any artifacts.");
+    return [];
+  }
+
+  return artifacts.map((artifact, index) => {
+    const relativePath = typeof artifact?.path === "string"
+      ? artifact.path
+      : "";
+    if (!relativePath) {
+      fail(`Artifact entry ${index} is missing a path.`);
+    }
+
+    const checksum = typeof artifact?.checksum === "string"
+      ? artifact.checksum.toLowerCase()
+      : null;
+
+    return {
+      path: normaliseDropPath(dropId, relativePath),
+      checksum,
+    };
+  });
+}
+
+function computeSha256(filePath) {
+  const data = fs.readFileSync(filePath);
+  const hash = createHash("sha256");
+  hash.update(data);
+  return hash.digest("hex");
+}
+
+async function verifyLocalMirror(files) {
   if (!fs.existsSync(LOCAL_ROOT)) {
     fail(
       `Local mirror not found at ${path.relative(PROJECT_ROOT, LOCAL_ROOT)}.`,
@@ -108,9 +204,27 @@ function verifyLocalMirror(files) {
 
   const missing = [];
   for (const file of files) {
-    const absolutePath = path.join(LOCAL_ROOT, file.path);
+    const absolutePath = path.join(LOCAL_ROOT, ...file.path.split("/"));
     if (!fs.existsSync(absolutePath)) {
       missing.push(file.path);
+      continue;
+    }
+
+    if (file.checksum) {
+      try {
+        const digest = await computeSha256(absolutePath);
+        if (digest.toLowerCase() !== file.checksum) {
+          fail(
+            `Checksum mismatch for ${file.path}: expected ${file.checksum}, got ${digest}.`,
+          );
+        }
+      } catch (error) {
+        fail(
+          `Failed to compute checksum for ${file.path}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
     }
   }
 
@@ -139,6 +253,7 @@ function verifyReadme(files) {
   }
 
   for (const file of files) {
+    if (!file.path) continue;
     if (!readme.includes(file.path)) {
       fail(
         `Provenance README does not reference ${file.path}. Update the table to document the drop.`,
@@ -147,33 +262,104 @@ function verifyReadme(files) {
   }
 }
 
-function main() {
-  const metadata = readMetadata();
-  if (!metadata) return;
+function dedupeFiles(files) {
+  const seen = new Map();
+  for (const file of files) {
+    if (!file.path) continue;
+    const key = file.path;
+    if (!seen.has(key)) {
+      seen.set(key, file);
+      continue;
+    }
 
-  const knowledgeNode = ensureKnowledgeBaseNode(metadata);
-  if (!knowledgeNode) return;
-
-  const files = [];
-  const knowledgeChildren = Array.isArray(knowledgeNode.children)
-    ? knowledgeNode.children
-    : [];
-  for (const child of knowledgeChildren) {
-    files.push(...collectFiles(child));
+    const existing = seen.get(key);
+    if (!existing.checksum && file.checksum) {
+      seen.set(key, file);
+    }
   }
-  if (files.length === 0) {
-    fail("No files recorded under knowledge_base in metadata snapshot.");
+  return Array.from(seen.values());
+}
+
+async function verifyDrop(drop, manifestOverride) {
+  const manifestPath = manifestOverride
+    ? path.resolve(PROJECT_ROOT, manifestOverride)
+    : typeof drop.manifest === "string" && drop.manifest.length > 0
+    ? path.join(PROJECT_ROOT, drop.manifest)
+    : null;
+
+  if (!manifestPath) {
+    fail(`Drop ${drop.id} is missing a manifest path.`);
     return;
   }
 
-  verifyLocalMirror(files);
-  verifyReadme(files);
+  let manifest;
+  try {
+    manifest = readJson(manifestPath);
+  } catch (error) {
+    fail(error instanceof Error ? error.message : String(error));
+    return;
+  }
+
+  const files = Array.isArray(manifest?.artifacts)
+    ? collectFromDropManifest(manifest, drop.id)
+    : collectFromOneDriveManifest(manifest, drop.id);
+
+  const filtered = dedupeFiles(files).filter((file) => !!file.path);
+  if (filtered.length === 0) {
+    return;
+  }
+
+  await verifyLocalMirror(filtered);
+  verifyReadme(filtered);
 
   if (!process.exitCode) {
     console.log(
-      `Validated ${files.length} knowledge base artefacts against local mirror and provenance README.`,
+      `Validated drop ${drop.id} with ${filtered.length} artefacts against local mirror and provenance README.`,
     );
   }
 }
 
-main();
+async function main() {
+  let args;
+  try {
+    args = parseArgs(process.argv.slice(2));
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    console.error(USAGE);
+    process.exitCode = 1;
+    return;
+  }
+
+  let index;
+  try {
+    index = readJson(INDEX_PATH);
+  } catch (error) {
+    fail(error instanceof Error ? error.message : String(error));
+    return;
+  }
+
+  const drops = Array.isArray(index?.drops) ? index.drops : [];
+  if (drops.length === 0) {
+    fail("No knowledge base drops have been registered in index.json.");
+    return;
+  }
+
+  const selectedDrops = args.dropId
+    ? drops.filter((drop) => drop?.id === args.dropId)
+    : drops;
+
+  if (selectedDrops.length === 0) {
+    fail(
+      args.dropId
+        ? `Drop '${args.dropId}' was not found in data/knowledge_base/index.json.`
+        : "No drops matched the selection criteria.",
+    );
+    return;
+  }
+
+  for (const drop of selectedDrops) {
+    await verifyDrop(drop, args.manifestOverride);
+  }
+}
+
+await main();
