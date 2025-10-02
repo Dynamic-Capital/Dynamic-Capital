@@ -1,0 +1,49 @@
+{
+  "python": {
+    "packages": [
+      "tonpy",
+      "tonapi-sdk",
+      "ccxt",
+      "pandas",
+      "numpy",
+      "pandas-ta",
+      "ta-lib",
+      "tsfresh",
+      "scikit-learn",
+      "xgboost",
+      "lightgbm",
+      "catboost",
+      "torch",
+      "pytorch-lightning",
+      "prophet",
+      "statsmodels",
+      "mlflow",
+      "backtrader",
+      "vectorbt",
+      "pyportfolioopt"
+    ],
+    "optionalGroups": {
+      "validation": ["great-expectations", "pandera"],
+      "rl": ["stable-baselines3", "finrl"],
+      "tracking": ["wandb", "tensorboard"]
+    }
+  },
+  "node": {
+    "packages": [
+      "tonweb",
+      "ton",
+      "tonapi-sdk",
+      "ccxt",
+      "playwright",
+      "@playwright/test"
+    ],
+    "installPlaywright": true
+  },
+  "containers": {
+    "composeFile": "docker/ton-toolkit/docker-compose.yml",
+    "services": ["zookeeper", "kafka", "timescale", "redis"]
+  },
+  "defaults": {
+    "extras": []
+  }
+}
