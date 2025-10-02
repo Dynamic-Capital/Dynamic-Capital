@@ -5,6 +5,66 @@ TON-native trading intelligence stack. It covers data collection, model
 development, orchestration, deployment, and monitoring layers so engineers can
 assemble end-to-end pipelines without relying on closed SaaS dependencies.
 
+## Installation Quickstart
+
+Set up a reproducible environment before integrating individual tools. The
+snippets below cover the primary ecosystems used throughout this catalogue.
+
+### Python
+
+Create an isolated environment (via `venv`, Conda, or Poetry) and install the
+core analytics and trading dependencies:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install "tonpy" "tonapi-sdk" "ccxt" "pandas" "numpy" "pandas-ta" \
+    "ta-lib" "tsfresh" "scikit-learn" "xgboost" "lightgbm" "catboost" \
+    "torch" "pytorch-lightning" "prophet" "statsmodels" "mlflow" \
+    "backtrader" "vectorbt" "pyportfolioopt"
+```
+
+Add optional packages as needed:
+
+- **Data validation** – `pip install great-expectations pandera`
+- **Reinforcement learning** – `pip install stable-baselines3 finrl`
+- **Experiment tracking** – `pip install wandb tensorboard`
+
+### JavaScript / TypeScript
+
+Use Node.js (v18+) and install TON and automation SDKs with your preferred
+package manager:
+
+```bash
+pnpm add tonweb ton tonapi-sdk ccxt playwright @playwright/test
+npm install --save tonweb ton tonapi-sdk ccxt playwright
+```
+
+Install browser binaries for Playwright-based scrapers or tests:
+
+```bash
+npx playwright install
+```
+
+### System Services
+
+Leverage containers or managed offerings for stateful components:
+
+```bash
+# Kafka + Zookeeper
+docker compose up -d kafka zookeeper
+
+# PostgreSQL with TimescaleDB extension
+docker run --name ton-timescale -p 5432:5432 \
+  -e POSTGRES_PASSWORD=postgres timescale/timescaledb:latest-pg15
+
+# Redis cache
+docker run --name ton-redis -p 6379:6379 -d redis:7
+```
+
+When deploying in production, codify infrastructure with Terraform or similar
+IaC tooling so data pipelines and services can be recreated consistently.
+
 ## Data Extraction & Collection
 
 ### Blockchain & TON-Specific Libraries
