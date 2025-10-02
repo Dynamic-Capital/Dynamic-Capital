@@ -9,11 +9,39 @@ __all__ = ["FrameworkSettings"]
 
 
 def _clamp(value: float, *, lower: float = 0.0, upper: float = 1.0) -> float:
-    if value < lower:
-        return lower
-    if value > upper:
-        return upper
-    return value
+    """Clamp *value* within a closed interval."""
+
+    return max(lower, min(upper, value))
+
+
+def _normalise_positive_pair(
+    primary: float, guardrail: float
+) -> tuple[float, float]:
+    """Normalise positive-domain guardrail/target pairs."""
+
+    normalised_primary = _clamp(float(primary))
+    normalised_guardrail = _clamp(float(guardrail))
+    if normalised_primary < normalised_guardrail:
+        normalised_primary = normalised_guardrail
+    return normalised_primary, normalised_guardrail
+
+
+def _normalise_confidence_pair(
+    positive_threshold: float, guardrail: float
+) -> tuple[float, float]:
+    """Normalise confidence guardrail thresholds."""
+
+    return _normalise_positive_pair(positive_threshold, guardrail)
+
+
+def _normalise_momentum_band(
+    positive_threshold: float, negative_threshold: float
+) -> tuple[float, float]:
+    """Normalise momentum thresholds, ensuring the band straddles zero."""
+
+    positive = max(0.0, _clamp(float(positive_threshold), lower=-1.0, upper=1.0))
+    negative = min(0.0, _clamp(float(negative_threshold), lower=-1.0, upper=1.0))
+    return positive, negative
 
 
 @dataclass(slots=True)
@@ -31,42 +59,31 @@ class FrameworkSettings:
     trend_decline_threshold: float = -0.1
 
     def __post_init__(self) -> None:
-        self.enablement_integrated_threshold = _clamp(
-            float(self.enablement_integrated_threshold)
+        (
+            self.enablement_integrated_threshold,
+            self.enablement_guardrail,
+        ) = _normalise_positive_pair(
+            self.enablement_integrated_threshold, self.enablement_guardrail
         )
-        self.enablement_guardrail = _clamp(float(self.enablement_guardrail))
-        if self.enablement_integrated_threshold < self.enablement_guardrail:
-            self.enablement_integrated_threshold = self.enablement_guardrail
-
-        self.resilience_integrated_threshold = _clamp(
-            float(self.resilience_integrated_threshold)
+        (
+            self.resilience_integrated_threshold,
+            self.resilience_guardrail,
+        ) = _normalise_positive_pair(
+            self.resilience_integrated_threshold, self.resilience_guardrail
         )
-        self.resilience_guardrail = _clamp(float(self.resilience_guardrail))
-        if self.resilience_integrated_threshold < self.resilience_guardrail:
-            self.resilience_integrated_threshold = self.resilience_guardrail
-
-        self.confidence_positive_threshold = _clamp(
-            float(self.confidence_positive_threshold)
+        (
+            self.confidence_positive_threshold,
+            self.confidence_guardrail,
+        ) = _normalise_confidence_pair(
+            self.confidence_positive_threshold, self.confidence_guardrail
         )
-        self.confidence_guardrail = _clamp(float(self.confidence_guardrail))
-        if self.confidence_positive_threshold < self.confidence_guardrail:
-            self.confidence_positive_threshold = self.confidence_guardrail
-
-        self.momentum_positive_threshold = _clamp(
-            float(self.momentum_positive_threshold), lower=-1.0, upper=1.0
+        (
+            self.momentum_positive_threshold,
+            self.momentum_negative_threshold,
+        ) = _normalise_momentum_band(
+            self.momentum_positive_threshold, self.momentum_negative_threshold
         )
-        if self.momentum_positive_threshold < 0.0:
-            self.momentum_positive_threshold = 0.0
-
-        self.momentum_negative_threshold = _clamp(
-            float(self.momentum_negative_threshold), lower=-1.0, upper=1.0
-        )
-        if self.momentum_negative_threshold > 0.0:
-            self.momentum_negative_threshold = 0.0
-
-        self.trend_decline_threshold = float(self.trend_decline_threshold)
-        if self.trend_decline_threshold > 0.0:
-            self.trend_decline_threshold = 0.0
+        self.trend_decline_threshold = min(0.0, float(self.trend_decline_threshold))
 
     @classmethod
     def from_mapping(cls, payload: Mapping[str, object]) -> "FrameworkSettings":
