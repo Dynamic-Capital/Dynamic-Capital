@@ -1,0 +1,68 @@
+{
+  "intro": "This directory mirrors curated corpora published to the shared OneDrive `knowledge_base/` folder. Each subdirectory corresponds to a dated drop and contains the artifacts required for retrieval-augmented training.",
+  "drops": [
+    {
+      "id": "2025-10-15",
+      "title": "Knowledge Base Expansion",
+      "manifest": "docs/onedrive-shares/evlumlqt-folder.metadata.json",
+      "supabase_mirror": "public.one_drive_assets/knowledge_base/2025-10-15/*",
+      "description": "Added playbook documentation, prompt templates, and evaluation snapshots for the October knowledge base refresh.",
+      "files": [
+        {
+          "path": "2025-10-15/modeling-overview.md",
+          "purpose": "Outline of the multi-pass retrieval strategy used in October experiments."
+        },
+        {
+          "path": "2025-10-15/rag-prompts.csv",
+          "purpose": "Prompt templates paired with retrieval hints for the updated corpus."
+        },
+        {
+          "path": "2025-10-15/eval-window.json",
+          "purpose": "Evaluation window metadata for replaying fine-tuning checkpoints."
+        }
+      ]
+    }
+  ],
+  "maintenance": [
+    "Update `index.json` whenever new OneDrive manifests or mirrored corpora are added, then re-run the sync script to regenerate this overview.",
+    "Commit the refreshed \"README.md\" alongside any new manifests, metadata snapshots, or dataset files to keep the knowledge base discoverable."
+  ],
+  "shares": [
+    {
+      "id": "research-bundle-2025-10-02",
+      "title": "Research bundle (pending metadata dump)",
+      "share_link": "https://1drv.ms/f/c/2ff0428a2f57c7a4/ErBHFYCqf15AhFwIGWHjLfYB1sze-98g08jNtOzu0A3wKQ?e=WdUfh0",
+      "graph_helper": "docs/onedrive-shares/erbhfycq-folder.md",
+      "status": "Anonymous access is still blocked; authenticate with Microsoft Graph before enumerating contents. Once fetched, mirror the artifacts into data/knowledge_base/ and extend the research manifest with filenames, checksums, and processing notes.",
+      "actions": [
+        "Export a Microsoft Graph access token with permission to read the shared item.",
+        "Run npx tsx scripts/onedrive/dump-drive-item.ts \"${ONEDRIVE_SHARE_LINK}\" docs/onedrive-shares/erbhfycq-folder.metadata.json after authentication.",
+        "Mirror the downloaded assets into data/knowledge_base/ and update the manifests with checksums and processing notes."
+      ]
+    }
+  ],
+  "staging": {
+    "title": "Research — Staging Area Sync",
+    "source_location": "OneDrive\\\\DynamicAI_DB\\\\knowledge_base\\\\research",
+    "supabase_mirror": "public.one_drive_assets/knowledge_base/research/*",
+    "description": "New research datasets have been uploaded to OneDrive and are waiting on checksum validation before we promote them into the shared retrieval corpus. Track synchronization steps and dataset notes in the research/README.md control file.",
+    "files": [
+      {
+        "path": "research/README.md",
+        "purpose": "Mirroring checklist plus dataset registry for the research drop."
+      },
+      {
+        "path": "research/processed/dhivehi_training_corpus.jsonl",
+        "purpose": "Preprocessed Dhivehi Radheef corpus ready for instruction tuning."
+      },
+      {
+        "path": "research/training_runs/dhivehi_radheef_v1.json",
+        "purpose": "Dynamic trainer readiness summary for the Dhivehi corpus fine-tune."
+      },
+      {
+        "path": "research/manifest.json",
+        "purpose": "Structured manifest enumerating the staged research datasets."
+      }
+    ]
+  }
+}
