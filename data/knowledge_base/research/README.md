@@ -31,6 +31,7 @@ for mirroring the new material into the Dynamic Capital knowledge base.
 | `market_structure_notes_v1`  | Refined market-structure corpus with tier hierarchy, execution discipline, timeframe playbooks, and top-down workflow quick references.        | Processed corpus at `processed/trading_market_structure_corpus.jsonl`.                                                                         |
 | `nemotron_personas_japan_v1` | One million Japanese-language synthetic personas aligned to census demographics, geography, and cultural context for sovereign AI prototyping. | Source maintained on Hugging Face at `nvidia/Nemotron-Personas-Japan` (CC BY 4.0). Export with `python ml/extract_nemotron_personas_japan.py`. |
 | `dynamic_trading_knowledge_base_v1` | Mirrored PDF corpus for the trading knowledge base with page-level extractions and table captures. | Drop PDFs into `dynamic_trading/raw/` and run `python tools/dynamic_trading_corpus.py` to build `dynamic_trading/processed/dynamic_trading_knowledge.jsonl`. |
+| `newspaper_archive_collection` | Internet Archive collection identifier `newspaperarchive` spanning digitized newspaper issues under the `newspapers` and `texts` umbrellas. | Export metadata with `python ml/extract_newspaper_archive_collection.py --output processed/newspaper_archive_inventory.jsonl` (optionally adding `--limit` for sampling) before mirroring into Supabase cold storage or local staging. |
 
 ### Extraction helpers
 
@@ -69,6 +70,23 @@ python ml/research_corpus_trainer.py \
 
 The resulting readiness summary recommends promoting the candidate checkpoint
 while tightening loss-focused regularisation before scaling further runs.
+
+### Internet Archive metadata export
+
+Generate a scoped inventory of the Newspaper Archive collection to plan
+mirroring and downstream OCR with:
+
+```bash
+python ml/extract_newspaper_archive_collection.py \
+  --limit 1000 \
+  --output data/knowledge_base/research/processed/newspaper_archive_inventory.jsonl \
+  --summary data/knowledge_base/research/processed/newspaper_archive_inventory_summary.json
+```
+
+The script streams the Internet Archive advanced search index, emitting each
+issue as a JSONL document. Use `--limit` to create smaller samples (a 100-row
+snapshot ships at `processed/newspaper_archive_inventory_sample.jsonl` for quick
+inspection) or adjust `--query` for geography- or publisher-specific slices.
 
 Keep this document in sync with the upstream OneDrive folder so that future
 knowledge base drops reflect the new research materials.

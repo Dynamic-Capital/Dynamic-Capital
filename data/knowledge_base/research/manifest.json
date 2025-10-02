@@ -82,6 +82,28 @@
       },
       "processed_path": "data/knowledge_base/dynamic_trading/processed/dynamic_trading_knowledge.jsonl",
       "notes": "Run tools/dynamic_trading_corpus.py to generate page-level JSONL entries with table payloads for each PDF."
+    },
+    {
+      "slug": "newspaper_archive_collection",
+      "source": {
+        "internet_archive_identifier": "newspaperarchive",
+        "homepage": "https://archive.org/details/newspaperarchive",
+        "metadata_endpoint": "https://archive.org/metadata/newspaperarchive"
+      },
+      "processed_path": "data/knowledge_base/research/processed/newspaper_archive_inventory.jsonl",
+      "sample_path": "data/knowledge_base/research/processed/newspaper_archive_inventory_sample.jsonl",
+      "summary_path": "data/knowledge_base/research/processed/newspaper_archive_inventory_summary.json",
+      "sample_rows": 100,
+      "metadata": {
+        "collection": [
+          "newspapers",
+          "texts"
+        ],
+        "title": "Newspaper Archive",
+        "publicdate": "2022-06-01T20:04:00Z",
+        "uploader": "jake@archive.org"
+      },
+      "notes": "Internet Archive collection of digitized historical newspapers. Run ml/extract_newspaper_archive_collection.py to export the Advanced Search metadata into the processed inventory before mirroring assets into Supabase cold storage."
     }
   ]
 }
