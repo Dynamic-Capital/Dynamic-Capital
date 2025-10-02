@@ -5,6 +5,7 @@ import {
   jsonResponse,
   methodNotAllowed,
   oops,
+  unauth,
 } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
@@ -14,17 +15,21 @@ const {
   ONEDRIVE_TENANT_ID,
   ONEDRIVE_CLIENT_ID,
   ONEDRIVE_CLIENT_SECRET,
+  ONEDRIVE_WEBHOOK_SECRET,
 } = requireEnv(
   [
     "ONEDRIVE_TENANT_ID",
     "ONEDRIVE_CLIENT_ID",
     "ONEDRIVE_CLIENT_SECRET",
+    "ONEDRIVE_WEBHOOK_SECRET",
   ] as const,
 );
 
 const DEFAULT_SCOPE = optionalEnv("ONEDRIVE_SCOPE") ??
   "https://graph.microsoft.com/.default";
 const DEFAULT_DRIVE_ID = optionalEnv("ONEDRIVE_DEFAULT_DRIVE_ID");
+const EXPECTED_CLIENT_STATE = optionalEnv("ONEDRIVE_WEBHOOK_CLIENT_STATE") ??
+  ONEDRIVE_WEBHOOK_SECRET;
 
 interface TokenCache {
   token: string;
@@ -180,6 +185,34 @@ async function graphFetchBinary(
   return new Uint8Array(buffer);
 }
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) {
+    out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return out === 0;
+}
+
+function extractBearerToken(header: string | null): string | null {
+  if (!header) return null;
+  const trimmed = header.trim();
+  if (!trimmed) return null;
+  if (trimmed.slice(0, 7).toLowerCase() === "bearer ") {
+    const token = trimmed.slice(7).trim();
+    return token.length > 0 ? token : null;
+  }
+  return trimmed;
+}
+
+function authorizeActionRequest(req: Request): Response | null {
+  const token = extractBearerToken(req.headers.get("Authorization"));
+  if (!token || !timingSafeEqual(token, ONEDRIVE_WEBHOOK_SECRET)) {
+    return unauth("Missing or invalid credentials", req);
+  }
+  return null;
+}
+
 type UploadEncoding = "utf-8" | "base64";
 
 type ConflictBehavior = "fail" | "replace" | "rename";
@@ -269,6 +302,14 @@ interface GraphNotification {
       id?: string;
     } | null;
   } | null;
+}
+
+function hasValidClientState(notification: GraphNotification): boolean {
+  const candidate = notification.clientState?.trim();
+  if (!candidate) {
+    return false;
+  }
+  return timingSafeEqual(candidate, EXPECTED_CLIENT_STATE);
 }
 
 function resolveDriveId(input: unknown): string {
@@ -458,6 +499,12 @@ async function processNotifications(
 ): Promise<Response> {
   const results = await Promise.all(
     notifications.map(async (notification) => {
+      if (!hasValidClientState(notification)) {
+        console.warn("[onedrive-webhook] invalid clientState", {
+          subscriptionId: notification.subscriptionId,
+        });
+        return { notification, error: "Invalid clientState" };
+      }
       const resource = notification.resource?.trim();
       if (!resource) {
         return { notification, error: "Missing resource" };
@@ -493,6 +540,10 @@ async function handlePost(req: Request): Promise<Response> {
   }
 
   if (payload && typeof payload === "object" && "action" in payload) {
+    const unauthorized = authorizeActionRequest(req);
+    if (unauthorized) {
+      return unauthorized;
+    }
     const action = (payload as ReadRequest | WriteRequest).action;
     try {
       if (action === "read") {

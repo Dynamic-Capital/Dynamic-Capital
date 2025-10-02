@@ -7,6 +7,8 @@ const REQUIRED_ENV = [
   "ONEDRIVE_TENANT_ID",
   "ONEDRIVE_CLIENT_ID",
   "ONEDRIVE_CLIENT_SECRET",
+  "ONEDRIVE_WEBHOOK_SECRET",
+  "ONEDRIVE_WEBHOOK_CLIENT_STATE",
 ] as const;
 
 function setRequiredEnv() {
@@ -50,6 +52,29 @@ Deno.test("onedrive-webhook responds to validation handshake", async () => {
     );
     const text = await response.text();
     assertEquals(text, "abc123");
+  } finally {
+    clearRequiredEnv();
+  }
+});
+
+Deno.test("onedrive-webhook rejects unauthorized action requests", async () => {
+  setRequiredEnv();
+  try {
+    const { handler } = await import(
+      `../onedrive-webhook/index.ts?cache=${crypto.randomUUID()}`
+    );
+
+    const request = new Request(
+      "http://localhost/functions/v1/onedrive-webhook",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "read", path: "reports" }),
+      },
+    );
+
+    const response = await handler(request);
+    assertEquals(response.status, 401);
   } finally {
     clearRequiredEnv();
   }
@@ -117,7 +142,10 @@ Deno.test("onedrive-webhook can read drive item with content", async () => {
       "http://localhost/functions/v1/onedrive-webhook",
       {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "Authorization": "Bearer test-onedrive_webhook_secret",
+        },
         body: JSON.stringify({
           action: "read",
           path: "reports",
@@ -204,7 +232,10 @@ Deno.test("onedrive-webhook uploads content", async () => {
       "http://localhost/functions/v1/onedrive-webhook",
       {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "Authorization": "Bearer test-onedrive_webhook_secret",
+        },
         body: JSON.stringify({
           action: "write",
           path: "notes",
@@ -286,6 +317,7 @@ Deno.test("onedrive-webhook processes notifications", async () => {
               subscriptionId: "sub-1",
               resource: "drives/drive-777/items/item-abc",
               changeType: "updated",
+              clientState: "test-onedrive_webhook_client_state",
             },
           ],
         }),
