@@ -20,14 +20,49 @@ interface AnalyticsEvent {
   utm_campaign?: string;
 }
 
+const SESSION_STORAGE_KEY = "analytics_session_id";
+
+const generateSessionId = () => {
+  if (typeof window !== "undefined") {
+    const cryptoObject = window.crypto ?? (window as typeof window & {
+      msCrypto?: Crypto;
+    }).msCrypto;
+
+    if (cryptoObject?.getRandomValues) {
+      const randomBytes = new Uint8Array(16);
+      cryptoObject.getRandomValues(randomBytes);
+      const randomHex = Array.from(randomBytes)
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+
+      return `session_${randomHex}`;
+    }
+  }
+
+  const timestamp = Date.now().toString(36);
+  const perfTime = typeof performance !== "undefined"
+    ? Math.floor(performance.now() * 1000).toString(36)
+    : "";
+
+  return `session_${timestamp}${perfTime}`;
+};
+
 export const useAnalytics = () => {
   const sessionId = useRef<string | null>(null);
 
   useEffect(() => {
-    // Generate session ID
-    sessionId.current = `session_${Date.now()}_${
-      Math.random().toString(36).substr(2, 9)
-    }`;
+    if (typeof window === "undefined") return;
+
+    const storedSessionId = sessionStorage.getItem(SESSION_STORAGE_KEY);
+
+    if (storedSessionId) {
+      sessionId.current = storedSessionId;
+      return;
+    }
+
+    const newSessionId = generateSessionId();
+    sessionId.current = newSessionId;
+    sessionStorage.setItem(SESSION_STORAGE_KEY, newSessionId);
   }, []);
 
   const trackEvent = useCallback(async (event: AnalyticsEvent) => {
