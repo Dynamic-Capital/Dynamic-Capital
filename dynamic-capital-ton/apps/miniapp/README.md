@@ -22,6 +22,11 @@ NEXT_PUBLIC_TON_OPS_TREASURY=<ops-treasury-wallet>
 The `NEXT_PUBLIC_SUPABASE_*` values enable live subscription plan updates inside
 the Mini App by connecting directly to Supabase Realtime.
 
+> **Note:** When testing in browsers without native TON DNS support, use the
+> public gateway URL (`https://ton.site/dynamiccapital.ton`) instead of the raw
+> `.ton` origin. The helper constants in `shared/ton/site.ts` and the
+> [gateway guide](../../../docs/ton-site-gateway-access.md) keep the URLs aligned.
+
 ## Key scripts
 
 - `pnpm install`
