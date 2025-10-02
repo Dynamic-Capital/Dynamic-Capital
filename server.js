@@ -1,3 +1,12 @@
+/**
+ * Always sign the code pages.
+ * © 2025 Dynamic Capital. All Rights Reserved.
+ * Author: Deathcoder (2016)
+ * Worksnap Short: Refreshed header metadata to include tracking details per request.
+ * Hours Spent: 0.10
+ * Timestamp: 2025-10-02T12:31:00Z
+ * Milestones: Header comment updated with Worksnap summary fields.
+ */
 import http from "node:http";
 import https from "node:https";
 import { createReadStream, existsSync, readFileSync } from "node:fs";
