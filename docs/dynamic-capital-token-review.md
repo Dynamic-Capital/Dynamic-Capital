@@ -74,7 +74,8 @@
 
 - **Profit-responsive treasury logic.** Burn, reward, and retention splits with
   rounding reconciliation guardrails ensure trading profits translate into
-  policy-compliant treasury actions.【F:dynamic.platform.token/treasury.py†L24-L130】
+  policy-compliant treasury
+  actions.【F:dynamic.platform.token/treasury.py†L24-L130】
 - **Liquidity guardrails.** Launch strategy, depth requirements, and buyback
   levers anchor token liquidity to treasury commitments and monitoring cadences
   spelled out in the
@@ -99,7 +100,8 @@
   allocations.【F:docs/dynamic-capital-ton-whitepaper.md†L36-L50】【F:docs/tonstarter/tokenomics-tables.md†L7-L17】
 - **Test-backed guardrails:** Loss coverage and custom distribution scenarios
   are unit-tested, validating both defensive notes and operator-tuned
-  burn/reward splits.【F:tests/dynamic.platform.token/test_dct_engine.py†L173-L205】
+  burn/reward
+  splits.【F:tests/dynamic.platform.token/test_dct_engine.py†L173-L205】
 
 ## Risks & Gaps
 
@@ -141,7 +143,8 @@
    mandate.【F:dynamic.platform.token/treasury.py†L92-L145】【F:docs/dct-intelligence-driven-tokenomics.md†L52-L107】
 3. **Neutral-trade telemetry:** Emit explicit zero-impact `TreasuryEvent`
    records so dashboards can monitor volume even when P&L is flat, preventing
-   blind spots in review meetings.【F:dynamic.platform.token/treasury.py†L59-L128】
+   blind spots in review
+   meetings.【F:dynamic.platform.token/treasury.py†L59-L128】
 4. **Residual auto-recycling:** Extend the allocation engine or treasury loop to
    recycle residual supply into reserves or future epochs automatically,
    reducing manual reconciliation work noted during

@@ -58,8 +58,9 @@ strategic pillars.
   papers, inventories, and curated research libraries.
 - **Data Foundations (`data/`, `db/`, `dynamic/models/`, `ml/`, `trainer/`)** –
   Datasets, schema definitions, model checkpoints, and experiment harnesses.
-- **Research Initiatives (`dynamic.intelligence.ai_apps/`, `dynamic.intelligence.agi/`, `dynamic_quantum/`)** –
-  Exploratory programs that extend the platform's intelligence frontier.
+- **Research Initiatives (`dynamic.intelligence.ai_apps/`,
+  `dynamic.intelligence.agi/`, `dynamic_quantum/`)** – Exploratory programs that
+  extend the platform's intelligence frontier.
 
 ### Observability, Security & Governance
 

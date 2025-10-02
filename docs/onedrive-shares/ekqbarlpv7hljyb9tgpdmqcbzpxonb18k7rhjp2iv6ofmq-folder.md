@@ -1,9 +1,9 @@
 # Ekqbarlpv7hLjyb9tgPdMqcBZpxonB18K7RHjp2IV6ofmQ Share
 
 This note records the metadata helpers for the newly provided OneDrive folder
-that contains the reference **books** mirrored under
-`knowledge_base\\books`. Mirror the information here into any runbooks or
-scripts that need to access the remote resources.
+that contains the reference **books** mirrored under `knowledge_base\\books`.
+Mirror the information here into any runbooks or scripts that need to access the
+remote resources.
 
 ## Share details
 

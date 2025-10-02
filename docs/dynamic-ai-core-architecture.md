@@ -35,7 +35,8 @@ and cleaner extensibility.
 Each micro-core hosts a minimal agent runtime tuned for peak throughput:
 
 - **Signal ingestion** normalises raw telemetry into the `PreparedMarketContext`
-  schema reused throughout Dynamic AI.【F:dynamic.intelligence.ai_apps/core.py†L68-L145】
+  schema reused throughout Dynamic
+  AI.【F:dynamic.intelligence.ai_apps/core.py†L68-L145】
 - **Heuristic evaluation** executes the relevant indicator blend and converts
   composite scores into discrete actions via `score_to_action`
   helpers.【F:dynamic.intelligence.ai_apps/core.py†L46-L103】
@@ -449,8 +450,8 @@ can triage anomalies rapidly.
 ## Implementation Roadmap
 
 1. **Prototype SM runtime** using existing async worker pools in
-   `dynamic.intelligence.ai_apps.training` to validate scheduling semantics before hardware
-   acceleration and to benchmark adapter-aware warp packing.
+   `dynamic.intelligence.ai_apps.training` to validate scheduling semantics
+   before hardware acceleration and to benchmark adapter-aware warp packing.
 2. **Introduce telemetry schema** mirroring the metrics outlined above and emit
    them via the existing monitoring stack, including adapter health feeds.
 3. **Layer in adaptive control plane** so persona changes, model routing rules,
