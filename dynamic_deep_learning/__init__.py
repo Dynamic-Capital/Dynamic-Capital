@@ -9,6 +9,10 @@ from .engine import (
     TrainingMetrics,
     DynamicDeepLearningEngine,
     generate_input_layers,
+    generate_domain_input_layers,
+    build_dynamic_ai_input_layers,
+    build_dynamic_agi_input_layers,
+    build_dynamic_ags_input_layers,
 )
 
 __all__ = [
@@ -20,4 +24,8 @@ __all__ = [
     "TrainingMetrics",
     "DynamicDeepLearningEngine",
     "generate_input_layers",
+    "generate_domain_input_layers",
+    "build_dynamic_ai_input_layers",
+    "build_dynamic_agi_input_layers",
+    "build_dynamic_ags_input_layers",
 ]

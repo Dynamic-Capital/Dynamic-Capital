@@ -17,6 +17,10 @@ __all__ = [
     "TrainingMetrics",
     "DynamicDeepLearningEngine",
     "generate_input_layers",
+    "generate_domain_input_layers",
+    "build_dynamic_ai_input_layers",
+    "build_dynamic_agi_input_layers",
+    "build_dynamic_ags_input_layers",
 ]
 
 
@@ -25,6 +29,116 @@ __all__ = [
 
 
 _SUPPORTED_ACTIVATIONS = {"relu", "tanh", "sigmoid", "linear", "softmax"}
+
+
+@dataclass(frozen=True)
+class _DomainLayerSpec:
+    """Internal structure describing a domain layer profile."""
+
+    name: str
+    expansion: float
+    activation: str
+    dropout: float
+    max_units: int | None = None
+
+
+_DOMAIN_INPUT_LAYER_PROFILES: dict[str, tuple[_DomainLayerSpec, ...]] = {
+    "dynamic_ai": (
+        _DomainLayerSpec(
+            name="dai_signal_ingest",
+            expansion=1.5,
+            activation="relu",
+            dropout=0.05,
+            max_units=512,
+        ),
+        _DomainLayerSpec(
+            name="dai_context_fusion",
+            expansion=1.75,
+            activation="tanh",
+            dropout=0.1,
+            max_units=768,
+        ),
+        _DomainLayerSpec(
+            name="dai_alignment_gate",
+            expansion=0.85,
+            activation="relu",
+            dropout=0.05,
+            max_units=640,
+        ),
+    ),
+    "dynamic_agi": (
+        _DomainLayerSpec(
+            name="dagi_signal_intake",
+            expansion=1.8,
+            activation="relu",
+            dropout=0.05,
+            max_units=640,
+        ),
+        _DomainLayerSpec(
+            name="dagi_cognitive_bridge",
+            expansion=1.35,
+            activation="tanh",
+            dropout=0.1,
+            max_units=896,
+        ),
+        _DomainLayerSpec(
+            name="dagi_reasoning_core",
+            expansion=1.2,
+            activation="relu",
+            dropout=0.1,
+            max_units=1024,
+        ),
+        _DomainLayerSpec(
+            name="dagi_alignment_hub",
+            expansion=0.9,
+            activation="tanh",
+            dropout=0.05,
+            max_units=896,
+        ),
+    ),
+    "dynamic_ags": (
+        _DomainLayerSpec(
+            name="dags_context_intake",
+            expansion=1.2,
+            activation="relu",
+            dropout=0.05,
+            max_units=256,
+        ),
+        _DomainLayerSpec(
+            name="dags_policy_composer",
+            expansion=1.0,
+            activation="tanh",
+            dropout=0.05,
+            max_units=256,
+        ),
+        _DomainLayerSpec(
+            name="dags_governance_gate",
+            expansion=0.8,
+            activation="sigmoid",
+            dropout=0.0,
+            max_units=192,
+        ),
+    ),
+}
+
+
+_DOMAIN_ALIASES = {
+    "dai": "dynamic_ai",
+    "dynamicai": "dynamic_ai",
+    "dynamic_ai": "dynamic_ai",
+    "dynamic-ai": "dynamic_ai",
+    "dynamic ai": "dynamic_ai",
+    "dagi": "dynamic_agi",
+    "dynamicagi": "dynamic_agi",
+    "dynamic_agi": "dynamic_agi",
+    "dynamic-agi": "dynamic_agi",
+    "dynamic agi": "dynamic_agi",
+    "dags": "dynamic_ags",
+    "dynamicags": "dynamic_ags",
+    "dynamic_ags": "dynamic_ags",
+    "dynamic-ags": "dynamic_ags",
+    "dynamic ags": "dynamic_ags",
+}
 
 
 ActivationForward = Callable[[Sequence[float]], list[float]]
@@ -110,6 +224,78 @@ def generate_input_layers(
         )
         current_units = float(units)
     return tuple(layers)
+
+
+def _normalise_domain_key(domain: str) -> str:
+    """Normalise a domain label so it can be resolved in the profile registry."""
+
+    key = domain.strip().lower().replace("-", "_")
+    key = " ".join(part for part in key.split())
+    key = key.replace(" ", "_")
+    return _DOMAIN_ALIASES.get(key, key)
+
+
+def generate_domain_input_layers(domain: str, input_dim: int) -> tuple[LayerBlueprint, ...]:
+    """Return the canonical input layer stack for a Dynamic domain.
+
+    Parameters
+    ----------
+    domain:
+        Domain identifier. Supports friendly aliases such as ``"DAI"`` or
+        ``"dynamic agi"``.
+    input_dim:
+        Size of the input vector driving the first generated layer.
+
+    Returns
+    -------
+    tuple[LayerBlueprint, ...]
+        Layer stack tuned for the requested domain.
+    """
+
+    normalised = _normalise_domain_key(domain)
+    try:
+        profile = _DOMAIN_INPUT_LAYER_PROFILES[normalised]
+    except KeyError as exc:
+        raise ValueError(f"unknown domain: {domain}") from exc
+
+    if input_dim <= 0:
+        raise ValueError("input_dim must be positive")
+
+    current_units = float(input_dim)
+    layers: list[LayerBlueprint] = []
+    for spec in profile:
+        current_units *= spec.expansion
+        units = max(1, int(round(current_units)))
+        if spec.max_units is not None:
+            units = min(units, spec.max_units)
+        layers.append(
+            LayerBlueprint(
+                name=spec.name,
+                units=units,
+                activation=spec.activation,
+                dropout=spec.dropout,
+            )
+        )
+        current_units = float(units)
+    return tuple(layers)
+
+
+def build_dynamic_ai_input_layers(input_dim: int) -> tuple[LayerBlueprint, ...]:
+    """Preset Dynamic AI input layers."""
+
+    return generate_domain_input_layers("dynamic_ai", input_dim)
+
+
+def build_dynamic_agi_input_layers(input_dim: int) -> tuple[LayerBlueprint, ...]:
+    """Preset Dynamic AGI input layers."""
+
+    return generate_domain_input_layers("dynamic_agi", input_dim)
+
+
+def build_dynamic_ags_input_layers(input_dim: int) -> tuple[LayerBlueprint, ...]:
+    """Preset Dynamic AGS input layers."""
+
+    return generate_domain_input_layers("dynamic_ags", input_dim)
 
 
 @dataclass(slots=True)

@@ -12,6 +12,10 @@ from dynamic_deep_learning import (  # noqa: E402 - runtime path mutation for te
     DynamicLayerEngineConfig,
     LayerBlueprint,
     generate_input_layers,
+    generate_domain_input_layers,
+    build_dynamic_ai_input_layers,
+    build_dynamic_agi_input_layers,
+    build_dynamic_ags_input_layers,
 )
 
 
@@ -96,3 +100,74 @@ def test_generate_input_layers_progressive_stack() -> None:
     assert spec.layers[0].output_dim == 10
     assert spec.layers[1].input_dim == 10
     assert spec.layers[2].output_dim == 32
+
+
+def test_dynamic_ai_domain_input_layers_profile() -> None:
+    layers = build_dynamic_ai_input_layers(input_dim=16)
+
+    assert [layer.name for layer in layers] == [
+        "dai_signal_ingest",
+        "dai_context_fusion",
+        "dai_alignment_gate",
+    ]
+    assert [layer.units for layer in layers] == [24, 42, 36]
+    assert [layer.activation for layer in layers] == ["relu", "tanh", "relu"]
+    assert [pytest.approx(layer.dropout, rel=1e-9) for layer in layers] == [
+        0.05,
+        0.1,
+        0.05,
+    ]
+
+
+def test_dynamic_agi_domain_input_layers_profile() -> None:
+    layers = build_dynamic_agi_input_layers(input_dim=20)
+
+    assert [layer.name for layer in layers] == [
+        "dagi_signal_intake",
+        "dagi_cognitive_bridge",
+        "dagi_reasoning_core",
+        "dagi_alignment_hub",
+    ]
+    assert [layer.units for layer in layers] == [36, 49, 59, 53]
+    assert [layer.activation for layer in layers] == ["relu", "tanh", "relu", "tanh"]
+    assert [pytest.approx(layer.dropout, rel=1e-9) for layer in layers] == [
+        0.05,
+        0.1,
+        0.1,
+        0.05,
+    ]
+
+
+def test_dynamic_ags_domain_input_layers_profile() -> None:
+    layers = build_dynamic_ags_input_layers(input_dim=12)
+
+    assert [layer.name for layer in layers] == [
+        "dags_context_intake",
+        "dags_policy_composer",
+        "dags_governance_gate",
+    ]
+    assert [layer.units for layer in layers] == [14, 14, 11]
+    assert [layer.activation for layer in layers] == ["relu", "tanh", "sigmoid"]
+    assert [pytest.approx(layer.dropout, rel=1e-9) for layer in layers] == [
+        0.05,
+        0.05,
+        0.0,
+    ]
+
+
+def test_generate_domain_input_layers_supports_aliases() -> None:
+    aliased = generate_domain_input_layers("DAGI", input_dim=20)
+    canonical = build_dynamic_agi_input_layers(input_dim=20)
+
+    assert [layer.name for layer in aliased] == [layer.name for layer in canonical]
+    assert [layer.units for layer in aliased] == [layer.units for layer in canonical]
+
+
+def test_generate_domain_input_layers_invalid_domain() -> None:
+    with pytest.raises(ValueError):
+        generate_domain_input_layers("unknown", input_dim=10)
+
+
+def test_generate_domain_input_layers_requires_positive_input_dim() -> None:
+    with pytest.raises(ValueError):
+        build_dynamic_ai_input_layers(0)
