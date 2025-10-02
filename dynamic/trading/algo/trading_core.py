@@ -192,6 +192,32 @@ def _coerce_float(value: Any) -> float | None:
     return numeric
 
 
+def _coerce_int(value: Any) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return None
+        return int(round(value))
+    try:
+        token = str(value).strip()
+    except Exception:  # pragma: no cover - defensive conversion
+        return None
+    if not token:
+        return None
+    try:
+        return int(token, 10)
+    except ValueError:
+        numeric = _coerce_float(token)
+        if numeric is None:
+            return None
+        return int(round(numeric))
+
+
 def _extract_signal_numeric(signal: Any, *keys: str) -> float | None:
     if not keys:
         return None
@@ -1298,28 +1324,57 @@ class DynamicTradingAlgo:
             response.version_info = self.version_metadata
             return response
 
+        raw_payload = response
+        message_text = ""
+
         if isinstance(response, Mapping):
-            retcode = response.get("retcode", response.get("code", 0))
-            profit = response.get("profit", 0.0)
-            ticket = response.get("order") or response.get("ticket")
-            price = response.get("price")
-            comment = response.get("comment", "")
+            payload: Mapping[str, Any] = response
+            nested = payload.get("result")
+            if isinstance(nested, Mapping):
+                payload = nested
+
+            retcode_value = payload.get("retcode", payload.get("code", 0))
+            profit_value = payload.get("profit", 0.0)
+            ticket_value = payload.get("order", payload.get("ticket"))
+            price_value = payload.get("price")
+            message_value = (
+                payload.get("message")
+                or payload.get("comment")
+                or payload.get("status")
+            )
         else:
-            retcode = getattr(response, "retcode", 0)
-            profit = getattr(response, "profit", 0.0)
-            ticket = getattr(response, "order", None) or getattr(response, "ticket", None)
-            price = getattr(response, "price", None)
-            comment = getattr(response, "comment", "")
+            retcode_value = getattr(response, "retcode", None) or getattr(response, "code", 0)
+            profit_value = getattr(response, "profit", 0.0)
+            ticket_value = getattr(response, "order", None) or getattr(response, "ticket", None)
+            price_value = getattr(response, "price", None)
+            message_value = (
+                getattr(response, "message", None)
+                or getattr(response, "comment", None)
+                or getattr(response, "status", None)
+            )
+
+        retcode = _coerce_int(retcode_value) or 0
+        profit = _coerce_float(profit_value) or 0.0
+        ticket = _coerce_int(ticket_value)
+        price = _coerce_float(price_value)
+
+        if message_value is not None:
+            try:
+                message_text = str(message_value).strip()
+            except Exception:  # pragma: no cover - defensive
+                message_text = ""
+
+        message = message_text or "Trade executed"
 
         return TradeExecutionResult(
             retcode=retcode,
-            message=comment or "Trade executed",
+            message=message,
             profit=profit,
             ticket=ticket,
             symbol=symbol,
             lot=lot,
             price=price,
-            raw_response=response,
+            raw_response=raw_payload,
             version=self._version,
             version_info=self.version_metadata,
         )
