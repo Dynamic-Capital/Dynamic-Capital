@@ -132,18 +132,21 @@ class TradeIntent:
         self.risk_notes = _normalise_tuple(self.risk_notes)
         self.metrics = _coerce_mapping(self.metrics)
         self.style = _normalise_text(self.style)
-        self.created_at = self.created_at.astimezone(timezone.utc)
+        if self.created_at.tzinfo is None:
+            self.created_at = self.created_at.replace(tzinfo=timezone.utc)
+        else:
+            self.created_at = self.created_at.astimezone(timezone.utc)
         if self.entry is not None:
             self.entry = float(self.entry)
         if self.target is not None:
             self.target = float(self.target)
         if self.stop is not None:
             self.stop = float(self.stop)
-        if self.entry and self.entry <= 0:
+        if self.entry is not None and self.entry <= 0:
             raise ValueError("entry must be positive")
-        if self.target and self.target <= 0:
+        if self.target is not None and self.target <= 0:
             raise ValueError("target must be positive")
-        if self.stop and self.stop <= 0:
+        if self.stop is not None and self.stop <= 0:
             raise ValueError("stop must be positive")
 
     @property
