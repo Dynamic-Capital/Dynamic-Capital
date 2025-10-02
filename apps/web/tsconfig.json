@@ -22,7 +22,6 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "allowImportingTsExtensions": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
