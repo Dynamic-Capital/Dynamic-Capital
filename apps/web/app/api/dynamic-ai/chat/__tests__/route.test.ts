@@ -36,7 +36,7 @@ interface SupabaseInsert {
   telegram_user_id: string;
   session_id: string;
   page_context: string;
-  interaction_data: { role: string; content: string };
+  interaction_data: { role: string; content: string; language?: string };
 }
 
 function createSupabaseMock() {
@@ -105,6 +105,7 @@ Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () =
     message: "Hello desk",
     history: [],
     telegram: { id: "1001", username: "vip" },
+    language: "dv",
   } as const;
 
   const response = await POST(
@@ -125,17 +126,27 @@ Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () =
 
   assertCondition(payload.ok === true, "expected ok response");
   assertEquals(payload.assistantMessage?.content, "Desk is online");
+  assertEquals(
+    (payload.assistantMessage as { language?: string } | undefined)?.language,
+    "dv",
+  );
   assertCondition(
     payload.history?.length === 2,
     "expected history to include user and assistant",
   );
   assertEquals(supabaseMock.inserts.length, 2);
   assertEquals(supabaseMock.inserts[0]?.interaction_data.content, "Hello desk");
+  assertEquals(supabaseMock.inserts[0]?.interaction_data.language, "dv");
   assertEquals(
     supabaseMock.inserts[1]?.interaction_data.content,
     "Desk is online",
   );
+  assertEquals(supabaseMock.inserts[1]?.interaction_data.language, "dv");
   assertEquals(fetchCalls.length, 1, "dynamic AI should be called once");
+  const requestPayload = JSON.parse(
+    String(fetchCalls[0]?.init?.body ?? "{}"),
+  ) as Record<string, unknown>;
+  assertEquals(requestPayload.language, "dv");
 
   delete (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL];
   delete (globalThis as Record<PropertyKey, unknown>)[

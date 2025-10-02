@@ -28,6 +28,7 @@ export interface ChatRequest {
   messages: ChatMessage[];
   temperature?: number;
   maxTokens?: number;
+  language?: string;
 }
 
 export interface ChatResult {

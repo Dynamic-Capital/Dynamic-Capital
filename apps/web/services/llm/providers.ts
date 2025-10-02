@@ -36,7 +36,7 @@ const providerDefinitions: ProviderDefinition[] = [
     maxOutputTokens: 4_096,
     envKeys: ["DYNAMIC_AGI_CHAT_URL", "DYNAMIC_AGI_CHAT_KEY"],
     async invoke(
-      { messages, temperature = 0.7, maxTokens },
+      { messages, temperature = 0.7, maxTokens, language },
     ): Promise<Omit<ChatResult, "provider">> {
       const { system, conversation } = normalizeMessages(messages);
       const result = await callDynamicAgi({
@@ -44,6 +44,7 @@ const providerDefinitions: ProviderDefinition[] = [
         messages: conversation,
         temperature,
         maxTokens,
+        language,
       });
       return result;
     },
@@ -57,7 +58,7 @@ const providerDefinitions: ProviderDefinition[] = [
     maxOutputTokens: 4_096,
     envKeys: ["OPENAI_API_KEY"],
     async invoke(
-      { messages, temperature = 0.7, maxTokens },
+      { messages, temperature = 0.7, maxTokens, language: _language },
     ): Promise<Omit<ChatResult, "provider">> {
       const client = new OpenAIClient();
       const { system, conversation } = normalizeMessages(messages);
@@ -91,7 +92,7 @@ const providerDefinitions: ProviderDefinition[] = [
     maxOutputTokens: 4_096,
     envKeys: ["ANTHROPIC_API_KEY"],
     async invoke(
-      { messages, temperature = 0.7, maxTokens },
+      { messages, temperature = 0.7, maxTokens, language: _language },
     ): Promise<Omit<ChatResult, "provider">> {
       const apiKey = requireEnvVar("ANTHROPIC_API_KEY");
       const { system, conversation } = normalizeMessages(messages);
@@ -147,7 +148,7 @@ const providerDefinitions: ProviderDefinition[] = [
     maxOutputTokens: 3_584,
     envKeys: ["GROQ_API_KEY"],
     async invoke(
-      { messages, temperature = 0.7, maxTokens },
+      { messages, temperature = 0.7, maxTokens, language: _language },
     ): Promise<Omit<ChatResult, "provider">> {
       const apiKey = requireEnvVar("GROQ_API_KEY");
       const { system, conversation } = normalizeMessages(messages);

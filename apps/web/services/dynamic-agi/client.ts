@@ -10,6 +10,7 @@ interface DynamicAgiChatRequest {
   messages: ChatMessage[];
   temperature?: number;
   maxTokens?: number;
+  language?: string;
 }
 
 interface DynamicAgiChatResponse {
@@ -108,6 +109,7 @@ export async function callDynamicAgi(
         })),
         temperature: request.temperature,
         maxTokens: request.maxTokens,
+        language: request.language,
       }),
       signal: controller.signal,
     });

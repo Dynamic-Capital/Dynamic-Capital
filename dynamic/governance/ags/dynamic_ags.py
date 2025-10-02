@@ -14,6 +14,22 @@ __all__ = [
 ]
 
 
+_SUPPORTED_LANGUAGES: tuple[str, ...] = ("en", "dv")
+
+
+def _normalise_language(language: str | None) -> str:
+    if language is None:
+        return "en"
+    cleaned = language.strip().lower()
+    if not cleaned:
+        return "en"
+    if cleaned not in _SUPPORTED_LANGUAGES:
+        raise ValueError(
+            f"Unsupported language {language!r}. Supported languages: {_SUPPORTED_LANGUAGES}",
+        )
+    return cleaned
+
+
 _DEFAULT_CONTEXT: Mapping[str, object] = {
     "mission": "Dynamic AGS Multi-Agent Governance Launch",
     "cadence": "Weekly governance sync + daily ops stand-up",
@@ -399,9 +415,11 @@ def build_dynamic_ags_playbook(
     synchronizer: PlaybookSynchronizer | None = None,
     context_overrides: Mapping[str, object] | None = None,
     additional_entries: Sequence[Mapping[str, object] | PlaybookEntry] | None = None,
+    language: str | None = None,
 ) -> Mapping[str, object]:
     """Build the Dynamic AGS governance playbook payload."""
 
+    language_code = _normalise_language(language)
     sync = synchronizer or PlaybookSynchronizer()
     sync.implement_many(DEFAULT_DYNAMIC_AGS_ENTRIES)
 
@@ -413,5 +431,22 @@ def build_dynamic_ags_playbook(
         context_kwargs.update(context_overrides)
 
     context = PlaybookContext(**context_kwargs)
-    return sync.sync_payload(context)
+    payload = sync.sync_payload(context)
+
+    blueprint = dict(payload["blueprint"])
+    blueprint["language"] = language_code
+    blueprint["supported_languages"] = list(_SUPPORTED_LANGUAGES)
+
+    entries: list[Mapping[str, object]] = []
+    for entry in payload["entries"]:
+        entry_payload: dict[str, object] = dict(entry)
+        entry_payload.setdefault("language", language_code)
+        entries.append(entry_payload)
+
+    return {
+        "language": language_code,
+        "supported_languages": list(_SUPPORTED_LANGUAGES),
+        "blueprint": blueprint,
+        "entries": entries,
+    }
 

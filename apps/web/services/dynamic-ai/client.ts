@@ -29,6 +29,7 @@ export interface DynamicAiChatParams {
   sessionId: string;
   messages: ChatRequestMessage[];
   signal?: AbortSignal;
+  language?: string;
 }
 
 export type DynamicAiChatResult = DynamicAiResponse;
@@ -37,6 +38,7 @@ export async function callDynamicAi({
   sessionId,
   messages,
   signal,
+  language,
 }: DynamicAiChatParams): Promise<DynamicAiChatResult> {
   if (!DYNAMIC_AI_CHAT_URL || !DYNAMIC_AI_CHAT_KEY) {
     throw new Error("Dynamic AI chat is not configured");
@@ -68,7 +70,11 @@ export async function callDynamicAi({
         authorization: `Bearer ${DYNAMIC_AI_CHAT_KEY}`,
         "x-session-id": sessionId,
       },
-      body: JSON.stringify({ messages: parsedMessages, sessionId }),
+      body: JSON.stringify({
+        messages: parsedMessages,
+        sessionId,
+        language,
+      }),
       signal: signal ?? controller.signal,
     });
 

@@ -31,6 +31,7 @@ interface SendMessageOptions {
   history: ChatMessage[];
   onToken?: (chunk: ChatStreamChunk) => void;
   signal?: AbortSignal;
+  language?: string;
 }
 
 interface SendMessageResult {
@@ -205,6 +206,7 @@ export function useDynamicChat({
       telegram: telegramData
         ? telegramAuthSchema.parse(telegramData)
         : undefined,
+      language: options.language,
     };
 
     let response: Response;

@@ -12,6 +12,7 @@ export type TelegramAuthData = z.infer<typeof telegramAuthSchema>;
 export const chatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
   content: z.string().min(1),
+  language: z.string().trim().min(2).max(32).optional(),
 });
 
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
@@ -21,6 +22,7 @@ export const chatHistorySchema = z.array(chatMessageSchema);
 export const chatRequestMessageSchema = z.object({
   role: z.enum(["system", "user", "assistant"]),
   content: z.string().min(1),
+  language: z.string().trim().min(2).max(32).optional(),
 });
 
 export type ChatRequestMessage = z.infer<typeof chatRequestMessageSchema>;
@@ -37,6 +39,7 @@ export const chatRequestPayloadSchema = z.object({
   message: z.string().min(1),
   history: chatHistorySchema.max(50).default([]),
   telegram: telegramAuthSchema.optional(),
+  language: z.string().trim().min(2).max(32).optional(),
 });
 
 export type ChatRequestPayload = z.infer<typeof chatRequestPayloadSchema>;
