@@ -1,101 +1,437 @@
-"""Worker that pulls queued signals and executes them in MT5."""
-from __future__ import annotations
-
+import asyncio
 import logging
 import signal
-import threading
 import time
-from typing import Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, Set
+import os
+from pathlib import Path
+import MetaTrader5 as mt5
 
-from src.config.settings import Settings
-from src.services.mt5_service import MT5Service
-from src.services.risk import RiskManager
-from src.services.supabase_client import SupabaseClient, SupabaseError
-from src.utils.redis_queue import QueueItem, RedisQueue
+from src.config.mt5_config import MT5_CONFIG
+from src.services.mt5_service import MT5Service, find_mt5_terminals
+from src.services.tradingview_service import TradingViewService
+from src.utils.database_handler import DatabaseHandler
+from src.utils.queue_handler import RedisQueue
+from src.utils.token_manager import GLOBAL_TOKEN_MANAGER
 
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger('MT5Worker')
 
 class MT5Worker:
-    def __init__(
-        self,
-        settings: Settings,
-        queue: RedisQueue,
-        client: Optional[SupabaseClient] = None,
-    ) -> None:
-        self.settings = settings
-        self.queue = queue
-        self.client = client
-        self.stop_event = threading.Event()
-        self.risk = RiskManager(settings)
-        self.mt5 = MT5Service(settings)
-        self._current_backoff = settings.backoff_initial
+    def __init__(self):
+        self.running = True
+        self.shutdown_event = asyncio.Event()
+        self.open_positions: Set[str] = set()
+        self.loop = None
+        self.queue = None
+        self.db = None
+        self.mt5 = None
+        self.tv_service = None
 
-    def start(self) -> None:
-        signal.signal(signal.SIGINT, self._handle_signal)
-        signal.signal(signal.SIGTERM, self._handle_signal)
-        logger.info("MT5 worker starting")
-        self.run()
-
-    def run(self) -> None:
-        while not self.stop_event.is_set():
-            try:
-                item = self.queue.pop_for_processing(timeout=5)
-                self.queue.heartbeat("worker")
-                if item is None:
-                    continue
-                self._current_backoff = self.settings.backoff_initial
-                self._process_item(item)
-            except SupabaseError as exc:
-                logger.error("Supabase error while processing trade: %s", exc)
-                self._sleep_with_backoff()
-            except Exception as exc:  # pragma: no cover - defensive logging
-                logger.exception("Unexpected error in MT5 worker: %s", exc)
-                self._sleep_with_backoff()
-
-    def _process_item(self, item: QueueItem) -> None:
-        signal_data = item.payload
-        signal_id = signal_data.get("id")
+    def initialize(self):
+        """Initialize all services with shared event loop."""
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        
+        # Check MT5 terminal path before initialization
+        terminal_path = os.getenv('MT5_TERMINAL_PATH')
+        if not terminal_path:
+            print("\n⚠️  MT5_TERMINAL_PATH not set in .env")
+            print("Available MT5 terminals:")
+            terminals = find_mt5_terminals()
+            for i, path in enumerate(terminals, 1):
+                print(f"{i}. {path}")
+            print("\nAdd your chosen path to .env as MT5_TERMINAL_PATH=<path>")
+        
+        # Initialize services
+        self.queue = RedisQueue()
+        self.queue.loop = self.loop
+        
+        self.db = DatabaseHandler()
+        
+        self.mt5 = MT5Service(
+            account=MT5_CONFIG['account'],
+            password=MT5_CONFIG['password'],
+            server=MT5_CONFIG['server'],
+            db_handler=self.db
+        )
+        self.mt5.set_loop(self.loop)
+        
+        self.tv_service = TradingViewService(
+            token_manager=GLOBAL_TOKEN_MANAGER
+        )
+        
+    async def _initialize_positions(self) -> None:
+        """Initialize open positions set on startup."""
         try:
-            if self.client:
-                self.client.mark_in_progress(signal_id)
-            plan = self.risk.build_execution_plan(signal_data)
-            result = self.mt5.execute(plan)
-            if self.client:
-                self.client.mark_filled(signal_id, result.ticket, result.price, result.volume)
-            logger.info(
-                "Executed signal %s at %.5f lot %.2f (ticket %s)",
-                signal_id,
-                result.price,
-                result.volume,
-                result.ticket,
+            if await self.mt5.async_initialize():
+                positions = await self.loop.run_in_executor(None, mt5.positions_get)
+                if positions is not None:
+                    self.open_positions = {str(pos.ticket) for pos in positions}
+                    print(f"\n📊 Initialized {len(self.open_positions)} open positions\n")
+        except Exception as e:
+            logger.error(f"❌ Error initializing positions: {e}")
+
+    async def handle_message(self, msg_type: str, data: Dict[str, Any]) -> None:
+        """Handle messages from Redis channels asynchronously."""
+        try:
+            if msg_type == 'trade':
+                await self.process_trade(data['data'])
+            # elif msg_type == 'status':
+                # print(f"📡 Status: {data['message']}")
+            elif msg_type == 'error':
+                logger.error(f"❌ Queue error: {data['error']}")
+        except Exception as e:
+            logger.error(f"❌ Error handling message: {e}")
+
+    async def process_trade(self, trade_data: Dict[str, Any]) -> None:
+        """Process a single trade asynchronously."""
+        try:
+            trade_id = trade_data['trade_id']
+            start_time = int(time.time() * 1000)
+            
+            # Get common reference IDs
+            position_id = trade_data.get('execution_data', {}).get('positionId', 'N/A')
+            mt5_ticket = trade_data.get('mt5_ticket', 'Pending')
+            
+            
+            # Handle TP/SL updates
+            if trade_data.get('type') == 'update':
+                await self._handle_position_update(trade_data, trade_id, start_time)
+                return
+                
+            # Handle position close
+            if trade_data.get('execution_data', {}).get('isClose', False):
+                await self._handle_position_close(trade_data, trade_id, start_time)
+                return
+                
+            # Handle new position
+            await self._handle_new_position(trade_data, trade_id, start_time)
+            
+        except Exception as e:
+            logger.error(f"❌ Error processing trade: {e}")
+            if 'trade_id' in trade_data:
+                await self.db.async_update_trade_status(
+                    trade_data['trade_id'],
+                    'failed',
+                    {
+                        'error_message': str(e),
+                        'closed_at': datetime.now(timezone.utc).isoformat()
+                    }
+                )
+    
+    async def _handle_new_position(self, trade_data: Dict[str, Any], trade_id: str, start_time: int) -> None:
+        """Handle opening a new position."""
+        position_id = trade_data.get('execution_data', {}).get('positionId', 'N/A')
+        result = await self.mt5.async_execute_market_order(trade_data)
+        
+        if 'error' not in result:
+            status = 'completed'
+            update_data = {
+                'mt5_ticket': result['mt5_ticket'],
+                'mt5_response': result,
+                'execution_time_ms': int(time.time() * 1000) - start_time
+            }
+            
+            mt5_ticket = str(result['mt5_ticket'])
+            self.open_positions.add(mt5_ticket)
+            
+            # Log success
+            direction = trade_data.get('execution_data', {}).get('side', '').lower()
+            direction_emoji = "BUY🔼" if direction == 'buy' else "SELL🔻"
+            execution_price = result.get('price') or trade_data.get('execution_data', {}).get('price', 0.0)
+
+            print(f"✔  Position OPENED: {direction_emoji} {result.get('symbol')} x {result.get('volume')} @ {execution_price}")
+            print(f"🔗 References: TV# {position_id} --> MT5# {mt5_ticket}")
+            
+            if result.get('take_profit') or result.get('stop_loss'):
+                print(f"🎯 TP: {result.get('take_profit')} | SL: {result.get('stop_loss')}")
+            print(f"⚡ Execution time: {update_data['execution_time_ms']}ms\n")
+        else:
+            status = 'failed'
+            update_data = {
+                'error_message': result['error'],
+                'mt5_response': result,
+                'execution_time_ms': int(time.time() * 1000) - start_time
+            }
+            print(f"❌ Open Failed: {result['error']} (TV #{position_id})")
+        
+        await self.db.async_update_trade_status(trade_id, status, update_data)
+
+    async def _handle_position_close(self, trade_data: Dict[str, Any], trade_id: str, start_time: int) -> None:
+        """Handle closing an existing position."""
+        try:
+            position_id = trade_data.get('execution_data', {}).get('positionId', 'N/A')
+            mt5_ticket = trade_data.get('mt5_ticket', 'Pending')
+            is_partial = trade_data.get('is_partial', False)
+            close_amount = float(trade_data.get('qty', 0))
+                        
+            # Send close request
+            result = await self.mt5.async_close_position(trade_data)
+            
+            if 'error' in result:
+                status = 'failed'
+                update_data = {
+                    'error_message': result['error'],
+                    'mt5_response': result,
+                    'execution_time_ms': int(time.time() * 1000) - start_time
+                }
+                print(f"❌ Close Failed: {result['error']} (TV #{position_id} --> MT5 #{mt5_ticket})")
+            else:
+                status = 'closed' if not is_partial else 'updated'
+                update_data = {
+                    'mt5_response': result,
+                    'execution_time_ms': int(time.time() * 1000) - start_time,
+                    'is_closed': not is_partial,
+                    'closed_at': datetime.now(timezone.utc).isoformat() if not is_partial else None
+                }
+                
+                mt5_ticket = str(trade_data.get('mt5_ticket'))
+                if not is_partial:
+                    self.open_positions.discard(mt5_ticket)
+                
+                direction = trade_data.get('execution_data', {}).get('side', '').lower()
+                direction_emoji = "SELL🔻" if direction == 'buy' else "BUY🔼"
+                execution_price = result.get('price') or trade_data.get('execution_data', {}).get('price', 0.0)
+
+                print(f"{'🛡  Position partially closed' if is_partial else '📌 Position CLOSED'}: {direction_emoji} {result.get('symbol')} {result.get('volume')} @ {execution_price}")
+                print(f"🔗 References: TV# {position_id} --> MT5# {mt5_ticket}")
+                
+                if is_partial:
+                    remaining = result.get('remaining_volume', 0)
+                    print(f"🔳 Remaining volume: {remaining}")
+                    
+                    
+                print(f"⚡ Execution time: {update_data['execution_time_ms']}ms\n")
+            
+            await self.db.async_update_trade_status(trade_id, status, update_data)
+            
+        except Exception as e:
+            logger.error(f"❌ Error in _handle_position_close: {e}")
+            if 'trade_id' in trade_data:
+                await self.db.async_update_trade_status(
+                    trade_data['trade_id'],
+                    'failed',
+                    {
+                        'error_message': str(e),
+                        'closed_at': datetime.now(timezone.utc).isoformat()
+                    }
+                )
+    
+    async def _handle_position_update(self, trade_data: Dict[str, Any], trade_id: str, start_time: int) -> None:
+        """Handle updating TP/SL for an existing position."""
+        try:
+            position_id = trade_data.get('position_id', 'N/A')
+            mt5_ticket = trade_data.get('mt5_ticket', 'N/A')
+            
+            # Get current trade data
+            trade = await self.db.async_get_trade_by_mt5_ticket(mt5_ticket)
+            if not trade:
+                logger.error(f"No trade found for MT5 ticket {mt5_ticket}")
+                return
+                
+            if trade.get('is_closed'):
+                logger.info(f"Position {mt5_ticket} is already closed, skipping update")
+                return
+            
+            result = await self.mt5.async_update_position(trade_data)
+            
+            if 'error' not in result:
+                status = 'updated'
+                update_data = {
+                    'mt5_response': result,
+                    'execution_time_ms': int(time.time() * 1000) - start_time,
+                    'take_profit': result.get('take_profit'),
+                    'stop_loss': result.get('stop_loss')
+                }
+
+                print(f"💱 Position updated for {result.get('symbol')} x {trade.get('quantity')} @ {trade.get('execution_price')}")
+                print(f"🔗 References: TV# {position_id} --> MT5# {mt5_ticket}")
+                
+                if result.get('take_profit') or result.get('stop_loss'):
+                    print(f"🎯 New TP: {result.get('take_profit')} | SL: {result.get('stop_loss')}")
+                print(f"⚡ Execution time: {update_data['execution_time_ms']}ms\n")
+                
+            else:
+                status = 'failed'
+                update_data = {
+                    'error_message': result['error'],
+                    'mt5_response': result,
+                    'execution_time_ms': int(time.time() * 1000) - start_time
+                }
+                print(f"❌ Update Failed: {result['error']} (TV #{position_id} --> MT5# {mt5_ticket})")
+            
+            await self.db.async_update_trade_status(trade_id, status, update_data)
+            
+        except Exception as e:
+            logger.error(f"❌ Error in _handle_position_update: {e}")
+            await self.db.async_update_trade_status(
+                trade_id,
+                'failed',
+                {
+                    'error_message': str(e),
+                    'closed_at': datetime.now(timezone.utc).isoformat()
+                }
             )
-            self.queue.ack(item)
-        except SupabaseError:
-            self.queue.requeue(item)
-            raise
-        except Exception as exc:
-            logger.error("Trade execution failed for signal %s: %s", signal_id, exc)
-            if self.client and signal_id is not None:
+
+    async def check_mt5_positions(self) -> None:
+        """Monitor MT5 positions for manual closes asynchronously."""
+        try:
+            if not await self.mt5.async_initialize():
+                return
+
+            positions = await self.loop.run_in_executor(None, mt5.positions_get)
+            if positions is None:
+                return
+
+            current_position_tickets = {str(pos.ticket) for pos in positions}
+
+            for ticket in self.open_positions.copy():
+                # Check if position exists in current positions
+                if ticket not in current_position_tickets:
+                    await self.handle_mt5_close(ticket)
+                    self.open_positions.discard(ticket)
+
+            self.open_positions = current_position_tickets
+
+        except Exception as e:
+            logger.error(f"❌ Error checking positions: {e}")
+
+    async def handle_mt5_close(self, ticket: str) -> None:
+        """Handle position closed in MT5 asynchronously."""
+        try:            
+            print(f"📤 Processing MT5-initiated close for Ticket#: {ticket}")
+                
+            # Get trade data from database
+            trade = await self.db.async_get_trade_by_mt5_ticket(ticket)
+            if not trade:
+                logger.info(f"ℹ️ No trade found for MT5 ticket {ticket}\n")
+                return
+                    
+            if trade.get('is_closed'):
+                print()
+                return
+
+            position_id = trade.get('position_id')
+            if not position_id:
+                logger.error(f"❌ No position ID for trade {trade['trade_id']}\n")
+                return
+
+            # First update database status
+            await self.db.async_update_trade_status(trade['trade_id'], 'closed', {
+                'is_closed': True,
+                'closed_at': datetime.now(timezone.utc).isoformat()
+            })
+
+            # Log position details
+            direction = trade.get('side', '').lower()
+            direction_emoji = "BUY🔼" if direction == 'buy' else "SELL🔻"
+            
+            # Send close request to TradingView
+            result = await self.tv_service.async_close_position(position_id)
+            
+            if result.get('error'):
+                if not '404' in str(result['error']):
+                    logger.error(f"❌ Failed to close TV position: {result['error']}\n")
+                return
+
+            print(f"📌 Closed {direction_emoji} {trade['instrument']} x {trade['quantity']}")
+            print(f"🔗 References: TV# {position_id} <-- MT5# {ticket}\n")
+
+        except Exception as e:
+            logger.error(f"❌ Error handling MT5 close: {e}\n")
+            if 'trade' in locals() and trade:
+                await self.db.async_update_trade_status(trade['trade_id'], 'failed', {
+                    'error_message': str(e),
+                    'closed_at': datetime.now(timezone.utc).isoformat()
+                })
+    
+    async def run_async(self):
+        """Run the worker service asynchronously."""
+        print("\n🚀 MT5 Worker Started")
+        print("👀 Watching for trades...\n")
+        
+        try:
+            # Initialize positions
+            await self._initialize_positions()
+            
+            # Start trailing stop monitor as a task
+            if self.mt5.initialized:
+                self.loop.create_task(self.mt5.monitor_trailing_stops())
+            
+            # Main loop for position checking
+            while self.running:
                 try:
-                    self.client.mark_error(signal_id, str(exc))
-                except SupabaseError as supa_exc:
-                    logger.error("Failed to mark signal %s as error: %s", signal_id, supa_exc)
-            self.queue.requeue(item)
-            time.sleep(1)
+                    await self.check_mt5_positions()
+                    await asyncio.sleep(1)
+                except Exception as e:
+                    logger.error(f"❌ Error in position check: {e}")
+                    await asyncio.sleep(1)
+                    
+        except Exception as e:
+            logger.error(f"❌ Fatal error: {e}")
+        finally:
+            self.running = False
+            print("\n🛑 Worker stopped")
 
-    def stop(self) -> None:
-        self.stop_event.set()
-        self.mt5.shutdown()
+    def handle_shutdown(self, signum, frame):
+        """Handle shutdown signals gracefully."""
+        logger.info("\n⛔ Shutdown requested...")
+        self.running = False
+        if self.loop:
+            self.loop.call_soon_threadsafe(self.shutdown_event.set)
 
-    def _sleep_with_backoff(self) -> None:
-        logger.info("Worker backing off for %.1fs", self._current_backoff)
-        time.sleep(self._current_backoff)
-        self._current_backoff = min(self._current_backoff * 2, self.settings.backoff_max)
+    async def shutdown(self):
+        """Perform async shutdown tasks."""
+        logger.info("🛑 Initiating shutdown sequence...")
+        self.running = False
+        
+        # Wait a bit for ongoing operations to complete
+        await asyncio.sleep(0.5)
+        
+        # Cleanup resources
+        self.cleanup()
+        logger.info("✅ Shutdown completed")
 
-    def _handle_signal(self, signum, frame) -> None:  # pragma: no cover - signal handling
-        logger.info("Received signal %s, stopping worker", signum)
-        self.stop()
-
-
-__all__ = ["MT5Worker"]
+    def run(self):
+        """Run the worker service with proper signal handling."""
+        try:
+            # Initialize services
+            self.initialize()
+            
+            # Set up signal handlers
+            signal.signal(signal.SIGINT, self.handle_shutdown)
+            signal.signal(signal.SIGTERM, self.handle_shutdown)
+            
+            # Subscribe to Redis channels
+            self.queue.subscribe(self.handle_message)
+            
+            # Run the main async loop
+            self.loop.run_until_complete(self.run_async())
+            
+        except KeyboardInterrupt:
+            logger.info("\n⛔ Keyboard interrupt received...")
+        except Exception as e:
+            logger.error(f"❌ Fatal error: {e}")
+        finally:
+            # Run shutdown sequence
+            self.loop.run_until_complete(self.shutdown())
+            self.loop.close()
+    
+    def cleanup(self):
+        """Cleanup resources in correct order."""
+        logger.info("🧹 Cleaning up resources...")
+        
+        # Clean up MT5 first
+        if self.mt5:
+            self.mt5.cleanup()
+        
+        # Then database
+        if self.db:
+            self.db.cleanup()
+        
+        # Redis cleanup last (after all other operations are done)
+        if self.queue:
+            self.queue.cleanup()
+        
+        logger.info("✨ All resources cleaned up")
