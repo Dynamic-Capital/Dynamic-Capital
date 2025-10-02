@@ -17,6 +17,7 @@ __all__ = [
     "DynamicAICoreModel",
     "DynamicAGICoreModel",
     "DynamicAGSCoreModel",
+    "DynamicETLCoreModel",
 ]
 
 
@@ -541,6 +542,68 @@ class DynamicAGSCoreModel(DynamicCoreModel):
                     critical=0.65,
                     description="Observability of events, approvals, and mirrored artefacts.",
                     tags=("telemetry", "observability"),
+                ),
+            ),
+            window=window,
+        )
+
+
+class DynamicETLCoreModel(DynamicCoreModel):
+    """Dynamic Core model focusing on ETL reliability and throughput."""
+
+    def __init__(self, *, window: int = 12) -> None:
+        super().__init__(
+            "Dynamic ETL",
+            (
+                CoreMetricDefinition(
+                    key="pipeline_success_rate",
+                    label="Pipeline Success Rate",
+                    weight=1.2,
+                    target=0.9,
+                    warning=0.78,
+                    critical=0.65,
+                    description="Proportion of scheduled ETL jobs completing without retries or failures.",
+                    tags=("reliability", "pipelines"),
+                ),
+                CoreMetricDefinition(
+                    key="data_freshness",
+                    label="Data Freshness",
+                    weight=1.1,
+                    target=0.87,
+                    warning=0.74,
+                    critical=0.6,
+                    description="Timeliness of ingested datasets relative to upstream service level objectives.",
+                    tags=("freshness", "latency"),
+                ),
+                CoreMetricDefinition(
+                    key="schema_resilience",
+                    label="Schema Resilience",
+                    weight=1.0,
+                    target=0.84,
+                    warning=0.7,
+                    critical=0.56,
+                    description="Ability to absorb schema drift via contracts, validation, and automated migrations.",
+                    tags=("schema", "quality"),
+                ),
+                CoreMetricDefinition(
+                    key="throughput_efficiency",
+                    label="Throughput Efficiency",
+                    weight=1.05,
+                    target=0.82,
+                    warning=0.68,
+                    critical=0.54,
+                    description="Utilisation of compute, I/O, and scheduling windows relative to expected throughput.",
+                    tags=("performance", "throughput"),
+                ),
+                CoreMetricDefinition(
+                    key="recovery_velocity",
+                    label="Recovery Velocity",
+                    weight=0.95,
+                    target=0.85,
+                    warning=0.72,
+                    critical=0.58,
+                    description="Speed of detecting, triaging, and restoring ETL services after incidents.",
+                    tags=("resilience", "incidents"),
                 ),
             ),
             window=window,
