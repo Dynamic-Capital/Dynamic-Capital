@@ -7,6 +7,7 @@ node_modules/
 !.yarn/plugins
 !.yarn/sdks
 !.yarn/versions
+.deno/
 
 # Next.js & build outputs
 .next/
@@ -90,3 +91,6 @@ bun.lockb
 .project-cache/
 # Python bytecode cache directories
 __pycache__/
+
+# External resources (downloaded on demand)
+third_party/iqm-academy-cheat-sheets/
