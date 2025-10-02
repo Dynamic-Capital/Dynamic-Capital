@@ -62,6 +62,7 @@ _KEEPER_EXPORTS = {
         "DynamicRecyclingKeeper",
         "RecyclingKeeperSnapshot",
     ),
+    "dynamic_keepers.dhivehi_language": ("DynamicDhivehiLanguageKeeper",),
     "dynamic_keepers.ocean": (
         "DynamicOceanLayerKeeper",
         "DynamicEpipelagicKeeper",
