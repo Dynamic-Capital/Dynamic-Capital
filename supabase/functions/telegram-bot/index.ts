@@ -540,17 +540,18 @@ async function handleAskCommand(ctx: CommandContext): Promise<void> {
   const question = ctx.args.join(" ");
   if (!question) {
     const usage = await getContent("ask_usage") ??
-      "Please provide a question. Example: /ask What is trading?";
+      "Please send a question, e.g. /ask How do I size positions?";
     await notifyUser(ctx.chatId, usage);
     return;
   }
   try {
     const answer = await askChatGPT(question) ??
       (await getContent("ask_no_answer")) ??
-      "Unable to get answer.";
+      "I couldn't find anything helpful. Try rephrasing or ask /support.";
     await notifyUser(ctx.chatId, answer);
   } catch {
-    const msg = await getContent("ask_failed") ?? "Failed to get answer.";
+    const msg = await getContent("ask_failed") ??
+      "The coaching assistant is unavailable right now. Please try again shortly.";
     await notifyUser(ctx.chatId, msg);
   }
 }
@@ -559,13 +560,13 @@ async function handleShouldIBuyCommand(ctx: CommandContext): Promise<void> {
   const instrument = ctx.args[0];
   if (!instrument) {
     const usage = await getContent("shouldibuy_usage") ??
-      "Please provide an instrument. Example: /shouldibuy XAUUSD";
+      "Please send a symbol, e.g. /shouldibuy XAUUSD.";
     await notifyUser(ctx.chatId, usage);
     return;
   }
   if (!SUPABASE_URL) {
     const msg = await getContent("service_unavailable") ??
-      "Service unavailable.";
+      "Service temporarily unavailable. Please try again soon.";
     await notifyUser(ctx.chatId, msg);
     return;
   }
@@ -578,11 +579,11 @@ async function handleShouldIBuyCommand(ctx: CommandContext): Promise<void> {
     const data = await res.json().catch(() => ({}));
     const analysis = data.analysis ??
       (await getContent("shouldibuy_no_analysis")) ??
-      "Unable to get analysis.";
+      "No analysis is available yet. Try again soon or contact /support.";
     await notifyUser(ctx.chatId, analysis, { parse_mode: "Markdown" });
   } catch {
     const msg = await getContent("shouldibuy_failed") ??
-      "Failed to get analysis.";
+      "The analysis desk is offline right now. Please try again shortly.";
     await notifyUser(ctx.chatId, msg);
   }
 }
@@ -876,7 +877,8 @@ Route inquiries or marketing requests to the channels listed above.`;
   }
   const msg = await getContent("welcome_message");
   return {
-    text: msg ?? "Welcome! Choose an option:",
+    text: msg ??
+      "Welcome to Dynamic Capital! Choose how you'd like to continue:",
     extra: { reply_markup: markup, parse_mode: "Markdown" },
   };
 }
@@ -1564,7 +1566,7 @@ async function handleCallback(update: TelegramUpdate): Promise<void> {
       }
       if (!SUPABASE_URL) {
         const msg = await getContent("service_unavailable") ??
-          "Service unavailable.";
+          "Service temporarily unavailable. Please try again soon.";
         await notifyUser(chatId, msg);
         return;
       }
