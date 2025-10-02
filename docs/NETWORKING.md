@@ -82,6 +82,27 @@ recreate DNS records, use the anycast A records published for the app:
 - `162.159.140.98`
 - `172.66.0.96`
 
+## Endpoint reference
+
+Use the following matrix when wiring Dynamic surfaces through Cloudflare, TON
+DNS, or broker tunnels.
+
+| Surface                                | Endpoint(s)                                                                          | Proxy / Ingress                                                                                                                                                                | Auth / Token                                                                                                                                            | Notes                                                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Dynamic Capital web3 / Mini App**    | `https://dynamiccapital.ton`<br>`https://ton.site/dynamiccapital.ton`                | Cloudflare anycast `162.159.140.98`, `172.66.0.96`<br>TON lite servers `31.57.199.1:5053`, `163.5.62.1:5053`<br>Lite server key `Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=` | TON Connect manifest + `NEXT_PUBLIC_MINI_APP_URL`<br>Telegram analytics bot id `3672406698`                                                             | Keep `MINI_APP_URL` and `MINIAPP_ORIGIN` on the TON host so bots and web clients share cookies. |
+| **Dynamic AI API**                     | `https://api.dynamiccapital.ton/chat`<br>`https://api.dynamiccapital.ton/transcribe` | Cloudflare anycast `162.159.140.98`, `172.66.0.96`                                                                                                                             | `DYNAMIC_AI_CHAT_KEY`, `DYNAMIC_AI_VOICE_TO_TEXT_KEY`<br>Fallback `DYNAMIC_AI_SERVICE_KEY` stored in ops vault (`AGFAVS…OSLTFOY`)                       | Maintain 30 s chat and 120 s transcription timeouts for predictable retries.                    |
+| **Dynamic Capital AGI**                | `https://api.dynamiccapital.ton/agi/chat`                                            | Cloudflare anycast `162.159.140.98`, `172.66.0.96`                                                                                                                             | `DYNAMIC_AGI_CHAT_KEY`<br>Fallback `DYNAMIC_AGI_SERVICE_KEY`                                                                                            | 45 s timeout balances orchestration latency with webhook SLAs.                                  |
+| **Dynamic Capital AGS**                | `https://api.dynamiccapital.ton/functions/v1/dags-domain-health`                     | Supabase custom domain fronted by Cloudflare                                                                                                                                   | Supabase service-role execution context                                                                                                                 | Validates governance tables plus mirrored OneDrive artefacts for AGS health.                    |
+| **Dynamic trading algo / TradingView** | `https://www.dynamiccapital.ton/webhook`<br>`https://api.dynamiccapital.ton/webhook` | Cloudflare anycast `162.159.140.98`, `172.66.0.96`                                                                                                                             | `TRADINGVIEW_WEBHOOK_SECRET`, `TRADING_SIGNALS_WEBHOOK_SECRET`<br>Telegram ingress token `TELEGRAM_WEBHOOK_SECRET` (`d9e6f84483e748649e793a1895eacfe3`) | Shared ingress fan-outs TradingView payloads into Supabase and MT5.                             |
+| **MetaTrader 5 bridge & telemetry**    | `https://bridge.dynamiccapital.ton`<br>(fallback when `BRIDGE_HOST` unset)           | Broker-hosted MT5 terminal tunneled via SSH                                                                                                                                    | `MT5_BRIDGE_WORKER_ID`, `BRIDGE_USER`, `BRIDGE_SSH_KEY`                                                                                                 | Bridge polls Supabase for signals and reports fills with the same worker id.                    |
+
+### TON lite server rotation
+
+When refreshing TON connectivity, rotate through both lite servers
+(`31.57.199.1` and `163.5.62.1` on port `5053`). Pin the shared lite server
+public key `Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=` in Telegram mini app
+builds to avoid TLS prompts for wallet users.
+
 ## Environment variables
 
 - Copy `.env.example` to `.env` and `.env.local`, then fill in credentials.

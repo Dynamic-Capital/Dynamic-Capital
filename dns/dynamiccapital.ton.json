@@ -21,7 +21,21 @@
   },
   "ton_site": {
     "adnl_address": "0:192631d3bc9dd251d3b6d5cd4e807c68e53e1b6126499d8c5db3e7bb4ccc9243",
-    "public_key_base64": "0PiJ9VlwxSxHP7XyEV5sKzgj9jkgWOH8bCWdSPM5LGc=",
+    "public_key_base64": "Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=",
+    "lite_servers": [
+      {
+        "host": "31.57.199.1",
+        "port": 5053,
+        "public_key_base64": "Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=",
+        "note": "Server #1 — primary TON lite server announced by Dynamic Capital ops"
+      },
+      {
+        "host": "163.5.62.1",
+        "port": 5053,
+        "public_key_base64": "Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=",
+        "note": "Server #2 — secondary TON lite server mirroring the primary public key"
+      }
+    ],
     "generated": {
       "command": "npm run ton:generate-adnl",
       "timestamp": "2025-10-01T10:03:05Z",
