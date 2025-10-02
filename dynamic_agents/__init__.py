@@ -41,6 +41,12 @@ __all__ = [
     "NFTAgentInsight",
     "DynamicDhivehiLanguageAgent",
     "DhivehiLanguageAgentInsight",
+    "DynamicBusinessAgent",
+    "BusinessEngineInsight",
+    "SalesSnapshot",
+    "AccountingSnapshot",
+    "MarketingSnapshot",
+    "PsychologySnapshot",
     "configure_dynamic_start_agents",
     "ExecutionAgent",
     "ExecutionAgentResult",
@@ -90,6 +96,12 @@ _LAZY = LazyNamespace(
         "NFTAgentInsight": "dynamic_agents.nft_engine",
         "DynamicDhivehiLanguageAgent": "dynamic_agents.dhivehi_language",
         "DhivehiLanguageAgentInsight": "dynamic_agents.dhivehi_language",
+        "DynamicBusinessAgent": "dynamic_agents.business",
+        "BusinessEngineInsight": "dynamic_agents.business",
+        "SalesSnapshot": "dynamic_agents.business",
+        "AccountingSnapshot": "dynamic_agents.business",
+        "MarketingSnapshot": "dynamic_agents.business",
+        "PsychologySnapshot": "dynamic_agents.business",
         "RecyclingAgentConfig": "dynamic_agents.recycling",
         "RecyclingAgentReport": "dynamic_agents.recycling",
         "DynamicOceanLayerAgent": "dynamic_agents.ocean",
@@ -147,6 +159,14 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
     from dynamic_agents.dhivehi_language import (
         DhivehiLanguageAgentInsight,
         DynamicDhivehiLanguageAgent,
+    )
+    from dynamic_agents.business import (
+        AccountingSnapshot,
+        BusinessEngineInsight,
+        DynamicBusinessAgent,
+        MarketingSnapshot,
+        PsychologySnapshot,
+        SalesSnapshot,
     )
     from dynamic_agents.recycling import (
         DynamicRecyclingAgent,
