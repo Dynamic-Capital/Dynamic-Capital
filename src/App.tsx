@@ -1,16 +1,24 @@
 import { type ReactNode } from "react";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Providers from "@/app/providers";
+import { TonConnectProvider } from "@/integrations/tonconnect";
 import { DynamicGuiShowcase } from "./components/DynamicGuiShowcase";
 import CheckoutPage from "~/pages/CheckoutPage";
 import NotFoundPage from "~/pages/NotFoundPage";
 import DashboardPage from "~/pages/DashboardPage";
 import MarketPage from "~/pages/MarketPage";
 import SnapshotPage from "~/pages/SnapshotPage";
-import { LayoutDashboard, TrendingUp, Camera } from "lucide-react";
+import Web3Page from "~/pages/Web3Page";
+import { LayoutDashboard, TrendingUp, Camera, Wallet } from "lucide-react";
 
 function AppProviders({ children }: { children: ReactNode }) {
-  return <Providers>{children}</Providers>;
+  return (
+    <Providers>
+      <TonConnectProvider>
+        {children}
+      </TonConnectProvider>
+    </Providers>
+  );
 }
 
 function HomePage() {
@@ -65,6 +73,13 @@ function SiteHeader() {
               <Camera className="w-4 h-4" />
               Snapshot
             </Link>
+            <Link
+              to="/web3"
+              className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+            >
+              <Wallet className="w-4 h-4" />
+              Web3
+            </Link>
           </nav>
         </div>
       </div>
@@ -84,6 +99,7 @@ function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/market" element={<MarketPage />} />
               <Route path="/snapshot" element={<SnapshotPage />} />
+              <Route path="/web3" element={<Web3Page />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
