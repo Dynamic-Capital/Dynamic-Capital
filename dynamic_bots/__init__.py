@@ -32,6 +32,7 @@ _EXPORT_MAP = {
     "dynamic_bots.nft_engine": (
         "DynamicNFTBot",
     ),
+    "dynamic_bots.dhivehi_language": ("DynamicDhivehiLanguageBot",),
     "dynamic_bots.elements": (
         "ElementBotPersona",
         "ELEMENT_BOTS",

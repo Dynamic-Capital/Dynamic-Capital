@@ -27,6 +27,7 @@ _BUILDER_EXPORTS = {
     "algorithms.python.dynamic_market_snapshot": ("DynamicMarketSnapshotBuilder",),
     "algorithms.python.dynamic_market_index": ("DynamicMarketIndexBuilder",),
     "dynamic_architecture.builder": ("DynamicArchitectureBuilder",),
+    "dynamic.intelligence.ai_apps.dhivehi_language": ("DynamicDhivehiLanguageBuilder",),
     "dynamic_crawl": (
         "CrawlPlan",
         "DynamicCrawler",
