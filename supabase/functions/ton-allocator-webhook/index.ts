@@ -27,6 +27,15 @@ interface WebhookBody {
   observedAt?: string;
 }
 
+type SupabaseServiceClient = ReturnType<typeof createClient>;
+
+function getSupabaseServiceClient(): SupabaseServiceClient {
+  const injected = (globalThis as {
+    __SUPABASE_SERVICE_CLIENT__?: SupabaseServiceClient;
+  }).__SUPABASE_SERVICE_CLIENT__;
+  return injected ?? createClient("service");
+}
+
 function hexToBytes(hex: string): Uint8Array {
   const clean = hex.replace(/^0x/, "");
   if (clean.length % 2 !== 0) throw new Error("hex length must be even");
@@ -127,7 +136,7 @@ export const handler = registerHandler(async (req) => {
     );
   }
 
-  const supabase = createClient("service");
+  const supabase = getSupabaseServiceClient();
   const now = new Date().toISOString();
 
   const insertPayload = {
