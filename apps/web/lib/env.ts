@@ -25,6 +25,7 @@ export const publicSchema = z.object({
   NEXT_PUBLIC_API_URL: z.string().url().optional(),
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_MINI_APP_URL: z.string().url().optional(),
   NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_HOST: z.string().optional(),
@@ -99,6 +100,10 @@ function validatePublicEnv(): ValidationResult {
       "SENTRY_DSN",
     ]),
     NEXT_PUBLIC_SITE_URL: optionalEnvVar("NEXT_PUBLIC_SITE_URL", ["SITE_URL"]),
+    NEXT_PUBLIC_MINI_APP_URL: optionalEnvVar(
+      "NEXT_PUBLIC_MINI_APP_URL",
+      ["MINI_APP_URL"],
+    ),
     NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET: optionalEnvVar(
       "NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET",
       ["TELEGRAM_WEBHOOK_SECRET"],
