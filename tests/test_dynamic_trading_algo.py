@@ -140,6 +140,39 @@ def test_execute_trade_scales_lot_with_signal_quality() -> None:
     assert result.lot == pytest.approx(expected, abs=1e-4)
 
 
+def test_execute_trade_blends_intelligence_overlays() -> None:
+    connector = StubConnector()
+    algo = DynamicTradingAlgo(connector=connector)
+
+    signal = {
+        "action": ORDER_ACTION_BUY,
+        "intelligence": {
+            "ai": {"confidence": 0.8, "conviction": 0.65, "bias": 0.25},
+            "agi": {"directive": "scale_up", "risk": 0.3, "alignment": 0.1},
+            "exposure_bias": 0.1,
+            "stability": 0.4,
+        },
+    }
+
+    expected = 0.2
+    expected *= 0.72 + 0.56 * 0.8
+    expected *= 0.75 + 0.45 * 0.65
+    expected *= 1.0 + 0.18 * 0.25
+    expected *= 1.0 + 0.12 * 0.1
+    expected *= 1.0 + 0.15 * 0.1
+    expected *= max(0.55, 1.0 - 0.6 * 0.3)
+    expected *= 0.85 + 0.3 * 0.4
+    expected *= 1.2
+
+    result = algo.execute_trade(signal, lot=0.2, symbol="eurusd")
+
+    assert len(connector.calls) == 1
+    symbol, lot = connector.calls[0]
+    assert symbol == "EURUSD"
+    assert lot == pytest.approx(expected, abs=1e-4)
+    assert result.lot == pytest.approx(expected, abs=1e-4)
+
+
 def test_execute_trade_respects_signal_caps() -> None:
     connector = StubConnector()
     algo = DynamicTradingAlgo(connector=connector)
