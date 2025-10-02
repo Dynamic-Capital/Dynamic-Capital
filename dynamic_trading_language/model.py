@@ -220,12 +220,52 @@ class MarketNarrative:
         self.insights = _normalise_tuple(self.insights)
         self.tags = _normalise_tuple(self.tags)
 
+    def to_markdown(self) -> str:
+        """Render the narrative as a markdown deck for distribution."""
+
+        lines: list[str] = [f"# {self.headline}", "", "## Thesis", self.thesis]
+
+        lines.extend(["", "## Key Levels"])
+        if self.key_levels:
+            lines.extend(f"- {level}" for level in self.key_levels)
+        else:  # pragma: no cover - defensive branch
+            lines.append("- None specified")
+
+        lines.extend(["", "## Risk Mitigation"])
+        if self.risk_mitigation:
+            lines.extend(f"- {item}" for item in self.risk_mitigation)
+        else:  # pragma: no cover - defensive branch
+            lines.append("- Maintain disciplined execution")
+
+        lines.extend(["", "## Call To Action", self.call_to_action])
+
+        lines.extend(
+            [
+                "",
+                "## Meta",
+                f"- Style: {self.style}",
+                f"- Confidence: {self.confidence:.0%}",
+            ]
+        )
+
+        if self.insights:
+            lines.extend(["", "## Desk Insights"])
+            lines.extend(f"- {insight}" for insight in self.insights)
+
+        if self.tags:
+            lines.extend(["", "## Tags", ", ".join(self.tags)])
+
+        return "\n".join(lines) + "\n"
+
 
 class DynamicTradingLanguageModel:
     """Crafts institutional-grade narratives for Dynamic Capital trade ideas."""
 
+    __slots__ = ("_tone", "_tone_upper", "_guardrails")
+
     def __init__(self, *, tone: str = "institutional", guardrails: Sequence[str] | None = None) -> None:
         self._tone = _normalise_text(tone)
+        self._tone_upper = self._tone.upper()
         self._guardrails = _normalise_tuple(guardrails)
 
     def _coerce_orderflow(
@@ -292,6 +332,18 @@ class DynamicTradingLanguageModel:
     @property
     def guardrails(self) -> tuple[str, ...]:
         return self._guardrails
+
+    def _extend_unique(self, target: list[str], values: Sequence[str] | None, seen: set[str]) -> None:
+        if not values:
+            return
+        for value in values:
+            cleaned = (value or "").strip()
+            if not cleaned:
+                continue
+            lowered = cleaned.casefold()
+            if lowered not in seen:
+                seen.add(lowered)
+                target.append(cleaned)
 
     def _desired_flow_direction(self, intent: TradeIntent) -> str:
         direction_map = {"long": "buy", "short": "sell", "flat": "neutral"}
@@ -427,14 +479,24 @@ class DynamicTradingLanguageModel:
         intent: TradeIntent,
     ) -> list[str]:
         risk_items = list(self._guardrails)
-        if intent.risk_notes:
-            risk_items.extend(intent.risk_notes)
+        seen = {item.casefold() for item in risk_items}
+
+        self._extend_unique(risk_items, intent.risk_notes, seen)
+
         if environment and environment.volatility_regime == "stressed":
-            risk_items.append("Size positions defensively given stressed volatility regime")
+            self._extend_unique(
+                risk_items,
+                ("Size positions defensively given stressed volatility regime",),
+                seen,
+            )
         if not intent.has_levels:
-            risk_items.append("Define entry, target, and risk levels before allocating capital")
-        if order_flow_risk:
-            risk_items.extend(order_flow_risk)
+            self._extend_unique(
+                risk_items,
+                ("Define entry, target, and risk levels before allocating capital",),
+                seen,
+            )
+        self._extend_unique(risk_items, order_flow_risk, seen)
+
         if not risk_items:
             risk_items.append("Maintain disciplined execution and validate liquidity before entry")
         return risk_items
@@ -465,7 +527,7 @@ class DynamicTradingLanguageModel:
             intent.instrument.upper(),
             intent.direction.upper(),
             intent.timeframe.upper(),
-            self._tone.upper(),
+            self._tone_upper,
         }
         if environment:
             tags.add(environment.volatility_regime.upper())

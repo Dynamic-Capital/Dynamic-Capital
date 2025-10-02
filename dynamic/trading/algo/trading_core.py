@@ -1163,6 +1163,19 @@ class DynamicTradingAlgo:
                 self._alias_index[token] = canonical_default
 
         self.default_symbol = canonical_default
+        self._symbol_cache: Dict[str, tuple[str, InstrumentProfile]] = {}
+        for symbol, profile in self.instrument_profiles.items():
+            token = _normalise_symbol_token(symbol)
+            if token:
+                self._symbol_cache[token] = (symbol, profile)
+            for alias in profile.aliases:
+                alias_token = _normalise_symbol_token(alias)
+                if alias_token and alias_token not in self._symbol_cache:
+                    self._symbol_cache[alias_token] = (symbol, profile)
+        if default_token:
+            default_profile = self.instrument_profiles[canonical_default]
+            self._symbol_cache.setdefault(default_token, (canonical_default, default_profile))
+
         self._paper_broker = _PaperBroker()
         self.connector = connector or self._bootstrap_connector()
         self._version, self._version_metadata = self._coerce_version(version)
@@ -1389,9 +1402,11 @@ class DynamicTradingAlgo:
     def _resolve_symbol(self, symbol: Optional[str]) -> tuple[str, InstrumentProfile]:
         candidate = symbol if symbol is not None else self.default_symbol
         token = _normalise_symbol_token(candidate)
-        if not token:
-            token = _normalise_symbol_token(self.default_symbol)
-        canonical = self._alias_index.get(token)
+        cache_key = token or _normalise_symbol_token(self.default_symbol)
+        if cache_key and cache_key in self._symbol_cache:
+            return self._symbol_cache[cache_key]
+
+        canonical = self._alias_index.get(token) if token else None
         if canonical is None:
             canonical = token or self.default_symbol
 
@@ -1402,7 +1417,13 @@ class DynamicTradingAlgo:
             canonical_token = _normalise_symbol_token(canonical)
             if canonical_token:
                 self._alias_index[canonical_token] = canonical
+                self._symbol_cache[canonical_token] = (canonical, profile)
 
+        resolved_token = _normalise_symbol_token(canonical)
+        if resolved_token:
+            self._symbol_cache[resolved_token] = (canonical, profile)
+        if token and token not in self._symbol_cache:
+            self._symbol_cache[token] = (canonical, profile)
         return canonical, profile
 
     def _clamp_lot(self, lot: float, profile: InstrumentProfile) -> float:
