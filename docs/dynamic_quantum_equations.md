@@ -36,6 +36,44 @@ choosing \(H = 10^{14}\,\text{GeV}\) and \(\epsilon = 0.01\) yields
 \(P_{\mathcal{R}}^{1/2} \approx 4.5 \times 10^{-5}\), matching the COBE/WMAP
 normalization.
 
+#### Worked derivation: from Mukhanov–Sasaki to \(P_{\mathcal{R}}(k)\)
+
+1. Start with the Mukhanov–Sasaki equation for the canonical mode \(v_k = z
+   \mathcal{R}_k\):
+
+   ```math
+   v_k'' + \left(k^2 - \frac{z''}{z}\right) v_k = 0, \qquad z \equiv a \frac{\dot{\phi}}{H}.
+   ```
+
+   In slow-roll de Sitter, \(z''/z \approx 2/\tau^2\) with conformal time \(\tau
+   = -1/(aH)(1-\epsilon)\).
+
+2. Impose Bunch–Davies initial conditions deep inside the horizon (\(|k\tau| \gg
+   1\)) so that
+
+   ```math
+   v_k(\tau) \to \frac{1}{\sqrt{2k}} e^{-ik\tau}.
+   ```
+
+3. Solve the equation with Hankel functions. For nearly scale-invariant
+   backgrounds, the late-time solution (\(|k\tau| \ll 1\)) becomes
+
+   ```math
+   v_k(\tau) \simeq \frac{i}{\sqrt{2k^3}} \frac{1}{\tau} (1 + i k \tau) e^{-ik\tau}.
+   ```
+
+4. Convert back to curvature perturbations using \(\mathcal{R}_k = v_k / z\) and
+   evaluate at horizon exit \(k = aH\):
+
+   ```math
+   |\mathcal{R}_k|^2 = \frac{H^4}{4 \dot{\phi}^2 k^3} = \frac{H^2}{8 \pi^2 M_\text{Pl}^2 \epsilon} \frac{2\pi^2}{k^3}.
+   ```
+
+5. Finally, identify the dimensionless power spectrum via \(P_{\mathcal{R}}(k) =
+   \frac{k^3}{2 \pi^2} |\mathcal{R}_k|^2\), yielding the expression above and
+   reproducing Planck's measured amplitude when slow-roll parameters satisfy the
+   observed bounds.
+
 ### Observational links
 
 - Planck 2018 data prefers \(n_s = 0.9649 \pm 0.0042\) and \(r = 16\epsilon <
@@ -64,6 +102,21 @@ A solar-mass black hole (\(M_\odot \approx 2 \times 10^{30}\,\text{kg}\)) has
 years, whereas a primordial black hole with \(M \sim 10^{12}\,\text{kg}\) would
 evaporate within the current age of the universe, potentially leaving
 high-energy gamma-ray signatures.
+
+#### Greybody-corrected emission template
+
+The pure blackbody spectrum is filtered by frequency-dependent transmission
+coefficients \(\Gamma_{s\ell m}(\omega)\). The differential power carried by a
+particle species of spin \(s\) is
+
+```math
+\frac{\mathrm{d}^2 E}{\mathrm{d}t\,\mathrm{d}\omega} = \sum_{\ell, m} \frac{\Gamma_{s\ell m}(\omega)}{2\pi} \frac{\omega}{\exp(\omega / T_H) - (-1)^{2s}}.
+```
+
+Numerical codes (e.g., BlackHawk, HawcEvap) tabulate \(\Gamma\) by solving the
+radial Teukolsky equation. Including these factors boosts the high-energy tail
+for fermions and suppresses low-frequency scalar emission, refining constraints
+from gamma-ray and cosmic-ray searches.
 
 ### Observational links
 
@@ -101,6 +154,16 @@ between geometry and information.
 - Inflationary modes exiting the horizon remain entangled; decoherence by the
   environment renders density perturbations effectively classical.
 
+#### Tensor-network playground
+
+- **Setup:** Represent a discretized de Sitter patch with a MERA or PEPS
+  network, assigning qubits to coarse-grained Hubble patches.
+- **Metric proxy:** Track minimal cuts through the network to estimate emergent
+  geodesic distances, mirroring Ryu–Takayanagi area laws.
+- **Reheating probe:** Quench the network by coupling edge tensors to thermal
+  baths, then monitor entanglement growth to emulate particle production at the
+  end of inflation.
+
 ## 4. Wheeler–DeWitt Equation and Quantum Cosmology
 
 ### Timeless constraint
@@ -130,6 +193,9 @@ Applying the Hartle–Hawking no-boundary condition selects regular solutions as
   phase of \(\Psi\).
 - Couple the minisuperspace background to perturbations to compute quantum
   corrections to inflationary observables.
+- Implement finite-difference or spectral collocation schemes to solve the
+  Wheeler–DeWitt equation with loop quantum cosmology potentials, checking for
+  bounce solutions that avoid singularities.
 
 ## 5. Hydrogen Atom in Stellar Environments
 
@@ -164,11 +230,12 @@ with Bohr radius \(a_0 = 0.529\,\text{Å}\).
 
 1. Derive \(P_{\mathcal{R}}(k)\) from the Mukhanov–Sasaki equation and compare
    with Planck likelihood chains for different inflationary potentials.
-2. Model Hawking radiation spectra including greybody factors to forecast
-   primordial black hole constraints from future MeV telescopes.
-3. Explore tensor-network simulations that realize ER=EPR geometries and
-   quantify entanglement growth during inflationary reheating.
-4. Solve the minisuperspace Wheeler–DeWitt equation numerically for loop quantum
-   cosmology bounce scenarios and extract semiclassical predictions.
+2. Fit greybody-corrected Hawking spectra to Fermi-LAT and AMEGO forecasts to
+   bracket primordial black hole contributions to the extragalactic gamma-ray
+   background.
+3. Prototype the tensor-network rehearsal outlined above to test ER=EPR-driven
+   entanglement geometries in expanding spacetimes.
+4. Apply the numerical Wheeler–DeWitt pipeline to loop quantum cosmology to
+   assess whether bounce scenarios produce observable imprints.
 5. Incorporate updated astrophysical S-factors into stellar evolution codes to
    quantify how tunneling corrections shift main-sequence lifetimes.
