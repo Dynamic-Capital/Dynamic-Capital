@@ -1,0 +1,18 @@
+{
+  "drop_id": "2025-11-07",
+  "embedder_version": "text-embedding-004",
+  "vector_dimensions": 3072,
+  "chunk_size": 768,
+  "overlap": 96,
+  "evaluation": {
+    "recall": 0.935,
+    "precision": 0.901,
+    "hallucination_rate": 0.021,
+    "latency_p95_seconds": 2.1
+  },
+  "telemetry_notes": [
+    "Recall improved by 4.2 percentage points relative to the October baseline.",
+    "Vector integrity dashboard shows no drift across the sovereign AI topic slice.",
+    "Latency increase of 120ms traced to additional guardrail features; within SLO."
+  ]
+}
