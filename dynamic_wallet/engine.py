@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from datetime import datetime, timezone
 from typing import Iterable, Mapping, MutableMapping, Sequence
 
 __all__ = [
@@ -77,6 +78,14 @@ def _coerce_metadata(metadata: Mapping[str, object] | None) -> Mapping[str, obje
     if not isinstance(metadata, Mapping):  # pragma: no cover - defensive guard
         raise TypeError("metadata must be a mapping if provided")
     return dict(metadata)
+
+
+def _normalise_timestamp(value: datetime) -> datetime:
+    if not isinstance(value, datetime):  # pragma: no cover - defensive guard
+        raise TypeError("timestamp must be a datetime")
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 @dataclass(slots=True)
@@ -204,6 +213,8 @@ class WalletUserLink:
     ton_domain: str | None = None
     wallet_app: str | None = None
     metadata: Mapping[str, object] | None = None
+    verified: bool = False
+    verified_at: datetime | None = None
 
     def __post_init__(self) -> None:
         self.telegram_id = _normalise_text(self.telegram_id)
@@ -213,17 +224,27 @@ class WalletUserLink:
             _normalise_lower(self.wallet_app) if self.wallet_app is not None else None
         )
         self.metadata = _coerce_metadata(self.metadata)
+        self.verified = bool(self.verified)
+        if self.verified_at is not None:
+            self.verified_at = _normalise_timestamp(self.verified_at)
+            if not self.verified:
+                self.verified = True
+        elif self.verified:
+            raise ValueError("verified_at must be provided when verified is True")
 
     def as_dict(self) -> MutableMapping[str, object]:
         payload: MutableMapping[str, object] = {
             "telegram_id": self.telegram_id,
             "wallet_address": self.wallet_address,
             "metadata": dict(self.metadata or {}),
+            "verified": self.verified,
         }
         if self.ton_domain:
             payload["ton_domain"] = self.ton_domain
         if self.wallet_app:
             payload["wallet_app"] = self.wallet_app
+        if self.verified_at is not None:
+            payload["verified_at"] = self.verified_at.isoformat().replace("+00:00", "Z")
         return payload
 
 
@@ -431,10 +452,53 @@ class DynamicWalletEngine:
                 ton_domain=link.ton_domain or existing.ton_domain,
                 wallet_app=link.wallet_app or existing.wallet_app,
                 metadata=merged_metadata,
+                verified=existing.verified,
+                verified_at=existing.verified_at,
             )
 
         self._wallet_users[link.telegram_id] = link
         self._wallet_to_user[link.wallet_address] = link.telegram_id
+        return link.as_dict()
+
+    def verify_wallet_user(
+        self,
+        telegram_id: str,
+        *,
+        wallet_address: str | None = None,
+        metadata: Mapping[str, object] | None = None,
+        timestamp: datetime | None = None,
+    ) -> Mapping[str, object]:
+        """Mark an existing wallet link as verified and merge optional metadata."""
+
+        key = _normalise_text(telegram_id)
+        try:
+            existing = self._wallet_users[key]
+        except KeyError as exc:  # pragma: no cover - defensive guard
+            raise ValueError("telegram user is not linked to a wallet") from exc
+
+        if wallet_address is not None:
+            address = _normalise_upper(wallet_address)
+            if address != existing.wallet_address:
+                raise ValueError("wallet address mismatch for telegram user")
+
+        merged_metadata: dict[str, object] = {}
+        if existing.metadata:
+            merged_metadata.update(existing.metadata)
+        if metadata:
+            if not isinstance(metadata, Mapping):  # pragma: no cover - defensive guard
+                raise TypeError("metadata must be a mapping if provided")
+            merged_metadata.update(metadata)
+
+        moment = _normalise_timestamp(timestamp or datetime.now(timezone.utc))
+        link = replace(
+            existing,
+            metadata=merged_metadata or None,
+            verified=True,
+            verified_at=moment,
+        )
+
+        self._wallet_users[key] = link
+        self._wallet_to_user[link.wallet_address] = key
         return link.as_dict()
 
     def list_wallet_users(self) -> tuple[WalletUserLink, ...]:
