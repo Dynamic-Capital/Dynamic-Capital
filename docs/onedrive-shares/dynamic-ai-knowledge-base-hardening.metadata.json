@@ -1,0 +1,42 @@
+{
+  "id": "dynamic-ai-knowledge-base-hardening",
+  "captured_at": "2025-11-07T09:30:00Z",
+  "description": "Internal promotion package for the Dynamic AI knowledge base hardening drop. Tracks lineage to the OneDrive operations workspace.",
+  "source": {
+    "workspace": "OneDrive/DynamicAI_DB/knowledge_base/hardening/2025-11-07",
+    "owner": "Knowledge Operations",
+    "contact": "knowledge-ops@dynamic.capital"
+  },
+  "artifacts": [
+    {
+      "path": "hardening-overview.md",
+      "checksum": "a9c7e5f0b671ab678f6a98d3a5c4f1de",
+      "type": "markdown"
+    },
+    {
+      "path": "enrichment-checklist.md",
+      "checksum": "21bfc19c0f641a9ddc01d03a394a2f14",
+      "type": "markdown"
+    },
+    {
+      "path": "rag-sanity-playbook.md",
+      "checksum": "8de8e8800fb0d54016a1e8b9ab35a437",
+      "type": "markdown"
+    },
+    {
+      "path": "ingestion-metrics.json",
+      "checksum": "6a1e4dbd7c7224c1ff89ad4a0a795bd1",
+      "type": "json"
+    },
+    {
+      "path": "embedding-evaluation-template.csv",
+      "checksum": "2f8d9a30b52ae454fb1c7870f8f6d7b3",
+      "type": "csv"
+    }
+  ],
+  "next_actions": [
+    "Mirror artefacts into Supabase cold storage with identical checksums.",
+    "Schedule follow-up regression run after vector refresh to confirm metrics hold.",
+    "Backfill legacy drops with the new schema identifiers by 2025-12-01."
+  ]
+}

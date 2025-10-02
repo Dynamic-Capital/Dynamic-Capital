@@ -25,6 +25,35 @@
           "purpose": "Structured aggregate of the mirrored drop combining markdown, CSV, JSON, and PDF payloads."
         }
       ]
+    },
+    {
+      "id": "2025-11-07",
+      "title": "Dynamic AI Knowledge Base Hardening",
+      "manifest": "docs/onedrive-shares/dynamic-ai-knowledge-base-hardening.metadata.json",
+      "supabase_mirror": "public.one_drive_assets/knowledge_base/2025-11-07/*",
+      "description": "Documented the hardening initiative with governance, telemetry, and regression assets for the November refresh.",
+      "files": [
+        {
+          "path": "2025-11-07/hardening-overview.md",
+          "purpose": "Narrative of the ingestion, schema, and telemetry upgrades introduced in the hardening drop."
+        },
+        {
+          "path": "2025-11-07/enrichment-checklist.md",
+          "purpose": "Operational checklist covering licensing, validation, and acceptance gates before promotion."
+        },
+        {
+          "path": "2025-11-07/rag-sanity-playbook.md",
+          "purpose": "Regression prompts and thresholds for validating retrieval and answer quality across key slices."
+        },
+        {
+          "path": "2025-11-07/ingestion-metrics.json",
+          "purpose": "Telemetry snapshot capturing recall, precision, hallucination, and latency metrics for the drop."
+        },
+        {
+          "path": "2025-11-07/embedding-evaluation-template.csv",
+          "purpose": "Template for comparing baseline and refreshed embedding performance across dataset slices."
+        }
+      ]
     }
   ],
   "maintenance": [

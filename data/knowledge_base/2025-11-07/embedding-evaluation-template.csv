@@ -1,0 +1,4 @@
+dataset_slice,baseline_recall,updated_recall,delta_recall,baseline_precision,updated_precision,delta_precision,notes
+market_structure_core,0.898,0.941,0.043,0.862,0.903,0.041,"Improved due to schema harmonisation and deduping."
+sovereign_ai_governance,0.912,0.936,0.024,0.884,0.907,0.023,"Telemetry docs now linked to lineage manifest."
+vector_integrity_ops,0.921,0.952,0.031,0.903,0.895,-0.008,"Slight precision dip tied to expanded chunk coverage; monitor guardrail heuristics."
