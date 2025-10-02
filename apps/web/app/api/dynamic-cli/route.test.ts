@@ -178,8 +178,14 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
     throw new Error("Expected Dynamic CLI process to be spawned");
   }
 
-  if (!spawnCall.args.includes("--fine-tune-dataset")) {
-    throw new Error("Expected --fine-tune-dataset flag to be forwarded");
+  if (!spawnCall.args.includes("--dataset")) {
+    throw new Error("Expected --dataset flag to be forwarded");
+  }
+
+  if (!spawnCall.args.includes("dynamic.intelligence.agi.build")) {
+    throw new Error(
+      "Expected dynamic.intelligence.agi.build module to be used",
+    );
   }
 
   const stdinData = lastProcess?.stdin.chunks.join("");
