@@ -54,6 +54,23 @@ example value, and where it's referenced in the repository.
 | `NEXT_PUBLIC_MINI_APP_URL` | Client-side copy of the Mini App entry point for previews. | No       | `https://mini.example.com`                   | `apps/web/components/telegram/MiniAppPreview.tsx`, `apps/web/config/supabase.ts` |
 | `FUNCTIONS_BASE`           | Base URL for integration tests hitting live functions.     | No       | `https://xyz.supabase.co/functions/v1`       | `supabase/functions/_tests/integration_smoke_test.ts`                            |
 
+## Web3 Onboarding
+
+| Key                                    | Purpose                                                      | Required | Example                                                  | Used in                   |
+| -------------------------------------- | ------------------------------------------------------------ | -------- | -------------------------------------------------------- | ------------------------- |
+| `NEXT_PUBLIC_WEB3_APP_NAME`            | Overrides the app label shown in Web3 Onboard modals.        | No       | `Dynamic Capital`                                        | `apps/web/config/web3.ts` |
+| `NEXT_PUBLIC_WEB3_APP_DESCRIPTION`     | Custom description surfaced in wallet connection prompts.    | No       | `Dynamic Capital trading desk`                           | `apps/web/config/web3.ts` |
+| `NEXT_PUBLIC_WEB3_APP_ICON`            | Public icon URL displayed inside the wallet selector.        | No       | `https://example.com/logo.svg`                           | `apps/web/config/web3.ts` |
+| `NEXT_PUBLIC_WEB3_CHAINS`              | JSON array describing supported EVM chains for Web3 Onboard. | No       | `[{"id":"0x1","token":"ETH"}]`                           | `apps/web/config/web3.ts` |
+| `NEXT_PUBLIC_WEB3_RECOMMENDED_WALLETS` | JSON array of injected wallets promoted in the connect flow. | No       | `[{"name":"Bitget Wallet","url":"https://bitkeep.com"}]` | `apps/web/config/web3.ts` |
+
+## LayerZero Network
+
+| Key                               | Purpose                                                           | Required | Example                                    | Used in                                                        |
+| --------------------------------- | ----------------------------------------------------------------- | -------- | ------------------------------------------ | -------------------------------------------------------------- |
+| `NEXT_PUBLIC_LAYERZERO_ENV`       | Sets the active LayerZero environment rendered in wallet tooling. | No       | `mainnet`                                  | `apps/web/config/layerzero.ts`, `apps/web/app/wallet/page.tsx` |
+| `NEXT_PUBLIC_LAYERZERO_ENDPOINTS` | JSON array overriding the default LayerZero endpoint catalogue.   | No       | `[{"key":"ethereum-mainnet","eid":30101}]` | `apps/web/config/layerzero.ts`, `apps/web/app/wallet/page.tsx` |
+
 ## Crypto
 
 | Key                  | Purpose                                 | Required | Example                              | Used in                       |
@@ -94,7 +111,7 @@ Additional crypto keys:
 
 | Key                                     | Purpose                                               | Required | Example                            | Used in                                                          |
 | --------------------------------------- | ----------------------------------------------------- | -------- | ---------------------------------- | ---------------------------------------------------------------- |
-| `NEXT_PUBLIC_ECONOMIC_CALENDAR_URL`     | REST endpoint the client queries for economic events. | No       | `https://api.example.com/calendar` | `tests/economic-calendar-service.test.ts`, `apps/web/lib/env.ts` |
+| `NEXT_PUBLIC_ECONOMIC_CALENDAR_URL`     | REST endpoint the client queries for economic events. Defaults to the Forex Factory open feed. | No       | `https://nfs.faireconomy.media/ff_calendar_thisweek.json` | `tests/economic-calendar-service.test.ts`, `apps/web/lib/env.ts` |
 | `NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY` | API key forwarded to the calendar provider.           | No       | `public-key`                       | `tests/economic-calendar-service.test.ts`, `apps/web/lib/env.ts` |
 
 ## Treasury Buyback Bot
