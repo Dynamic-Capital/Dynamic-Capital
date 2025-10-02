@@ -621,6 +621,8 @@ const ACTIVITY_FEED: ActivityItem[] = [
   },
 ];
 
+const DYNAMIC_TON_API_USER_ID = "3672406698";
+
 const SUPPORT_OPTIONS: SupportOption[] = [
   {
     title: "Concierge chat",
@@ -646,12 +648,12 @@ function useTelegramId(): string {
   const isBrowser = typeof globalThis !== "undefined" &&
     typeof (globalThis as { window?: unknown }).window !== "undefined";
   if (!isBrowser) {
-    return "demo";
+    return DYNAMIC_TON_API_USER_ID;
   }
 
   const telegram = (globalThis as TelegramGlobal).Telegram;
   const telegramId = telegram?.WebApp?.initDataUnsafe?.user?.id;
-  return telegramId ? String(telegramId) : "demo";
+  return telegramId ? String(telegramId) : DYNAMIC_TON_API_USER_ID;
 }
 
 function formatWalletAddress(address?: string | null): string {
