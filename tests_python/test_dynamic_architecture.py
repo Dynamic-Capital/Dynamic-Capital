@@ -8,7 +8,16 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from dynamic_architect.engine import ArchitectureComponent, DynamicArchitectEngine
-from dynamic_architecture import DynamicArchitectureEngine
+from dynamic_architecture import (
+    ArchitectureTraversalStep,
+    DynamicArchitectureAgent,
+    DynamicArchitectureBot,
+    DynamicArchitectureBuilder,
+    DynamicArchitectureCrawler,
+    DynamicArchitectureEngine,
+    DynamicArchitectureHelper,
+    DynamicArchitectureKeeper,
+)
 
 
 def build_blueprint() -> object:
@@ -90,3 +99,156 @@ def test_compile_document_from_blueprint() -> None:
     assert "## Edge" in markdown
     assert "API Gateway" in markdown
     assert "Flows" in markdown
+
+
+def test_builder_compiles_payload() -> None:
+    builder = DynamicArchitectureBuilder(
+        "Dynamic Architecture",
+        "Coherent blueprint",
+    )
+    builder.add_layer({"name": "Edge", "intent": "Ingress", "focus": ("api",)})
+    builder.add_nodes(
+        (
+            {
+                "name": "Gateway",
+                "description": "Routes client requests",
+                "layer": "Edge",
+                "capabilities": ("rest", "webhooks"),
+            },
+            {
+                "name": "Identity",
+                "description": "Authenticates users",
+                "layer": "Core",
+                "dependencies": ("Gateway",),
+            },
+        )
+    )
+    builder.add_flow({"source": "Gateway", "target": "Identity", "intent": "auth"})
+    builder.merge_metrics({"latency_budget": 120.0})
+
+    document = builder.compile()
+
+    assert document.metrics["node_count"] == 2
+    assert any(layer.name == "Edge" for layer in document.layers)
+    assert any(flow.target == "Identity" for flow in document.flows)
+
+
+def test_agent_generates_summary_and_highlights() -> None:
+    blueprint = build_blueprint()
+    agent = DynamicArchitectureAgent()
+    result = agent.run(
+        {
+            "vision": "Dynamic Capital Architecture",
+            "narrative": "Unifies trading capabilities",
+            "blueprint": blueprint,
+            "layer_map": {
+                "edge": "Edge",
+                "api": "Edge",
+                "core": "Core",
+                "security": "Core",
+                "data": "Data",
+                "realtime": "Data",
+            },
+            "default_layer": "Shared",
+        }
+    )
+
+    assert "Dynamic Capital Architecture" in result.summary
+    assert result.confidence > 0
+    assert result.highlights
+
+
+def test_helper_digest_and_highlights() -> None:
+    blueprint = build_blueprint()
+    builder = DynamicArchitectureBuilder("Vision")
+    builder.apply_payload(
+        {
+            "blueprint": blueprint,
+            "layer_map": {"edge": "Edge", "core": "Core", "data": "Data"},
+            "default_layer": "Shared",
+        }
+    )
+    document = builder.compile()
+
+    helper = DynamicArchitectureHelper(highlight_limit=2)
+    digest = helper.digest(document)
+
+    assert digest["vision"] == document.vision
+    assert len(digest["highlights"]) <= 2
+
+
+def test_keeper_tracks_history_and_trends() -> None:
+    builder = DynamicArchitectureBuilder("Vision")
+    builder.add_nodes(
+        (
+            {
+                "name": "A",
+                "description": "A",
+                "layer": "Layer",
+            },
+        )
+    )
+    first = builder.compile()
+
+    builder.add_nodes(
+        (
+            {
+                "name": "B",
+                "description": "B",
+                "layer": "Layer",
+            },
+        )
+    )
+    second = builder.compile()
+
+    keeper = DynamicArchitectureKeeper()
+    keeper.record("baseline", first)
+    keeper.record("iteration", second)
+
+    assert keeper.latest() is not None
+    assert keeper.get("baseline") is not None
+    trend = keeper.metrics_trend("node_count")
+    assert trend[-1] >= trend[0]
+    assert keeper.summarise_latest()
+
+
+def test_bot_generates_message_with_highlights() -> None:
+    blueprint = build_blueprint()
+    bot = DynamicArchitectureBot()
+    payload = {
+        "vision": "Dynamic Capital Architecture",
+        "blueprint": blueprint,
+        "layer_map": {"edge": "Edge", "core": "Core", "data": "Data"},
+        "default_layer": "Shared",
+    }
+    message = bot.generate(payload)
+
+    assert "Highlights" in message["message"]
+    assert "agent" in message
+
+
+def test_crawler_walks_flows() -> None:
+    builder = DynamicArchitectureBuilder("Vision")
+    builder.add_nodes(
+        (
+            {
+                "name": "Source",
+                "description": "Start",
+                "layer": "Edge",
+            },
+            {
+                "name": "Target",
+                "description": "End",
+                "layer": "Core",
+                "dependencies": ("Source",),
+            },
+        )
+    )
+    builder.add_flow({"source": "Source", "target": "Target", "intent": "dependency"})
+    document = builder.compile()
+
+    crawler = DynamicArchitectureCrawler(document)
+    steps = crawler.crawl(["Source"])
+
+    assert isinstance(steps[0], ArchitectureTraversalStep)
+    assert {step.node.name for step in steps} == {"Source", "Target"}

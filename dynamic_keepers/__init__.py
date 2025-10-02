@@ -71,6 +71,7 @@ _KEEPER_EXPORTS = {
         "DynamicHadalpelagicKeeper",
         "KeeperTrendSnapshot",
     ),
+    "dynamic_architecture.keeper": ("DynamicArchitectureKeeper",),
     "dynamic_keepers.elements": (
         "ElementKeeperPersona",
         "ELEMENT_KEEPERS",

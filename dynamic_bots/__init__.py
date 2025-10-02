@@ -20,6 +20,7 @@ from dynamic_agents._lazy import build_lazy_namespace
 _EXPORT_MAP = {
     "integrations.telegram_bot": ("DynamicTelegramBot",),
     "dynamic_bots.recycling": ("DynamicRecyclingBot",),
+    "dynamic_architecture.bot": ("DynamicArchitectureBot",),
     "dynamic_bots.ocean": (
         "DynamicOceanLayerBot",
         "DynamicEpipelagicBot",
