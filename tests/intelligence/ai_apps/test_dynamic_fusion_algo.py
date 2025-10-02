@@ -144,6 +144,48 @@ def test_news_none_is_treated_as_empty_iterable(algo: DynamicFusionAlgo) -> None
     assert signal.confidence == pytest.approx(0.45)
 
 
+def test_fractional_drawdown_reduces_confidence(algo: DynamicFusionAlgo) -> None:
+    payload = {
+        "signal": "BUY",
+        "confidence": 0.6,
+        "volatility": 1.0,
+        "drawdown": -0.08,
+    }
+
+    signal = algo.generate_signal(payload)
+
+    assert signal.action == "BUY"
+    assert signal.confidence == pytest.approx(0.45)
+
+
+def test_deep_fractional_drawdown_triggers_neutral_action(algo: DynamicFusionAlgo) -> None:
+    payload = {
+        "signal": "BUY",
+        "confidence": 0.6,
+        "volatility": 1.0,
+        "drawdown": -0.12,
+    }
+
+    signal = algo.generate_signal(payload)
+
+    assert signal.action == "NEUTRAL"
+    assert signal.confidence == pytest.approx(0.25)
+
+
+def test_moderate_fractional_drawdown_forces_hold(algo: DynamicFusionAlgo) -> None:
+    payload = {
+        "signal": "BUY",
+        "confidence": 0.6,
+        "volatility": 1.0,
+        "drawdown": -0.1,
+    }
+
+    signal = algo.generate_signal(payload)
+
+    assert signal.action == "HOLD"
+    assert signal.confidence == pytest.approx(0.32)
+
+
 def test_mm_parameters_adjust_risk_controls(algo: DynamicFusionAlgo) -> None:
     params = algo.mm_parameters(
         market_data={"volatility": 0.06},
