@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,13 +33,7 @@ export function DynamicAGIChat({ sessionId: initialSessionId, onSessionChange }:
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    if (sessionId) {
-      loadMessages();
-    }
-  }, [sessionId]);
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     if (!sessionId) return;
 
     try {
@@ -55,7 +49,11 @@ export function DynamicAGIChat({ sessionId: initialSessionId, onSessionChange }:
       console.error('Failed to load messages:', error);
       toast.error('Failed to load chat history');
     }
-  };
+  }, [sessionId]);
+
+  useEffect(() => {
+    void loadMessages();
+  }, [loadMessages]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;

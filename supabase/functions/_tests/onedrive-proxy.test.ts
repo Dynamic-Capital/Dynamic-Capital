@@ -1,9 +1,13 @@
 import { assertEquals } from "std/assert/mod.ts";
 
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 const REQUIRED_ENV = [
   "ONEDRIVE_TENANT_ID",
   "ONEDRIVE_CLIENT_ID",
   "ONEDRIVE_CLIENT_SECRET",
+  "ONEDRIVE_PROXY_SECRET",
 ] as const;
 
 function setRequiredEnv() {
@@ -75,6 +79,10 @@ Deno.test("onedrive-proxy lists drive items", async () => {
       "http://localhost/functions/v1/onedrive-proxy",
       {
         method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "Authorization": "Bearer test-onedrive_proxy_secret",
+        },
         body: JSON.stringify({
           action: "list",
           driveId: "drive-123",
@@ -115,5 +123,28 @@ Deno.test("onedrive-proxy lists drive items", async () => {
   } finally {
     clearRequiredEnv();
     globalThis.fetch = originalFetch;
+  }
+});
+
+Deno.test("onedrive-proxy rejects unauthorized requests", async () => {
+  setRequiredEnv();
+  try {
+    const { handler } = await import(
+      `../onedrive-proxy/index.ts?cache=${crypto.randomUUID()}`
+    );
+
+    const request = new Request(
+      "http://localhost/functions/v1/onedrive-proxy",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "list" }),
+      },
+    );
+
+    const response = await handler(request);
+    assertEquals(response.status, 401);
+  } finally {
+    clearRequiredEnv();
   }
 });

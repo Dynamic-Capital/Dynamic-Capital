@@ -124,13 +124,16 @@ confirm access with `doctl spaces list`.
 
 ## OneDrive Integration
 
-| Key                         | Purpose                                                                 | Required | Example                                | Used in                                                                                 |
-| --------------------------- | ----------------------------------------------------------------------- | -------- | -------------------------------------- | --------------------------------------------------------------------------------------- |
-| `ONEDRIVE_TENANT_ID`        | Azure AD tenant that issues Microsoft Graph tokens.                     | Yes      | `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | `supabase/functions/onedrive-proxy/index.ts`                                            |
-| `ONEDRIVE_CLIENT_ID`        | App registration client ID for the OneDrive integration.                | Yes      | `11111111-2222-3333-4444-555555555555` | `supabase/functions/onedrive-proxy/index.ts`, `apps/web/integrations/onedrive/index.ts` |
-| `ONEDRIVE_CLIENT_SECRET`    | Client secret paired with the app registration.                         | Yes      | `super-secret-value`                   | `supabase/functions/onedrive-proxy/index.ts`                                            |
-| `ONEDRIVE_SCOPE`            | Optional Microsoft Graph scope override (defaults to `.default`).       | No       | `https://graph.microsoft.com/.default` | `supabase/functions/onedrive-proxy/index.ts`                                            |
-| `ONEDRIVE_DEFAULT_DRIVE_ID` | Optional default drive ID when callers omit a specific drive reference. | No       | `b!xYz123ExampleDriveId`               | `supabase/functions/onedrive-proxy/index.ts`, `apps/web/integrations/onedrive/index.ts` |
+| Key                             | Purpose                                                                   | Required | Example                                | Used in                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------- | -------- | -------------------------------------- | --------------------------------------------------------------------------------------- |
+| `ONEDRIVE_TENANT_ID`            | Azure AD tenant that issues Microsoft Graph tokens.                       | Yes      | `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` | `supabase/functions/onedrive-proxy/index.ts`                                            |
+| `ONEDRIVE_CLIENT_ID`            | App registration client ID for the OneDrive integration.                  | Yes      | `11111111-2222-3333-4444-555555555555` | `supabase/functions/onedrive-proxy/index.ts`, `apps/web/integrations/onedrive/index.ts` |
+| `ONEDRIVE_CLIENT_SECRET`        | Client secret paired with the app registration.                           | Yes      | `super-secret-value`                   | `supabase/functions/onedrive-proxy/index.ts`                                            |
+| `ONEDRIVE_SCOPE`                | Optional Microsoft Graph scope override (defaults to `.default`).         | No       | `https://graph.microsoft.com/.default` | `supabase/functions/onedrive-proxy/index.ts`                                            |
+| `ONEDRIVE_DEFAULT_DRIVE_ID`     | Optional default drive ID when callers omit a specific drive reference.   | No       | `b!xYz123ExampleDriveId`               | `supabase/functions/onedrive-proxy/index.ts`, `apps/web/integrations/onedrive/index.ts` |
+| `ONEDRIVE_WEBHOOK_SECRET`       | Shared secret required in the `Authorization` header for webhook actions. | Yes      | `super-secret-value`                   | `supabase/functions/onedrive-webhook/index.ts`                                          |
+| `ONEDRIVE_WEBHOOK_CLIENT_STATE` | Expected Microsoft Graph `clientState` value for webhook notifications.   | No       | `super-secret-state`                   | `supabase/functions/onedrive-webhook/index.ts`                                          |
+| `ONEDRIVE_PROXY_SECRET`         | API key that callers must send in the `Authorization` header.             | Yes      | `super-secret-value`                   | `supabase/functions/onedrive-proxy/index.ts`                                            |
 
 ## Misc
 

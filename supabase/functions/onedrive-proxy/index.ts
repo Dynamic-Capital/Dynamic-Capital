@@ -5,6 +5,7 @@ import {
   jsonResponse,
   methodNotAllowed,
   oops,
+  unauth,
 } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
@@ -14,11 +15,13 @@ const {
   ONEDRIVE_TENANT_ID,
   ONEDRIVE_CLIENT_ID,
   ONEDRIVE_CLIENT_SECRET,
+  ONEDRIVE_PROXY_SECRET,
 } = requireEnv(
   [
     "ONEDRIVE_TENANT_ID",
     "ONEDRIVE_CLIENT_ID",
     "ONEDRIVE_CLIENT_SECRET",
+    "ONEDRIVE_PROXY_SECRET",
   ] as const,
 );
 
@@ -146,6 +149,34 @@ async function graphRequest<T>(
   } catch {
     return text as unknown as T;
   }
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) {
+    out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return out === 0;
+}
+
+function extractBearerToken(header: string | null): string | null {
+  if (!header) return null;
+  const trimmed = header.trim();
+  if (!trimmed) return null;
+  if (trimmed.slice(0, 7).toLowerCase() === "bearer ") {
+    const token = trimmed.slice(7).trim();
+    return token.length > 0 ? token : null;
+  }
+  return trimmed;
+}
+
+function authorizeProxyRequest(req: Request): Response | null {
+  const token = extractBearerToken(req.headers.get("Authorization"));
+  if (!token || !timingSafeEqual(token, ONEDRIVE_PROXY_SECRET)) {
+    return unauth("Missing or invalid credentials", req);
+  }
+  return null;
 }
 
 type UploadEncoding = "utf-8" | "base64";
@@ -438,8 +469,12 @@ async function handleList(
     params.set("$orderby", request.orderBy.trim());
   }
   const query = params.toString();
+  const childrenSuffix =
+    basePath.includes("/items/") || basePath.endsWith("/root")
+      ? "/children"
+      : ":/children";
   const response = await graphRequest<GraphListResponse>(
-    `${basePath}/children${query ? `?${query}` : ""}`,
+    `${basePath}${childrenSuffix}${query ? `?${query}` : ""}`,
   );
 
   const items = (response.value ?? [])
@@ -556,6 +591,11 @@ export const handler = registerHandler(async (req) => {
 
   if (req.method !== "POST") {
     return methodNotAllowed(req);
+  }
+
+  const unauthorized = authorizeProxyRequest(req);
+  if (unauthorized) {
+    return unauthorized;
   }
 
   let payload: RequestPayload;
