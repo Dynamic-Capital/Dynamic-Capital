@@ -27,6 +27,9 @@ keep the TON surfaces aligned with the broader platform roadmap.
   format` (which runs `deno fmt`).
 - **Supabase CLI** — manages local migrations and deploys the TON-focused edge
   functions (`supabase functions deploy`).
+- **Ton Console dashboard** — install with
+  [`node scripts/tonconsole/install.mjs`](./ton-console-installation.md) to
+  manage payment flows, analytics, and partner integrations locally.
 - **toncli or tondev** — use either toolkit to compile contracts, interact with
   TON DNS, publish sites, and manage storage providers.
 - **Access to a TON wallet** with deployment permissions for the DNS resolver
