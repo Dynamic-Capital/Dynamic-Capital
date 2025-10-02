@@ -147,6 +147,16 @@ class BTMMConfig:
     min_confidence: float = 0.25
     scale_exponent: float = 0.6
     max_position_fraction: float = 0.9
+    inventory_risk_weight: float = 0.32
+    volatility_risk_weight: float = 0.28
+    latency_risk_weight: float = 0.22
+    liquidity_risk_weight: float = 0.18
+    volatility_risk_scale: float = 1.0
+    latency_risk_scale: float = 1.4
+    liquidity_risk_scale: float = 1.0
+    risk_throttle_threshold: float = 0.6
+    risk_throttle_strength: float = 0.7
+    max_risk_score: float = 0.85
 
     def __post_init__(self) -> None:
         if self.latency_reference_ms <= 0:
@@ -155,6 +165,26 @@ class BTMMConfig:
             raise ValueError("trade_trigger_bps must be positive")
         if not 0.0 < self.max_position_fraction <= 1.0:
             raise ValueError("max_position_fraction must be within (0, 1]")
+        risk_weight_sum = (
+            self.inventory_risk_weight
+            + self.volatility_risk_weight
+            + self.latency_risk_weight
+            + self.liquidity_risk_weight
+        )
+        if risk_weight_sum <= 0:
+            raise ValueError("risk weights must sum to a positive value")
+        if not 0.0 < self.risk_throttle_threshold < 1.0:
+            raise ValueError("risk_throttle_threshold must be within (0, 1)")
+        if not 0.0 <= self.risk_throttle_strength <= 1.0:
+            raise ValueError("risk_throttle_strength must be within [0, 1]")
+        if not 0.0 < self.max_risk_score <= 1.0:
+            raise ValueError("max_risk_score must be within (0, 1]")
+        if self.volatility_risk_scale <= 0:
+            raise ValueError("volatility_risk_scale must be positive")
+        if self.latency_risk_scale <= 0:
+            raise ValueError("latency_risk_scale must be positive")
+        if self.liquidity_risk_scale <= 0:
+            raise ValueError("liquidity_risk_scale must be positive")
 
 
 class DynamicBTMMEngine:
@@ -167,9 +197,11 @@ class DynamicBTMMEngine:
         """Return a :class:`BTMMDecision` for the provided :class:`BTMMInputs`."""
 
         inputs.validate()
+        risk_profile = self._risk_profile(inputs)
+
         opportunities = (
-            self._evaluate_side(inputs, "buy"),
-            self._evaluate_side(inputs, "sell"),
+            self._evaluate_side(inputs, "buy", risk_profile["risk_throttle"]),
+            self._evaluate_side(inputs, "sell", risk_profile["risk_throttle"]),
         )
 
         best = max(
@@ -182,36 +214,7 @@ class DynamicBTMMEngine:
             best is not None
             and best.adjusted_edge_bps >= self.config.trade_trigger_bps
             and best.confidence >= self.config.min_confidence
-        )
-
-        inventory_ratio = _clamp(
-            _safe_divide(inputs.our_inventory, inputs.inventory_limit),
-            lower=-1.0,
-            upper=1.0,
-        )
-        volatility_component = _clamp(inputs.predicted_volatility, lower=0.0, upper=2.0)
-        latency_component = _clamp(
-            inputs.latency_ms / self.config.latency_reference_ms,
-            lower=0.0,
-            upper=2.0,
-        )
-        liquidity_gap = _clamp(
-            1.0
-            - _clamp(
-                _safe_divide(inputs.available_liquidity, max(inputs.mm_liquidity, 1.0)),
-                lower=0.0,
-                upper=2.0,
-            ),
-            lower=0.0,
-            upper=1.0,
-        )
-        risk_score = _clamp(
-            abs(inventory_ratio) * 0.4
-            + volatility_component * 0.35
-            + latency_component * 0.15
-            + liquidity_gap * 0.25,
-            lower=0.0,
-            upper=1.0,
+            and risk_profile["risk_score"] <= self.config.max_risk_score
         )
 
         notes: list[str] = []
@@ -222,6 +225,21 @@ class DynamicBTMMEngine:
         else:
             notes.append("Stand down; no actionable edge after risk adjustments.")
 
+        if risk_profile["risk_score"] > self.config.max_risk_score:
+            notes.append(
+                "Risk ceiling breached; pause deployment until exposures mean revert."
+            )
+        elif risk_profile["risk_throttle"] < 1.0:
+            throttle_pct = int(risk_profile["risk_throttle"] * 100)
+            notes.append(
+                f"Aggregate risk elevated (score {risk_profile['risk_score']:.2f}); throttle caps sizing at ~{throttle_pct}% of baseline."
+            )
+        else:
+            notes.append(
+                f"Aggregate risk contained (score {risk_profile['risk_score']:.2f}); full sizing available."
+            )
+
+        inventory_ratio = risk_profile["inventory_ratio"]
         if abs(inventory_ratio) >= 0.7:
             notes.append(
                 "Inventory stretched towards limits; prioritise recycling risk via hedges."
@@ -231,23 +249,29 @@ class DynamicBTMMEngine:
         else:
             notes.append("Inventory neutral; maintain tactical flexibility.")
 
-        if inputs.predicted_volatility >= 0.8:
+        volatility_level = risk_profile["volatility_level"]
+        if volatility_level >= 0.8:
             notes.append("Volatility regime is elevated; expect quote decay and wider spreads.")
-        elif inputs.predicted_volatility >= 0.4:
+        elif volatility_level >= 0.4:
             notes.append("Volatility moderate; tighten slippage controls during execution.")
 
-        if liquidity_gap >= 0.5:
+        if risk_profile["liquidity_gap"] >= 0.5:
             notes.append("Observed liquidity thins versus maker depth; stagger entry clips.")
 
         return BTMMDecision(
             opportunities=opportunities,
             best_opportunity=best,
             should_trade=should_trade,
-            risk_score=risk_score,
+            risk_score=risk_profile["risk_score"],
             notes=tuple(notes),
         )
 
-    def _evaluate_side(self, inputs: BTMMInputs, side: Literal["buy", "sell"]) -> BTMMOpportunity:
+    def _evaluate_side(
+        self,
+        inputs: BTMMInputs,
+        side: Literal["buy", "sell"],
+        risk_throttle: float,
+    ) -> BTMMOpportunity:
         config = self.config
         rationale: list[str] = []
 
@@ -331,6 +355,13 @@ class DynamicBTMMEngine:
             scaled_size = inputs.max_trade_size * scale * confidence
             size = min(scaled_size, inputs.max_trade_size, position_room * config.max_position_fraction)
 
+        if size > 0 and risk_throttle < 1.0:
+            size *= risk_throttle
+            throttle_pct = int(risk_throttle * 100)
+            rationale.append(
+                f"Risk throttle engaged; clip size reduced to ~{throttle_pct}% to respect aggregate exposure limits."
+            )
+
         expected_value = 0.0
         if adjusted_edge > 0 and size > 0:
             expected_value = (adjusted_edge / 10_000.0) * quote_price * size
@@ -351,3 +382,76 @@ class DynamicBTMMEngine:
             confidence=confidence,
             rationale=tuple(rationale),
         )
+
+    def _risk_profile(self, inputs: BTMMInputs) -> dict[str, float]:
+        config = self.config
+        inventory_ratio = _clamp(
+            _safe_divide(inputs.our_inventory, inputs.inventory_limit),
+            lower=-1.0,
+            upper=1.0,
+        )
+        inventory_component = abs(inventory_ratio)
+        volatility_level = _clamp(inputs.predicted_volatility, lower=0.0, upper=2.0)
+        volatility_risk = _clamp(
+            volatility_level / config.volatility_risk_scale,
+            lower=0.0,
+            upper=1.0,
+        )
+        latency_level = _clamp(
+            inputs.latency_ms / config.latency_reference_ms,
+            lower=0.0,
+            upper=2.0,
+        )
+        latency_risk = _clamp(
+            latency_level / config.latency_risk_scale,
+            lower=0.0,
+            upper=1.0,
+        )
+        liquidity_gap = _clamp(
+            1.0
+            - _clamp(
+                _safe_divide(inputs.available_liquidity, max(inputs.mm_liquidity, 1.0)),
+                lower=0.0,
+                upper=2.0,
+            ),
+            lower=0.0,
+            upper=1.0,
+        )
+        liquidity_risk = _clamp(
+            liquidity_gap / config.liquidity_risk_scale,
+            lower=0.0,
+            upper=1.0,
+        )
+        total_weight = (
+            config.inventory_risk_weight
+            + config.volatility_risk_weight
+            + config.latency_risk_weight
+            + config.liquidity_risk_weight
+        )
+        risk_score = (
+            inventory_component * config.inventory_risk_weight
+            + volatility_risk * config.volatility_risk_weight
+            + latency_risk * config.latency_risk_weight
+            + liquidity_risk * config.liquidity_risk_weight
+        ) / total_weight
+        risk_score = _clamp(risk_score, lower=0.0, upper=1.0)
+
+        risk_throttle = 1.0
+        if (
+            risk_score > config.risk_throttle_threshold
+            and config.risk_throttle_strength > 0.0
+        ):
+            risk_excess = risk_score - config.risk_throttle_threshold
+            risk_throttle = _clamp(
+                1.0 - risk_excess * config.risk_throttle_strength,
+                lower=0.0,
+                upper=1.0,
+            )
+
+        return {
+            "inventory_ratio": inventory_ratio,
+            "volatility_level": volatility_level,
+            "liquidity_gap": liquidity_gap,
+            "risk_score": risk_score,
+            "risk_throttle": risk_throttle,
+        }
