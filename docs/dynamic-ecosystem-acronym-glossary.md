@@ -50,6 +50,19 @@ that keep the first letter anchored on the domain while preserving uniqueness.
 |  | Dynamic_Library | DBL | Differentiates from learning (DLR). |
 |  | Dynamic_Team | DTM | Avoids confusion with trading and task manager. |
 
+### Optimization heuristics for new short codes
+
+1. **Anchor the prefix.** Reserve the first letter of the short code for the
+   domain grouping (for example, `D` for Dynamic) and use the second letter to
+   signal the functional family (such as `P` for predictive services).
+2. **Avoid duplicate endings.** When multiple concepts share the same ending,
+   rotate between consonants and vowels (`DPD`, `DPX`, `DPR`) to keep APIs and
+   dashboards scannable.
+3. **Plan for variants.** Leave obvious alternates unused (`DCH`, `DCS`) so
+   future modules can extend the namespace without renaming existing systems.
+4. **Document the rationale.** Capture a short note in the table when you add a
+   new entry so contributors understand the collision you avoided.
+
 Use the table as a starting point: assign two-letter identifiers only to the
 highest-priority systems, and expand to three letters whenever a conflict is
 possible. This convention keeps agent hand-offs, telemetry dashboards, and code
@@ -198,3 +211,7 @@ modules aligned without sacrificing readability.
 - **Dynamic_Quote** — _Quote: Quick Understanding Of Thoughtful Expressions_
 - **Dynamic_Glossary** — _Glossary: Generalized List Of Structured Systems,
   References And Yield_
+
+---
+
+_Signed with intention by the Dynamic Capital Naming Council_
