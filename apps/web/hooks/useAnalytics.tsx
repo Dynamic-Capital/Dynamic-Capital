@@ -22,7 +22,7 @@ interface AnalyticsEvent {
 
 const SESSION_STORAGE_KEY = "analytics_session_id";
 
-const generateSessionId = () => {
+const generateSessionId = (): string => {
   if (typeof window !== "undefined") {
     const cryptoObject = window.crypto ?? (window as typeof window & {
       msCrypto?: Crypto;
@@ -47,29 +47,45 @@ const generateSessionId = () => {
   return `session_${timestamp}${perfTime}`;
 };
 
+const readStoredSessionId = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem(SESSION_STORAGE_KEY);
+};
+
+const persistSessionId = (id: string) => {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(SESSION_STORAGE_KEY, id);
+};
+
 export const useAnalytics = () => {
   const sessionId = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const ensureSessionId = useCallback((): string => {
+    if (sessionId.current) {
+      return sessionId.current;
+    }
 
-    const storedSessionId = sessionStorage.getItem(SESSION_STORAGE_KEY);
-
-    if (storedSessionId) {
-      sessionId.current = storedSessionId;
-      return;
+    const stored = readStoredSessionId();
+    if (stored) {
+      sessionId.current = stored;
+      return stored;
     }
 
     const newSessionId = generateSessionId();
     sessionId.current = newSessionId;
-    sessionStorage.setItem(SESSION_STORAGE_KEY, newSessionId);
+    persistSessionId(newSessionId);
+    return newSessionId;
   }, []);
+
+  useEffect(() => {
+    ensureSessionId();
+  }, [ensureSessionId]);
 
   const trackEvent = useCallback(async (event: AnalyticsEvent) => {
     try {
       const eventWithContext: AnalyticsEvent = {
         ...event,
-        session_id: sessionId.current,
+        session_id: ensureSessionId(),
       };
       if (typeof window !== "undefined") {
         eventWithContext.user_agent = navigator.userAgent;
@@ -103,7 +119,7 @@ export const useAnalytics = () => {
     } catch (error) {
       console.error("Failed to track analytics event:", error);
     }
-  }, []);
+  }, [ensureSessionId]);
 
   const trackPageView = useCallback((page?: string) => {
     trackEvent({
