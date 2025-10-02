@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Send, Loader2, Bot, User } from 'lucide-react';
-import { toast } from 'sonner';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Bot, Loader2, Send, User } from "lucide-react";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   created_at: string;
 }
@@ -18,75 +18,80 @@ interface DynamicAGIChatProps {
   onSessionChange?: (sessionId: string) => void;
 }
 
-export function DynamicAGIChat({ sessionId: initialSessionId, onSessionChange }: DynamicAGIChatProps) {
+export function DynamicAGIChat(
+  { sessionId: initialSessionId, onSessionChange }: DynamicAGIChatProps,
+) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | undefined>(initialSessionId);
+  const [sessionId, setSessionId] = useState<string | undefined>(
+    initialSessionId,
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    if (sessionId) {
-      loadMessages();
-    }
-  }, [sessionId]);
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     if (!sessionId) return;
 
     try {
       const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: true });
+        .from("chat_messages")
+        .select("*")
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       setMessages(data || []);
     } catch (error) {
-      console.error('Failed to load messages:', error);
-      toast.error('Failed to load chat history');
+      console.error("Failed to load messages:", error);
+      toast.error("Failed to load chat history");
     }
-  };
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (sessionId) {
+      loadMessages();
+    }
+  }, [sessionId, loadMessages]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
-    setInput('');
+    setInput("");
     setIsLoading(true);
 
     // Optimistically add user message
     const tempUserMsg: Message = {
       id: crypto.randomUUID(),
-      role: 'user',
+      role: "user",
       content: userMessage,
       created_at: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, tempUserMsg]);
+    setMessages((prev) => [...prev, tempUserMsg]);
 
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+      const { data: { session }, error: sessionError } = await supabase.auth
+        .getSession();
+
       if (sessionError || !session) {
-        toast.error('Please sign in to use chat');
-        setMessages(prev => prev.filter(m => m.id !== tempUserMsg.id));
+        toast.error("Please sign in to use chat");
+        setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
         return;
       }
 
-      const response = await supabase.functions.invoke('agi-chat', {
+      const response = await supabase.functions.invoke("agi-chat", {
         body: {
           session_id: sessionId,
           message: userMessage,
-          history: messages.map(m => ({ role: m.role, content: m.content })),
+          history: messages.map((m) => ({ role: m.role, content: m.content })),
         },
       });
 
@@ -94,7 +99,8 @@ export function DynamicAGIChat({ sessionId: initialSessionId, onSessionChange }:
         throw response.error;
       }
 
-      const { session_id: newSessionId, message: assistantMessage } = response.data;
+      const { session_id: newSessionId, message: assistantMessage } =
+        response.data;
 
       if (!sessionId && newSessionId) {
         setSessionId(newSessionId);
@@ -104,23 +110,22 @@ export function DynamicAGIChat({ sessionId: initialSessionId, onSessionChange }:
       // Add assistant message
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
-        role: 'assistant',
+        role: "assistant",
         content: assistantMessage,
         created_at: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, assistantMsg]);
-
+      setMessages((prev) => [...prev, assistantMsg]);
     } catch (error) {
-      console.error('Chat error:', error);
-      toast.error('Failed to send message');
-      setMessages(prev => prev.filter(m => m.id !== tempUserMsg.id));
+      console.error("Chat error:", error);
+      toast.error("Failed to send message");
+      setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
@@ -134,30 +139,37 @@ export function DynamicAGIChat({ sessionId: initialSessionId, onSessionChange }:
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
             <Bot className="w-16 h-16 mb-4 opacity-20" />
             <p className="text-lg">Start a conversation with Dynamic AGI</p>
-            <p className="text-sm">Ask about trading strategies, market analysis, or investment advice</p>
+            <p className="text-sm">
+              Ask about trading strategies, market analysis, or investment
+              advice
+            </p>
           </div>
         )}
 
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-3 ${
+              msg.role === "user" ? "justify-end" : "justify-start"
+            }`}
           >
-            {msg.role === 'assistant' && (
+            {msg.role === "assistant" && (
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Bot className="w-5 h-5 text-primary" />
               </div>
             )}
-            
-            <Card className={`max-w-[80%] p-4 ${
-              msg.role === 'user' 
-                ? 'bg-primary text-primary-foreground' 
-                : 'bg-card'
-            }`}>
+
+            <Card
+              className={`max-w-[80%] p-4 ${
+                msg.role === "user"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card"
+              }`}
+            >
               <p className="whitespace-pre-wrap">{msg.content}</p>
             </Card>
 
-            {msg.role === 'user' && (
+            {msg.role === "user" && (
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                 <User className="w-5 h-5 text-primary-foreground" />
               </div>
@@ -195,11 +207,9 @@ export function DynamicAGIChat({ sessionId: initialSessionId, onSessionChange }:
             disabled={!input.trim() || isLoading}
             size="icon"
           >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
+            {isLoading
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Send className="w-4 h-4" />}
           </Button>
         </div>
       </div>

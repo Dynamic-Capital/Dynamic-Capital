@@ -3,6 +3,67 @@
 // Prints findings; always exits 0.
 
 import { createHttpClientWithEnvCa } from "./utils/http-client.ts";
+import { dirname, fromFileUrl, join, relative } from "std/path/mod.ts";
+
+type TelegramWebhookInfo = {
+  ok?: boolean;
+  result?: {
+    url?: string;
+    has_custom_certificate?: boolean;
+    pending_update_count?: number;
+    last_error_message?: string;
+    last_synchronization_error_date?: number;
+  } | null;
+};
+
+const SCRIPT_DIR = dirname(fromFileUrl(import.meta.url));
+const PROJECT_ROOT = join(SCRIPT_DIR, "..", "");
+const DEFAULT_WEBHOOK_FIXTURE = join(
+  PROJECT_ROOT,
+  "fixtures",
+  "telegram-webhook-info.json",
+);
+
+async function loadFixture(path: string): Promise<TelegramWebhookInfo | null> {
+  try {
+    const text = await Deno.readTextFile(path);
+    return JSON.parse(text) as TelegramWebhookInfo;
+  } catch (error) {
+    console.warn(`[fixtures] Unable to load ${path}:`, error);
+    return null;
+  }
+}
+
+async function resolveWebhookFixture(): Promise<
+  { info: TelegramWebhookInfo; source: string } | null
+> {
+  const envPath = Deno.env.get("TELEGRAM_WEBHOOK_INFO_PATH");
+  if (envPath) {
+    const info = await loadFixture(envPath);
+    if (info) {
+      return { info, source: envPath };
+    }
+  }
+
+  try {
+    const stats = await Deno.stat(DEFAULT_WEBHOOK_FIXTURE);
+    if (stats.isFile) {
+      const info = await loadFixture(DEFAULT_WEBHOOK_FIXTURE);
+      if (info) {
+        return { info, source: DEFAULT_WEBHOOK_FIXTURE };
+      }
+    }
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) {
+      console.warn(
+        "[fixtures] Unable to inspect default Telegram webhook fixture:",
+        error,
+      );
+    }
+  }
+
+  return null;
+}
 
 function env(k: string) {
   return Deno.env.get(k) ?? "";
@@ -48,6 +109,7 @@ async function main() {
   const mini = env("MINI_APP_URL");
   const expectedWebhook = expectedWebhookUrl();
   let currentWebhook: string | null = null;
+  let webhookInfo: TelegramWebhookInfo | null = null;
 
   const tlsContext = await createHttpClientWithEnvCa();
   if (tlsContext) {
@@ -55,16 +117,45 @@ async function main() {
   }
 
   if (token) {
-    const info = await getJson(
+    webhookInfo = await getJson(
       `https://api.telegram.org/bot${token}/getWebhookInfo`,
       tlsContext?.client,
-    );
-    currentWebhook = info?.result?.url ?? null;
-    console.log("[linkage] getWebhookInfo.ok:", !!info?.ok);
+    ) as TelegramWebhookInfo | null;
+    currentWebhook = webhookInfo?.result?.url ?? null;
+    console.log("[linkage] getWebhookInfo.ok:", !!webhookInfo?.ok);
     console.log("[linkage] current webhook:", currentWebhook || "(none)");
   } else {
+    const fixture = await resolveWebhookFixture();
+    if (fixture) {
+      webhookInfo = fixture.info;
+      currentWebhook = webhookInfo?.result?.url ?? null;
+      const displayPath = fixture.source.startsWith("/")
+        ? relative(Deno.cwd(), fixture.source)
+        : fixture.source;
+      console.log(
+        `[fixtures] TELEGRAM_BOT_TOKEN missing; using ${
+          displayPath.startsWith("..") ? fixture.source : displayPath
+        } for webhook linkage data.`,
+      );
+      console.log("[linkage] getWebhookInfo.ok:", !!webhookInfo?.ok);
+      console.log("[linkage] current webhook:", currentWebhook || "(none)");
+    } else {
+      console.log(
+        "[linkage] TELEGRAM_BOT_TOKEN missing — skipping webhook check.",
+      );
+    }
+  }
+
+  if (typeof webhookInfo?.result?.pending_update_count === "number") {
     console.log(
-      "[linkage] TELEGRAM_BOT_TOKEN missing — skipping webhook check.",
+      "[linkage] pending updates:",
+      webhookInfo.result.pending_update_count,
+    );
+  }
+  if (webhookInfo?.result?.last_error_message) {
+    console.log(
+      "[linkage] last error message:",
+      webhookInfo.result.last_error_message,
     );
   }
 

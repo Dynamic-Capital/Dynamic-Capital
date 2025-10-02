@@ -62,10 +62,12 @@ in your PR/issue notes so reviewers can see the evidence.
       and none deviated from the expected host pattern._
 - [ ] Check linkage across environment variables and outbound URLs
       (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Proxy
-      bootstrapping still works, but the helper reports `TELEGRAM_BOT_TOKEN`
-      missing (webhook verification skipped) and the
+      bootstrapping still works. When `TELEGRAM_BOT_TOKEN` is unavailable the
+      helper now falls back to the bundled Telegram webhook fixture so the
+      expected URL and pending update counts are still printed, but the
       `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/linkage-audit`
-      endpoint times out, leaving the linkage host parity unresolved._
+      endpoint continues to time out, leaving the linkage host parity
+      unresolved._
 - [ ] Verify the Telegram webhook configuration
       (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected
       endpoint. _Current run aborts immediately with
