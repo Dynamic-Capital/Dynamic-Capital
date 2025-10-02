@@ -512,8 +512,8 @@ upstream peer. To keep these back-to-back cycles efficient and resilient:
 1. **Pipeline Stitching with Guardrails**: Chain quantum and classical stages
    through event-driven queues so that each agent starts immediately after its
    dependency resolves. Layer circuit-level guardrails—such as maximum depth or
-   qubit count caps—into the dispatcher so that a burst of requests cannot starve
-   other latency-sensitive workloads on shared quantum backends.
+   qubit count caps—into the dispatcher so that a burst of requests cannot
+   starve other latency-sensitive workloads on shared quantum backends.
 2. **State Reuse and Warm Starts**: Cache encodings, calibration data, and
    intermediate classical summaries between cycles to avoid recomputing
    expensive preparation steps when consecutive jobs share similar inputs.
@@ -527,14 +527,14 @@ upstream peer. To keep these back-to-back cycles efficient and resilient:
    can coordinate adjustments in real time.
 4. **Batch-Aware Scheduling**: When feasible, aggregate compatible circuit
    executions into composite jobs to amortize setup overhead while keeping
-   per-agent results logically isolated for auditing. Inject synthetic padding or
-   randomized execution order when necessary to reduce the chance of correlated
-   hardware failures across agents targeting the same qubits.
+   per-agent results logically isolated for auditing. Inject synthetic padding
+   or randomized execution order when necessary to reduce the chance of
+   correlated hardware failures across agents targeting the same qubits.
 5. **Failure Containment Playbooks**: Define idempotent retry policies and
    circuit fallbacks (classical approximations, reduced precision models) so a
-   single agent failure does not cascade across the chain. Couple those playbooks
-   with automated incident notifications that include the originating job ID,
-   circuit fingerprint, and the downstream agents affected.
+   single agent failure does not cascade across the chain. Couple those
+   playbooks with automated incident notifications that include the originating
+   job ID, circuit fingerprint, and the downstream agents affected.
 
 ---
 
