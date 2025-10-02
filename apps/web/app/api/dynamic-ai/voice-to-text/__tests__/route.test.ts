@@ -54,7 +54,7 @@ Deno.test(
         return new Response(
           JSON.stringify({
             text: "Hello world",
-            language: "en",
+            language: "dv",
             duration_ms: 1234,
             segments: [
               { text: "Hello", start: 0, end: 1.2, confidence: 0.92 },
@@ -77,6 +77,7 @@ Deno.test(
     );
     formData.append("prompt", "spell names correctly");
     formData.append("temperature", "0.2");
+    formData.append("language", "Dhivehi");
 
     const response = await POST(
       new Request("http://localhost/api/dynamic-ai/voice-to-text", {
@@ -97,7 +98,7 @@ Deno.test(
 
     assertCondition(payload.ok === true, "expected ok response");
     assertEquals(payload.transcript, "Hello world");
-    assertEquals(payload.language, "en");
+    assertEquals(payload.language, "dv");
     assertCondition(
       Array.isArray(payload.segments),
       "segments should be array",
@@ -113,6 +114,8 @@ Deno.test(
     assertEquals(modelEntry, "gpt-4o-mini-transcribe");
     const promptEntry = body?.get("prompt");
     assertEquals(promptEntry, "spell names correctly");
+    const languageEntry = body?.get("language");
+    assertEquals(languageEntry, "dv");
 
     delete (globalThis as Record<PropertyKey, unknown>)[
       DYNAMIC_AI_FETCH_OVERRIDE

@@ -8,6 +8,25 @@ import {
   DYNAMIC_AI_VOICE_TO_TEXT_URL,
 } from "@/config/dynamic-ai";
 
+const LANGUAGE_ALIASES = new Map<string, string>([
+  ["dv", "dv"],
+  ["dv-mv", "dv"],
+  ["dv_mv", "dv"],
+  ["dhivehi", "dv"],
+  ["maldivian", "dv"],
+  ["thaana", "dv"],
+]);
+
+function normalizeTranscriptionLanguage(value?: string): string | undefined {
+  if (!value) return undefined;
+
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  const lower = trimmed.toLowerCase();
+  return LANGUAGE_ALIASES.get(lower) ?? trimmed;
+}
+
 const DYNAMIC_AI_FETCH_OVERRIDE = Symbol.for(
   "dynamic-capital.dynamic-ai.fetch-override",
 );
@@ -98,8 +117,9 @@ export async function callDynamicAiVoiceToText({
     formData.append("response_format", responseFormat.trim());
   }
 
-  if (language?.trim()) {
-    formData.append("language", language.trim());
+  const normalizedLanguage = normalizeTranscriptionLanguage(language);
+  if (normalizedLanguage) {
+    formData.append("language", normalizedLanguage);
   }
 
   const controller = new AbortController();
