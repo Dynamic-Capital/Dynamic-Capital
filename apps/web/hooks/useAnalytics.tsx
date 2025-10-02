@@ -20,21 +20,72 @@ interface AnalyticsEvent {
   utm_campaign?: string;
 }
 
+const SESSION_STORAGE_KEY = "analytics_session_id";
+
+const generateSessionId = (): string => {
+  if (typeof window !== "undefined") {
+    const cryptoObject = window.crypto ?? (window as typeof window & {
+      msCrypto?: Crypto;
+    }).msCrypto;
+
+    if (cryptoObject?.getRandomValues) {
+      const randomBytes = new Uint8Array(16);
+      cryptoObject.getRandomValues(randomBytes);
+      const randomHex = Array.from(randomBytes)
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+
+      return `session_${randomHex}`;
+    }
+  }
+
+  const timestamp = Date.now().toString(36);
+  const perfTime = typeof performance !== "undefined"
+    ? Math.floor(performance.now() * 1000).toString(36)
+    : "";
+
+  return `session_${timestamp}${perfTime}`;
+};
+
+const readStoredSessionId = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem(SESSION_STORAGE_KEY);
+};
+
+const persistSessionId = (id: string) => {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(SESSION_STORAGE_KEY, id);
+};
+
 export const useAnalytics = () => {
   const sessionId = useRef<string | null>(null);
 
-  useEffect(() => {
-    // Generate session ID
-    sessionId.current = `session_${Date.now()}_${
-      Math.random().toString(36).substr(2, 9)
-    }`;
+  const ensureSessionId = useCallback((): string => {
+    if (sessionId.current) {
+      return sessionId.current;
+    }
+
+    const stored = readStoredSessionId();
+    if (stored) {
+      sessionId.current = stored;
+      return stored;
+    }
+
+    const newSessionId = generateSessionId();
+    sessionId.current = newSessionId;
+    persistSessionId(newSessionId);
+    return newSessionId;
   }, []);
+
+  useEffect(() => {
+    ensureSessionId();
+  }, [ensureSessionId]);
 
   const trackEvent = useCallback(async (event: AnalyticsEvent) => {
     try {
       const eventWithContext: AnalyticsEvent = {
         ...event,
-        session_id: sessionId.current,
+        session_id: ensureSessionId(),
       };
       if (typeof window !== "undefined") {
         eventWithContext.user_agent = navigator.userAgent;
@@ -68,7 +119,7 @@ export const useAnalytics = () => {
     } catch (error) {
       console.error("Failed to track analytics event:", error);
     }
-  }, []);
+  }, [ensureSessionId]);
 
   const trackPageView = useCallback((page?: string) => {
     trackEvent({
