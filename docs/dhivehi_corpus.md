@@ -54,6 +54,30 @@ A thin slice of the Radheef corpus (first page) is stored at
 `data/dhivehi_radheef_sample.jsonl`. This is a convenient fixture for unit tests
 or local experimentation when the full crawl is unnecessary.
 
+## Bakurube Qur'an translation corpus
+
+The Bakurube Dhivehi Qur'an translation is mirrored on the Internet Archive.
+Use `ml/bakurube_corpus_extractor.py` to download the published PDF volumes,
+normalise the Arabic ↔ Dhivehi verse pairs, and export them into the Dynamic
+Capital JSONL schema. Example invocation:
+
+```bash
+python ml/bakurube_corpus_extractor.py \
+  --output data/dhivehi_bakurube_translation.jsonl \
+  --summary data/dhivehi_bakurube_translation_summary.json \
+  --volume 1-15 \
+  --volume 16-30
+```
+
+Key details:
+
+- The extractor focuses on verse lines that contain explicit Arabic and Dhivehi
+  segments separated by "=", yielding high confidence translation pairs.
+- Duplicate pairs are skipped automatically and reported in the optional summary
+  JSON file.
+- Each record is tagged with `religious`, `quran`, `dhivehi`, `translation`, and
+  `bakurube` so downstream pipelines can filter or weight the dataset.
+
 ## Available Radheef batches
 
 For larger scale training jobs you can stitch together the staged exports below
