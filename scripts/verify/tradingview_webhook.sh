@@ -7,7 +7,7 @@ R=".out/tradingview_webhook.txt"
 
 say "E) TradingView Webhook Verification"
 
-URL="${TRADINGVIEW_WEBHOOK_URL:-https://dynamic-capital.ondigitalocean.app/webhook}"
+URL="${TRADINGVIEW_WEBHOOK_URL:-https://dynamiccapital.ton/webhook}"
 TIMEOUT="${TRADINGVIEW_WEBHOOK_TIMEOUT:-8}"
 
 if ! command -v curl >/dev/null 2>&1; then

@@ -30,23 +30,23 @@ version = "0.0.0"
 
   [[build.env]]
     name = "ALLOWED_ORIGINS"
-    value = "https://dynamic-capital.ondigitalocean.app,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app"
+    value = "https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://dynamic-capital.ondigitalocean.app,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app"
 
   [[build.env]]
     name = "SITE_URL"
-    value = "https://dynamic-capital.ondigitalocean.app"
+    value = "https://dynamiccapital.ton"
 
   [[build.env]]
     name = "NEXT_PUBLIC_SITE_URL"
-    value = "https://dynamic-capital.ondigitalocean.app"
+    value = "https://dynamiccapital.ton"
 
   [[build.env]]
     name = "MINIAPP_ORIGIN"
-    value = "https://dynamic-capital.ondigitalocean.app"
+    value = "https://dynamiccapital.ton"
 
   [[build.env]]
     name = "TELEGRAM_WEBHOOK_URL"
-    value = "https://dynamic-capital.ondigitalocean.app/webhook"
+    value = "https://dynamiccapital.ton/webhook"
 
   [[build.env]]
     name = "NEXT_TELEMETRY_DISABLED"

@@ -206,7 +206,7 @@ const sameAs: SameAsConfig = {
   instagram: "https://www.instagram.com/dynamic.capital",
   facebook: "https://www.facebook.com/dynamic.capital.fb",
   tradingview: "https://www.tradingview.com/u/DynamicCapital-FX/",
-  website: "https://dynamic-capital.ondigitalocean.app/",
+  website: "https://dynamiccapital.ton/",
 };
 
 const socialSharing: SocialSharingConfig = {

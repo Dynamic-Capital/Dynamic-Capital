@@ -15,22 +15,54 @@ following guidance to expose the services and control access.
   adjust `NEXT_PUBLIC_API_URL` if using an API subdomain.
 - `ALLOWED_ORIGINS` should list the site and API origins so browsers can call
   the endpoints.
-- `dynamic-capital.ondigitalocean.app` is the canonical production domain. Both
-  `dynamic-capital.vercel.app` and `dynamic-capital.lovable.app` stay exported
-  in the DNS snapshots under `dns/` (see
+- `dynamiccapital.ton` is the canonical production domain, fronted by Cloudflare
+  and resolved through TON DNS. Keep the DigitalOcean, Lovable, and Vercel hosts
+  as hot standbys so traffic can fail over if the TON resolver is paused; the
+  exports live under `dns/` (see
   [`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone)
-  for the previous DigitalOcean export and
+  for the legacy DigitalOcean zone and
   [`dns/dynamic-capital.lovable.app.json`](../dns/dynamic-capital.lovable.app.json)
-  for the Lovable zone) so every host can participate in load sharing while
-  pointing at the same Cloudflare anycast IPs (162.159.140.98 and 172.66.0.96).
-- `dynamiccapital.ton` and `www.dynamiccapital.ton` are configured for TON DNS
+  for the Lovable snapshot) and all hosts target the same Cloudflare anycast IPs
+  (162.159.140.98 and 172.66.0.96).
+- `dynamiccapital.ton` and `www.dynamiccapital.ton` stay configured for TON DNS
   blockchain-based resolution (see
   [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) for
-  configuration). TON DNS requires registration through TON DNS marketplace and
-  resolver contract deployment.
+  configuration). TON DNS requires registration through the TON DNS marketplace
+  and resolver contract deployment.
 - The resolver contract for `dynamiccapital.ton` is
   `EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo` (verified via
   [TON Contract Verifier](https://verifier.ton.org/EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo)).
+
+### TON ↔ Supabase bridge (`api.dynamiccapital.ton`)
+
+1. **Anchor the host selection.** Standardise on `api.dynamiccapital.ton` as the
+   Supabase surface so on-chain references, Mini App manifests, and back-office
+   automations all point to the same origin.
+2. **Publish the CNAME to the TON zone file.** Add a `CNAME` record for
+   `api → <project-ref>.supabase.co` and commit the update to
+   [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json). Keep the TTL
+   in the 60–300 second range during rollout so TON DNS clients pick up
+   certificate challenges quickly.
+3. **Mirror Supabase TXT challenges in Web3 storage.** When Supabase issues
+   `_acme-challenge.api.dynamiccapital.ton` TXT tokens, add them to the DNS
+   snapshot and pin the raw token bundle to TON Storage or IPFS. This creates a
+   tamper-evident audit trail that wallets and smart contracts can hash against.
+4. **Reverify from both worlds.** Trigger `supabase domains reverify` (or use
+   the dashboard) and separately resolve `api.dynamiccapital.ton` through
+   `toncli dns resolve` or Tonkeeper to confirm the blockchain resolver has
+   propagated the record.
+5. **Activate and harden.** After Supabase issues the TLS certificate, activate
+   the domain, raise the TTL to your steady-state value, and update OAuth
+   callbacks, Telegram Mini App origins, and edge-function allow lists to
+   reference `https://api.dynamiccapital.ton` alongside the legacy host.
+6. **Stream telemetry to the Web3 graph.** Emit a `custom_domain_activated`
+   event to the Supabase `tx_logs` table, hash the DNS bundle, and publish the
+   hash to the TON multisig memo so downstream analytics can verify the Web2 ↔
+   Web3 linkage.
+7. **Validate billing coverage.** Confirm the **Custom Domain** add-on remains
+   enabled in Supabase billing; without it the host will downgrade and the TON
+   resolver will strand requests.
+
 - Run `deno run -A scripts/configure-digitalocean-dns.ts --dry-run` to inspect
   the planned DNS state for `dynamic-capital.lovable.app`. Remove `--dry-run`
   once the plan looks correct to apply changes through `doctl`. The script keeps
@@ -76,16 +108,16 @@ IPs and let Cloudflare proxy requests to the service running on port `8080`.
 
 ## Origin alignment across platforms
 
-- The DigitalOcean App Platform spec keeps ingress open so
+- The DigitalOcean App Platform spec keeps ingress open so `dynamiccapital.ton`,
   `dynamic-capital.ondigitalocean.app`, `dynamic-capital.vercel.app`, and
   `dynamic-capital.lovable.app` all route to the same service while the app
-  publishes DigitalOcean-hosted links.
+  publishes TON-hosted links as the default.
 - `supabase/config.toml` now sets `site_url`, `additional_redirect_urls`, and
-  the Supabase Functions env block to the DigitalOcean origin while allowlisting
-  the Dynamic and Vercel hosts for cross-domain API calls.
-- `vercel.json` and the Dynamic scripts default to the DigitalOcean domain but
-  expose the full allow list so alternate hosts continue to work without
-  additional overrides.
+  the Supabase Functions env block to the TON origin while allowlisting the
+  DigitalOcean, Lovable, and Vercel hosts for cross-domain API calls.
+- `vercel.json` and the Dynamic scripts default to the TON domain but expose the
+  full allow list so alternate hosts continue to work without additional
+  overrides.
 - `lovable-build.js` and `lovable-dev.js` hydrate `SITE_URL`,
   `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` before running
   Dynamic workflows so previews and builds share the production origin when

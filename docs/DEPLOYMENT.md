@@ -10,20 +10,20 @@ The DigitalOcean App Platform spec used to provision the production app lives at
 [`.do/app.yml`](../.do/app.yml). Keep the spec in sync with any component or
 environment changes described in this document so the repository remains a
 single source of truth for deployments. The checked-in spec provisions a single
-Node.js service named `dynamic-capital`, configures
-`dynamic-capital.ondigitalocean.app` as the primary domain while registering the
-Vercel and Dynamic hosts as aliases, and leaves ingress open so every hostname
-continues to route traffic. The service runs
+Node.js service named `dynamic-capital`, configures `dynamiccapital.ton` as the
+primary domain (served via Cloudflare + TON DNS) while registering the Vercel,
+Lovable, and DigitalOcean hosts as aliases, and leaves ingress open so every
+hostname continues to route traffic. The service runs
 `node scripts/digitalocean-build.mjs` from the repository root before starting
 the Next.js server via `npm run start:web`. Requests are served on port `8080`,
 and the runtime sets `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and
-`MINIAPP_ORIGIN` to `https://dynamic-capital.ondigitalocean.app` (while
-allowlisting the companion hosts) so the web app, Supabase Edge Functions, and
-Telegram mini-app verification report the DigitalOcean-hosted canonical origin.
-Update those values if you move to a different hostname. The custom build helper
-first runs the standard `npm run build` pipeline and then uploads the refreshed
-`_static/` snapshot to the configured DigitalOcean Spaces bucket when
-credentials are present, keeping the marketing CDN in sync with each deployment.
+`MINIAPP_ORIGIN` to `https://dynamiccapital.ton` (while allowlisting the
+companion hosts) so the web app, Supabase Edge Functions, and Telegram mini-app
+verification report the TON-backed canonical origin. Update those values if you
+move to a different hostname. The custom build helper first runs the standard
+`npm run build` pipeline and then uploads the refreshed `_static/` snapshot to
+the configured DigitalOcean Spaces bucket when credentials are present, keeping
+the marketing CDN in sync with each deployment.
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -51,11 +51,12 @@ the zone file into `dns/` (use
 [`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone)
 as the previous reference) so the required NS and A records (162.159.140.98 and
 172.66.0.96) are versioned alongside the codebase. Use the updated export if you
-need to rehydrate the canonical host while keeping Cloudflare in front of the
-service. Production traffic now targets the DigitalOcean domain, with
-`dynamic-capital.vercel.app` and `dynamic-capital.lovable.app` staying active
-for load sharing. The helper `configure-digitalocean-dns.ts` script keeps the
-Dynamic domain aligned with the expected records:
+need to rehydrate the fallback host while keeping Cloudflare in front of the
+service. Production traffic now targets `dynamiccapital.ton`, with
+`dynamic-capital.ondigitalocean.app`, `dynamic-capital.vercel.app`, and
+`dynamic-capital.lovable.app` staying active for load sharing. The helper
+`configure-digitalocean-dns.ts` script keeps the DigitalOcean zone aligned with
+the expected records:
 
 ```bash
 # Preview the proposed DNS mutations
@@ -85,7 +86,7 @@ you only use the default context):
 # Update the app spec, aligning env vars, ingress, and primary domain.
 node scripts/doctl/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
-  --site-url https://dynamic-capital.ondigitalocean.app \
+  --site-url https://dynamiccapital.ton \
   --zone dynamic-capital.ondigitalocean.app \
   --spec .do/app.yml \
   --output .do/app.yml \
@@ -95,7 +96,7 @@ node scripts/doctl/sync-site-config.mjs \
 # Apply the spec changes and import the DNS zone in one go.
 node scripts/doctl/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
-  --site-url https://dynamic-capital.ondigitalocean.app \
+  --site-url https://dynamiccapital.ton \
   --zone dynamic-capital.ondigitalocean.app \
   --context $DOCTL_CONTEXT \
   --apply \
@@ -129,7 +130,7 @@ or the `DIGITALOCEAN_TOKEN` environment variable:
 # Fetch, normalize, and optionally write the spec without applying.
 node scripts/digitalocean/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
-  --site-url https://dynamic-capital.ondigitalocean.app \
+  --site-url https://dynamiccapital.ton \
   --token $DIGITALOCEAN_TOKEN \
   --output .do/app.yml \
   --show-spec
@@ -137,7 +138,7 @@ node scripts/digitalocean/sync-site-config.mjs \
 # Push the rendered spec back to DigitalOcean via the REST API.
 node scripts/digitalocean/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
-  --site-url https://dynamic-capital.ondigitalocean.app \
+  --site-url https://dynamiccapital.ton \
   --token $DIGITALOCEAN_TOKEN \
   --apply
 ```
@@ -236,8 +237,8 @@ local expectations. Update both the spec and this section if the build or
 runtime command changes.
 
 The `SITE_URL` variable must match your public domain, e.g.
-`https://dynamic-capital.ondigitalocean.app`, and `ALLOWED_ORIGINS` should
-include the Dynamic and Vercel hosts if you continue to share load across them.
+`https://dynamiccapital.ton`, and `ALLOWED_ORIGINS` should include the Dynamic
+and Vercel hosts if you continue to share load across them.
 
 ## Deployment logs
 

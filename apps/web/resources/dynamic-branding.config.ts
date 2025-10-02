@@ -285,7 +285,7 @@ const metadata: BrandingMetadata = {
     "portfolio intelligence",
     "financial education",
   ],
-  primaryUrl: "https://dynamic-capital.ondigitalocean.app",
+  primaryUrl: "https://dynamiccapital.ton",
   supportEmail: "support@dynamiccapital.ton",
 };
 

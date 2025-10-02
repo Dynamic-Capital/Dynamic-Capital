@@ -54,7 +54,7 @@ const social: Social = [
   {
     name: "Website",
     icon: "globe",
-    link: "https://dynamic-capital.ondigitalocean.app/",
+    link: "https://dynamiccapital.ton/",
   },
   {
     name: "Telegram",
