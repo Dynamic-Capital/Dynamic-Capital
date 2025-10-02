@@ -12,6 +12,9 @@ import { MINIAPP_TABS } from "./navigation";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const primaryTabs = MINIAPP_TABS.filter((tab) =>
+    tab.showInBottomNav !== false
+  );
 
   return (
     <nav className="sticky bottom-0 left-0 right-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3">
@@ -20,10 +23,10 @@ export function BottomNav() {
           className="grid gap-2"
           style={{
             gridTemplateColumns:
-              `repeat(${MINIAPP_TABS.length}, minmax(0, 1fr))`,
+              `repeat(${primaryTabs.length}, minmax(0, 1fr))`,
           }}
         >
-          {MINIAPP_TABS.map(({ href, label, Icon, analyticsEvent }) => {
+          {primaryTabs.map(({ href, label, Icon, analyticsEvent }) => {
             const active = pathname?.startsWith(href);
 
             return (

@@ -8,6 +8,7 @@ import {
 import type {
   SendTransactionRequest,
   WalletsListConfiguration,
+  TonConnectUI,
 } from "@tonconnect/ui-react";
 import {
   useCallback,
@@ -16,11 +17,14 @@ import {
   useRef,
   useState,
 } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, JSX } from "react";
 import {
   useMiniAppThemeManager,
-} from "../../../../shared/miniapp/use-miniapp-theme";
-import type { MiniAppThemeOption } from "../../../../shared/miniapp/theme-loader";
+} from "@shared/miniapp/use-miniapp-theme";
+import type {
+  MiniAppThemeOption,
+  TonConnectLike,
+} from "@shared/miniapp/theme-loader";
 import {
   isSupportedPlan,
   linkTonMiniAppWallet,
@@ -115,6 +119,38 @@ const SECTION_IDS: SectionId[] = [
   "appearance",
   "support",
 ];
+
+type TonConnectAccountLike = NonNullable<TonConnectLike["account"]>;
+
+function toTonConnectThemeSource(
+  instance: TonConnectUI | null,
+): TonConnectLike | null {
+  if (!instance) {
+    return null;
+  }
+
+  const toAccountLike = (value: unknown): TonConnectAccountLike | null => {
+    if (!value || typeof value !== "object") {
+      return null;
+    }
+    const candidate = value as { address?: unknown };
+    const address = candidate.address;
+    if (typeof address === "string" && address.trim().length > 0) {
+      return { address };
+    }
+    return null;
+  };
+
+  const account = toAccountLike(instance.account);
+
+  return {
+    account,
+    onStatusChange: (listener) =>
+      instance.onStatusChange((wallet) => {
+        listener(toAccountLike(wallet?.account ?? null));
+      }),
+  };
+}
 
 type LiveIntelState = {
   status: "loading" | "ready" | "error";
@@ -402,11 +438,18 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
   const nextOptions: PlanOption[] = [];
 
   for (const raw of plans) {
-    if (!raw || !isSupportedPlan(raw.id ?? undefined)) {
+    if (!raw) {
       continue;
     }
 
-    const fallback = FALLBACK_PLAN_LOOKUP[raw.id];
+    const planId = typeof raw.id === "string" && isSupportedPlan(raw.id)
+      ? raw.id
+      : null;
+    if (!planId) {
+      continue;
+    }
+
+    const fallback = FALLBACK_PLAN_LOOKUP[planId];
     const name = typeof raw.name === "string" && raw.name.trim().length > 0
       ? raw.name
       : fallback.name;
@@ -439,7 +482,7 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
       : fallback.cadence;
 
     nextOptions.push({
-      id: raw.id,
+      id: planId,
       name,
       price: priceLabel,
       cadence,
@@ -819,6 +862,10 @@ function resolveThemeSwatches(theme: MiniAppThemeOption): string[] {
 
 function HomeInner() {
   const [tonConnectUI] = useTonConnectUI();
+  const tonConnectThemeSource = useMemo(
+    () => toTonConnectThemeSource(tonConnectUI ?? null),
+    [tonConnectUI],
+  );
   const [planOptions, setPlanOptions] = useState<PlanOption[]>(
     () => [...FALLBACK_PLAN_OPTIONS],
   );
@@ -838,7 +885,7 @@ function HomeInner() {
   const liveIntel = useLiveIntel();
   const [countdown, setCountdown] = useState<number | null>(null);
   const { manager: themeManager, state: themeState } = useMiniAppThemeManager(
-    tonConnectUI,
+    tonConnectThemeSource,
   );
 
   const updatePlanSyncStatus = useCallback(
@@ -859,18 +906,19 @@ function HomeInner() {
     () => getPlanVisual(selectedPlan?.id ?? null),
     [selectedPlan?.id],
   );
-  const dynamicAccentStyles = useMemo<CSSProperties>(
-    () => ({
-      "--accent": activePlanVisual.accent,
-      "--accent-strong": activePlanVisual.accentStrong,
-      "--accent-soft": activePlanVisual.soft,
-      "--ui-accent": activePlanVisual.accent,
-      "--ui-accent-soft": activePlanVisual.soft,
-      "--ui-glow": activePlanVisual.glow,
-      "--ui-sheen": activePlanVisual.sheen,
-      "--ui-surface": activePlanVisual.surface,
-      "--ui-shadow": activePlanVisual.shadow,
-    }),
+  const dynamicAccentStyles = useMemo(
+    () =>
+      ({
+        "--accent": activePlanVisual.accent,
+        "--accent-strong": activePlanVisual.accentStrong,
+        "--accent-soft": activePlanVisual.soft,
+        "--ui-accent": activePlanVisual.accent,
+        "--ui-accent-soft": activePlanVisual.soft,
+        "--ui-glow": activePlanVisual.glow,
+        "--ui-sheen": activePlanVisual.sheen,
+        "--ui-surface": activePlanVisual.surface,
+        "--ui-shadow": activePlanVisual.shadow,
+      }) as CSSProperties,
     [activePlanVisual],
   );
   const planTonLabel = useMemo(() => {

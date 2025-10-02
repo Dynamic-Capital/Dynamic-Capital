@@ -21,7 +21,7 @@ import {
 } from "@/data/instruments";
 import { RefreshAnimation } from "./RefreshAnimation";
 
-interface StrategyPlaybook {
+export interface StrategyPlaybook {
   automation: string;
   support?: number;
   resistance?: number;
@@ -37,7 +37,7 @@ interface StrategyPlaybook {
   };
 }
 
-interface MarketWatchlistItem {
+export interface MarketWatchlistItem {
   symbol: string;
   displaySymbol: string;
   name: string;
@@ -51,14 +51,14 @@ interface MarketWatchlistItem {
   playbook?: StrategyPlaybook;
 }
 
-type InstrumentCategory =
+export type InstrumentCategory =
   | "Crypto"
   | "FX"
   | "Commodities"
   | "Indices"
   | "Stocks";
 
-type MarketQuote = {
+export type MarketQuote = {
   last: number;
   changePercent: number;
   high: number;
@@ -121,7 +121,7 @@ type MarketApiQuote = {
 
 type MarketApiResponse = Record<string, MarketApiQuote>;
 
-const REFRESH_INTERVAL_MS = 60_000;
+export const REFRESH_INTERVAL_MS = 60_000;
 
 export const CATEGORY_DETAILS: Record<InstrumentCategory, CategoryVisual> = {
   Crypto: { icon: "sparkles", label: "Crypto currencies" },
@@ -139,7 +139,7 @@ export const CATEGORY_ORDER: InstrumentCategory[] = [
   "Indices",
 ];
 
-const BIAS_DETAILS: Record<MarketWatchlistItem["bias"], BiasVisual> = {
+export const BIAS_DETAILS: Record<MarketWatchlistItem["bias"], BiasVisual> = {
   Long: {
     label: "Long bias",
     background: "brand-alpha-weak",
@@ -446,7 +446,7 @@ const MARKET_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
 
 const NUMBER_FORMATTER_CACHE = new Map<string, Intl.NumberFormat>();
 
-const formatChangePercent = (value?: number) => {
+export const formatChangePercent = (value?: number) => {
   if (value === undefined || Number.isNaN(value)) {
     return "—";
   }
@@ -471,7 +471,7 @@ const getFormatter = (options: Intl.NumberFormatOptions) => {
   return formatter;
 };
 
-const formatNumber = (
+export const formatNumber = (
   value: number | undefined,
   options: Intl.NumberFormatOptions,
 ) => {
@@ -481,7 +481,7 @@ const formatNumber = (
   return getFormatter(options).format(value);
 };
 
-const formatRange = (
+export const formatRange = (
   quote: MarketQuote | undefined,
   options: Intl.NumberFormatOptions,
 ) => {
@@ -793,7 +793,7 @@ const computeDxyQuote = (
   };
 };
 
-const loadMarketQuotes = async (
+export const loadMarketQuotes = async (
   signal?: AbortSignal,
 ): Promise<
   { quotes: Record<string, MarketQuote>; lastUpdated: Date | null }
@@ -849,6 +849,126 @@ const loadMarketQuotes = async (
   };
 };
 
+export interface UseMarketWatchlistDataOptions {
+  enabled: boolean;
+  refreshIntervalMs?: number;
+}
+
+export interface UseMarketWatchlistDataResult {
+  quotes: Record<string, MarketQuote>;
+  updatedAt: Date | null;
+  isFetching: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+}
+
+export function useMarketWatchlistData({
+  enabled,
+  refreshIntervalMs = REFRESH_INTERVAL_MS,
+}: UseMarketWatchlistDataOptions): UseMarketWatchlistDataResult {
+  const [quotes, setQuotes] = useState<Record<string, MarketQuote>>({});
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+
+  const isMountedRef = useRef(true);
+  const inFlightRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+      abortControllerRef.current?.abort();
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    },
+    [],
+  );
+
+  const performFetch = useCallback(async () => {
+    if (inFlightRef.current) {
+      return;
+    }
+
+    inFlightRef.current = true;
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    if (isMountedRef.current) {
+      setIsFetching(true);
+    }
+
+    try {
+      const { quotes: latestQuotes, lastUpdated } = await loadMarketQuotes(
+        controller.signal,
+      );
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setQuotes(latestQuotes);
+      setUpdatedAt(lastUpdated ?? new Date());
+      setError(null);
+    } catch (fetchError) {
+      if (
+        fetchError instanceof DOMException &&
+        fetchError.name === "AbortError"
+      ) {
+        return;
+      }
+
+      if (isMountedRef.current) {
+        setError(
+          "Unable to sync live prices right now. We will retry automatically.",
+        );
+      }
+    } finally {
+      inFlightRef.current = false;
+      abortControllerRef.current = null;
+      if (isMountedRef.current) {
+        setIsFetching(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) {
+      abortControllerRef.current?.abort();
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (isMountedRef.current) {
+        setIsFetching(false);
+      }
+      return;
+    }
+
+    void performFetch();
+
+    const intervalId = setInterval(() => {
+      void performFetch();
+    }, refreshIntervalMs);
+
+    intervalRef.current = intervalId;
+
+    return () => {
+      clearInterval(intervalId);
+      intervalRef.current = null;
+    };
+  }, [enabled, refreshIntervalMs, performFetch]);
+
+  const refresh = useCallback(async () => {
+    await performFetch();
+  }, [performFetch]);
+
+  return { quotes, updatedAt, isFetching, error, refresh };
+}
+
 const getStatusLabel = (updatedAt: Date | null, isFetching: boolean) => {
   if (!updatedAt && isFetching) {
     return "Fetching live prices…";
@@ -863,28 +983,13 @@ const getStatusLabel = (updatedAt: Date | null, isFetching: boolean) => {
 };
 
 export function MarketWatchlist() {
-  const [quotes, setQuotes] = useState<Record<string, MarketQuote>>({});
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState<boolean>(false);
   const [isInViewport, setIsInViewport] = useState(false);
   const [hasViewportEntry, setHasViewportEntry] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(() =>
     typeof document === "undefined" ? true : !document.hidden
   );
 
-  const isMountedRef = useRef(true);
-  const inFlightRef = useRef(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const sectionRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
-      abortControllerRef.current?.abort();
-    },
-    [],
-  );
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -935,71 +1040,9 @@ export function MarketWatchlist() {
   const shouldPollViewport = hasViewportEntry ? isInViewport : true;
   const isActive = shouldPollViewport && isDocumentVisible;
 
-  const refreshQuotes = useCallback(async () => {
-    if (inFlightRef.current) {
-      return;
-    }
-
-    inFlightRef.current = true;
-    abortControllerRef.current?.abort();
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    if (isMountedRef.current) {
-      setIsFetching(true);
-    }
-
-    try {
-      const { quotes: latestQuotes, lastUpdated } = await loadMarketQuotes(
-        controller.signal,
-      );
-      if (!isMountedRef.current) {
-        return;
-      }
-      setQuotes(latestQuotes);
-      setUpdatedAt(lastUpdated ?? new Date());
-      setError(null);
-    } catch (fetchError) {
-      if (
-        fetchError instanceof DOMException && fetchError.name === "AbortError"
-      ) {
-        return;
-      }
-      if (isMountedRef.current) {
-        setError(
-          "Unable to sync live prices right now. We will retry automatically.",
-        );
-      }
-    } finally {
-      inFlightRef.current = false;
-      abortControllerRef.current = null;
-      if (isMountedRef.current) {
-        setIsFetching(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isActive) {
-      return;
-    }
-
-    abortControllerRef.current?.abort();
-  }, [isActive]);
-
-  useEffect(() => {
-    if (!isActive) {
-      return;
-    }
-
-    void refreshQuotes();
-    const intervalId = setInterval(() => {
-      void refreshQuotes();
-    }, REFRESH_INTERVAL_MS);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [isActive, refreshQuotes]);
+  const { quotes, updatedAt, isFetching, error } = useMarketWatchlistData({
+    enabled: isActive,
+  });
 
   const statusLabel = useMemo(() => {
     if (!isDocumentVisible) {

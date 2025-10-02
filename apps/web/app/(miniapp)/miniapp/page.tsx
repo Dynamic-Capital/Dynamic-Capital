@@ -17,7 +17,7 @@ export default function MiniAppIndex() {
     }
 
     const { search, hash } = window.location;
-    const nextPath = `/miniapp/home${search ?? ""}${hash ?? ""}`;
+    const nextPath = `/miniapp/dynamic-hq${search ?? ""}${hash ?? ""}`;
 
     hasRedirectedRef.current = true;
     router.replace(nextPath);
