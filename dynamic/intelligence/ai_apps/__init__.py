@@ -102,6 +102,15 @@ from .knowledge_engine import (
     LinkRecommendation,
     RelationHint,
 )
+from .prompt_engine import (
+    DynamicPromptEngine,
+    MissingContextError,
+    PromptMessage,
+    PromptTemplate,
+    RenderedPrompt,
+    UnknownTemplateError,
+    compose_context,
+)
 from .fusion import (
     FusionEngine,
     LobeSignal,
@@ -171,6 +180,13 @@ __all__ = [
     "KnowledgeSource",
     "LinkRecommendation",
     "RelationHint",
+    "DynamicPromptEngine",
+    "PromptTemplate",
+    "RenderedPrompt",
+    "PromptMessage",
+    "MissingContextError",
+    "UnknownTemplateError",
+    "compose_context",
     "DEFAULT_MODULE_REGISTRATIONS",
     "get_default_execution_agent",
     "get_default_research_agent",
