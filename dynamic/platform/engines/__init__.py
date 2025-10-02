@@ -196,6 +196,15 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_metacognition": ("DynamicMetacognition",),
     "dynamic_mentorship": ("DynamicMentorshipEngine",),
     "dynamic_numbers": ("DynamicNumberComposer",),
+    "dynamic_parameter": (
+        "DynamicParameterEngine",
+        "ParameterSpec",
+        "ParameterState",
+        "ParameterChange",
+        "ParameterSnapshot",
+        "ParameterScenario",
+        "ParameterScenarioResult",
+    ),
     "dynamic_mapping": ("DynamicMappingEngine",),
     "dynamic_mass": (
         "DynamicMassEngine",
