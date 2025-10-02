@@ -5,6 +5,10 @@ particles, and spacetime itself interact across wildly different energy scales.
 This note highlights foundational equations, shows how to plug in realistic
 numbers, and points to observational tests that keep the theory anchored.
 
+> **Formatting note:** Run `deno fmt docs/dynamic_quantum_equations.md` before
+> committing edits so the math blocks and lists stay consistent across
+> contributors.
+
 ## 1. Quantum Fluctuations in the Early Universe
 
 ### Governing dynamics
