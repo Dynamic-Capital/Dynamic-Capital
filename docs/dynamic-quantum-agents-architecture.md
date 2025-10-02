@@ -503,6 +503,27 @@ deployment, versioning, and monitoring.
 
 ---
 
+### Optimizing Back-to-Back Agent Cycles
+
+Operational environments frequently schedule DQA workloads in rapid succession,
+especially when a downstream agent requires freshly computed insights from an
+upstream peer. To keep these back-to-back cycles efficient:
+
+- **Pipeline Stitching**: Chain quantum and classical stages through
+  event-driven queues so that each agent starts immediately after its dependency
+  resolves, minimizing idle time without overloading quantum backends.
+- **State Reuse**: Cache encodings, calibration data, and intermediate classical
+  summaries between cycles to avoid recomputing expensive preparation steps when
+  consecutive jobs share similar inputs.
+- **Adaptive Throttling**: Monitor queue depth, quantum hardware latency, and
+  SLA commitments; dynamically stagger cycles when contention risks breaching
+  latency budgets while preserving overall throughput.
+- **Batch-Aware Scheduling**: When feasible, aggregate compatible circuit
+  executions into composite jobs to amortize setup overhead while keeping
+  per-agent results logically isolated for auditing.
+
+---
+
 ### Explainability and Human Oversight
 
 Explainability remains a prime concern, especially as DQA outputs become
