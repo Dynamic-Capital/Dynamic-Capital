@@ -220,6 +220,43 @@ class MarketNarrative:
         self.insights = _normalise_tuple(self.insights)
         self.tags = _normalise_tuple(self.tags)
 
+    def to_markdown(self) -> str:
+        """Render the narrative as a markdown deck for distribution."""
+
+        lines: list[str] = [f"# {self.headline}", "", "## Thesis", self.thesis]
+
+        lines.extend(["", "## Key Levels"])
+        if self.key_levels:
+            lines.extend(f"- {level}" for level in self.key_levels)
+        else:  # pragma: no cover - defensive branch
+            lines.append("- None specified")
+
+        lines.extend(["", "## Risk Mitigation"])
+        if self.risk_mitigation:
+            lines.extend(f"- {item}" for item in self.risk_mitigation)
+        else:  # pragma: no cover - defensive branch
+            lines.append("- Maintain disciplined execution")
+
+        lines.extend(["", "## Call To Action", self.call_to_action])
+
+        lines.extend(
+            [
+                "",
+                "## Meta",
+                f"- Style: {self.style}",
+                f"- Confidence: {self.confidence:.0%}",
+            ]
+        )
+
+        if self.insights:
+            lines.extend(["", "## Desk Insights"])
+            lines.extend(f"- {insight}" for insight in self.insights)
+
+        if self.tags:
+            lines.extend(["", "## Tags", ", ".join(self.tags)])
+
+        return "\n".join(lines) + "\n"
+
 
 class DynamicTradingLanguageModel:
     """Crafts institutional-grade narratives for Dynamic Capital trade ideas."""

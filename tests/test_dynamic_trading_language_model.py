@@ -144,3 +144,27 @@ def test_strong_flow_tagging() -> None:
 
     assert "FLOW_STRONG" in narrative.tags
     assert narrative.confidence > 0.4
+
+
+def test_market_narrative_markdown_rendering() -> None:
+    narrative = MarketNarrative(
+        headline="Long ETHUSD setup — intraday focus",
+        thesis="Dynamic desk sees opportunity in ETHUSD.",
+        key_levels=("Entry: 1850.0000", "Target: 1900.0000"),
+        risk_mitigation=("Respect risk limits", "Monitor volatility"),
+        call_to_action="Structure the long expression.",
+        confidence=0.72,
+        style="institutional",
+        insights=("Funding normalising",),
+        tags=("ETHUSD", "INTRADAY"),
+    )
+
+    markdown = narrative.to_markdown()
+
+    assert markdown.startswith("# Long ETHUSD setup — intraday focus")
+    assert "## Key Levels" in markdown
+    assert "- Entry: 1850.0000" in markdown
+    assert "## Risk Mitigation" in markdown
+    assert "- Confidence: 72%" in markdown
+    assert "## Desk Insights" in markdown
+    assert "ETHUSD, INTRADAY" in markdown
