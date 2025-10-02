@@ -37,6 +37,7 @@
     "docs:catalog": "deno run -A scripts/generate-docs-organizer.ts",
     "docs:project-scan": "$(bash scripts/deno_bin.sh) run -A scripts/project/generate-project-scan.ts",
     "docs:whitepapers": "tsx scripts/whitepaper/generate.ts",
+    "kb:sync-research": "tsx scripts/knowledge_base/sync-research-readme.ts",
     "drizzle:migrations:validate": "deno run -A scripts/validate-drizzle-migrations.ts",
     "proj:collect": "tsx scripts/project/collect-conventional-commits.ts",
     "proj:notes": "tsx scripts/project/generate-release-notes.ts",
