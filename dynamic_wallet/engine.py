@@ -11,6 +11,7 @@ __all__ = [
     "WalletExposure",
     "WalletAction",
     "WalletSummary",
+    "WalletUserLink",
     "DynamicWalletEngine",
 ]
 
@@ -57,6 +58,25 @@ def _ensure_non_negative(value: float) -> float:
 
 def _clamp(value: float, *, lower: float = 0.0, upper: float = 1.0) -> float:
     return max(lower, min(upper, float(value)))
+
+
+def _normalise_ton_domain(value: str | None) -> str | None:
+    if value is None:
+        return None
+    text = value.strip().lower()
+    if not text:
+        return None
+    if "." not in text or not text.endswith(".ton"):
+        raise ValueError("ton_domain must end with .ton")
+    return text
+
+
+def _coerce_metadata(metadata: Mapping[str, object] | None) -> Mapping[str, object] | None:
+    if metadata is None:
+        return None
+    if not isinstance(metadata, Mapping):  # pragma: no cover - defensive guard
+        raise TypeError("metadata must be a mapping if provided")
+    return dict(metadata)
 
 
 @dataclass(slots=True)
@@ -162,8 +182,7 @@ class WalletAction:
             allowed = ", ".join(sorted(_ALLOWED_PRIORITIES))
             raise ValueError(f"priority must be one of {allowed}")
         self.priority = priority
-        if self.metadata is not None and not isinstance(self.metadata, Mapping):
-            raise TypeError("metadata must be a mapping if provided")
+        self.metadata = _coerce_metadata(self.metadata)
 
     def as_dict(self) -> MutableMapping[str, object]:
         payload: MutableMapping[str, object] = {
@@ -173,6 +192,38 @@ class WalletAction:
         }
         if self.metadata is not None:
             payload["metadata"] = dict(self.metadata)
+        return payload
+
+
+@dataclass(slots=True)
+class WalletUserLink:
+    """Mapping between a Telegram user and their TON wallet."""
+
+    telegram_id: str
+    wallet_address: str
+    ton_domain: str | None = None
+    wallet_app: str | None = None
+    metadata: Mapping[str, object] | None = None
+
+    def __post_init__(self) -> None:
+        self.telegram_id = _normalise_text(self.telegram_id)
+        self.wallet_address = _normalise_upper(self.wallet_address)
+        self.ton_domain = _normalise_ton_domain(self.ton_domain)
+        self.wallet_app = (
+            _normalise_lower(self.wallet_app) if self.wallet_app is not None else None
+        )
+        self.metadata = _coerce_metadata(self.metadata)
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        payload: MutableMapping[str, object] = {
+            "telegram_id": self.telegram_id,
+            "wallet_address": self.wallet_address,
+            "metadata": dict(self.metadata or {}),
+        }
+        if self.ton_domain:
+            payload["ton_domain"] = self.ton_domain
+        if self.wallet_app:
+            payload["wallet_app"] = self.wallet_app
         return payload
 
 
@@ -218,6 +269,8 @@ class DynamicWalletEngine:
     ) -> None:
         self._accounts: dict[str, WalletAccount] = {}
         self._balances: dict[str, dict[str, WalletBalance]] = {}
+        self._wallet_users: dict[str, WalletUserLink] = {}
+        self._wallet_to_user: dict[str, str] = {}
         limits: dict[str, float] = {}
         for asset, limit in (exposure_limits or {}).items():
             limits[_normalise_upper(asset)] = _clamp(limit)
@@ -354,3 +407,42 @@ class DynamicWalletEngine:
             return self._accounts[key]
         except KeyError as exc:  # pragma: no cover - defensive guard
             raise ValueError(f"wallet {key} is not registered") from exc
+
+    def configure_wallet_user(self, link: WalletUserLink) -> Mapping[str, object]:
+        """Register a Telegram ⇄ TON wallet link and return its serialised form."""
+
+        existing = self._wallet_users.get(link.telegram_id)
+        if existing is not None and existing.wallet_address != link.wallet_address:
+            raise ValueError("telegram user already linked to a different wallet")
+
+        owner = self._wallet_to_user.get(link.wallet_address)
+        if owner is not None and owner != link.telegram_id:
+            raise ValueError("wallet address already linked to another telegram user")
+
+        if existing is not None:
+            merged_metadata: dict[str, object] = {}
+            if existing.metadata:
+                merged_metadata.update(existing.metadata)
+            if link.metadata:
+                merged_metadata.update(link.metadata)
+            link = WalletUserLink(
+                telegram_id=existing.telegram_id,
+                wallet_address=existing.wallet_address,
+                ton_domain=link.ton_domain or existing.ton_domain,
+                wallet_app=link.wallet_app or existing.wallet_app,
+                metadata=merged_metadata,
+            )
+
+        self._wallet_users[link.telegram_id] = link
+        self._wallet_to_user[link.wallet_address] = link.telegram_id
+        return link.as_dict()
+
+    def list_wallet_users(self) -> tuple[WalletUserLink, ...]:
+        """Return registered wallet links for inspection."""
+
+        return tuple(self._wallet_users.values())
+
+    def export_wallet_users(self) -> list[Mapping[str, object]]:
+        """Serialise all wallet links to dictionaries suitable for persistence."""
+
+        return [link.as_dict() for link in self._wallet_users.values()]

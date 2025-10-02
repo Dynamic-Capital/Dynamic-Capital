@@ -8,6 +8,7 @@ from dynamic_wallet import (
     DynamicWalletEngine,
     WalletAccount,
     WalletBalance,
+    WalletUserLink,
 )
 
 
@@ -71,3 +72,64 @@ def test_missing_price_emits_alert(engine: DynamicWalletEngine, registered_walle
 def test_duplicate_registration_is_rejected(engine: DynamicWalletEngine, registered_wallet: WalletAccount) -> None:
     with pytest.raises(ValueError):
         engine.register_account(registered_wallet)
+
+
+def test_configure_wallet_user_registers_link(engine: DynamicWalletEngine) -> None:
+    record = engine.configure_wallet_user(
+        WalletUserLink(
+            telegram_id=" 12345 ",
+            wallet_address="eqabc",
+            ton_domain="DynamicCapital.ton",
+            wallet_app="TonKeeper",
+            metadata={"kyc": True},
+        )
+    )
+
+    assert record["telegram_id"] == "12345"
+    assert record["wallet_address"] == "EQABC"
+    assert record["ton_domain"] == "dynamiccapital.ton"
+    assert record["wallet_app"] == "tonkeeper"
+    assert record["metadata"] == {"kyc": True}
+    stored = engine.list_wallet_users()
+    assert len(stored) == 1
+    assert stored[0].wallet_address == "EQABC"
+
+
+def test_configure_wallet_user_merges_metadata(engine: DynamicWalletEngine) -> None:
+    engine.configure_wallet_user(
+        WalletUserLink(
+            telegram_id="12345",
+            wallet_address="EQABC",
+            metadata={"source": "telegram"},
+        )
+    )
+
+    record = engine.configure_wallet_user(
+        WalletUserLink(
+            telegram_id="12345",
+            wallet_address="eqabc",
+            ton_domain="desk.ton",
+            metadata={"note": "vip"},
+        )
+    )
+
+    assert record["metadata"] == {"source": "telegram", "note": "vip"}
+    assert record["ton_domain"] == "desk.ton"
+    exported = engine.export_wallet_users()
+    assert exported[0]["metadata"]["source"] == "telegram"
+
+
+def test_configure_wallet_user_rejects_conflicts(engine: DynamicWalletEngine) -> None:
+    engine.configure_wallet_user(
+        WalletUserLink(telegram_id="111", wallet_address="EQAAA")
+    )
+
+    with pytest.raises(ValueError):
+        engine.configure_wallet_user(
+            WalletUserLink(telegram_id="222", wallet_address="EQAAA")
+        )
+
+    with pytest.raises(ValueError):
+        engine.configure_wallet_user(
+            WalletUserLink(telegram_id="111", wallet_address="EQBBB")
+        )
