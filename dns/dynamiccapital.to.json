@@ -1,0 +1,49 @@
+{
+  "domain": "dynamiccapital.to",
+  "type": "CLOUDFLARE_DNS",
+  "registrar": "Tonic Domains Corp.",
+  "provider": "Cloudflare",
+  "records": [
+    {
+      "type": "A",
+      "name": "@",
+      "data": "162.159.140.98",
+      "ttl": 3600,
+      "note": "Primary Cloudflare Anycast IP for apex"
+    },
+    {
+      "type": "A",
+      "name": "@",
+      "data": "172.66.0.96",
+      "ttl": 3600,
+      "note": "Secondary Cloudflare Anycast IP for apex"
+    },
+    {
+      "type": "CNAME",
+      "name": "www",
+      "data": "dynamiccapital.to",
+      "ttl": 3600,
+      "note": "Alias www to the apex"
+    },
+    {
+      "type": "CNAME",
+      "name": "api",
+      "data": "your-project-ref.supabase.co",
+      "ttl": 300,
+      "note": "Supabase API hostname placeholder; replace with live project ref before delegation"
+    },
+    {
+      "type": "TXT",
+      "name": "_acme-challenge.api",
+      "data": "pending-supabase-verification-token",
+      "ttl": 300,
+      "note": "Populate with Supabase-provided ACME challenge token during custom domain verification"
+    }
+  ],
+  "notes": [
+    "Manage the zone through Cloudflare once the domain is transferred or delegated.",
+    "Keep apex and www proxied behind Cloudflare for parity with existing surfaces.",
+    "Reuse the Supabase verification workflow from dynamiccapital.ton when activating the API hostname.",
+    "Document final DNS hashes and certificate issuance events in the operations runbook."
+  ]
+}
