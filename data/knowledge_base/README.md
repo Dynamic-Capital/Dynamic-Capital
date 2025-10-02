@@ -35,6 +35,8 @@ Run `npx tsx scripts/knowledge_base/sync-readme.ts` after updating `index.json` 
 | Share | Helper | Status |
 | --- | --- | --- |
 | [Research bundle (pending metadata dump)](https://1drv.ms/f/c/2ff0428a2f57c7a4/ErBHFYCqf15AhFwIGWHjLfYB1sze-98g08jNtOzu0A3wKQ?e=WdUfh0) | [docs/onedrive-shares/erbhfycq-folder.md](../docs/onedrive-shares/erbhfycq-folder.md) | Anonymous access is still blocked; authenticate with Microsoft Graph before enumerating contents. Once fetched, mirror the artifacts into data/knowledge_base/ and extend the research manifest with filenames, checksums, and processing notes. |
+| [Knowledge base — Books reference drop](https://1drv.ms/f/c/2ff0428a2f57c7a4/Ekqbarlpv7hLjyb9tgPdMqcBZpxonB18K7RHjp2IV6ofmQ?e=PDXXJk) | [docs/onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md](../docs/onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md) | Contains the curated PDF books staged under knowledge_base\\books; fetch metadata and mirror into the repository once access is available. |
+| [DynamicAI_D — External datasets bundle](https://1drv.ms/f/c/2ff0428a2f57c7a4/Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA?e=d9WTwY) | [docs/onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md](../docs/onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md) | Hosts the DynamicAI_D/Bdatasets drop; coordinate checksum validation before syncing into Supabase mirrors. |
 
 ### Research bundle (pending metadata dump)
 
@@ -47,6 +49,29 @@ Run `npx tsx scripts/knowledge_base/sync-readme.ts` after updating `index.json` 
 - Export a Microsoft Graph access token with permission to read the shared item.
 - Run npx tsx scripts/onedrive/dump-drive-item.ts "${ONEDRIVE_SHARE_LINK}" docs/onedrive-shares/erbhfycq-folder.metadata.json after authentication.
 - Mirror the downloaded assets into data/knowledge_base/ and update the manifests with checksums and processing notes.
+### Knowledge base — Books reference drop
+
+- **Share link:** https://1drv.ms/f/c/2ff0428a2f57c7a4/Ekqbarlpv7hLjyb9tgPdMqcBZpxonB18K7RHjp2IV6ofmQ?e=PDXXJk
+- **Graph helper:** [docs/onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md](../docs/onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md)
+- **Status:** Contains the curated PDF books staged under knowledge_base\\books; fetch metadata and mirror into the repository once access is available.
+
+#### Next actions
+
+- Authenticate with Microsoft Graph before enumerating the share to avoid HTTP 403 responses.
+- Dump the folder metadata into docs/onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.metadata.json for auditing.
+- Mirror the downloaded books into data/knowledge_base/books and register them in index.json for downstream retrieval.
+### DynamicAI_D — External datasets bundle
+
+- **Share link:** https://1drv.ms/f/c/2ff0428a2f57c7a4/Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA?e=d9WTwY
+- **Graph helper:** [docs/onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md](../docs/onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md)
+- **Status:** Hosts the DynamicAI_D/Bdatasets drop; coordinate checksum validation before syncing into Supabase mirrors.
+
+#### Next actions
+
+- Authenticate with Microsoft Graph and enumerate child items for checksum calculation.
+- Store the metadata snapshot in docs/onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.metadata.json.
+- Track mirroring progress in data/knowledge_base/research/manifest.json once datasets are ingested.
+- Run python tools/dynamic_trading_corpus.py --pdf-dir data/knowledge_base/dynamic_trading/raw to extract the trading knowledge PDFs into text, tables, and JSONL output.
 
 ### Research staging
 

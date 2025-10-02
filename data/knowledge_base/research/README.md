@@ -30,6 +30,7 @@ for mirroring the new material into the Dynamic Capital knowledge base.
 | `dhivehi_radheef_v1`         | Deduplicated Dhivehi Radheef dictionary slices prepared for bilingual instruction tuning.                                                      | Processed corpus at `processed/dhivehi_training_corpus.jsonl`; training telemetry in `training_runs/dhivehi_radheef_v1.json`.                  |
 | `market_structure_notes_v1`  | Refined market-structure corpus with tier hierarchy, execution discipline, timeframe playbooks, and top-down workflow quick references.        | Processed corpus at `processed/trading_market_structure_corpus.jsonl`.                                                                         |
 | `nemotron_personas_japan_v1` | One million Japanese-language synthetic personas aligned to census demographics, geography, and cultural context for sovereign AI prototyping. | Source maintained on Hugging Face at `nvidia/Nemotron-Personas-Japan` (CC BY 4.0). Export with `python ml/extract_nemotron_personas_japan.py`. |
+| `dynamic_trading_knowledge_base_v1` | Mirrored PDF corpus for the trading knowledge base with page-level extractions and table captures. | Drop PDFs into `dynamic_trading/raw/` and run `python tools/dynamic_trading_corpus.py` to build `dynamic_trading/processed/dynamic_trading_knowledge.jsonl`. |
 
 ### Extraction helpers
 

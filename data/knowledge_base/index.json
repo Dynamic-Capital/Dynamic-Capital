@@ -39,6 +39,31 @@
         "Run npx tsx scripts/onedrive/dump-drive-item.ts \"${ONEDRIVE_SHARE_LINK}\" docs/onedrive-shares/erbhfycq-folder.metadata.json after authentication.",
         "Mirror the downloaded assets into data/knowledge_base/ and update the manifests with checksums and processing notes."
       ]
+    },
+    {
+      "id": "knowledge-base-books-2025-10-20",
+      "title": "Knowledge base — Books reference drop",
+      "share_link": "https://1drv.ms/f/c/2ff0428a2f57c7a4/Ekqbarlpv7hLjyb9tgPdMqcBZpxonB18K7RHjp2IV6ofmQ?e=PDXXJk",
+      "graph_helper": "docs/onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md",
+      "status": "Contains the curated PDF books staged under knowledge_base\\\\books; fetch metadata and mirror into the repository once access is available.",
+      "actions": [
+        "Authenticate with Microsoft Graph before enumerating the share to avoid HTTP 403 responses.",
+        "Dump the folder metadata into docs/onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.metadata.json for auditing.",
+        "Mirror the downloaded books into data/knowledge_base/books and register them in index.json for downstream retrieval."
+      ]
+    },
+    {
+      "id": "bdatasets-reference-2025-10-20",
+      "title": "DynamicAI_D — External datasets bundle",
+      "share_link": "https://1drv.ms/f/c/2ff0428a2f57c7a4/Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA?e=d9WTwY",
+      "graph_helper": "docs/onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md",
+      "status": "Hosts the DynamicAI_D/Bdatasets drop; coordinate checksum validation before syncing into Supabase mirrors.",
+      "actions": [
+        "Authenticate with Microsoft Graph and enumerate child items for checksum calculation.",
+        "Store the metadata snapshot in docs/onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.metadata.json.",
+        "Track mirroring progress in data/knowledge_base/research/manifest.json once datasets are ingested.",
+        "Run python tools/dynamic_trading_corpus.py --pdf-dir data/knowledge_base/dynamic_trading/raw to extract the trading knowledge PDFs into text, tables, and JSONL output."
+      ]
     }
   ],
   "staging": {

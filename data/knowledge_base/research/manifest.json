@@ -73,6 +73,15 @@
       "license": "CC-BY-4.0",
       "release_date": "2025-09-23",
       "notes": "NVIDIA's synthetic persona corpus covering one million Japanese-language personas grounded in census-aligned demographics, geography, and cultural context for sovereign AI workloads."
+    },
+    {
+      "slug": "dynamic_trading_knowledge_base_v1",
+      "source": {
+        "one_drive_path": "OneDrive\\\\DynamicAI_D\\\\Bdatasets\\\\dynamic_trading_knowledge",
+        "notes": "Mirror the PDF bundle into data/knowledge_base/dynamic_trading/raw before extraction."
+      },
+      "processed_path": "data/knowledge_base/dynamic_trading/processed/dynamic_trading_knowledge.jsonl",
+      "notes": "Run tools/dynamic_trading_corpus.py to generate page-level JSONL entries with table payloads for each PDF."
     }
   ]
 }
