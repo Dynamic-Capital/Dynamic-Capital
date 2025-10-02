@@ -1,0 +1,6 @@
+Dynamic Trading Reference Guide
+--------------------------------
+This PDF summarises key trading concepts for extraction testing.
+Section 1: Market Structure and Order Flow.
+Section 2: Risk Management and Position Sizing.
+Section 3: Execution Playbooks and Review Cadence.

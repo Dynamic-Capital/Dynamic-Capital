@@ -1,0 +1,21 @@
+{
+  "pdf_directory": "data/knowledge_base/dynamic_trading/raw",
+  "output_dir": "data/knowledge_base/dynamic_trading/extracted",
+  "text_dir": "data/knowledge_base/dynamic_trading/extracted/text",
+  "table_dir": "data/knowledge_base/dynamic_trading/extracted/tables",
+  "jsonl_path": "data/knowledge_base/dynamic_trading/processed/dynamic_trading_knowledge.jsonl",
+  "batch_size": 12,
+  "max_workers": 4,
+  "structured": true,
+  "recursive": true,
+  "skip_existing": false,
+  "stats": {
+    "total": 1,
+    "attempted": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "records_written": 1,
+  "tables_written": 0
+}
