@@ -329,6 +329,10 @@ Keep secrets such as `SUPABASE_SERVICE_ROLE_KEY` or `TELEGRAM_BOT_TOKEN` only in
 the environment for the Next.js component. Do **not** prefix them with
 `NEXT_PUBLIC_` or expose them in the static site.
 
+If a credential is ever exposed publicly, follow the [Secret Rotation
+Playbook](docs/security/secret-rotation.md) to revoke and replace it across the
+stack before redeploying the affected services.
+
 For local work, create `.env`/`.env.local` at the repository root and run
 `npm run dev` to load the variables. In production, manage secrets through your
 platform's configuration for each component.

@@ -29,6 +29,22 @@ function coerceListenHost(raw) {
   return trimmed;
 }
 
+function isLikelyLoopbackHost(raw) {
+  if (!raw) return false;
+  const normalized = `${raw}`.trim().toLowerCase();
+  if (!normalized) return false;
+  if (
+    normalized === "localhost" ||
+    normalized === "127.0.0.1" ||
+    normalized === "0.0.0.0" ||
+    normalized === "::1"
+  ) {
+    return true;
+  }
+  return normalized.startsWith("127.") ||
+    normalized.startsWith("::ffff:127.");
+}
+
 const listenHostSources = [
   ["HOST", process.env.HOST],
   ["HOSTNAME", process.env.HOSTNAME],
@@ -49,6 +65,14 @@ for (const [source, value] of listenHostSources) {
 }
 
 if (!listenHost) {
+  listenHost = "0.0.0.0";
+  listenHostSource = "default";
+}
+
+if (listenHostSource === "HOSTNAME" && !isLikelyLoopbackHost(listenHost)) {
+  console.warn(
+    `Ignoring HOSTNAME ${listenHost} for listen host binding; defaulting to 0.0.0.0. Set HOST or LISTEN_HOST to override.`,
+  );
   listenHost = "0.0.0.0";
   listenHostSource = "default";
 }
