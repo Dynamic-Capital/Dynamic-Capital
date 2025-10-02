@@ -26,6 +26,14 @@ npm run ton:install-toolkit -- --apply --extras=validation,rl,tracking
 - Optional extras mirror the documentation categories (`validation`, `rl`,
   `tracking`). Pass `--extras=all` to install every group.
 
+#### Toolkit configuration
+
+All dependencies, optional groups, and container services live in
+`tools/ton/toolkit.config.json`. Update this file to add or remove packages,
+toggle Playwright installation, or point the installer to a custom Docker
+Compose stack. Supply an alternate config at runtime with
+`npm run ton:install-toolkit -- --config path/to/toolkit.config.json`.
+
 Manual steps remain available below when you need to customise versions or use
 an alternative environment manager.
 

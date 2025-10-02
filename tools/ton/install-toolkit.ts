@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { constants as fsConstants } from "node:fs";
-import { access, mkdir, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 interface Step {
@@ -12,43 +12,73 @@ interface Step {
   readonly optional?: boolean;
 }
 
-const optionalPythonGroups = new Map<string, string[]>([
-  ["validation", ["great-expectations", "pandera"]],
-  ["rl", ["stable-baselines3", "finrl"]],
-  ["tracking", ["wandb", "tensorboard"]],
-]);
+interface ToolkitConfig {
+  readonly python?: {
+    readonly packages?: string[];
+    readonly optionalGroups?: Record<string, string[]>;
+  };
+  readonly node?: {
+    readonly packages?: string[];
+    readonly installPlaywright?: boolean;
+  };
+  readonly containers?: {
+    readonly composeFile?: string;
+    readonly services?: string[];
+  };
+  readonly defaults?: {
+    readonly extras?: string[];
+  };
+}
 
-const pythonBasePackages = [
-  "tonpy",
-  "tonapi-sdk",
-  "ccxt",
-  "pandas",
-  "numpy",
-  "pandas-ta",
-  "ta-lib",
-  "tsfresh",
-  "scikit-learn",
-  "xgboost",
-  "lightgbm",
-  "catboost",
-  "torch",
-  "pytorch-lightning",
-  "prophet",
-  "statsmodels",
-  "mlflow",
-  "backtrader",
-  "vectorbt",
-  "pyportfolioopt",
-];
-
-const nodePackages = [
-  "tonweb",
-  "ton",
-  "tonapi-sdk",
-  "ccxt",
-  "playwright",
-  "@playwright/test",
-];
+const defaultConfig: Required<ToolkitConfig> = {
+  python: {
+    packages: [
+      "tonpy",
+      "tonapi-sdk",
+      "ccxt",
+      "pandas",
+      "numpy",
+      "pandas-ta",
+      "ta-lib",
+      "tsfresh",
+      "scikit-learn",
+      "xgboost",
+      "lightgbm",
+      "catboost",
+      "torch",
+      "pytorch-lightning",
+      "prophet",
+      "statsmodels",
+      "mlflow",
+      "backtrader",
+      "vectorbt",
+      "pyportfolioopt",
+    ],
+    optionalGroups: {
+      validation: ["great-expectations", "pandera"],
+      rl: ["stable-baselines3", "finrl"],
+      tracking: ["wandb", "tensorboard"],
+    },
+  },
+  node: {
+    packages: [
+      "tonweb",
+      "ton",
+      "tonapi-sdk",
+      "ccxt",
+      "playwright",
+      "@playwright/test",
+    ],
+    installPlaywright: true,
+  },
+  containers: {
+    composeFile: "docker/ton-toolkit/docker-compose.yml",
+    services: ["zookeeper", "kafka", "timescale", "redis"],
+  },
+  defaults: {
+    extras: [],
+  },
+};
 
 const rawArgs = process.argv.slice(2);
 const applyChanges = rawArgs.includes("--apply");
@@ -56,20 +86,30 @@ const skipPython = rawArgs.includes("--skip-python");
 const skipNode = rawArgs.includes("--skip-node");
 const skipContainers = rawArgs.includes("--skip-containers");
 
-const extras = parseExtras(rawArgs);
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const repoRoot = join(__dirname, "..", "..");
+const defaultConfigPath = join(__dirname, "toolkit.config.json");
+const configPath = resolveConfigPath(rawArgs, defaultConfigPath, repoRoot);
+const mergedConfig = await loadToolkitConfig(configPath);
+const optionalPythonGroups = new Map<string, string[]>(
+  Object.entries(mergedConfig.python?.optionalGroups ?? {}),
+);
+const extrasSelection = parseExtras(rawArgs, optionalPythonGroups);
+const extras = extrasSelection.explicit && extrasSelection.values.size > 0
+  ? extrasSelection.values
+  : deriveDefaultExtras(
+    mergedConfig.defaults?.extras ?? [],
+    optionalPythonGroups,
+  );
+
 const toolkitRoot = join(repoRoot, ".ton-toolkit");
 const pythonEnvDir = join(toolkitRoot, "python");
 const nodeWorkspaceDir = join(toolkitRoot, "javascript");
-const composeFile = join(
-  repoRoot,
-  "docker",
-  "ton-toolkit",
-  "docker-compose.yml",
-);
+const composePath = mergedConfig.containers?.composeFile ?? "";
+const composeFile = isAbsolute(composePath)
+  ? composePath
+  : join(repoRoot, composePath);
 
 await ensureDir(toolkitRoot);
 
@@ -95,8 +135,12 @@ if (!skipPython) {
       command: pythonCommand,
       args: createArgs,
     });
+    const pythonBasePackages = mergedConfig.python?.packages ?? [];
     const pythonPackages = Array.from(
-      new Set([...pythonBasePackages, ...collectOptionalPackages(extras)]),
+      new Set([
+        ...pythonBasePackages,
+        ...collectOptionalPackages(extras, optionalPythonGroups),
+      ]),
     );
     if (pythonPackages.length > 0) {
       steps.push({
@@ -117,6 +161,7 @@ if (!skipNode) {
   } else {
     await ensureDir(nodeWorkspaceDir);
     await ensureNodePackageJson(nodeWorkspaceDir);
+    const nodePackages = mergedConfig.node?.packages ?? [];
     const installArgs = packageManager === "pnpm"
       ? ["add", ...nodePackages]
       : ["install", ...nodePackages];
@@ -127,24 +172,26 @@ if (!skipNode) {
       args: installArgs,
       cwd: nodeWorkspaceDir,
     });
-    const playwrightStep = packageManager === "pnpm"
-      ? {
-        command: "pnpm",
-        args: ["exec", "playwright", "install"],
-        cwd: nodeWorkspaceDir,
-      }
-      : {
-        command: "npx",
-        args: ["playwright", "install"],
-        cwd: nodeWorkspaceDir,
-      };
-    steps.push({
-      title: "Install Playwright browser binaries",
-      command: playwrightStep.command,
-      args: playwrightStep.args,
-      cwd: playwrightStep.cwd,
-      optional: true,
-    });
+    if (mergedConfig.node?.installPlaywright) {
+      const playwrightStep = packageManager === "pnpm"
+        ? {
+          command: "pnpm",
+          args: ["exec", "playwright", "install"],
+          cwd: nodeWorkspaceDir,
+        }
+        : {
+          command: "npx",
+          args: ["playwright", "install"],
+          cwd: nodeWorkspaceDir,
+        };
+      steps.push({
+        title: "Install Playwright browser binaries",
+        command: playwrightStep.command,
+        args: playwrightStep.args,
+        cwd: playwrightStep.cwd,
+        optional: true,
+      });
+    }
   }
 }
 
@@ -155,6 +202,7 @@ if (!skipContainers) {
       "Docker Compose not available. Install Docker Desktop or docker-compose plugin and rerun or pass --skip-containers.",
     );
   } else {
+    const services = mergedConfig.containers?.services ?? [];
     steps.push({
       title: "Start TON toolkit stateful services (Kafka, TimescaleDB, Redis)",
       command: dockerInvocation.command,
@@ -164,10 +212,7 @@ if (!skipContainers) {
         composeFile,
         "up",
         "-d",
-        "zookeeper",
-        "kafka",
-        "timescale",
-        "redis",
+        ...services,
       ],
       optional: true,
     });
@@ -175,7 +220,10 @@ if (!skipContainers) {
 }
 
 if (!applyChanges) {
-  printPlan(steps, extras);
+  printPlan(steps, extras, {
+    configPath,
+    extrasExplicit: extrasSelection.explicit,
+  });
   process.exit(0);
 }
 
@@ -183,39 +231,149 @@ await runSteps(steps);
 
 console.log("\n✅ TON toolkit installation complete.");
 
-function parseExtras(args: string[]): Set<string> {
+interface ExtrasResult {
+  readonly values: Set<string>;
+  readonly explicit: boolean;
+}
+
+function parseExtras(
+  args: string[],
+  optionalGroups: Map<string, string[]>,
+): ExtrasResult {
   const values = new Set<string>();
+  let explicit = false;
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--extras") {
+      explicit = true;
       const value = args[index + 1];
       if (value) {
-        value.split(",").map((entry) => entry.trim().toLowerCase()).forEach((
-          entry,
-        ) => values.add(entry));
+        value.split(",").map((entry) => entry.trim().toLowerCase()).forEach(
+          (entry) => values.add(entry),
+        );
       }
       index += 1;
     } else if (arg.startsWith("--extras=")) {
+      explicit = true;
       arg.slice("--extras=".length).split(",").map((entry) =>
         entry.trim().toLowerCase()
       ).forEach((entry) => values.add(entry));
     }
   }
   if (values.has("all")) {
-    return new Set(optionalPythonGroups.keys());
+    return {
+      values: new Set(optionalGroups.keys()),
+      explicit,
+    };
   }
-  return new Set([...values].filter((key) => optionalPythonGroups.has(key)));
+  return {
+    values: new Set(
+      [...values].filter((key) => optionalGroups.has(key)),
+    ),
+    explicit,
+  };
 }
 
-function collectOptionalPackages(groups: Set<string>): string[] {
+function deriveDefaultExtras(
+  defaults: readonly string[],
+  optionalGroups: Map<string, string[]>,
+): Set<string> {
+  return new Set(
+    defaults
+      .map((entry) => entry.trim().toLowerCase())
+      .filter((entry) => optionalGroups.has(entry)),
+  );
+}
+
+function collectOptionalPackages(
+  groups: Set<string>,
+  optionalGroups: Map<string, string[]>,
+): string[] {
   const packages: string[] = [];
   for (const group of groups) {
-    const entries = optionalPythonGroups.get(group);
+    const entries = optionalGroups.get(group);
     if (entries) {
       packages.push(...entries);
     }
   }
   return packages;
+}
+
+async function loadToolkitConfig(
+  configPath: string,
+): Promise<Required<ToolkitConfig>> {
+  const configExists = await pathExists(configPath);
+  if (!configExists) {
+    return defaultConfig;
+  }
+  try {
+    const contents = await readFile(configPath, { encoding: "utf-8" });
+    const parsed = JSON.parse(contents) as ToolkitConfig;
+    return mergeToolkitConfig(defaultConfig, parsed);
+  } catch (error) {
+    reportWarning(
+      `Failed to read toolkit config at ${configPath}. Using defaults.\n${
+        String(error)
+      }`,
+    );
+    return defaultConfig;
+  }
+}
+
+function mergeToolkitConfig(
+  base: Required<ToolkitConfig>,
+  override: ToolkitConfig,
+): Required<ToolkitConfig> {
+  return {
+    python: {
+      packages: override.python?.packages ?? base.python.packages,
+      optionalGroups: {
+        ...base.python.optionalGroups,
+        ...override.python?.optionalGroups,
+      },
+    },
+    node: {
+      packages: override.node?.packages ?? base.node.packages,
+      installPlaywright: override.node?.installPlaywright ??
+        base.node.installPlaywright,
+    },
+    containers: {
+      composeFile: override.containers?.composeFile ??
+        base.containers.composeFile,
+      services: override.containers?.services ?? base.containers.services,
+    },
+    defaults: {
+      extras: override.defaults?.extras ?? base.defaults.extras,
+    },
+  };
+}
+
+function resolveConfigPath(
+  args: string[],
+  defaultPath: string,
+  repoRoot: string,
+): string {
+  const flagValue = getFlagValue(args, "--config");
+  if (!flagValue) {
+    return defaultPath;
+  }
+  if (isAbsolute(flagValue)) {
+    return flagValue;
+  }
+  return join(repoRoot, flagValue);
+}
+
+function getFlagValue(args: string[], flag: string): string | null {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === flag) {
+      return args[index + 1] ?? null;
+    }
+    if (arg.startsWith(`${flag}=`)) {
+      return arg.slice(flag.length + 1);
+    }
+  }
+  return null;
 }
 
 async function detectPython(): Promise<string | null> {
@@ -335,8 +493,21 @@ async function runCommand(
   });
 }
 
-function printPlan(stepList: Step[], selectedExtras: Set<string>): void {
+interface PlanContext {
+  readonly configPath: string;
+  readonly extrasExplicit: boolean;
+}
+
+function printPlan(
+  stepList: Step[],
+  selectedExtras: Set<string>,
+  context: PlanContext,
+): void {
   console.log("TON toolkit installation plan (dry run):\n");
+  console.log(`Configuration file: ${context.configPath}`);
+  if (!context.extrasExplicit) {
+    console.log("(extras derived from configuration defaults)\n");
+  }
   console.log("Selected optional Python groups:");
   if (selectedExtras.size === 0) {
     console.log(
