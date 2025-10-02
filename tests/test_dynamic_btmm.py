@@ -98,3 +98,30 @@ def test_negative_edge_records_watchlist_note() -> None:
     sell = next(op for op in decision.opportunities if op.side == "sell")
     assert sell.adjusted_edge_bps <= 0
     assert any("watchlist" in note.lower() for note in sell.rationale)
+
+
+def test_risk_throttle_reduces_positioning_when_exposure_high() -> None:
+    config = BTMMConfig(
+        risk_throttle_threshold=0.3,
+        risk_throttle_strength=0.9,
+        max_risk_score=0.95,
+    )
+    engine = DynamicBTMMEngine(config)
+    decision = engine.evaluate(
+        _inputs(
+            our_inventory=7_000.0,
+            predicted_volatility=1.4,
+            available_liquidity=2_000.0,
+            mm_liquidity=3_000.0,
+            risk_appetite=0.9,
+            orderbook_imbalance=0.6,
+            signal_strength=0.95,
+            predicted_fair_value=102.0,
+        )
+    )
+
+    best = decision.best_opportunity
+    assert best is not None
+    assert best.size > 0
+    assert any("throttle" in note.lower() for note in best.rationale)
+    assert any("throttle" in note.lower() for note in decision.notes)
