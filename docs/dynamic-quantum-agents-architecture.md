@@ -507,20 +507,34 @@ deployment, versioning, and monitoring.
 
 Operational environments frequently schedule DQA workloads in rapid succession,
 especially when a downstream agent requires freshly computed insights from an
-upstream peer. To keep these back-to-back cycles efficient:
+upstream peer. To keep these back-to-back cycles efficient and resilient:
 
-- **Pipeline Stitching**: Chain quantum and classical stages through
-  event-driven queues so that each agent starts immediately after its dependency
-  resolves, minimizing idle time without overloading quantum backends.
-- **State Reuse**: Cache encodings, calibration data, and intermediate classical
-  summaries between cycles to avoid recomputing expensive preparation steps when
-  consecutive jobs share similar inputs.
-- **Adaptive Throttling**: Monitor queue depth, quantum hardware latency, and
-  SLA commitments; dynamically stagger cycles when contention risks breaching
-  latency budgets while preserving overall throughput.
-- **Batch-Aware Scheduling**: When feasible, aggregate compatible circuit
-  executions into composite jobs to amortize setup overhead while keeping
-  per-agent results logically isolated for auditing.
+1. **Pipeline Stitching with Guardrails**: Chain quantum and classical stages
+   through event-driven queues so that each agent starts immediately after its
+   dependency resolves. Layer circuit-level guardrails—such as maximum depth or
+   qubit count caps—into the dispatcher so that a burst of requests cannot starve
+   other latency-sensitive workloads on shared quantum backends.
+2. **State Reuse and Warm Starts**: Cache encodings, calibration data, and
+   intermediate classical summaries between cycles to avoid recomputing
+   expensive preparation steps when consecutive jobs share similar inputs.
+   Combine these caches with versioned metadata so that a rollback to a previous
+   model snapshot automatically invalidates stale artifacts.
+3. **Adaptive Throttling and Telemetry**: Continuously monitor queue depth,
+   circuit execution latency, error rates, and SLA adherence. Feed those metrics
+   into an autoscaling controller that dynamically staggers cycles when
+   contention risks breaching latency budgets while preserving overall
+   throughput. Surface the telemetry through shared dashboards so adjacent teams
+   can coordinate adjustments in real time.
+4. **Batch-Aware Scheduling**: When feasible, aggregate compatible circuit
+   executions into composite jobs to amortize setup overhead while keeping
+   per-agent results logically isolated for auditing. Inject synthetic padding or
+   randomized execution order when necessary to reduce the chance of correlated
+   hardware failures across agents targeting the same qubits.
+5. **Failure Containment Playbooks**: Define idempotent retry policies and
+   circuit fallbacks (classical approximations, reduced precision models) so a
+   single agent failure does not cascade across the chain. Couple those playbooks
+   with automated incident notifications that include the originating job ID,
+   circuit fingerprint, and the downstream agents affected.
 
 ---
 
