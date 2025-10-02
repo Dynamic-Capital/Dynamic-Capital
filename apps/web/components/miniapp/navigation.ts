@@ -1,97 +1,117 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
-  BarChartBig,
   CandlestickChart,
+  GraduationCap,
   Home,
   LineChart,
-  MessageSquare,
-  PieChart,
-  User,
+  Radar,
+  Sparkles,
+  Wallet,
 } from "lucide-react";
 
 export type MiniAppTabId =
-  | "home"
-  | "overview"
-  | "watchlist"
-  | "signals"
-  | "mentorship"
-  | "trade"
-  | "fund"
-  | "account";
+  | "dynamic-hq"
+  | "dynamic-market"
+  | "dynamic-watchlist"
+  | "dynamic-pool-trading"
+  | "dynamic-signals"
+  | "dynamic-learn"
+  | "dynamic-access";
+
+export type MiniAppTabTone = "accent" | "neutral" | "warning";
+
+export interface MiniAppTabBadge {
+  label: string;
+  tone?: MiniAppTabTone;
+}
+
+export interface MiniAppTabMeta {
+  label: string;
+  icon?: LucideIcon;
+  tone?: MiniAppTabTone;
+}
 
 export interface MiniAppTab {
   id: MiniAppTabId;
   href: string;
   label: string;
+  eyebrow: string;
+  description: string;
   Icon: LucideIcon;
   analyticsEvent: string;
-  description: string;
+  badge?: MiniAppTabBadge;
+  meta?: MiniAppTabMeta;
+  showInBottomNav?: boolean;
 }
 
 export const MINIAPP_TABS: MiniAppTab[] = [
   {
-    id: "home",
-    href: "/miniapp/home",
-    label: "Home",
+    id: "dynamic-hq",
+    href: "/miniapp/dynamic-hq",
+    label: "Dynamic HQ",
+    eyebrow: "Command",
+    description: "Agenda, automation status, and plan sprints.",
     Icon: Home,
-    analyticsEvent: "nav_home",
-    description: "Live agenda, announcements, and quick actions.",
+    analyticsEvent: "nav_dynamic_hq",
+    badge: { label: "New", tone: "accent" },
   },
   {
-    id: "overview",
-    href: "/miniapp/overview",
-    label: "Overview",
-    Icon: BarChartBig,
-    analyticsEvent: "nav_overview",
-    description: "Capital allocation, KPI highlights, and desk priorities.",
-  },
-  {
-    id: "watchlist",
-    href: "/miniapp/watchlist",
-    label: "Watchlist",
+    id: "dynamic-market",
+    href: "/miniapp/dynamic-market",
+    label: "Dynamic Market",
+    eyebrow: "Market",
+    description: "Portfolio pulse, KPIs, and equity curve.",
     Icon: LineChart,
-    analyticsEvent: "nav_watchlist",
-    description: "Curated assets with price levels and catalyst alerts.",
+    analyticsEvent: "nav_dynamic_market",
+    meta: { label: "Live", icon: Sparkles, tone: "accent" },
   },
   {
-    id: "fund",
-    href: "/miniapp/fund",
-    label: "Fund",
-    Icon: PieChart,
-    analyticsEvent: "nav_fund",
-    description: "Pool performance, funding status, and unlocks.",
+    id: "dynamic-watchlist",
+    href: "/miniapp/dynamic-watchlist",
+    label: "Dynamic Watchlist",
+    eyebrow: "Signals",
+    description: "Core assets with catalysts and automation hooks.",
+    Icon: Radar,
+    analyticsEvent: "nav_dynamic_watchlist",
   },
   {
-    id: "signals",
-    href: "/miniapp/signals",
-    label: "Signals",
-    Icon: Activity,
-    analyticsEvent: "nav_signals",
-    description: "Realtime trade ideas and automation triggers.",
-  },
-  {
-    id: "mentorship",
-    href: "/miniapp/mentorship",
-    label: "Mentorship",
-    Icon: MessageSquare,
-    analyticsEvent: "nav_mentorship",
-    description: "Direct mentor chat, office hours, and learning track.",
-  },
-  {
-    id: "trade",
-    href: "/miniapp/trade",
-    label: "Trade",
+    id: "dynamic-pool-trading",
+    href: "/miniapp/dynamic-pool-trading",
+    label: "Dynamic Pool Trading",
+    eyebrow: "Pool",
+    description: "Fund transparency, supply allocation, and epochs.",
     Icon: CandlestickChart,
-    analyticsEvent: "nav_trade",
-    description: "Execute setups, sizing models, and risk tooling.",
+    analyticsEvent: "nav_dynamic_pool_trading",
   },
   {
-    id: "account",
-    href: "/miniapp/account",
-    label: "Account",
-    Icon: User,
-    analyticsEvent: "nav_account",
-    description: "Membership, billing, and personal settings.",
+    id: "dynamic-signals",
+    href: "/miniapp/dynamic-signals",
+    label: "Dynamic Signals",
+    eyebrow: "Feed",
+    description: "Realtime desk triggers and automation alerts.",
+    Icon: Activity,
+    analyticsEvent: "nav_dynamic_signals",
+    meta: { label: "Streaming", icon: Sparkles, tone: "accent" },
+  },
+  {
+    id: "dynamic-learn",
+    href: "/miniapp/dynamic-learn",
+    label: "Dynamic Learn & Earn",
+    eyebrow: "Mentor",
+    description: "Mentor chat, office hours, and skill tracks.",
+    Icon: GraduationCap,
+    analyticsEvent: "nav_dynamic_learn",
+    showInBottomNav: false,
+  },
+  {
+    id: "dynamic-access",
+    href: "/miniapp/dynamic-access",
+    label: "Dynamic Access",
+    eyebrow: "Access",
+    description: "Membership, billing, and concierge support.",
+    Icon: Wallet,
+    analyticsEvent: "nav_dynamic_access",
+    showInBottomNav: false,
   },
 ];

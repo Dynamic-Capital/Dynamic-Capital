@@ -14,6 +14,7 @@ import { Line, Row, Text } from "@/components/dynamic-ui-system";
 import deskTimeZone from "../../../shared/time/desk-time-zone.json";
 import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";
+import { resolveTonSiteUrl } from "../../../shared/ton/site";
 
 const fallbackDeskTimeZone: IANATimeZone = "Indian/Maldives";
 const rawDeskTimeZone =
@@ -54,7 +55,7 @@ const social: Social = [
   {
     name: "Website",
     icon: "globe",
-    link: "https://dynamiccapital.ton/",
+    link: resolveTonSiteUrl(),
   },
   {
     name: "Telegram",

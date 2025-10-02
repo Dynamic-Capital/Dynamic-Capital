@@ -44,6 +44,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { resolveTonSiteUrl } from "../../../../shared/ton/site";
 
 const HERO_BADGES = [
   { icon: "sparkles" as const, label: "AI-managed strategies" },
@@ -53,7 +54,7 @@ const HERO_BADGES = [
 
 const CTA_LINKS = {
   telegram: "https://t.me/dynamiccapital", // replace with production invite when ready
-  invest: "https://dynamiccapital.ton/app",
+  invest: resolveTonSiteUrl("app"),
   learn: "#academy",
 };
 

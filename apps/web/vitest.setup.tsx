@@ -35,11 +35,25 @@ vi.mock("@/components/dynamic-ui-system", () => ({
   Badge: createPrimitive("span"),
   Button: createPrimitive("button"),
   Column: createPrimitive("div"),
+  Line: createPrimitive("div"),
   Input: createPrimitive("input"),
   Row: createPrimitive("div"),
   Spinner: () => <div data-testid="spinner" />,
   Text: createPrimitive("span"),
 }));
+
+vi.mock("next/font/google", () => {
+  const createFont = (className: string) => () => ({
+    className,
+    style: { fontFamily: className },
+    variable: `--${className}`,
+  });
+
+  return {
+    Geist: createFont("geist"),
+    Geist_Mono: createFont("geist-mono"),
+  };
+});
 
 vi.mock("lucide-react", () => {
   const createIcon = (name: string) =>
@@ -52,13 +66,25 @@ vi.mock("lucide-react", () => {
   );
 
   return {
+    Activity: createIcon("Activity"),
+    ArrowRight: createIcon("ArrowRight"),
+    BellRing: createIcon("BellRing"),
     Bot: createIcon("Bot"),
+    CandlestickChart: createIcon("CandlestickChart"),
     CheckCircle2: createIcon("CheckCircle2"),
+    Clock: createIcon("Clock"),
+    GraduationCap: createIcon("GraduationCap"),
+    Home: createIcon("Home"),
+    LineChart: createIcon("LineChart"),
     Loader2: createIcon("Loader2"),
     Minimize2: createIcon("Minimize2"),
+    Radar: createIcon("Radar"),
+    RefreshCw: createIcon("RefreshCw"),
     RotateCcw: createIcon("RotateCcw"),
     Sparkles: createIcon("Sparkles"),
+    Wallet: createIcon("Wallet"),
     WifiOff: createIcon("WifiOff"),
     X: createIcon("X"),
+    Zap: createIcon("Zap"),
   };
 });

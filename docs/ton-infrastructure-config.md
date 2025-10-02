@@ -91,7 +91,10 @@ TON Sites so they resolve under `.ton` domains.
 - [ ] **Post-deploy verification**
   - Open the domain through Tonkeeper/MyTonWallet and the TON Proxy CLI
     (`toncli proxy open dynamiccapital.ton`) and capture screenshots for the
-    release notes.
+    release notes. Include a desktop capture via the public gateway
+    (`https://ton.site/dynamiccapital.ton`) so the fallback documented in
+    [`docs/ton-site-gateway-access.md`](./ton-site-gateway-access.md) is covered
+    in the runbook evidence.
   - Trigger the Supabase health check (`/supabase/functions/v1/link-wallet`)
     from the hosted site to confirm API connectivity; log the response payload
     in `tx_logs.metadata`.

@@ -10,6 +10,7 @@ import {
   type DynamicBrandingConfig,
   type DynamicBrandingOverrides,
 } from "./types/branding.types";
+import { TON_SITE_GATEWAY_URL } from "../../../shared/ton/site";
 import { normalizeThemePassTokens } from "../utils/theme-pass.ts";
 
 const palette: BrandingPalette = {
@@ -285,7 +286,7 @@ const metadata: BrandingMetadata = {
     "portfolio intelligence",
     "financial education",
   ],
-  primaryUrl: "https://dynamiccapital.ton",
+  primaryUrl: TON_SITE_GATEWAY_URL,
   supportEmail: "support@dynamiccapital.ton",
 };
 
