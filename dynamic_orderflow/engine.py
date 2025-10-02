@@ -85,6 +85,10 @@ class OrderFlowWindow:
 
     horizon: timedelta
     events: Deque[OrderEvent] = field(default_factory=deque)
+    _buy_notional: float = field(default=0.0, init=False, repr=False)
+    _sell_notional: float = field(default=0.0, init=False, repr=False)
+    _total_notional: float = field(default=0.0, init=False, repr=False)
+    _count: int = field(default=0, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if isinstance(self.horizon, (int, float)):
@@ -94,6 +98,7 @@ class OrderFlowWindow:
 
     def add(self, event: OrderEvent) -> None:
         self.events.append(event)
+        self._accumulate(event)
         reference_time = event.timestamp
         current_time = _utcnow()
         if reference_time < current_time:
@@ -107,38 +112,67 @@ class OrderFlowWindow:
     def _expire(self, now: datetime | None = None) -> None:
         cutoff = (now or _utcnow()) - self.horizon
         while self.events and self.events[0].timestamp < cutoff:
-            self.events.popleft()
+            expired = self.events.popleft()
+            self._release(expired)
+
+    def _accumulate(self, event: OrderEvent) -> None:
+        notional = event.notional
+        if event.side == "buy":
+            self._buy_notional += notional
+        else:
+            self._sell_notional += notional
+        self._total_notional += notional
+        self._count += 1
+
+    def _release(self, event: OrderEvent) -> None:
+        notional = event.notional
+        if event.side == "buy":
+            self._buy_notional = max(self._buy_notional - notional, 0.0)
+        else:
+            self._sell_notional = max(self._sell_notional - notional, 0.0)
+        self._total_notional = max(self._total_notional - notional, 0.0)
+        self._count = max(self._count - 1, 0)
 
     @property
     def total_notional(self) -> float:
         self._expire()
-        return sum(event.notional for event in self.events)
+        return self._total_notional
 
     @property
     def buy_notional(self) -> float:
         self._expire()
-        return sum(event.notional for event in self.events if event.side == "buy")
+        return self._buy_notional
 
     @property
     def sell_notional(self) -> float:
         self._expire()
-        return sum(event.notional for event in self.events if event.side == "sell")
+        return self._sell_notional
+
+    @property
+    def event_count(self) -> int:
+        self._expire()
+        return self._count
+
+    def event_rate(self) -> float:
+        """Return the realised events per minute over the active window."""
+
+        self._expire()
+        if not self.events:
+            return 0.0
+        if len(self.events) == 1:
+            return 60.0 / max(self.horizon.total_seconds(), 1.0)
+        span = (self.events[-1].timestamp - self.events[0].timestamp).total_seconds()
+        if span <= 0.0:
+            span = 1.0
+        return (len(self.events) * 60.0) / span
 
     def imbalance(self) -> "OrderFlowImbalance":
         self._expire()
-        buy_notional = 0.0
-        sell_notional = 0.0
-        for event in self.events:
-            notional = event.notional
-            if event.side == "buy":
-                buy_notional += notional
-            else:
-                sell_notional += notional
-        total_notional = buy_notional + sell_notional
         return OrderFlowImbalance(
-            buy_notional=buy_notional,
-            sell_notional=sell_notional,
-            total_notional=total_notional,
+            buy_notional=self._buy_notional,
+            sell_notional=self._sell_notional,
+            total_notional=self._total_notional,
+            event_count=self._count,
         )
 
 
@@ -149,11 +183,13 @@ class OrderFlowImbalance:
     buy_notional: float
     sell_notional: float
     total_notional: float
+    event_count: int = 0
 
     def __post_init__(self) -> None:
         self.buy_notional = max(float(self.buy_notional), 0.0)
         self.sell_notional = max(float(self.sell_notional), 0.0)
         self.total_notional = max(float(self.total_notional), 0.0)
+        self.event_count = max(int(self.event_count), 0)
         if self.total_notional == 0.0:
             self.total_notional = self.buy_notional + self.sell_notional
 
@@ -181,6 +217,12 @@ class OrderFlowImbalance:
             return "sell"
         return "neutral"
 
+    @property
+    def average_notional(self) -> float:
+        if self.event_count == 0:
+            return 0.0
+        return self.total_notional / self.event_count
+
     def as_dict(self) -> MutableMapping[str, float]:
         return {
             "buy_notional": self.buy_notional,
@@ -189,6 +231,8 @@ class OrderFlowImbalance:
             "delta": self.delta,
             "intensity": self.intensity,
             "bias": self.bias,
+            "event_count": float(self.event_count),
+            "average_notional": self.average_notional,
         }
 
 
@@ -225,11 +269,14 @@ class DynamicOrderFlow:
             return 0.0
         return fmean(self._latencies)
 
-    def health(self) -> Mapping[str, float | str]:
+    def health(self) -> Mapping[str, float | int | str]:
         imbalance = self.pressure()
         return {
             "dominant_side": imbalance.dominant_side,
             "intensity": imbalance.intensity,
             "bias": imbalance.bias,
             "average_latency": self.average_latency(),
+            "events_per_minute": self._window.event_rate(),
+            "event_count": imbalance.event_count,
+            "average_notional": imbalance.average_notional,
         }

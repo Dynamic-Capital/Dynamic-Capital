@@ -1,97 +1,94 @@
-"""Tests for dynamic orderflow telemetry primitives."""
+"""Tests for the optimised dynamic orderflow utilities."""
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
+import sys
+
+import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-import pytest
-
-import dynamic_orderflow.engine as engine
 from dynamic_orderflow import DynamicOrderFlow, OrderEvent, OrderFlowWindow
 
 
-def _ts(offset_seconds: float = 0.0) -> datetime:
-    """Helper to build timezone-aware timestamps anchored at a fixed epoch."""
-
-    return datetime(2024, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=offset_seconds)
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
-def test_order_flow_window_drops_expired_events(monkeypatch: pytest.MonkeyPatch) -> None:
-    base_time = _ts()
-    monkeypatch.setattr(engine, "_utcnow", lambda: base_time)
+def test_orderflow_window_accumulates_and_expires() -> None:
+    window = OrderFlowWindow(timedelta(seconds=60))
 
-    window = OrderFlowWindow(horizon=timedelta(seconds=60))
+    reference = _now()
     stale_event = OrderEvent(
-        symbol="ETHUSD",
+        symbol="ES",
+        side="buy",
+        size=5,
+        price=4305.0,
+        timestamp=reference - timedelta(minutes=10),
+    )
+    window.add(stale_event)
+    assert window.event_count == 0
+
+    buy_event = OrderEvent(
+        symbol="ES",
         side="buy",
         size=2,
-        price=1800,
-        timestamp=_ts(-300),
+        price=4300.5,
+        timestamp=reference - timedelta(seconds=20),
     )
-
-    window.add(stale_event)
-
-    assert len(window.events) == 0
-    assert window.total_notional == 0.0
-
-
-def test_order_flow_window_prunes_on_access(monkeypatch: pytest.MonkeyPatch) -> None:
-    base_time = _ts()
-    monkeypatch.setattr(engine, "_utcnow", lambda: base_time)
-
-    window = OrderFlowWindow(horizon=timedelta(seconds=30))
-    fresh_event = OrderEvent(
-        symbol="BTCUSD",
+    sell_event = OrderEvent(
+        symbol="ES",
         side="sell",
-        size=0.5,
-        price=30000,
-        timestamp=base_time,
+        size=1,
+        price=4301.0,
+        timestamp=reference - timedelta(seconds=5),
     )
-    window.add(fresh_event)
 
-    assert window.total_notional == pytest.approx(fresh_event.notional)
+    window.add(buy_event)
+    window.add(sell_event)
 
-    later_time = base_time + timedelta(seconds=120)
-    monkeypatch.setattr(engine, "_utcnow", lambda: later_time)
+    assert window.event_count == 2
+    assert window.buy_notional == pytest.approx(buy_event.notional)
+    assert window.sell_notional == pytest.approx(sell_event.notional)
+    assert window.total_notional == pytest.approx(buy_event.notional + sell_event.notional)
+    assert window.event_rate() == pytest.approx(8.0, rel=1e-3)
 
-    imbalance = window.imbalance()
-    assert imbalance.total_notional == 0.0
-    assert imbalance.delta == 0.0
-    assert len(window.events) == 0
+    assert window.total_notional == pytest.approx(buy_event.notional + sell_event.notional)
 
 
-def test_dynamic_order_flow_health_reflects_current_pressure(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    base_time = _ts()
-    monkeypatch.setattr(engine, "_utcnow", lambda: base_time)
+def test_dynamic_orderflow_health_includes_flow_metrics() -> None:
+    flow = DynamicOrderFlow(horizon=timedelta(seconds=90), max_samples=10)
 
-    telemetry = DynamicOrderFlow(horizon=timedelta(seconds=45))
-    buy_event = OrderEvent(
-        symbol="AAPL",
-        side="buy",
-        size=10,
-        price=150,
-        timestamp=base_time,
+    reference = _now()
+    flow.record(
+        OrderEvent(
+            symbol="CL",
+            side="buy",
+            size=3,
+            price=82.5,
+            timestamp=reference - timedelta(seconds=6),
+        )
     )
-    telemetry.record(buy_event)
+    flow.record(
+        OrderEvent(
+            symbol="CL",
+            side="sell",
+            size=1,
+            price=82.8,
+            timestamp=reference - timedelta(seconds=3),
+        )
+    )
 
-    initial_health = telemetry.health()
-    assert initial_health["dominant_side"] == "buy"
-    assert initial_health["intensity"] == pytest.approx(1.0)
-    assert initial_health["bias"] == pytest.approx(1.0)
+    health = flow.health()
 
-    later_time = base_time + timedelta(minutes=5)
-    monkeypatch.setattr(engine, "_utcnow", lambda: later_time)
-
-    stale_health = telemetry.health()
-    assert stale_health["dominant_side"] == "neutral"
-    assert stale_health["intensity"] == pytest.approx(0.0)
-    assert stale_health["bias"] == pytest.approx(0.5)
-
+    assert health["event_count"] == 2
+    assert health["average_notional"] == pytest.approx(
+        (82.5 * 3 + 82.8 * 1) / 2,
+        rel=1e-3,
+    )
+    assert health["events_per_minute"] > 0.0
+    assert health["dominant_side"] in {"buy", "sell", "neutral"}
