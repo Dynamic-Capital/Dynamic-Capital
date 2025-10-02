@@ -26,6 +26,7 @@ _BUILDER_EXPORTS = {
     "algorithms.python.awesome_api": ("AwesomeAPISnapshotBuilder",),
     "algorithms.python.dynamic_market_snapshot": ("DynamicMarketSnapshotBuilder",),
     "algorithms.python.dynamic_market_index": ("DynamicMarketIndexBuilder",),
+    "dynamic_architecture.builder": ("DynamicArchitectureBuilder",),
     "dynamic_crawl": (
         "CrawlPlan",
         "DynamicCrawler",

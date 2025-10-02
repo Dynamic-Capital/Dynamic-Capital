@@ -25,6 +25,7 @@ _HELPER_EXPORTS = {
         "summarise_recycling_events",
         "format_recycling_digest",
     ),
+    "dynamic_architecture.helper": ("DynamicArchitectureHelper",),
     "dynamic_helpers.ocean": (
         "DynamicOceanLayerHelper",
         "DynamicEpipelagicHelper",
