@@ -97,7 +97,8 @@ function resetOverrides() {
 }
 
 Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
-  Deno.env.set("DYNAMIC_CLI_PYTHON", "python3");
+  Deno.env.set("DYNAMIC_AGI_PYTHON", "python-agi");
+  Deno.env.set("DYNAMIC_CLI_PYTHON", "python-cli");
   Deno.env.set("ADMIN_API_SECRET", ADMIN_SECRET);
   (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
     createNoopApiMetrics();
@@ -178,8 +179,20 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
     throw new Error("Expected Dynamic CLI process to be spawned");
   }
 
-  if (!spawnCall.args.includes("--fine-tune-dataset")) {
-    throw new Error("Expected --fine-tune-dataset flag to be forwarded");
+  if (spawnCall.command !== "python-agi") {
+    throw new Error(
+      "Expected DYNAMIC_AGI_PYTHON to override the interpreter path",
+    );
+  }
+
+  if (!spawnCall.args.includes("--dataset")) {
+    throw new Error("Expected --dataset flag to be forwarded");
+  }
+
+  if (!spawnCall.args.includes("dynamic.intelligence.agi.build")) {
+    throw new Error(
+      "Expected dynamic.intelligence.agi.build module to be used",
+    );
   }
 
   const stdinData = lastProcess?.stdin.chunks.join("");
@@ -187,6 +200,8 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
     throw new Error("Expected scenario JSON to be written to stdin");
   }
 
+  Deno.env.set("DYNAMIC_AGI_PYTHON", "python3");
+  Deno.env.set("DYNAMIC_CLI_PYTHON", "python3");
   resetOverrides();
 });
 
