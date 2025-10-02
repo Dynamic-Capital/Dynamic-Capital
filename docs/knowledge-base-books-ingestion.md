@@ -53,6 +53,9 @@ OneDrive/DynamicAI_DB/
 2. **Text extraction**
    - Use `pdfplumber` or `PyPDF2` for PDFs, `python -m tika` for mixed formats,
      and `pandoc` for DOCX/EPUB conversions.
+   - Run `python tools/books_corpus.py --pdf-dir data/knowledge_base/books/raw`
+     to batch extract mirrored books into `extracted/` and emit a
+     page-granular JSONL corpus under `processed/`.
    - Normalise whitespace, remove boilerplate (copyright pages, tables of
      contents), and preserve headings with Markdown markers.
 3. **Chunking**
