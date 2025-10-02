@@ -9,15 +9,13 @@ import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 const ROUTE_NAME = "/api/dynamic-rest";
 const CACHE_KEY = "dynamic-rest-response";
-const REVALIDATE_SECONDS = 300;
-
-export const revalidate = REVALIDATE_SECONDS;
+export const revalidate = 300;
 
 const getDynamicRestResponse = unstable_cache(
-  async () => buildDynamicRestResponse(),
+  () => Promise.resolve(buildDynamicRestResponse()),
   [CACHE_KEY],
   {
-    revalidate: REVALIDATE_SECONDS,
+    revalidate,
     tags: [DYNAMIC_REST_CACHE_TAG],
   },
 );
