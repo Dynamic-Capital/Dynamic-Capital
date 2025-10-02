@@ -25,7 +25,10 @@ prerequisites, and record results alongside their PR or release notes.
 > [!TIP]
 > When network access is unavailable, capture API responses in JSON fixtures and
 > point scripts at them with helper variables such as
-> `TELEGRAM_WEBHOOK_INFO_PATH`.
+> `TELEGRAM_WEBHOOK_INFO_PATH`. When `scripts/check-webhook.ts` runs inside the
+> repository and no token is available, it automatically falls back to the
+> bundled `fixtures/telegram-webhook-info.json` sample so the checklist can
+> progress offline.
 
 > [!NOTE]
 > The `scripts/check-webhook.ts` helper also pings the `/version` liveness

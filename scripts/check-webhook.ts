@@ -14,6 +14,7 @@
  */
 
 import { createHttpClientWithEnvCa } from "./utils/http-client.ts";
+import { dirname, fromFileUrl, join, relative } from "std/path/mod.ts";
 
 type TelegramWebhookInfo = {
   url?: string;
@@ -39,18 +40,55 @@ async function loadFixture(path: string): Promise<TelegramWebhookInfo> {
   return (parsed ?? {}) as TelegramWebhookInfo;
 }
 
+const SCRIPT_DIR = dirname(fromFileUrl(import.meta.url));
+const PROJECT_ROOT = join(SCRIPT_DIR, "..", "");
+const DEFAULT_WEBHOOK_FIXTURE = join(
+  PROJECT_ROOT,
+  "fixtures",
+  "telegram-webhook-info.json",
+);
+
+async function resolveDefaultFixture(): Promise<string | null> {
+  try {
+    const stats = await Deno.stat(DEFAULT_WEBHOOK_FIXTURE);
+    if (stats.isFile) {
+      return DEFAULT_WEBHOOK_FIXTURE;
+    }
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) {
+      console.warn(
+        "[fixtures] Unable to inspect default Telegram webhook fixture:",
+        error,
+      );
+    }
+  }
+  return null;
+}
+
 async function fetchWebhookInfo(): Promise<TelegramWebhookInfo> {
-  const fixturePath = Deno.env.get("TELEGRAM_WEBHOOK_INFO_PATH");
-  if (fixturePath) {
+  const envFixturePath = Deno.env.get("TELEGRAM_WEBHOOK_INFO_PATH");
+  if (envFixturePath) {
     console.log(
-      `Using TELEGRAM_WEBHOOK_INFO_PATH fixture: ${fixturePath}`,
+      `Using TELEGRAM_WEBHOOK_INFO_PATH fixture: ${envFixturePath}`,
     );
-    return await loadFixture(fixturePath);
+    return await loadFixture(envFixturePath);
   }
 
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
   if (!token) {
-    console.error("Missing TELEGRAM_BOT_TOKEN");
+    const fallbackFixture = await resolveDefaultFixture();
+    if (fallbackFixture) {
+      const relativePath = relative(Deno.cwd(), fallbackFixture);
+      console.log(
+        `[fixtures] TELEGRAM_BOT_TOKEN missing; using ${
+          relativePath.startsWith("..") ? fallbackFixture : relativePath
+        } for webhook info.`,
+      );
+      return await loadFixture(fallbackFixture);
+    }
+    console.error(
+      "Missing TELEGRAM_BOT_TOKEN and no webhook fixture found. Set TELEGRAM_WEBHOOK_INFO_PATH or provide a token.",
+    );
     Deno.exit(1);
   }
 
