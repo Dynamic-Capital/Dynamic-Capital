@@ -37,18 +37,18 @@ documenting which assets were consulted.
 
 ## 2. Development Workflow & Standards
 
-| Ref | Document                                                           | Summary                                                                                              |
-| --- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| 2.1 | [BEST_PRACTICES.md](./BEST_PRACTICES.md)                           | Coding conventions, review expectations, and shared quality bars.                                    |
-| 2.2 | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)               | Local development flow, tooling setup, and day-to-day commands.                                      |
-| 2.3 | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Dynamic, Supabase, and local Next.js surfaces concurrently.              |
-| 2.4 | [code-structure.md](./code-structure.md)                           | High-level overview of monorepo structure and module boundaries.                                     |
-| 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Commands, flags, general knowledge, and GitHub handoff loop for the Codex CLI helper.                |
-| 2.6 | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                              |
-| 2.7 | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                                           |
-| 2.8 | [ton-ide-plugins.md](./ton-ide-plugins.md)                         | Official TON IDE plugins for JetBrains, VS Code, and the Web IDE with install checklists.            |
-| 2.9 | [onedrive-sync-integration.md](./onedrive-sync-integration.md)     | GitHub and Supabase adapter guide for working with Microsoft OneDrive assets inside Codex workflows. |
-| 2.10 | [open-source-ai-crawlers.md](./open-source-ai-crawlers.md)        | Comparison of AI-driven crawling frameworks with implementation and selection guidance. |
+| Ref  | Document                                                           | Summary                                                                                              |
+| ---- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| 2.1  | [BEST_PRACTICES.md](./BEST_PRACTICES.md)                           | Coding conventions, review expectations, and shared quality bars.                                    |
+| 2.2  | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)               | Local development flow, tooling setup, and day-to-day commands.                                      |
+| 2.3  | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Dynamic, Supabase, and local Next.js surfaces concurrently.              |
+| 2.4  | [code-structure.md](./code-structure.md)                           | High-level overview of monorepo structure and module boundaries.                                     |
+| 2.5  | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Commands, flags, general knowledge, and GitHub handoff loop for the Codex CLI helper.                |
+| 2.6  | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                              |
+| 2.7  | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                                           |
+| 2.8  | [ton-ide-plugins.md](./ton-ide-plugins.md)                         | Official TON IDE plugins for JetBrains, VS Code, and the Web IDE with install checklists.            |
+| 2.9  | [onedrive-sync-integration.md](./onedrive-sync-integration.md)     | GitHub and Supabase adapter guide for working with Microsoft OneDrive assets inside Codex workflows. |
+| 2.10 | [open-source-ai-crawlers.md](./open-source-ai-crawlers.md)         | Comparison of AI-driven crawling frameworks with implementation and selection guidance.              |
 
 ## 3. Environment & Configuration
 
