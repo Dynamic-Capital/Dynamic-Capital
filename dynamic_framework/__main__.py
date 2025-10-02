@@ -8,10 +8,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence, TextIO
-
-from dynamic.intelligence.agi.fine_tune import DynamicAGIFineTuner
-from dynamic.intelligence.agi.self_improvement import ImprovementSignal, LearningSnapshot
+from typing import TYPE_CHECKING, Any, Iterable, Mapping, Sequence, TextIO
 
 from .engine import (
     DynamicFrameworkEngine,
@@ -20,6 +17,42 @@ from .engine import (
     FrameworkReport,
     FrameworkSnapshot,
 )
+from .settings import FrameworkSettings
+
+if TYPE_CHECKING:  # pragma: no cover - typing only imports
+    from dynamic.intelligence.agi.fine_tune import DynamicAGIFineTuner
+    from dynamic.intelligence.agi.self_improvement import (
+        ImprovementSignal,
+        LearningSnapshot,
+    )
+
+_IMPROVEMENT_SIGNAL_TYPE: type | None = None
+_LEARNING_SNAPSHOT_TYPE: type | None = None
+_FINE_TUNER_TYPE: type | None = None
+
+
+def _import_self_improvement() -> tuple[type, type]:
+    global _IMPROVEMENT_SIGNAL_TYPE, _LEARNING_SNAPSHOT_TYPE
+    if _IMPROVEMENT_SIGNAL_TYPE is None or _LEARNING_SNAPSHOT_TYPE is None:
+        from dynamic.intelligence.agi.self_improvement import (
+            ImprovementSignal as _ImprovementSignal,
+            LearningSnapshot as _LearningSnapshot,
+        )
+
+        _IMPROVEMENT_SIGNAL_TYPE = _ImprovementSignal
+        _LEARNING_SNAPSHOT_TYPE = _LearningSnapshot
+    return _IMPROVEMENT_SIGNAL_TYPE, _LEARNING_SNAPSHOT_TYPE
+
+
+def _import_fine_tuner() -> type:
+    global _FINE_TUNER_TYPE
+    if _FINE_TUNER_TYPE is None:
+        from dynamic.intelligence.agi.fine_tune import (
+            DynamicAGIFineTuner as _DynamicAGIFineTuner,
+        )
+
+        _FINE_TUNER_TYPE = _DynamicAGIFineTuner
+    return _FINE_TUNER_TYPE
 
 DEFAULT_SCENARIO: Mapping[str, Any] = {
     "history": 12,
@@ -204,7 +237,20 @@ def build_engine(payload: Mapping[str, Any]) -> DynamicFrameworkEngine:
     history = int(payload.get("history", 64))
     decay = float(payload.get("decay", 0.08))
     nodes = _build_nodes(payload.get("nodes", ()))
-    engine = DynamicFrameworkEngine(nodes=nodes, history=history, decay=decay)
+    settings_payload = payload.get("settings")
+    engine_settings: FrameworkSettings | None = None
+    if isinstance(settings_payload, FrameworkSettings):
+        engine_settings = settings_payload
+    elif isinstance(settings_payload, Mapping):
+        engine_settings = FrameworkSettings.from_mapping(settings_payload)
+    elif settings_payload is not None:
+        raise TypeError("settings must be a mapping or FrameworkSettings instance")
+    engine = DynamicFrameworkEngine(
+        nodes=nodes,
+        history=history,
+        decay=decay,
+        settings=engine_settings,
+    )
     pulses = _build_pulses(payload.get("pulses", ()))
     if pulses:
         engine.ingest(pulses)
@@ -246,6 +292,7 @@ def serialise_report(
         "generated_at": now,
         "history": engine.history,
         "decay": engine.decay,
+        "settings": engine.settings.to_dict(),
         "summary": report.summary,
         "overall_maturity": report.overall_maturity,
         "execution_health": report.execution_health,
@@ -264,8 +311,9 @@ def _build_signal(
     direction: str,
     weight: float,
     notes: str,
-) -> ImprovementSignal:
-    return ImprovementSignal(
+) -> "ImprovementSignal":
+    ImprovementSignalCls, _ = _import_self_improvement()
+    return ImprovementSignalCls(
         metric=f"{snapshot.key}.{metric}",
         value=value,
         direction=direction,
@@ -302,17 +350,28 @@ def _maturity_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Improv
     )
 
 
-def _confidence_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+def _confidence_signal(
+    snapshot: FrameworkSnapshot, node: FrameworkNode, settings: FrameworkSettings
+) -> ImprovementSignal:
     value = snapshot.confidence
-    if value >= 0.7:
+    if value >= settings.confidence_positive_threshold:
         direction = "positive"
-        notes = f"Confidence {value:.2f} signals strong telemetry reliability."
-    elif value >= 0.5:
+        notes = (
+            f"Confidence {value:.2f} meets strong telemetry reliability threshold "
+            f"({settings.confidence_positive_threshold:.2f})."
+        )
+    elif value >= settings.confidence_guardrail:
         direction = "neutral"
-        notes = f"Confidence {value:.2f} acceptable but could strengthen."
+        notes = (
+            f"Confidence {value:.2f} acceptable but could strengthen beyond "
+            f"{settings.confidence_positive_threshold:.2f}."
+        )
     else:
         direction = "negative"
-        notes = f"Confidence {value:.2f} below healthy guardrail (0.50)."
+        notes = (
+            f"Confidence {value:.2f} below healthy guardrail "
+            f"({settings.confidence_guardrail:.2f})."
+        )
     return _build_signal(
         snapshot,
         "confidence",
@@ -323,17 +382,28 @@ def _confidence_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Impr
     )
 
 
-def _enablement_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+def _enablement_signal(
+    snapshot: FrameworkSnapshot, node: FrameworkNode, settings: FrameworkSettings
+) -> ImprovementSignal:
     value = snapshot.enablement
-    if value >= 0.6:
+    if value >= settings.enablement_integrated_threshold:
         direction = "positive"
-        notes = f"Enablement {value:.2f} supports integrated workflows."
-    elif value >= 0.55:
+        notes = (
+            f"Enablement {value:.2f} supports integrated workflows (>= "
+            f"{settings.enablement_integrated_threshold:.2f})."
+        )
+    elif value >= settings.enablement_guardrail:
         direction = "neutral"
-        notes = f"Enablement {value:.2f} within guardrails but shy of momentum thresholds."
+        notes = (
+            f"Enablement {value:.2f} within guardrails but shy of integration target "
+            f"({settings.enablement_integrated_threshold:.2f})."
+        )
     else:
         direction = "negative"
-        notes = f"Enablement {value:.2f} below healthy threshold (0.55)."
+        notes = (
+            f"Enablement {value:.2f} below healthy threshold "
+            f"({settings.enablement_guardrail:.2f})."
+        )
     return _build_signal(
         snapshot,
         "enablement",
@@ -344,17 +414,28 @@ def _enablement_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Impr
     )
 
 
-def _resilience_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+def _resilience_signal(
+    snapshot: FrameworkSnapshot, node: FrameworkNode, settings: FrameworkSettings
+) -> ImprovementSignal:
     value = snapshot.resilience
-    if value >= 0.6:
+    if value >= settings.resilience_integrated_threshold:
         direction = "positive"
-        notes = f"Resilience {value:.2f} buffers platform stability."
-    elif value >= 0.5:
+        notes = (
+            f"Resilience {value:.2f} buffers platform stability (>= "
+            f"{settings.resilience_integrated_threshold:.2f})."
+        )
+    elif value >= settings.resilience_guardrail:
         direction = "neutral"
-        notes = f"Resilience {value:.2f} meets baseline expectations."
+        notes = (
+            f"Resilience {value:.2f} meets baseline expectations but trails integration "
+            f"threshold {settings.resilience_integrated_threshold:.2f}."
+        )
     else:
         direction = "negative"
-        notes = f"Resilience {value:.2f} below stability guardrail (0.50)."
+        notes = (
+            f"Resilience {value:.2f} below stability guardrail "
+            f"({settings.resilience_guardrail:.2f})."
+        )
     return _build_signal(
         snapshot,
         "resilience",
@@ -365,17 +446,29 @@ def _resilience_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Impr
     )
 
 
-def _momentum_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+def _momentum_signal(
+    snapshot: FrameworkSnapshot, node: FrameworkNode, settings: FrameworkSettings
+) -> ImprovementSignal:
     value = snapshot.momentum
-    if value >= 0.1:
+    if value >= settings.momentum_positive_threshold:
         direction = "positive"
-        notes = f"Momentum {value:.2f} accelerating integration."
-    elif value <= -0.1:
+        notes = (
+            f"Momentum {value:.2f} accelerating integration (>= "
+            f"{settings.momentum_positive_threshold:.2f})."
+        )
+    elif value <= settings.momentum_negative_threshold:
         direction = "negative"
-        notes = f"Momentum {value:.2f} signals regression risk."
+        notes = (
+            f"Momentum {value:.2f} signals regression risk (<= "
+            f"{settings.momentum_negative_threshold:.2f})."
+        )
     else:
         direction = "neutral"
-        notes = f"Momentum {value:.2f} within neutral band (-0.10 to 0.10)."
+        notes = (
+            f"Momentum {value:.2f} within neutral band ("
+            f"{settings.momentum_negative_threshold:.2f} to "
+            f"{settings.momentum_positive_threshold:.2f})."
+        )
     return _build_signal(
         snapshot,
         "momentum",
@@ -389,7 +482,8 @@ def _momentum_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Improv
 def _learning_snapshot_from_framework(
     snapshot: FrameworkSnapshot,
     node: FrameworkNode,
-) -> LearningSnapshot:
+    settings: FrameworkSettings,
+) -> "LearningSnapshot":
     output = {
         "node": snapshot.key,
         "title": snapshot.title,
@@ -405,14 +499,15 @@ def _learning_snapshot_from_framework(
         "momentum": snapshot.momentum,
     }
     feedback = tuple(dict.fromkeys((*snapshot.recommendations, *snapshot.alerts)))
+    _, LearningSnapshotCls = _import_self_improvement()
     signals = (
         _maturity_signal(snapshot, node),
-        _confidence_signal(snapshot, node),
-        _enablement_signal(snapshot, node),
-        _resilience_signal(snapshot, node),
-        _momentum_signal(snapshot, node),
+        _confidence_signal(snapshot, node, settings),
+        _enablement_signal(snapshot, node, settings),
+        _resilience_signal(snapshot, node, settings),
+        _momentum_signal(snapshot, node, settings),
     )
-    return LearningSnapshot(
+    return LearningSnapshotCls(
         output=output,
         performance=performance,
         feedback=feedback,
@@ -432,13 +527,17 @@ def build_fine_tune_dataset(
     if not snapshots:
         snapshots = tuple(engine.snapshot(key) for key in sorted(engine.nodes))
     snapshots = tuple(sorted(snapshots, key=lambda snap: snap.key))
-    tuner = DynamicAGIFineTuner(default_tags=default_tags)
+    FineTunerCls = _import_fine_tuner()
+    tuner = FineTunerCls(default_tags=default_tags)
     learning_snapshots: list[LearningSnapshot] = []
+    settings = engine.settings
     for snapshot in snapshots:
         node = engine.nodes.get(snapshot.key)
         if node is None:
             continue
-        learning_snapshots.append(_learning_snapshot_from_framework(snapshot, node))
+        learning_snapshots.append(
+            _learning_snapshot_from_framework(snapshot, node, settings)
+        )
     if learning_snapshots:
         tuner.ingest_snapshots(learning_snapshots)
     dataset_summary = tuner.dataset_summary()
