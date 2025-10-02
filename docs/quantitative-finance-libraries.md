@@ -7,6 +7,7 @@ analytics, or visualization within your preferred stack.
 
 ## Table of Contents
 
+- [Installation Quick Reference](#installation-quick-reference)
 - [Python](#python)
 - [R](#r)
 - [Matlab](#matlab)
@@ -24,6 +25,128 @@ analytics, or visualization within your preferred stack.
 - [Frameworks](#frameworks)
 - [Rust](#rust)
 - [Reproducing Works, Training & Books](#reproducing-works-training--books)
+
+## Installation Quick Reference
+
+Setting up a quantitative research environment often begins with installing the
+core scientific stack. The commands below provide starting points for the most
+common ecosystems—adjust package selections to match the tooling you plan to use
+from the catalog.
+
+### Python
+
+- Create an isolated environment (recommended):
+
+  ```bash
+  python -m venv .venv
+  source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+  ```
+
+- Install numerical, data, and finance packages with `pip`:
+
+  ```bash
+  pip install numpy pandas scipy matplotlib
+  pip install quantlib quantlib-python polars openbb-terminal
+  ```
+
+- When using Conda, prefer the `conda-forge` channel for up-to-date builds:
+
+  ```bash
+  conda install -c conda-forge numpy pandas scipy polars quantlib
+  ```
+
+### R
+
+- Use the base package installer for CRAN libraries:
+
+  ```r
+  install.packages(c("quantmod", "PerformanceAnalytics", "PortfolioAnalytics"))
+  ```
+
+- Many finance packages live on GitHub—install via `remotes` when necessary:
+
+  ```r
+  install.packages("remotes")
+  remotes::install_github("R-Finance/quantstrat")
+  ```
+
+### Julia
+
+- Activate the package manager and add quantitative packages:
+
+  ```julia
+  import Pkg
+  Pkg.activate(".")
+  Pkg.add(["QuantLib", "TimeSeries", "Temporal", "MarketData"])
+  ```
+
+### MATLAB
+
+- Install toolboxes via the Add-On Explorer, or clone repositories from GitHub
+  into your MATLAB path:
+
+  ```matlab
+  unzip('https://github.com/FinanceToolbox/PROJ_Option_Pricing_Matlab/archive/refs/heads/main.zip', 'toolboxes');
+  addpath('toolboxes/PROJ_Option_Pricing_Matlab-main');
+  ```
+
+### C#, Java, and JVM Languages
+
+- Reference finance libraries through the ecosystem-specific build tools:
+
+  ```xml
+  <!-- .csproj -->
+  <PackageReference Include="QuantConnect" Version="*" />
+  ```
+
+  ```xml
+  <!-- Maven pom.xml -->
+  <dependency>
+    <groupId>org.jquantlib</groupId>
+    <artifactId>jquantlib</artifactId>
+    <version>latest</version>
+  </dependency>
+  ```
+
+### JavaScript / TypeScript
+
+- Install browser and Node-focused finance packages with your preferred package
+  manager:
+
+  ```bash
+  npm install ccxt ta-lib finance.js
+  # or
+  pnpm add ghostfolio portfolio-allocation
+  ```
+
+### Rust & Go
+
+- Use the language-native build tools to add dependencies:
+
+  ```toml
+  # Cargo.toml
+  [dependencies]
+  barter = "*"
+  rustquant = "*"
+  ```
+
+  ```go
+  go get github.com/stellar/kelp
+  go get github.com/alpacahq/marketstore
+  ```
+
+### Data Vendor SDKs
+
+- Many market-data wrappers require API keys; store them in environment
+  variables rather than hard-coding in source files. For example:
+
+  ```bash
+  export ALPACA_API_KEY_ID="your-key"
+  export ALPACA_API_SECRET_KEY="your-secret"
+  ```
+
+- Verify connectivity after installation with the package's health-check or
+  simple data download examples before integrating into larger systems.
 
 ## Python
 
