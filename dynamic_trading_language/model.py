@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Mapping, Sequence
@@ -132,19 +133,25 @@ class TradeIntent:
         self.risk_notes = _normalise_tuple(self.risk_notes)
         self.metrics = _coerce_mapping(self.metrics)
         self.style = _normalise_text(self.style)
-        self.created_at = self.created_at.astimezone(timezone.utc)
+        if self.created_at.tzinfo is None:
+            self.created_at = self.created_at.replace(tzinfo=timezone.utc)
+        else:
+            self.created_at = self.created_at.astimezone(timezone.utc)
         if self.entry is not None:
-            self.entry = float(self.entry)
+            self.entry = self._validate_level(self.entry, "entry")
         if self.target is not None:
-            self.target = float(self.target)
+            self.target = self._validate_level(self.target, "target")
         if self.stop is not None:
-            self.stop = float(self.stop)
-        if self.entry and self.entry <= 0:
-            raise ValueError("entry must be positive")
-        if self.target and self.target <= 0:
-            raise ValueError("target must be positive")
-        if self.stop and self.stop <= 0:
-            raise ValueError("stop must be positive")
+            self.stop = self._validate_level(self.stop, "stop")
+
+    @staticmethod
+    def _validate_level(value: float | int, field_name: str) -> float:
+        level = float(value)
+        if not math.isfinite(level):
+            raise ValueError(f"{field_name} must be finite")
+        if level <= 0:
+            raise ValueError(f"{field_name} must be positive")
+        return level
 
     @property
     def narrative_direction(self) -> str:
