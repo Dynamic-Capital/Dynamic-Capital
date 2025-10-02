@@ -15,6 +15,7 @@ from .dhivehi_simulation import (
     build_dhivehi_demo_engine,
     simulate_dhivehi_translation,
 )
+from .bakurube_corpus import corpus_preview, get_corpus_path, iter_corpus_lines
 
 __all__ = [
     "DynamicTranslationEngine",
@@ -28,4 +29,7 @@ __all__ = [
     "build_dhivehi_demo_engine",
     "simulate_dhivehi_translation",
     "SimulationSample",
+    "corpus_preview",
+    "get_corpus_path",
+    "iter_corpus_lines",
 ]
