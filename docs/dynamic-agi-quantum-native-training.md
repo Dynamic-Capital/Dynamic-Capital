@@ -493,6 +493,12 @@ non-classical hypothesis space.
 2. **Forward Pass:** Input quantum state(s), apply parameterized gates, measure
    outputs.
 3. **Compute Loss/Reward:** Evaluate against ground truth or desired objective.
+   - For classification objectives, a common choice is the negative
+     log-likelihood (cross-entropy) loss \[ L = -\sum_i \log P_\theta(y_i \mid
+     x_i), \] which penalizes the model whenever the predicted class probability
+     $P_\theta$ for the observed label $y_i$ is low. Minimizing this loss
+     encourages the circuit to place more probability mass on the correct
+     outcomes while remaining differentiable for gradient-based optimizers.
 4. **Parameter Update:** Use classical/quantum optimizer (e.g., gradient
    descent) to update θ.
 5. **Iterate:** Loop until satisfactory performance is achieved.
