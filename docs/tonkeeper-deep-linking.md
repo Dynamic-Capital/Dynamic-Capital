@@ -91,6 +91,112 @@ parameters as needed.
 - **Testing:** Validate links on both iOS and Android Tonkeeper builds to catch
   schema or encoding differences.
 
+## Enabling Dynamic Deep Linking
+
+Dynamic deep links adapt their scheme, parameters, and copy at runtime so users
+land on the right Tonkeeper surface without manual switching. Combine the
+patterns below to generate resilient links from web apps, Telegram Mini Apps, or
+backend automations.
+
+### 1. Choose the Scheme Programmatically
+
+Detect the platform (user agent, Telegram `platform`, native wrapper, etc.) and
+map it to the appropriate scheme. Default to the HTTPS variant when the context
+does not guarantee custom URI support.
+
+```ts
+type TonkeeperScheme = "ton://" | "tonkeeper://" | "https://app.tonkeeper.com/";
+
+function resolveTonkeeperScheme(options: {
+  prefersApp?: boolean;
+  isMobile?: boolean;
+  fallback?: TonkeeperScheme;
+}): TonkeeperScheme {
+  if (options.prefersApp && options.isMobile) {
+    return "tonkeeper://";
+  }
+  if (options.isMobile) {
+    return "ton://";
+  }
+  return options.fallback ?? "https://app.tonkeeper.com/";
+}
+```
+
+### 2. Generate Route-Specific Parameters
+
+Centralise link creation so every route shares consistent defaults and encoding.
+
+```ts
+type TransferOptions = {
+  address: string;
+  amount?: string;
+  text?: string;
+  bin?: string;
+  jetton?: string;
+  exp?: string;
+};
+
+function buildTonkeeperLink(
+  scheme: TonkeeperScheme,
+  path: string,
+  params: Record<string, string | undefined>,
+): string {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      query.append(key, value);
+    }
+  });
+  const suffix = query.toString();
+  return `${scheme}${path}${suffix ? `?${suffix}` : ""}`;
+}
+
+export function buildDynamicTransferLink(
+  scheme: TonkeeperScheme,
+  { address, amount, text, bin, jetton, exp }: TransferOptions,
+): string {
+  const route = `transfer/${address}`;
+  return buildTonkeeperLink(scheme, route, { amount, text, bin, jetton, exp });
+}
+```
+
+Expose higher-level helpers (e.g., `buildStakingLink`, `buildSwapLink`) so UI
+components can request links without manually encoding query strings.
+
+### 3. Surface Copy and Fallbacks Together
+
+Pair the dynamic link with contextual instructions so users know what to expect
+if the first tap fails. Provide multiple buttons when your surface supports it:
+
+```tsx
+const scheme = resolveTonkeeperScheme({ prefersApp, isMobile });
+const transferLink = buildDynamicTransferLink(scheme, {
+  address: OPS_TREASURY_ADDRESS,
+  amount: "250000000", // 0.25 TON
+  text: encodeURIComponent("Dynamic Capital Treasury"),
+});
+
+return (
+  <div>
+    <a href={transferLink} className="button primary">
+      Open in Tonkeeper
+    </a>
+    <a
+      href={buildDynamicTransferLink("https://app.tonkeeper.com/", {
+        address: OPS_TREASURY_ADDRESS,
+      })}
+      className="button secondary"
+    >
+      Try browser link
+    </a>
+  </div>
+);
+```
+
+Document which parameters are filled dynamically (addresses from Supabase,
+amounts from price calculators, etc.) so downstream teams can audit link
+generation logic.
+
 ## Optimizing Back-to-Back Flows
 
 Many user journeys require two or more wallet interactions in quick succession
