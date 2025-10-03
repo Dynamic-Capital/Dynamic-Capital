@@ -193,3 +193,38 @@ def test_register_default_crawlers_can_extend_existing_registry() -> None:
     assert len(registry.list_crawlers()) == 5
     with pytest.raises(ValueError):
         register_default_crawlers(registry)
+
+
+def test_build_plan_requires_enabled_crawler(tmp_path: Path) -> None:
+    registry = DynamicCrawlerRegistry()
+    register_default_crawlers(registry)
+    registry.disable("Crawl4AI")
+
+    job = CrawlJob(
+        name="Disabled Crawl",
+        urls=["https://example.com"],
+        destination=str(tmp_path / "out.md"),
+    )
+
+    with pytest.raises(RuntimeError, match="disabled"):
+        registry.build_plan("Crawl4AI", job)
+
+    registry.enable("Crawl4AI")
+    plan = registry.build_plan("Crawl4AI", job)
+    assert plan.commands
+
+
+def test_enable_live_data_crawlers_is_idempotent() -> None:
+    registry = DynamicCrawlerRegistry()
+    register_default_crawlers(registry)
+
+    # register_default_crawlers already enables all live-data capable crawlers
+    assert registry.enable_live_data_crawlers() == ()
+
+    registry.disable("Crawl4AI")
+    registry.disable("Firecrawl")
+
+    reenabled = registry.enable_live_data_crawlers()
+    assert reenabled == ("Crawl4AI", "Firecrawl")
+    assert registry.is_enabled("Crawl4AI")
+    assert registry.is_enabled("Firecrawl")
