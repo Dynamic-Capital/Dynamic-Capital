@@ -318,13 +318,26 @@ class DynamicCycleOrchestrator:
         self._phase_lookup[resolved.key] = resolved
         return resolved
 
-    def set_phase(self, phase_key: str) -> CyclePhase:
+    def get_phase(self, phase_key: str) -> CyclePhase:
+        """Return the :class:`CyclePhase` definition for ``phase_key``.
+
+        Accessing phases directly is convenient for orchestration layers that
+        need to inspect metadata such as entry criteria or expected durations.
+        Normalising the lookup here keeps error handling consistent across the
+        orchestrator's public API.
+        """
+
         key = _normalise_key(phase_key)
-        if key not in self._phase_lookup:
-            raise KeyError(f"phase '{phase_key}' is not registered")
-        self._current_phase = key
-        self._phase_started_at.setdefault(key, _utcnow())
-        return self._phase_lookup[key]
+        try:
+            return self._phase_lookup[key]
+        except KeyError as exc:  # pragma: no cover - defensive guard
+            raise KeyError(f"phase '{phase_key}' is not registered") from exc
+
+    def set_phase(self, phase_key: str) -> CyclePhase:
+        phase = self.get_phase(phase_key)
+        self._current_phase = phase.key
+        self._phase_started_at.setdefault(phase.key, _utcnow())
+        return phase
 
     def advance(self, phase_key: str | None = None) -> CyclePhase:
         if phase_key is not None:
@@ -342,8 +355,7 @@ class DynamicCycleOrchestrator:
     # ------------------------------------------------------------------ events
     def record(self, event: CycleEvent | Mapping[str, object]) -> CycleEvent:
         resolved = _coerce_event(event)
-        if resolved.phase not in self._phase_lookup:
-            raise KeyError(f"phase '{resolved.phase}' is not registered")
+        self.get_phase(resolved.phase)
         self._events.append(resolved)
         self._phase_started_at.setdefault(resolved.phase, resolved.timestamp)
         if resolved.progress >= 0.999:
@@ -440,9 +452,7 @@ class DynamicCycleOrchestrator:
         if not self._phases:
             raise RuntimeError("no phases registered")
         key = _normalise_key(phase_key or self._current_phase or self._phases[0].key)
-        if key not in self._phase_lookup:
-            raise KeyError(f"phase '{key}' is not registered")
-        phase = self._phase_lookup[key]
+        phase = self.get_phase(key)
         events = self._phase_events(key)
         progress = self._progress_for(key)
         velocity = self._velocity_for(key)
