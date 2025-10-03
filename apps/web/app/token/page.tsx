@@ -8,6 +8,7 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+import { TonkeeperDeepLinkButtons } from "@/components/web3/TonkeeperDeepLinkButtons";
 import {
   baseURL as siteBaseURL,
   tokenContent,
@@ -135,6 +136,27 @@ export default function TokenPage() {
             );
           })}
         </Row>
+        <Column
+          gap="12"
+          align="center"
+          horizontal="center"
+          className="w-full max-w-2xl"
+        >
+          <TonkeeperDeepLinkButtons
+            address={tokenContent.treasuryWalletAddress}
+            memo="Dynamic Capital Treasury"
+            className="w-full"
+          />
+          <Text
+            variant="body-default-xs"
+            onBackground="neutral-weak"
+            align="center"
+          >
+            Dynamic deep links detect Telegram and mobile contexts to open
+            Tonkeeper natively, while HTTPS and ton:// fallbacks stay ready for
+            desktop wallets and other clients.
+          </Text>
+        </Column>
         <Row gap="16" wrap horizontal="center">
           <Row
             gap="8"
