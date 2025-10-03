@@ -43,3 +43,24 @@ def test_resolve_can_include_all_unhealthy_candidates() -> None:
     assert len(results) == 2
     assert {result.value for result in results} == {"1.2.3.4", "5.6.7.8"}
     assert all(result.healthy is False for result in results)
+
+
+def test_enable_all_domains_recovers_health() -> None:
+    system = DynamicDomainNameSystem(decay=0.5, success_threshold=0.8)
+    record = DNSRecord(name="@", type="A", value="1.2.3.4", ttl=60)
+    system.upsert("example.com", record)
+    _mark_unhealthy(system, "1.2.3.4", failures=5)
+
+    zone_snapshot = system.enable_all("example.com")
+
+    assert zone_snapshot.zone == "example.com"
+    assert len(zone_snapshot.records) == 1
+    (record_snapshot,) = zone_snapshot.records
+    assert record_snapshot.healthy is True
+    assert record_snapshot.success_score >= 0.8
+    assert record_snapshot.last_failure_at is None
+
+    snapshots = system.enable_all()
+
+    assert "example.com" in snapshots
+    assert snapshots["example.com"].records[0].healthy is True

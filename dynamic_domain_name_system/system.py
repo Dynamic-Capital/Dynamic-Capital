@@ -324,6 +324,25 @@ class DynamicDomainNameSystem:
         except KeyError as exc:
             raise ZoneNotFoundError(f"zone '{zone_name}' is not registered") from exc
 
+    def enable_all(self, zone: str | None = None) -> ZoneSnapshot | dict[str, ZoneSnapshot]:
+        """Mark all records as healthy and return their snapshots.
+
+        When ``zone`` is provided only that zone is enabled. Otherwise every
+        registered zone is processed and a mapping of snapshots keyed by zone
+        name is returned.
+        """
+
+        if zone is not None:
+            zone_state = self._get_zone(zone)
+            self._enable_zone(zone_state)
+            return self._snapshot_zone(zone_state)
+
+        snapshots: dict[str, ZoneSnapshot] = {}
+        for zone_name, zone_state in self._zones.items():
+            self._enable_zone(zone_state)
+            snapshots[zone_name] = self._snapshot_zone(zone_state)
+        return snapshots
+
     def upsert(self, zone: str, record: DNSRecord) -> None:
         zone_name = _normalise_zone(zone)
         zone_state = self._zones.setdefault(zone_name, _ZoneState(name=zone_name))
@@ -495,3 +514,12 @@ class DynamicDomainNameSystem:
             )
         )
         return ZoneSnapshot(zone=zone_state.name, generated_at=generated, records=records)
+
+    def _enable_zone(self, zone_state: _ZoneState) -> None:
+        now = _utcnow()
+        for state in zone_state.records.values():
+            state.healthy = True
+            state.last_failure_at = None
+            state.updated_at = now
+            if state.success_ewma < state.success_threshold:
+                state.success_ewma = state.success_threshold
