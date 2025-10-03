@@ -4,7 +4,7 @@
 
 TonAPI Embed is a self-hosted indexer tailored for organizations that manage
 TON- and Jetton-based deposits and withdrawals at scale. It consumes data
-straight from one or more TON liteserver or archive nodes, verifies proofs, and
+directly from one or more TON liteserver or archive nodes, verifies proofs, and
 exposes a REST API so centralized exchanges, custodians, and payment processors
 can reconcile balances, monitor transfers, and orchestrate withdrawals.
 
@@ -53,18 +53,18 @@ can reconcile balances, monitor transfers, and orchestrate withdrawals.
 
 ## REST API Reference
 
-| Endpoint                                        | Description                                                                             |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `GET /account/{address}/history`                | Paginated TON transfer history for a deposit address.                                   |
-| `GET /jetton/{jetton}/{address}/history`        | Paginated Jetton transfer history referencing the master contract and wallet.           |
-| `GET /account/{address}/history/{hash}`         | Retrieves a specific TON transfer by transaction hash.                                  |
-| `GET /jetton/{jetton}/{address}/history/{hash}` | Retrieves a specific Jetton transfer by transaction hash.                               |
-| `GET /account/{address}`                        | Latest TON balance, masterchain seqno, and last seen LT for the deposit smart contract. |
-| `GET /jetton/{jetton}/{address}`                | Latest Jetton balance and synchronization pointers for the associated wallet.           |
-| `POST /account/{address}`                       | Registers a new TON deposit smart contract for tracking.                                |
-| `POST /jetton/{jetton}/{address}`               | Registers a Jetton wallet and its owner for tracking.                                   |
-| `GET /resolve/{domain}`                         | Resolves TON DNS (NFT-based) domain names to smart contract addresses.                  |
-| `GET /status`                                   | Reports service health plus synchronization lag versus the latest masterchain block.    |
+| Endpoint                                        | Description                                                                               |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `GET /account/{address}/history`                | Paginated TON transfer history for a deposit address.                                     |
+| `GET /jetton/{jetton}/{address}/history`        | Paginated Jetton transfer history referencing the master contract and wallet.             |
+| `GET /account/{address}/history/{hash}`         | Retrieves a specific TON transfer by transaction hash.                                    |
+| `GET /jetton/{jetton}/{address}/history/{hash}` | Retrieves a specific Jetton transfer by transaction hash.                                 |
+| `GET /account/{address}`                        | Latest TON balance, masterchain `seqno`, and last seen LT for the deposit smart contract. |
+| `GET /jetton/{jetton}/{address}`                | Latest Jetton balance and synchronization pointers for the associated wallet.             |
+| `POST /account/{address}`                       | Registers a new TON deposit smart contract for tracking.                                  |
+| `POST /jetton/{jetton}/{address}`               | Registers a Jetton wallet and its owner for tracking.                                     |
+| `GET /resolve/{domain}`                         | Resolves TON DNS (NFT-based) domain names to smart contract addresses.                    |
+| `GET /status`                                   | Reports service health plus synchronization lag versus the latest masterchain block.      |
 
 ### Transfer Payload Fields
 
@@ -107,6 +107,27 @@ The balance endpoints respond with:
 6. **Extend for withdrawals (optional)** – Implement custom logic atop the
    withdrawal scaffolding provided by TonAPI Embed to craft, sign, and submit
    outbound TON or Jetton messages.
+
+### Optimize Back-to-Back Operations
+
+When ingesting large bursts of transfers or registering many deposit contracts
+in succession, apply the following practices to keep the service responsive:
+
+- **Batch history pulls** – Request pages sequentially but reuse the previous
+  response’s pagination cursor or LT to avoid redundant backtracking. This keeps
+  back-to-back API calls focused on new ledger data instead of re-reading
+  already-processed transfers.
+- **Stagger registration calls** – When onboarding hundreds of wallets, queue
+  `POST /account` or `POST /jetton` requests with a small, configurable delay to
+  prevent node rate limits from throttling you. Parallelize across multiple
+  TonAPI Embed instances instead of hammering a single node.
+- **Cache domain resolutions** – Store successful `/resolve` lookups for the TTL
+  of the DNS record so repeated queries do not add avoidable load during deposit
+  spikes.
+- **Monitor lag continuously** – Integrate `/status` with Prometheus or a
+  similar monitoring stack and alert when synchronization lag grows between
+  consecutive checks. Acting quickly prevents compounding backlogs from
+  cascading into customer-facing delays.
 
 ## Operational Considerations
 
