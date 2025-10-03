@@ -1,0 +1,40 @@
+name: Cross Platform Dataset Sync
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prepare sync configuration
+        run: |
+          if [ ! -f config/platforms.yaml ]; then
+            cp config/platforms.example.yaml config/platforms.yaml
+          fi
+
+      - name: Dry-run dataset sync orchestration
+        env:
+          SYNC_VERSION: ${{ github.sha }}
+        run: |
+          npx tsx scripts/sync/cross-platform-sync.ts \
+            --dataset data/books_drive_metadata.json \
+            --version "${SYNC_VERSION}" \
+            --dry-run
