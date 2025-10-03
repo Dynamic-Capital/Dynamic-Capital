@@ -91,6 +91,30 @@ parameters as needed.
 - **Testing:** Validate links on both iOS and Android Tonkeeper builds to catch
   schema or encoding differences.
 
+## Optimizing Back-to-Back Flows
+
+Many user journeys require two or more wallet interactions in quick succession
+—for example, moving TON into a pool and immediately staking the LP tokens. Use
+deep links to streamline these back-to-back steps without forcing users to hunt
+for the next action manually.
+
+- **Stage flows in-product:** Present the next deep link contextually (e.g., a
+  button that appears after a transfer succeeds) so users can continue the flow
+  with a single tap.
+- **Precompute variants:** Generate both `tonkeeper://` and HTTPS versions of
+  the follow-up link ahead of time. This avoids conditional rendering delays and
+  gives you a quick fallback if the first scheme fails.
+- **Cache shared parameters:** When multiple steps share the same address,
+  amount, or memo, reuse the values to ensure continuity and to reduce
+  copy/paste mistakes.
+- **Confirm state between steps:** Listen for Tonkeeper's result callbacks (if
+  available in your integration surface) or require a user acknowledgment before
+  triggering the next link. This keeps chained actions from firing while a prior
+  transaction is still pending.
+- **Educate on timing:** Communicate any sequencing expectations—such as waiting
+  for a transaction to finalize before the next deep link—to prevent users from
+  landing on error states.
+
 ## Example Workflows
 
 - **Quick payments:** Embed `{PREFIX}transfer/...` links in invoices or chatbots
