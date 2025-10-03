@@ -4,23 +4,33 @@
 
 A fresh extraction run against the Google Drive share link
 `https://drive.google.com/drive/folders/1F2A1RO8W5DDa8yWIKBMos_k32DQD4jpB?usp=sharing`
-now succeeds without requiring authenticated API access. Using `gdown` we
-retrieved 115 files (PDF, DOCX, PPTX, PNG, and JSON assets) spanning the
+now succeeds without requiring authenticated API access. By invoking the `gdown`
+library from Python (and temporarily raising its hard-coded per-folder limit)
+we retrieved 115 files (PDF, DOCX, PPTX, PNG, and JSON assets) spanning the
 `books/Law`, `books/Others`, `books/Trading`, and `research` sub-folders. The full
-hierarchy currently lives under `/tmp/drive_folder` on the runner.
+hierarchy currently lives under `/tmp/drive_folder_python` on the runner.
 
 ## Steps Performed
 
 1. Installed `gdown` (`pip install gdown`) to interact with public Drive folders.
-2. Pulled the folder contents with
+2. Launched a small Python snippet to import `gdown.download_folder`, bump the
+   `MAX_NUMBER_FILES` constant from 50 to 1000, and call the library API:
    ```bash
-   gdown --folder "https://drive.google.com/drive/folders/1F2A1RO8W5DDa8yWIKBMos_k32DQD4jpB?usp=sharing" \
-         -O /tmp/drive_folder --remaining-ok
+   python - <<'PY'
+   import importlib
+   module = importlib.import_module('gdown.download_folder')
+   module.MAX_NUMBER_FILES = 1000
+   module.download_folder(
+       url="https://drive.google.com/drive/folders/1F2A1RO8W5DDa8yWIKBMos_k32DQD4jpB?usp=sharing",
+       output="/tmp/drive_folder_python",
+       quiet=False,
+   )
+   PY
    ```
-   The `--remaining-ok` flag lets the downloader continue when a folder contains
-   more than 50 files (the Drive web API otherwise aborts the batch).
-3. Verified the download (`find /tmp/drive_folder -type f | wc -l`) to confirm
-   that 115 files landed successfully across the exposed directories.
+   Without the temporary patch `gdown` aborts after 50 files; the one-line
+   override unlocks the remaining documents.
+3. Verified the download (`find /tmp/drive_folder_python -type f | wc -l`) to
+   confirm that 115 files landed successfully across the exposed directories.
 
 ## Follow-up Options
 
@@ -30,7 +40,7 @@ hierarchy currently lives under `/tmp/drive_folder` on the runner.
   metadata API but will leverage the same folder structure already mirrored
   locally.
 - **Archive for reproducibility.** If long-term storage is needed, tar/zip the
-  `/tmp/drive_folder` directory and check it into an artefact bucket or other
+  `/tmp/drive_folder_python` directory and check it into an artefact bucket or other
   persistent storage location accessible to the ingestion job.
 - **Enable OCR when necessary.** A small subset of PDFs may rely on scanned
   images. Before indexing, install the optional OCR toolchain
