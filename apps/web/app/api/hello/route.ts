@@ -5,7 +5,7 @@ interface HelloResponse {
   message: string;
 }
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   return withApiMetrics(req, "/api/hello", async () => {
