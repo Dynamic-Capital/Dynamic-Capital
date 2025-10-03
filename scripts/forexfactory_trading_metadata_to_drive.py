@@ -1,9 +1,17 @@
-"""Extract Forex Factory trading metadata and upload it to Google Drive."""
+"""Extract Forex Factory trading metadata and upload it to Google Drive.
+
+The scraper attempts to load the public calendar page from
+``https://www.forexfactory.com/`` by default. When the optional
+``cloudscraper`` dependency is installed the script can bypass the
+Cloudflare challenge that protects the site. Otherwise the caller can
+provide a direct JSON feed URL via ``--calendar-url``.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import uuid
 from dataclasses import dataclass
@@ -15,10 +23,15 @@ import requests
 
 from dynamic_corpus_extraction.google_drive import parse_drive_share_link
 
-DEFAULT_CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+DEFAULT_CALENDAR_URL = "https://www.forexfactory.com/calendar?week=this"
 DEFAULT_FILE_NAME_TEMPLATE = "forexfactory-trading-metadata-{timestamp}.json"
 
 _IMPACT_PRIORITY = {"Holiday": 0, "Low": 1, "Medium": 2, "High": 3}
+
+_CALENDAR_JSON_PATTERN = re.compile(
+    r"""https://[\w./-]*ff_calendar_[^"'\s]+\.json(?:\?[^"'\s]*)?""",
+    re.IGNORECASE,
+)
 
 
 @dataclass(slots=True)
@@ -89,7 +102,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--calendar-url",
         default=DEFAULT_CALENDAR_URL,
-        help="Forex Factory calendar JSON endpoint to query.",
+        help=(
+            "Forex Factory calendar page or JSON endpoint to query. When a HTML"
+            " page is supplied the script will extract the embedded JSON feed"
+            " automatically."
+        ),
     )
     parser.add_argument(
         "--min-impact",
@@ -105,7 +122,6 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--access-token",
-        required=True,
         help="OAuth access token authorised for the Google Drive API.",
     )
     parser.add_argument(
@@ -143,6 +159,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         default=30.0,
         help="Timeout (in seconds) applied to network requests.",
     )
+    parser.add_argument(
+        "--skip-upload",
+        action="store_true",
+        help="Fetch and optionally store the JSON locally without uploading to Drive.",
+    )
     return parser.parse_args(argv)
 
 
@@ -158,16 +179,65 @@ def _resolve_folder_id(folder_id: str | None, share_link: str | None) -> str:
 
 
 def _fetch_calendar(url: str, *, timeout: float) -> Sequence[Mapping[str, object]]:
-    response = requests.get(url, timeout=timeout)
+    session, using_scraper = _make_calendar_session(url)
+    response = session.get(url, timeout=timeout)
     if response.status_code != requests.codes.ok:
-        raise SystemExit(f"Failed to fetch Forex Factory data: HTTP {response.status_code}")
-    try:
-        payload = response.json()
-    except ValueError as error:  # pragma: no cover - defensive guard
-        raise SystemExit("Response from Forex Factory was not valid JSON") from error
+        hint = ""
+        if (not using_scraper) and "forexfactory.com" in url:
+            hint = (
+                " Consider installing the 'cloudscraper' package to bypass"
+                " Cloudflare challenges when hitting Forex Factory pages."
+            )
+        raise SystemExit(
+            f"Failed to fetch Forex Factory data: HTTP {response.status_code}.{hint}"
+        )
+
+    content_type = response.headers.get("Content-Type", "").lower()
+    if "json" in content_type or url.lower().endswith(".json"):
+        return _coerce_calendar_payload(response.json())
+
+    feed_url = _extract_calendar_feed_url(response.text)
+    if feed_url is None:
+        raise SystemExit(
+            "Unable to locate the Forex Factory calendar JSON feed within the"
+            " provided HTML page."
+        )
+
+    feed_response = requests.get(feed_url, timeout=timeout)
+    if feed_response.status_code != requests.codes.ok:
+        raise SystemExit(
+            "Failed to download Forex Factory calendar feed: HTTP "
+            f"{feed_response.status_code}"
+        )
+    return _coerce_calendar_payload(feed_response.json())
+
+
+def _coerce_calendar_payload(payload: object) -> Sequence[Mapping[str, object]]:
     if not isinstance(payload, Sequence):
         raise SystemExit("Unexpected payload received from Forex Factory")
     return payload
+
+
+def _extract_calendar_feed_url(html: str) -> str | None:
+    match = _CALENDAR_JSON_PATTERN.search(html)
+    if match:
+        return match.group(0)
+    return None
+
+
+def _make_calendar_session(url: str) -> tuple[requests.Session, bool]:
+    if "forexfactory.com" not in url.lower():
+        return requests.Session(), False
+    try:  # pragma: no cover - optional dependency branch
+        import cloudscraper
+
+        scraper = cloudscraper.create_scraper(
+            delay=5,
+            browser={"browser": "firefox", "platform": "windows", "mobile": False},
+        )
+        return scraper, True
+    except ImportError:  # pragma: no cover - optional dependency branch
+        return requests.Session(), False
 
 
 def _filter_events(
@@ -307,7 +377,13 @@ def _set_public_permission(access_token: str, file_id: str, *, timeout: float) -
 def main(argv: Sequence[str] | None = None) -> None:
     args = _parse_args(argv)
 
-    folder_id = _resolve_folder_id(args.folder_id, args.share_link)
+    if not args.skip_upload and not args.access_token:
+        raise SystemExit("--access-token is required unless --skip-upload is set.")
+
+    if args.skip_upload:
+        folder_id = None
+    else:
+        folder_id = _resolve_folder_id(args.folder_id, args.share_link)
 
     raw_events = _fetch_calendar(args.calendar_url, timeout=args.timeout)
     events = _filter_events(raw_events, min_impact=args.min_impact, countries=args.countries)
@@ -319,6 +395,13 @@ def main(argv: Sequence[str] | None = None) -> None:
     )
 
     _maybe_write_local(payload, args.output)
+
+    if args.skip_upload:
+        message = "Fetched Forex Factory trading metadata; skipping Google Drive upload."
+        if args.output:
+            message += f" Local copy written to '{args.output}'."
+        print(message)
+        return
 
     file_name = args.file_name or _default_file_name()
     upload_response = _upload_json_to_drive(
