@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+import pytest
+
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -14,6 +16,7 @@ from dynamic_team import (  # noqa: E402  - path mutation for test isolation
     TEAM_PLAYBOOKS,
     TeamOperationsLLMPlanner,
     build_team_playbooks,
+    build_team_workflows,
     build_team_sync,
     get_team_playbook,
     list_team_agents,
@@ -42,6 +45,20 @@ def test_list_team_agents_respects_optional_flag() -> None:
     strategist_result = all_agents["Marketing Strategist"].run({"focus": ["Launch"]})
     assert strategist_result.focus == ("Launch",)
     assert strategist_result.role == "Marketing Strategist"
+
+
+def test_build_team_workflows_filters_roles_and_optional() -> None:
+    workflows = build_team_workflows(include_optional=False)
+
+    assert "Quality Assurance" not in workflows
+    assert workflows["Marketing Strategist"][0].startswith("Pull the latest KPI")
+
+    qa_workflow = build_team_workflows(focus=["Quality Assurance"])
+    assert set(qa_workflow) == {"Quality Assurance"}
+    assert qa_workflow["Quality Assurance"][0].startswith("Review iteration goals")
+
+    with pytest.raises(KeyError):
+        build_team_workflows(focus=["Unknown Role"])
 
 
 def test_synchronise_team_filters_focus() -> None:

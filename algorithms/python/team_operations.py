@@ -29,6 +29,7 @@ __all__ = [
     "TEAM_OPERATIONS_PLAYBOOKS",
     "build_team_operations_playbooks",
     "build_team_operations_sync_algorithm",
+    "build_team_workflows",
     "TeamOperationsAlignmentReport",
     "TeamOperationsLLMPlanner",
 ]
@@ -809,6 +810,29 @@ def build_team_operations_sync_algorithm(*, include_optional: bool = True) -> Dy
     return DynamicTeamRoleSyncAlgorithm(
         build_team_operations_playbooks(include_optional=include_optional).values()
     )
+
+
+def build_team_workflows(
+    *,
+    focus: Optional[Iterable[str]] = None,
+    include_optional: bool = True,
+) -> Dict[str, tuple[str, ...]]:
+    """Return workflow steps for the selected playbooks keyed by role name."""
+
+    catalogue = build_team_operations_playbooks(include_optional=include_optional)
+    focus_names = tuple(focus or ())
+    if focus_names:
+        missing = [name for name in focus_names if name not in catalogue]
+        if missing:
+            missing_names = ", ".join(sorted(missing))
+            raise KeyError(f"Unknown playbook(s): {missing_names}")
+        selected = {name: catalogue[name] for name in focus_names}
+    else:
+        selected = catalogue
+    return {
+        name: tuple(playbook.workflow)
+        for name, playbook in selected.items()
+    }
 
 
 # ---------------------------------------------------------------------------
