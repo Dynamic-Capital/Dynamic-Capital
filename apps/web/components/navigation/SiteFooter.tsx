@@ -11,6 +11,7 @@ import { schema, social } from "@/resources";
 import NAV_ITEMS from "./nav-items";
 
 const QUICK_LINKS = [
+  { label: "Dynamic Trade & Learn", href: "/tools/dynamic-trade-and-learn" },
   { label: "Dynamic GUI optimizer", href: "/tools/dynamic-ui-optimizer" },
   { label: "Dynamic CLI/CD workbench", href: "/tools/dynamic-cli" },
   { label: "Dynamic market review", href: "/tools/dynamic-market-review" },
