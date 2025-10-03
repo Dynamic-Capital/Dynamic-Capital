@@ -135,28 +135,7 @@ async function trackEvent(
 
     // Update daily analytics
     const today = new Date().toISOString().split("T")[0];
-    const { error: dailyError } = await supabase
-      .from("daily_analytics")
-      .upsert({
-        date: today,
-        button_clicks: supabase.raw(`
-          CASE 
-            WHEN button_clicks IS NULL THEN jsonb_build_object('${eventData.event_type}', 1)
-            ELSE jsonb_set(
-              COALESCE(button_clicks, '{}'),
-              array['${eventData.event_type}'],
-              COALESCE((button_clicks->>'${eventData.event_type}')::int, 0) + 1
-            )
-          END
-        `),
-      }, {
-        onConflict: "date",
-        ignoreDuplicates: false,
-      });
-
-    if (dailyError) {
-      console.error("Error updating daily analytics:", dailyError);
-    }
+    await incrementDailyButtonClicks(supabase, today, eventData.event_type);
 
     return new Response(
       JSON.stringify({ success: true, event_tracked: eventData.event_type }),
@@ -172,6 +151,68 @@ async function trackEvent(
       },
     );
   }
+}
+
+type DailyAnalyticsRow = {
+  date: string;
+  button_clicks: Record<string, unknown> | null;
+};
+
+function normalizeButtonClicks(
+  clicks: Record<string, unknown> | null | undefined,
+): Record<string, number> {
+  if (!clicks) return {};
+
+  return Object.entries(clicks).reduce<Record<string, number>>(
+    (acc, [key, value]) => {
+      const numericValue = typeof value === "number"
+        ? value
+        : Number(value ?? 0);
+      acc[key] = Number.isFinite(numericValue) ? numericValue : 0;
+      return acc;
+    },
+    {},
+  );
+}
+
+export async function incrementDailyButtonClicks(
+  supabase: SupabaseClient,
+  date: string,
+  eventType: string,
+): Promise<Record<string, number> | null> {
+  const { data: existing, error: fetchError } = await supabase
+    .from<DailyAnalyticsRow>("daily_analytics")
+    .select("button_clicks")
+    .eq("date", date)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error("Error fetching daily analytics:", fetchError);
+  }
+
+  const normalizedClicks = normalizeButtonClicks(existing?.button_clicks);
+  const nextValue = (normalizedClicks[eventType] ?? 0) + 1;
+  const updatedClicks: Record<string, number> = {
+    ...normalizedClicks,
+    [eventType]: nextValue,
+  };
+
+  const { error: upsertError } = await supabase
+    .from("daily_analytics")
+    .upsert({
+      date,
+      button_clicks: updatedClicks,
+    }, {
+      onConflict: "date",
+      ignoreDuplicates: false,
+    });
+
+  if (upsertError) {
+    console.error("Error updating daily analytics:", upsertError);
+    return null;
+  }
+
+  return updatedClicks;
 }
 
 async function getAnalytics(

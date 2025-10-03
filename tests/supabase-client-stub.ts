@@ -1180,6 +1180,30 @@ export function createClient() {
   return new SupabaseStub(stubState) as unknown as { [key: string]: unknown };
 }
 
+type RequestLike = Pick<Request, "headers">;
+
+type RequestClientOptions = {
+  role?: "anon" | "service";
+  requireAuthorization?: boolean;
+  [key: string]: unknown;
+};
+
+export function createClientForRequest(
+  req: RequestLike,
+  options?: RequestClientOptions,
+) {
+  if (options?.requireAuthorization) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error(
+        "Missing Authorization header for createClientForRequest",
+      );
+    }
+  }
+
+  return createClient();
+}
+
 export type SupabaseClient = ReturnType<typeof createClient>;
 
 export function createSupabaseClient(..._args: unknown[]) {
