@@ -4,6 +4,7 @@ import { withApiMetrics } from "@/observability/server-metrics.ts";
 import {
   buildDynamicRestBondYieldsResponse,
   buildDynamicRestInstrumentsResponse,
+  buildDynamicRestOpenSourceResponse,
   buildDynamicRestTradingDeskResponse,
   DYNAMIC_REST_CACHE_CONTROL_HEADER,
   DYNAMIC_REST_CACHE_TAG,
@@ -78,6 +79,13 @@ const RESOURCE_DEFINITIONS = {
     getResource: createCachedResource(
       "dynamic-rest-resources-bond-yields",
       buildDynamicRestBondYieldsResponse,
+    ),
+  },
+  [RESOURCE_ENDPOINTS.openSource.slug]: {
+    endpoint: RESOURCE_ENDPOINTS.openSource,
+    getResource: createCachedResource(
+      "dynamic-rest-resources-open-source",
+      buildDynamicRestOpenSourceResponse,
     ),
   },
 } satisfies Record<ResourceSlug, ResourceDefinition>;

@@ -14,6 +14,10 @@ import {
   type InstrumentMetadata,
   listInstruments,
 } from "@/data/instruments";
+import {
+  OPEN_SOURCE_CATALOG,
+  type OpenSourceCatalogData,
+} from "@/data/open-source";
 import { optionalEnvVar } from "@/utils/env.ts";
 
 export const DYNAMIC_REST_CACHE_TAG = "dynamic-rest" as const;
@@ -93,6 +97,13 @@ export interface DynamicRestResources {
       market: BondMarketCoverage["market"];
       tenors: string[];
     }>;
+  };
+  openSource: {
+    totals: Record<
+      keyof OpenSourceCatalogData | "overall",
+      number
+    >;
+    categories: OpenSourceCatalogData;
   };
 }
 
@@ -183,6 +194,14 @@ const RESOURCE_DYNAMIC_REST_ENDPOINTS = Object.freeze(
         "Summaries of live sovereign yield coverage and feed capabilities.",
       resourceKey: "bondYields",
       slug: "bond-yields",
+    },
+    openSource: {
+      method: "GET",
+      path: "/api/dynamic-rest/resources/open-source",
+      description:
+        "Catalog of open-source helpers, language models, adapters, and toolkits.",
+      resourceKey: "openSource",
+      slug: "open-source",
     },
   } satisfies ResourceEndpointMap,
 );
@@ -277,12 +296,42 @@ function summariseTradingDesk(): DynamicRestResources["tradingDesk"] {
   } satisfies DynamicRestResources["tradingDesk"];
 }
 
+function summariseOpenSource(): DynamicRestResources["openSource"] {
+  const categories = {
+    helpers: [...OPEN_SOURCE_CATALOG.helpers],
+    languageModels: [...OPEN_SOURCE_CATALOG.languageModels],
+    adapters: [...OPEN_SOURCE_CATALOG.adapters],
+    toolkits: [...OPEN_SOURCE_CATALOG.toolkits],
+  } as const satisfies OpenSourceCatalogData;
+
+  const totals = {
+    helpers: categories.helpers.length,
+    languageModels: categories.languageModels.length,
+    adapters: categories.adapters.length,
+    toolkits: categories.toolkits.length,
+  } as const satisfies Record<keyof OpenSourceCatalogData, number>;
+
+  const overall = Object.values(totals).reduce(
+    (sum, value) => sum + value,
+    0,
+  );
+
+  return {
+    totals: {
+      ...totals,
+      overall,
+    },
+    categories,
+  } satisfies DynamicRestResources["openSource"];
+}
+
 export function buildDynamicRestResponse(
   now: Date = new Date(),
 ): DynamicRestResponse {
   const instruments = summariseInstruments();
   const tradingDesk = summariseTradingDesk();
   const bondYields = summariseBondYields();
+  const openSource = summariseOpenSource();
 
   return {
     status: "ok",
@@ -296,6 +345,7 @@ export function buildDynamicRestResponse(
       instruments,
       tradingDesk,
       bondYields,
+      openSource,
     },
   } satisfies DynamicRestResponse;
 }
@@ -331,4 +381,15 @@ export function buildDynamicRestBondYieldsResponse(
     metadata: buildMetadata(),
     resource: summariseBondYields(),
   } satisfies DynamicRestResourceEnvelope<DynamicRestResources["bondYields"]>;
+}
+
+export function buildDynamicRestOpenSourceResponse(
+  now: Date = new Date(),
+): DynamicRestResourceEnvelope<DynamicRestResources["openSource"]> {
+  return {
+    status: "ok",
+    generatedAt: now.toISOString(),
+    metadata: buildMetadata(),
+    resource: summariseOpenSource(),
+  } satisfies DynamicRestResourceEnvelope<DynamicRestResources["openSource"]>;
 }
