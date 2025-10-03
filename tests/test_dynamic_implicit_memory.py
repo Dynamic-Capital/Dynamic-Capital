@@ -112,3 +112,10 @@ def test_generate_report_requires_traces() -> None:
 
     with pytest.raises(RuntimeError):
         engine.generate_report(context)
+
+
+def test_toolkit_exports_engine() -> None:
+    from dynamic_tool_kits import DynamicImplicitMemory as ToolkitExport
+
+    engine = ToolkitExport()
+    assert isinstance(engine, DynamicImplicitMemory)
