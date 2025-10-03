@@ -1,9 +1,34 @@
 {
   "name": "Dynamic Capital Token",
   "symbol": "DCT",
-  "description": "Dynamic Capital Token (DCT) powers the Dynamic Capital trading desk ecosystem with governance-aligned liquidity, automated buyback-and-burn flows, and staking multipliers coordinated through the Dynamic Capital Mini App.",
+  "description": "Dynamic Capital Token (DCT) underwrites the Dynamic Capital intelligence desk on TON. Stakers unlock automation tiers, emissions share weekly auto-invest cycles, and governance moves execute through a 48-hour multisig timelock that protects treasury operations.",
   "decimals": 9,
-  "external_url": "https://dynamic.capital",
-  "version": "1.0",
+  "image": "https://dao.dynamic.capital/branding/media/logo.svg",
+  "image_data": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZwogIHdpZHRoPSIyNTYiCiAgaGVpZ2h0PSIyNTYiCiAgdmlld0JveD0iMCAwIDI1NiAyNTYiCiAgZmlsbD0ibm9uZSIKICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudAogICAgICBpZD0ibWFya0dyYWRpZW50IgogICAgICB4MT0iNDAiCiAgICAgIHkxPSIzNiIKICAgICAgeDI9IjIxNiIKICAgICAgeTI9IjIyMCIKICAgICAgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiCiAgICA+CiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzFGMzk4RSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMkFBMEMzIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudAogICAgICBpZD0iaW5uZXJIaWdobGlnaHQiCiAgICAgIHgxPSI5MiIKICAgICAgeTE9Ijg4IgogICAgICB4Mj0iMTc2IgogICAgICB5Mj0iMTc2IgogICAgICBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIKICAgID4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRTVGMkZGIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNCRkU4RkYiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlcgogICAgICBpZD0iZ2xvdyIKICAgICAgeD0iMCIKICAgICAgeT0iMCIKICAgICAgd2lkdGg9IjI1NiIKICAgICAgaGVpZ2h0PSIyNTYiCiAgICAgIGZpbHRlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIKICAgID4KICAgICAgPGZlR2F1c3NpYW5CbHVyIGluPSJTb3VyY2VHcmFwaGljIiBzdGREZXZpYXRpb249IjYiIHJlc3VsdD0iYmx1ciIgLz4KICAgICAgPGZlTWVyZ2U+CiAgICAgICAgPGZlTWVyZ2VOb2RlIGluPSJibHVyIiAvPgogICAgICAgIDxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIgLz4KICAgICAgPC9mZU1lcmdlPgogICAgPC9maWx0ZXI+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiByeD0iNjQiIGZpbGw9InVybCgjbWFya0dyYWRpZW50KSIgLz4KICA8cGF0aAogICAgZmlsbC1ydWxlPSJldmVub2RkIgogICAgY2xpcC1ydWxlPSJldmVub2RkIgogICAgZD0iTTg4IDY0SDE0OEMxODYuNzY1IDY0IDIxMiA4OS4xMDcxIDIxMiAxMjhDMjEyIDE2Ni44OTMgMTg2Ljc2NSAxOTIgMTQ4IDE5Mkg4OFY2NFpNMTQ4IDE2OEMxNzIuMjQxIDE2OCAxODggMTUyLjI0MSAxODggMTI4QzE4OCAxMDMuNzU5IDE3Mi4yNDEgODggMTQ4IDg4SDEyMFYxNjhIMTQ4WiIKICAgIGZpbGw9IndoaXRlIgogIC8+CiAgPHBhdGgKICAgIGQ9Ik0xMjAgOTZIMTQ0QzE2MC42NzMgOTYgMTcyIDEwNy4zMjcgMTcyIDEyNEMxNzIgMTQwLjY3MyAxNjAuNjczIDE1MiAxNDQgMTUySDEyMFY5NloiCiAgICBmaWxsPSJ1cmwoI2lubmVySGlnaGxpZ2h0KSIKICAvPgogIDxwYXRoCiAgICBkPSJNMTgyIDgwLjVDMjEzLjgyMiA5My40Mzk5IDIzMiAxMTcuMjE4IDIzMiAxNDYuNUMyMzIgMTc1Ljc4MiAyMTMuODIyIDE5OS41NiAxODIgMjEyLjUiCiAgICBzdHJva2U9IiNEMkZDRkYiCiAgICBzdHJva2Utd2lkdGg9IjE0IgogICAgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogICAgZmlsdGVyPSJ1cmwoI2dsb3cpIgogIC8+CiAgPHBhdGgKICAgIGQ9Ik0xNzYgODhDMjAyLjk3MyA5OS40MjA0IDIxOCAxMTguNzkyIDIxOCAxNDMuNUMyMTggMTY4LjIwOCAyMDIuOTczIDE4Ny41OCAxNzYgMTk5IgogICAgc3Ryb2tlPSIjRTNGRkZGIgogICAgc3Ryb2tlLXdpZHRoPSIxMCIKICAgIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIKICAvPgogIDxwYXRoCiAgICBkPSJNMTc2IDg4QzIwMi45NzMgOTkuNDIwNCAyMTggMTE4Ljc5MiAyMTggMTQzLjUiCiAgICBzdHJva2U9IndoaXRlIgogICAgc3Ryb2tlLW9wYWNpdHk9IjAuMzUiCiAgICBzdHJva2Utd2lkdGg9IjYiCiAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgLz4KPC9zdmc+Cg==",
+  "external_url": "https://dynamic.capital/token",
+  "social_links": {
+    "website": "https://dynamic.capital",
+    "app": "https://mini.dynamic.capital/miniapp/",
+    "telegram": "https://t.me/DynamicCapital_Support",
+    "x": "https://x.com/dynamiccapital",
+    "instagram": "https://www.instagram.com/dynamic.capital",
+    "linkedin": "https://www.linkedin.com/company/dynamic-capital-ai/",
+    "docs": "https://docs.dynamic.capital/dynamic-capital-ton-whitepaper"
+  },
+  "attributes": [
+    {
+      "trait_type": "Max supply",
+      "value": "100,000,000 DCT (hard cap)"
+    },
+    {
+      "trait_type": "Governance",
+      "value": "Tonstarter multisig with 48h timelock"
+    },
+    {
+      "trait_type": "Utility",
+      "value": "Desk access, liquidity programs, and automation boosts"
+    }
+  ],
+  "version": "1.1",
   "standard": "ton.jetton.v1"
 }
