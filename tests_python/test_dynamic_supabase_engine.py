@@ -107,6 +107,49 @@ def test_verify_connection_override(monkeypatch: pytest.MonkeyPatch) -> None:
     assert status.error == "Unexpected status 401: unauthorised"
 
 
+def test_verify_connection_without_requests(monkeypatch: pytest.MonkeyPatch) -> None:
+    engine = DynamicSupabaseEngine()
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-key")
+
+    captured: dict[str, object] = {}
+
+    class FakeResponse:
+        def __enter__(self):  # pragma: no cover - trivial
+            return self
+
+        def __exit__(self, exc_type, exc, tb):  # pragma: no cover - trivial
+            return False
+
+        def read(self) -> bytes:
+            return b"{}"
+
+        def getcode(self) -> int:
+            return 200
+
+    def fake_urlopen(request, timeout: float):  # type: ignore[override]
+        captured["url"] = request.full_url
+        captured["headers"] = {key: value for key, value in request.header_items()}
+        captured["timeout"] = timeout
+        return FakeResponse()
+
+    monkeypatch.setattr(engine_module, "requests", None, raising=False)
+    monkeypatch.setattr(engine_module, "_urlopen", fake_urlopen)
+
+    status = engine.verify_connection(timeout=3.5)
+
+    assert status.ok
+    assert status.status_code == 200
+    assert status.endpoint == "https://example.supabase.co/auth/v1/settings"
+    assert captured["url"] == "https://example.supabase.co/auth/v1/settings"
+    assert captured["headers"] == {
+        "Authorization": "Bearer test-key",
+        "Apikey": "test-key",
+    }
+    assert captured["timeout"] == 3.5
+
+
 def test_optimisation_hints_detects_large_tables() -> None:
     engine = DynamicSupabaseEngine(
         tables=(

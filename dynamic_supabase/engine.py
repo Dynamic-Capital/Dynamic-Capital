@@ -7,8 +7,11 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from types import SimpleNamespace
 from typing import Deque, Iterable, Literal, Mapping, MutableMapping, Sequence
+from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
+from urllib.request import Request as _URLRequest, urlopen as _urlopen
 
 try:  # pragma: no cover - optional dependency
     import requests  # type: ignore
@@ -83,6 +86,33 @@ def _ensure_datetime(timestamp: datetime) -> datetime:
     if timestamp.tzinfo is None:
         return timestamp.replace(tzinfo=timezone.utc)
     return timestamp.astimezone(timezone.utc)
+
+
+def _perform_http_get(
+    url: str,
+    headers: Mapping[str, str],
+    timeout: float,
+):
+    """Return an object with ``status_code`` and ``text`` for the supplied URL."""
+
+    if requests is not None:
+        return requests.get(url, headers=dict(headers), timeout=timeout)
+
+    request = _URLRequest(url, headers=dict(headers), method="GET")
+
+    try:
+        with _urlopen(request, timeout=timeout) as response:  # type: ignore[arg-type]
+            body = response.read()
+            text = body.decode("utf-8", errors="replace") if isinstance(body, bytes) else str(body)
+            status_code = getattr(response, "status", None) or response.getcode()
+            return SimpleNamespace(status_code=status_code, text=text)
+    except HTTPError as exc:
+        body = exc.read()
+        text = body.decode("utf-8", errors="replace") if isinstance(body, bytes) else str(body)
+        return SimpleNamespace(status_code=exc.code, text=text)
+    except URLError as exc:
+        reason = exc.reason if isinstance(exc.reason, str) else str(exc.reason)
+        raise ConnectionError(reason) from exc
 
 
 # ---------------------------------------------------------------------------
@@ -807,13 +837,6 @@ class DynamicSupabaseEngine:
                 error="Supabase API key is not configured.",
             )
 
-        if requests is None:
-            return SupabaseConnectionStatus(
-                ok=False,
-                endpoint=endpoint,
-                error="requests library is not available; install 'requests' to enable connection verification.",
-            )
-
         safe_timeout = timeout if timeout and timeout > 0 else 5.0
         headers = {
             "apikey": resolved_key,
@@ -823,7 +846,7 @@ class DynamicSupabaseEngine:
         start = time.perf_counter()
 
         try:
-            response = requests.get(endpoint, headers=headers, timeout=safe_timeout)
+            response = _perform_http_get(endpoint, headers, safe_timeout)
         except Exception as exc:  # pragma: no cover - network dependent
             latency_ms = (time.perf_counter() - start) * 1000
             return SupabaseConnectionStatus(
