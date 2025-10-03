@@ -183,6 +183,7 @@ class CrawlerSpec:
     capabilities: CrawlerCapabilities
     default_config: CrawlerConfig
     plan_builder: PlanBuilder
+    enabled: bool = False
 
     def build_plan(
         self, job: CrawlJob, config: CrawlerConfig | None = None
@@ -190,6 +191,16 @@ class CrawlerSpec:
         if config is None:
             config = self.default_config
         return self.plan_builder(job, config)
+
+    def enable(self) -> None:
+        """Mark the crawler specification as enabled."""
+
+        self.enabled = True
+
+    def disable(self) -> None:
+        """Mark the crawler specification as disabled."""
+
+        self.enabled = False
 
 
 class DynamicCrawlerRegistry:
@@ -211,10 +222,40 @@ class DynamicCrawlerRegistry:
         except KeyError as exc:  # pragma: no cover - defensive guard
             raise KeyError(f"unknown crawler '{name}'") from exc
 
+    def enable(self, name: str) -> None:
+        """Enable an individual crawler by name."""
+
+        self.get(name).enable()
+
+    def disable(self, name: str) -> None:
+        """Disable an individual crawler by name."""
+
+        self.get(name).disable()
+
+    def is_enabled(self, name: str) -> bool:
+        """Return whether the crawler is currently enabled."""
+
+        return self.get(name).enabled
+
+    def enable_live_data_crawlers(self) -> tuple[str, ...]:
+        """Enable all crawlers capable of handling dynamic (live) content."""
+
+        enabled: list[str] = []
+        for key, spec in self._crawlers.items():
+            if spec.capabilities.dynamic_content:
+                if not spec.enabled:
+                    spec.enable()
+                enabled.append(spec.metadata.name)
+        return tuple(sorted(enabled))
+
     def build_plan(
         self, name: str, job: CrawlJob, config: CrawlerConfig | None = None
     ) -> CrawlerPlan:
         spec = self.get(name)
+        if not spec.enabled:
+            raise RuntimeError(
+                f"crawler '{spec.metadata.name}' is disabled. Enable it before building plans."
+            )
         merged_config = config or spec.default_config
         if config is not None:
             merged_config = spec.default_config.with_overrides(
@@ -232,11 +273,11 @@ class DynamicCrawlerRegistry:
             )
         return spec.build_plan(job, merged_config)
 
-    def list_crawlers(self) -> tuple[CrawlerSpec, ...]:
-        return tuple(
-            self._crawlers[key]
-            for key in sorted(self._crawlers)
-        )
+    def list_crawlers(self, *, enabled_only: bool = False) -> tuple[CrawlerSpec, ...]:
+        crawlers = [self._crawlers[key] for key in sorted(self._crawlers)]
+        if enabled_only:
+            return tuple(spec for spec in crawlers if spec.enabled)
+        return tuple(crawlers)
 
 
 # ---------------------------------------------------------------------------
@@ -257,6 +298,7 @@ def register_default_crawlers(
         _build_llm_scraper_spec,
     ):
         registry.register(builder())
+    registry.enable_live_data_crawlers()
     return registry
 
 
