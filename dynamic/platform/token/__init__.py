@@ -6,7 +6,13 @@ from .engine import (
     DynamicCapitalTokenEngine,
     committee_signals_from_optimisation,
 )
-from .image import GeneratedNFTImage, NanoBananaClient
+from .image import (
+    GeneratedNFTImage,
+    NanoBananaClient,
+    NanoBananaClientError,
+    NanoBananaImageGenerator,
+    create_nanobanana_generator_from_env,
+)
 from .nft import DynamicNFTMinter, MintedDynamicNFT, NFTImageGenerator
 from .treasury import DynamicTreasuryAlgo, TreasuryEvent
 
@@ -21,5 +27,8 @@ __all__ = [
     "GeneratedNFTImage",
     "NFTImageGenerator",
     "NanoBananaClient",
+    "NanoBananaClientError",
+    "NanoBananaImageGenerator",
+    "create_nanobanana_generator_from_env",
     "committee_signals_from_optimisation",
 ]
