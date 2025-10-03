@@ -10,6 +10,14 @@ from .dhivehi import (
     DhivehiTransliterator,
     detect_script,
 )
+from .google_vision_ocr import (
+    BoundingBox,
+    DocumentBlock,
+    DocumentOCRResult,
+    GoogleVisionOCR,
+    Vertex,
+    parse_document_blocks,
+)
 
 __all__ = [
     "DhivehiLanguageProfile",
@@ -20,4 +28,10 @@ __all__ = [
     "DhivehiTokenizer",
     "DhivehiTransliterator",
     "detect_script",
+    "BoundingBox",
+    "DocumentBlock",
+    "DocumentOCRResult",
+    "GoogleVisionOCR",
+    "Vertex",
+    "parse_document_blocks",
 ]
