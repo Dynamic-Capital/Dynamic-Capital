@@ -1,0 +1,2382 @@
+{
+  "name": "books",
+  "url": "https://drive.google.com/embeddedfolderview?id=1jD0Z06Hhfj4XSzGL81h9x8olE4KkmVZR#list",
+  "type": "folder",
+  "id": "1jD0Z06Hhfj4XSzGL81h9x8olE4KkmVZR",
+  "children": [
+    {
+      "name": "Law",
+      "url": "https://drive.google.com/drive/folders/1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR",
+      "type": "folder",
+      "id": "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR",
+      "last_modified": "8:45 pm",
+      "children": [
+        {
+          "name": "AssocAct.pdf",
+          "url": "https://drive.google.com/file/d/1Tay4kBz39ooIkRqApYwV7i-CTJLMVsnh/view?usp=drive_web",
+          "type": "file",
+          "id": "1Tay4kBz39ooIkRqApYwV7i-CTJLMVsnh",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "Corruption.pdf",
+          "url": "https://drive.google.com/file/d/1czP9pvgHJMy_I17lTonV8Fj5CBUwAmWj/view?usp=drive_web",
+          "type": "file",
+          "id": "1czP9pvgHJMy_I17lTonV8Fj5CBUwAmWj",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "Family.pdf",
+          "url": "https://drive.google.com/file/d/1AOwwa12dASo0l08Q_wGSSMyChwZztsEd/view?usp=drive_web",
+          "type": "file",
+          "id": "1AOwwa12dASo0l08Q_wGSSMyChwZztsEd",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "FIL.pdf",
+          "url": "https://drive.google.com/file/d/1txny5zEYwK7V7INWdQr1YO_Zhq48H7-a/view?usp=drive_web",
+          "type": "file",
+          "id": "1txny5zEYwK7V7INWdQr1YO_Zhq48H7-a",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "HRC.pdf",
+          "url": "https://drive.google.com/file/d/1oXO3vxLbxPErq_5Wk3xOZosauLLxGEx0/view?usp=drive_web",
+          "type": "file",
+          "id": "1oXO3vxLbxPErq_5Wk3xOZosauLLxGEx0",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "Land.pdf",
+          "url": "https://drive.google.com/file/d/1cm0tpnmuRyS8IoWegnuPTAA5EoiyPHi7/view?usp=drive_web",
+          "type": "file",
+          "id": "1cm0tpnmuRyS8IoWegnuPTAA5EoiyPHi7",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "maldives-penal-code-2014.pdf",
+          "url": "https://drive.google.com/file/d/16RBXOprj98epQj4qFqNn3whhRw-1r1hX/view?usp=drive_web",
+          "type": "file",
+          "id": "16RBXOprj98epQj4qFqNn3whhRw-1r1hX",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "PC1.pdf",
+          "url": "https://drive.google.com/file/d/1BSDfVyZz-qg4cF60po83EuBoZ8NQvM0H/view?usp=drive_web",
+          "type": "file",
+          "id": "1BSDfVyZz-qg4cF60po83EuBoZ8NQvM0H",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "PC2.pdf",
+          "url": "https://drive.google.com/file/d/1N_5YUILjulA2T0jbVFjW2RGDcwHIXCm7/view?usp=drive_web",
+          "type": "file",
+          "id": "1N_5YUILjulA2T0jbVFjW2RGDcwHIXCm7",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "PC3.pdf",
+          "url": "https://drive.google.com/file/d/17U_tEHQWVigFiG2Mto55cqoc5O1W_k84/view?usp=drive_web",
+          "type": "file",
+          "id": "17U_tEHQWVigFiG2Mto55cqoc5O1W_k84",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "PC4.pdf",
+          "url": "https://drive.google.com/file/d/1vBTbrglsPZhqS6DbSGeJD27LgBud4Aqw/view?usp=drive_web",
+          "type": "file",
+          "id": "1vBTbrglsPZhqS6DbSGeJD27LgBud4Aqw",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "Securities.pdf",
+          "url": "https://drive.google.com/file/d/1JzKJCk0jPe5JcvaGZX7UDV0vlv-GoZA3/view?usp=drive_web",
+          "type": "file",
+          "id": "1JzKJCk0jPe5JcvaGZX7UDV0vlv-GoZA3",
+          "last_modified": "6/13/23"
+        },
+        {
+          "name": "Terrorism.pdf",
+          "url": "https://drive.google.com/file/d/1LaArkBZJzVm1JOCiffv-QJPUoWhJ54IO/view?usp=drive_web",
+          "type": "file",
+          "id": "1LaArkBZJzVm1JOCiffv-QJPUoWhJ54IO",
+          "last_modified": "6/13/23"
+        }
+      ]
+    },
+    {
+      "name": "Others",
+      "url": "https://drive.google.com/drive/folders/120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu",
+      "type": "folder",
+      "id": "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu",
+      "last_modified": "8:45 pm",
+      "children": [
+        {
+          "name": "SELF NOTE",
+          "url": "https://drive.google.com/drive/folders/1ELpF9KW7QjIjZEwdkD6HRXBwZbT9i26V",
+          "type": "folder",
+          "id": "1ELpF9KW7QjIjZEwdkD6HRXBwZbT9i26V",
+          "last_modified": "8:45 pm",
+          "children": [
+            {
+              "name": "Attachment Styles.docx",
+              "url": "https://drive.google.com/file/d/1qyrVvr4ApmkO_KqmbvTQPKT1y7qkkCHO/view?usp=drive_web",
+              "type": "file",
+              "id": "1qyrVvr4ApmkO_KqmbvTQPKT1y7qkkCHO",
+              "last_modified": "1/21/21"
+            }
+          ]
+        },
+        {
+          "name": "(Cambridge International AS & A Level) Colin Bamford, Susan Grant - Cambridge International AS and A Level Economics Coursebook-Cambridge University Press (2014).pdf",
+          "url": "https://drive.google.com/file/d/1uevdp4rV-PCVY3G2VS8kCnWCZdfQCCkd/view?usp=drive_web",
+          "type": "file",
+          "id": "1uevdp4rV-PCVY3G2VS8kCnWCZdfQCCkd",
+          "last_modified": "6/12/23"
+        },
+        {
+          "name": "2015_aaha_canine_and_feline_behavior_management_guidelines_final.pdf",
+          "url": "https://drive.google.com/file/d/1vyZ6DwTsuzdhGMXTJXZp317gnCmmRvdd/view?usp=drive_web",
+          "type": "file",
+          "id": "1vyZ6DwTsuzdhGMXTJXZp317gnCmmRvdd",
+          "last_modified": "4/27/23"
+        },
+        {
+          "name": "2575.pdf",
+          "url": "https://drive.google.com/file/d/1vd0MJjxWiRT8DqdwP67qj5ZruoOR-knq/view?usp=drive_web",
+          "type": "file",
+          "id": "1vd0MJjxWiRT8DqdwP67qj5ZruoOR-knq",
+          "last_modified": "11/14/20"
+        },
+        {
+          "name": "37-38.-Diagnosis-Treatment-and-Prevention-of-Upper-Respiratory-Tract-Infections-in-Cats.pdf",
+          "url": "https://drive.google.com/file/d/1lF7FXUnEhDfc4QuyMArGn4Cnz6qXtDq8/view?usp=drive_web",
+          "type": "file",
+          "id": "1lF7FXUnEhDfc4QuyMArGn4Cnz6qXtDq8",
+          "last_modified": "4/27/23"
+        },
+        {
+          "name": "3821-13531-1-PB   Psychology in SL legal system .pdf",
+          "url": "https://drive.google.com/file/d/1P7CYP5t6nvwXNQ8Y1UF7sLuJEHFln5h5/view?usp=drive_web",
+          "type": "file",
+          "id": "1P7CYP5t6nvwXNQ8Y1UF7sLuJEHFln5h5",
+          "last_modified": "4/6/18"
+        },
+        {
+          "name": "50423_ch_2profiling.pdf",
+          "url": "https://drive.google.com/file/d/1em9-P6LWZNbS9_Cpzc7G_9DonLOlchZm/view?usp=drive_web",
+          "type": "file",
+          "id": "1em9-P6LWZNbS9_Cpzc7G_9DonLOlchZm",
+          "last_modified": "4/6/18"
+        },
+        {
+          "name": "academic-english-study-skills-assignment.docx",
+          "url": "https://drive.google.com/file/d/1zzkc3xurDjf32AhScWHsmw_o31S1BQdg/view?usp=drive_web",
+          "type": "file",
+          "id": "1zzkc3xurDjf32AhScWHsmw_o31S1BQdg",
+          "last_modified": "3/14/23"
+        },
+        {
+          "name": "ACCOUNTS AND ECONOMICS ASSIGNMENT.pdf",
+          "url": "https://drive.google.com/file/d/1JbStesXvItJOMGtpWMR4x0mZQREDZZTl/view?usp=drive_web",
+          "type": "file",
+          "id": "1JbStesXvItJOMGtpWMR4x0mZQREDZZTl",
+          "last_modified": "3/26/23"
+        },
+        {
+          "name": "American-Psycho-Book.pdf",
+          "url": "https://drive.google.com/file/d/1yaVYI4AhJ1M_2RYdMRVWLxxSpA0ul49D/view?usp=drive_web",
+          "type": "file",
+          "id": "1yaVYI4AhJ1M_2RYdMRVWLxxSpA0ul49D",
+          "last_modified": "11/18/20"
+        },
+        {
+          "name": "ASSESSMENT & REFERRAL.docx",
+          "url": "https://drive.google.com/file/d/1VdPnkGy1tjuTK-vzsDLgc81H4LZhqUSt/view?usp=drive_web",
+          "type": "file",
+          "id": "1VdPnkGy1tjuTK-vzsDLgc81H4LZhqUSt",
+          "last_modified": "1/21/21"
+        },
+        {
+          "name": "Attachment Draft .docx",
+          "url": "https://drive.google.com/file/d/1SQi4yEJu8OCMee8KSLtM00sM1MUDTXi1/view?usp=drive_web",
+          "type": "file",
+          "id": "1SQi4yEJu8OCMee8KSLtM00sM1MUDTXi1",
+          "last_modified": "2/19/21"
+        },
+        {
+          "name": "Attachment theory.docx",
+          "url": "https://drive.google.com/file/d/1TqfNOoTn73x8Pj9vwYCLRgNU_gF8Gfwt/view?usp=drive_web",
+          "type": "file",
+          "id": "1TqfNOoTn73x8Pj9vwYCLRgNU_gF8Gfwt",
+          "last_modified": "12/28/20"
+        },
+        {
+          "name": "Attitude Formation.docx",
+          "url": "https://drive.google.com/file/d/1e9uVUoMbNUGsRz_oZvb46O6OiXc_Md1T/view?usp=drive_web",
+          "type": "file",
+          "id": "1e9uVUoMbNUGsRz_oZvb46O6OiXc_Md1T",
+          "last_modified": "2/11/21"
+        },
+        {
+          "name": "Attitude.docx",
+          "url": "https://drive.google.com/file/d/16O8Oo5qlixOfot0_hUPdVPLIaBjfGYgp/view?usp=drive_web",
+          "type": "file",
+          "id": "16O8Oo5qlixOfot0_hUPdVPLIaBjfGYgp",
+          "last_modified": "2/11/21"
+        },
+        {
+          "name": "Banned Mind Control Techniques Unleashed_ Learn The Dark Secrets Of Hypnosis, Manipulation, Deception, Persuasion, Brainwashing And Human Psychology ( PDFDrive ).pdf",
+          "url": "https://drive.google.com/file/d/1_xAqgBXSKl93qdlSQqv0ZbSmNm_B91C8/view?usp=drive_web",
+          "type": "file",
+          "id": "1_xAqgBXSKl93qdlSQqv0ZbSmNm_B91C8",
+          "last_modified": "4/27/23"
+        },
+        {
+          "name": "Barriers to Communication.pdf",
+          "url": "https://drive.google.com/file/d/1ouEqWUytDp5enbLEEBKDmBgt6W_lcr3Z/view?usp=drive_web",
+          "type": "file",
+          "id": "1ouEqWUytDp5enbLEEBKDmBgt6W_lcr3Z",
+          "last_modified": "7/4/23"
+        },
+        {
+          "name": "Bowlby Attachment.pdf",
+          "url": "https://drive.google.com/file/d/16wdeUlFdh72Vtl5ukpj2IymnzOtn7HDT/view?usp=drive_web",
+          "type": "file",
+          "id": "16wdeUlFdh72Vtl5ukpj2IymnzOtn7HDT",
+          "last_modified": "2/19/21"
+        },
+        {
+          "name": "Brain Structure Psychology.pdf",
+          "url": "https://drive.google.com/file/d/1CMuHX4dqb2mD4aV4zZ2x0_78fgpXAu6s/view?usp=drive_web",
+          "type": "file",
+          "id": "1CMuHX4dqb2mD4aV4zZ2x0_78fgpXAu6s",
+          "last_modified": "12/3/20"
+        },
+        {
+          "name": "business-for-cambridge-international-as-amp-a-level-cie-a-level-studentnbsped-0198399774-9780198399773_compress (1).pdf",
+          "url": "https://drive.google.com/file/d/1FPUSr0bJiyFlhUU5XhgkM1-7iGjoDBQ_/view?usp=drive_web",
+          "type": "file",
+          "id": "1FPUSr0bJiyFlhUU5XhgkM1-7iGjoDBQ_",
+          "last_modified": "6/12/23"
+        },
+        {
+          "name": "business-for-cambridge-international-as-amp-a-level-cie-a-level-studentnbsped-0198399774-9780198399773_compress.pdf",
+          "url": "https://drive.google.com/file/d/1BAMjC_iqZ06kIZbmQNPkzNnConyQAFmA/view?usp=drive_web",
+          "type": "file",
+          "id": "1BAMjC_iqZ06kIZbmQNPkzNnConyQAFmA",
+          "last_modified": "6/12/23"
+        },
+        {
+          "name": "cambridge international as and a level economics 2nd edition - colin bamford and susan grant.pdf",
+          "url": "https://drive.google.com/file/d/1sYuPitLQJ7c1D3SB9aG0n9JE7J8SRaQo/view?usp=drive_web",
+          "type": "file",
+          "id": "1sYuPitLQJ7c1D3SB9aG0n9JE7J8SRaQo",
+          "last_modified": "6/12/23"
+        },
+        {
+          "name": "certificate  in Forensic and Criminal Psychology.pptx",
+          "url": "https://drive.google.com/file/d/1l-mTU-W8bGuHxwm3Tvi81TbGDgO3CQP2/view?usp=drive_web",
+          "type": "file",
+          "id": "1l-mTU-W8bGuHxwm3Tvi81TbGDgO3CQP2",
+          "last_modified": "11/13/18"
+        },
+        {
+          "name": "Compliance.pdf",
+          "url": "https://drive.google.com/file/d/175GcPpNXBBxN48nBjKI0VgDU9SZ7bfJ3/view?usp=drive_web",
+          "type": "file",
+          "id": "175GcPpNXBBxN48nBjKI0VgDU9SZ7bfJ3",
+          "last_modified": "4/4/21"
+        },
+        {
+          "name": "Conformity.pdf",
+          "url": "https://drive.google.com/file/d/1s76oCnl0QP8aRFOsCVnDMdr8y6Kh_tw9/view?usp=drive_web",
+          "type": "file",
+          "id": "1s76oCnl0QP8aRFOsCVnDMdr8y6Kh_tw9",
+          "last_modified": "4/4/21"
+        },
+        {
+          "name": "Criminal profiling in the investigative process.pdf",
+          "url": "https://drive.google.com/file/d/1xLRoHLjrtgWBEdjFG3UoBx6hGxkd5UIB/view?usp=drive_web",
+          "type": "file",
+          "id": "1xLRoHLjrtgWBEdjFG3UoBx6hGxkd5UIB",
+          "last_modified": "4/6/18"
+        },
+        {
+          "name": "criminal-profiling-from-crime-scene-analysis.pdf",
+          "url": "https://drive.google.com/file/d/1Czb9p9b6OR5p312vsmO9IqqKYszQaKFR/view?usp=drive_web",
+          "type": "file",
+          "id": "1Czb9p9b6OR5p312vsmO9IqqKYszQaKFR",
+          "last_modified": "4/6/18"
+        },
+        {
+          "name": "Daniel_Kennedy2_Forensics_In_The_Field.pdf",
+          "url": "https://drive.google.com/file/d/1OVRLxUGH0G6z8u8TTy6qnBhGCOV_gD-I/view?usp=drive_web",
+          "type": "file",
+          "id": "1OVRLxUGH0G6z8u8TTy6qnBhGCOV_gD-I",
+          "last_modified": "4/6/18"
+        },
+        {
+          "name": "DEGREES OF DEVIANCE.docx",
+          "url": "https://drive.google.com/file/d/1bjUUG_-jhrwlokWrvqss2_HDVlT4Zesv/view?usp=drive_web",
+          "type": "file",
+          "id": "1bjUUG_-jhrwlokWrvqss2_HDVlT4Zesv",
+          "last_modified": "6/8/21"
+        },
+        {
+          "name": "Dennis Howitt_ Dawsonera-Introduction to forensic and criminal psychology-Pearson Educatio.pdf",
+          "url": "https://drive.google.com/file/d/1YYDOjXuKH2DrdHDiajP2vgIcZQhR8Tvw/view?usp=drive_web",
+          "type": "file",
+          "id": "1YYDOjXuKH2DrdHDiajP2vgIcZQhR8Tvw",
+          "last_modified": "5/2/18"
+        },
+        {
+          "name": "Draft Assignment.docx",
+          "url": "https://drive.google.com/file/d/1y-jNdTCEA6T0882cLXMSxulkIih8UkVm/view?usp=drive_web",
+          "type": "file",
+          "id": "1y-jNdTCEA6T0882cLXMSxulkIih8UkVm",
+          "last_modified": "2/17/21"
+        },
+        {
+          "name": "Duffyetal-2017-FeBARQdevelopment.pdf",
+          "url": "https://drive.google.com/file/d/1MwQKOEQgthnZVGZJiNRHFFEhRkwZ2Kuy/view?usp=drive_web",
+          "type": "file",
+          "id": "1MwQKOEQgthnZVGZJiNRHFFEhRkwZ2Kuy",
+          "last_modified": "4/27/23"
+        },
+        {
+          "name": "E-Marketing.docx",
+          "url": "https://drive.google.com/file/d/17yW0WIUCn1fexsdoUUnLbk2-J4VGhWQ6/view?usp=drive_web",
+          "type": "file",
+          "id": "17yW0WIUCn1fexsdoUUnLbk2-J4VGhWQ6",
+          "last_modified": "7/9/23"
+        },
+        {
+          "name": "economics-for-cambridge-international-as-and-a-level-studentnbsped-019839974x-9780198399742_compress.pdf",
+          "url": "https://drive.google.com/file/d/1OLvjjU7qduOiZo2PR7JH9a9-YZK6ozkl/view?usp=drive_web",
+          "type": "file",
+          "id": "1OLvjjU7qduOiZo2PR7JH9a9-YZK6ozkl",
+          "last_modified": "6/12/23"
+        },
+        {
+          "name": "Explanation of the Dramaturgical Theory.docx",
+          "url": "https://drive.google.com/file/d/1B1MxX-bihaC0Bb4YNBJEGH1IYPvhy0zd/view?usp=drive_web",
+          "type": "file",
+          "id": "1B1MxX-bihaC0Bb4YNBJEGH1IYPvhy0zd",
+          "last_modified": "2/11/21"
+        },
+        {
+          "name": "foundation-accounting-and-economics-1.docx",
+          "url": "https://drive.google.com/file/d/1nIEB8ei4IM_aTW_x3g0nG_9DMBxL9NRW/view?usp=drive_web",
+          "type": "file",
+          "id": "1nIEB8ei4IM_aTW_x3g0nG_9DMBxL9NRW",
+          "last_modified": "3/13/23"
+        },
+        {
+          "name": "Goffman Dramaturgical Theory.docx",
+          "url": "https://drive.google.com/file/d/1jT73VJMT9ayC2KQNIWmOar075XALvSgd/view?usp=drive_web",
+          "type": "file",
+          "id": "1jT73VJMT9ayC2KQNIWmOar075XALvSgd",
+          "last_modified": "2/11/21"
+        },
+        {
+          "name": "Hare psychopathy checklist.docx",
+          "url": "https://drive.google.com/file/d/1Zms_-1Km4wElNY2jsufYQT5jLTk1pp9J/view?usp=drive_web",
+          "type": "file",
+          "id": "1Zms_-1Km4wElNY2jsufYQT5jLTk1pp9J",
+          "last_modified": "1/24/21"
+        },
+        {
+          "name": "HOW TO ADRESS RISK FACTORS.docx",
+          "url": "https://drive.google.com/file/d/1T9QlwWfQ4jOq-Gv2JOQLXuo9IQ0pUtZB/view?usp=drive_web",
+          "type": "file",
+          "id": "1T9QlwWfQ4jOq-Gv2JOQLXuo9IQ0pUtZB",
+          "last_modified": "1/23/21"
+        },
+        {
+          "name": "Howitt, Dennis - Introduction to forensic and criminal psychology-Pearson Education UK (2017) (1).pdf",
+          "url": "https://drive.google.com/file/d/1KKUa7t-7lxsXnIKmxr2SzPWhM4-zHmNM/view?usp=drive_web",
+          "type": "file",
+          "id": "1KKUa7t-7lxsXnIKmxr2SzPWhM4-zHmNM",
+          "last_modified": "4/5/21"
+        },
+        {
+          "name": "IMG_20210228_141901.png",
+          "url": "https://drive.google.com/file/d/1coK8Ux9_cih4QKZe0Yr1pM4GbD7u5093/view?usp=drive_web",
+          "type": "file",
+          "id": "1coK8Ux9_cih4QKZe0Yr1pM4GbD7u5093",
+          "last_modified": "2/28/21"
+        },
+        {
+          "name": "International legal systems note.docx",
+          "url": "https://drive.google.com/file/d/1cGGf-PV37DKeiF5vNQGlMDOjBuNMrINX/view?usp=drive_web",
+          "type": "file",
+          "id": "1cGGf-PV37DKeiF5vNQGlMDOjBuNMrINX",
+          "last_modified": "10/9/20"
+        },
+        {
+          "name": "Introduction to Psychology Social Behavior.pptx",
+          "url": "https://drive.google.com/file/d/1mzW3KtbWWthYznRasdbf2JDfwlHIGVHK/view?usp=drive_web",
+          "type": "file",
+          "id": "1mzW3KtbWWthYznRasdbf2JDfwlHIGVHK",
+          "last_modified": "12/12/20"
+        },
+        {
+          "name": "INTRODUCTION TO PSYCHOLOGY SOCIAL BEHAVIOUR.docx",
+          "url": "https://drive.google.com/file/d/1ZK0VaNmHx0bfTD197shUDVmX7PncCyOq/view?usp=drive_web",
+          "type": "file",
+          "id": "1ZK0VaNmHx0bfTD197shUDVmX7PncCyOq",
+          "last_modified": "1/23/21"
+        },
+        {
+          "name": "INTRODUCTION TO PSYCHOLOGY.docx",
+          "url": "https://drive.google.com/file/d/1BfNm2AT0JMsIGBWdiM38iERaMSX3BdL7/view?usp=drive_web",
+          "type": "file",
+          "id": "1BfNm2AT0JMsIGBWdiM38iERaMSX3BdL7",
+          "last_modified": "1/21/21"
+        },
+        {
+          "name": "introduction-to-business-assignment-brief (1).docx",
+          "url": "https://drive.google.com/file/d/1mk_huug-6Xu7zBWdH5HOBI_-2guEUYyD/view?usp=drive_web",
+          "type": "file",
+          "id": "1mk_huug-6Xu7zBWdH5HOBI_-2guEUYyD",
+          "last_modified": "3/15/23"
+        },
+        {
+          "name": "introduction-to-business-assignment-brief.docx",
+          "url": "https://drive.google.com/file/d/13EvMPE6DXSqE-8-7x5TsCPngcbmRSxru/view?usp=drive_web",
+          "type": "file",
+          "id": "13EvMPE6DXSqE-8-7x5TsCPngcbmRSxru",
+          "last_modified": "3/15/23"
+        },
+        {
+          "name": "introduction-to-business-assignment-brief.pdf",
+          "url": "https://drive.google.com/file/d/1irbMpiKeCGJWqqW4-gPhdDqAeTLQEUL_/view?usp=drive_web",
+          "type": "file",
+          "id": "1irbMpiKeCGJWqqW4-gPhdDqAeTLQEUL_",
+          "last_modified": "3/13/23"
+        },
+        {
+          "name": "January.docx",
+          "url": "https://drive.google.com/file/d/1_IEJzgwETLQbNCjTm7usgX2DSfFeFyP7/view?usp=drive_web",
+          "type": "file",
+          "id": "1_IEJzgwETLQbNCjTm7usgX2DSfFeFyP7",
+          "last_modified": "1/3/21"
+        },
+        {
+          "name": "Jeffrey Dahmer_ Psychopathy and Neglect.pdf",
+          "url": "https://drive.google.com/file/d/13ytIZplFRJDxOgVoPr3_yLkTEE5aFFIi/view?usp=drive_web",
+          "type": "file",
+          "id": "13ytIZplFRJDxOgVoPr3_yLkTEE5aFFIi",
+          "last_modified": "11/19/20"
+        },
+        {
+          "name": "Leadership Styles.docx",
+          "url": "https://drive.google.com/file/d/1B1FfoFs-w-eUj3zOUpHJglM9_iFjtuP1/view?usp=drive_web",
+          "type": "file",
+          "id": "1B1FfoFs-w-eUj3zOUpHJglM9_iFjtuP1",
+          "last_modified": "7/6/23"
+        },
+        {
+          "name": "leadership-styles-pp.pdf",
+          "url": "https://drive.google.com/file/d/1jtrjTbZkuYABxCymRuMXU78Zu0Dy8gCI/view?usp=drive_web",
+          "type": "file",
+          "id": "1jtrjTbZkuYABxCymRuMXU78Zu0Dy8gCI",
+          "last_modified": "7/4/23"
+        },
+        {
+          "name": "Legal Structure Note.docx",
+          "url": "https://drive.google.com/file/d/1wZW-6lo-JKgRT6T1g87Qt7zMv0QMVGFo/view?usp=drive_web",
+          "type": "file",
+          "id": "1wZW-6lo-JKgRT6T1g87Qt7zMv0QMVGFo",
+          "last_modified": "10/21/20"
+        },
+        {
+          "name": "Maldives Criminal Investigation Protocol.pdf",
+          "url": "https://drive.google.com/file/d/14aVt4sa4sZRKRr2hpUximwwhyqdKxT99/view?usp=drive_web",
+          "type": "file",
+          "id": "14aVt4sa4sZRKRr2hpUximwwhyqdKxT99",
+          "last_modified": "9/23/20"
+        },
+        {
+          "name": "Manipulation Dark Psychology to Manipulate and Control People ( PDFDrive ).pdf",
+          "url": "https://drive.google.com/file/d/1e7HD8TOxLMMB9gGWI0XmbA_Z9AJgWHqx/view?usp=drive_web",
+          "type": "file",
+          "id": "1e7HD8TOxLMMB9gGWI0XmbA_Z9AJgWHqx",
+          "last_modified": "4/27/23"
+        },
+        {
+          "name": "Manipulation_ How to Recognize and Outwit Emotional Manipulation and Mind Control in Your Relationships_ 3rd Edition ( PDFDrive ).pdf",
+          "url": "https://drive.google.com/file/d/1OXCfi9wjNkRHQpOU7BkDIHbaBo5Otv6r/view?usp=drive_web",
+          "type": "file",
+          "id": "1OXCfi9wjNkRHQpOU7BkDIHbaBo5Otv6r",
+          "last_modified": "4/27/23"
+        },
+        {
+          "name": "Marketing mix and Strategy.pdf",
+          "url": "https://drive.google.com/file/d/1jxmbdioNx1wTecEtVbbIN0IGuSimd0HG/view?usp=drive_web",
+          "type": "file",
+          "id": "1jxmbdioNx1wTecEtVbbIN0IGuSimd0HG",
+          "last_modified": "7/4/23"
+        },
+        {
+          "name": "Mind Control_ Manipulation, Deception And Persuasion Exposed ( PDFDrive ).pdf",
+          "url": "https://drive.google.com/file/d/1PPkPHttqcVzDTSzIb2H65cAO9yXtXDAu/view?usp=drive_web",
+          "type": "file",
+          "id": "1PPkPHttqcVzDTSzIb2H65cAO9yXtXDAu",
+          "last_modified": "4/27/23"
+        },
+        {
+          "name": "othm-academic-english-marking-sheet-07_639c0727511b0_.docx",
+          "url": "https://drive.google.com/file/d/1ByrNZ6PylfdxqDeertTx9ryomdx5Tm5p/view?usp=drive_web",
+          "type": "file",
+          "id": "1ByrNZ6PylfdxqDeertTx9ryomdx5Tm5p",
+          "last_modified": "2/22/23"
+        },
+        {
+          "name": "Parts of the Brain.docx",
+          "url": "https://drive.google.com/file/d/1V27cXLqHH4M_vjfAs2Bp50TkrCq9956y/view?usp=drive_web",
+          "type": "file",
+          "id": "1V27cXLqHH4M_vjfAs2Bp50TkrCq9956y",
+          "last_modified": "12/3/20"
+        },
+        {
+          "name": "Paul Babiak, Robert D. Hare - Snakes in Suits_ When Psychopaths Go to Work (2007).pdf",
+          "url": "https://drive.google.com/file/d/1qIOOY78WW72IXtyNm2cXww0RGaHUrxfP/view?usp=drive_web",
+          "type": "file",
+          "id": "1qIOOY78WW72IXtyNm2cXww0RGaHUrxfP",
+          "last_modified": "4/4/21"
+        },
+        {
+          "name": "Portfolio.docx",
+          "url": "https://drive.google.com/file/d/1rA4CU7gMJPKW1cH-rtPFiPoJGSRhFNJL/view?usp=drive_web",
+          "type": "file",
+          "id": "1rA4CU7gMJPKW1cH-rtPFiPoJGSRhFNJL",
+          "last_modified": "10/23/20"
+        },
+        {
+          "name": "Profile of the Sociopath-converted.pdf",
+          "url": "https://drive.google.com/file/d/1fGzjFxBZcfxSBdZj3zv3kY5aaPOo2IeB/view?usp=drive_web",
+          "type": "file",
+          "id": "1fGzjFxBZcfxSBdZj3zv3kY5aaPOo2IeB",
+          "last_modified": "11/14/20"
+        },
+        {
+          "name": "Programme delivery Completion - Ms. A. Maaisa Ali[219].pdf",
+          "url": "https://drive.google.com/file/d/1gyQ_9XnrkaVN3yF9RVBddQqzpkyR9A_G/view?usp=drive_web",
+          "type": "file",
+          "id": "1gyQ_9XnrkaVN3yF9RVBddQqzpkyR9A_G",
+          "last_modified": "5/3/23"
+        },
+        {
+          "name": "Psychological Factors underlying Criminal Behavior.3pptx.pptx",
+          "url": "https://drive.google.com/file/d/1eVeFnLp4auQbEV3BaFp6umygPiTmwezl/view?usp=drive_web",
+          "type": "file",
+          "id": "1eVeFnLp4auQbEV3BaFp6umygPiTmwezl",
+          "last_modified": "12/11/20"
+        },
+        {
+          "name": "Psychological Factors underlying Criminal Behavior.docx",
+          "url": "https://drive.google.com/file/d/1omVTDQkrKXnV0J1yrZRj6ZWhg27CzeJT/view?usp=drive_web",
+          "type": "file",
+          "id": "1omVTDQkrKXnV0J1yrZRj6ZWhg27CzeJT",
+          "last_modified": "1/21/21"
+        },
+        {
+          "name": "Psychological Factors Underlying Criminal Behavior.pdf",
+          "url": "https://drive.google.com/file/d/1B9-V8Zp6B_ca1pqOPVTqbziUTsgPBqG9/view?usp=drive_web",
+          "type": "file",
+          "id": "1B9-V8Zp6B_ca1pqOPVTqbziUTsgPBqG9",
+          "last_modified": "12/11/20"
+        },
+        {
+          "name": "Psychopathic_Leadership_A_Case_Study_of_a_Corporat.pdf",
+          "url": "https://drive.google.com/file/d/13QLO03eQBTNDZsclnzpe0SLALCm3nJMP/view?usp=drive_web",
+          "type": "file",
+          "id": "13QLO03eQBTNDZsclnzpe0SLALCm3nJMP",
+          "last_modified": "11/14/20"
+        },
+        {
+          "name": "Psychopathy and Gender of Serial Killers_ A Comparison Using the.pdf",
+          "url": "https://drive.google.com/file/d/129WqvfR8RT4nYdgOf_QNREk4PsBQqWCq/view?usp=drive_web",
+          "type": "file",
+          "id": "129WqvfR8RT4nYdgOf_QNREk4PsBQqWCq",
+          "last_modified": "11/19/20"
+        },
+        {
+          "name": "Psychopathy_Simple_or_Syndromal_Disorder_of_Person.pdf",
+          "url": "https://drive.google.com/file/d/16f3v2deVFLyex73Iefy4t9xh_KUJrBvA/view?usp=drive_web",
+          "type": "file",
+          "id": "16f3v2deVFLyex73Iefy4t9xh_KUJrBvA",
+          "last_modified": "11/14/20"
+        },
+        {
+          "name": "RECIDIVISM & DESISTANCE.docx",
+          "url": "https://drive.google.com/file/d/1Wm8xbAK8aYOywT6yFCbGML81gNjvd4H4/view?usp=drive_web",
+          "type": "file",
+          "id": "1Wm8xbAK8aYOywT6yFCbGML81gNjvd4H4",
+          "last_modified": "1/21/21"
+        },
+        {
+          "name": "RECIDIVISM & RISK ASSESSMENT.docx",
+          "url": "https://drive.google.com/file/d/1f3GObrwauTLSbn6cVd8-C4llcG8J39MY/view?usp=drive_web",
+          "type": "file",
+          "id": "1f3GObrwauTLSbn6cVd8-C4llcG8J39MY",
+          "last_modified": "1/21/21"
+        },
+        {
+          "name": "Recividism and Desistence.pptx",
+          "url": "https://drive.google.com/file/d/1Io4YdFIj7TBhwGVXXyolVhJ_EdgDFp-l/view?usp=drive_web",
+          "type": "file",
+          "id": "1Io4YdFIj7TBhwGVXXyolVhJ_EdgDFp-l",
+          "last_modified": "12/11/20"
+        },
+        {
+          "name": "REFERENCE SHEET...docx",
+          "url": "https://drive.google.com/file/d/1h63k5dvNlp0Na-UC2-_FF1oNA0RRs_5n/view?usp=drive_web",
+          "type": "file",
+          "id": "1h63k5dvNlp0Na-UC2-_FF1oNA0RRs_5n",
+          "last_modified": "1/24/21"
+        },
+        {
+          "name": "Request for Visa Letter_fillable.pdf",
+          "url": "https://drive.google.com/file/d/11pQwrQDkHB9ZjrMB2J-p2Mo4hDvylqDq/view?usp=drive_web",
+          "type": "file",
+          "id": "11pQwrQDkHB9ZjrMB2J-p2Mo4hDvylqDq",
+          "last_modified": "5/2/23"
+        },
+        {
+          "name": "Robbers Cave Experiment  Realistic Conflict Theory.pdf",
+          "url": "https://drive.google.com/file/d/1C1AP7bccZ0hkPtHvqvpkiEXW9cZhfTnc/view?usp=drive_web",
+          "type": "file",
+          "id": "1C1AP7bccZ0hkPtHvqvpkiEXW9cZhfTnc",
+          "last_modified": "4/4/21"
+        },
+        {
+          "name": "Robbery.docx",
+          "url": "https://drive.google.com/file/d/1Hlq268XtUQUBdxNttz4-pQhBFHnsIPvk/view?usp=drive_web",
+          "type": "file",
+          "id": "1Hlq268XtUQUBdxNttz4-pQhBFHnsIPvk",
+          "last_modified": "10/20/20"
+        },
+        {
+          "name": "SERIAL KILLER SD-converted.pdf",
+          "url": "https://drive.google.com/file/d/1JVcvWQNvHGpUpzt_wjfBiykyh6PlJ3Y3/view?usp=drive_web",
+          "type": "file",
+          "id": "1JVcvWQNvHGpUpzt_wjfBiykyh6PlJ3Y3",
+          "last_modified": "11/28/20"
+        },
+        {
+          "name": "SERIAL KILLER SD.docx",
+          "url": "https://drive.google.com/file/d/11UbHFvFgf-YMJDtYI3MTwXZmzuckNE3D/view?usp=drive_web",
+          "type": "file",
+          "id": "11UbHFvFgf-YMJDtYI3MTwXZmzuckNE3D",
+          "last_modified": "11/18/20"
+        },
+        {
+          "name": "simplypsychology.org-Attitudes.pdf",
+          "url": "https://drive.google.com/file/d/18tqA7IHs3jyplCVN7rPUPSDTberb3hcZ/view?usp=drive_web",
+          "type": "file",
+          "id": "18tqA7IHs3jyplCVN7rPUPSDTberb3hcZ",
+          "last_modified": "2/11/21"
+        },
+        {
+          "name": "simplypsychology.org-bandura.pdf",
+          "url": "https://drive.google.com/file/d/1U6WB2tTAzbGHeSFxv73dreyJGjTXfCYA/view?usp=drive_web",
+          "type": "file",
+          "id": "1U6WB2tTAzbGHeSFxv73dreyJGjTXfCYA",
+          "last_modified": "2/11/21"
+        },
+        {
+          "name": "soc_criminology_schemata_fall09.pdf",
+          "url": "https://drive.google.com/file/d/10KFaEhTxXXo3rBAKl-RvLpyM-Qg39tdD/view?usp=drive_web",
+          "type": "file",
+          "id": "10KFaEhTxXXo3rBAKl-RvLpyM-Qg39tdD",
+          "last_modified": "11/14/20"
+        },
+        {
+          "name": "Social Identity Theory.pdf",
+          "url": "https://drive.google.com/file/d/1Z98Utp-iSshn8EEGHz2sMPnvJ8TXoZ9q/view?usp=drive_web",
+          "type": "file",
+          "id": "1Z98Utp-iSshn8EEGHz2sMPnvJ8TXoZ9q",
+          "last_modified": "4/4/21"
+        },
+        {
+          "name": "Society N Culture Assignment.pdf",
+          "url": "https://drive.google.com/file/d/12A4lL0p4wWBb4Q_EgzM1hBh2Z4OHt4Ha/view?usp=drive_web",
+          "type": "file",
+          "id": "12A4lL0p4wWBb4Q_EgzM1hBh2Z4OHt4Ha",
+          "last_modified": "3/15/23"
+        },
+        {
+          "name": "society-culture-assignment.docx",
+          "url": "https://drive.google.com/file/d/1ax015sSUeZMAwwLTQ7cb4UoIVL6IVFCD/view?usp=drive_web",
+          "type": "file",
+          "id": "1ax015sSUeZMAwwLTQ7cb4UoIVL6IVFCD",
+          "last_modified": "3/13/23"
+        },
+        {
+          "name": "society-n-culture-assignment.docx",
+          "url": "https://drive.google.com/file/d/1vHW26ziKPF49IxaTyVuK6TxvpZA3Y8hx/view?usp=drive_web",
+          "type": "file",
+          "id": "1vHW26ziKPF49IxaTyVuK6TxvpZA3Y8hx",
+          "last_modified": "3/21/23"
+        },
+        {
+          "name": "Solomon Asch- Conformity Experiment.pdf",
+          "url": "https://drive.google.com/file/d/16r_Zwabe1QiBn5YmZaf62dApLKWvcwXO/view?usp=drive_web",
+          "type": "file",
+          "id": "16r_Zwabe1QiBn5YmZaf62dApLKWvcwXO",
+          "last_modified": "4/4/21"
+        },
+        {
+          "name": "Stanford-Prison-Experiment.pdf",
+          "url": "https://drive.google.com/file/d/1IdvGqg8n3bU1tiZ1P0pCULvoBXBmoJ7i/view?usp=drive_web",
+          "type": "file",
+          "id": "1IdvGqg8n3bU1tiZ1P0pCULvoBXBmoJ7i",
+          "last_modified": "4/4/21"
+        },
+        {
+          "name": "Stanley Milgram's Obedience to Authority Experiment.docx",
+          "url": "https://drive.google.com/file/d/1xXPvsHEW7GzwfQHv1z-qLq5Ly60jmJum/view?usp=drive_web",
+          "type": "file",
+          "id": "1xXPvsHEW7GzwfQHv1z-qLq5Ly60jmJum",
+          "last_modified": "3/28/21"
+        },
+        {
+          "name": "Summary of Report to the Nations-converted.pdf",
+          "url": "https://drive.google.com/file/d/1PJxL3Hk880WFpODwYzft5K_0G9_JMjVk/view?usp=drive_web",
+          "type": "file",
+          "id": "1PJxL3Hk880WFpODwYzft5K_0G9_JMjVk",
+          "last_modified": "12/3/20"
+        },
+        {
+          "name": "Summary of Report to the Nations.docx",
+          "url": "https://drive.google.com/file/d/1k-jbSAuhj3rQHT91Gw1wnqsNMqeKV5zH/view?usp=drive_web",
+          "type": "file",
+          "id": "1k-jbSAuhj3rQHT91Gw1wnqsNMqeKV5zH",
+          "last_modified": "12/3/20"
+        },
+        {
+          "name": "The art of manipulation how to get what you want out of people in business, in your personal life, and in your love life.pdf",
+          "url": "https://drive.google.com/file/d/1yFa9Fst3dF3onFd0dkc_hJmQiSqHHE6z/view?usp=drive_web",
+          "type": "file",
+          "id": "1yFa9Fst3dF3onFd0dkc_hJmQiSqHHE6z",
+          "last_modified": "4/27/23"
+        },
+        {
+          "name": "THE BRAIN, NEUROSCIENCE & THE COURTROOM.docx",
+          "url": "https://drive.google.com/file/d/125I-klti7Yq5sudXBhjxl5yfUVghvazv/view?usp=drive_web",
+          "type": "file",
+          "id": "125I-klti7Yq5sudXBhjxl5yfUVghvazv",
+          "last_modified": "6/8/21"
+        },
+        {
+          "name": "THE BRAIN, NEUROSCIENCE AND THE COURTROOM.docx",
+          "url": "https://drive.google.com/file/d/18qVYwZ9ZFcL8EGDzWh3GKjsrTtH5pjnv/view?usp=drive_web",
+          "type": "file",
+          "id": "18qVYwZ9ZFcL8EGDzWh3GKjsrTtH5pjnv",
+          "last_modified": "1/23/21"
+        },
+        {
+          "name": "The Secret Codes_ The Ultimate Formula of Mind Control , NLP , Body language, Covert Hypnosis and Persuasion secrets For Business USE ( PDFDrive ).pdf",
+          "url": "https://drive.google.com/file/d/1XmY9AewQkm3oSkVh0x1pdtcUvZrgww5H/view?usp=drive_web",
+          "type": "file",
+          "id": "1XmY9AewQkm3oSkVh0x1pdtcUvZrgww5H",
+          "last_modified": "4/27/23"
+        },
+        {
+          "name": "The social study of serial killers.docx",
+          "url": "https://drive.google.com/file/d/1bBl8hzfGEkRBkFrNUN77emsPcpGX-tRu/view?usp=drive_web",
+          "type": "file",
+          "id": "1bBl8hzfGEkRBkFrNUN77emsPcpGX-tRu",
+          "last_modified": "1/24/21"
+        },
+        {
+          "name": "The_Revised_Psychopathy_Checklist_Reliability_and_.pdf",
+          "url": "https://drive.google.com/file/d/1x0LW94B1wMuaNnj8WQm-DEhsNAzLiCvt/view?usp=drive_web",
+          "type": "file",
+          "id": "1x0LW94B1wMuaNnj8WQm-DEhsNAzLiCvt",
+          "last_modified": "11/14/20"
+        },
+        {
+          "name": "The_role_of_clinical_judgement_in_violence_risk_assessment.pdf",
+          "url": "https://drive.google.com/file/d/1U451qRGtTF9GAlbgcpqzVcqxsuR-hZw0/view?usp=drive_web",
+          "type": "file",
+          "id": "1U451qRGtTF9GAlbgcpqzVcqxsuR-hZw0",
+          "last_modified": "10/17/20"
+        },
+        {
+          "name": "THEORIES OF CRIMINOLOGY.docx",
+          "url": "https://drive.google.com/file/d/1X6QjDfAO-Hks1c83xymU7Q_IT9TOtn8h/view?usp=drive_web",
+          "type": "file",
+          "id": "1X6QjDfAO-Hks1c83xymU7Q_IT9TOtn8h",
+          "last_modified": "1/23/21"
+        },
+        {
+          "name": "Theories of Criminology.pptx",
+          "url": "https://drive.google.com/file/d/1IkZTMYaHGXb_PR6KW5WNL_Bu84zbdIq2/view?usp=drive_web",
+          "type": "file",
+          "id": "1IkZTMYaHGXb_PR6KW5WNL_Bu84zbdIq2",
+          "last_modified": "12/11/20"
+        },
+        {
+          "name": "Trait list-converted.pdf",
+          "url": "https://drive.google.com/file/d/16wX3sTdWuIyKZgYXPDWL4ssyQgMoj8se/view?usp=drive_web",
+          "type": "file",
+          "id": "16wX3sTdWuIyKZgYXPDWL4ssyQgMoj8se",
+          "last_modified": "11/14/20"
+        },
+        {
+          "name": "U.S Criminal Investigation Protocol.pdf",
+          "url": "https://drive.google.com/file/d/1boJcZvdvnRH0e9oBgIBKbBKdgjYsa717/view?usp=drive_web",
+          "type": "file",
+          "id": "1boJcZvdvnRH0e9oBgIBKbBKdgjYsa717",
+          "last_modified": "9/23/20"
+        },
+        {
+          "name": "Work Question Exercise.docx",
+          "url": "https://drive.google.com/file/d/12NtxqDHlGHI-pe6oPTwY54teQ_0HPvtZ/view?usp=drive_web",
+          "type": "file",
+          "id": "12NtxqDHlGHI-pe6oPTwY54teQ_0HPvtZ",
+          "last_modified": "10/17/20"
+        }
+      ]
+    },
+    {
+      "name": "Trading",
+      "url": "https://drive.google.com/drive/folders/1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD",
+      "type": "folder",
+      "id": "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD",
+      "last_modified": "8:45 pm",
+      "children": [
+        {
+          "name": "1 (1).png",
+          "url": "https://drive.google.com/file/d/1W2NkvAImJMytlY2EvSuvaauf8Yp3B9YX/view?usp=drive_web",
+          "type": "file",
+          "id": "1W2NkvAImJMytlY2EvSuvaauf8Yp3B9YX",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "1 (2).png",
+          "url": "https://drive.google.com/file/d/1JEw--BoIYSBH7Eblo9Tijpx1OqGCU0GO/view?usp=drive_web",
+          "type": "file",
+          "id": "1JEw--BoIYSBH7Eblo9Tijpx1OqGCU0GO",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "1 (3).png",
+          "url": "https://drive.google.com/file/d/1dfes7RvJwr4iPMOj-7VqJ9AL4D24RCQi/view?usp=drive_web",
+          "type": "file",
+          "id": "1dfes7RvJwr4iPMOj-7VqJ9AL4D24RCQi",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "1 (4).png",
+          "url": "https://drive.google.com/file/d/1E2VtFMDvVcrPX_LeGYsju1Q6ZpOMdtXT/view?usp=drive_web",
+          "type": "file",
+          "id": "1E2VtFMDvVcrPX_LeGYsju1Q6ZpOMdtXT",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "1. Basic Market Struture.png",
+          "url": "https://drive.google.com/file/d/1Si35so0DMi_8gY2FCl82xxv25T1fRDIx/view?usp=drive_web",
+          "type": "file",
+          "id": "1Si35so0DMi_8gY2FCl82xxv25T1fRDIx",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "1.1 [Dynamic Capital] - Candle Sticks.pdf",
+          "url": "https://drive.google.com/file/d/1VpV0ATrzk0QRsTZFyGpjwGNM1pV4z_Vi/view?usp=drive_web",
+          "type": "file",
+          "id": "1VpV0ATrzk0QRsTZFyGpjwGNM1pV4z_Vi",
+          "last_modified": "Jul 25"
+        },
+        {
+          "name": "1.png",
+          "url": "https://drive.google.com/file/d/1xtFj8jwtenbwnImAPTqoOySeMYpk_qec/view?usp=drive_web",
+          "type": "file",
+          "id": "1xtFj8jwtenbwnImAPTqoOySeMYpk_qec",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "10. 3 Types of Structure - Walkthrough.png",
+          "url": "https://drive.google.com/file/d/1ZaJJzFO3wDZ_wYcZMK1HVvcmTKVtKZ8D/view?usp=drive_web",
+          "type": "file",
+          "id": "1ZaJJzFO3wDZ_wYcZMK1HVvcmTKVtKZ8D",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "100 Best Stocks to Buy in 2020.pdf",
+          "url": "https://drive.google.com/file/d/16setGin18_zl-_FX7xQjfTjf8_MR47eK/view?usp=drive_web",
+          "type": "file",
+          "id": "16setGin18_zl-_FX7xQjfTjf8_MR47eK",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "12. Premium & Discount Pricing - Theory.png",
+          "url": "https://drive.google.com/file/d/1JmIx7zJy5ptAVwYPbJLauCdCk1oOEV_t/view?usp=drive_web",
+          "type": "file",
+          "id": "1JmIx7zJy5ptAVwYPbJLauCdCk1oOEV_t",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "12_simple_Technical_Indicators_That.pdf",
+          "url": "https://drive.google.com/file/d/1LsordrTErNWphk8j_B1VyOYp4p8-Yv47/view?usp=drive_web",
+          "type": "file",
+          "id": "1LsordrTErNWphk8j_B1VyOYp4p8-Yv47",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "13. Premium & Discount Pricing - Walkthrough.png",
+          "url": "https://drive.google.com/file/d/1ugd_28QyeModHNcKWZlMUvGddsHk05OW/view?usp=drive_web",
+          "type": "file",
+          "id": "1ugd_28QyeModHNcKWZlMUvGddsHk05OW",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "14. MTF Market Structure - Theory.png",
+          "url": "https://drive.google.com/file/d/1fVWXtxIDYD9Nc4GDrJ96-ZvtNolk7GY1/view?usp=drive_web",
+          "type": "file",
+          "id": "1fVWXtxIDYD9Nc4GDrJ96-ZvtNolk7GY1",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "160431345647371.pdf",
+          "url": "https://drive.google.com/file/d/10MBLjURGlpCZY_N0dmvrxpjJG7R8d80K/view?usp=drive_web",
+          "type": "file",
+          "id": "10MBLjURGlpCZY_N0dmvrxpjJG7R8d80K",
+          "last_modified": "Jul 19"
+        },
+        {
+          "name": "17_proven_currency_trading_strat.pdf",
+          "url": "https://drive.google.com/file/d/16ew_xl2c2-l2SlO211kmDV5a239qvV9G/view?usp=drive_web",
+          "type": "file",
+          "id": "16ew_xl2c2-l2SlO211kmDV5a239qvV9G",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "1_4996808425825370413.pdf",
+          "url": "https://drive.google.com/file/d/1r0ue-5NbVbh7XbfYbptKvb04A-Z6BqTr/view?usp=drive_web",
+          "type": "file",
+          "id": "1r0ue-5NbVbh7XbfYbptKvb04A-Z6BqTr",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2 (2).png",
+          "url": "https://drive.google.com/file/d/1XixQpoP2EC0FF8O8cxLqFirkik_JZz0x/view?usp=drive_web",
+          "type": "file",
+          "id": "1XixQpoP2EC0FF8O8cxLqFirkik_JZz0x",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "2. 3 Types of Strutures - Intro.png",
+          "url": "https://drive.google.com/file/d/12APbq2V1JrBNi78kDlvf_frn7BbON2lh/view?usp=drive_web",
+          "type": "file",
+          "id": "12APbq2V1JrBNi78kDlvf_frn7BbON2lh",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "2.png",
+          "url": "https://drive.google.com/file/d/1a4qOpjW54IFoimiIn0DNRca18xJ7M7cp/view?usp=drive_web",
+          "type": "file",
+          "id": "1a4qOpjW54IFoimiIn0DNRca18xJ7M7cp",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "20 Forex Trading Strategies- Thomas Carter @Traderslibrary.pdf",
+          "url": "https://drive.google.com/file/d/1R_qHNEPCbLxfzk_5IQoxdcK2HOOhADUD/view?usp=drive_web",
+          "type": "file",
+          "id": "1R_qHNEPCbLxfzk_5IQoxdcK2HOOhADUD",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "20 Most Common Trading Mistakes.pdf",
+          "url": "https://drive.google.com/file/d/1PfZqMAMbRnWYcaEX86K8bBO6tS3Zw11c/view?usp=drive_web",
+          "type": "file",
+          "id": "1PfZqMAMbRnWYcaEX86K8bBO6tS3Zw11c",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2017_Book_EnterpriseRiskManagementModels.pdf",
+          "url": "https://drive.google.com/file/d/1ofEyV-R-177_niNUJgmUhnTs-IwQ8kqA/view?usp=drive_web",
+          "type": "file",
+          "id": "1ofEyV-R-177_niNUJgmUhnTs-IwQ8kqA",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2017_Book_IntroductionToElectronicCommer.pdf",
+          "url": "https://drive.google.com/file/d/1BVnpu6CztiGTcViAUdj9fFWcmZDkdmrV/view?usp=drive_web",
+          "type": "file",
+          "id": "1BVnpu6CztiGTcViAUdj9fFWcmZDkdmrV",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2017_Book_StatisticsAndAnalysisOfScienti.pdf",
+          "url": "https://drive.google.com/file/d/1PEaV1VZsp6ZDeFGYYpl-QnTS3qHYOAbx/view?usp=drive_web",
+          "type": "file",
+          "id": "1PEaV1VZsp6ZDeFGYYpl-QnTS3qHYOAbx",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2018_Book_AnalyticalCorporateFinance.pdf",
+          "url": "https://drive.google.com/file/d/1IlvUxcyeMGosZFGqTyhi3Ryds1i0pwTI/view?usp=drive_web",
+          "type": "file",
+          "id": "1IlvUxcyeMGosZFGqTyhi3Ryds1i0pwTI",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2018_Book_IntroductionToDeepLearning.pdf",
+          "url": "https://drive.google.com/file/d/1AsuxMVU_xrAmnoKbvT_KXxSwmbv4eATj/view?usp=drive_web",
+          "type": "file",
+          "id": "1AsuxMVU_xrAmnoKbvT_KXxSwmbv4eATj",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2018_Book_MarketResearch.pdf",
+          "url": "https://drive.google.com/file/d/1nzWlz7Ma3EPv3ZoY3Bz2arKJWefywIiS/view?usp=drive_web",
+          "type": "file",
+          "id": "1nzWlz7Ma3EPv3ZoY3Bz2arKJWefywIiS",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2018_Book_NeuralNetworksAndDeepLearning.pdf",
+          "url": "https://drive.google.com/file/d/1ExGnRaW9qJ7cn6UZEA4I6bfYx_gBEnMf/view?usp=drive_web",
+          "type": "file",
+          "id": "1ExGnRaW9qJ7cn6UZEA4I6bfYx_gBEnMf",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2019_Book_InternationalBusinessManagemen.pdf",
+          "url": "https://drive.google.com/file/d/1MCZgU9CjdE5utI_D52W7AlwK5lhfuXar/view?usp=drive_web",
+          "type": "file",
+          "id": "1MCZgU9CjdE5utI_D52W7AlwK5lhfuXar",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2019_Book_SocialMarketingInAction.pdf",
+          "url": "https://drive.google.com/file/d/1ZFl2L7QvBPdgxrX0I2K07gQOp-rwij68/view?usp=drive_web",
+          "type": "file",
+          "id": "1ZFl2L7QvBPdgxrX0I2K07gQOp-rwij68",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2020 Money by Michael Hanson.pdf",
+          "url": "https://drive.google.com/file/d/1dVnw8mffZbfMA0pX14MBGakjh2be-5Ow/view?usp=drive_web",
+          "type": "file",
+          "id": "1dVnw8mffZbfMA0pX14MBGakjh2be-5Ow",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2022 Content.pdf",
+          "url": "https://drive.google.com/file/d/12bsj7b5gAq19znQxqO6WaxVyZO4pFcsq/view?usp=drive_web",
+          "type": "file",
+          "id": "12bsj7b5gAq19znQxqO6WaxVyZO4pFcsq",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "230279.pdf",
+          "url": "https://drive.google.com/file/d/1eQ6aMjmsjJQbTPAGD7gXybp2yesHnwUs/view?usp=drive_web",
+          "type": "file",
+          "id": "1eQ6aMjmsjJQbTPAGD7gXybp2yesHnwUs",
+          "last_modified": "Sep 28"
+        },
+        {
+          "name": "25_Rules_Of_Forex_Trading_Discipline.pdf",
+          "url": "https://drive.google.com/file/d/1bi6-VxG9rUgxkh9XIFiuT33UXPs02Mcp/view?usp=drive_web",
+          "type": "file",
+          "id": "1bi6-VxG9rUgxkh9XIFiuT33UXPs02Mcp",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "2_3_Dynamic_Capital_Market_Psychology_&_Newton’s_Laws.pdf",
+          "url": "https://drive.google.com/file/d/1i8iSJMl-KTYUigywcM3vAOVufoRtPJTc/view?usp=drive_web",
+          "type": "file",
+          "id": "1i8iSJMl-KTYUigywcM3vAOVufoRtPJTc",
+          "last_modified": "Jul 19"
+        },
+        {
+          "name": "3. Structure Mapping.png",
+          "url": "https://drive.google.com/file/d/1xYXBw8k_5wv-EKJa2xijYfxHFiSQDnuF/view?usp=drive_web",
+          "type": "file",
+          "id": "1xYXBw8k_5wv-EKJa2xijYfxHFiSQDnuF",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "3.png",
+          "url": "https://drive.google.com/file/d/1KTrQALtHNMUKc67DIlALr1TCyDW6WTiR/view?usp=drive_web",
+          "type": "file",
+          "id": "1KTrQALtHNMUKc67DIlALr1TCyDW6WTiR",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "30_Days_to_Market_Mastery_A_Step_by_Step_Guide_to_Profitable_Trading.pdf",
+          "url": "https://drive.google.com/file/d/1AcfFCU16l2vF2lsJk_FQ6R51yZaNs7kJ/view?usp=drive_web",
+          "type": "file",
+          "id": "1AcfFCU16l2vF2lsJk_FQ6R51yZaNs7kJ",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "3_ICT_MARKET_STRUCTURE_SHIFT_INTRO_240627_215614 (1) (2).pdf",
+          "url": "https://drive.google.com/file/d/19txQrUtCtC2ZziH-NIonGcfmkOYKDw_K/view?usp=drive_web",
+          "type": "file",
+          "id": "19txQrUtCtC2ZziH-NIonGcfmkOYKDw_K",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "3_ICT_MARKET_STRUCTURE_SHIFT_INTRO_240627_215614 (1).pdf",
+          "url": "https://drive.google.com/file/d/1i2YSFtBsM2U3FNb6igI088j0FYzUUUdS/view?usp=drive_web",
+          "type": "file",
+          "id": "1i2YSFtBsM2U3FNb6igI088j0FYzUUUdS",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "4. Fractal Structure (CHoCH) - Theory.png",
+          "url": "https://drive.google.com/file/d/1pXo51LxRTpxf51z06xqm-_I-3Qz9xStg/view?usp=drive_web",
+          "type": "file",
+          "id": "1pXo51LxRTpxf51z06xqm-_I-3Qz9xStg",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "4. Liquidity_and_Manipulation.pdf",
+          "url": "https://drive.google.com/file/d/1Cdv7NCLnNxdrFh-hhGeoe--01RLbT3wW/view?usp=drive_web",
+          "type": "file",
+          "id": "1Cdv7NCLnNxdrFh-hhGeoe--01RLbT3wW",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "4.png",
+          "url": "https://drive.google.com/file/d/1PeaXjXsyv_4U7aJdoffjB6B-W3KWp70h/view?usp=drive_web",
+          "type": "file",
+          "id": "1PeaXjXsyv_4U7aJdoffjB6B-W3KWp70h",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "45-ways-to-avoid-losing-money-trading-forex (1).pdf",
+          "url": "https://drive.google.com/file/d/1Jlw7gW5TrYAlp6JHEvvzJlrVDw8-ozWU/view?usp=drive_web",
+          "type": "file",
+          "id": "1Jlw7gW5TrYAlp6JHEvvzJlrVDw8-ozWU",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "4_5969750287966014729.pdf",
+          "url": "https://drive.google.com/file/d/1FYjl2SgvXD0e5PVjAxMpFlL-Rfk3iiv6/view?usp=drive_web",
+          "type": "file",
+          "id": "1FYjl2SgvXD0e5PVjAxMpFlL-Rfk3iiv6",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "4_6051012001214238966.pdf",
+          "url": "https://drive.google.com/file/d/1snN4-FXLKgx4EfLY5JbPrPvMJbbylFW2/view?usp=drive_web",
+          "type": "file",
+          "id": "1snN4-FXLKgx4EfLY5JbPrPvMJbbylFW2",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "5. Fractal Structure (CHoCH) - Walkthrough.png",
+          "url": "https://drive.google.com/file/d/1-PTTQ6Dtg3reuEQDmSKCr91c8IfTsQFW/view?usp=drive_web",
+          "type": "file",
+          "id": "1-PTTQ6Dtg3reuEQDmSKCr91c8IfTsQFW",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "58b624_9d56c413520f4ab2b74f38d8f79a5469.pdf",
+          "url": "https://drive.google.com/file/d/17ADZa3RjSs8aPXuWP2T9Angl3uNrIMxa/view?usp=drive_web",
+          "type": "file",
+          "id": "17ADZa3RjSs8aPXuWP2T9Angl3uNrIMxa",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "6. Swing Structure - Theory.png",
+          "url": "https://drive.google.com/file/d/1E74YxXvgXzzNFcI_WED_ticOEPPIdMki/view?usp=drive_web",
+          "type": "file",
+          "id": "1E74YxXvgXzzNFcI_WED_ticOEPPIdMki",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "63f3dbe4-4191-4f85-b41a-16442daa1ca0.pdf",
+          "url": "https://drive.google.com/file/d/17axW8DMIssW89U5w8v5tcXVXhZN-V6KQ/view?usp=drive_web",
+          "type": "file",
+          "id": "17axW8DMIssW89U5w8v5tcXVXhZN-V6KQ",
+          "last_modified": "Feb 3"
+        },
+        {
+          "name": "7 Winning Strategies for  Trading Forex@TradersLibrary.pdf",
+          "url": "https://drive.google.com/file/d/1qkFYdjsHVHZKXTs-OwMPAi04viNFK8Uz/view?usp=drive_web",
+          "type": "file",
+          "id": "1qkFYdjsHVHZKXTs-OwMPAi04viNFK8Uz",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "7. Imbalance_1.pdf",
+          "url": "https://drive.google.com/file/d/1lgvEVyRze-3BpCftIodJLDyfBuvv-9eK/view?usp=drive_web",
+          "type": "file",
+          "id": "1lgvEVyRze-3BpCftIodJLDyfBuvv-9eK",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "7. Swing Structure - Walkthrough.png",
+          "url": "https://drive.google.com/file/d/1qn-cEfQbAYndTVZSmXJYHo8XempW4-X2/view?usp=drive_web",
+          "type": "file",
+          "id": "1qn-cEfQbAYndTVZSmXJYHo8XempW4-X2",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "8. Mechanical Swing Structure.png",
+          "url": "https://drive.google.com/file/d/1QVPIozIpnfqmz4FrX65bCpcOV7hcHtS5/view?usp=drive_web",
+          "type": "file",
+          "id": "1QVPIozIpnfqmz4FrX65bCpcOV7hcHtS5",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "8.1 [Dynamic Capital] - Agressive VS Safe Entry.pdf",
+          "url": "https://drive.google.com/file/d/1Tyh_EFh2aRnkSrxtsXooK991_Orxl97B/view?usp=drive_web",
+          "type": "file",
+          "id": "1Tyh_EFh2aRnkSrxtsXooK991_Orxl97B",
+          "last_modified": "Sep 30"
+        },
+        {
+          "name": "9, 3 Types of Structure - Theory.png",
+          "url": "https://drive.google.com/file/d/1EfFy1f6pzfAlgZtrRcE-hoaYB1zS-ICq/view?usp=drive_web",
+          "type": "file",
+          "id": "1EfFy1f6pzfAlgZtrRcE-hoaYB1zS-ICq",
+          "last_modified": "7/3/23"
+        },
+        {
+          "name": "9.0 [Dynamic Capital] - Risk and Reward Management.pdf",
+          "url": "https://drive.google.com/file/d/1j5_enDEIsUWmXC7e-fsh0G2DOJOUQfRZ/view?usp=drive_web",
+          "type": "file",
+          "id": "1j5_enDEIsUWmXC7e-fsh0G2DOJOUQfRZ",
+          "last_modified": "Aug 22"
+        },
+        {
+          "name": "9780857190246_sample.pdf",
+          "url": "https://drive.google.com/file/d/1CKx_sPwvq18A9OJiEzDAnwUeKirjrh3I/view?usp=drive_web",
+          "type": "file",
+          "id": "1CKx_sPwvq18A9OJiEzDAnwUeKirjrh3I",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "A Beginner's Guide To A Short-Term Trading.pdf",
+          "url": "https://drive.google.com/file/d/1aY5kVurvp11tlhlh0EG-ydQBsxc_qAoo/view?usp=drive_web",
+          "type": "file",
+          "id": "1aY5kVurvp11tlhlh0EG-ydQBsxc_qAoo",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "A_Bull_for_all_Seasons_Main_Street.pdf",
+          "url": "https://drive.google.com/file/d/1BxS5v48NQRIrNNbjE7MEytWD2OW8XEG6/view?usp=drive_web",
+          "type": "file",
+          "id": "1BxS5v48NQRIrNNbjE7MEytWD2OW8XEG6",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "About us & Services.pdf",
+          "url": "https://drive.google.com/file/d/1uhuYcqt8xCORsmY0aAzUrV6YLEC4vEtm/view?usp=drive_web",
+          "type": "file",
+          "id": "1uhuYcqt8xCORsmY0aAzUrV6YLEC4vEtm",
+          "last_modified": "Aug 18"
+        },
+        {
+          "name": "ACCOUNTANTS_HANDBOOK_VOLUME_TWO.pdf",
+          "url": "https://drive.google.com/file/d/1AUg8Y0ZhyLMsLz6PMN8cuEzFDUQ3PpdW/view?usp=drive_web",
+          "type": "file",
+          "id": "1AUg8Y0ZhyLMsLz6PMN8cuEzFDUQ3PpdW",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Advanced SMC 1.pdf",
+          "url": "https://drive.google.com/file/d/1Cqh6XrP1_Qxzd1JkfVch7FVQCgcwCXv5/view?usp=drive_web",
+          "type": "file",
+          "id": "1Cqh6XrP1_Qxzd1JkfVch7FVQCgcwCXv5",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Advanced SMC 2 (1).pdf",
+          "url": "https://drive.google.com/file/d/1GnVP788Zy8NpNS20fRFLSQTxq1B9iZj-/view?usp=drive_web",
+          "type": "file",
+          "id": "1GnVP788Zy8NpNS20fRFLSQTxq1B9iZj-",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Advanced SMC 2.0.pdf",
+          "url": "https://drive.google.com/file/d/1TmL21jMSXkfohQ_viu3qeM3LjRM77dej/view?usp=drive_web",
+          "type": "file",
+          "id": "1TmL21jMSXkfohQ_viu3qeM3LjRM77dej",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Advanced SMC 2.pdf",
+          "url": "https://drive.google.com/file/d/1JORLimsZOrkkEIuilElHK_6ROCkT9u5Y/view?usp=drive_web",
+          "type": "file",
+          "id": "1JORLimsZOrkkEIuilElHK_6ROCkT9u5Y",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Advances_in_Behavioral_Economics.pdf",
+          "url": "https://drive.google.com/file/d/1sptSwMZ7j90RogKrpeUynX5l-JJm93a9/view?usp=drive_web",
+          "type": "file",
+          "id": "1sptSwMZ7j90RogKrpeUynX5l-JJm93a9",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "An Investors Guide to Trading Options - VIRGINIA B MORRIS.pdf",
+          "url": "https://drive.google.com/file/d/1D33jAakhixnPDLZsNLKFPMBqwfZIgi4t/view?usp=drive_web",
+          "type": "file",
+          "id": "1D33jAakhixnPDLZsNLKFPMBqwfZIgi4t",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Analystical Corporate Finance.pdf",
+          "url": "https://drive.google.com/file/d/1dZcAaFgvKSZHYFImlds8gbMQlmVgVGMJ/view?usp=drive_web",
+          "type": "file",
+          "id": "1dZcAaFgvKSZHYFImlds8gbMQlmVgVGMJ",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Analytical_Finance_Volume_I_The_Mathematics_of_Equity_Derivatives.pdf",
+          "url": "https://drive.google.com/file/d/1s7eX93MXgk3ZYdFIcqb1vLKgXWUF5x5_/view?usp=drive_web",
+          "type": "file",
+          "id": "1s7eX93MXgk3ZYdFIcqb1vLKgXWUF5x5_",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Anatomy+of+a+Trading+Range.pdf",
+          "url": "https://drive.google.com/file/d/1wBw7IyI4vIKs1mW8UALu2L-KZvfQWBha/view?usp=drive_web",
+          "type": "file",
+          "id": "1wBw7IyI4vIKs1mW8UALu2L-KZvfQWBha",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Application_Of_Computational_Intelegences_In_Data_Driven_Trading.pdf",
+          "url": "https://drive.google.com/file/d/1TjmgnGRAr1ecH7BqEs5kVO1NcwEUIN9K/view?usp=drive_web",
+          "type": "file",
+          "id": "1TjmgnGRAr1ecH7BqEs5kVO1NcwEUIN9K",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Asset_Management_A_Systematic_Approach.pdf",
+          "url": "https://drive.google.com/file/d/1d25pr5Iiwv4Q9NLjFznXDNWFoJ-q5iju/view?usp=drive_web",
+          "type": "file",
+          "id": "1d25pr5Iiwv4Q9NLjFznXDNWFoJ-q5iju",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Babypips Forex - School of Pipsology_Part 1-3 (2).pdf",
+          "url": "https://drive.google.com/file/d/1-lzgbegvy4q8Xk7YQR456vJnA2fDjJ_m/view?usp=drive_web",
+          "type": "file",
+          "id": "1-lzgbegvy4q8Xk7YQR456vJnA2fDjJ_m",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Babypips Forex - School of Pipsology_Part 1-3.pdf",
+          "url": "https://drive.google.com/file/d/1Qa3bvA0WSFWFQ84ABSiSoooGrmypHl5X/view?usp=drive_web",
+          "type": "file",
+          "id": "1Qa3bvA0WSFWFQ84ABSiSoooGrmypHl5X",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Babypips Forex - School of Pipsology_Part 2-3 (2).pdf",
+          "url": "https://drive.google.com/file/d/1i793NQm5oESztxs3oOHK5QEgtczB5kAL/view?usp=drive_web",
+          "type": "file",
+          "id": "1i793NQm5oESztxs3oOHK5QEgtczB5kAL",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Babypips Forex - School of Pipsology_Part 2-3.pdf",
+          "url": "https://drive.google.com/file/d/1Lg-IPebeNswz_cM909HljG6maluPuelv/view?usp=drive_web",
+          "type": "file",
+          "id": "1Lg-IPebeNswz_cM909HljG6maluPuelv",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Babypips Forex - School of Pipsology_Part 3-3 (2).pdf",
+          "url": "https://drive.google.com/file/d/1MXkTinPwBqi9lzKpOONeJBkJc3BROLQu/view?usp=drive_web",
+          "type": "file",
+          "id": "1MXkTinPwBqi9lzKpOONeJBkJc3BROLQu",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Babypips Forex - School of Pipsology_Part 3-3.pdf",
+          "url": "https://drive.google.com/file/d/1wIidiQ8r-K6xvzeOiO9gsZ2wSl16usiK/view?usp=drive_web",
+          "type": "file",
+          "id": "1wIidiQ8r-K6xvzeOiO9gsZ2wSl16usiK",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Barbara Rockefeller - Technical analysis for dummies (2020).pdf",
+          "url": "https://drive.google.com/file/d/1-pIvvzL5hSL4hb7SLjHw8gZ4oUEwCxR9/view?usp=drive_web",
+          "type": "file",
+          "id": "1-pIvvzL5hSL4hb7SLjHw8gZ4oUEwCxR9",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Basic Candlestick Pattern.pdf",
+          "url": "https://drive.google.com/file/d/1l9q19aNzjK-BkDNwct7BUOKMMBan27c-/view?usp=drive_web",
+          "type": "file",
+          "id": "1l9q19aNzjK-BkDNwct7BUOKMMBan27c-",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Bear Market investing Strategies..pdf",
+          "url": "https://drive.google.com/file/d/11jwJA_kiJFbBBOgsH4n3CFjiWcWgJVbc/view?usp=drive_web",
+          "type": "file",
+          "id": "11jwJA_kiJFbBBOgsH4n3CFjiWcWgJVbc",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Beat the Forex Dealer - Agustin Silvani (2008) A28.pdf",
+          "url": "https://drive.google.com/file/d/1gXlu0bkkmLBcLv5G0-Em1TBVXOBQaR4K/view?usp=drive_web",
+          "type": "file",
+          "id": "1gXlu0bkkmLBcLv5G0-Em1TBVXOBQaR4K",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Behavioural Investing - James Montier.pdf",
+          "url": "https://drive.google.com/file/d/1QekcvYt8t9bHFWp6b_nuATMwO3d16AwC/view?usp=drive_web",
+          "type": "file",
+          "id": "1QekcvYt8t9bHFWp6b_nuATMwO3d16AwC",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Bernstein,_Elliott_L___Bernstein (2).pdf",
+          "url": "https://drive.google.com/file/d/1_ShL-EBXDLIy-4Ld4Gl_awyOLEXnD8JO/view?usp=drive_web",
+          "type": "file",
+          "id": "1_ShL-EBXDLIy-4Ld4Gl_awyOLEXnD8JO",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Bernstein,_Elliott_L___Bernstein.pdf",
+          "url": "https://drive.google.com/file/d/1tTQSPhyLM7eQV6__fpdWltNiXbWceQGa/view?usp=drive_web",
+          "type": "file",
+          "id": "1tTQSPhyLM7eQV6__fpdWltNiXbWceQGa",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Bloomberg Visual Guide to Municipal Bonds - Robert Doty.pdf",
+          "url": "https://drive.google.com/file/d/1fXRoiyUCSaDSYayeBIgNylRc1SyrsagU/view?usp=drive_web",
+          "type": "file",
+          "id": "1fXRoiyUCSaDSYayeBIgNylRc1SyrsagU",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "BO_Turbo_Trader_Price_Action_Bible 1 st edition.pdf",
+          "url": "https://drive.google.com/file/d/1mAoAzELXdsPh4v40Zoyia4JMHFqBsjUv/view?usp=drive_web",
+          "type": "file",
+          "id": "1mAoAzELXdsPh4v40Zoyia4JMHFqBsjUv",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "BO_Turbo_Trader_Price_Action_Bible 7 st edition.pdf",
+          "url": "https://drive.google.com/file/d/16jFnCKUcxL2Fpbbl6-GVk-QTLOvOeNd9/view?usp=drive_web",
+          "type": "file",
+          "id": "16jFnCKUcxL2Fpbbl6-GVk-QTLOvOeNd9",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Bollinger_Bands_Trading_Strategies.pdf",
+          "url": "https://drive.google.com/file/d/1a012ySLExrcqjao8ZV2fXbtfhBbUE3Q2/view?usp=drive_web",
+          "type": "file",
+          "id": "1a012ySLExrcqjao8ZV2fXbtfhBbUE3Q2",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Bond Markets Analysis and Strategies - Frank J. Fabozzi.pdf",
+          "url": "https://drive.google.com/file/d/1xZVv_7SXY6otQFX036hFvhz3sNL2zfy3/view?usp=drive_web",
+          "type": "file",
+          "id": "1xZVv_7SXY6otQFX036hFvhz3sNL2zfy3",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Brett Christophers - Money and Finance After the Crisis.pdf",
+          "url": "https://drive.google.com/file/d/1XQLCy6E2uF68aQnseSmKojy_j68bMVsu/view?usp=drive_web",
+          "type": "file",
+          "id": "1XQLCy6E2uF68aQnseSmKojy_j68bMVsu",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "BRK_101_Ways_Book.pdf",
+          "url": "https://drive.google.com/file/d/1SzROpcuJvTQtid98jaCnrd5blAoBB4_6/view?usp=drive_web",
+          "type": "file",
+          "id": "1SzROpcuJvTQtid98jaCnrd5blAoBB4_6",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Broken Market (2).pdf",
+          "url": "https://drive.google.com/file/d/1hEArGxpcEzO74kVTs7aws0Zn8wA0el3u/view?usp=drive_web",
+          "type": "file",
+          "id": "1hEArGxpcEzO74kVTs7aws0Zn8wA0el3u",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Broken Market.pdf",
+          "url": "https://drive.google.com/file/d/16v0mj7-GYkcQf7OgpN85zDaxpJtMR1bT/view?usp=drive_web",
+          "type": "file",
+          "id": "16v0mj7-GYkcQf7OgpN85zDaxpJtMR1bT",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Buy The Rumor Sell The Fact - Michael Maiello.pdf",
+          "url": "https://drive.google.com/file/d/1AXf6powbToKvLfDDARkv0-rHbYEjFs5O/view?usp=drive_web",
+          "type": "file",
+          "id": "1AXf6powbToKvLfDDARkv0-rHbYEjFs5O",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Buy_the_Fear,_Sell_the_Greed_7_Behavioral_Quant_Strategies_for_Traders.pdf",
+          "url": "https://drive.google.com/file/d/1aoVHr8qlCl1eIhGpDrL9Z5IWP4qFh1zr/view?usp=drive_web",
+          "type": "file",
+          "id": "1aoVHr8qlCl1eIhGpDrL9Z5IWP4qFh1zr",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "C&B logo.pdf",
+          "url": "https://drive.google.com/file/d/1lD9Rwx9n--y9ujf0Sfoy3QjpDKdILQ8e/view?usp=drive_web",
+          "type": "file",
+          "id": "1lD9Rwx9n--y9ujf0Sfoy3QjpDKdILQ8e",
+          "last_modified": "Sep 25"
+        },
+        {
+          "name": "CAIA_Association_CAIA_Level_II_.pdf",
+          "url": "https://drive.google.com/file/d/1T4tgasZDmCEArNa_BihFBUZ4grZKHdOI/view?usp=drive_web",
+          "type": "file",
+          "id": "1T4tgasZDmCEArNa_BihFBUZ4grZKHdOI",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Capital Market Instruments 3rd. Ed - Moorad Choudhry.pdf",
+          "url": "https://drive.google.com/file/d/1T0k8PhBgiOkvtj74uTQDp_dvKxI5Dn5N/view?usp=drive_web",
+          "type": "file",
+          "id": "1T0k8PhBgiOkvtj74uTQDp_dvKxI5Dn5N",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "CFA Fundamentals - 2nd Ed.pdf",
+          "url": "https://drive.google.com/file/d/1Iofo5RtOJX_XpUoNW1hcFgd6X3cyUz_0/view?usp=drive_web",
+          "type": "file",
+          "id": "1Iofo5RtOJX_XpUoNW1hcFgd6X3cyUz_0",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Choch Trading Plan.pdf",
+          "url": "https://drive.google.com/file/d/1j7irUjne8h6vze9P6as9eO9Mg61w48ux/view?usp=drive_web",
+          "type": "file",
+          "id": "1j7irUjne8h6vze9P6as9eO9Mg61w48ux",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Christopher_L_Carolan_The_Spiral.pdf",
+          "url": "https://drive.google.com/file/d/1NxT227LnVU7glw8VwWZTkUa8Dwsh6D6S/view?usp=drive_web",
+          "type": "file",
+          "id": "1NxT227LnVU7glw8VwWZTkUa8Dwsh6D6S",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "CMT 2 Wiley 2016.pdf",
+          "url": "https://drive.google.com/file/d/1YfA1Tfl5MaBRjjeIQhUeut6A70M8uIKA/view?usp=drive_web",
+          "type": "file",
+          "id": "1YfA1Tfl5MaBRjjeIQhUeut6A70M8uIKA",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "COGNITIVE_FINANCE_BEHAVIORAL_STRATEGIES.pdf",
+          "url": "https://drive.google.com/file/d/1VPK5D27180GJb6lIw6fvUY5_gy3-F_aj/view?usp=drive_web",
+          "type": "file",
+          "id": "1VPK5D27180GJb6lIw6fvUY5_gy3-F_aj",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Commodity_fundamentals_how_to_trade_the_precious_metals,_energy.pdf",
+          "url": "https://drive.google.com/file/d/1lV6O_WyG-lMlW3ZaOQFsCwe-zoOee9fh/view?usp=drive_web",
+          "type": "file",
+          "id": "1lV6O_WyG-lMlW3ZaOQFsCwe-zoOee9fh",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Consolidation_Breakout_Signals (1).pdf",
+          "url": "https://drive.google.com/file/d/1vqkgy4svA8AKD8CLMitUFLAUVeLjJeLr/view?usp=drive_web",
+          "type": "file",
+          "id": "1vqkgy4svA8AKD8CLMitUFLAUVeLjJeLr",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Corrective Patterns.pdf",
+          "url": "https://drive.google.com/file/d/10Q2zeEBR2bIMYuWrmVCy1LdGBk4Ut3qV/view?usp=drive_web",
+          "type": "file",
+          "id": "10Q2zeEBR2bIMYuWrmVCy1LdGBk4Ut3qV",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "correlation-secret-1.pdf",
+          "url": "https://drive.google.com/file/d/1iXMavTWWJrykhguqfcNEej1ZJE7ICK78/view?usp=drive_web",
+          "type": "file",
+          "id": "1iXMavTWWJrykhguqfcNEej1ZJE7ICK78",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "CRT.pdf",
+          "url": "https://drive.google.com/file/d/1sABQHi2tRhaGZhvnHjxdEkgKWGsiPwq-/view?usp=drive_web",
+          "type": "file",
+          "id": "1sABQHi2tRhaGZhvnHjxdEkgKWGsiPwq-",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Cryptocurrency_Master_Everything_You_Need_To_Know_About_Cryptocurrency.pdf",
+          "url": "https://drive.google.com/file/d/1-J6YQ8Y0VWiQOs5bhvrZXEc7sXa2i86t/view?usp=drive_web",
+          "type": "file",
+          "id": "1-J6YQ8Y0VWiQOs5bhvrZXEc7sXa2i86t",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Current Trading and Intermarket Analysis.pdf",
+          "url": "https://drive.google.com/file/d/1By9dcvEHIdesjGzxQmLtO3pyMHeCALer/view?usp=drive_web",
+          "type": "file",
+          "id": "1By9dcvEHIdesjGzxQmLtO3pyMHeCALer",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Damodaran_on_Valuation_Security.pdf",
+          "url": "https://drive.google.com/file/d/1cpA8nznnXG_689H76CBWoHGcrX89YaSk/view?usp=drive_web",
+          "type": "file",
+          "id": "1cpA8nznnXG_689H76CBWoHGcrX89YaSk",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Dark Cloud Cover.pdf",
+          "url": "https://drive.google.com/file/d/1bQibeXHbHi_yl2dBEp2xAWVJTaonUnDe/view?usp=drive_web",
+          "type": "file",
+          "id": "1bQibeXHbHi_yl2dBEp2xAWVJTaonUnDe",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Dave Landry on Swing Trading - Dave Landry.pdf",
+          "url": "https://drive.google.com/file/d/182DS59WxHKyyUiN0GFqyyUF3cNgcc404/view?usp=drive_web",
+          "type": "file",
+          "id": "182DS59WxHKyyUiN0GFqyyUF3cNgcc404",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "David_Kuo_Chuen_Lee,_Linda_Low_Inclusive (2).pdf",
+          "url": "https://drive.google.com/file/d/18GtsLpToGGN8hqTvJuRbP3J6rJdYDXEe/view?usp=drive_web",
+          "type": "file",
+          "id": "18GtsLpToGGN8hqTvJuRbP3J6rJdYDXEe",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "David_Kuo_Chuen_Lee,_Linda_Low_Inclusive.pdf",
+          "url": "https://drive.google.com/file/d/1BsOBaMqHPNqcKsVWsLA9RVTgBT8AMPSy/view?usp=drive_web",
+          "type": "file",
+          "id": "1BsOBaMqHPNqcKsVWsLA9RVTgBT8AMPSy",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Day Trading Options - Jeff Augen.pdf",
+          "url": "https://drive.google.com/file/d/1of-F8JcB9dAuqq7sSmuuoasTxTmeaJtd/view?usp=drive_web",
+          "type": "file",
+          "id": "1of-F8JcB9dAuqq7sSmuuoasTxTmeaJtd",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "daytrading.pdf",
+          "url": "https://drive.google.com/file/d/10wcIWERGlWKw7qSPdxDSF4gaEpSjZ-dw/view?usp=drive_web",
+          "type": "file",
+          "id": "10wcIWERGlWKw7qSPdxDSF4gaEpSjZ-dw",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Deep Value- Tobias Carlisle.pdf",
+          "url": "https://drive.google.com/file/d/1uxcGJBdBFcBxdRLA59-uqa0YE8WeiMUB/view?usp=drive_web",
+          "type": "file",
+          "id": "1uxcGJBdBFcBxdRLA59-uqa0YE8WeiMUB",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Dennis_A_Chen,_Mark_Sebastian,_Stephanie.pdf",
+          "url": "https://drive.google.com/file/d/1wh4bsqddNhphS9P1WoiymKFulrUiQVdw/view?usp=drive_web",
+          "type": "file",
+          "id": "1wh4bsqddNhphS9P1WoiymKFulrUiQVdw",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Discount & Premium PDF (2).pdf",
+          "url": "https://drive.google.com/file/d/1H15RCmK424kN3uzGdC0WW_bH65eWB7KA/view?usp=drive_web",
+          "type": "file",
+          "id": "1H15RCmK424kN3uzGdC0WW_bH65eWB7KA",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Discount & Premium PDF.pdf",
+          "url": "https://drive.google.com/file/d/1MkyWcOcrniPcj-fRRg7n_H2uy9cuWKvI/view?usp=drive_web",
+          "type": "file",
+          "id": "1MkyWcOcrniPcj-fRRg7n_H2uy9cuWKvI",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Document (3).docx",
+          "url": "https://drive.google.com/file/d/126IL7FmQyjQL7UghUks9nMSoq91Xl4D4/view?usp=drive_web",
+          "type": "file",
+          "id": "126IL7FmQyjQL7UghUks9nMSoq91Xl4D4",
+          "last_modified": "6/20/21"
+        },
+        {
+          "name": "Dr_John_Keppler_Profit_with_the.pdf",
+          "url": "https://drive.google.com/file/d/1BQONXVk21bFCWUMdCVBVnJqE2D4s4xjv/view?usp=drive_web",
+          "type": "file",
+          "id": "1BQONXVk21bFCWUMdCVBVnJqE2D4s4xjv",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Dual_Momentum_Trend_Trading_How_to_Avoid_Costly_Trading_Mistakes.pdf",
+          "url": "https://drive.google.com/file/d/1myVF8VhgKDHUyoex5Gc3AvjFB7gMx6VK/view?usp=drive_web",
+          "type": "file",
+          "id": "1myVF8VhgKDHUyoex5Gc3AvjFB7gMx6VK",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "E Wiley - Beat The Odds In Forex Trading - 2006.pdf",
+          "url": "https://drive.google.com/file/d/1x8c40DFhgRjOSxsv10zBw6MeuMuS3N1n/view?usp=drive_web",
+          "type": "file",
+          "id": "1x8c40DFhgRjOSxsv10zBw6MeuMuS3N1n",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Easy Free Trading Strategy.pdf",
+          "url": "https://drive.google.com/file/d/1u8i2vIMwlIpZxY-dl05io1tkfXBR7BJg/view?usp=drive_web",
+          "type": "file",
+          "id": "1u8i2vIMwlIpZxY-dl05io1tkfXBR7BJg",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Elementary_Financial_Derivatives.pdf",
+          "url": "https://drive.google.com/file/d/1A8uPURcR62yNeng_aA3Mm-GROSU3pPxM/view?usp=drive_web",
+          "type": "file",
+          "id": "1A8uPURcR62yNeng_aA3Mm-GROSU3pPxM",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Elliott_Wave_Principle.pdf",
+          "url": "https://drive.google.com/file/d/1EZSp2_c2ZkoiWbuINtN1OZl874kzNlTr/view?usp=drive_web",
+          "type": "file",
+          "id": "1EZSp2_c2ZkoiWbuINtN1OZl874kzNlTr",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Encyclopedia of Candlesticks  (2008).pdf",
+          "url": "https://drive.google.com/file/d/1wk4Qu1zEWx9Ia29zvyg2WqD8D2guqiqb/view?usp=drive_web",
+          "type": "file",
+          "id": "1wk4Qu1zEWx9Ia29zvyg2WqD8D2guqiqb",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Entries_Made_Easy.pdf",
+          "url": "https://drive.google.com/file/d/1XkfXiubkNfbfupJpXNWp_yvfqYiIQeO9/view?usp=drive_web",
+          "type": "file",
+          "id": "1XkfXiubkNfbfupJpXNWp_yvfqYiIQeO9",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Entry_Types.pdf",
+          "url": "https://drive.google.com/file/d/1P0ASHu11wC_vaPudqlWDt3L5FoRs-S85/view?usp=drive_web",
+          "type": "file",
+          "id": "1P0ASHu11wC_vaPudqlWDt3L5FoRs-S85",
+          "last_modified": "May 31"
+        },
+        {
+          "name": "Erik Banks - Finance_ The Basics.pdf",
+          "url": "https://drive.google.com/file/d/18bWqRveApqKH_6VjYQli0hH2BOg8hdST/view?usp=drive_web",
+          "type": "file",
+          "id": "18bWqRveApqKH_6VjYQli0hH2BOg8hdST",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Escuela de Pipsología trader.pdf",
+          "url": "https://drive.google.com/file/d/1UYc01MtNBsDASZ0EFrrA0nnt1HXmWjck/view?usp=drive_web",
+          "type": "file",
+          "id": "1UYc01MtNBsDASZ0EFrrA0nnt1HXmWjck",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "ETHICAL_AND_PROFESSIONAL_STANDARDS.pdf",
+          "url": "https://drive.google.com/file/d/1GaHB8NsgQlE_klm9tZN9UUA4-TrTqRu1/view?usp=drive_web",
+          "type": "file",
+          "id": "1GaHB8NsgQlE_klm9tZN9UUA4-TrTqRu1",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Evidence Based Technical Analysis.pdf",
+          "url": "https://drive.google.com/file/d/1fkInGATTrMXkWaeE94wQ3otogpN4rTZ3/view?usp=drive_web",
+          "type": "file",
+          "id": "1fkInGATTrMXkWaeE94wQ3otogpN4rTZ3",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Evidence-Based Technical Analysis - David R. Aronson.pdf",
+          "url": "https://drive.google.com/file/d/1cFrGrN_AeDpqfl4VbkqzdKrj6yd2FEJy/view?usp=drive_web",
+          "type": "file",
+          "id": "1cFrGrN_AeDpqfl4VbkqzdKrj6yd2FEJy",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Fibonacci Turning points.pdf",
+          "url": "https://drive.google.com/file/d/16gxTNTFY7SvOvvR13PhjHrv098IV2LaM/view?usp=drive_web",
+          "type": "file",
+          "id": "16gxTNTFY7SvOvvR13PhjHrv098IV2LaM",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Fibonacci_and_Gann_Applications.pdf",
+          "url": "https://drive.google.com/file/d/1LXlYUGIbXbJuqzVnSoAejW68iCzgE13D/view?usp=drive_web",
+          "type": "file",
+          "id": "1LXlYUGIbXbJuqzVnSoAejW68iCzgE13D",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Financial Times Guides To Investment.pdf",
+          "url": "https://drive.google.com/file/d/1tN8XmiOFDaCnXD14l1N_9ujZJGC9asZg/view?usp=drive_web",
+          "type": "file",
+          "id": "1tN8XmiOFDaCnXD14l1N_9ujZJGC9asZg",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Flipping Markets Trading Plan V2.pdf",
+          "url": "https://drive.google.com/file/d/1doqKYInLOHFCXjMryob7eitJlQN7P3nC/view?usp=drive_web",
+          "type": "file",
+          "id": "1doqKYInLOHFCXjMryob7eitJlQN7P3nC",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Forex Dreaming - Christopher Lee.pdf",
+          "url": "https://drive.google.com/file/d/1Y3lgWEcYy_oPvyeQLYvhfRdlKz0sXDuS/view?usp=drive_web",
+          "type": "file",
+          "id": "1Y3lgWEcYy_oPvyeQLYvhfRdlKz0sXDuS",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Forex Investing for Beginners.pdf",
+          "url": "https://drive.google.com/file/d/1cuNwLlUkiB19HXihxjeUEeJGce0ohpc7/view?usp=drive_web",
+          "type": "file",
+          "id": "1cuNwLlUkiB19HXihxjeUEeJGce0ohpc7",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "FOREX Matrix Decoded - Darth Trader.pdf",
+          "url": "https://drive.google.com/file/d/1LD9pCgi49zaJ8Z_tVG5kNo9lbmooH0GJ/view?usp=drive_web",
+          "type": "file",
+          "id": "1LD9pCgi49zaJ8Z_tVG5kNo9lbmooH0GJ",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Forex Trading - Carter Coombes.pdf",
+          "url": "https://drive.google.com/file/d/1fg6oF4qqNi5CKGHIj-JIx2nOLujaTZQj/view?usp=drive_web",
+          "type": "file",
+          "id": "1fg6oF4qqNi5CKGHIj-JIx2nOLujaTZQj",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Forex Trading Strategy To Make Money In Online Trading.pdf",
+          "url": "https://drive.google.com/file/d/1PePZpVxcMi2VJsf0PZoP80InALJq8L_P/view?usp=drive_web",
+          "type": "file",
+          "id": "1PePZpVxcMi2VJsf0PZoP80InALJq8L_P",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Forex Trading The Types Of Trading Analysis - Mark Gray.pdf",
+          "url": "https://drive.google.com/file/d/1P_IjRm5cZNugUPA7G3A4AZT8QI7QNE-D/view?usp=drive_web",
+          "type": "file",
+          "id": "1P_IjRm5cZNugUPA7G3A4AZT8QI7QNE-D",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Forex_Indicators_Effective_and_P.pdf",
+          "url": "https://drive.google.com/file/d/1_-aXJK8XR7hS_xNWYPDrs_Jw9zo88h8C/view?usp=drive_web",
+          "type": "file",
+          "id": "1_-aXJK8XR7hS_xNWYPDrs_Jw9zo88h8C",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "FOREX_MASTERS_The_Perfect_Trading.pdf",
+          "url": "https://drive.google.com/file/d/1rirtsvTs1fnsE1pmt2IAJe2GXn7HOVjs/view?usp=drive_web",
+          "type": "file",
+          "id": "1rirtsvTs1fnsE1pmt2IAJe2GXn7HOVjs",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Forex_The_Simple_Strategy_on_Trading.pdf",
+          "url": "https://drive.google.com/file/d/1sZPjSqq0MytbnZJYkQG3N07oqbo7pYJn/view?usp=drive_web",
+          "type": "file",
+          "id": "1sZPjSqq0MytbnZJYkQG3N07oqbo7pYJn",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "FOREX_TRADING_The_Basics_Explained.pdf",
+          "url": "https://drive.google.com/file/d/18NJ0U1u-KuPKrz8eYhigFHZs7xePvUFd/view?usp=drive_web",
+          "type": "file",
+          "id": "18NJ0U1u-KuPKrz8eYhigFHZs7xePvUFd",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Forvil Supply and Demand - Part 2.pdf",
+          "url": "https://drive.google.com/file/d/1tg7FzPL4nC2TaT8Hmw-z5OJgs5AeTh_3/view?usp=drive_web",
+          "type": "file",
+          "id": "1tg7FzPL4nC2TaT8Hmw-z5OJgs5AeTh_3",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Forvil-2-Supply-And-Demand (1).pdf",
+          "url": "https://drive.google.com/file/d/1rMiDaOZLR2394oe18sJzbJ2LPE0--4RS/view?usp=drive_web",
+          "type": "file",
+          "id": "1rMiDaOZLR2394oe18sJzbJ2LPE0--4RS",
+          "last_modified": "7/9/22"
+        },
+        {
+          "name": "Forvil-3-Supply-And-Demand-Presentation.pdf",
+          "url": "https://drive.google.com/file/d/1RZ1Qnom76OdKgHEjPpvlC1co3h_UR9nY/view?usp=drive_web",
+          "type": "file",
+          "id": "1RZ1Qnom76OdKgHEjPpvlC1co3h_UR9nY",
+          "last_modified": "7/9/22"
+        },
+        {
+          "name": "Forvil-4-Supply-And-Demand-Presentation.pdf",
+          "url": "https://drive.google.com/file/d/1oqIxihNmCNcPH2z2pmngBoNQxl99ofBn/view?usp=drive_web",
+          "type": "file",
+          "id": "1oqIxihNmCNcPH2z2pmngBoNQxl99ofBn",
+          "last_modified": "7/9/22"
+        },
+        {
+          "name": "Gann, W.D._Learn Before You Loose.pdf",
+          "url": "https://drive.google.com/file/d/1Qze8u6xoQIS0_3Ibha4rOu2w2UeAWXfX/view?usp=drive_web",
+          "type": "file",
+          "id": "1Qze8u6xoQIS0_3Ibha4rOu2w2UeAWXfX",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "GOLD ANALYSIS FOR THE WEEK (BTS).pdf",
+          "url": "https://drive.google.com/file/d/1Pp2yH4bQO-bGdsWW4aSLyxL9Xn91zQqj/view?usp=drive_web",
+          "type": "file",
+          "id": "1Pp2yH4bQO-bGdsWW4aSLyxL9Xn91zQqj",
+          "last_modified": "Jan 12"
+        },
+        {
+          "name": "How to Make Money by Watching the News.pdf",
+          "url": "https://drive.google.com/file/d/1Uy6TDdPIliK4ooDmFgwdl8JQWZl9GF4a/view?usp=drive_web",
+          "type": "file",
+          "id": "1Uy6TDdPIliK4ooDmFgwdl8JQWZl9GF4a",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Hybrid + Setup.pdf",
+          "url": "https://drive.google.com/file/d/1CwhToQ69RAtLdS1EMLfkozE9eEg-5NPL/view?usp=drive_web",
+          "type": "file",
+          "id": "1CwhToQ69RAtLdS1EMLfkozE9eEg-5NPL",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "hydra TurtleSoup(@algo_trading_lit).pdf",
+          "url": "https://drive.google.com/file/d/1VS5T1jj79gz90tDYQ_3c2LS1kn3cGoyP/view?usp=drive_web",
+          "type": "file",
+          "id": "1VS5T1jj79gz90tDYQ_3c2LS1kn3cGoyP",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "ICT Block - LumiTraders.pdf",
+          "url": "https://drive.google.com/file/d/1KQ38bxDow1Ib8ibPCE-woUDkXzrBIlAj/view?usp=drive_web",
+          "type": "file",
+          "id": "1KQ38bxDow1Ib8ibPCE-woUDkXzrBIlAj",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "ICT BUY Templates.pdf",
+          "url": "https://drive.google.com/file/d/1EanZ0ahdidHrIb6tqJ1106drzOtpHt4y/view?usp=drive_web",
+          "type": "file",
+          "id": "1EanZ0ahdidHrIb6tqJ1106drzOtpHt4y",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "ICT Liquidity (1).pdf",
+          "url": "https://drive.google.com/file/d/1yBbAx5iy1K5S4s3XZCTsWQRK6YvD5rO_/view?usp=drive_web",
+          "type": "file",
+          "id": "1yBbAx5iy1K5S4s3XZCTsWQRK6YvD5rO_",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "ICT Liquidity.pdf",
+          "url": "https://drive.google.com/file/d/1QlhAKhrm88aoX-B_zvX0In3Nq9WOvZTB/view?usp=drive_web",
+          "type": "file",
+          "id": "1QlhAKhrm88aoX-B_zvX0In3Nq9WOvZTB",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "ICT Trading Plan.pdf",
+          "url": "https://drive.google.com/file/d/1V8resdl47WAyyzCSUFtnRsNHUd-aVd3_/view?usp=drive_web",
+          "type": "file",
+          "id": "1V8resdl47WAyyzCSUFtnRsNHUd-aVd3_",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Imbalance_1.pdf",
+          "url": "https://drive.google.com/file/d/1Nc-Aa5HZe-8ovJI6gMXIaL5h6f_s0VxX/view?usp=drive_web",
+          "type": "file",
+          "id": "1Nc-Aa5HZe-8ovJI6gMXIaL5h6f_s0VxX",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "INSIDE ICT INTRADAY TEMPLATES (original) copy.pdf",
+          "url": "https://drive.google.com/file/d/17j7_X-cRMUEYDigwRGBIyPUIncmNrz5Y/view?usp=drive_web",
+          "type": "file",
+          "id": "17j7_X-cRMUEYDigwRGBIyPUIncmNrz5Y",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "INSIDE ICT INTRADAY TEMPLATES.pdf",
+          "url": "https://drive.google.com/file/d/1Qq6g4QytHo9mVnjc_kZwtUumJn9RLMLo/view?usp=drive_web",
+          "type": "file",
+          "id": "1Qq6g4QytHo9mVnjc_kZwtUumJn9RLMLo",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Institutional_Candle_1.pdf",
+          "url": "https://drive.google.com/file/d/1rIkM2Pli4yeCHHbRAyNiIVYSmezyIkgr/view?usp=drive_web",
+          "type": "file",
+          "id": "1rIkM2Pli4yeCHHbRAyNiIVYSmezyIkgr",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Internal_and_External_Range_liquidity_3_pages.pdf",
+          "url": "https://drive.google.com/file/d/1C2nGOPSVestlLR5g_MacZg7oqtKuoR6H/view?usp=drive_web",
+          "type": "file",
+          "id": "1C2nGOPSVestlLR5g_MacZg7oqtKuoR6H",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "IRL-ERL-TTrades (2).pdf",
+          "url": "https://drive.google.com/file/d/112n9GMF4l0jM3pEVpfrsEv19ipfTCnsR/view?usp=drive_web",
+          "type": "file",
+          "id": "112n9GMF4l0jM3pEVpfrsEv19ipfTCnsR",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "IRL-ERL-TTrades.pdf",
+          "url": "https://drive.google.com/file/d/1_-2F-y_3r419VWL-W-NbwFiYwRX0cEbj/view?usp=drive_web",
+          "type": "file",
+          "id": "1_-2F-y_3r419VWL-W-NbwFiYwRX0cEbj",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "James Rickards- The New Case for Gold.pdf",
+          "url": "https://drive.google.com/file/d/12lmEhAoopQNzI3NTxI-GyLrwM5U868tK/view?usp=drive_web",
+          "type": "file",
+          "id": "12lmEhAoopQNzI3NTxI-GyLrwM5U868tK",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Killzones-TTrades (2).pdf",
+          "url": "https://drive.google.com/file/d/1FOp2-TaB8lZzGHuC3Es3g6Fr2dDAsb0w/view?usp=drive_web",
+          "type": "file",
+          "id": "1FOp2-TaB8lZzGHuC3Es3g6Fr2dDAsb0w",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Killzones-TTrades.pdf",
+          "url": "https://drive.google.com/file/d/1MlqZPXoKRy9Yx8pU4b6RnkSxaHVggx-I/view?usp=drive_web",
+          "type": "file",
+          "id": "1MlqZPXoKRy9Yx8pU4b6RnkSxaHVggx-I",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Liquidity.pdf",
+          "url": "https://drive.google.com/file/d/17180yhKsTW0MNd8QmjXu4kZEx6eS6Dir/view?usp=drive_web",
+          "type": "file",
+          "id": "17180yhKsTW0MNd8QmjXu4kZEx6eS6Dir",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "LSBO.pdf",
+          "url": "https://drive.google.com/file/d/17c4dQQU26GMwJATocPm5VRajL_lcbU-X/view?usp=drive_web",
+          "type": "file",
+          "id": "17c4dQQU26GMwJATocPm5VRajL_lcbU-X",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "LUP.pdf",
+          "url": "https://drive.google.com/file/d/1ixQcD2xskoaJgtgtJBt5ihbgxRfJS9BX/view?usp=drive_web",
+          "type": "file",
+          "id": "1ixQcD2xskoaJgtgtJBt5ihbgxRfJS9BX",
+          "last_modified": "May 30"
+        },
+        {
+          "name": "Market_Makers.pdf",
+          "url": "https://drive.google.com/file/d/15BSfVOXORCae5057lqZW2zkKReGj4o2Q/view?usp=drive_web",
+          "type": "file",
+          "id": "15BSfVOXORCae5057lqZW2zkKReGj4o2Q",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Market_Structure.pdf",
+          "url": "https://drive.google.com/file/d/1oJ-mDKC4NFqXOjXJyVqMdGPI_DUX6bY5/view?usp=drive_web",
+          "type": "file",
+          "id": "1oJ-mDKC4NFqXOjXJyVqMdGPI_DUX6bY5",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Market_Structure_2.pdf",
+          "url": "https://drive.google.com/file/d/1ibNUaQT7LTat0sBkDgzkn5vTjh4wzmjc/view?usp=drive_web",
+          "type": "file",
+          "id": "1ibNUaQT7LTat0sBkDgzkn5vTjh4wzmjc",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Mental Fitness For Traders.pdf",
+          "url": "https://drive.google.com/file/d/1AZkn5CIQ3bhpHp_aZyzxe8A_3JON2QMa/view?usp=drive_web",
+          "type": "file",
+          "id": "1AZkn5CIQ3bhpHp_aZyzxe8A_3JON2QMa",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "MMXM - NEOK (3) (1).pdf",
+          "url": "https://drive.google.com/file/d/1729ZSRXZiYk8yS2TGRPuZUqdtPnkavKT/view?usp=drive_web",
+          "type": "file",
+          "id": "1729ZSRXZiYk8yS2TGRPuZUqdtPnkavKT",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "MMXM.pdf",
+          "url": "https://drive.google.com/file/d/1ZXoZgD06O6di1AYYCjeD2gXBom81kslT/view?usp=drive_web",
+          "type": "file",
+          "id": "1ZXoZgD06O6di1AYYCjeD2gXBom81kslT",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "MSS vs Liquidity Grab TTrades (2).pdf",
+          "url": "https://drive.google.com/file/d/1n3wJZ-PbnpLDa4I5_UmI0weJGbH5IhvN/view?usp=drive_web",
+          "type": "file",
+          "id": "1n3wJZ-PbnpLDa4I5_UmI0weJGbH5IhvN",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "MSS vs Liquidity Grab TTrades.pdf",
+          "url": "https://drive.google.com/file/d/1do151aV2tAf08VXtw3svHi0q1hLz0k_Y/view?usp=drive_web",
+          "type": "file",
+          "id": "1do151aV2tAf08VXtw3svHi0q1hLz0k_Y",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "normal_5f72195db9015.pdf",
+          "url": "https://drive.google.com/file/d/1e1Z9gx0Dk_iJf1AdEyUSKj6qlcgyTROt/view?usp=drive_web",
+          "type": "file",
+          "id": "1e1Z9gx0Dk_iJf1AdEyUSKj6qlcgyTROt",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "OTE TTrades (2).pdf",
+          "url": "https://drive.google.com/file/d/1RB6lS5jHik7gJHM4kVx3u1EdIVd-JZS9/view?usp=drive_web",
+          "type": "file",
+          "id": "1RB6lS5jHik7gJHM4kVx3u1EdIVd-JZS9",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "OTE TTrades.pdf",
+          "url": "https://drive.google.com/file/d/1Gce85WpqLEubZ2yJNtUNtjdXFbFWjiDu/view?usp=drive_web",
+          "type": "file",
+          "id": "1Gce85WpqLEubZ2yJNtUNtjdXFbFWjiDu",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "PA Part 1 Market Structure .pdf",
+          "url": "https://drive.google.com/file/d/1gz7Ek4YomXgKE8kvJSKgsRc_mhHN7ez-/view?usp=drive_web",
+          "type": "file",
+          "id": "1gz7Ek4YomXgKE8kvJSKgsRc_mhHN7ez-",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "PO3 (2).pdf",
+          "url": "https://drive.google.com/file/d/18woz9IdNWuKKHEf5g-RDti-kROLNweW_/view?usp=drive_web",
+          "type": "file",
+          "id": "18woz9IdNWuKKHEf5g-RDti-kROLNweW_",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "PO3.pdf",
+          "url": "https://drive.google.com/file/d/1neIs04jfaIuaJ54AP2qDKE7siAltW62t/view?usp=drive_web",
+          "type": "file",
+          "id": "1neIs04jfaIuaJ54AP2qDKE7siAltW62t",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "POI_selection_Flow_Chart (2).pdf",
+          "url": "https://drive.google.com/file/d/1BtZxS_qB3lAfEEkXH-0lIIOk3tofzFLX/view?usp=drive_web",
+          "type": "file",
+          "id": "1BtZxS_qB3lAfEEkXH-0lIIOk3tofzFLX",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "POI_selection_Flow_Chart.pdf",
+          "url": "https://drive.google.com/file/d/1TL3SxedT6pwkBR27bAseB0UVmVc5ornq/view?usp=drive_web",
+          "type": "file",
+          "id": "1TL3SxedT6pwkBR27bAseB0UVmVc5ornq",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "power-subconscious-mind.pdf",
+          "url": "https://drive.google.com/file/d/1Zg8zYCdiXp8VHWHai-glldM5To6x5Sb3/view?usp=drive_web",
+          "type": "file",
+          "id": "1Zg8zYCdiXp8VHWHai-glldM5To6x5Sb3",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Premium_and_Discount.pdf",
+          "url": "https://drive.google.com/file/d/1bVvXVUgmsGxMCTSFpri1JVciLndr9cj5/view?usp=drive_web",
+          "type": "file",
+          "id": "1bVvXVUgmsGxMCTSFpri1JVciLndr9cj5",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Self_Assessing_your_State_and_Adjusting_your_Approach_for_Higher.pdf",
+          "url": "https://drive.google.com/file/d/1bTjRSo4dQZUiiAZ0UaJznQnKj4Gh2q5G/view?usp=drive_web",
+          "type": "file",
+          "id": "1bTjRSo4dQZUiiAZ0UaJznQnKj4Gh2q5G",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Sponsor_Candle_2.pdf",
+          "url": "https://drive.google.com/file/d/1j2W85TDN4G52aveDIEfY-W8EuXhZ6JM1/view?usp=drive_web",
+          "type": "file",
+          "id": "1j2W85TDN4G52aveDIEfY-W8EuXhZ6JM1",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Stop_Loss_Hunt.pdf",
+          "url": "https://drive.google.com/file/d/1BK5YAqPWU_zTs3MYEXJvA6t-ynSj7MLF/view?usp=drive_web",
+          "type": "file",
+          "id": "1BK5YAqPWU_zTs3MYEXJvA6t-ynSj7MLF",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Swing Trading Cheat Sheet.pdf",
+          "url": "https://drive.google.com/file/d/1nw-mV2izqA6ThpThYuULpTO1Rv_kyjaN/view?usp=drive_web",
+          "type": "file",
+          "id": "1nw-mV2izqA6ThpThYuULpTO1Rv_kyjaN",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "TDI Mobile.pdf",
+          "url": "https://drive.google.com/file/d/1XGpwLj6Hulm7DnBEUle0_nJMUNaoZa-W/view?usp=drive_web",
+          "type": "file",
+          "id": "1XGpwLj6Hulm7DnBEUle0_nJMUNaoZa-W",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "technicalanalysispartii-161123022125.pdf",
+          "url": "https://drive.google.com/file/d/1nfr7vNNY5OgPFEqmyuWV9IWm4yflxeMo/view?usp=drive_web",
+          "type": "file",
+          "id": "1nfr7vNNY5OgPFEqmyuWV9IWm4yflxeMo",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "telegram-cloud-document-5-6120854379969904838.pdf",
+          "url": "https://drive.google.com/file/d/138C3jo0DE5cHT70_7QXtNqV6qncjc-_N/view?usp=drive_web",
+          "type": "file",
+          "id": "138C3jo0DE5cHT70_7QXtNqV6qncjc-_N",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "The Death Of Money.pdf",
+          "url": "https://drive.google.com/file/d/1M6IXK-630emVyc3P94KCAbAZklfXwy5M/view?usp=drive_web",
+          "type": "file",
+          "id": "1M6IXK-630emVyc3P94KCAbAZklfXwy5M",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "The Master Swing Trader.pdf",
+          "url": "https://drive.google.com/file/d/19C4RGQ0FZPi3fZ0JJiLFn87_R_crw8DD/view?usp=drive_web",
+          "type": "file",
+          "id": "19C4RGQ0FZPi3fZ0JJiLFn87_R_crw8DD",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "The Payoff Why Wall Street Always Wins - Jeff Connaughton.pdf",
+          "url": "https://drive.google.com/file/d/1zIvN5lzMArZohsIJXMBpDSRJm9bi6D3R/view?usp=drive_web",
+          "type": "file",
+          "id": "1zIvN5lzMArZohsIJXMBpDSRJm9bi6D3R",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Trading in the Zone - Mark Douglas  (1).pdf",
+          "url": "https://drive.google.com/file/d/11XQCFLYUlk-ehFLCZ4ixDX4TjXb5g8YL/view?usp=drive_web",
+          "type": "file",
+          "id": "11XQCFLYUlk-ehFLCZ4ixDX4TjXb5g8YL",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "VPA_-_Volume_Price_Analysis.pdf",
+          "url": "https://drive.google.com/file/d/18FlHW-lTb6LrUVUoADYDr820hUYRyT46/view?usp=drive_web",
+          "type": "file",
+          "id": "18FlHW-lTb6LrUVUoADYDr820hUYRyT46",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "WYCKOFF_-_Kathleenon_Gatt.pdf",
+          "url": "https://drive.google.com/file/d/1VrXOYEKJsGidwxacP0eiLff4aK8BbitF/view?usp=drive_web",
+          "type": "file",
+          "id": "1VrXOYEKJsGidwxacP0eiLff4aK8BbitF",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Wyckoff_Method_Volume_2.pdf",
+          "url": "https://drive.google.com/file/d/17p5gKYXcdDs6Ynie6hS-JGfGhhGdcXJO/view?usp=drive_web",
+          "type": "file",
+          "id": "17p5gKYXcdDs6Ynie6hS-JGfGhhGdcXJO",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Wyckoff_Method_Volume_3.pdf",
+          "url": "https://drive.google.com/file/d/1KtUjrK1GuIBKMTszfunuGwTQChIG2P46/view?usp=drive_web",
+          "type": "file",
+          "id": "1KtUjrK1GuIBKMTszfunuGwTQChIG2P46",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Wyckoff_Method_Volume_4.pdf",
+          "url": "https://drive.google.com/file/d/15nvRwxMCfm3311t3Pj_if9QRAFUqCl8b/view?usp=drive_web",
+          "type": "file",
+          "id": "15nvRwxMCfm3311t3Pj_if9QRAFUqCl8b",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Wyckoff_Method_Volume_5.pdf",
+          "url": "https://drive.google.com/file/d/119C_lsLdyOOIgy_zme1mX4o0_JdQ-TLb/view?usp=drive_web",
+          "type": "file",
+          "id": "119C_lsLdyOOIgy_zme1mX4o0_JdQ-TLb",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Wyckoff_Method_Volume_6.pdf",
+          "url": "https://drive.google.com/file/d/1iY4ZKsyNDCY8wfbHaobSnTpyOg6lyCjX/view?usp=drive_web",
+          "type": "file",
+          "id": "1iY4ZKsyNDCY8wfbHaobSnTpyOg6lyCjX",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Wyckoff_Method_Volume_7.pdf",
+          "url": "https://drive.google.com/file/d/1Sfgrh0QyhYGvB5dZLG-273EDOxycTQEV/view?usp=drive_web",
+          "type": "file",
+          "id": "1Sfgrh0QyhYGvB5dZLG-273EDOxycTQEV",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Wyckoff_Method_Volume_8.pdf",
+          "url": "https://drive.google.com/file/d/1pMgU_Mdy-2ZVI4triJ3Ip9iHZmZ74NfG/view?usp=drive_web",
+          "type": "file",
+          "id": "1pMgU_Mdy-2ZVI4triJ3Ip9iHZmZ74NfG",
+          "last_modified": "Oct 1"
+        },
+        {
+          "name": "Wyckoff_Method_Volume_9_1.pdf",
+          "url": "https://drive.google.com/file/d/1-EJeKPnxiuAVrp6f1lzkFGu2MdFFiGsF/view?usp=drive_web",
+          "type": "file",
+          "id": "1-EJeKPnxiuAVrp6f1lzkFGu2MdFFiGsF",
+          "last_modified": "Oct 1"
+        }
+      ]
+    }
+  ]
+}
