@@ -139,3 +139,28 @@ def test_enable_engine_accepts_custom_configuration() -> None:
     assert [phenomenon["identifier"] for phenomenon in snapshot["phenomena"]] == ["sol"]
     assert snapshot["events"][0]["description"] == "Solar telemetry baseline established"
     assert snapshot["metrics"]["bridges"] == 0.0
+
+
+def test_topology_metrics_cache_invalidation() -> None:
+    engine = DynamicCosmic(phenomena=[_phenomenon("alpha"), _phenomenon("beta")])
+    engine.register_bridge(_bridge("alpha", "beta"))
+
+    first = engine.topology_metrics()
+    second = engine.topology_metrics()
+    assert second is first
+
+    engine.register_phenomenon(_phenomenon("gamma"))
+
+    refreshed = engine.topology_metrics()
+    assert refreshed is not first
+    assert refreshed["phenomena"] == 3.0
+
+
+def test_enable_engine_warms_caches() -> None:
+    engine = enable_engine()
+
+    assert engine._resilience_cache is not None  # noqa: SLF001 - validate cache warming
+    assert engine._metrics_cache is not None  # noqa: SLF001 - validate cache warming
+
+    cached_metrics = engine.topology_metrics()
+    assert cached_metrics is engine._metrics_cache  # noqa: SLF001 - ensure cache reused

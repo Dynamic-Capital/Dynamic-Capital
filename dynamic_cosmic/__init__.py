@@ -45,4 +45,10 @@ def enable_engine(config: Mapping[str, Any] | None = None) -> DynamicCosmic:
         scenario = deepcopy(dict(config))
     else:  # pragma: no cover - defensive guard
         raise TypeError("config must be a mapping if provided")
-    return _build_engine(scenario)
+    engine = _build_engine(scenario)
+    # Warm analytics caches so that immediate telemetry calls do not repeat
+    # expensive aggregations. Subsequent mutations on the engine will
+    # invalidate these caches automatically.
+    engine.evaluate_resilience()
+    engine.topology_metrics()
+    return engine
