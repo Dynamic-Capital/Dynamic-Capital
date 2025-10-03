@@ -135,6 +135,56 @@ class DynamicAPIKeeperAlgorithm:
 
         self._endpoints.append(endpoint)
 
+    def enable_dynamic_api_trading(
+        self,
+        *,
+        schema: Optional[Mapping[str, Any]] = None,
+        monitor: Optional[Mapping[str, Any]] = None,
+        endpoint_overrides: Optional[Mapping[str, Any]] = None,
+    ) -> ApiEndpoint:
+        """Register the Dynamic Capital trading API and supporting metadata."""
+
+        payload: Dict[str, Any] = {
+            "name": "trading-api",
+            "method": "POST",
+            "path": "/v1/trades",
+            "owner": "Execution",
+            "version": "2024-05-01",
+            "status": "operational",
+            "tier": "critical",
+            "priority": 10,
+            "documentation_url": "https://docs.dynamic.capital/apis/trading",
+            "description": "Primary trade execution endpoint",
+            "consumers": ("mobile", "partners"),
+            "tags": ("core", "ton"),
+        }
+        if endpoint_overrides:
+            payload.update(endpoint_overrides)
+        endpoint = ApiEndpoint(**payload)
+
+        self._endpoints = [
+            existing for existing in self._endpoints if existing.name != endpoint.name
+        ]
+        self._endpoints.append(endpoint)
+
+        resolved_schema: Mapping[str, Any] = schema or {
+            "version": endpoint.version or "2024-05-01",
+            "checksum": "trading-api-20240501",
+        }
+        self.register_schema(endpoint.name, resolved_schema)
+
+        resolved_monitor: Mapping[str, Any] = monitor or {
+            "error_rate": 0.004,
+            "error_budget": 0.01,
+            "p95_latency_ms": 120,
+            "latency_slo_ms": 200,
+            "uptime": 99.95,
+            "uptime_slo": 99.9,
+        }
+        self.register_monitor(endpoint.name, resolved_monitor)
+
+        return endpoint
+
     def register_schema(self, endpoint: str, schema: Mapping[str, Any]) -> None:
         """Register the schema metadata for an endpoint."""
 

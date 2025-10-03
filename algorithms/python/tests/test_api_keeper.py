@@ -34,25 +34,9 @@ class DummyClient:
 
 def test_api_keeper_sync_tracks_endpoints_and_risks() -> None:
     keeper = DynamicAPIKeeperAlgorithm()
-    trading_api = ApiEndpoint(
-        name="trading-api",
-        method="post",
-        path="/v1/trades",
-        owner="Execution",
-        version="2024-05-01",
-        status="operational",
-        tier="critical",
-        priority=10,
-        documentation_url="https://docs.dynamic.capital/apis/trading",
-        description="Primary trade execution endpoint",
-        consumers=("mobile", "partners"),
-        tags=("core", "ton"),
-    )
-    keeper.register_endpoint(trading_api)
-    keeper.register_schema("trading-api", {"version": "2024-05-01", "checksum": "abc123"})
-    keeper.register_monitor(
-        "trading-api",
-        {
+    keeper.enable_dynamic_api_trading(
+        schema={"version": "2024-05-01", "checksum": "abc123"},
+        monitor={
             "error_rate": 0.004,
             "error_budget": 0.01,
             "p95_latency_ms": 120,
@@ -140,4 +124,22 @@ def test_api_keeper_requires_endpoints() -> None:
     keeper = DynamicAPIKeeperAlgorithm()
     with pytest.raises(ValueError):
         keeper.sync()
+
+
+def test_enable_dynamic_api_trading_registers_defaults() -> None:
+    keeper = DynamicAPIKeeperAlgorithm()
+    keeper.enable_dynamic_api_trading()
+
+    result = keeper.sync()
+
+    assert len(result.endpoints) == 1
+    trading_payload = result.endpoints[0]
+    assert trading_payload["name"] == "trading-api"
+    assert trading_payload["schema"]["checksum"] == "trading-api-20240501"
+    assert trading_payload["monitor"]["error_rate"] == 0.004
+
+    # Calling the helper again should keep a single canonical entry
+    keeper.enable_dynamic_api_trading()
+    deduped = keeper.sync()
+    assert len(deduped.endpoints) == 1
 
