@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterable, Mapping, MutableMapping, Sequence, Tuple, Type
@@ -51,6 +52,19 @@ def _normalise_sequence(values: Iterable[str]) -> Tuple[str, ...]:
     return tuple(ordered)
 
 
+_DOMAIN_SEPARATOR = re.compile(r"\s*(?:,|/|\band\b)\s*", re.IGNORECASE)
+
+
+def _derive_domains(core_task: str) -> Tuple[str, ...]:
+    segments = _DOMAIN_SEPARATOR.split(core_task)
+    domains = [segment.strip() for segment in segments if segment.strip()]
+    if not domains:
+        cleaned = core_task.strip()
+        if cleaned:
+            domains = [cleaned]
+    return _normalise_sequence(domains)
+
+
 @dataclass(frozen=True, slots=True)
 class QuantumAgentProfile:
     """Static configuration describing a Dynamic Quantum Agent."""
@@ -61,6 +75,7 @@ class QuantumAgentProfile:
     quantum_primitives: Tuple[str, ...]
     classical_interfaces: Tuple[str, ...]
     tier: str
+    domains: Tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.code:
@@ -75,6 +90,8 @@ class QuantumAgentProfile:
             raise ValueError("QuantumAgentProfile requires at least one classical interface")
         if not self.tier:
             raise ValueError("QuantumAgentProfile requires a tier")
+        domains = self.domains or _derive_domains(self.core_task)
+        object.__setattr__(self, "domains", _normalise_sequence(domains))
 
     @property
     def summary(self) -> str:
@@ -100,9 +117,12 @@ class QuantumAgentInsight:
                 "quantum_primitives": list(self.profile.quantum_primitives),
                 "classical_interfaces": list(self.profile.classical_interfaces),
                 "tier": self.profile.tier,
+                "domains": list(self.profile.domains),
             },
             "raw": {
                 "domain": self.raw.domain,
+                "domains": list(self.raw.domains),
+                "states": list(self.raw.states),
                 "generated_at": self.raw.generated_at.isoformat(),
                 "title": self.raw.title,
                 "metrics": dict(self.raw.metrics),
@@ -138,12 +158,17 @@ class DynamicQuantumAgent:
         environment: QuantumEnvironment | None = None,
         window: int = 180,
         equilibrium_target: float = 0.72,
+        domains: Sequence[str] | None = None,
     ) -> None:
-        if engine is not None and window != engine.window:
-            window = engine.window
+        if engine is not None:
+            if window != engine.window:
+                window = engine.window
+            equilibrium_target = getattr(engine, "_equilibrium_target", equilibrium_target)
         self._engine = engine or DynamicQuantumEngine(window=window, equilibrium_target=equilibrium_target)
         self._default_environment = environment
         self.name = getattr(self, "name", self.profile.code)
+        self._domains_override = _normalise_sequence(domains) if domains is not None else None
+        self._equilibrium_target = equilibrium_target
 
     @property
     def engine(self) -> DynamicQuantumEngine:
@@ -152,6 +177,12 @@ class DynamicQuantumAgent:
     @property
     def pulses(self) -> Tuple[QuantumPulse, ...]:
         return self._engine.pulses
+
+    @property
+    def domains(self) -> Tuple[str, ...]:
+        if self._domains_override is not None:
+            return self._domains_override
+        return self.profile.domains
 
     def register_pulse(self, pulse: QuantumPulse | Mapping[str, object]) -> QuantumPulse:
         return self._engine.register_pulse(pulse)
@@ -196,6 +227,28 @@ class DynamicQuantumAgent:
             "thermal_load": environment.thermal_load,
         }
 
+    def _derive_states(
+        self,
+        frame: QuantumResonanceFrame,
+        environment: QuantumEnvironment | None,
+    ) -> Tuple[str, ...]:
+        states: list[str] = []
+        if frame.stability_outlook >= self._equilibrium_target:
+            states.append("equilibrium")
+        else:
+            states.append("decohering")
+        states.extend(frame.anomalies)
+        if environment is not None:
+            if environment.is_noisy:
+                states.append("noisy")
+            if environment.is_measurement_aggressive:
+                states.append("measurement-aggressive")
+            if environment.is_fragile_vacuum:
+                states.append("fragile-vacuum")
+            if environment.requires_cooling:
+                states.append("thermal-load")
+        return _normalise_sequence(states)
+
     def generate_insight(
         self,
         *,
@@ -203,6 +256,8 @@ class DynamicQuantumAgent:
         include_decoherence: bool = False,
         decoherence_steps: int = 5,
         timestamp: datetime | None = None,
+        domains: Sequence[str] | None = None,
+        states: Sequence[str] | None = None,
     ) -> QuantumAgentInsight:
         resolved_environment = self._resolve_environment(environment)
         frame = self.synthesise_frame(environment=resolved_environment)
@@ -229,6 +284,10 @@ class DynamicQuantumAgent:
         if resolved_environment is not None:
             details["environment"] = resolved_environment
 
+        resolved_domains = self.domains if domains is None else _normalise_sequence(domains)
+        derived_states = self._derive_states(frame, resolved_environment)
+        resolved_states = derived_states if states is None else _normalise_sequence(states)
+
         generated = AgentInsight(
             domain=self.profile.designation,
             generated_at=timestamp or utcnow(),
@@ -236,6 +295,8 @@ class DynamicQuantumAgent:
             metrics=metrics,
             highlights=tuple(highlights),
             details=details,
+            domains=resolved_domains,
+            states=resolved_states,
         )
 
         decoherence_projection: float | None = None
