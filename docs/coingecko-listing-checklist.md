@@ -45,6 +45,7 @@ status changes legible in reviews: ✅ Completed · 🟡 In progress · 🔴 Blo
 | ⬜     | **Support & compliance contacts** – Dedicated email (e.g., `listings@dynamic.capital`) monitored by the listings team plus an escalation contact for urgent CoinGecko questions.                                             | Shared mailbox credentials or routing SOP          |
 | ⬜     | **Active social channels** – Twitter/X, Telegram, Discord, and any other official community surfaces publicly linked from the website. Collect follower counts and engagement metrics from the past 30 days.                 | Social profile links, analytics export             |
 | ⬜     | **Press & partnerships log** – Maintain a list of notable announcements, exchange launches, or integrations with publication dates and URLs. CoinGecko reviewers often cross-check brand legitimacy against public coverage. | Press tracker spreadsheet, announcement archive    |
+| ⬜     | **Editorial standards verified** – Review the [Dynamic Capital Content Editorial Guidelines](./dynamic-capital-content-editorial-guidelines.md) so every submission asset, disclaimer, and narrative aligns with approved tone and fact-checking requirements. | Checklist confirmation noted in submission brief   |
 
 ## 3. Token economics & documentation
 
