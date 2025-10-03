@@ -8,8 +8,8 @@ Tonstarter production review.
 
 | Item                  | Value                                              | Reference                                                                                                                                                                     |
 | --------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Jetton master address | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | [tonviewer](https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) · [tonscan](https://tonscan.org/address/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) |
-| Treasury multisig     | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) · [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
+| Jetton master address | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | [tonviewer](https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [tonscan](https://tonscan.org/address/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
+| Treasury multisig     | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` | [tonviewer](https://tonviewer.com/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq) · [tonscan](https://tonscan.org/address/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq) |
 | DEX router            | `EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3` | [tonviewer](https://tonviewer.com/EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3) · [tonscan](https://tonscan.org/address/EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3) |
 | Symbol / Decimals     | `DCT`, `9`                                         | [`dynamic-capital-ton/contracts/jetton/metadata.json`](../../dynamic-capital-ton/contracts/jetton/metadata.json)                                                              |
 | Max supply            | `100,000,000 DCT`                                  | [`dynamic-capital-ton/config.yaml`](../../dynamic-capital-ton/config.yaml)                                                                                                    |
@@ -44,6 +44,16 @@ balances so auditors can independently replay the queries.
   function routes burn tranches through `burnDCT` and logs the resulting
   transaction hashes for finance review (see
   [`dynamic-capital-ton/supabase/functions/process-subscription/index.ts`](../../dynamic-capital-ton/supabase/functions/process-subscription/index.ts)).
+
+### Mint activation playbook
+
+When governance approves fresh emissions, operators can resume minting using the
+[`DCT Mint Activation Runbook`](./start-minting.md). The helper script defined
+there (`npm run ton:start-minting`) prepares the Jetton `mint` payload with the
+new treasury and master addresses baked in, emits human-readable and JSON
+summaries, and can persist a ready-to-upload BOC so multisig submissions
+originate from `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` to the
+canonical master contract `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`.
 
 ## Checklist Outcome
 

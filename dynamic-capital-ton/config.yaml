@@ -26,7 +26,7 @@ emissions:
 
 governance:
   # Tonstarter treasury multisig (mainnet).
-  multisig: "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD"
+  multisig: "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq"
   timelockHours: 48
 
 themePasses:

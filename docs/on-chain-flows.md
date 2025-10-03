@@ -57,13 +57,18 @@ flowchart LR
 - The Supabase row captures the TON amount, DCT minted to the subscriber, and
   the DCT burned, creating an immutable audit trail for finance and compliance
   teams.
+- When the treasury needs to re-mint supply (for staking rewards or liquidity
+  programmes), operators should follow the
+  [`DCT Mint Activation Runbook`](./onchain/start-minting.md) to generate the
+  multisig payload that targets the refreshed jetton master and treasury
+  addresses.
 
 ## Contract, explorer, and audit references
 
 | Surface                                    | Mainnet address                                                    | TON explorer                                                                                                                                                                                                         | Audit evidence                                                                                             |
 | ------------------------------------------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Operations treasury multisig               | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`                 | [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) · [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD)                                        | SOC 1 / SOC 2 evidence tracked in [`compliance/certificates.json`](./compliance/certificates.json).        |
-| DCT jetton master contract                 | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6`                 | [tonviewer](https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) · [tonscan](https://tonscan.org/address/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6)                                        | Contract audit bundled with [`dynamic-capital-ton/contracts`](../dynamic-capital-ton/contracts/README.md). |
+| Operations treasury multisig               | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`                 | [tonviewer](https://tonviewer.com/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq) · [tonscan](https://tonscan.org/address/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq)                                        | SOC 1 / SOC 2 evidence tracked in [`compliance/certificates.json`](./compliance/certificates.json).        |
+| DCT jetton master contract                 | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                 | [tonviewer](https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [tonscan](https://tonscan.org/address/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y)                                        | Contract audit bundled with [`dynamic-capital-ton/contracts`](../dynamic-capital-ton/contracts/README.md). |
 | STON.fi router integration                 | `EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3`                 | [tonviewer](https://tonviewer.com/EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3) · [tonscan](https://tonscan.org/address/EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3)                                        | Due diligence walkthrough in [`ton-web3-guidelines.md`](./ton-web3-guidelines.md).                         |
 | Subscription burn transaction (2024-08-17) | `a41c9c7a0a9d8c23f7bb1b1a91d3f1a52f90fc38f4b3a45ec5c3eae560b7d5aa` | [tonviewer](https://tonviewer.com/transaction/a41c9c7a0a9d8c23f7bb1b1a91d3f1a52f90fc38f4b3a45ec5c3eae560b7d5aa) · [tonscan](https://tonscan.org/tx/a41c9c7a0a9d8c23f7bb1b1a91d3f1a52f90fc38f4b3a45ec5c3eae560b7d5aa) | Included in the treasury reconciliation package archived with finance.                                     |
 

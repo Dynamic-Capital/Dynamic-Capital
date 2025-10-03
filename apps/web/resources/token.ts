@@ -79,7 +79,7 @@ const tokenMetadata = jettonMetadataSchema.parse(jettonMetadata);
 const TGE_CIRCULATING_SUPPLY = 13_000_000;
 const TGE_MARKET_CAP_USD = 13_000_000;
 const OPERATIONS_TREASURY_WALLET =
-  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
+  "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
 const OPERATIONS_TREASURY_EXPLORER_URL =
   `https://tonviewer.com/${OPERATIONS_TREASURY_WALLET}`;
 const buildJettonExplorerUrl = (address?: string) => {
