@@ -41,10 +41,12 @@ import type {
 import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
 import { getSupabaseClient } from "../lib/supabase-client";
 import { DYNAMIC_TON_API_USER_ID, OPS_TREASURY_ADDRESS } from "../lib/config";
+import { THEME_MINT_PLANS, type ThemeMintPlan } from "../data/theme-mints";
 
 type SectionId =
   | "overview"
   | "plans"
+  | "minting"
   | "intel"
   | "activity"
   | "appearance"
@@ -99,6 +101,12 @@ type RawPlan = {
 
 type ActivityItem = LiveTimelineEntry;
 
+type MintingPlanState =
+  | { status: "idle"; progress: 0 }
+  | { status: "starting"; progress: number }
+  | { status: "success"; progress: 100; startedAt?: string }
+  | { status: "error"; progress: number; error: string };
+
 type SupportOption = {
   title: string;
   description: string;
@@ -114,11 +122,21 @@ type NavItem = {
 const SECTION_IDS: SectionId[] = [
   "overview",
   "plans",
+  "minting",
   "intel",
   "activity",
   "appearance",
   "support",
 ];
+
+function createDefaultMintingState(): Record<number, MintingPlanState> {
+  return Object.fromEntries(
+    THEME_MINT_PLANS.map((plan) => [
+      plan.index,
+      { status: "idle", progress: 0 } as MintingPlanState,
+    ]),
+  );
+}
 
 type TonConnectAccountLike = NonNullable<TonConnectLike["account"]>;
 
@@ -881,12 +899,16 @@ function HomeInner() {
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
   const [isLinking, setIsLinking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [mintingStates, setMintingStates] = useState<Record<number, MintingPlanState>>(
+    createDefaultMintingState,
+  );
   const telegramId = useTelegramId();
   const liveIntel = useLiveIntel();
   const [countdown, setCountdown] = useState<number | null>(null);
   const { manager: themeManager, state: themeState } = useMiniAppThemeManager(
     tonConnectThemeSource,
   );
+  const mintingProgressTimers = useRef<Record<number, number>>({});
 
   const updatePlanSyncStatus = useCallback(
     (updater: (previous: PlanSyncStatus) => PlanSyncStatus) => {
@@ -989,22 +1011,161 @@ function HomeInner() {
     void themeManager.refresh();
   }, [themeManager]);
 
-  const metrics = liveIntel.report?.metrics ?? FALLBACK_METRICS;
-  const timeline = liveIntel.report?.timeline ?? ACTIVITY_FEED;
+  const clearMintingTimer = useCallback((planIndex: number) => {
+    if (typeof window === "undefined") {
+      mintingProgressTimers.current = {};
+      return;
+    }
+    const timers = mintingProgressTimers.current;
+    const timerId = timers[planIndex];
+    if (typeof timerId === "number") {
+      window.clearInterval(timerId);
+      delete timers[planIndex];
+    }
+  }, []);
+
+  const startThemeMint = useCallback(
+    async (plan: ThemeMintPlan) => {
+      const existingState = mintingStates[plan.index];
+      if (existingState?.status === "starting") {
+        return;
+      }
+
+      setMintingStates((previous) => ({
+        ...previous,
+        [plan.index]: { status: "starting", progress: 12 },
+      }));
+
+      if (typeof window !== "undefined") {
+        clearMintingTimer(plan.index);
+        mintingProgressTimers.current[plan.index] = window.setInterval(() => {
+          setMintingStates((prev) => {
+            const current = prev[plan.index];
+            if (!current || current.status !== "starting") {
+              return prev;
+            }
+            const increment = 6 + Math.random() * 12;
+            const nextProgress = Math.min(
+              95,
+              Math.round(current.progress + increment),
+            );
+            if (nextProgress <= current.progress) {
+              return prev;
+            }
+            return {
+              ...prev,
+              [plan.index]: { ...current, progress: nextProgress },
+            };
+          });
+        }, 900);
+      }
+
+      try {
+        const response = await fetch("/api/minting/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mintIndex: plan.index,
+            planName: plan.name,
+            contentUri: plan.contentUri,
+            priority: plan.defaultPriority,
+            initiator: telegramId,
+          }),
+        });
+
+        let payload: unknown = null;
+        const contentType = response.headers.get("Content-Type") ?? "";
+        if (contentType.includes("application/json")) {
+          try {
+            payload = await response.json();
+          } catch {
+            payload = null;
+          }
+        }
+
+        if (!response.ok) {
+          const errorMessage =
+            typeof payload === "object" && payload && "error" in payload
+              ? String((payload as { error?: unknown }).error ?? "Mint start failed")
+              : `Mint start failed (HTTP ${response.status})`;
+          throw new Error(errorMessage);
+        }
+
+        const mintRecord =
+          typeof payload === "object" && payload && "mint" in payload
+            ? (payload as { mint?: { started_at?: string | null } }).mint ?? null
+            : null;
+        const startedAt =
+          mintRecord && typeof mintRecord.started_at === "string"
+            ? mintRecord.started_at
+            : undefined;
+
+        clearMintingTimer(plan.index);
+        setMintingStates((previous) => ({
+          ...previous,
+          [plan.index]: { status: "success", startedAt, progress: 100 },
+        }));
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to reach the minting service. Please try again shortly.";
+        clearMintingTimer(plan.index);
+        setMintingStates((previous) => {
+          const current = previous[plan.index];
+          const fallbackProgress =
+            current && current.status === "starting" ? current.progress : 0;
+          return {
+            ...previous,
+            [plan.index]: {
+              status: "error",
+              error: message,
+              progress: fallbackProgress,
+            },
+          };
+        });
+      }
+    },
+    [clearMintingTimer, mintingStates, telegramId],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
+    return () => {
+      const timers = { ...mintingProgressTimers.current };
+      Object.keys(timers).forEach((key) => {
+        clearMintingTimer(Number(key));
+      });
+    };
+  }, [clearMintingTimer]);
+
+  const metrics = liveIntel.report?.metrics ?? FALLBACK_METRICS;
+  const timeline = liveIntel.report?.timeline ?? ACTIVITY_FEED;
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const visibleEntry = entries.find((entry) => entry.isIntersecting);
-        if (visibleEntry) {
-          setActiveSection(visibleEntry.target.id as SectionId);
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (!visible.length) {
+          return;
         }
+        const candidateId = visible[0].target.id as SectionId;
+        if (!SECTION_IDS.includes(candidateId)) {
+          return;
+        }
+        setActiveSection((previous) =>
+          previous === candidateId ? previous : candidateId
+        );
       },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0.1 },
+      { rootMargin: "-45% 0px -45% 0px", threshold: [0.2, 0.4, 0.6, 0.8] },
     );
 
     SECTION_IDS.forEach((sectionId) => {
@@ -1620,6 +1781,188 @@ function HomeInner() {
           </div>
         </section>
 
+        <section className="section-card" id="minting">
+          <div className="section-header">
+            <div>
+              <h2 className="section-title">Theme minting</h2>
+              <p className="section-description">
+                Launch each Theme Pass drop with a single tap. Every run is logged
+                to the treasury ledger so governance can audit who triggered the
+                mint and when.
+              </p>
+            </div>
+          </div>
+
+          <div className="mint-grid">
+            {THEME_MINT_PLANS.map((mintPlan) => {
+              const state = mintingStates[mintPlan.index] ?? {
+                status: "idle",
+                progress: 0,
+              };
+              const isStarting = state.status === "starting";
+              const isComplete = state.status === "success";
+              const progressValue = Math.min(
+                100,
+                Math.max(0, Math.round(state.progress)),
+              );
+              const statusLabel = (() => {
+                switch (state.status) {
+                  case "starting":
+                    return "Coordinating";
+                  case "success":
+                    return "Mint scheduled";
+                  case "error":
+                    return "Failed";
+                  default:
+                    return "Ready";
+                }
+              })();
+              const helperText = (() => {
+                switch (state.status) {
+                  case "starting":
+                    return progressValue >= 95
+                      ? "Awaiting treasury confirmation…"
+                      : `Coordinating validators • ${progressValue}%`;
+                  case "success":
+                    return state.startedAt
+                      ? `Started ${formatRelativeTime(state.startedAt)}`
+                      : "Mint run started.";
+                  case "error":
+                    return state.error ?? "Mint run could not start. Try again.";
+                  default:
+                    return "Tap start to dispatch this theme run.";
+                }
+              })();
+              const messageRole = state.status === "error"
+                ? "alert"
+                : state.status === "starting" || state.status === "success"
+                ? "status"
+                : undefined;
+              const progressAriaText = (() => {
+                switch (state.status) {
+                  case "starting":
+                    return `Mint progress ${progressValue}%`;
+                  case "success":
+                    return "Mint scheduled";
+                  case "error":
+                    return "Mint failed";
+                  default:
+                    return undefined;
+                }
+              })();
+              const cardClassName = `mint-card${
+                state.status !== "idle" ? ` mint-card--${state.status}` : ""
+              }`;
+
+              return (
+                <article
+                  key={mintPlan.index}
+                  className={cardClassName}
+                  style={{
+                    "--mint-accent": mintPlan.accent,
+                    "--mint-accent-soft": mintPlan.accentSoft,
+                    "--mint-glow": mintPlan.glow,
+                  } as CSSProperties}
+                >
+                  <header className="mint-card__header">
+                    <div>
+                      <p className="mint-card__eyebrow">Mint #{mintPlan.index}</p>
+                      <h3 className="mint-card__title">{mintPlan.name}</h3>
+                    </div>
+                    <span className="mint-card__priority" aria-label="Default priority">
+                      Priority {mintPlan.defaultPriority}
+                    </span>
+                  </header>
+
+                  <div className="mint-card__tags">
+                    <span className="mint-card__tag">{mintPlan.launchWindow}</span>
+                    <span className="mint-card__tag mint-card__tag--outline">
+                      {mintPlan.supply}
+                    </span>
+                  </div>
+
+                  <p className="mint-card__description">{mintPlan.description}</p>
+
+                  <div
+                    className="mint-card__progress"
+                    data-status={state.status}
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={progressValue}
+                    aria-valuetext={progressAriaText ?? undefined}
+                  >
+                    <div className="mint-card__progress-track">
+                      <div
+                        className="mint-card__progress-bar"
+                        style={{ width: `${progressValue}%` }}
+                      />
+                    </div>
+                    <div className="mint-card__progress-footer">
+                      <span className="mint-card__progress-state">{statusLabel}</span>
+                      {state.status !== "idle" && (
+                        <span className="mint-card__progress-value">
+                          {progressValue}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <dl className="mint-card__meta">
+                    <div>
+                      <dt>Launch window</dt>
+                      <dd>{mintPlan.launchWindow}</dd>
+                    </div>
+                    <div>
+                      <dt>Supply</dt>
+                      <dd>{mintPlan.supply}</dd>
+                    </div>
+                    <div>
+                      <dt>Content URI</dt>
+                      <dd>{mintPlan.contentUri}</dd>
+                    </div>
+                    <div>
+                      <dt>Status</dt>
+                      <dd>
+                        <span className={`mint-card__status mint-card__status--${state.status}`}>
+                          {statusLabel}
+                        </span>
+                      </dd>
+                    </div>
+                  </dl>
+
+                  {helperText && (
+                    <p
+                      className={`mint-card__message${
+                        state.status === "error" ? " mint-card__message--error" : ""
+                      }`}
+                      role={messageRole}
+                      aria-live={messageRole ? "polite" : undefined}
+                    >
+                      {helperText}
+                    </p>
+                  )}
+
+                  <button
+                    type="button"
+                    className="button button-secondary mint-card__action"
+                    onClick={() => startThemeMint(mintPlan)}
+                    disabled={isStarting || isComplete}
+                  >
+                    {isStarting
+                      ? "Starting…"
+                      : isComplete
+                      ? "Mint scheduled"
+                      : state.status === "error"
+                      ? "Retry mint"
+                      : "Start minting"}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
         <LiveIntelligenceSection
           intel={liveIntel.report}
           status={liveIntel.status}
@@ -2125,6 +2468,33 @@ function ActivityIcon({ active }: { active: boolean }) {
   );
 }
 
+function MintIcon({ active }: { active: boolean }) {
+  return (
+    <svg
+      className={`nav-icon${active ? " nav-icon--active" : ""}`}
+      viewBox="0 0 24 24"
+      role="presentation"
+      aria-hidden
+    >
+      <path
+        d="M12 3.5c-.4 2-2.5 4.5-3.7 6.3-1.1 1.7-1.8 3-1.8 4.7a5.5 5.5 0 0 0 11 0c0-1.7-.7-3-1.8-4.7-1.2-1.8-3.3-4.3-3.7-6.3Z"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="12"
+        cy="15"
+        r="1.8"
+        fill={active ? "#0f172a" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.2"
+      />
+    </svg>
+  );
+}
+
 function PaletteIcon({ active }: { active: boolean }) {
   return (
     <svg
@@ -2182,6 +2552,7 @@ function LifebuoyIcon({ active }: { active: boolean }) {
 const NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview", icon: HomeIcon },
   { id: "plans", label: "Plans", icon: SparkIcon },
+  { id: "minting", label: "Minting", icon: MintIcon },
   { id: "intel", label: "Live intel", icon: RadarIcon },
   { id: "activity", label: "Timeline", icon: ActivityIcon },
   { id: "appearance", label: "Themes", icon: PaletteIcon },
