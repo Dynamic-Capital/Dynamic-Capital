@@ -21,6 +21,16 @@ def test_dynamic_tools_handles_symbol_collisions() -> None:
     assert tools.BloodAgent is dynamic_tool_kits.BloodAgent
 
 
+def test_dynamic_tools_exposes_dynamic_ultimate_reality() -> None:
+    tools = importlib.import_module("dynamic.tools")
+
+    assert "DynamicUltimateReality" in tools.__all__
+    assert tools.DynamicUltimateReality is dynamic_tool_kits.DynamicUltimateReality
+    assert tools.NonDualContext is dynamic_tool_kits.NonDualContext
+    assert tools.UltimateRealitySignal is dynamic_tool_kits.UltimateRealitySignal
+    assert tools.UltimateRealityState is dynamic_tool_kits.UltimateRealityState
+
+
 def test_refresh_tool_exports_synchronises_directory_listing() -> None:
     tools = importlib.import_module("dynamic.tools")
 

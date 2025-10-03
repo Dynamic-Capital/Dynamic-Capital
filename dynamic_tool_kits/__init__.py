@@ -270,7 +270,12 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "ThinkingFrame",
         "ThinkingSignal",
     ),
-    "dynamic_ultimate_reality": ("NonDualContext", "UltimateRealitySignal", "UltimateRealityState"),
+    "dynamic_ultimate_reality": (
+        "DynamicUltimateReality",
+        "NonDualContext",
+        "UltimateRealitySignal",
+        "UltimateRealityState",
+    ),
     "dynamic_volume": ("BookLevel", "VolumeAlert", "VolumeSnapshot", "VolumeThresholds"),
     "dynamic_wisdom": ("WisdomContext", "WisdomFrame", "WisdomSignal"),
 }

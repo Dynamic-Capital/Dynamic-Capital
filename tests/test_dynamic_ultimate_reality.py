@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import importlib
+
 import pytest
 
 from dynamic_ultimate_reality import (
@@ -137,3 +139,13 @@ def test_dynamic_ultimate_reality_requires_weight() -> None:
 
     with pytest.raises(RuntimeError):
         engine.realise(context)
+
+
+def test_platform_engines_expose_ultimate_reality_symbols() -> None:
+    engines = importlib.import_module("dynamic.platform.engines")
+    module = importlib.import_module("dynamic_ultimate_reality")
+
+    assert engines.DynamicUltimateReality is module.DynamicUltimateReality
+    assert engines.NonDualContext is module.NonDualContext
+    assert engines.UltimateRealitySignal is module.UltimateRealitySignal
+    assert engines.UltimateRealityState is module.UltimateRealityState
