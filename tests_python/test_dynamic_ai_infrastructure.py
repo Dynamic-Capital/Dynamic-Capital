@@ -4,6 +4,7 @@ import pytest
 
 from dynamic.intelligence.ai_apps.infrastructure import (
     DEFAULT_MODULE_REGISTRATIONS,
+    MEMORY_MODULE_REGISTRATIONS,
     MODULE_BLUEPRINTS,
     DynamicInfrastructure,
     ModuleDomain,
@@ -68,6 +69,18 @@ def test_module_registration_uses_notes_and_metrics() -> None:
 
     # Instrumentation defaults to success metrics until overridden.
     assert memory_module.instrumentation == memory_module.success_metrics
+
+
+def test_memory_modules_match_registration_catalog() -> None:
+    infrastructure = build_default_infrastructure()
+
+    for registration in MEMORY_MODULE_REGISTRATIONS:
+        module = infrastructure.get_module(registration.name)
+
+        assert module.domain is registration.domain
+        assert module.responsibilities == registration.responsibilities
+        assert module.success_metrics == registration.success_metrics
+        assert module.notes == registration.notes
 
 
 def test_default_registration_catalog_is_consistent() -> None:
