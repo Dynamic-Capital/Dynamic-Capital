@@ -80,8 +80,8 @@ const BrandLogo: React.FC<BrandLogoProps> = ({
       whileTap={animated ? { scale: 0.95 } : undefined}
     >
       <MotionImage
-        src="/logo.svg"
-        alt="Dynamic Capital Logo"
+        src="/icon-mark.svg"
+        alt="Dynamic Capital Icon"
         width={sizeDimensions[size]}
         height={sizeDimensions[size]}
         className={logoClasses}

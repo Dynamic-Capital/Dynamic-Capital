@@ -5,12 +5,18 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#ee3a3a",
+  "theme_color": "#1F398E",
   "icons": [
     {
-      "src": "/logo.svg",
+      "src": "/icon-mark.svg",
       "sizes": "any",
       "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-mark-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

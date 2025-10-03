@@ -210,7 +210,10 @@ export const metadata: Metadata = {
       : {}),
   },
   icons: {
-    icon: brandingAssets.favicon,
+    icon: [
+      { url: "/icon-mark.svg", type: "image/svg+xml" },
+      { url: brandingAssets.favicon, type: "image/x-icon" },
+    ],
     shortcut: brandingAssets.favicon,
     apple: brandingAssets.appleTouchIcon,
   },
@@ -280,13 +283,8 @@ export default async function RootLayout(
           content={brandingMetadata.name}
         />
         <link rel="apple-touch-icon" href={brandingAssets.appleTouchIcon} />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="192x192"
-          href={brandingAssets.favicon}
-        />
-        <link rel="icon" href={brandingAssets.favicon} />
+        <link rel="icon" type="image/svg+xml" href="/icon-mark.svg" />
+        <link rel="icon" type="image/x-icon" href={brandingAssets.favicon} />
         <style
           id={BRANDING_STYLE_ELEMENT_ID}
           suppressHydrationWarning

@@ -9,7 +9,11 @@
     "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
     "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check && vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate:brand-assets": "tsx ../../scripts/generate-brand-assets.ts",
+    "predev": "npm run generate:brand-assets",
+    "prebuild": "npm run generate:brand-assets",
+    "prestart": "npm run generate:brand-assets"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.10.0",
