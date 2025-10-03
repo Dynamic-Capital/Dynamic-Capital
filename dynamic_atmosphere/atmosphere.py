@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, is_dataclass, replace
 from datetime import datetime, timezone
 from enum import Enum
 from statistics import fmean
-from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
+from typing import Deque, Iterable, Mapping, MutableMapping, Sequence, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from dynamic_exosphere.model import ExosphericState
+    from dynamic_mesosphere.model import MesosphericState
+    from dynamic_stratosphere.model import StratosphericState
+    from dynamic_thermosphere.model import ThermosphericState
+    from dynamic_troposphere.model import TroposphericState
 
 __all__ = [
     "AtmosphericComponent",
@@ -97,6 +104,181 @@ def _mean(values: Iterable[float]) -> float:
     if not data:
         return 0.0
     return float(fmean(data))
+
+
+def _metadata_from_state(state: object, **extra: object) -> Mapping[str, object]:
+    """Normalise metadata from specialised layer state objects."""
+
+    if is_dataclass(state):
+        state_payload = asdict(state)
+    else:
+        state_payload = {}
+    summary = state_payload.pop("summary", getattr(state, "summary", None))
+    metadata: dict[str, object] = {"metrics": state_payload}
+    if summary is not None:
+        metadata["summary"] = summary
+    metadata.update(extra)
+    return metadata
+
+
+def _compose_components(
+    *components: tuple[str, float, float, Sequence[str] | None],
+) -> tuple[AtmosphericComponent, ...]:
+    mapping: dict[str, AtmosphericComponent] = {}
+    for name, ratio, reactivity, sources in components:
+        mapping[name] = AtmosphericComponent(
+            name,
+            ratio,
+            reactivity,
+            tuple(sources or ()),
+        )
+    _scale_mixing_ratios(mapping)
+    return tuple(sorted(mapping.values(), key=lambda component: component.name.lower()))
+
+
+def _layer_from_troposphere(state: "TroposphericState") -> AtmosphericLayerState:
+    humidity = _clamp01(0.35 + state.precipitation_potential * 0.5)
+    temperature = 15.0 - state.lapse_rate_c_per_km * 1.2 - state.cloud_base_km * 0.8
+    stability = _clamp01(1.0 - (state.storm_risk * 0.7 + state.precipitation_potential * 0.3))
+    components = _compose_components(
+        ("Nitrogen", 0.78, 0.01, None),
+        ("Oxygen", 0.209, 0.05, None),
+        ("Argon", 0.009, 0.0, None),
+        ("WaterVapour", 0.01 + humidity * 0.04, 0.6, ("evapotranspiration", "oceans")),
+        ("CarbonDioxide", 0.0004, 0.75, ("biosphere", "industry")),
+    )
+    metadata = _metadata_from_state(state, characteristic="troposphere")
+    return AtmosphericLayerState(
+        identifier="troposphere",
+        altitude_range_km=(0.0, 12.0),
+        thermal_band_c=(-60.0, 20.0),
+        temperature_c=temperature,
+        humidity=humidity,
+        components=components,
+        stability_index=stability,
+        metadata=metadata,
+    )
+
+
+def _layer_from_stratosphere(state: "StratosphericState") -> AtmosphericLayerState:
+    humidity = _clamp01(0.02 + (1.0 - min(state.ozone_integrity, 1.2)) * 0.05)
+    temperature = -60.0 + state.radiative_balance * 35.0
+    stability = _clamp01(
+        0.4 * state.stabilization_score
+        + 0.35 * min(state.ozone_integrity, 1.2)
+        + 0.25 * (1.0 - min(state.polar_vortex_strength, 1.2))
+    )
+    components = _compose_components(
+        ("Nitrogen", 0.78, 0.01, None),
+        ("Oxygen", 0.21, 0.05, None),
+        ("Ozone", 0.0004 + min(state.ozone_integrity, 1.2) * 0.0003, 0.9, ("photolysis",)),
+        (
+            "Aerosols",
+            0.0002 + max(0.0, 1.0 - min(state.radiative_balance, 1.2)) * 0.0005,
+            0.8,
+            ("volcanic", "stratospheric_reservoir"),
+        ),
+    )
+    metadata = _metadata_from_state(state, characteristic="stratosphere")
+    return AtmosphericLayerState(
+        identifier="stratosphere",
+        altitude_range_km=(12.0, 50.0),
+        thermal_band_c=(-80.0, 0.0),
+        temperature_c=temperature,
+        humidity=humidity,
+        components=components,
+        stability_index=stability,
+        metadata=metadata,
+    )
+
+
+def _layer_from_mesosphere(state: "MesosphericState") -> AtmosphericLayerState:
+    humidity = _clamp01(0.01 + state.noctilucent_potential * 0.05)
+    temperature = -95.0 - state.thermal_variance * 0.3 + (1.0 - min(state.wave_drag_intensity, 1.5)) * 8.0
+    stability = _clamp01(
+        0.55
+        - min(state.wave_drag_intensity, 1.5) * 0.3
+        + (1.0 - min(state.meteor_ablation_index, 1.5)) * 0.35
+    )
+    components = _compose_components(
+        ("Nitrogen", 0.78, 0.01, None),
+        ("Oxygen", 0.21, 0.05, None),
+        ("MetalIons", 0.0001 + min(state.meteor_ablation_index, 1.5) * 0.0004, 0.85, ("meteoric",)),
+        ("Hydroxyl", 0.00005 + state.noctilucent_potential * 0.0002, 0.65, ("chemiluminescence",)),
+    )
+    metadata = _metadata_from_state(state, characteristic="mesosphere")
+    return AtmosphericLayerState(
+        identifier="mesosphere",
+        altitude_range_km=(50.0, 85.0),
+        thermal_band_c=(-120.0, -10.0),
+        temperature_c=temperature,
+        humidity=humidity,
+        components=components,
+        stability_index=stability,
+        metadata=metadata,
+    )
+
+
+def _layer_from_thermosphere(state: "ThermosphericState") -> AtmosphericLayerState:
+    temp_k = 500.0 + state.heat_content * 700.0 + state.geomagnetic_activity * 220.0
+    temperature = temp_k - 273.15
+    humidity = _clamp01(0.01 + state.auroral_activity * 0.02)
+    stability = _clamp01(
+        0.45
+        - min(state.geomagnetic_activity, 1.5) * 0.25
+        + (1.0 - min(state.satellite_drag_factor, 1.5)) * 0.35
+    )
+    components = _compose_components(
+        ("AtomicOxygen", 0.83, 0.35, ("photodissociation",)),
+        ("Nitrogen", 0.14, 0.2, ("thermospheric_mixing",)),
+        ("Helium", 0.03 + state.heat_content * 0.01, 0.05, ("diffusive_separation",)),
+    )
+    metadata = _metadata_from_state(
+        state,
+        characteristic="thermosphere",
+        temperature_k=temp_k,
+    )
+    return AtmosphericLayerState(
+        identifier="thermosphere",
+        altitude_range_km=(85.0, 600.0),
+        thermal_band_c=(-50.0, 2000.0),
+        temperature_c=temperature,
+        humidity=humidity,
+        components=components,
+        stability_index=stability,
+        metadata=metadata,
+    )
+
+
+def _layer_from_exosphere(state: "ExosphericState") -> AtmosphericLayerState:
+    temp_k = 700.0 + state.escape_energy * 900.0 + state.boundary_instability * 200.0
+    temperature = temp_k - 273.15
+    humidity = _clamp01(state.outflow_flux * 0.02)
+    stability = _clamp01(
+        0.5
+        - min(state.boundary_instability, 1.5) * 0.35
+        + (1.0 - min(state.satellite_risk, 1.5)) * 0.35
+    )
+    components = _compose_components(
+        ("Hydrogen", 0.82, 0.15, ("thermal_escape",)),
+        ("Helium", 0.16, 0.05, ("diffusion",)),
+        ("Oxygen", 0.02 + state.outflow_flux * 0.01, 0.3, ("charge_exchange",)),
+    )
+    metadata = _metadata_from_state(
+        state,
+        characteristic="exosphere",
+        temperature_k=temp_k,
+    )
+    return AtmosphericLayerState(
+        identifier="exosphere",
+        altitude_range_km=(600.0, 10000.0),
+        thermal_band_c=(-80.0, 2500.0),
+        temperature_c=temperature,
+        humidity=humidity,
+        components=components,
+        stability_index=stability,
+        metadata=metadata,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -290,6 +472,46 @@ class DynamicAtmosphere:
         self._layers[identifier] = updated_layer
         self._history.append(observation)
         return AtmosphericSnapshot(timestamp=_utcnow(), layers=self.layers)
+
+    def integrate_layers(
+        self,
+        *,
+        troposphere: "TroposphericState" | None = None,
+        stratosphere: "StratosphericState" | None = None,
+        mesosphere: "MesosphericState" | None = None,
+        thermosphere: "ThermosphericState" | None = None,
+        exosphere: "ExosphericState" | None = None,
+    ) -> AtmosphericSnapshot:
+        """Synchronise specialised layer states into the atmospheric profile."""
+
+        updates: list[AtmosphericLayerState] = []
+        if troposphere is not None:
+            updates.append(_layer_from_troposphere(troposphere))
+        if stratosphere is not None:
+            updates.append(_layer_from_stratosphere(stratosphere))
+        if mesosphere is not None:
+            updates.append(_layer_from_mesosphere(mesosphere))
+        if thermosphere is not None:
+            updates.append(_layer_from_thermosphere(thermosphere))
+        if exosphere is not None:
+            updates.append(_layer_from_exosphere(exosphere))
+
+        changed = False
+        for layer in updates:
+            current = self._layers.get(layer.identifier)
+            if current is None:
+                self.add_layer(layer)
+                changed = True
+                continue
+            if current == layer:
+                continue
+            self.update_layer(layer)
+            changed = True
+
+        if not changed:
+            return AtmosphericSnapshot(timestamp=_utcnow(), layers=self.layers)
+
+        return self.snapshot()
 
     def generate_alerts(self) -> tuple[AtmosphericAlert, ...]:
         alerts: list[AtmosphericAlert] = []
