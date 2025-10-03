@@ -25,18 +25,18 @@ flowchart LR
 ### 1. Subscription settlement & verification
 
 - Subscribers pay the TON-denominated invoice into the operations treasury
-  wallet that is tracked in the `app_config` table. The edge function retrieves
-  the expected TON amount for the chosen plan and validates the on-chain receipt
-  before moving forward.
+  wallet that is tracked in the `dct_app_config` table. The edge function
+  retrieves the expected TON amount for the chosen plan and validates the
+  on-chain receipt before moving forward.
 - If the payer address does not match the wallet previously linked by the user,
   the request is rejected to prevent address spoofing attacks.
 
 ### 2. Split computation & treasury accounting
 
 - Once verified, the handler computes the operations, auto-invest, and
-  buyback/burn allocations using the guardrails defined in `app_config`. This
-  enforces the configurable percentage bounds codified in `config.yaml` during
-  each call.
+  buyback/burn allocations using the guardrails defined in `dct_app_config`.
+  This enforces the configurable percentage bounds codified in `config.yaml`
+  during each call.
 - The operations tranche remains in TON within the treasury address, while the
   invest and burn tranches are earmarked for immediate swaps to DCT to avoid
   market drift.
@@ -68,7 +68,7 @@ flowchart LR
 | Subscription burn transaction (2024-08-17) | `a41c9c7a0a9d8c23f7bb1b1a91d3f1a52f90fc38f4b3a45ec5c3eae560b7d5aa` | [tonviewer](https://tonviewer.com/transaction/a41c9c7a0a9d8c23f7bb1b1a91d3f1a52f90fc38f4b3a45ec5c3eae560b7d5aa) · [tonscan](https://tonscan.org/tx/a41c9c7a0a9d8c23f7bb1b1a91d3f1a52f90fc38f4b3a45ec5c3eae560b7d5aa) | Included in the treasury reconciliation package archived with finance.                                     |
 
 > **Note:** Replace the explorer URLs if rotation or redeployment occurs. Keep
-> Supabase `app_config` and TON DNS records aligned with these canonical
+> Supabase `dct_app_config` and TON DNS records aligned with these canonical
 > addresses before accepting mainnet payments.
 
 ## Exporting to the public docs portal

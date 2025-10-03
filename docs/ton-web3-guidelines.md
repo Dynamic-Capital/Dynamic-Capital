@@ -48,9 +48,9 @@ keep the TON surfaces aligned with the broader platform roadmap.
 1. **Register primary `.ton` names** via a wallet that the operations multisig
    controls. Track the registration receipt in Supabase for auditability.
 2. **Set resolver records** to the relevant contracts or storage endpoints. The
-   canonical addresses live in the `app_config` table created by
-   [`schema.sql`](../dynamic-capital-ton/supabase/schema.sql) and mirrored in
-   [`config.yaml`](../dynamic-capital-ton/config.yaml).
+   canonical addresses live in the `dct_app_config` table created by
+   [`20251106090000_ton_mainnet_config.sql`](../supabase/migrations/20251106090000_ton_mainnet_config.sql)
+   and mirrored in [`config.yaml`](../dynamic-capital-ton/config.yaml).
 3. **Document resolver deployments** by updating
    [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) with the live
    contract address (`EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo` as of
@@ -80,11 +80,11 @@ keep the TON surfaces aligned with the broader platform roadmap.
 
 ### Resolver reference table
 
-| Resolver field                | Purpose                                                                                                                                                         | Default placeholder                                | Update workflow                                                                                |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `ops_treasury` (`app_config`) | TON wallet receiving the operations split calculated by [`process-subscription`](../dynamic-capital-ton/supabase/functions/process-subscription/index.ts).      | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | Rotate via Supabase SQL `update` and broadcast the new resolver through the multisig timelock. |
-| `dct_master` (`app_config`)   | Jetton master contract referenced by [`process-subscription`](../dynamic-capital-ton/supabase/functions/process-subscription/index.ts) for burns and emissions. | `EQDCTMaster…`                                     | When redeploying, update the DNS resolver and regenerate the Mini App manifest before release. |
-| `dex_router` (`app_config`)   | Router endpoint that swaps TON → DCT inside [`process-subscription`](../dynamic-capital-ton/supabase/functions/process-subscription/index.ts).                  | `EQDexRouter…`                                     | Coordinate with Liquidity Ops; update the DNS resolver and Supabase row atomically.            |
+| Resolver field                         | Purpose                                                                                                                           | Default placeholder                                | Update workflow                                                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `operations_wallet` (`dct_app_config`) | TON wallet receiving the operations split calculated by [`dct-auto-invest`](../supabase/functions/dct-auto-invest/index.ts).      | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | Rotate via Supabase SQL `update` and broadcast the new resolver through the multisig timelock. |
+| `dct_jetton_master` (`dct_app_config`) | Jetton master contract referenced by [`dct-auto-invest`](../supabase/functions/dct-auto-invest/index.ts) for burns and emissions. | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | When redeploying, update the DNS resolver and regenerate the Mini App manifest before release. |
+| `dex_router` (`dct_app_config`)        | Router endpoint that swaps TON → DCT inside [`dct-auto-invest`](../supabase/functions/dct-auto-invest/index.ts).                  | `EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3` | Coordinate with Liquidity Ops; update the DNS resolver and Supabase row atomically.            |
 
 > Store human-readable context (e.g., “Operations Treasury wallet (mainnet)”) in
 > Supabase `tx_logs.meta` when logging resolver rotations for historical review.
@@ -181,8 +181,8 @@ keep the TON surfaces aligned with the broader platform roadmap.
 
 - **How do we test storage uploads without burning mainnet fees?** Use the TON
   testnet by swapping RPC endpoints in the wallet configuration and using a
-  throwaway resolver domain. Update Supabase `app_config` to point at testnet
-  addresses temporarily.
+  throwaway resolver domain. Update Supabase `dct_app_config` to point at
+  testnet addresses temporarily.
 - **What triggers a redeploy of the storage daemon?** Kernel updates or security
   patches. Rehydrate from the latest snapshot and replay pinning instructions
   stored in `tx_logs` to confirm full data availability.

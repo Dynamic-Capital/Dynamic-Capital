@@ -20,6 +20,19 @@ example value, and where it's referenced in the repository.
 | `DATABASE_URL`                  | Optional override for direct Postgres connections.                   | No        | `postgresql://...`                    | `db/client.ts`, `apps/web/drizzle.config.js`                                                                                                         |
 | `SUPABASE_FN_URL`               | Supabase Edge Functions base URL for server-side fetch helpers.      | No        | `https://<ref>.functions.supabase.co` | `dynamic-capital-ton/apps/miniapp/app/api/*`, `dynamic-capital-ton/supabase/functions/process-subscription`                                          |
 
+## TON Subscriptions
+
+| Key                          | Purpose                                                                                                                        | Required | Example                                            | Used in                                       |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | -------------------------------------------------- | --------------------------------------------- |
+| `OPERATIONS_TREASURY_WALLET` | Overrides the operations split destination recorded in `dct_app_config`.                                                       | No       | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | `supabase/functions/dct-auto-invest/index.ts` |
+| `INTAKE_WALLET`              | Explicit TON wallet expected to receive subscription deposits. Defaults to the `ton_intake_wallet` stored in `dct_app_config`. | No       | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | `supabase/functions/dct-auto-invest/index.ts` |
+| `DCT_JETTON_MASTER`          | Overrides the jetton master address seeded in `dct_app_config` when triggering burns.                                          | No       | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | `supabase/functions/dct-auto-invest/index.ts` |
+| `TON_INDEXER_URL`            | TON indexer base URL used to validate on-chain payments.                                                                       | No       | `https://tonapi.io/v2/blockchain`                  | `supabase/functions/dct-auto-invest/index.ts` |
+| `TON_USD_PRICE`              | Optional TON→USD override for deterministic swap simulations.                                                                  | No       | `2.35`                                             | `supabase/functions/dct-auto-invest/index.ts` |
+| `DCT_PRICE_OVERRIDE`         | Optional DCT price override (DCT per USD) used in deterministic testing.                                                       | No       | `0.18`                                             | `supabase/functions/dct-auto-invest/index.ts` |
+| `BURN_WEBHOOK_URL`           | Webhook endpoint invoked when the burn tranche executes.                                                                       | No       | `https://ops.dynamic.capital/hooks/burn`           | `supabase/functions/dct-auto-invest/index.ts` |
+| `BOT_WEBHOOK_URL`            | Optional notifier for post-processing updates to the Telegram bot.                                                             | No       | `https://ops.dynamic.capital/hooks/notify`         | `supabase/functions/dct-auto-invest/index.ts` |
+
 ## Trading Automation
 
 | Key                              | Purpose                                                                            | Required | Example                                               | Used in                                                                                                             |

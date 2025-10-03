@@ -1,7 +1,7 @@
 import { registerHandler } from "../_shared/serve.ts";
 import { bad, corsHeaders, json, methodNotAllowed } from "../_shared/http.ts";
 import { createClient } from "../_shared/client.ts";
-import { need, optionalEnv } from "../_shared/env.ts";
+import { optionalEnv } from "../_shared/env.ts";
 import {
   publishBurnExecutedEvent,
   publishPaymentRecordedEvent,
@@ -80,9 +80,66 @@ const EARLY_EXIT_PENALTY_BPS = 200;
 
 const ORACLE_SYMBOL = "DCTUSDT";
 
+const serviceSupabase = createClient("service");
+type SupabaseClient = typeof serviceSupabase;
+
+interface DctAppConfig {
+  operationsWallet: string;
+  intakeWallet: string | null;
+  dctMaster: string;
+  dexRouter: string;
+  tonIndexerUrl: string | null;
+}
+
+function toNonEmptyString(value: unknown, field: string): string {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+  throw new Error(`DCT app config missing ${field}`);
+}
+
+function toOptionalString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+async function fetchAppConfig(
+  client: SupabaseClient,
+): Promise<DctAppConfig> {
+  const { data, error } = await client
+    .from("dct_app_config")
+    .select(
+      "operations_wallet, ton_intake_wallet, dct_jetton_master, dex_router, ton_indexer_url",
+    )
+    .eq("id", 1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load DCT app config: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error("DCT app config row is missing");
+  }
+
+  return {
+    operationsWallet: toNonEmptyString(
+      data.operations_wallet,
+      "operations_wallet",
+    ),
+    intakeWallet: toOptionalString(data.ton_intake_wallet),
+    dctMaster: toNonEmptyString(data.dct_jetton_master, "dct_jetton_master"),
+    dexRouter: toNonEmptyString(data.dex_router, "dex_router"),
+    tonIndexerUrl: toOptionalString(data.ton_indexer_url),
+  };
+}
+
 async function fetchOraclePrice() {
-  const supabase = createClient("service");
-  const { data, error } = await supabase
+  const { data, error } = await serviceSupabase
     .from("price_snapshots")
     .select("id, price_usd, signed_at")
     .eq("symbol", ORACLE_SYMBOL)
@@ -162,8 +219,8 @@ async function verifyTonPayment(
   txHash: string,
   expectedWallet: string,
   expectedAmount: number,
+  indexerUrl: string | null,
 ): Promise<VerifiedTonPayment> {
-  const indexerUrl = optionalEnv("TON_INDEXER_URL");
   if (!indexerUrl) {
     return { ok: true, amountTon: expectedAmount };
   }
@@ -351,14 +408,43 @@ export const handler = registerHandler(async (req) => {
     );
   }
 
-  const intakeWallet = need("INTAKE_WALLET");
-  const operationsWallet = need("OPERATIONS_TREASURY_WALLET");
-  const dctMaster = need("DCT_JETTON_MASTER");
+  let config: DctAppConfig;
+  try {
+    config = await fetchAppConfig(serviceSupabase);
+  } catch (error) {
+    return bad(
+      error instanceof Error
+        ? error.message
+        : "Failed to load DCT configuration",
+      undefined,
+      req,
+    );
+  }
+
+  const intakeWallet = config.intakeWallet ?? optionalEnv("INTAKE_WALLET");
+  if (!intakeWallet) {
+    return bad("Intake wallet unavailable", undefined, req);
+  }
+
+  const operationsWallet = config.operationsWallet ??
+    optionalEnv("OPERATIONS_TREASURY_WALLET");
+  if (!operationsWallet) {
+    return bad("Operations wallet unavailable", undefined, req);
+  }
+
+  const dctMaster = config.dctMaster ?? optionalEnv("DCT_JETTON_MASTER");
+  if (!dctMaster) {
+    return bad("Jetton master unavailable", undefined, req);
+  }
+
+  const tonIndexerUrl = optionalEnv("TON_INDEXER_URL") ??
+    config.tonIndexerUrl ?? null;
 
   const verification = await verifyTonPayment(
     body.tonTxHash,
     intakeWallet,
     body.tonAmount,
+    tonIndexerUrl,
   );
 
   if (!verification.ok) {
@@ -412,7 +498,7 @@ export const handler = registerHandler(async (req) => {
     );
   }
 
-  const supabase = createClient("service");
+  const supabase = serviceSupabase;
 
   const userPayload = {
     telegram_id: body.telegramId ?? null,
