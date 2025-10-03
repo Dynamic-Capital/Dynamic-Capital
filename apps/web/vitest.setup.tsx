@@ -35,10 +35,12 @@ vi.mock("@/components/dynamic-ui-system", () => ({
   Badge: createPrimitive("span"),
   Button: createPrimitive("button"),
   Column: createPrimitive("div"),
+  Heading: createPrimitive("h2"),
   Line: createPrimitive("div"),
   Input: createPrimitive("input"),
   Row: createPrimitive("div"),
   Spinner: () => <div data-testid="spinner" />,
+  Tag: createPrimitive("span"),
   Text: createPrimitive("span"),
 }));
 

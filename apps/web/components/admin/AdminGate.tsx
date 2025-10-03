@@ -21,34 +21,23 @@ interface AdminGateProps {
   children: React.ReactNode;
 }
 
-const ADMIN_STORAGE_KEY = "dc_admin_token";
-
 export function AdminGate({ children }: AdminGateProps) {
-  const { isAdmin, initData, loading } = useTelegramAuth();
+  const {
+    isAdmin,
+    initData,
+    loading,
+    validatedAdminToken,
+    validatingAdminToken,
+    adminTokenError,
+    refreshValidatedAdminToken,
+  } = useTelegramAuth();
   const { toast } = useToast();
   const [manualInitData, setManualInitData] = useState("");
-  const [adminToken, setAdminToken] = useState(() =>
-    localStorage.getItem(ADMIN_STORAGE_KEY)
-  );
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  const hasValidToken = () => {
-    if (!adminToken) {
-      return false;
-    }
-    try {
-      const payload = JSON.parse(atob(adminToken.split(".")[1])) as {
-        exp?: number;
-        admin?: boolean;
-      };
-      return Boolean(payload?.admin) &&
-        Number(payload?.exp) > Date.now() / 1000;
-    } catch {
-      return false;
-    }
-  };
+  const isCheckingAccess = loading || validatingAdminToken;
 
-  if (loading) {
+  if (isCheckingAccess) {
     return (
       <Column
         fillWidth
@@ -64,7 +53,7 @@ export function AdminGate({ children }: AdminGateProps) {
     );
   }
 
-  if ((isAdmin && initData) || hasValidToken()) {
+  if ((isAdmin && initData) || validatedAdminToken) {
     return <>{children}</>;
   }
 
@@ -83,12 +72,19 @@ export function AdminGate({ children }: AdminGateProps) {
       }
 
       if (response?.token) {
-        localStorage.setItem(ADMIN_STORAGE_KEY, response.token);
-        setAdminToken(response.token);
-        toast({
-          title: "Authenticated",
-          description: "Admin privileges unlocked",
-        });
+        const { valid, error: validationError } =
+          await refreshValidatedAdminToken(response.token);
+        if (valid) {
+          setManualInitData("");
+          toast({
+            title: "Authenticated",
+            description: "Admin privileges unlocked",
+          });
+        } else {
+          throw new Error(
+            validationError ?? "Admin token rejected by server",
+          );
+        }
       } else {
         throw new Error(response?.error || "Authentication failed");
       }
@@ -163,6 +159,17 @@ export function AdminGate({ children }: AdminGateProps) {
             Authenticate with Telegram initData or an existing admin token to
             open the control room.
           </Text>
+          {adminTokenError
+            ? (
+              <Text
+                variant="body-default-s"
+                onBackground="neutral-strong"
+                align="center"
+              >
+                {adminTokenError}
+              </Text>
+            )
+            : null}
         </Column>
         <Column gap="16">
           <Button
@@ -200,7 +207,7 @@ export function AdminGate({ children }: AdminGateProps) {
                   variant="secondary"
                   data-border="rounded"
                   onClick={() => authenticateWithInitData(initData)}
-                  disabled={isAuthenticating}
+                  disabled={isAuthenticating || validatingAdminToken}
                 >
                   {isAuthenticating
                     ? "Authenticating…"
@@ -225,7 +232,8 @@ export function AdminGate({ children }: AdminGateProps) {
               variant="secondary"
               data-border="rounded"
               onClick={handleManualAuth}
-              disabled={!manualInitData.trim() || isAuthenticating}
+              disabled={!manualInitData.trim() || isAuthenticating ||
+                validatingAdminToken}
             >
               {isAuthenticating ? "Authenticating…" : "Manual authentication"}
             </Button>
