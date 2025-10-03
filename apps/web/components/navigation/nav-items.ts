@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   Gauge,
   LayoutDashboard,
   LineChart,
@@ -137,6 +138,19 @@ const extraNavItems: NavItem[] = [
     ariaLabel: `Step ${
       firstExtraStep + 5
     }: Market review. Track FX strength, volatility, and cross-asset watchlists.`,
+    showOnMobile: true,
+  },
+  {
+    id: "trade-and-learn",
+    step: `Step ${firstExtraStep + 6}`,
+    label: "Trade & learn hub",
+    description:
+      "Blend live trade telemetry with mentorship cadences and practice labs.",
+    icon: BookOpen,
+    path: "/tools/dynamic-trade-and-learn",
+    ariaLabel: `Step ${
+      firstExtraStep + 6
+    }: Trade and learn hub. Blend live trade telemetry with mentorship cadences and practice labs.`,
     showOnMobile: true,
   },
 ];
