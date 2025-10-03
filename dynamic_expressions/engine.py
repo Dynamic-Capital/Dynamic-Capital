@@ -305,10 +305,14 @@ class ExpressionDigest:
 class DynamicExpressions:
     """Aggregate expressions and produce an actionable digest."""
 
-    def __init__(self, *, history: int = 32) -> None:
-        if history <= 0:
+    def __init__(self, *, history: int | None = 32) -> None:
+        if history is not None and history <= 0:
             raise ValueError("history must be positive")
-        self._expressions: Deque[ExpressionElement] = deque(maxlen=history)
+        self._expressions: Deque[ExpressionElement]
+        if history is None:
+            self._expressions = deque()
+        else:
+            self._expressions = deque(maxlen=history)
 
     def __len__(self) -> int:
         return len(self._expressions)

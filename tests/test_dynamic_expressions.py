@@ -126,3 +126,18 @@ def test_generate_digest_validations() -> None:
     digest = engine.generate_digest(context)
     assert isinstance(digest, ExpressionDigest)
     assert digest.highlights
+
+
+def test_dynamic_expressions_unbounded_history() -> None:
+    engine = DynamicExpressions(history=None)
+
+    for index in range(40):
+        engine.capture(
+            {
+                "name": f"Expression {index}",
+                "expression": f"x + {index}",
+                "description": "Historical expression",
+            }
+        )
+
+    assert len(engine) == 40
