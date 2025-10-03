@@ -18,7 +18,7 @@ export const POST = methodNotAllowed;
 export const PUT = methodNotAllowed;
 export const PATCH = methodNotAllowed;
 export const DELETE = methodNotAllowed;
-export const HEAD = methodNotAllowed;
+export const HEAD = (req: Request) => methodNotAllowed(req);
 export function OPTIONS(req: Request) {
   return new Response(null, { status: 204, headers: corsHeaders(req) });
 }

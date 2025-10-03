@@ -280,7 +280,7 @@ export const unauth = (message = "Unauthorized", req?: Request) =>
 export const nf = (message = "Not Found", req?: Request) =>
   jsonResponse({ ok: false, error: message }, { status: 404 }, req);
 
-export const methodNotAllowed = (req?: Request) =>
+export const methodNotAllowed = (req: Request) =>
   jsonResponse({ error: "Method Not Allowed" }, { status: 405 }, req);
 
 export const mna = () =>
