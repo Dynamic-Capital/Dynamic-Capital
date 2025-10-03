@@ -180,3 +180,4 @@ def test_domain_helpers_build_and_register(
     assert blueprint.layers[0].name == layer_name
     assert blueprint.overlays[0].name == overlay_name
     assert blueprint.highlighted_nodes, "expected highlighted nodes for domain mapping"
+    assert isinstance(blueprint.routes, tuple)

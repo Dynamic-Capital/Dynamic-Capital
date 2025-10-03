@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
+from itertools import combinations
 from typing import Dict, Iterable, List, Mapping, MutableMapping, Sequence, Tuple
 
 __all__ = [
@@ -10,6 +12,7 @@ __all__ = [
     "MapConnection",
     "MapLayer",
     "MapOverlay",
+    "MapRoute",
     "MapScenario",
     "MapBlueprint",
     "MapView",
@@ -223,6 +226,58 @@ class MapOverlay:
 
 
 @dataclass(slots=True)
+class MapRoute:
+    """Recommended traversal between waypoints within the mapping fabric."""
+
+    name: str
+    description: str
+    waypoints: tuple[MapNode, ...]
+    connections: tuple[MapConnection, ...]
+    score: float = 0.0
+    hops: int = 1
+    metadata: Mapping[str, object] | None = None
+
+    def __post_init__(self) -> None:
+        self.name = _normalise_text(self.name)
+        self.description = _normalise_text(self.description, fallback=self.name)
+        if len(self.waypoints) < 2:
+            raise ValueError("route must include at least two waypoints")
+        verified_waypoints: list[MapNode] = []
+        for waypoint in self.waypoints:
+            if not isinstance(waypoint, MapNode):
+                raise TypeError("waypoints must contain MapNode instances")
+            verified_waypoints.append(waypoint)
+        self.waypoints = tuple(verified_waypoints)
+        verified_connections: list[MapConnection] = []
+        for connection in self.connections:
+            if not isinstance(connection, MapConnection):
+                raise TypeError("connections must contain MapConnection instances")
+            verified_connections.append(connection)
+        self.connections = tuple(verified_connections)
+        self.score = _clamp(self.score, 0.0, 1.0)
+        self.hops = max(int(self.hops), 1)
+        if self.metadata is None:
+            self.metadata = {}
+        else:
+            if not isinstance(self.metadata, Mapping):
+                raise TypeError("metadata must be a mapping if provided")
+            self.metadata = dict(self.metadata)
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        payload: MutableMapping[str, object] = {
+            "name": self.name,
+            "description": self.description,
+            "waypoints": [waypoint.as_dict() for waypoint in self.waypoints],
+            "connections": [connection.as_dict() for connection in self.connections],
+            "score": self.score,
+            "hops": self.hops,
+        }
+        if self.metadata:
+            payload["metadata"] = dict(self.metadata)
+        return payload
+
+
+@dataclass(slots=True)
 class MapScenario:
     """Scenario describing which layers and priorities to combine."""
 
@@ -285,6 +340,7 @@ class MapBlueprint:
     overlays: tuple[MapOverlay, ...]
     highlighted_nodes: tuple[MapNode, ...]
     highlighted_connections: tuple[MapConnection, ...]
+    routes: tuple[MapRoute, ...]
     insights: tuple[str, ...]
     recommended_actions: tuple[str, ...]
 
@@ -298,6 +354,7 @@ class MapBlueprint:
             "highlighted_connections": [
                 connection.as_dict() for connection in self.highlighted_connections
             ],
+            "routes": [route.as_dict() for route in self.routes],
             "insights": list(self.insights),
             "recommended_actions": list(self.recommended_actions),
         }
@@ -377,6 +434,13 @@ class DynamicMappingEngine:
         highlighted_connections = self._select_highlighted_connections(
             highlighted_nodes, adjacency
         )
+        routes = self._derive_routes(
+            node_index,
+            adjacency,
+            highlighted_nodes,
+            scenario,
+            overlay_bundle,
+        )
         insights = self._generate_insights(
             highlighted_nodes, highlighted_connections, scenario
         )
@@ -388,6 +452,7 @@ class DynamicMappingEngine:
             overlays=tuple(overlay_bundle),
             highlighted_nodes=highlighted_nodes,
             highlighted_connections=highlighted_connections,
+            routes=routes,
             insights=insights,
             recommended_actions=actions,
         )
@@ -447,6 +512,147 @@ class DynamicMappingEngine:
                 if existing is None or connection.intensity > existing.intensity:
                     connection_map[key] = connection
         return tuple(connection_map.values())
+
+    def _derive_routes(
+        self,
+        node_index: Mapping[str, MapNode],
+        adjacency: Mapping[str, Sequence[MapConnection]],
+        highlighted_nodes: Sequence[MapNode],
+        scenario: MapScenario,
+        overlays: Sequence[MapOverlay],
+        *,
+        limit: int = 3,
+    ) -> tuple[MapRoute, ...]:
+        if len(highlighted_nodes) < 2:
+            return ()
+
+        focus_nodes = {node_id for node_id in scenario.focus_nodes}
+        focus_tags = set(scenario.focus_tags)
+        for overlay in overlays:
+            focus_nodes.update(overlay.focus_nodes)
+            focus_tags.update(overlay.focus_tags)
+
+        def _shortest_path(
+            start: str, target: str
+        ) -> tuple[tuple[str, ...], tuple[MapConnection, ...]] | None:
+            queue = deque([start])
+            visited: Dict[str, tuple[str | None, MapConnection | None]] = {
+                start: (None, None)
+            }
+            while queue:
+                current = queue.popleft()
+                if current == target:
+                    break
+                for connection in adjacency.get(current, ()):  # pragma: no branch - BFS traversal
+                    neighbour = (
+                        connection.target
+                        if connection.source == current
+                        else connection.source
+                    )
+                    if neighbour in visited:
+                        continue
+                    visited[neighbour] = (current, connection)
+                    queue.append(neighbour)
+            if target not in visited:
+                return None
+            path_nodes: list[str] = []
+            path_connections: list[MapConnection] = []
+            pointer = target
+            while pointer is not None:
+                path_nodes.append(pointer)
+                previous, connection = visited[pointer]
+                if connection is not None:
+                    path_connections.append(connection)
+                pointer = previous
+            path_nodes.reverse()
+            path_connections.reverse()
+            return tuple(path_nodes), tuple(path_connections)
+
+        candidate_routes: list[
+            tuple[
+                float,
+                int,
+                str,
+                tuple[str, ...],
+                tuple[MapConnection, ...],
+            ]
+        ] = []
+        seen_paths: set[tuple[str, ...]] = set()
+
+        highlighted_ids = [node.identifier for node in highlighted_nodes]
+        for start_id, end_id in combinations(highlighted_ids, 2):
+            path = _shortest_path(start_id, end_id)
+            if path is None:
+                continue
+            node_path, path_connections = path
+            if len(node_path) < 2:
+                continue
+            if node_path in seen_paths:
+                continue
+            seen_paths.add(node_path)
+
+            waypoints = tuple(node_index[node_id] for node_id in node_path)
+            hops = len(waypoints) - 1
+            intensity = (
+                sum(connection.intensity for connection in path_connections) / len(path_connections)
+                if path_connections
+                else 0.0
+            )
+            endpoint_strength = min(
+                (waypoints[0].weight + waypoints[-1].weight) / 200.0,
+                1.0,
+            )
+            focus_bonus = 0.0
+            if focus_nodes and any(
+                waypoint.identifier in focus_nodes for waypoint in waypoints
+            ):
+                focus_bonus += 0.1
+            if focus_tags and any(
+                _tag_alignment(waypoint.tags, focus_tags) > 0.0
+                for waypoint in waypoints
+            ):
+                focus_bonus += 0.1
+            hop_modifier = max(0.3, 1.0 - 0.1 * max(hops - 1, 0))
+            score = _clamp(
+                (0.6 * intensity + 0.4 * endpoint_strength + focus_bonus) * hop_modifier,
+                0.0,
+                1.0,
+            )
+            name = f"{waypoints[0].name} → {waypoints[-1].name}"
+            if hops == 1:
+                description = (
+                    f"Direct connection linking {waypoints[0].name} to {waypoints[-1].name}."
+                )
+            else:
+                middle = ", ".join(node.name for node in waypoints[1:-1])
+                description = (
+                    f"Route {waypoints[0].name} through {middle} to reach {waypoints[-1].name}."
+                )
+            candidate_routes.append(
+                (score, hops, name, node_path, path_connections, description)
+            )
+
+        if not candidate_routes:
+            return ()
+
+        candidate_routes.sort(
+            key=lambda item: (-item[0], item[1], item[2].lower())
+        )
+
+        selected: list[MapRoute] = []
+        for score, hops, name, node_path, path_connections, description in candidate_routes[:limit]:
+            waypoints = tuple(node_index[node_id] for node_id in node_path)
+            selected.append(
+                MapRoute(
+                    name=name,
+                    description=description,
+                    waypoints=waypoints,
+                    connections=path_connections,
+                    score=score,
+                    hops=hops,
+                )
+            )
+        return tuple(selected)
 
     def _generate_insights(
         self,
