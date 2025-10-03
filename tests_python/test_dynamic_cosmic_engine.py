@@ -5,6 +5,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
+from dynamic_cosmic import enable_engine  # noqa: E402
 from dynamic_cosmic.cosmic import (  # noqa: E402
     CosmicBridge,
     CosmicCoordinate,
@@ -95,3 +96,71 @@ def test_topology_metrics_include_expected_aggregates() -> None:
 
     snapshot = engine.snapshot()
     assert snapshot["metrics"] == metrics
+
+
+def test_enable_engine_uses_default_scenario() -> None:
+    engine = enable_engine()
+
+    snapshot = engine.snapshot()
+    assert len(snapshot["phenomena"]) == 3
+    assert snapshot["metrics"]["bridges"] == 2.0
+
+
+def test_enable_engine_accepts_custom_configuration() -> None:
+    config = {
+        "history_limit": 5,
+        "phenomena": [
+            {
+                "identifier": "sol",
+                "location": {"x": 0.0, "y": 0.0, "z": 0.0},
+                "magnitude": 9.5,
+                "volatility": 0.12,
+                "signals": [
+                    {
+                        "identifier": "sol-spectrum",
+                        "wavelength_nm": 600.0,
+                        "amplitude": 5.0,
+                        "coherence": 0.7,
+                    }
+                ],
+            }
+        ],
+        "events": [
+            {
+                "description": "Solar telemetry baseline established",
+                "impact": 0.4,
+            }
+        ],
+    }
+
+    engine = enable_engine(config)
+    snapshot = engine.snapshot()
+
+    assert [phenomenon["identifier"] for phenomenon in snapshot["phenomena"]] == ["sol"]
+    assert snapshot["events"][0]["description"] == "Solar telemetry baseline established"
+    assert snapshot["metrics"]["bridges"] == 0.0
+
+
+def test_topology_metrics_cache_invalidation() -> None:
+    engine = DynamicCosmic(phenomena=[_phenomenon("alpha"), _phenomenon("beta")])
+    engine.register_bridge(_bridge("alpha", "beta"))
+
+    first = engine.topology_metrics()
+    second = engine.topology_metrics()
+    assert second is first
+
+    engine.register_phenomenon(_phenomenon("gamma"))
+
+    refreshed = engine.topology_metrics()
+    assert refreshed is not first
+    assert refreshed["phenomena"] == 3.0
+
+
+def test_enable_engine_warms_caches() -> None:
+    engine = enable_engine()
+
+    assert engine._resilience_cache is not None  # noqa: SLF001 - validate cache warming
+    assert engine._metrics_cache is not None  # noqa: SLF001 - validate cache warming
+
+    cached_metrics = engine.topology_metrics()
+    assert cached_metrics is engine._metrics_cache  # noqa: SLF001 - ensure cache reused

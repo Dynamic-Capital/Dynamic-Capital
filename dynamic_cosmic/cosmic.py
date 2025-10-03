@@ -7,6 +7,7 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from math import sqrt
 from statistics import fmean
+from types import MappingProxyType
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
 __all__ = [
@@ -255,6 +256,7 @@ class DynamicCosmic:
         self._events: Deque[CosmicTimelineEvent] = deque()
         self._history_limit = int(history_limit)
         self._resilience_cache: float | None = None
+        self._metrics_cache: Mapping[str, float] | None = None
 
         if phenomena:
             for item in phenomena:
@@ -268,6 +270,7 @@ class DynamicCosmic:
 
     def _mark_resilience_dirty(self) -> None:
         self._resilience_cache = None
+        self._metrics_cache = None
 
     @property
     def phenomena(self) -> tuple[CosmicPhenomenon, ...]:
@@ -390,17 +393,22 @@ class DynamicCosmic:
     def topology_metrics(self) -> Mapping[str, float]:
         """Return aggregate metrics describing the current network topology."""
 
+        if self._metrics_cache is not None:
+            return self._metrics_cache
+
         resonance_scores = [phenomenon.resonance_score() for phenomenon in self._phenomena.values()]
         bridge_efficiencies = [bridge.transfer_efficiency() for bridge in self._bridges.values()]
         volatility = [phenomenon.volatility for phenomenon in self._phenomena.values()]
 
-        return {
+        metrics = {
             "phenomena": float(len(self._phenomena)),
             "bridges": float(len(self._bridges)),
             "mean_resonance": _mean(resonance_scores),
             "mean_bridge_efficiency": _mean(bridge_efficiencies),
             "volatility_index": _mean(volatility),
         }
+        self._metrics_cache = MappingProxyType(metrics)
+        return self._metrics_cache
 
     def snapshot(self) -> Mapping[str, object]:
         ordered_phenomena = sorted(self._phenomena.values(), key=lambda phenomenon: phenomenon.identifier)
