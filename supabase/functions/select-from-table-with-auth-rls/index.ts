@@ -1,14 +1,19 @@
 import { registerHandler } from "../_shared/serve.ts";
-import { createClient } from "../_shared/client.ts";
-import { corsHeaders, json, mna, oops, unauth } from "../_shared/http.ts";
+import { corsHeaders, json, mna, oops } from "../_shared/http.ts";
+import { createLogger } from "../_shared/logger.ts";
+import { requireAuthUser } from "../_shared/auth.ts";
 
-const logPrefix = "[select-from-table-with-auth-rls]";
+const logger = createLogger({
+  function: "select-from-table-with-auth-rls",
+});
 
 export const handler = registerHandler(async (req) => {
+  const headers = corsHeaders(req, "POST,OPTIONS");
+
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
-      headers: corsHeaders(req, "POST,OPTIONS"),
+      headers,
     });
   }
 
@@ -16,33 +21,19 @@ export const handler = registerHandler(async (req) => {
     return mna();
   }
 
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    console.warn(`${logPrefix} missing Authorization header`);
-    return unauth("Missing Authorization header", req);
+  const auth = await requireAuthUser(req, { logger });
+  if (!auth.ok) {
+    return auth.response;
   }
 
-  const supabaseClient = createClient("anon", {
-    global: { headers: { Authorization: authHeader } },
-    auth: { persistSession: false },
-  });
+  const { supabase, user } = auth;
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    console.warn(`${logPrefix} failed to resolve user`, userError);
-    return unauth("Invalid or expired access token", req);
-  }
-
-  const { data, error } = await supabaseClient
+  const { data, error } = await supabase
     .from("users")
     .select("*");
 
   if (error) {
-    console.error(`${logPrefix} query failed`, error);
+    logger.error("query failed", error);
     return oops("Failed to fetch users", error.message, req);
   }
 
