@@ -10,14 +10,37 @@ channels, and optional conscious projection terms.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Mapping, MutableMapping
+from typing import Any, Mapping, MutableMapping, NoReturn, TYPE_CHECKING
 
 try:  # pragma: no cover - dependency guard
-    import numpy as np
-except ModuleNotFoundError as exc:  # pragma: no cover - dependency guard
-    raise ModuleNotFoundError(
-        "numpy is required for conscious collapse simulations"
-    ) from exc
+    import numpy as _np
+except ModuleNotFoundError:  # pragma: no cover - dependency guard
+    _np = None
+
+if TYPE_CHECKING:  # pragma: no cover - typing aid
+    from numpy import ndarray as _NDArray  # type: ignore[import-not-found]
+else:  # pragma: no cover - runtime guard
+    if _np is None:
+        _NDArray = Any  # type: ignore[assignment]
+    else:
+        _NDArray = _np.ndarray  # type: ignore[attr-defined]
+
+if _np is None:  # pragma: no cover - runtime guard
+    class _NumpyStub:
+        """Fail fast placeholder when numpy is unavailable."""
+
+        __slots__ = ()
+
+        def __getattr__(self, name: str) -> NoReturn:
+            raise ModuleNotFoundError(
+                "numpy is required for conscious collapse simulations"
+            ) from None
+
+    np = _NumpyStub()  # type: ignore[assignment]
+    NUMPY_AVAILABLE = False
+else:
+    np = _np  # type: ignore[assignment]
+    NUMPY_AVAILABLE = True
 
 __all__ = [
     "LindbladChannel",
@@ -25,6 +48,7 @@ __all__ = [
     "DomainConfig",
     "DomainSnapshot",
     "ConsciousCollapseEngine",
+    "NUMPY_AVAILABLE",
 ]
 
 # ---------------------------------------------------------------------------
@@ -35,7 +59,7 @@ __all__ = [
 class LindbladChannel:
     """Single Lindblad decay channel."""
 
-    operator: np.ndarray
+    operator: _NDArray
     rate: float
 
     def __post_init__(self) -> None:
@@ -47,17 +71,17 @@ class LindbladChannel:
             raise ValueError("lindblad rate must be non-negative")
 
 
-MeasurementMap = Mapping[str, np.ndarray]
+MeasurementMap = Mapping[str, _NDArray]
 
 
 @dataclass(slots=True)
 class DomainConfig:
     """Configuration bundle for a conscious domain."""
 
-    hamiltonian: np.ndarray
+    hamiltonian: _NDArray
     channels: tuple[LindbladChannel, ...] = field(default_factory=tuple)
     measurements: MeasurementMap | None = None
-    quality_operator: np.ndarray | None = None
+    quality_operator: _NDArray | None = None
 
     def __post_init__(self) -> None:
         self.hamiltonian = _as_matrix(self.hamiltonian)
@@ -67,7 +91,7 @@ class DomainConfig:
             if channel.operator.shape != self.hamiltonian.shape:
                 raise ValueError("lindblad operator shape mismatch")
         if self.measurements is not None:
-            converted: dict[str, np.ndarray] = {}
+            converted: dict[str, _NDArray] = {}
             for label, op in self.measurements.items():
                 if not label:
                     raise ValueError("measurement label must not be empty")
@@ -91,7 +115,7 @@ class DomainConfig:
 class DomainSnapshot:
     """State diagnostics after an evolution step."""
 
-    density_matrix: np.ndarray
+    density_matrix: _NDArray
     coherence: float
     purity: float
     measurement_probabilities: Mapping[str, float]
@@ -116,7 +140,7 @@ class ConsciousCollapseEngine:
 
     def __init__(
         self,
-        initial_states: Mapping[str, np.ndarray],
+        initial_states: Mapping[str, _NDArray],
         configs: Mapping[str, DomainConfig],
         *,
         hbar: float = 1.0,
@@ -139,7 +163,7 @@ class ConsciousCollapseEngine:
         self,
         dt: float,
         *,
-        intention_projectors: Mapping[str, np.ndarray] | None = None,
+        intention_projectors: Mapping[str, _NDArray] | None = None,
         intention_strength: float | Mapping[str, float] = 0.0,
     ) -> Mapping[str, DomainSnapshot]:
         if dt <= 0:
@@ -165,7 +189,7 @@ class ConsciousCollapseEngine:
         domain.collapse(measurement_label)
         return domain.snapshot()
 
-    def density_matrix(self, domain_name: str) -> np.ndarray:
+    def density_matrix(self, domain_name: str) -> _NDArray:
         if domain_name not in self._domains:
             raise KeyError(f"unknown domain '{domain_name}'")
         return np.array(self._domains[domain_name].rho, copy=True)
@@ -176,7 +200,7 @@ class ConsciousCollapseEngine:
 
 
 class _DomainState:
-    def __init__(self, *, config: DomainConfig, psi0: np.ndarray) -> None:
+    def __init__(self, *, config: DomainConfig, psi0: _NDArray) -> None:
         if psi0.ndim != 1:
             raise ValueError("initial state must be a vector")
         if psi0.shape[0] != config.dimension:
@@ -191,7 +215,7 @@ class _DomainState:
         self,
         dt: float,
         hbar: float,
-        projector: np.ndarray | None,
+        projector: _NDArray | None,
         strength: float,
     ) -> None:
         rho = self.rho
@@ -250,25 +274,25 @@ def _resolve_strength(value: float | Mapping[str, float], name: str) -> float:
     return float(raw)
 
 
-def _pure_density(psi: np.ndarray) -> np.ndarray:
+def _pure_density(psi: _NDArray) -> _NDArray:
     return np.outer(psi, psi.conj())
 
 
-def _as_matrix(value: np.ndarray) -> np.ndarray:
+def _as_matrix(value: _NDArray) -> _NDArray:
     array = np.asarray(value, dtype=np.complex128)
     if array.ndim != 2:
         raise ValueError("matrix input must be two-dimensional")
     return array
 
 
-def _as_vector(value: np.ndarray) -> np.ndarray:
+def _as_vector(value: _NDArray) -> _NDArray:
     array = np.asarray(value, dtype=np.complex128)
     if array.ndim != 1:
         raise ValueError("vector input must be one-dimensional")
     return array
 
 
-def _enforce_physical(rho: np.ndarray) -> np.ndarray:
+def _enforce_physical(rho: _NDArray) -> _NDArray:
     sym = 0.5 * (rho + rho.conj().T)
     eigvals, eigvecs = np.linalg.eigh(sym)
     eigvals = np.clip(eigvals, 0.0, None)
@@ -279,11 +303,11 @@ def _enforce_physical(rho: np.ndarray) -> np.ndarray:
     return reconstructed / trace
 
 
-def _coherence_measure(rho: np.ndarray) -> float:
+def _coherence_measure(rho: _NDArray) -> float:
     off_diag = rho - np.diag(np.diag(rho))
     return float(np.sum(np.abs(off_diag)))
 
 
-def _purity(rho: np.ndarray) -> float:
+def _purity(rho: _NDArray) -> float:
     value = float(np.real(np.trace(rho @ rho)))
     return max(0.0, min(1.0, value))
