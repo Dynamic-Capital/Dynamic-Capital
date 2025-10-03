@@ -79,7 +79,9 @@ export function resolveSupabaseFunctionUrl(): EnvValue {
   return cachedSupabaseFunctionUrl;
 }
 
-let cachedSupabaseFunctionHeaders: Readonly<Record<string, string>>;
+let cachedSupabaseFunctionHeaders:
+  | Readonly<Record<string, string>>
+  | undefined;
 
 export function buildSupabaseFunctionHeaders(): Record<string, string> {
   if (!cachedSupabaseFunctionHeaders) {
@@ -125,6 +127,13 @@ function methodAllowsBody(method: string): boolean {
 }
 
 const missingConfigLogContexts = new Set<string>();
+
+export function resetSupabaseFunctionCacheForTesting(): void {
+  cachedSupabaseFunctionUrl = undefined;
+  hasResolvedSupabaseFunctionUrl = false;
+  cachedSupabaseFunctionHeaders = undefined;
+  missingConfigLogContexts.clear();
+}
 
 interface ProxySupabaseOptions {
   readonly request?: Request;
