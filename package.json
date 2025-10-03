@@ -11,6 +11,7 @@
   },
   "scripts": {
     "build": "node scripts/npm-safe.mjs run build:web && node scripts/npm-safe.mjs run build:landing",
+    "build:tooling": "node scripts/build-tooling.mjs",
     "build:landing": "node scripts/npm-safe.mjs -w apps/landing run build",
     "build:web": "node scripts/npm-safe.mjs -w apps/web run build",
     "build:dynamic-ai": "node scripts/dynamic-ai-phased-build.mjs",
