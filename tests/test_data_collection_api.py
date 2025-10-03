@@ -79,6 +79,8 @@ def test_record_trade_serialises_payload() -> None:
 def test_bootstrap_data_collection_api(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DATA_COLLECTION_API_URL", "https://collector.test")
     monkeypatch.setenv("DATA_COLLECTION_API_KEY", "secret")
+    monkeypatch.setenv("DATA_COLLECTION_MAX_ATTEMPTS", "3")
+    monkeypatch.setenv("DATA_COLLECTION_RETRY_BACKOFF", "0.25")
 
     captured: dict[str, object] = {}
 
@@ -96,3 +98,38 @@ def test_bootstrap_data_collection_api(monkeypatch: pytest.MonkeyPatch) -> None:
     assert isinstance(collector, DummyCollector)
     assert captured["base_url"] == "https://collector.test"
     assert captured["kwargs"]["api_key"] == "secret"
+    assert captured["kwargs"]["max_attempts"] == 3
+    assert captured["kwargs"]["retry_backoff"] == pytest.approx(0.25)
+
+
+def test_data_collection_api_retries_transient_failures() -> None:
+    class FlakySession:
+        def __init__(self) -> None:
+            self.calls: list[str] = []
+
+        def request(
+            self,
+            method: str,
+            url: str,
+            *,
+            json: dict[str, object],
+            headers: dict[str, str],
+            timeout: float,
+        ) -> DummyResponse:
+            self.calls.append(url)
+            if len(self.calls) == 1:
+                raise RuntimeError("collector unavailable")
+            return DummyResponse(status_code=200, payload={"status": "accepted"})
+
+    session = FlakySession()
+    api = DataCollectionAPI(
+        "https://collector.test/api",
+        session=session,
+        max_attempts=2,
+        retry_backoff=0.0,
+    )
+
+    result = api.record_telemetry({"metric": 42})
+
+    assert len(session.calls) == 2
+    assert result["status"] == "accepted"

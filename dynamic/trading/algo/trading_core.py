@@ -1689,6 +1689,18 @@ class DynamicTradingAlgo:
                 hedge_endpoint = os.environ.get("TRADE_EXECUTION_HEDGE_ENDPOINT")
                 if hedge_endpoint:
                     api_kwargs["hedge_endpoint"] = hedge_endpoint
+                max_attempts_value = os.environ.get("TRADE_EXECUTION_MAX_ATTEMPTS") or os.environ.get(
+                    "TRADE_API_MAX_ATTEMPTS"
+                )
+                max_attempts = _coerce_int(max_attempts_value)
+                if max_attempts and max_attempts > 0:
+                    api_kwargs["max_attempts"] = max_attempts
+                retry_backoff_value = os.environ.get("TRADE_EXECUTION_RETRY_BACKOFF") or os.environ.get(
+                    "TRADE_API_RETRY_BACKOFF"
+                )
+                retry_backoff = _coerce_float(retry_backoff_value)
+                if retry_backoff is not None and retry_backoff >= 0:
+                    api_kwargs["retry_backoff"] = retry_backoff
                 try:
                     connector = TradeAPIConnector(api_url, **api_kwargs)
                 except Exception as exc:  # pragma: no cover - dependency variability

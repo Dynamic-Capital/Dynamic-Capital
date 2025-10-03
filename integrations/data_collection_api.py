@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from dataclasses import asdict, is_dataclass
 from datetime import date, datetime, timezone
-from typing import Any, Mapping, MutableMapping
+from typing import Any, Callable, Mapping, MutableMapping
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +86,8 @@ class DataCollectionAPI:
         trade_endpoint: str = "/trades",
         telemetry_endpoint: str = "/telemetry",
         session: Any | None = None,
+        max_attempts: int = 1,
+        retry_backoff: float = 0.0,
     ) -> None:
         base = str(base_url).strip()
         if not base:
@@ -99,6 +102,17 @@ class DataCollectionAPI:
         self.trade_endpoint = self._normalise_endpoint(trade_endpoint)
         self.telemetry_endpoint = self._normalise_endpoint(telemetry_endpoint)
         self.logger = logging.getLogger(self.__class__.__name__)
+
+        attempts = int(max_attempts)
+        if attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
+        self.max_attempts = attempts
+
+        self.retry_backoff = float(retry_backoff)
+        if self.retry_backoff < 0:
+            raise ValueError("retry_backoff cannot be negative")
+
+        self._sleep: Callable[[float], None] = time.sleep
 
         if session is None:
             self._session = self._build_session()
@@ -162,6 +176,12 @@ class DataCollectionAPI:
             ) from exc
         return requests.Session()
 
+    def _should_retry_response(self, response: Any) -> bool:
+        status = getattr(response, "status_code", 0)
+        if status in {408, 409, 425, 429}:
+            return True
+        return 500 <= status < 600
+
     def _request(self, method: str, endpoint: str, payload: Mapping[str, Any]) -> MutableMapping[str, Any]:
         url = self._build_url(endpoint)
         headers = {"Content-Type": "application/json"}
@@ -170,21 +190,53 @@ class DataCollectionAPI:
         if self.client_id:
             headers["X-Client-Id"] = self.client_id
 
-        try:
-            response = self._session.request(
-                method.upper(),
-                url,
-                json=dict(payload),
-                headers=headers,
-                timeout=self.timeout,
-            )
-        except Exception as exc:  # pragma: no cover - network variability
-            self.logger.error("Data collection request to %s failed: %s", url, exc)
+        response: Any | None = None
+        last_error: Exception | None = None
+        delay = self.retry_backoff
+
+        for attempt in range(1, self.max_attempts + 1):
+            try:
+                response = self._session.request(
+                    method.upper(),
+                    url,
+                    json=dict(payload),
+                    headers=headers,
+                    timeout=self.timeout,
+                )
+            except Exception as exc:  # pragma: no cover - network variability
+                last_error = exc
+                self.logger.warning(
+                    "Data collection request to %s failed on attempt %s/%s: %s",
+                    url,
+                    attempt,
+                    self.max_attempts,
+                    exc,
+                )
+            else:
+                if response.ok or not self._should_retry_response(response) or attempt == self.max_attempts:
+                    break
+                self.logger.warning(
+                    "Data collection request to %s returned HTTP %s; retrying (%s/%s)",
+                    url,
+                    getattr(response, "status_code", "unknown"),
+                    attempt,
+                    self.max_attempts,
+                )
+            if attempt < self.max_attempts and delay > 0:
+                try:
+                    self._sleep(delay)
+                except Exception:  # pragma: no cover - defensive sleep hook
+                    pass
+                delay *= 2
+
+        if response is None:
+            error = last_error or RuntimeError("request_failed")
+            self.logger.error("Data collection request to %s failed: %s", url, error)
             return {
                 "status": "error",
                 "code": 0,
-                "message": f"request_failed: {exc}",
-                "error": str(exc),
+                "message": f"request_failed: {error}",
+                "error": str(error),
             }
 
         data: Any
@@ -241,6 +293,32 @@ def bootstrap_data_collection_api(
     telemetry_endpoint = environ.get("DATA_COLLECTION_TELEMETRY_ENDPOINT")
     if telemetry_endpoint:
         kwargs["telemetry_endpoint"] = telemetry_endpoint
+
+    max_attempts_value = environ.get("DATA_COLLECTION_MAX_ATTEMPTS") or environ.get("TRADE_DATA_MAX_ATTEMPTS")
+    if max_attempts_value:
+        try:
+            attempts = int(max_attempts_value)
+        except ValueError:
+            logger.warning(
+                "Invalid data collection max attempts '%s'; using default",
+                max_attempts_value,
+            )
+        else:
+            if attempts > 0:
+                kwargs["max_attempts"] = attempts
+
+    retry_backoff_value = environ.get("DATA_COLLECTION_RETRY_BACKOFF") or environ.get("TRADE_DATA_RETRY_BACKOFF")
+    if retry_backoff_value:
+        try:
+            retry_backoff = float(retry_backoff_value)
+        except ValueError:
+            logger.warning(
+                "Invalid data collection retry backoff '%s'; using default",
+                retry_backoff_value,
+            )
+        else:
+            if retry_backoff >= 0:
+                kwargs["retry_backoff"] = retry_backoff
 
     timeout_value = environ.get("DATA_COLLECTION_TIMEOUT") or environ.get("TRADE_DATA_TIMEOUT")
     if timeout_value:

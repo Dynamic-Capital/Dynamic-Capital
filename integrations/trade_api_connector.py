@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Mapping, MutableMapping, Optional
+import time
+from typing import Any, Callable, Mapping, MutableMapping, Optional
 
 SUCCESS_RETCODE = 10009
 
@@ -44,6 +45,8 @@ class TradeAPIConnector:
         timeout: float = 10.0,
         order_endpoint: str = "/orders",
         hedge_endpoint: str = "/hedges",
+        max_attempts: int = 1,
+        retry_backoff: float = 0.0,
         session: Any | None = None,
     ) -> None:
         base = str(base_url).strip()
@@ -57,6 +60,17 @@ class TradeAPIConnector:
         self.order_endpoint = self._normalise_endpoint(order_endpoint)
         self.hedge_endpoint = self._normalise_endpoint(hedge_endpoint)
         self.logger = logging.getLogger(self.__class__.__name__)
+
+        attempts = int(max_attempts)
+        if attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
+        self.max_attempts = attempts
+
+        self.retry_backoff = float(retry_backoff)
+        if self.retry_backoff < 0:
+            raise ValueError("retry_backoff cannot be negative")
+
+        self._sleep: Callable[[float], None] = time.sleep
 
         if session is None:
             self._session = self._build_session()
@@ -118,6 +132,12 @@ class TradeAPIConnector:
     def _build_url(self, endpoint: str) -> str:
         return f"{self.base_url}{self._normalise_endpoint(endpoint)}"
 
+    def _should_retry_response(self, response: Any) -> bool:
+        status = getattr(response, "status_code", 0)
+        if status in {408, 409, 425, 429}:
+            return True
+        return 500 <= status < 600
+
     def _request(self, method: str, endpoint: str, payload: Mapping[str, Any]) -> MutableMapping[str, Any]:
         url = self._build_url(endpoint)
         headers = {"Content-Type": "application/json"}
@@ -126,21 +146,53 @@ class TradeAPIConnector:
         if self.client_id:
             headers["X-Client-Id"] = self.client_id
 
-        try:
-            response = self._session.request(
-                method.upper(),
-                url,
-                json=dict(payload),
-                headers=headers,
-                timeout=self.timeout,
-            )
-        except Exception as exc:  # pragma: no cover - network variability
-            self.logger.error("Trade API request to %s failed: %s", url, exc)
+        response: Any | None = None
+        last_error: Exception | None = None
+        delay = self.retry_backoff
+
+        for attempt in range(1, self.max_attempts + 1):
+            try:
+                response = self._session.request(
+                    method.upper(),
+                    url,
+                    json=dict(payload),
+                    headers=headers,
+                    timeout=self.timeout,
+                )
+            except Exception as exc:  # pragma: no cover - network variability
+                last_error = exc
+                self.logger.warning(
+                    "Trade API request to %s failed on attempt %s/%s: %s",
+                    url,
+                    attempt,
+                    self.max_attempts,
+                    exc,
+                )
+            else:
+                if response.ok or not self._should_retry_response(response) or attempt == self.max_attempts:
+                    break
+                self.logger.warning(
+                    "Trade API request to %s returned HTTP %s; retrying (%s/%s)",
+                    url,
+                    getattr(response, "status_code", "unknown"),
+                    attempt,
+                    self.max_attempts,
+                )
+            if attempt < self.max_attempts and delay > 0:
+                try:
+                    self._sleep(delay)
+                except Exception:  # pragma: no cover - defensive sleep hook
+                    pass
+                delay *= 2
+
+        if response is None:
+            error = last_error or RuntimeError("request_failed")
+            self.logger.error("Trade API request to %s failed: %s", url, error)
             return {
                 "status": "error",
                 "code": 0,
-                "message": f"request_failed: {exc}",
-                "error": str(exc),
+                "message": f"request_failed: {error}",
+                "error": str(error),
             }
 
         data: Any

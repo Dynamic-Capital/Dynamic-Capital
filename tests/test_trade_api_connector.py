@@ -104,3 +104,37 @@ def test_trade_api_connector_supports_hedge_endpoints() -> None:
     assert payload["hedge_side"] == "LONG_HEDGE"
     assert result["status"] in {"queued", "executed"}
     assert result["symbol"] == "TONUSD"
+
+
+def test_trade_api_connector_retries_transient_failures() -> None:
+    class FlakySession:
+        def __init__(self) -> None:
+            self.calls: list[Tuple[str, str]] = []
+
+        def request(
+            self,
+            method: str,
+            url: str,
+            *,
+            json: Dict[str, Any],
+            headers: Dict[str, str],
+            timeout: float,
+        ) -> StubResponse:
+            self.calls.append((method, url))
+            if len(self.calls) == 1:
+                raise RuntimeError("temporary outage")
+            return StubResponse(200, {"id": "retry-1", "price": 1.0, "profit": 0.5})
+
+    session = FlakySession()
+    connector = TradeAPIConnector(
+        "https://broker.test/api",
+        session=session,
+        max_attempts=2,
+        retry_backoff=0.0,
+    )
+
+    result = connector.sell("eurusd", 0.5)
+
+    assert len(session.calls) == 2
+    assert result["status"] == "executed"
+    assert result["ticket"] == "retry-1"

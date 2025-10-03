@@ -81,6 +81,30 @@ def test_bootstrap_connector_prefers_trade_api(monkeypatch: pytest.MonkeyPatch) 
     assert algo.connector.kwargs["api_key"] == "token"
 
 
+def test_bootstrap_connector_propagates_retry_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
+
+    class DummyConnector:
+        def __init__(self, base_url: str, **kwargs: Any) -> None:  # type: ignore[override]
+            captured["base_url"] = base_url
+            captured["kwargs"] = kwargs
+
+    monkeypatch.setenv("TRADE_EXECUTION_API_URL", "https://broker.test")
+    monkeypatch.setenv("TRADE_EXECUTION_MAX_ATTEMPTS", "4")
+    monkeypatch.setenv("TRADE_EXECUTION_RETRY_BACKOFF", "0.15")
+    monkeypatch.setattr(
+        "dynamic.trading.algo.trading_core.TradeAPIConnector",
+        DummyConnector,
+    )
+    monkeypatch.setattr("dynamic.trading.algo.trading_core.MT5Connector", None, raising=False)
+
+    _ = DynamicTradingAlgo()
+
+    assert captured["base_url"] == "https://broker.test"
+    assert captured["kwargs"]["max_attempts"] == 4
+    assert captured["kwargs"]["retry_backoff"] == pytest.approx(0.15)
+
+
 def test_execute_trade_preserves_mapping_response_fields() -> None:
     class MappingConnector:
         def __init__(self) -> None:
