@@ -21,7 +21,13 @@ export interface ProviderSummary {
   maxOutputTokens: number;
 }
 
-export type ProviderId = "dynamic-agi" | "openai" | "anthropic" | "groq";
+export type ProviderId =
+  | "dynamic-ai"
+  | "dynamic-agi"
+  | "dynamic-ags"
+  | "openai"
+  | "anthropic"
+  | "groq";
 
 export interface ChatRequest {
   providerId: ProviderId;
