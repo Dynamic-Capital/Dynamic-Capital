@@ -117,6 +117,9 @@ class MockAllocator {
     if (wallet !== this.#jettonWallet) {
       throw new Error("allocator: unauthorized jetton");
     }
+    if (jettonAmount <= 0) {
+      throw new Error("allocator: invalid jetton amount");
+    }
     if (forwardTonAmount <= 0) {
       throw new Error("allocator: invalid forward TON");
     }
@@ -319,6 +322,22 @@ Deno.test("jetton transfer enforces forward ton amount", () => {
       }),
     Error,
     "amount mismatch",
+  );
+
+  assertThrows(
+    () =>
+      allocator.processJettonTransfer({
+        wallet: "GOOD",
+        jettonAmount: 0,
+        forwardTonAmount: 1,
+        depositId: "12",
+        investorKey: "0xzero",
+        usdtAmount: 0,
+        fxRate: 1,
+        tonTxHash: "0xzero",
+      }),
+    Error,
+    "invalid jetton amount",
   );
 
   assertEquals(allocator.routerForwards.at(-1), {

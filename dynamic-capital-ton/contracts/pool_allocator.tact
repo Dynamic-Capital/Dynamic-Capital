@@ -141,10 +141,12 @@ contract TonPoolAllocator {
 
     body.loadUint(64); // query id
     Int jettonAmount = body.loadCoins();
+    require(jettonAmount > 0, "allocator: invalid jetton amount");
     body.loadMsgAddress(); // destination
     body.loadMsgAddress(); // response destination
     body.loadMaybeRef(); // skip custom payload
     Int forwardTonAmount = body.loadCoins();
+    require(forwardTonAmount > 0, "allocator: invalid forward TON");
     require(msg.info.value - msg.info.fwdFee >= forwardTonAmount, "allocator: insufficient ton");
 
     cell forwardPayloadCell = body.loadEitherRef();
@@ -164,6 +166,8 @@ contract TonPoolAllocator {
     require(dctAmount > 0, "allocator: invalid dct amount");
     Int expectedFx = forwardPayload.loadUint(64);
     Slice tonTx = forwardPayload.loadBitsSlice(256);
+    forwardPayload.endParse();
+    body.endParse();
 
     sendRawMessage(
       InternalMessage{

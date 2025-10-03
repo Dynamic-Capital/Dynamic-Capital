@@ -1,6 +1,6 @@
 {
   "lock": false,
-  "nodeModulesDir": "auto",
+  "nodeModulesDir": "manual",
   "fmt": {
     "include": ["apps", "contracts", "supabase"],
     "exclude": [
