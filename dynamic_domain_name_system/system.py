@@ -405,15 +405,24 @@ class DynamicDomainNameSystem:
             by_priority.setdefault(priority, []).append(state)
 
         selected: list[_RecordState] = []
+        fallback: list[_RecordState] = []
         for priority in sorted(by_priority):
             group = by_priority[priority]
             healthy = [state for state in group if state.healthy]
             if healthy:
                 selected = healthy
                 break
-        if not selected and include_unhealthy:
-            # no healthy records, fall back to best possible regardless of health
-            selected = [state for states in by_priority.values() for state in states]
+            if not fallback:
+                # keep the best available group to ensure the domain stays routable
+                fallback = list(group)
+
+        if not selected:
+            if include_unhealthy:
+                # no healthy records, fall back to every candidate regardless of health
+                selected = [state for states in by_priority.values() for state in states]
+            else:
+                selected = fallback
+
         if not selected:
             return []
 
