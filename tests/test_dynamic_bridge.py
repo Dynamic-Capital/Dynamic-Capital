@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -141,3 +142,27 @@ def test_create_dynamic_mt5_bridge_with_overrides_and_incidents() -> None:
     assert "realtime-to-worker" in report.degraded_links
     assert any(inc.identifier == "mt5-latency-spike" for inc in report.open_incidents)
     assert report.link_scores["realtime-to-worker"] < 0.82
+
+
+def test_platform_engines_exposes_bridge_symbols() -> None:
+    platform_engines = importlib.import_module("dynamic.platform.engines")
+    bridge_module = importlib.import_module("dynamic_bridge")
+
+    assert (
+        platform_engines.DynamicBridgeOrchestrator
+        is bridge_module.DynamicBridgeOrchestrator
+    )
+    assert platform_engines.BridgeEndpoint is bridge_module.BridgeEndpoint
+    assert platform_engines.BridgeLink is bridge_module.BridgeLink
+    assert platform_engines.BridgeIncident is bridge_module.BridgeIncident
+    assert (
+        platform_engines.BridgeHealthReport is bridge_module.BridgeHealthReport
+    )
+    assert (
+        platform_engines.BridgeOptimizationPlan
+        is bridge_module.BridgeOptimizationPlan
+    )
+    assert (
+        platform_engines.create_dynamic_mt5_bridge
+        is bridge_module.create_dynamic_mt5_bridge
+    )
