@@ -33,4 +33,5 @@ overfilling the drives.
   to publish the computed plan into Supabase. The automation upserts metadata
   into `public.memory_cores` and records a timestamped snapshot in
   `public.memory_sync_snapshots`. When flags are omitted the script falls back
-  to the `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` environment variables.
+  to the `SUPABASE_URL`/`SUPABASE_PROJECT_URL` and `SUPABASE_SERVICE_ROLE_KEY`
+  environment variables.
