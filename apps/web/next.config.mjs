@@ -30,6 +30,48 @@ const DYNAMIC_CAPITAL_TON_ORIGIN = `https://${DYNAMIC_CAPITAL_TON_HOST}`;
 const DYNAMIC_CAPITAL_TON_WWW_ORIGIN =
   `https://www.${DYNAMIC_CAPITAL_TON_HOST}`;
 
+const COMMIT_ENV_KEYS = [
+  "NEXT_PUBLIC_COMMIT_SHA",
+  "COMMIT_SHA",
+  "GIT_COMMIT_SHA",
+  "GIT_COMMIT",
+  "VERCEL_GIT_COMMIT_SHA",
+  "SOURCE_VERSION",
+  "DIGITALOCEAN_GIT_COMMIT_SHA",
+  "DIGITALOCEAN_DEPLOYMENT_ID",
+  "DIGITALOCEAN_APP_DEPLOYMENT_SHA",
+  "RENDER_GIT_COMMIT",
+  "HEROKU_SLUG_COMMIT",
+];
+
+function coerceCommit(raw) {
+  if (!raw) return undefined;
+  const trimmed = `${raw}`.trim();
+  if (!trimmed) return undefined;
+  if (trimmed === "undefined" || trimmed === "null") return undefined;
+  return trimmed;
+}
+
+let COMMIT_SHA = "dev";
+for (const key of COMMIT_ENV_KEYS) {
+  const candidate = coerceCommit(process.env[key]);
+  if (candidate) {
+    COMMIT_SHA = candidate;
+    if (!process.env.COMMIT_SHA) {
+      process.env.COMMIT_SHA = candidate;
+    }
+    break;
+  }
+}
+
+if (!process.env.COMMIT_SHA) {
+  process.env.COMMIT_SHA = COMMIT_SHA;
+}
+
+if (!process.env.NEXT_PUBLIC_COMMIT_SHA) {
+  process.env.NEXT_PUBLIC_COMMIT_SHA = COMMIT_SHA;
+}
+
 function coerceSiteUrl(raw) {
   if (!raw) return undefined;
   const trimmed = `${raw}`.trim();
@@ -207,6 +249,8 @@ const nextConfig = {
     SUPABASE_ANON_KEY,
     NEXT_PUBLIC_SUPABASE_URL: SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: SUPABASE_ANON_KEY,
+    COMMIT_SHA,
+    NEXT_PUBLIC_COMMIT_SHA: COMMIT_SHA,
     SITE_URL,
     NEXT_PUBLIC_SITE_URL: SITE_URL,
     ALLOWED_ORIGINS,
