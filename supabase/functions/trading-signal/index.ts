@@ -46,7 +46,7 @@ export const handler = registerHandler(async (req) => {
   await ensureFeatureRegistered(
     FEATURE_KEY,
     "Allow TradingView alerts to create MT5 signals",
-    false,
+    true,
     { source: "tradingview" },
   );
 

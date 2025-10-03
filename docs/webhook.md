@@ -78,8 +78,9 @@ the `signals` table that the MT5 bridge consumes.
 
 1. Set `TRADING_SIGNALS_WEBHOOK_SECRET` in the Supabase project environment and
    redeploy the `trading-signal` function so the new value is active.
-2. Confirm the `trading.signals_ingest` feature flag is registered/enabled if
-   downstream processing should run immediately.
+2. The `trading.signals_ingest` feature flag is registered and enabled by
+   default to keep automation active. Update the `features` table if you need to
+   temporarily pause downstream processing.
 3. Update TradingView alerts (or upstream services) to target the Supabase
    Functions URL and include the secret in the `x-tradingview-secret` header.
 4. Verify Supabase has the `signals` table and related RPC helpers deployed via
