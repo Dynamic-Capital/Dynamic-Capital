@@ -90,7 +90,15 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
     "dynamic_arrow": ("DynamicArrow",),
     "dynamic_bots": ("DynamicTelegramBot",),
     "dynamic_branch": ("DynamicBranchPlanner",),
-    "dynamic_bridge": ("DynamicBridgeOrchestrator",),
+    "dynamic_bridge": (
+        "BridgeEndpoint",
+        "BridgeHealthReport",
+        "BridgeIncident",
+        "BridgeLink",
+        "BridgeOptimizationPlan",
+        "DynamicBridgeOrchestrator",
+        "create_dynamic_mt5_bridge",
+    ),
     "dynamic_candles": ("DynamicCandles",),
     "dynamic_cap_theorem": ("DynamicCapTheorem",),
     "dynamic_clusters": (
