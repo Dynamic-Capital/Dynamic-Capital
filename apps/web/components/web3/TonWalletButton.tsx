@@ -5,7 +5,7 @@ import {
   useTonAddress,
   useTonWallet,
 } from "@tonconnect/ui-react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,18 +13,17 @@ export function TonWalletButton() {
   const wallet = useTonWallet();
   const address = useTonAddress();
 
-  useEffect(() => {
-    if (wallet && address) {
-      saveTonAddress(address);
-    }
-  }, [wallet, address]);
+  const lastSavedAddressRef = useRef<string | null>(null);
+  const lastAttemptedAddressRef = useRef<string | null>(null);
 
-  const saveTonAddress = async (tonAddress: string) => {
+  const saveTonAddress = useCallback(async (tonAddress: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
         console.warn("[TonWallet] No authenticated user");
+        lastAttemptedAddressRef.current = null;
+        toast.error("Sign in to link your TON wallet");
         return;
       }
 
@@ -37,14 +36,35 @@ export function TonWalletButton() {
 
       if (error) {
         console.error("[TonWallet] Failed to save address:", error);
+        lastAttemptedAddressRef.current = null;
         toast.error("Failed to save TON wallet address");
       } else {
+        lastSavedAddressRef.current = tonAddress;
         toast.success("TON wallet connected successfully");
       }
     } catch (error) {
       console.error("[TonWallet] Error saving address:", error);
+      lastAttemptedAddressRef.current = null;
+      toast.error("Unexpected error while saving TON wallet");
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!wallet || !address) {
+      return;
+    }
+
+    if (lastSavedAddressRef.current === address) {
+      return;
+    }
+
+    if (lastAttemptedAddressRef.current === address) {
+      return;
+    }
+
+    lastAttemptedAddressRef.current = address;
+    void saveTonAddress(address);
+  }, [wallet, address, saveTonAddress]);
 
   return (
     <div className="flex items-center gap-2">

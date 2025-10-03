@@ -31,6 +31,7 @@ const routes: RoutesConfig = {
   "/login": true,
   "/miniapp": { enabled: true, includeChildren: true },
   "/plans": true,
+  "/wallet": true,
   "/tools": { enabled: true, includeChildren: true },
   "/styles": true,
   "/telegram": true,
