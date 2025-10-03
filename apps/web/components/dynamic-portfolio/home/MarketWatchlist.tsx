@@ -11,6 +11,7 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+import { SUPABASE_CONFIG } from "@/config/supabase";
 import { AsciiShaderText } from "@/components/ui/AsciiShaderText";
 import type { IconName } from "@/resources/icons";
 import { formatIsoTime } from "@/utils/isoFormat";
@@ -120,6 +121,11 @@ type MarketApiQuote = {
 };
 
 type MarketApiResponse = Record<string, MarketApiQuote>;
+
+type EquityFunctionResponse = {
+  data?: Record<string, Partial<MarketQuote>>;
+  meta?: { lastUpdated?: string | null };
+};
 
 export const REFRESH_INTERVAL_MS = 60_000;
 
@@ -412,6 +418,17 @@ export const WATCHLIST_GROUPS: Array<{
   items: WATCHLIST.filter((item) => item.category === category),
 }));
 
+const EQUITY_SYMBOL_OVERRIDES = WATCHLIST
+  .filter((item) => item.category === "Stocks")
+  .reduce<Record<string, string>>((accumulator, item) => {
+    accumulator[item.dataKey] = item.symbol;
+    return accumulator;
+  }, {});
+
+const EQUITY_REQUEST_SYMBOLS = Array.from(
+  new Set(Object.values(EQUITY_SYMBOL_OVERRIDES)),
+);
+
 const toMarketCode = (symbol: string) => {
   const metadata = findInstrumentMetadata(symbol);
   if (!metadata?.base || !metadata.quote) {
@@ -444,7 +461,92 @@ const MARKET_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
   MARKET_CODES.join(",")
 }`;
 
+const EQUITY_QUOTE_ENDPOINT = (() => {
+  const baseUrl = SUPABASE_CONFIG.FUNCTIONS_URL?.trim();
+
+  if (!baseUrl) {
+    return null;
+  }
+
+  try {
+    const normalizedBase = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+    return new URL("market-equity-quotes", normalizedBase).toString();
+  } catch (error) {
+    console.warn("Invalid Supabase functions URL for equity quotes", error);
+    return null;
+  }
+})();
+
 const NUMBER_FORMATTER_CACHE = new Map<string, Intl.NumberFormat>();
+
+const loadEquityQuotes = async (
+  signal?: AbortSignal,
+): Promise<{ quotes: Record<string, MarketQuote>; lastUpdated?: number }> => {
+  if (EQUITY_REQUEST_SYMBOLS.length === 0 || !EQUITY_QUOTE_ENDPOINT) {
+    return { quotes: {}, lastUpdated: undefined };
+  }
+
+  const requestUrl = new URL(EQUITY_QUOTE_ENDPOINT);
+  requestUrl.searchParams.set("symbols", EQUITY_REQUEST_SYMBOLS.join(","));
+
+  const response = await fetch(requestUrl, {
+    cache: "no-store",
+    signal,
+    headers: {
+      apikey: SUPABASE_CONFIG.ANON_KEY,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch equity data (${response.status})`);
+  }
+
+  const payload = (await response.json()) as EquityFunctionResponse;
+  const quotes: Record<string, MarketQuote> = {};
+  const data = payload?.data ?? {};
+
+  for (
+    const [instrumentId, providerSymbol] of Object.entries(
+      EQUITY_SYMBOL_OVERRIDES,
+    )
+  ) {
+    const quote = data[providerSymbol];
+    if (!quote) {
+      continue;
+    }
+
+    const { last, high, low, changePercent } = quote;
+
+    if (
+      typeof last !== "number" ||
+      typeof high !== "number" ||
+      typeof low !== "number" ||
+      typeof changePercent !== "number"
+    ) {
+      continue;
+    }
+
+    quotes[instrumentId] = {
+      last,
+      high,
+      low,
+      changePercent,
+    };
+  }
+
+  const lastUpdatedRaw = payload?.meta?.lastUpdated ?? undefined;
+  const lastUpdatedTimestamp = lastUpdatedRaw
+    ? Date.parse(lastUpdatedRaw)
+    : undefined;
+
+  return {
+    quotes,
+    lastUpdated: lastUpdatedTimestamp !== undefined &&
+        !Number.isNaN(lastUpdatedTimestamp)
+      ? lastUpdatedTimestamp
+      : undefined,
+  };
+};
 
 export const formatChangePercent = (value?: number) => {
   if (value === undefined || Number.isNaN(value)) {
@@ -841,6 +943,20 @@ export const loadMarketQuotes = async (
   const dxy = computeDxyQuote(quotes);
   if (dxy) {
     quotes.DXY = dxy;
+  }
+
+  try {
+    const { quotes: equityQuotes, lastUpdated: equityTimestamp } =
+      await loadEquityQuotes(signal);
+    Object.assign(quotes, equityQuotes);
+
+    if (equityTimestamp !== undefined) {
+      latestTimestamp = latestTimestamp
+        ? Math.max(latestTimestamp, equityTimestamp)
+        : equityTimestamp;
+    }
+  } catch (error) {
+    console.warn("Failed to refresh equity quotes", error);
   }
 
   return {
