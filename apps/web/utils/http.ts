@@ -62,25 +62,31 @@ const coerceOrigin = (raw?: string | null): string | undefined => {
   }
 };
 
+const splitVaryValues = (input: string | null | undefined): string[] => {
+  if (typeof input !== "string") return [];
+  return input.split(",").map((item) => item.trim()).filter(Boolean);
+};
+
+const appendUniqueCaseInsensitive = (
+  target: string[],
+  values: string[],
+) => {
+  const seen = new Set(target.map((item) => item.toLowerCase()));
+  for (const candidate of values) {
+    const normalized = candidate.toLowerCase();
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    target.push(candidate);
+  }
+};
+
 export const mergeVary = (
   existing: string | null | undefined,
   value: string,
 ) => {
-  const existingList = typeof existing === "string"
-    ? existing.split(",").map((item) => item.trim()).filter(Boolean)
-    : [];
-  const valueList = value.split(",").map((item) => item.trim()).filter(Boolean);
-
-  if (existingList.length === 0) {
-    return valueList.join(", ");
-  }
-
-  const merged = [...existingList];
-  for (const candidate of valueList) {
-    if (!merged.includes(candidate)) {
-      merged.push(candidate);
-    }
-  }
+  const merged: string[] = [];
+  appendUniqueCaseInsensitive(merged, splitVaryValues(existing));
+  appendUniqueCaseInsensitive(merged, splitVaryValues(value));
   return merged.join(", ");
 };
 
