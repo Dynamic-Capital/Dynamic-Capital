@@ -1,7 +1,80 @@
+import { z } from "zod";
+
 import jettonMetadata from "../../../dynamic-capital-ton/contracts/jetton/metadata.json" assert {
   type: "json",
 };
 import type { IconName } from "./icons";
+
+const normalizeTonAddress = (value?: string) => {
+  if (!value) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  return trimmed.replace(/^ton:\/\//i, "");
+};
+
+const uniqueStrings = (
+  values: readonly (string | undefined)[],
+): readonly string[] => {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const value of values) {
+    if (!value) {
+      continue;
+    }
+
+    const key = value.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    result.push(value);
+  }
+
+  return Object.freeze(result);
+};
+
+const httpsUrlSchema = z
+  .string()
+  .trim()
+  .url()
+  .refine((value) => value.startsWith("https://"), {
+    message: "Only https URLs are supported in token metadata.",
+  });
+
+const jettonMetadataSchema = z
+  .object({
+    name: z.string().trim().min(1, "Jetton metadata name is required."),
+    symbol: z.string().trim().min(1, "Jetton metadata symbol is required."),
+    description: z
+      .string()
+      .trim()
+      .min(1, "Jetton metadata description is required."),
+    decimals: z.number().int().nonnegative(),
+    address: z.string().trim().min(1, "Jetton metadata address is required."),
+    image: httpsUrlSchema.optional(),
+    external_url: httpsUrlSchema.optional(),
+    sameAs: z.array(httpsUrlSchema).optional(),
+    attributes: z
+      .array(
+        z.object({
+          trait_type: z.string().trim().min(1),
+          value: z.union([z.string(), z.number(), z.boolean()]),
+          display_type: z.string().trim().optional(),
+        }),
+      )
+      .optional(),
+  })
+  .passthrough();
+
+const tokenMetadata = jettonMetadataSchema.parse(jettonMetadata);
 
 const TGE_CIRCULATING_SUPPLY = 13_000_000;
 const TGE_MARKET_CAP_USD = 13_000_000;
@@ -9,6 +82,12 @@ const OPERATIONS_TREASURY_WALLET =
   "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
 const OPERATIONS_TREASURY_EXPLORER_URL =
   `https://tonviewer.com/${OPERATIONS_TREASURY_WALLET}`;
+const buildJettonExplorerUrl = (address?: string) => {
+  const normalizedAddress = normalizeTonAddress(address);
+  return normalizedAddress
+    ? `https://tonviewer.com/jetton/${normalizedAddress}`
+    : undefined;
+};
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-US").format(value);
@@ -21,12 +100,14 @@ const formatCurrency = (value: number) =>
   }).format(value);
 
 const shortenTonAddress = (value: string, visible = 6) => {
-  if (value.length <= visible * 2) {
-    return value;
+  const normalizedValue = normalizeTonAddress(value) ?? value;
+
+  if (normalizedValue.length <= visible * 2) {
+    return normalizedValue;
   }
 
-  const head = value.slice(0, visible);
-  const tail = value.slice(-visible);
+  const head = normalizedValue.slice(0, visible);
+  const tail = normalizedValue.slice(-visible);
   return `${head}…${tail}`;
 };
 
@@ -84,18 +165,25 @@ type TokenDescriptor = {
   decimals: number;
   maxSupply: number;
   externalUrl?: string;
+  address?: string;
+  image?: string;
 };
 
-const tokenDescriptor: TokenDescriptor = {
-  name: jettonMetadata.name,
-  symbol: jettonMetadata.symbol,
-  description: jettonMetadata.description,
-  decimals: jettonMetadata.decimals,
+const normalizedTokenAddress = normalizeTonAddress(tokenMetadata.address);
+
+const tokenDescriptor = {
+  name: tokenMetadata.name,
+  symbol: tokenMetadata.symbol,
+  description: tokenMetadata.description,
+  decimals: tokenMetadata.decimals,
   maxSupply: 100_000_000,
-  externalUrl: jettonMetadata.external_url,
-};
+  externalUrl: tokenMetadata.external_url,
+  address: normalizedTokenAddress,
+  image: tokenMetadata.image,
+} satisfies TokenDescriptor;
 
 const tokenPath = "/token" as const;
+const tokenJettonExplorerUrl = buildJettonExplorerUrl(tokenDescriptor.address);
 const tokenTitle = `${tokenDescriptor.name} (${tokenDescriptor.symbol})`;
 const tokenIntro =
   "The membership currency that powers Dynamic Capital automations, treasury governance, and community rewards.";
@@ -114,6 +202,18 @@ const tokenHighlights = [
     description: "Utility and governance jetton anchored to desk performance.",
     icon: "sparkles",
   },
+  ...(tokenDescriptor.address
+    ? [
+      {
+        label: "Jetton master",
+        value: shortenTonAddress(tokenDescriptor.address),
+        description:
+          "Canonical DCT master contract securing supply, metadata, and mint controls.",
+        icon: "openLink",
+        href: tokenJettonExplorerUrl,
+      } satisfies TokenHighlight,
+    ]
+    : []),
   {
     label: "Treasury TON wallet",
     value: shortenTonAddress(OPERATIONS_TREASURY_WALLET),
@@ -136,7 +236,7 @@ const tokenHighlights = [
       "TGE float powering staking, rewards, and liquidity programmes.",
     icon: "chartPie",
   },
-] as const satisfies readonly TokenHighlight[];
+] satisfies readonly TokenHighlight[];
 
 const tokenSupplySplits = [
   {
@@ -203,7 +303,12 @@ const tokenDexPools = [
   },
 ] as const satisfies readonly DexPool[];
 
-const tokenSameAs = tokenDexPools.map((pool) => pool.url) as readonly string[];
+const tokenSameAs = uniqueStrings([
+  ...(tokenMetadata.sameAs ?? []),
+  tokenDescriptor.externalUrl,
+  ...tokenDexPools.map((pool) => pool.url),
+  tokenJettonExplorerUrl,
+]);
 
 const tokenContent: TokenContent = {
   path: tokenPath,
