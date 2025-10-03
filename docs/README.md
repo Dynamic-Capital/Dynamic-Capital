@@ -79,18 +79,19 @@ documenting which assets were consulted.
 
 ## 5. Telegram & Mini App Delivery
 
-| Ref  | Document                                                   | Summary                                                                                    |
-| ---- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 5.1  | [MINI_APP_FLOW.md](./MINI_APP_FLOW.md)                     | Overview of the Telegram Mini App user journey and technical hooks.                        |
-| 5.2  | [MINI_APP_ON_SUPABASE.md](./MINI_APP_ON_SUPABASE.md)       | Wiring the Mini App to Supabase auth, storage, and edge functions.                         |
-| 5.3  | [MINI_APP_URL_SETUP.md](./MINI_APP_URL_SETUP.md)           | URL, domain, and configuration requirements for the Mini App host.                         |
-| 5.4  | [MINI_APP_VERIFY.md](./MINI_APP_VERIFY.md)                 | Verification checklist to confirm the Mini App build is production-ready.                  |
-| 5.5  | [MINIAPP_DEPLOYMENT.md](./MINIAPP_DEPLOYMENT.md)           | Deployment plan for packaging and shipping the Mini App.                                   |
-| 5.6  | [MAKE_INITDATA.md](./MAKE_INITDATA.md)                     | Procedure for generating Telegram Mini App `initData` payloads.                            |
-| 5.7  | [VERIFY_INITDATA.md](./VERIFY_INITDATA.md)                 | Steps to validate Telegram `initData` signatures.                                          |
-| 5.8  | [TELEGRAM_WEBHOOK_KEEPER.md](./TELEGRAM_WEBHOOK_KEEPER.md) | Bot keeper that maintains webhook health and retries updates.                              |
-| 5.9  | [webhook.md](./webhook.md)                                 | Telegram webhook configuration, rotation, and troubleshooting guide.                       |
-| 5.10 | [LINKAGE_CHECKLIST.md](./LINKAGE_CHECKLIST.md)             | Audit to ensure bot, Mini App, and Supabase edge functions share consistent hosts/secrets. |
+| Ref  | Document                                                   | Summary                                                                                                                |
+| ---- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 5.1  | [MINI_APP_FLOW.md](./MINI_APP_FLOW.md)                     | Overview of the Telegram Mini App user journey and technical hooks.                                                    |
+| 5.2  | [MINI_APP_ON_SUPABASE.md](./MINI_APP_ON_SUPABASE.md)       | Wiring the Mini App to Supabase auth, storage, and edge functions.                                                     |
+| 5.3  | [MINI_APP_URL_SETUP.md](./MINI_APP_URL_SETUP.md)           | URL, domain, and configuration requirements for the Mini App host.                                                     |
+| 5.4  | [MINI_APP_VERIFY.md](./MINI_APP_VERIFY.md)                 | Verification checklist to confirm the Mini App build is production-ready.                                              |
+| 5.5  | [MINIAPP_DEPLOYMENT.md](./MINIAPP_DEPLOYMENT.md)           | Deployment plan for packaging and shipping the Mini App.                                                               |
+| 5.6  | [MAKE_INITDATA.md](./MAKE_INITDATA.md)                     | Procedure for generating Telegram Mini App `initData` payloads.                                                        |
+| 5.7  | [VERIFY_INITDATA.md](./VERIFY_INITDATA.md)                 | Steps to validate Telegram `initData` signatures.                                                                      |
+| 5.8  | [TELEGRAM_WEBHOOK_KEEPER.md](./TELEGRAM_WEBHOOK_KEEPER.md) | Bot keeper that maintains webhook health and retries updates.                                                          |
+| 5.9  | [webhook.md](./webhook.md)                                 | Telegram webhook configuration, rotation, and troubleshooting guide.                                                   |
+| 5.10 | [LINKAGE_CHECKLIST.md](./LINKAGE_CHECKLIST.md)             | Audit to ensure bot, Mini App, and Supabase edge functions share consistent hosts/secrets.                             |
+| 5.11 | [tonkeeper-deep-linking.md](./tonkeeper-deep-linking.md)   | Deep link reference covering wallet schemes, dynamic link builders, and back-to-back flow optimizations for Tonkeeper. |
 
 ## 6. Trading & Financial Operations
 
