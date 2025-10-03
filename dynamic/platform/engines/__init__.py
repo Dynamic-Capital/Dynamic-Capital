@@ -92,6 +92,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
     "dynamic_branch": ("DynamicBranchPlanner",),
     "dynamic_bridge": ("DynamicBridgeOrchestrator",),
     "dynamic_candles": ("DynamicCandles",),
+    "dynamic_cap_theorem": ("DynamicCapTheorem",),
     "dynamic_clusters": (
         "DynamicClusterEngine",
         "ClusterAssignment",

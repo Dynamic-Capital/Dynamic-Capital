@@ -162,6 +162,13 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_branch": ("BranchDefinition", "BranchStatus", "PromotionPlan"),
     "dynamic_bridge": ("BridgeEndpoint", "BridgeHealthReport", "BridgeIncident", "BridgeLink", "create_dynamic_mt5_bridge"),
     "dynamic_candles": ("Candle", "CandleAnalytics", "CandleSeries", "PatternSignal"),
+    "dynamic_cap_theorem": (
+        "CapVector",
+        "CapEvent",
+        "CapContext",
+        "CapAssessment",
+        "DynamicCapTheorem",
+    ),
     "dynamic_cognition": (
         "CognitiveAlignmentEngine",
         "CognitiveAlignmentReport",

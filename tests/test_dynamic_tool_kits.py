@@ -47,6 +47,27 @@ def test_resolve_toolkit_symbol_invalid_module() -> None:
         )
 
 
+def test_dynamic_cap_theorem_toolkit_exports() -> None:
+    toolkits = dynamic_tool_kits.available_toolkits()
+
+    assert "dynamic_cap_theorem" in toolkits
+    exports = set(toolkits["dynamic_cap_theorem"])
+    expected = {
+        "CapVector",
+        "CapEvent",
+        "CapContext",
+        "CapAssessment",
+        "DynamicCapTheorem",
+    }
+    assert expected.issubset(exports)
+    assert (
+        dynamic_tool_kits.resolve_toolkit_symbol(
+            "DynamicCapTheorem", module_name="dynamic_cap_theorem"
+        )
+        is dynamic_tool_kits.DynamicCapTheorem
+    )
+
+
 def test_available_toolkits_include_module_dunder_all_exports() -> None:
     toolkits = dynamic_tool_kits.available_toolkits()
 
