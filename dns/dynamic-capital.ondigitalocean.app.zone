@@ -5,7 +5,10 @@ dynamic-capital.ondigitalocean.app. IN SOA ns1.digitalocean.com. hostmaster.dyna
 dynamic-capital.ondigitalocean.app. 1800 IN NS ns1.digitalocean.com.
 dynamic-capital.ondigitalocean.app. 1800 IN NS ns2.digitalocean.com.
 dynamic-capital.ondigitalocean.app. 1800 IN NS ns3.digitalocean.com.
-; Route apex and common subdomains to the TON canonical surface
-dynamic-capital.ondigitalocean.app. 3600 IN CNAME dynamiccapital.ton.
-www                                    3600 IN CNAME dynamiccapital.ton.
-api                                    3600 IN CNAME dynamiccapital.ton.
+; Route apex and common subdomains directly to the Cloudflare anycast ingress
+dynamic-capital.ondigitalocean.app. 3600 IN A 162.159.140.98
+dynamic-capital.ondigitalocean.app. 3600 IN A 172.66.0.96
+www                                    3600 IN A 162.159.140.98
+www                                    3600 IN A 172.66.0.96
+api                                    3600 IN A 162.159.140.98
+api                                    3600 IN A 172.66.0.96

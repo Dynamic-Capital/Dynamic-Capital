@@ -2,22 +2,46 @@
   "domain": "dynamic-capital.lovable.app",
   "records": [
     {
-      "type": "CNAME",
+      "type": "A",
       "name": "@",
-      "data": "dynamiccapital.ton",
-      "ttl": 3600
+      "data": "162.159.140.98",
+      "ttl": 3600,
+      "note": "Primary Cloudflare anycast IP"
     },
     {
-      "type": "CNAME",
+      "type": "A",
+      "name": "@",
+      "data": "172.66.0.96",
+      "ttl": 3600,
+      "note": "Secondary Cloudflare anycast IP"
+    },
+    {
+      "type": "A",
       "name": "www",
-      "data": "dynamiccapital.ton",
-      "ttl": 3600
+      "data": "162.159.140.98",
+      "ttl": 3600,
+      "note": "Primary Cloudflare anycast IP"
     },
     {
-      "type": "CNAME",
+      "type": "A",
+      "name": "www",
+      "data": "172.66.0.96",
+      "ttl": 3600,
+      "note": "Secondary Cloudflare anycast IP"
+    },
+    {
+      "type": "A",
       "name": "api",
-      "data": "dynamiccapital.ton",
-      "ttl": 3600
+      "data": "162.159.140.98",
+      "ttl": 3600,
+      "note": "Primary Cloudflare anycast IP"
+    },
+    {
+      "type": "A",
+      "name": "api",
+      "data": "172.66.0.96",
+      "ttl": 3600,
+      "note": "Secondary Cloudflare anycast IP"
     }
   ]
 }
