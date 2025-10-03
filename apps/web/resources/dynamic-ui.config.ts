@@ -27,7 +27,7 @@ const routes: RoutesConfig = {
   "/admin": true,
   "/blog": { enabled: true, includeChildren: true },
   "/checkout": true,
-  "/gallery": false,
+  "/gallery": true,
   "/login": true,
   "/miniapp": { enabled: true, includeChildren: true },
   "/plans": true,
