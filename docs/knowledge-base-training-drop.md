@@ -43,6 +43,17 @@ into Supabase Storage and the local repository when preparing new runs.
      does not exist) while maintaining subfolders from OneDrive.
    - Record provenance in `data/knowledge_base/README.md` with dataset versions
      and intended prompts.
+5. **Populate the database tables**
+   ```bash
+   tsx scripts/knowledge_base/import-google-drive.ts \
+     --share-link "https://drive.google.com/..." \
+     --collection-slug knowledge-base-2025-11-07 \
+     --tag enrichment
+   ```
+   - The importer extracts PDF text, normalises metadata, and upserts the
+     documents into `knowledge_base_collections` and `knowledge_base_documents`.
+   - Use `--dry-run` to preview changes and `--replace` to evict previously
+     indexed entries for the collection before inserting the refreshed corpus.
 
 ## Training integration
 
