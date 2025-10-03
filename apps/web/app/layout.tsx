@@ -17,7 +17,6 @@ import {
 } from "@/components/dynamic-ui-system";
 
 import Providers from "./providers";
-import { getStaticLandingDocument } from "@/lib/staticLanding";
 import { RouteGuard, ScrollToHash } from "@/components/dynamic-portfolio";
 import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { SiteFooter } from "@/components/navigation/SiteFooter";
@@ -66,8 +65,6 @@ const themeAttributeDefaults = Object.fromEntries(
 );
 
 const dynamicBrandingStyles = createBrandingStyles(brandingTokens);
-const dynamicBrandingStyleMarkup =
-  `<style id="${BRANDING_STYLE_ELEMENT_ID}">${dynamicBrandingStyles}</style>`;
 const dynamicThemeScript = `(function () {
   try {
     var root = document.documentElement;
@@ -104,28 +101,6 @@ const dynamicThemeScript = `(function () {
     document.documentElement.setAttribute('data-theme', '${DEFAULT_THEME}');
   }
 })();`;
-const dynamicThemeScriptMarkup =
-  `<script id="${THEME_SCRIPT_ID}">${dynamicThemeScript}</script>`;
-
-function ensureThemeAssets(markup: string): string {
-  const fragments: string[] = [];
-  const existingMarkup = markup ?? "";
-
-  if (existingMarkup) {
-    fragments.push(existingMarkup);
-  }
-
-  if (!existingMarkup.includes(`id="${BRANDING_STYLE_ELEMENT_ID}"`)) {
-    fragments.push(dynamicBrandingStyleMarkup);
-  }
-
-  if (!existingMarkup.includes(`id="${THEME_SCRIPT_ID}"`)) {
-    fragments.push(dynamicThemeScriptMarkup);
-  }
-
-  return fragments.join("\n");
-}
-
 function createBrandingStyles(tokens: typeof brandingTokens): string {
   const lightTokens = serializeBrandingTokens(tokens.light);
   const darkTokens = serializeBrandingTokens(tokens.dark);
@@ -233,35 +208,6 @@ const fontClassName = classNames(
 export default async function RootLayout(
   { children }: { children: ReactNode },
 ) {
-  const isStaticSnapshot =
-    globalThis?.process?.env?.["STATIC_SNAPSHOT"] === "true";
-
-  if (isStaticSnapshot) {
-    try {
-      const { head, body, lang } = await getStaticLandingDocument();
-      return (
-        <html
-          lang={lang}
-          suppressHydrationWarning
-          className={fontClassName}
-          {...htmlAttributeDefaults}
-          data-theme={DEFAULT_THEME}
-        >
-          <head dangerouslySetInnerHTML={{ __html: ensureThemeAssets(head) }} />
-          <body
-            suppressHydrationWarning
-            dangerouslySetInnerHTML={{ __html: body }}
-          />
-        </html>
-      );
-    } catch (error) {
-      console.error(
-        "Failed to load static landing snapshot markup. Falling back to dynamic layout rendering.",
-        error,
-      );
-    }
-  }
-
   return (
     <html
       lang="en"
