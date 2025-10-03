@@ -104,7 +104,7 @@ Deno.test("POST /api/tools/multi-llm/chat allows verified admin", async () => {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-admin-token": createAdminToken(secret),
+        Authorization: `Bearer ${createAdminToken(secret)}`,
       },
       body: JSON.stringify({
         providerId: "openai",

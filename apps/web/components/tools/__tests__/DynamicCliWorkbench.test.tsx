@@ -118,7 +118,9 @@ describe("DynamicCliWorkbench", () => {
 
     render(<DynamicCliWorkbench />);
 
-    const runButton = screen.getByRole("button", { name: /run dynamic cli/i });
+    const [runButton] = screen.getAllByRole("button", {
+      name: /run dynamic cli/i,
+    });
     fireEvent.click(runButton);
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
@@ -129,8 +131,8 @@ describe("DynamicCliWorkbench", () => {
     expect(payload.format).toBe("text");
     expect(payload.exportDataset).toBe(false);
     expect(payload.scenario).toEqual(DEFAULT_DYNAMIC_CLI_SCENARIO);
-    expect((init?.headers as Record<string, string>)["x-admin-token"]).toBe(
-      "test-admin-token",
+    expect((init?.headers as Record<string, string>).Authorization).toBe(
+      "Bearer test-admin-token",
     );
 
     const report = await screen.findByLabelText(/dynamic cli report/i);
@@ -147,7 +149,10 @@ describe("DynamicCliWorkbench", () => {
 
     render(<DynamicCliWorkbench />);
 
-    fireEvent.click(screen.getByRole("button", { name: /run dynamic cli/i }));
+    const [errorRunButton] = screen.getAllByRole("button", {
+      name: /run dynamic cli/i,
+    });
+    fireEvent.click(errorRunButton);
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent(/invalid dynamic cli payload/i);
@@ -178,8 +183,14 @@ describe("DynamicCliWorkbench", () => {
 
     render(<DynamicCliWorkbench />);
 
-    fireEvent.click(screen.getByRole("button", { name: /fine-tune/i }));
-    fireEvent.click(screen.getByRole("button", { name: /run dynamic cli/i }));
+    const [fineTuneButton] = screen.getAllByRole("button", {
+      name: /fine-tune/i,
+    });
+    fireEvent.click(fineTuneButton);
+    const [datasetRunButton] = screen.getAllByRole("button", {
+      name: /run dynamic cli/i,
+    });
+    fireEvent.click(datasetRunButton);
 
     await screen.findByLabelText(/dynamic cli dataset/i);
 
