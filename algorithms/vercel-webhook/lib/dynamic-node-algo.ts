@@ -10,18 +10,18 @@ export interface TradeSignalLike {
 }
 
 export interface TradeConnector {
-  buy?(symbol: string, lot: number): MaybePromise<ConnectorExecution>;
-  sell?(symbol: string, lot: number): MaybePromise<ConnectorExecution>;
+  buy?(symbol: string, lot: number): MaybePromise<ConnectorExecution | TradeExecutionResult>;
+  sell?(symbol: string, lot: number): MaybePromise<ConnectorExecution | TradeExecutionResult>;
   openHedge?(
     symbol: string,
     lot: number,
     side: HedgeSide,
-  ): MaybePromise<ConnectorExecution>;
+  ): MaybePromise<ConnectorExecution | TradeExecutionResult>;
   closeHedge?(
     symbol: string,
     lot: number,
     side: HedgeSide,
-  ): MaybePromise<ConnectorExecution>;
+  ): MaybePromise<ConnectorExecution | TradeExecutionResult>;
 }
 
 export interface TradeRequest {

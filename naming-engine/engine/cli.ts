@@ -6,9 +6,9 @@ import { ensureDir, pathExists, readFile, readdir, stat, writeFile } from 'fs-ex
 import { getAllMappings } from './index.js';
 
 interface CliOptions {
-  readonly dryRun: boolean;
-  readonly backup: boolean;
-  readonly silent: boolean;
+  dryRun: boolean;
+  backup: boolean;
+  silent: boolean;
 }
 
 interface ReplacementResult {
