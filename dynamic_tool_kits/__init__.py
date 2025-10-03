@@ -217,7 +217,12 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_effect": ("EffectImpulse", "EffectContext", "EffectFrame"),
     "dynamic_emoticon": ("EmoticonContext", "EmoticonDesign", "EmoticonPalette", "EmoticonSignal"),
     "dynamic_encryption": ("EncryptionEnvelope", "EncryptionRequest", "KeyMaterial"),
-    "dynamic_implicit_memory": ("ImplicitMemoryReport", "ImplicitMemoryTrace", "MemoryContext"),
+    "dynamic_implicit_memory": (
+        "DynamicImplicitMemory",
+        "ImplicitMemoryReport",
+        "ImplicitMemoryTrace",
+        "MemoryContext",
+    ),
     "dynamic_index": ("IndexConstituent", "IndexSignal", "IndexSnapshot"),
     "dynamic_indicators": (
         "IndicatorDefinition",
