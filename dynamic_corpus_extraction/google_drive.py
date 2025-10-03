@@ -427,7 +427,25 @@ def build_google_drive_pdf_loader(
     dpi = max(int(ocr_dpi or 0), 72)
 
     def _full_text_extractor(payload: bytes, metadata: Mapping[str, object]) -> str:
-        text_result = base_extractor(payload, metadata)
+        text_result: object | None = None
+        try:
+            text_result = base_extractor(payload, metadata)
+        except Exception as base_error:
+            if not enable_ocr:
+                raise
+            try:
+                extracted = _ocr_pdf_text_extractor(
+                    payload,
+                    file_name=str(metadata.get("name", "unknown")),
+                    languages=languages,
+                    dpi=dpi,
+                )
+                return extracted
+            except Exception as ocr_error:  # pragma: no cover - fallback path
+                raise RuntimeError(
+                    "Both direct text extraction and OCR failed for PDF "
+                    f"'{metadata.get('name', 'unknown')}'. Direct extraction error: {base_error}"
+                ) from ocr_error
         if isinstance(text_result, (list, tuple)):
             combined = "\n\n".join(str(part).strip() for part in text_result if str(part).strip())
             if combined:
