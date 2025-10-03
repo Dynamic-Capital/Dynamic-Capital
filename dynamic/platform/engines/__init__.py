@@ -44,6 +44,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "AGIOutput",
         "AGIDiagnostics",
     ),
+    "dynamic.trading.logic": (
+        "DynamicRisk",
+        "Position",
+        "RiskLimits",
+        "RiskTelemetry",
+    ),
     "dynamic.trading.algo": (
         "DynamicTradingAlgo",
         "DynamicMarketFlow",
