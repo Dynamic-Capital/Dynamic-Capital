@@ -2,6 +2,7 @@ import {
   DYNAMIC_AGI_CHAT_KEY,
   DYNAMIC_AGI_CHAT_TIMEOUT_MS,
   DYNAMIC_AGI_CHAT_URL,
+  isDynamicAgiConfigured,
 } from "@/config/dynamic-agi";
 import type { ChatMessage, TokenUsage } from "@/services/llm/types";
 
@@ -71,13 +72,74 @@ function normalizeUsage(
 }
 
 function buildHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
+  return {
     "content-type": "application/json",
   };
-  if (DYNAMIC_AGI_CHAT_KEY) {
-    headers.authorization = `Bearer ${DYNAMIC_AGI_CHAT_KEY}`;
+}
+
+function estimateTokenCount(text: string | undefined): number {
+  if (!text) return 0;
+  const approximate = Math.max(1, Math.round(text.length / 4));
+  return approximate;
+}
+
+function buildDemoResult(request: DynamicAgiChatRequest) {
+  const latestUserMessage = [...request.messages]
+    .reverse()
+    .find((entry) => entry.role === "user");
+
+  const focusLine = latestUserMessage
+    ? `• Mission focus: ${latestUserMessage.content.trim()}`
+    : "• Provide a mission briefing to generate a routed plan.";
+
+  const languageLine = request.language
+    ? `• Preferred delivery language: ${request.language}.`
+    : undefined;
+
+  const contentSegments = [
+    "🚀 Dynamic AGI demo orchestrator engaged.",
+    focusLine,
+    "• Delegating discovery to Dynamic AI and compliance to Dynamic AGS.",
+    "• Sequencing next steps: compile execution brief, open governance review, and publish treasury update.",
+    "• Supply live credentials to stream real orchestration telemetry.",
+  ];
+
+  if (languageLine) {
+    contentSegments.splice(2, 0, languageLine);
   }
-  return headers;
+
+  const responseText = contentSegments.join("\n");
+
+  const inputTokens = request.messages.reduce(
+    (total, message) => total + estimateTokenCount(message.content),
+    estimateTokenCount(request.system),
+  );
+  const outputTokens = estimateTokenCount(responseText);
+  const usage: TokenUsage = {
+    inputTokens,
+    outputTokens,
+    totalTokens: inputTokens + outputTokens,
+  };
+
+  const rawResponse: Record<string, unknown> = {
+    mode: "demo",
+    domain: "dynamic-agi",
+  };
+  if (latestUserMessage?.content) {
+    rawResponse.prompt = latestUserMessage.content;
+  }
+  if (request.language) {
+    rawResponse.language = request.language;
+  }
+  if (request.system) {
+    rawResponse.system = request.system;
+  }
+
+  return {
+    message: { role: "assistant", content: responseText } satisfies ChatMessage,
+    usage,
+    rawResponse,
+  };
 }
 
 export async function callDynamicAgi(
@@ -87,9 +149,12 @@ export async function callDynamicAgi(
   usage?: TokenUsage;
   rawResponse?: unknown;
 }> {
-  if (!DYNAMIC_AGI_CHAT_URL || !DYNAMIC_AGI_CHAT_KEY) {
-    throw new Error("Dynamic AGI chat is not configured.");
+  if (!isDynamicAgiConfigured) {
+    return buildDemoResult(request);
   }
+
+  const chatUrl = DYNAMIC_AGI_CHAT_URL!;
+  const chatKey = DYNAMIC_AGI_CHAT_KEY!;
 
   const controller = new AbortController();
   const timeout = setTimeout(
@@ -98,9 +163,12 @@ export async function callDynamicAgi(
   );
 
   try {
-    const response = await fetch(DYNAMIC_AGI_CHAT_URL, {
+    const response = await fetch(chatUrl, {
       method: "POST",
-      headers: buildHeaders(),
+      headers: {
+        ...buildHeaders(),
+        authorization: `Bearer ${chatKey}`,
+      },
       body: JSON.stringify({
         system: request.system ?? null,
         messages: request.messages.map((message) => ({

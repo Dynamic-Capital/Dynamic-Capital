@@ -2,6 +2,7 @@ import {
   DYNAMIC_AI_CHAT_KEY,
   DYNAMIC_AI_CHAT_TIMEOUT_MS,
   DYNAMIC_AI_CHAT_URL,
+  isDynamicAiConfigured,
 } from "@/config/dynamic-ai";
 import { SYSTEM_PROMPT } from "@/services/dynamic-ai/constants";
 import {
@@ -34,16 +35,57 @@ export interface DynamicAiChatParams {
 
 export type DynamicAiChatResult = DynamicAiResponse;
 
+function buildDemoResponse(
+  messages: ChatRequestMessage[],
+  language?: string,
+): DynamicAiResponse {
+  const latestUserMessage = [...messages]
+    .reverse()
+    .find((message) => message.role === "user");
+
+  const focusLine = latestUserMessage
+    ? `• Focus request: “${latestUserMessage.content.trim()}”.`
+    : "• Provide a prompt to explore orchestration flows.";
+
+  const languageLine = language
+    ? `• Preferred language: ${language}.`
+    : undefined;
+
+  const advisoryLine =
+    "• Connect live credentials to stream production-grade signals.";
+
+  const segments = [
+    "⚡ Dynamic AI demo mode active.",
+    focusLine,
+    "• Fusion stack: directional, momentum, sentiment, and treasury guardrails.",
+    "• Routes outcomes to Dynamic AGI for execution and Dynamic AGS for governance review.",
+    advisoryLine,
+  ];
+
+  if (languageLine) {
+    segments.splice(2, 0, languageLine);
+  }
+
+  const metadata: Record<string, unknown> = {
+    mode: "demo",
+    domain: "dynamic-ai",
+  };
+  if (latestUserMessage?.content) {
+    metadata.prompt = latestUserMessage.content;
+  }
+
+  return {
+    answer: segments.join("\n"),
+    metadata,
+  } satisfies DynamicAiResponse;
+}
+
 export async function callDynamicAi({
   sessionId,
   messages,
   signal,
   language,
 }: DynamicAiChatParams): Promise<DynamicAiChatResult> {
-  if (!DYNAMIC_AI_CHAT_URL || !DYNAMIC_AI_CHAT_KEY) {
-    throw new Error("Dynamic AI chat is not configured");
-  }
-
   const parsedMessages = messages.map((message) =>
     chatRequestMessageSchema.parse(message)
   );
@@ -56,6 +98,13 @@ export async function callDynamicAi({
     parsedMessages.unshift({ role: "system", content: SYSTEM_PROMPT });
   }
 
+  if (!isDynamicAiConfigured) {
+    return buildDemoResponse(parsedMessages, language);
+  }
+
+  const chatUrl = DYNAMIC_AI_CHAT_URL!;
+  const chatKey = DYNAMIC_AI_CHAT_KEY!;
+
   const controller = new AbortController();
   const timeoutId = setTimeout(
     () => controller.abort(),
@@ -63,11 +112,11 @@ export async function callDynamicAi({
   );
 
   try {
-    const response = await getFetch()(DYNAMIC_AI_CHAT_URL, {
+    const response = await getFetch()(chatUrl, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        authorization: `Bearer ${DYNAMIC_AI_CHAT_KEY}`,
+        authorization: `Bearer ${chatKey}`,
         "x-session-id": sessionId,
       },
       body: JSON.stringify({

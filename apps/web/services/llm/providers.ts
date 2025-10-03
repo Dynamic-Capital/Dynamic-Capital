@@ -1,5 +1,7 @@
 import { OpenAIClient } from "@/integrations/openai/client";
+import { callDynamicAi } from "@/services/dynamic-ai/client";
 import { callDynamicAgi } from "@/services/dynamic-agi/client";
+import { callDynamicAgs } from "@/services/dynamic-ags/client";
 import { optionalEnvVar, requireEnvVar } from "@/utils/env";
 
 import {
@@ -18,7 +20,8 @@ interface ProviderDefinition {
   defaultModel: string;
   contextWindow: number;
   maxOutputTokens: number;
-  envKeys: string[];
+  envKeys?: string[];
+  isConfigured?: () => boolean;
   invoke(request: ProviderInvokeInput): Promise<Omit<ChatResult, "provider">>;
 }
 
@@ -28,6 +31,43 @@ const ANTHROPIC_VERSION = "2023-06-01";
 
 const providerDefinitions: ProviderDefinition[] = [
   {
+    id: "dynamic-ai",
+    name: "Dynamic AI",
+    description:
+      "Dynamic AI fusion engine with governance-aware routing (demo fallback when offline).",
+    defaultModel: "dai-orchestrator",
+    contextWindow: 64_000,
+    maxOutputTokens: 2_048,
+    envKeys: ["DYNAMIC_AI_CHAT_URL", "DYNAMIC_AI_CHAT_KEY"],
+    isConfigured: () => true,
+    async invoke(
+      { messages, language },
+    ): Promise<Omit<ChatResult, "provider">> {
+      const { system, conversation } = normalizeMessages(messages);
+      const requestMessages: ChatMessage[] = [
+        ...(system ? [{ role: "system" as const, content: system }] : []),
+        ...conversation,
+      ];
+      const sessionId = `dai-${Date.now().toString(36)}-${
+        Math.random()
+          .toString(36)
+          .slice(2)
+      }`;
+      const response = await callDynamicAi({
+        sessionId,
+        messages: requestMessages.map((message) => ({
+          role: message.role,
+          content: message.content,
+        })),
+        language,
+      });
+      return {
+        message: { role: "assistant", content: response.answer },
+        rawResponse: response,
+      } satisfies Omit<ChatResult, "provider">;
+    },
+  },
+  {
     id: "dynamic-agi",
     name: "Dynamic AGI",
     description: "Dynamic AGI orchestrator with multi-agent synthesis.",
@@ -35,11 +75,36 @@ const providerDefinitions: ProviderDefinition[] = [
     contextWindow: 128_000,
     maxOutputTokens: 4_096,
     envKeys: ["DYNAMIC_AGI_CHAT_URL", "DYNAMIC_AGI_CHAT_KEY"],
+    isConfigured: () => true,
     async invoke(
       { messages, temperature = 0.7, maxTokens, language },
     ): Promise<Omit<ChatResult, "provider">> {
       const { system, conversation } = normalizeMessages(messages);
       const result = await callDynamicAgi({
+        system,
+        messages: conversation,
+        temperature,
+        maxTokens,
+        language,
+      });
+      return result;
+    },
+  },
+  {
+    id: "dynamic-ags",
+    name: "Dynamic AGS",
+    description:
+      "Dynamic AGS governance playbook with compliance and policy telemetry (demo fallback when offline).",
+    defaultModel: "dags-governance-playbook",
+    contextWindow: 64_000,
+    maxOutputTokens: 2_048,
+    envKeys: ["DYNAMIC_AGS_PLAYBOOK_URL", "DYNAMIC_AGS_PLAYBOOK_KEY"],
+    isConfigured: () => true,
+    async invoke(
+      { messages, temperature = 0.7, maxTokens, language },
+    ): Promise<Omit<ChatResult, "provider">> {
+      const { system, conversation } = normalizeMessages(messages);
+      const result = await callDynamicAgs({
         system,
         messages: conversation,
         temperature,
@@ -330,12 +395,20 @@ function mapAnthropicUsage(
   };
 }
 
+function providerConfigured(definition: ProviderDefinition): boolean {
+  if (typeof definition.isConfigured === "function") {
+    return Boolean(definition.isConfigured());
+  }
+  const keys = definition.envKeys ?? [];
+  return keys.every((key) => Boolean(optionalEnvVar(key)));
+}
+
 function toSummary(definition: ProviderDefinition): ProviderSummary {
   return {
     id: definition.id,
     name: definition.name,
     description: definition.description,
-    configured: definition.envKeys.every((key) => Boolean(optionalEnvVar(key))),
+    configured: providerConfigured(definition),
     defaultModel: definition.defaultModel,
     contextWindow: definition.contextWindow,
     maxOutputTokens: definition.maxOutputTokens,
@@ -354,7 +427,7 @@ export async function executeChat(request: ChatRequest): Promise<ChatResult> {
     throw new Error(`Unsupported provider: ${request.providerId}`);
   }
 
-  if (!definition.envKeys.every((key) => Boolean(optionalEnvVar(key)))) {
+  if (!providerConfigured(definition)) {
     throw new Error(`Provider ${definition.name} is not configured.`);
   }
 
