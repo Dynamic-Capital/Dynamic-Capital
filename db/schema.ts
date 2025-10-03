@@ -9,6 +9,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -250,3 +251,52 @@ export const fundamentalPositioning = pgTable("fundamental_positioning", {
 export type FundamentalPositioning = typeof fundamentalPositioning.$inferSelect;
 export type NewFundamentalPositioning =
   typeof fundamentalPositioning.$inferInsert;
+
+export const knowledgeBaseCollections = pgTable("knowledge_base_collections", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description"),
+  sourceLink: text("source_link"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+});
+
+export type KnowledgeBaseCollection =
+  typeof knowledgeBaseCollections.$inferSelect;
+export type NewKnowledgeBaseCollection =
+  typeof knowledgeBaseCollections.$inferInsert;
+
+export const knowledgeBaseDocuments = pgTable("knowledge_base_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  collectionId: uuid("collection_id").notNull().references(
+    () => knowledgeBaseCollections.id,
+    { onDelete: "cascade" },
+  ),
+  identifier: text("identifier").notNull(),
+  title: text("title"),
+  content: text("content").notNull(),
+  source: text("source").notNull().default("google_drive"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  tags: jsonb("tags").$type<string[]>().notNull()
+    .default([] as string[]),
+  checksum: text("checksum"),
+  pageCount: integer("page_count"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+}, (table) => ({
+  collectionIdentifierKey: uniqueIndex(
+    "knowledge_base_documents_collection_identifier_idx",
+  ).on(table.collectionId, table.identifier),
+}));
+
+export type KnowledgeBaseDocument = typeof knowledgeBaseDocuments.$inferSelect;
+export type NewKnowledgeBaseDocument =
+  typeof knowledgeBaseDocuments.$inferInsert;
