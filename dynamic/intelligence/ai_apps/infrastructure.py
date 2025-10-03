@@ -392,39 +392,7 @@ class ModuleRegistration:
     notes: Tuple[str, ...] = ()
 
 
-DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
-    ModuleRegistration(
-        name="dynamic_supabase",
-        domain=ModuleDomain.TECHNOLOGY_INFRASTRUCTURE,
-        responsibilities=(
-            "Provision managed Postgres and storage primitives",
-            "Automate migrations and schema drift remediation",
-            "Ensure alerting and observability integrations stay healthy",
-        ),
-        success_metrics=(
-            "Replication lag under 200ms",
-            "Nightly backups verified",
-            "Incident MTTR under 10 minutes",
-        ),
-        notes=("Supabase service role keys held in secure secrets manager",),
-    ),
-    ModuleRegistration(
-        name="dynamic_adapters",
-        domain=ModuleDomain.TECHNOLOGY_INFRASTRUCTURE,
-        responsibilities=(
-            "Maintain multi-provider LLM adapter roster with hot failovers",
-            "Rotate adapter credentials and runtime configuration safely",
-            "Exercise regression suites across prompt templates and transports",
-        ),
-        success_metrics=(
-            "Adapter uptime above 99.5%",
-            "Failover drills executed each week",
-            "Configuration drift resolved within 1 business day",
-        ),
-        notes=(
-            "Backed by Dolphin, Ollama, and Kimi K2 adapter implementations",
-        ),
-    ),
+MEMORY_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
     ModuleRegistration(
         name="dynamic_memory",
         domain=ModuleDomain.AI_COGNITION,
@@ -474,6 +442,43 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
             "Runs on DynamicMemoryReconsolidation planning engine and MemoryTrace models",
         ),
     ),
+)
+
+
+DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
+    ModuleRegistration(
+        name="dynamic_supabase",
+        domain=ModuleDomain.TECHNOLOGY_INFRASTRUCTURE,
+        responsibilities=(
+            "Provision managed Postgres and storage primitives",
+            "Automate migrations and schema drift remediation",
+            "Ensure alerting and observability integrations stay healthy",
+        ),
+        success_metrics=(
+            "Replication lag under 200ms",
+            "Nightly backups verified",
+            "Incident MTTR under 10 minutes",
+        ),
+        notes=("Supabase service role keys held in secure secrets manager",),
+    ),
+    ModuleRegistration(
+        name="dynamic_adapters",
+        domain=ModuleDomain.TECHNOLOGY_INFRASTRUCTURE,
+        responsibilities=(
+            "Maintain multi-provider LLM adapter roster with hot failovers",
+            "Rotate adapter credentials and runtime configuration safely",
+            "Exercise regression suites across prompt templates and transports",
+        ),
+        success_metrics=(
+            "Adapter uptime above 99.5%",
+            "Failover drills executed each week",
+            "Configuration drift resolved within 1 business day",
+        ),
+        notes=(
+            "Backed by Dolphin, Ollama, and Kimi K2 adapter implementations",
+        ),
+    ),
+    *MEMORY_MODULE_REGISTRATIONS,
     ModuleRegistration(
         name="dynamic_datasets",
         domain=ModuleDomain.AI_COGNITION,
@@ -629,6 +634,7 @@ __all__ = [
     "OperationalPlaybook",
     "DynamicInfrastructure",
     "ModuleRegistration",
+    "MEMORY_MODULE_REGISTRATIONS",
     "DEFAULT_MODULE_REGISTRATIONS",
     "build_default_infrastructure",
 ]
