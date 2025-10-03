@@ -11,6 +11,7 @@ import {
   type LayerZeroEndpoint,
   type LayerZeroEnvironment,
 } from "@/config/layerzero";
+import { UnifiedWalletConnect } from "@/components/web3/UnifiedWalletConnect";
 
 const HERO_HIGHLIGHTS = [
   {
@@ -206,6 +207,17 @@ export default function WalletPage() {
             </Row>
           ))}
         </Row>
+      </Column>
+
+      <Column gap="24" maxWidth={40} fillWidth>
+        <Heading variant="heading-strong-l">Unified wallet connect</Heading>
+        <Text variant="body-default-m" onBackground="neutral-weak">
+          Link TON and EVM wallets in one step to unlock staking, LayerZero
+          routing, and automated desk actions that follow your balances.
+        </Text>
+        <div className="w-full">
+          <UnifiedWalletConnect />
+        </div>
       </Column>
 
       <Column gap="24" maxWidth={40} fillWidth>

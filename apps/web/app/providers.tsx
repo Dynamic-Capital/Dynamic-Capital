@@ -27,6 +27,7 @@ import { SupabaseProvider } from "@/context/SupabaseProvider";
 import { MotionConfigProvider } from "@/components/ui/motion-config";
 import { dynamicUI } from "@/resources";
 import { iconLibrary } from "@/resources/icons";
+import { TonConnectProvider } from "@/integrations/tonconnect";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/config/supabase-runtime";
 
 const {
@@ -76,7 +77,9 @@ export default function Providers({ children }: { children: ReactNode }) {
                     <AuthProvider>
                       <SupabaseProvider>
                         <TelegramAuthProvider>
-                          {children}
+                          <TonConnectProvider>
+                            {children}
+                          </TonConnectProvider>
                         </TelegramAuthProvider>
                       </SupabaseProvider>
                     </AuthProvider>

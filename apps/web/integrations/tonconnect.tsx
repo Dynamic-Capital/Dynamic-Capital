@@ -1,10 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { TonConnectUIProvider } from "@tonconnect/ui-react";
+
 import { TON_CONFIG } from "@/config/ton";
 
 interface TonConnectProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function TonConnectProvider({ children }: TonConnectProviderProps) {
