@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
-from typing import Any, Mapping, MutableMapping, Sequence
+from typing import Any, Iterable, Mapping, MutableMapping, Sequence, Tuple
 
 from dynamic.intelligence.ai_apps import AISignal, DynamicFusionAlgo
 from dynamic.intelligence.agi import AGIOutput, DynamicAGIModel
@@ -78,6 +78,39 @@ def _safe_ratio(numerator: float, denominator: float) -> float:
     return numerator / denominator
 
 
+def _fingerprint_positions(positions: Iterable[Position]) -> Tuple[Tuple[Any, ...], ...]:
+    return tuple(
+        (
+            position.symbol,
+            position.quantity,
+            position.entry_price,
+            position.last_price,
+            position.updated_at.isoformat(),
+        )
+        for position in sorted(positions, key=lambda current: current.symbol)
+    )
+
+
+def _fingerprint_sync_samples(samples: Iterable[SyncSample]) -> Tuple[Tuple[Any, ...], ...]:
+    return tuple(
+        (
+            sample.source,
+            sample.latency,
+            sample.offset,
+            sample.captured_at.isoformat(),
+        )
+        for sample in sorted(samples, key=lambda current: (current.source, current.captured_at))
+    )
+
+
+def _coerce_playbook_entry(entry: PlaybookEntry | Mapping[str, Any]) -> PlaybookEntry:
+    if isinstance(entry, PlaybookEntry):
+        return entry
+    if isinstance(entry, Mapping):
+        return PlaybookEntry(**entry)  # type: ignore[arg-type]
+    raise TypeError("governance entries must be PlaybookEntry instances or mappings")
+
+
 DEFAULT_LIVE_SYNC_CONTEXT = PlaybookContext(
     mission="Dynamic AGS live trading oversight",
     cadence="continuous",
@@ -124,7 +157,11 @@ class MarketUpdate:
         self.inventory = float(self.inventory)
         self.positions = tuple(_coerce_position(position) for position in self.positions)
         self.sync_samples = tuple(_coerce_sync_sample(sample) for sample in self.sync_samples)
-        self.governance_entries = tuple(self.governance_entries)
+        self.governance_entries = tuple(
+            _coerce_playbook_entry(entry) for entry in self.governance_entries
+        )
+        if self.lot is not None:
+            self.lot = max(float(self.lot), 0.0)
         self.timestamp = _ensure_timestamp(self.timestamp)
 
 
@@ -200,6 +237,9 @@ class DynamicTradingLiveSync:
         self.sync = sync_engine or DynamicSync()
         self.playbook = playbook_sync or PlaybookSynchronizer()
         self._default_context = self._coerce_playbook_context(default_playbook_context)
+        self._position_fingerprint: Tuple[Tuple[Any, ...], ...] = ()
+        self._sync_fingerprint: Tuple[Tuple[Any, ...], ...] = ()
+        self._last_return_signature: tuple[float, str] | None = None
 
     def process_update(self, update: MarketUpdate) -> LiveTradingDecision:
         """Ingest a live market update and orchestrate downstream components."""
@@ -254,16 +294,28 @@ class DynamicTradingLiveSync:
     def _ingest_positions(self, update: MarketUpdate) -> None:
         if not update.positions:
             return
+        fingerprint = _fingerprint_positions(update.positions)
+        if fingerprint == self._position_fingerprint:
+            return
+        self._position_fingerprint = fingerprint
         self.risk.ingest_positions(update.positions)
 
     def _ingest_returns(self, update: MarketUpdate) -> None:
         if update.portfolio_return is None:
             return
+        signature = (float(update.portfolio_return), update.timestamp.isoformat())
+        if self._last_return_signature == signature:
+            return
+        self._last_return_signature = signature
         self.risk.register_return(update.portfolio_return)
 
     def _ingest_sync(self, update: MarketUpdate) -> None:
         if not update.sync_samples:
             return
+        fingerprint = _fingerprint_sync_samples(update.sync_samples)
+        if fingerprint == self._sync_fingerprint:
+            return
+        self._sync_fingerprint = fingerprint
         self.sync.ingest(update.sync_samples)
 
     def _ingest_governance(self, update: MarketUpdate) -> Mapping[str, Any] | None:
