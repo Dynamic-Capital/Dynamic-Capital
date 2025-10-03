@@ -17,12 +17,21 @@ import sys
 from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from http.cookiejar import LoadError, MozillaCookieJar
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterable, Iterator, List, Optional, Sequence, Tuple
 from urllib.parse import parse_qs, urlparse
 
 import requests
+from requests.cookies import RequestsCookieJar
+
+
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (X11; Linux x86_64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
 
 
 FOLDER_MIME_TYPE = "application/vnd.google-apps.folder"
@@ -80,6 +89,27 @@ def _ms_to_iso(ms: Optional[int]) -> Optional[str]:
     return datetime.fromtimestamp(ms / 1000, tz=UTC).isoformat()
 
 
+def _cookie_jar_from_string(cookie_string: str) -> RequestsCookieJar:
+    jar = RequestsCookieJar()
+    for part in cookie_string.split(";"):
+        if not part.strip():
+            continue
+        if "=" not in part:
+            continue
+        name, value = part.split("=", 1)
+        jar.set(name.strip(), value.strip())
+    return jar
+
+
+def _cookie_jar_from_file(path: Path) -> RequestsCookieJar:
+    jar = RequestsCookieJar()
+    moz_jar = MozillaCookieJar(str(path))
+    moz_jar.load(ignore_discard=True, ignore_expires=True)
+    for cookie in moz_jar:
+        jar.set_cookie(cookie)
+    return jar
+
+
 @dataclass
 class DriveItem:
     id: str
@@ -115,13 +145,9 @@ class DriveItem:
 
 
 class DriveScraper:
-    def __init__(self) -> None:
-        self._session = requests.Session()
-        self._session.headers["User-Agent"] = (
-            "Mozilla/5.0 (X11; Linux x86_64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/124.0.0.0 Safari/537.36"
-        )
+    def __init__(self, session: Optional[requests.Session] = None) -> None:
+        self._session = session or requests.Session()
+        self._session.headers.setdefault("User-Agent", DEFAULT_USER_AGENT)
         self._visited: set[str] = set()
 
     def scrape(self, folder_id: str, *, max_depth: Optional[int] = None) -> DriveItem:
@@ -135,6 +161,10 @@ class DriveScraper:
         response.raise_for_status()
 
         html_text = response.text
+        if "accounts.google.com" in response.url or "accounts.google.com" in html_text:
+            raise RuntimeError(
+                "Received a Google sign-in page. Ensure the folder is shared publicly or provide authentication cookies via --cookies/--cookie-file."
+            )
         title = _parse_title(html_text) or folder_id
         raw_items = _decode_drive_payload(html_text)
 
@@ -223,13 +253,14 @@ class DriveDownloader:
 
     _DOWNLOAD_URL = "https://drive.google.com/uc"
 
-    def __init__(self, *, chunk_size: int = 1 << 20) -> None:
-        self._session = requests.Session()
-        self._session.headers["User-Agent"] = (
-            "Mozilla/5.0 (X11; Linux x86_64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/124.0.0.0 Safari/537.36"
-        )
+    def __init__(
+        self,
+        *,
+        chunk_size: int = 1 << 20,
+        session: Optional[requests.Session] = None,
+    ) -> None:
+        self._session = session or requests.Session()
+        self._session.headers.setdefault("User-Agent", DEFAULT_USER_AGENT)
         self._chunk_size = chunk_size
 
     def download(
@@ -438,6 +469,25 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip downloading or extracting when the destination file already exists",
     )
+    parser.add_argument(
+        "--cookies",
+        action="append",
+        default=None,
+        help=(
+            "Authentication cookies in 'name=value; name2=value2' format. "
+            "Can be supplied multiple times to combine values."
+        ),
+    )
+    parser.add_argument(
+        "--cookie-file",
+        type=Path,
+        action="append",
+        default=None,
+        help=(
+            "Path to a Netscape/Mozilla cookie file exported from a browser. "
+            "Can be supplied multiple times."
+        ),
+    )
     return parser
 
 
@@ -446,7 +496,23 @@ def main(argv: Optional[Iterable[str]] = None) -> None:
     args = parser.parse_args(argv)
 
     folder_id = _extract_folder_id(args.folder)
-    scraper = DriveScraper()
+    session = requests.Session()
+    session.headers.setdefault("User-Agent", DEFAULT_USER_AGENT)
+
+    for cookie_string in args.cookies or []:
+        if cookie_string:
+            session.cookies.update(_cookie_jar_from_string(cookie_string))
+
+    if args.cookie_file:
+        for cookie_path in args.cookie_file:
+            try:
+                session.cookies.update(_cookie_jar_from_file(cookie_path))
+            except FileNotFoundError as exc:
+                raise RuntimeError(f"Cookie file not found: {cookie_path}") from exc
+            except (OSError, LoadError) as exc:
+                raise RuntimeError(f"Failed to read cookie file {cookie_path}: {exc}") from exc
+
+    scraper = DriveScraper(session=session)
     root_item = scraper.scrape(folder_id, max_depth=args.max_depth)
     result = root_item.to_dict()
 
@@ -464,7 +530,7 @@ def main(argv: Optional[Iterable[str]] = None) -> None:
     if not download_dir and not text_output_dir:
         return
 
-    downloader = DriveDownloader()
+    downloader = DriveDownloader(session=session)
 
     temp_context = (
         TemporaryDirectory()
