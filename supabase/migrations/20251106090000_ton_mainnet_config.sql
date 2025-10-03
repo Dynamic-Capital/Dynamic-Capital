@@ -43,11 +43,11 @@ insert into public.dct_app_config as config (
 )
 values (
   1,
-  'EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq',
+  'EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD',
   -- Intake wallet defaults to the operations treasury multisig; update if a
   -- dedicated intake wallet is provisioned.
-  'EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq',
-  'EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y',
+  'EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD',
+  'EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6',
   'EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3',
   null
 )

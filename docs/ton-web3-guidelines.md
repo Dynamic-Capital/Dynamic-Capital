@@ -51,6 +51,10 @@ keep the TON surfaces aligned with the broader platform roadmap.
    canonical addresses live in the `dct_app_config` table created by
    [`20251106090000_ton_mainnet_config.sql`](../supabase/migrations/20251106090000_ton_mainnet_config.sql)
    and mirrored in [`config.yaml`](../dynamic-capital-ton/config.yaml).
+   Apply the follow-up rotation
+   [`20251106090500_rotate_ton_mainnet_addresses.sql`](../supabase/migrations/20251106090500_rotate_ton_mainnet_addresses.sql)
+   after seeding so existing deployments pick up the refreshed treasury
+   multisig and jetton master coordinates.
 3. **Document resolver deployments** by updating
    [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) with the live
    contract address (`EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo` as of
