@@ -237,6 +237,7 @@ class DynamicCoreModel:
         self._definitions: tuple[CoreMetricDefinition, ...] = tuple(definition_list)
         self._lookup: Mapping[str, CoreMetricDefinition] = MappingProxyType(lookup)
         self._history: Deque[float] = deque(maxlen=max(int(window), 2))
+        self._samples: int = 0
         self._last_snapshot: CoreSnapshot | None = None
 
     @property
@@ -332,9 +333,13 @@ class DynamicCoreModel:
             if status in {"risk", "critical"}:
                 alerts.append(f"{definition.label}: {status.upper()}")
         composite = weighted_total / weight_sum if weight_sum else 0.0
-        previous_composite = self._history[-1] if self._history else composite
-        momentum = composite - previous_composite if self._history else 0.0
+        if self._history:
+            baseline = fmean(self._history)
+            momentum = composite - baseline
+        else:
+            momentum = 0.0
         self._history.append(composite)
+        self._samples += 1
         snapshot = CoreSnapshot(
             domain=self.domain,
             timestamp=ts,
@@ -342,7 +347,7 @@ class DynamicCoreModel:
             momentum=momentum,
             metrics=tuple(statuses),
             alerts=tuple(alerts),
-            sample_size=len(self._history),
+            sample_size=self._samples,
         )
         self._last_snapshot = snapshot
         return snapshot
