@@ -264,3 +264,76 @@ def test_loader_splits_pages_into_individual_documents():
     assert documents[1]["metadata"]["page_number"] == 2
     assert documents[1]["metadata"]["page_count"] == 2
     assert documents[0]["tags"] == ("google_drive", "pdf", "pdf_page")
+
+
+def test_loader_resumes_after_identifier_skips_prior_documents():
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "book-1",
+                "name": "Book 1.pdf",
+                "mimeType": "application/pdf",
+            },
+            {
+                "id": "book-2",
+                "name": "Book 2.pdf",
+                "mimeType": "application/pdf",
+            },
+        ],
+        file_payloads={"book-1": b"binary-one", "book-2": b"binary-two"},
+    )
+
+    def per_file_extractor(payload: bytes, metadata: MutableMapping[str, object]) -> Sequence[str]:
+        return [f"text:{metadata['id']}"]
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        pdf_text_extractor=per_file_extractor,
+    )
+
+    context = CorpusExtractionContext(
+        source="google_drive",
+        limit=None,
+        metadata={"resume_from": "book-1"},
+    )
+    documents = list(loader(context))
+
+    assert [doc["identifier"] for doc in documents] == ["google-drive-book-2"]
+    assert documents[0]["content"] == "text:book-2"
+    assert client.download_calls == ["book-2"]
+
+
+def test_loader_resumes_split_pages_from_page_cursor():
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "multi",
+                "name": "Multi.pdf",
+                "mimeType": "application/pdf",
+            }
+        ],
+        file_payloads={"multi": b"binary"},
+    )
+
+    def multi_page(payload: bytes, metadata: MutableMapping[str, object]) -> Sequence[str]:
+        return ["Page 1", "Page 2", "Page 3"]
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        pdf_text_extractor=multi_page,
+        split_pages=True,
+    )
+
+    context = CorpusExtractionContext(
+        source="google_drive",
+        limit=None,
+        metadata={"resume_file_id": "multi", "resume_page": 2},
+    )
+    documents = list(loader(context))
+
+    assert [doc["identifier"] for doc in documents] == ["google-drive-multi-page-3"]
+    assert documents[0]["content"] == "Page 3"
+    assert documents[0]["metadata"]["page_number"] == 3
+    assert client.download_calls == ["multi"]

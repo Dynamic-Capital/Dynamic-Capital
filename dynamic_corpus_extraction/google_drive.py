@@ -24,6 +24,19 @@ _PDF_MIME_TYPE = "application/pdf"
 _DEFAULT_FIELDS = "nextPageToken, files(id, name, mimeType, modifiedTime, size, md5Checksum, webViewLink, parents)"
 
 
+def _first_non_empty(mapping: Mapping[str, object], keys: Sequence[str]) -> str | None:
+    for key in keys:
+        if key not in mapping:
+            continue
+        value = mapping.get(key)
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text:
+            return text
+    return None
+
+
 def _append_query(url: str, params: Mapping[str, str] | None) -> str:
     if not params:
         return url
@@ -329,6 +342,170 @@ def _coerce_positive_int(value: object) -> int | None:
     return candidate
 
 
+def _split_page_suffix(value: str) -> tuple[str, int | None]:
+    if not value:
+        return value, None
+    if "-page-" not in value:
+        return value, None
+    base, suffix = value.rsplit("-page-", 1)
+    page_number = _coerce_positive_int(suffix)
+    if page_number is None:
+        return value, None
+    return base, page_number
+
+
+class _ResumeState:
+    __slots__ = ("identifier", "file_id", "page_number", "identifier_seen", "file_seen", "page_seen")
+
+    def __init__(
+        self,
+        identifier: str | None,
+        file_id: str | None,
+        page_number: int | None,
+    ) -> None:
+        self.identifier = identifier
+        self.file_id = file_id
+        self.page_number = page_number
+        self.identifier_seen = identifier is None
+        self.file_seen = file_id is None
+        self.page_seen = page_number is None
+
+    def should_process_file(self, file_id: str, *, split_pages: bool) -> bool:
+        if self.file_id is None:
+            return True
+        if self.identifier_seen and self.file_seen:
+            return True
+        if file_id != self.file_id:
+            return False
+        if self.page_number is None or not split_pages:
+            self.identifier_seen = True
+            self.file_seen = True
+            self.page_seen = True
+            return False
+        return True
+
+    def should_emit(self, file_id: str, *, page_number: int | None) -> bool:
+        if self.identifier is None and self.file_id is None:
+            return True
+
+        identifier = f"google-drive-{file_id}"
+        if page_number is not None:
+            identifier = f"{identifier}-page-{page_number}"
+
+        if not self.identifier_seen:
+            if identifier == self.identifier:
+                self.identifier_seen = True
+                if self.file_id is None or self.file_id == file_id:
+                    self.file_seen = True
+                if self.page_number is None or page_number is None:
+                    self.page_seen = True
+                else:
+                    self.page_seen = True
+                    self.file_seen = True
+                return False
+            if self.file_id is not None and file_id == self.file_id and self.page_number is None:
+                self.identifier_seen = True
+                self.file_seen = True
+                self.page_seen = True
+                return False
+            if self.file_id is not None and file_id == self.file_id and self.page_number is not None and page_number is None:
+                self.identifier_seen = True
+                self.file_seen = True
+                self.page_seen = True
+                return False
+            return False
+
+        if not self.file_seen:
+            if file_id == self.file_id:
+                if self.page_number is None:
+                    self.file_seen = True
+                    self.page_seen = True
+                    return False
+            else:
+                return False
+
+        if not self.page_seen:
+            if page_number is None:
+                self.page_seen = True
+                self.file_seen = True
+                return False
+            if self.page_number is not None and page_number <= self.page_number:
+                if page_number == self.page_number:
+                    self.page_seen = True
+                    self.file_seen = True
+                return False
+            self.page_seen = True
+            self.file_seen = True
+
+        return True
+
+    def finish_file(self, file_id: str) -> None:
+        if self.file_id is None or file_id != self.file_id:
+            return
+        if not self.identifier_seen:
+            self.identifier_seen = True
+        if not self.file_seen:
+            self.file_seen = True
+        if not self.page_seen:
+            self.page_seen = True
+
+
+def _parse_resume_cursor(metadata: Mapping[str, object]) -> _ResumeState:
+    identifier = _first_non_empty(
+        metadata,
+        (
+            "resume_from_identifier",
+            "resume_identifier",
+            "resume_from",
+            "start_after",
+            "continue_from",
+        ),
+    )
+    file_id = _first_non_empty(
+        metadata,
+        (
+            "resume_file_id",
+            "resume_from_file_id",
+            "resume_file",
+            "resume_document",
+        ),
+    )
+    page_value: object | None = None
+    for key in ("resume_page", "resume_page_number", "resume_from_page"):
+        if key in metadata:
+            page_value = metadata.get(key)
+            break
+    page_number = _coerce_positive_int(page_value) if page_value is not None else None
+
+    resolved_identifier: str | None = None
+    resolved_file_id: str | None = file_id
+    resolved_page: int | None = page_number
+
+    if identifier:
+        candidate = identifier if identifier.startswith("google-drive-") else f"google-drive-{identifier}"
+        tail = candidate[len("google-drive-") :]
+        base_id, detected_page = _split_page_suffix(tail)
+        if detected_page is not None and resolved_page is None:
+            resolved_page = detected_page
+        if resolved_file_id is None and base_id:
+            resolved_file_id = base_id
+        if resolved_page is not None:
+            resolved_identifier = f"google-drive-{base_id}-page-{resolved_page}"
+        else:
+            resolved_identifier = f"google-drive-{base_id}"
+    elif resolved_file_id:
+        cleaned = resolved_file_id
+        if resolved_page is not None:
+            resolved_identifier = f"google-drive-{cleaned}-page-{resolved_page}"
+        else:
+            resolved_identifier = f"google-drive-{cleaned}"
+
+    if resolved_file_id:
+        resolved_file_id = resolved_file_id.strip() or None
+
+    return _ResumeState(resolved_identifier, resolved_file_id, resolved_page)
+
+
 def build_google_drive_pdf_loader(
     *,
     share_link: str | None = None,
@@ -429,10 +606,9 @@ def build_google_drive_pdf_loader(
         remaining = context.limit
         client = factory()
         seen_ids: set[str] = set()
-        try:
-            metadata_batch_size: object | None = context.metadata.get("batch_size")
-        except AttributeError:  # pragma: no cover - custom mappings without get
-            metadata_batch_size = None
+        context_metadata = dict(getattr(context, "metadata", {}) or {})
+        metadata_batch_size: object | None = context_metadata.get("batch_size")
+        resume_state = _parse_resume_cursor(context_metadata)
         effective_batch_size = (
             _coerce_positive_int(metadata_batch_size)
             or configured_batch_size
@@ -467,6 +643,8 @@ def build_google_drive_pdf_loader(
             size_value = _coerce_size(metadata.get("size"))
             if max_file_size is not None and size_value is not None and size_value > max_file_size:
                 return
+            if not resume_state.should_process_file(file_id, split_pages=split_pages):
+                return
             payload = client.download_file(file_id)
             if max_file_size is not None and len(payload) > max_file_size:
                 return
@@ -489,6 +667,8 @@ def build_google_drive_pdf_loader(
 
             if split_pages:
                 for index, page_text in enumerate(page_texts, start=1):
+                    if not resume_state.should_emit(file_id, page_number=index):
+                        continue
                     if _should_stop():
                         break
                     page_metadata = dict(document_metadata)
@@ -504,6 +684,9 @@ def build_google_drive_pdf_loader(
                         if remaining <= 0:
                             break
             else:
+                if not resume_state.should_emit(file_id, page_number=None):
+                    resume_state.finish_file(file_id)
+                    return
                 text = "\n\n".join(page_texts).strip()
                 if not text:
                     raise RuntimeError(
@@ -517,6 +700,7 @@ def build_google_drive_pdf_loader(
                 }
                 if remaining is not None:
                     remaining -= 1
+            resume_state.finish_file(file_id)
 
         if resolved_folder:
             for batch in _batched(

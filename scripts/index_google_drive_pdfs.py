@@ -77,6 +77,18 @@ def _parse_args() -> argparse.Namespace:
         help="Emit a separate corpus document for each PDF page.",
     )
     parser.add_argument(
+        "--resume-from",
+        help=(
+            "Resume extraction after the given document identifier or Google Drive file ID."
+        ),
+    )
+    parser.add_argument(
+        "--resume-page",
+        type=int,
+        default=None,
+        help="When resuming from a paginated PDF, skip up to this page number.",
+    )
+    parser.add_argument(
         "--table",
         default="google_drive_pdfs",
         help="Database table name used for indexed records.",
@@ -157,7 +169,12 @@ def _run() -> None:
 
     engine = DynamicCorpusExtractionEngine()
     engine.register_source("google_drive", loader)
-    summary = engine.extract(limit=args.limit)
+    run_metadata: dict[str, object] = {}
+    if args.resume_from:
+        run_metadata["resume_from"] = args.resume_from
+    if args.resume_page is not None:
+        run_metadata["resume_page"] = args.resume_page
+    summary = engine.extract(limit=args.limit, metadata=run_metadata or None)
 
     keeper = GoogleDriveBookkeeper(table=args.table)
     extra_tags = ("ocr",) if args.enable_ocr else ()
