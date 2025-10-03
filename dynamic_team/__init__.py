@@ -19,6 +19,7 @@ from algorithms.python.team_operations import (
     TeamOperationsLLMPlanner,
     build_team_operations_playbooks as _build_team_operations_playbooks,
     build_team_operations_sync_algorithm as _build_team_operations_sync_algorithm,
+    build_team_workflows as _build_team_workflows,
 )
 
 __all__ = [
@@ -29,6 +30,7 @@ __all__ = [
     "TeamAgentResult",
     "DynamicTeamAgent",
     "build_team_playbooks",
+    "build_team_workflows",
     "build_team_sync",
     "get_team_playbook",
     "list_team_agents",
@@ -204,6 +206,18 @@ def build_team_playbooks(*, include_optional: bool = True) -> Dict[str, TeamRole
     """Return Dynamic Capital team playbooks keyed by role name."""
 
     return dict(_cached_team_playbooks(include_optional))
+
+
+def build_team_workflows(
+    *,
+    focus: Iterable[str] | None = None,
+    include_optional: bool = True,
+) -> Dict[str, tuple[str, ...]]:
+    """Return workflow steps keyed by role name for the selected playbooks."""
+
+    return dict(
+        _build_team_workflows(focus=focus, include_optional=include_optional)
+    )
 
 
 def get_team_playbook(role: str, *, include_optional: bool = True) -> TeamRolePlaybook:

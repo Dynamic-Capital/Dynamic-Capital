@@ -217,6 +217,7 @@ from .team_operations import (
     TeamOperationsLLMPlanner,
     build_team_operations_playbooks,
     build_team_operations_sync_algorithm,
+    build_team_workflows,
 )
 from .api_keeper import (
     ApiEndpoint,
@@ -546,6 +547,7 @@ __all__ = _trade_exports + [
     "TEAM_OPERATIONS_PLAYBOOKS",
     "build_team_operations_playbooks",
     "build_team_operations_sync_algorithm",
+    "build_team_workflows",
     "TeamOperationsAlignmentReport",
     "TeamOperationsLLMPlanner",
     "Element",
