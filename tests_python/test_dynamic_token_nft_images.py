@@ -16,6 +16,8 @@ from dynamic.platform.token import (
     DynamicNFTMinter,
     GeneratedNFTImage,
     NanoBananaClient,
+    NanoBananaImageGenerator,
+    create_nanobanana_generator_from_env,
 )
 
 
@@ -60,6 +62,35 @@ class StubSession:
     def post(self, url: str, *, json: Mapping[str, Any], headers: Mapping[str, str], timeout: float) -> StubResponse:
         self.calls.append({"url": url, "json": json, "headers": headers, "timeout": timeout})
         return self._response
+
+
+class StubNanoBananaClient:
+    def __init__(self, image: GeneratedNFTImage) -> None:
+        self.image = image
+        self.calls: list[dict[str, Any]] = []
+
+    def generate_image(
+        self,
+        prompt: str,
+        *,
+        negative_prompt: str | None = None,
+        aspect_ratio: str | None = None,
+        seed: int | None = None,
+        context: Mapping[str, Any] | None = None,
+    ) -> GeneratedNFTImage:
+        self.calls.append(
+            {
+                "prompt": prompt,
+                "negative_prompt": negative_prompt,
+                "aspect_ratio": aspect_ratio,
+                "seed": seed,
+                "context": dict(context or {}),
+            }
+        )
+        return self.image
+
+    def close(self) -> None:
+        pass
 
 
 def test_mint_includes_generated_image_metadata() -> None:
@@ -158,6 +189,52 @@ def test_nanobanana_client_normalises_nested_payload() -> None:
     assert call["headers"]["Authorization"] == "Bearer secret"
     assert call["json"]["aspect_ratio"] == "16:9"
     assert call["json"]["context"]["symbol"] == "DCT"
+
+
+def test_nanobanana_image_generator_combines_context() -> None:
+    image = GeneratedNFTImage(url="https://example.com/nft.png", prompt="prefixed")
+    client = StubNanoBananaClient(image)
+    generator = NanoBananaImageGenerator(
+        client=client,
+        prompt_prefix="Dynamic Capital",
+        negative_prompt="blurry",
+        aspect_ratio="4:3",
+        seed=11,
+        context_defaults={"style": "future"},
+    )
+
+    result = generator.generate("city skyline", context={"style": "override", "symbol": "DCT"})
+
+    assert result is image
+    call = client.calls[0]
+    assert call["prompt"] == "Dynamic Capital city skyline"
+    assert call["negative_prompt"] == "blurry"
+    assert call["aspect_ratio"] == "4:3"
+    assert call["seed"] == 11
+    assert call["context"]["style"] == "override"
+    assert call["context"]["symbol"] == "DCT"
+
+
+def test_nanobanana_generator_from_env_requires_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("NANOBANANA_API_KEY", raising=False)
+
+    generator = create_nanobanana_generator_from_env(env={})
+
+    assert generator is None
+
+
+def test_minter_auto_enables_environment_generator(monkeypatch: pytest.MonkeyPatch) -> None:
+    stub_generator = StubImageGenerator()
+
+    monkeypatch.setattr(
+        "dynamic.platform.token.nft.create_nanobanana_generator_from_env",
+        lambda: stub_generator,
+    )
+
+    minter = DynamicNFTMinter("dct")
+    minter.mint("0xabc", image_prompt="skyline")
+
+    assert stub_generator.calls
 
 
 @pytest.mark.parametrize("prompt", [None, "   "])

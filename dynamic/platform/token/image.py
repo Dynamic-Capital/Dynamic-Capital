@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import importlib
+import os
 from dataclasses import dataclass, field
 from types import ModuleType
 from typing import Any, Mapping, MutableMapping, Sequence
-import importlib
+
+__all__ = [
+    "GeneratedNFTImage",
+    "NanoBananaClient",
+    "NanoBananaImageGenerator",
+    "create_nanobanana_generator_from_env",
+]
 
 
 def _load_requests() -> ModuleType:
@@ -223,4 +231,116 @@ class NanoBananaClient:
                     nested = NanoBananaClient._extract_image_url(item)
                     if nested:
                         return nested
+        return None
+
+
+class NanoBananaImageGenerator:
+    """Adapter that turns :class:`NanoBananaClient` into an image generator."""
+
+    def __init__(
+        self,
+        *,
+        client: NanoBananaClient | None = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
+        prompt_prefix: str | None = None,
+        negative_prompt: str | None = None,
+        aspect_ratio: str | None = None,
+        seed: int | None = None,
+        context_defaults: Mapping[str, Any] | None = None,
+    ) -> None:
+        if client is not None and api_key is not None:
+            raise ValueError("Provide either an existing client or API credentials, not both")
+
+        owns_client = client is None
+        if client is None:
+            client = NanoBananaClient(api_key=api_key, base_url=base_url)
+
+        self._client = client
+        self._owns_client = owns_client
+        self._prompt_prefix = (prompt_prefix or "").strip()
+        self._negative_prompt = negative_prompt
+        self._aspect_ratio = aspect_ratio
+        self._seed = seed
+        self._context_defaults = dict(context_defaults or {})
+
+    def generate(
+        self,
+        prompt: str,
+        *,
+        context: Mapping[str, Any] | None = None,
+    ) -> GeneratedNFTImage:
+        if not isinstance(prompt, str) or not prompt.strip():
+            raise ValueError("prompt must be a non-empty string")
+
+        resolved_prompt = prompt.strip()
+        if self._prompt_prefix:
+            resolved_prompt = f"{self._prompt_prefix} {resolved_prompt}".strip()
+
+        merged_context: MutableMapping[str, Any] | None = None
+        if self._context_defaults or context:
+            merged_context = dict(self._context_defaults)
+            if context:
+                merged_context.update(dict(context))
+
+        return self._client.generate_image(
+            resolved_prompt,
+            negative_prompt=self._negative_prompt,
+            aspect_ratio=self._aspect_ratio,
+            seed=self._seed,
+            context=merged_context,
+        )
+
+    def close(self) -> None:
+        """Close the underlying client if this generator owns it."""
+
+        if self._owns_client:
+            self._client.close()
+
+    def __enter__(self) -> "NanoBananaImageGenerator":  # pragma: no cover - convenience API
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:  # pragma: no cover - convenience API
+        self.close()
+
+
+def create_nanobanana_generator_from_env(
+    *,
+    env: Mapping[str, str] | None = None,
+    context_defaults: Mapping[str, Any] | None = None,
+) -> NanoBananaImageGenerator | None:
+    """Create a :class:`NanoBananaImageGenerator` if API credentials are present."""
+
+    environment = env or os.environ
+    api_key = environment.get("NANOBANANA_API_KEY")
+    if not api_key:
+        return None
+
+    base_url = environment.get("NANOBANANA_BASE_URL")
+    prompt_prefix = environment.get("NANOBANANA_PROMPT_PREFIX")
+    negative_prompt = environment.get("NANOBANANA_NEGATIVE_PROMPT")
+    aspect_ratio = environment.get("NANOBANANA_ASPECT_RATIO")
+
+    seed: int | None = None
+    seed_raw = environment.get("NANOBANANA_SEED")
+    if seed_raw:
+        try:
+            seed = int(seed_raw)
+        except ValueError:
+            seed = None
+
+    try:
+        return NanoBananaImageGenerator(
+            api_key=api_key,
+            base_url=base_url,
+            prompt_prefix=prompt_prefix,
+            negative_prompt=negative_prompt,
+            aspect_ratio=aspect_ratio,
+            seed=seed,
+            context_defaults=context_defaults,
+        )
+    except RuntimeError:
+        # ``NanoBananaClient`` raises ``RuntimeError`` when the optional ``requests``
+        # dependency is missing. Treat this as "image generation unavailable" so the
+        # caller can continue minting NFTs without artwork.
         return None

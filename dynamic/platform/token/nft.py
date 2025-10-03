@@ -13,7 +13,7 @@ try:  # pragma: no cover - exercised indirectly when dependency is available
 except Exception:  # pragma: no cover - fallback path for isolated test runs
     _DynamicMetadataAlgo = None
 
-from .image import GeneratedNFTImage
+from .image import GeneratedNFTImage, create_nanobanana_generator_from_env
 
 
 class NFTImageGenerator(Protocol):
@@ -164,7 +164,10 @@ class DynamicNFTMinter:
 
         self.symbol = symbol.upper()
         self._metadata_algo = metadata_algo or DynamicMetadataAlgo()
-        self._image_generator = image_generator
+        resolved_image_generator = image_generator
+        if resolved_image_generator is None:
+            resolved_image_generator = create_nanobanana_generator_from_env()
+        self._image_generator = resolved_image_generator
         self._next_token_id = 1
         self._tokens: dict[int, MintedDynamicNFT] = {}
 
