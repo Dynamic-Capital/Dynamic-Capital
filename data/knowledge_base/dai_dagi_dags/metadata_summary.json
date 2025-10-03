@@ -1,0 +1,47 @@
+{
+  "generated_at": "2025-10-03T22:38:23.288916+00:00",
+  "source_url": "https://drive.google.com/drive/folders/1F2A1RO8W5DDa8yWIKBMos_k32DQD4jpB",
+  "domains": {
+    "DAGI": {
+      "files": 50,
+      "total_bytes": 555049934,
+      "extensions": {
+        "docx": 21,
+        "pdf": 26,
+        "png": 1,
+        "pptx": 2
+      },
+      "tags": [
+        "agi-research",
+        "dagi"
+      ]
+    },
+    "DAGS": {
+      "files": 13,
+      "total_bytes": 2195513,
+      "extensions": {
+        "pdf": 13
+      },
+      "tags": [
+        "governance",
+        "compliance",
+        "dags"
+      ]
+    },
+    "DAI": {
+      "files": 52,
+      "total_bytes": 111439622,
+      "extensions": {
+        "json": 2,
+        "pdf": 28,
+        "png": 22
+      },
+      "tags": [
+        "trading-knowledge",
+        "dai"
+      ]
+    }
+  },
+  "total_files": 115,
+  "total_bytes": 668685069
+}
