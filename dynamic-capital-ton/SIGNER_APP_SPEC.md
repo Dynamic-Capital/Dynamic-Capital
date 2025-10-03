@@ -47,6 +47,36 @@ SignerApp can be installed on the same device as Tonkeeper or on a separate,
 air-gapped device. Data exchange is supported via QR codes or deeplinks,
 depending on the device setup and platform capabilities.
 
+## Dynamic Offline Wallet Support
+
+Dynamic offline mode keeps the signer isolated from any network while still
+allowing flexible, multi-chain usage. To enable it end to end:
+
+1. **Prepare a dedicated device**
+   - Factory reset or wipe an existing handset, then keep it permanently in
+     airplane mode.
+   - Sideload the SignerApp build (from source or a verified package) using a
+     wired transfer. Disable all auto-update and background network services.
+2. **Provision keys locally**
+   - Generate new wallets inside SignerApp or import seed phrases using the
+     offline key manager. Each key can be tagged by chain (`ton`, `btc`,
+     `tron20`) so the signer can dynamically select the right schema.
+   - Assign strong passwords for every key vault. Back up the encrypted key set
+     to external storage that never reconnects to the internet.
+3. **Shuttle requests air-gapped**
+   - Use animated QR codes or deeplinks encoded on another device to deliver
+     unsigned transactions to the offline signer.
+   - Validate the decoded payload preview before authorizing. Signing never
+     exposes private material.
+4. **Export signed payloads securely**
+   - Mirror the transfer channel used for import (QR or deeplink). Ensure the
+     recipient device is trusted before revealing the signed BoC.
+   - Rotate keys or wipe the device immediately if an offline compromise is
+     suspected.
+
+Following this checklist keeps the signer cold while still supporting dynamic
+network coverage and rapid transaction turnaround.
+
 ## Signing Protocol
 
 Transactions originate in Tonkeeper and are presented to SignerApp for
