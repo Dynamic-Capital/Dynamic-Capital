@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { withApiMetrics } from "@/observability/server-metrics.ts";
 import {
   buildDynamicRestBondYieldsResponse,
+  buildDynamicRestDexScreenerResponse,
   buildDynamicRestInstrumentsResponse,
   buildDynamicRestOpenSourceResponse,
   buildDynamicRestTradingDeskResponse,
@@ -47,7 +48,7 @@ type ResourceDefinition = {
 
 function createCachedResource<Payload extends ResourcePayload>(
   cacheKey: string,
-  builder: () => Payload,
+  builder: () => Payload | Promise<Payload>,
 ): () => Promise<Payload> {
   return unstable_cache(
     () => Promise.resolve(builder()),
@@ -86,6 +87,13 @@ const RESOURCE_DEFINITIONS = {
     getResource: createCachedResource(
       "dynamic-rest-resources-open-source",
       buildDynamicRestOpenSourceResponse,
+    ),
+  },
+  [RESOURCE_ENDPOINTS.dexScreener.slug]: {
+    endpoint: RESOURCE_ENDPOINTS.dexScreener,
+    getResource: createCachedResource(
+      "dynamic-rest-resources-dex-screener",
+      buildDynamicRestDexScreenerResponse,
     ),
   },
 } satisfies Record<ResourceSlug, ResourceDefinition>;

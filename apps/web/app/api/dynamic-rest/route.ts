@@ -28,7 +28,7 @@ export const revalidate = parsedRevalidateSeconds !== undefined &&
   : FALLBACK_REVALIDATE_SECONDS;
 
 const getDynamicRestResponse = unstable_cache(
-  () => Promise.resolve(buildDynamicRestResponse()),
+  () => buildDynamicRestResponse(),
   [CACHE_KEY],
   {
     revalidate,

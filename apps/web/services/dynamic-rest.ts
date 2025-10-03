@@ -1,6 +1,7 @@
 import tradingDeskPlan from "@/data/trading-desk-plan.json" with {
   type: "json",
 };
+import { buildDexScreenerResource, type DexScreenerResource } from "./dex-screener";
 import {
   BOND_FEED_CAPABILITIES,
   BOND_MARKET_COVERAGE,
@@ -105,6 +106,7 @@ export interface DynamicRestResources {
     >;
     categories: OpenSourceCatalogData;
   };
+  dexScreener: DexScreenerResource;
 }
 
 export interface DynamicRestResponse {
@@ -202,6 +204,14 @@ const RESOURCE_DYNAMIC_REST_ENDPOINTS = Object.freeze(
         "Catalog of open-source helpers, language models, adapters, and toolkits.",
       resourceKey: "openSource",
       slug: "open-source",
+    },
+    dexScreener: {
+      method: "GET",
+      path: "/api/dynamic-rest/resources/dex-screener",
+      description:
+        "Latest Dex Screener token profiles and boost activity summaries.",
+      resourceKey: "dexScreener",
+      slug: "dex-screener",
     },
   } satisfies ResourceEndpointMap,
 );
@@ -325,13 +335,22 @@ function summariseOpenSource(): DynamicRestResources["openSource"] {
   } satisfies DynamicRestResources["openSource"];
 }
 
-export function buildDynamicRestResponse(
+export async function buildDynamicRestResponse(
   now: Date = new Date(),
-): DynamicRestResponse {
-  const instruments = summariseInstruments();
-  const tradingDesk = summariseTradingDesk();
-  const bondYields = summariseBondYields();
-  const openSource = summariseOpenSource();
+): Promise<DynamicRestResponse> {
+  const [
+    instruments,
+    tradingDesk,
+    bondYields,
+    openSource,
+    dexScreener,
+  ] = await Promise.all([
+    Promise.resolve(summariseInstruments()),
+    Promise.resolve(summariseTradingDesk()),
+    Promise.resolve(summariseBondYields()),
+    Promise.resolve(summariseOpenSource()),
+    buildDexScreenerResource(),
+  ]);
 
   return {
     status: "ok",
@@ -346,6 +365,7 @@ export function buildDynamicRestResponse(
       tradingDesk,
       bondYields,
       openSource,
+      dexScreener,
     },
   } satisfies DynamicRestResponse;
 }
@@ -392,4 +412,18 @@ export function buildDynamicRestOpenSourceResponse(
     metadata: buildMetadata(),
     resource: summariseOpenSource(),
   } satisfies DynamicRestResourceEnvelope<DynamicRestResources["openSource"]>;
+}
+
+export async function buildDynamicRestDexScreenerResponse(
+  now: Date = new Date(),
+): Promise<
+  DynamicRestResourceEnvelope<DynamicRestResources["dexScreener"]>
+> {
+  const resource = await buildDexScreenerResource();
+  return {
+    status: "ok",
+    generatedAt: now.toISOString(),
+    metadata: buildMetadata(),
+    resource,
+  } satisfies DynamicRestResourceEnvelope<DynamicRestResources["dexScreener"]>;
 }
