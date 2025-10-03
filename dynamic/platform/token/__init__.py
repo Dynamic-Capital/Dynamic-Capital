@@ -8,13 +8,14 @@ from .engine import (
 )
 from .image import GeneratedNFTImage, NanoBananaClient
 from .nft import DynamicNFTMinter, MintedDynamicNFT, NFTImageGenerator
-from .treasury import DynamicTreasuryAlgo
+from .treasury import DynamicTreasuryAlgo, TreasuryEvent
 
 __all__ = [
     "DCTCommitteeSignals",
     "DCTEngineReport",
     "DynamicCapitalTokenEngine",
     "DynamicTreasuryAlgo",
+    "TreasuryEvent",
     "DynamicNFTMinter",
     "MintedDynamicNFT",
     "GeneratedNFTImage",
