@@ -17,7 +17,11 @@ export type TonConnectManifest = {
 const DEFAULT_NETWORK: TonNetwork = "mainnet";
 export const TON_MANIFEST_PATH = "/api/tonconnect/manifest";
 const MANIFEST_ICON_PATH = "/icon-mark.svg";
-const PROD_FALLBACK_ORIGIN = "https://dynamiccapital.ton";
+const PROD_FALLBACK_ORIGIN = "https://dynamic-capital-qazf2.ondigitalocean.app";
+const PROD_MANIFEST_URL = new URL(
+  "/tonconnect-manifest.json",
+  PROD_FALLBACK_ORIGIN,
+).toString();
 const DEV_FALLBACK_ORIGIN = "http://localhost:3000";
 const APP_NAME = "Dynamic Capital";
 
@@ -89,7 +93,36 @@ export function resolveTonBaseUrl(): string {
 }
 
 export function resolveTonManifestUrl(baseUrl = resolveTonBaseUrl()): string {
-  return new URL(TON_MANIFEST_PATH, baseUrl).toString();
+  const manifestEnv = optionalEnvVar("NEXT_PUBLIC_TON_MANIFEST_URL", [
+    "TON_MANIFEST_URL",
+  ]);
+
+  if (manifestEnv) {
+    try {
+      const hasScheme = manifestEnv.includes("://");
+      const manifestUrl = hasScheme
+        ? new URL(manifestEnv)
+        : new URL(manifestEnv, baseUrl);
+      return manifestUrl.toString();
+    } catch {
+      // Ignore malformed overrides and fall back to defaults below.
+    }
+  }
+
+  try {
+    const base = new URL(baseUrl);
+    const hostname = base.hostname.toLowerCase();
+    if (
+      LOCALHOST_HOSTNAMES.has(hostname) ||
+      hostname.endsWith(".localhost")
+    ) {
+      return new URL(TON_MANIFEST_PATH, base).toString();
+    }
+  } catch {
+    // If the base URL can't be parsed, fall through to the production default.
+  }
+
+  return PROD_MANIFEST_URL;
 }
 
 export function createTonManifest(
