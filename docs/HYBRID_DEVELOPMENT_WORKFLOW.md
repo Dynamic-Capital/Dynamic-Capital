@@ -36,6 +36,11 @@ graph TD
    DigitalOcean rebuilds from GitHub, keeping the live app current with Dynamic
    and local updates.
 
+> 💡 Run `npm run codex:hybrid` to automate the dependency install, environment
+> sync, optional build/verify steps, and launch the Dynamic development server
+> in one command. Append flags such as `--no-install`, `--no-build`, or
+> `--verify` after `--` to customize the workflow.
+
 ## Notes
 
 - Keep `.env.example` up to date when new variables are introduced.
