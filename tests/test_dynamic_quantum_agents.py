@@ -41,7 +41,7 @@ def test_dynamic_quantum_agent_generates_insight() -> None:
                 coherence=0.62,
                 entanglement=0.58,
                 temperature=42.0,
-                flux=0.1,
+                flux=0.94,
                 phase_variance=0.21,
             ),
             QuantumPulse(
@@ -49,7 +49,7 @@ def test_dynamic_quantum_agent_generates_insight() -> None:
                 coherence=0.66,
                 entanglement=0.6,
                 temperature=40.0,
-                flux=-0.05,
+                flux=0.92,
                 phase_variance=0.19,
                 annotations=("focus",),
             ),
@@ -58,18 +58,18 @@ def test_dynamic_quantum_agent_generates_insight() -> None:
                 coherence=0.7,
                 entanglement=0.64,
                 temperature=39.0,
-                flux=0.08,
+                flux=0.9,
                 phase_variance=0.18,
                 metadata={"channel": "apollo"},
             ),
         )
     )
     environment = QuantumEnvironment(
-        vacuum_pressure=0.55,
-        background_noise=0.42,
-        gravity_gradient=0.38,
-        measurement_rate=0.6,
-        thermal_load=0.52,
+        vacuum_pressure=0.42,
+        background_noise=0.74,
+        gravity_gradient=0.68,
+        measurement_rate=0.72,
+        thermal_load=0.66,
     )
 
     insight = agent.generate_insight(
@@ -79,6 +79,9 @@ def test_dynamic_quantum_agent_generates_insight() -> None:
     )
 
     assert insight.raw.domain == agent.profile.designation
+    assert insight.raw.domains == agent.domains
+    assert "flux-instability" in insight.raw.states
+    assert "noisy" in insight.raw.states
     assert "stability_outlook" in insight.raw.metrics
     assert insight.frame.mean_coherence > 0.6
     assert insight.environment == {
