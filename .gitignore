@@ -1,5 +1,6 @@
 # Node modules & dependencies (reinstalled inside container)
 node_modules/
+.deno/
 .pnpm-store/
 .yarn/*
 !.yarn/patches
