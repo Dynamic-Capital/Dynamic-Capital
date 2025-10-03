@@ -56,13 +56,12 @@ required.
 
 | Parameter | Description | Default |
 | --- | --- | --- |
-| `network` | Blockchain network identifier (`ton`, `btc`, `tron20`). | `ton` |
+| `network` | Blockchain/network selector. Accepts symbolic values (`ton`, `btc`, `tron20`). When `ton` is supplied, the same field can also contain numeric workchain identifiers (`-239` Mainnet, `-3` Testnet). | `ton` |
 | `pk`* | Wallet public key (hex). Helps Signer select the correct key. | — |
 | `body`* | Signature payload in hex (send only the body payload). | — |
 | `return` | Callback URL for returning a signed transaction. If omitted, Signer displays a QR code. | — |
 | `v` | TON wallet version (UI hint: `v3r1`, `v3r2`, `v4r2`, `v5r1`). | `v4r2` |
 | `seqno` | Wallet sequence number. | `1` |
-| `network` | TON network ID (`-239` for Mainnet, `-3` for Testnet). | `-239` |
 
 Example deeplink:
 
@@ -146,38 +145,32 @@ The following sequences summarise the primary integration flows between
 Tonkeeper and Signer. Each step may be mediated via QR codes (air-gapped) or
 deeplinks (same device).
 
-### Deeplink Linking
+### Linking Flow
 
-1. User taps **"Link wallet from Signer"** in Tonkeeper.
-2. Tonkeeper generates a linking deeplink and opens it in Signer.
-3. Signer displays a wallet selection screen and the user taps **"Link wallet"**.
-4. Signer generates a link deeplink containing `WalletLinkResponse` and opens it
-   in Tonkeeper.
-5. Tonkeeper adds the wallet after user confirmation and saves the pairing.
+1. **Initiate linking**
+   - *Deeplink:* The user taps **"Link wallet from Signer"** inside Tonkeeper.
+   - *QR:* The user selects **"Link wallet"** within Signer.
+2. **Transfer pairing payload**
+   - *Deeplink:* Tonkeeper opens Signer with a linking deeplink.
+   - *QR:* Signer renders a QR code that embeds `WalletLinkResponse`.
+3. **Confirm in counterparty app**
+   - *Deeplink:* Signer presents wallet options; the user confirms **"Link wallet"** to trigger a response deeplink back to Tonkeeper.
+   - *QR:* Tonkeeper scans the QR code, launches the add wallet flow, and the user confirms the pairing.
+4. **Persist pairing**
+   - Tonkeeper stores the wallet and finalises the link.
 
-### QR Code Linking
+### Signing Flow
 
-1. User selects **"Link wallet"** in Signer.
-2. Signer generates a QR code embedding `WalletLinkResponse`.
-3. Tonkeeper scans the QR code and parses the payload.
-4. Tonkeeper launches the add wallet flow, the user confirms, and the wallet is
-   saved.
-
-### Deeplink Signing
-
-1. User taps **"Confirm and send"** in Tonkeeper to create a transfer BoC.
-2. Tonkeeper generates a `SignTransferRequest` deeplink and opens Signer.
-3. Signer presents the confirmation screen; the user taps **"Sign"**.
-4. Signer signs the payload and produces a `SignTransferResponse` deeplink.
-5. Tonkeeper receives the signed payload and submits the transfer to the
-   blockchain.
-
-### QR Code Signing
-
-For fully air-gapped flows, Tonkeeper renders a QR code containing the
-`SignTransferRequest`. Signer scans the code, signs the payload, and renders a
-QR code with the `SignTransferResponse`. Tonkeeper scans the signed payload and
-submits it to the blockchain.
+1. **Create signing request**
+   - *Deeplink:* The user taps **"Confirm and send"** in Tonkeeper, generating a `SignTransferRequest` deeplink.
+   - *QR:* Tonkeeper encodes the same payload into a QR code for air-gapped usage.
+2. **Authorize inside Signer**
+   - Signer displays the confirmation screen; the user taps **"Sign"**.
+3. **Return the signed payload**
+   - *Deeplink:* Signer responds with a `SignTransferResponse` deeplink that Tonkeeper opens automatically.
+   - *QR:* Signer renders a QR code carrying the signed payload for Tonkeeper to scan.
+4. **Submit to the blockchain**
+   - Tonkeeper receives the signed BoC and broadcasts the transaction.
 
 ## Security Considerations
 
