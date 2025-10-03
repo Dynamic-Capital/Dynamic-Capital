@@ -27,6 +27,8 @@ fi
 
 : "${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN is required}"
 
+ALLOWED_UPDATES='["message","callback_query","inline_query","chat_member","my_chat_member"]'
+
 # Derive webhook URL (override wins)
 FUNCTION_URL=${TELEGRAM_WEBHOOK_URL:-}
 
@@ -59,7 +61,8 @@ case "$cmd" in
     # Do not echo the full URL to avoid leaking secrets
     curl -sS -X POST "${API_BASE}/setWebhook" \
       -d "url=${FUNCTION_URL}" \
-      -d "secret_token=${TELEGRAM_WEBHOOK_SECRET}" | jq -r '.description // "ok"'
+      -d "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
+      -d "allowed_updates=${ALLOWED_UPDATES}" | jq -r '.description // "ok"'
     ;;
   info)
     echo "[i] Webhook info:"

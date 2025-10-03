@@ -1,5 +1,8 @@
 import { getEnv } from "../_shared/env.ts";
-import { expectedSecret } from "../_shared/telegram_secret.ts";
+import {
+  expectedSecret,
+  TELEGRAM_ALLOWED_UPDATES,
+} from "../_shared/telegram_secret.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
@@ -54,6 +57,8 @@ export const handler = registerHandler(async (req) => {
 
     // 3. Re-establish the webhook
     const webhookUrl = `${supabaseUrl}/functions/v1/telegram-bot`;
+    const allowedUpdates = Array.from(TELEGRAM_ALLOWED_UPDATES);
+
     const setWebhookResponse = await fetch(
       `https://api.telegram.org/bot${botToken}/setWebhook`,
       {
@@ -64,7 +69,7 @@ export const handler = registerHandler(async (req) => {
         body: JSON.stringify({
           url: webhookUrl,
           secret_token: secret,
-          allowed_updates: ["message", "callback_query", "inline_query"],
+          allowed_updates: allowedUpdates,
           drop_pending_updates: true,
         }),
       },

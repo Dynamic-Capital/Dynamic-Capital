@@ -1,5 +1,8 @@
 import { envOrSetting } from "../_shared/config.ts";
-import { expectedSecret } from "../_shared/telegram_secret.ts";
+import {
+  expectedSecret,
+  TELEGRAM_ALLOWED_UPDATES,
+} from "../_shared/telegram_secret.ts";
 import { functionUrl } from "../_shared/edge.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
@@ -145,9 +148,11 @@ export const handler = registerHandler(async (req) => {
             webhookUrl,
           );
 
+          const allowedUpdates = Array.from(TELEGRAM_ALLOWED_UPDATES);
           webhookResult = await callTelegramAPI(botToken, "setWebhook", {
             url: webhookUrl,
             secret_token: webhookSecret,
+            allowed_updates: allowedUpdates,
             drop_pending_updates: true,
           });
         }

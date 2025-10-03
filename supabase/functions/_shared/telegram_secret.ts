@@ -2,6 +2,14 @@ import { maybe, optionalEnv } from "./env.ts";
 import { unauth } from "./http.ts";
 import { getSetting } from "./config.ts";
 
+export const TELEGRAM_ALLOWED_UPDATES = [
+  "message",
+  "callback_query",
+  "inline_query",
+  "chat_member",
+  "my_chat_member",
+] as const;
+
 interface Query {
   eq: (key: string, value: string | boolean) => Query;
   limit: (n: number) => Query;

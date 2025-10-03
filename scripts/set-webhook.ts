@@ -30,10 +30,19 @@ if (!secret) {
   Deno.exit(1);
 }
 
+const ALLOWED_UPDATES = [
+  "message",
+  "callback_query",
+  "inline_query",
+  "chat_member",
+  "my_chat_member",
+] as const;
+
 const params = new URLSearchParams();
 params.set("url", baseUrl);
 params.set("secret_token", secret);
 params.set("drop_pending_updates", "true");
+params.set("allowed_updates", JSON.stringify(ALLOWED_UPDATES));
 
 const setRes = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
   method: "POST",
