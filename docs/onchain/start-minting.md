@@ -66,7 +66,9 @@ instead of `--amount`.
 
 1. Open the treasury multisig in Tonkeeper or your preferred wallet.
 2. Create a new transaction targeting the jetton master address
-   `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` with **0 TON** attached.
+   `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` and attach at least the
+   forwarded TON amount from the helper output (`0.05 TON` by default) plus
+   enough headroom for fees (allocate `~0.01–0.02 TON`).
 3. Paste the base64 payload generated in the previous step into the comment/body
    field.
 4. Collect the required multisig approvals and broadcast the transaction.
