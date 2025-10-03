@@ -1,4 +1,6 @@
 import types
+from datetime import datetime, timezone
+from typing import Any
 
 import pytest
 
@@ -47,6 +49,60 @@ class StubConnector:
             order=42,
             price=1.2345,
         )
+
+
+class RecordingCollector:
+    def __init__(self) -> None:
+        self.trades: list[dict[str, Any]] = []
+
+    def record_trade(self, payload: dict[str, Any]) -> dict[str, Any]:
+        self.trades.append(payload)
+        return {"status": "accepted"}
+
+
+def test_bootstrap_connector_prefers_trade_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyConnector:
+        def __init__(self, base_url: str, **kwargs: Any) -> None:
+            self.base_url = base_url
+            self.kwargs = kwargs
+
+    monkeypatch.setenv("TRADE_EXECUTION_API_URL", "https://broker.test/api")
+    monkeypatch.setenv("TRADE_EXECUTION_API_KEY", "token")
+    monkeypatch.setattr(
+        "dynamic.trading.algo.trading_core.TradeAPIConnector",
+        DummyConnector,
+    )
+    monkeypatch.setattr("dynamic.trading.algo.trading_core.MT5Connector", None, raising=False)
+
+    algo = DynamicTradingAlgo()
+
+    assert isinstance(algo.connector, DummyConnector)
+    assert algo.connector.base_url == "https://broker.test/api"
+    assert algo.connector.kwargs["api_key"] == "token"
+
+
+def test_bootstrap_connector_propagates_retry_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
+
+    class DummyConnector:
+        def __init__(self, base_url: str, **kwargs: Any) -> None:  # type: ignore[override]
+            captured["base_url"] = base_url
+            captured["kwargs"] = kwargs
+
+    monkeypatch.setenv("TRADE_EXECUTION_API_URL", "https://broker.test")
+    monkeypatch.setenv("TRADE_EXECUTION_MAX_ATTEMPTS", "4")
+    monkeypatch.setenv("TRADE_EXECUTION_RETRY_BACKOFF", "0.15")
+    monkeypatch.setattr(
+        "dynamic.trading.algo.trading_core.TradeAPIConnector",
+        DummyConnector,
+    )
+    monkeypatch.setattr("dynamic.trading.algo.trading_core.MT5Connector", None, raising=False)
+
+    _ = DynamicTradingAlgo()
+
+    assert captured["base_url"] == "https://broker.test"
+    assert captured["kwargs"]["max_attempts"] == 4
+    assert captured["kwargs"]["retry_backoff"] == pytest.approx(0.15)
 
 
 def test_execute_trade_preserves_mapping_response_fields() -> None:
@@ -339,3 +395,41 @@ def test_execute_trade_respects_disabled_sizing_directive() -> None:
 
     assert lot == pytest.approx(expected, abs=1e-4)
     assert result.lot == pytest.approx(expected, abs=1e-4)
+
+
+def test_execute_trade_emits_data_collection_payload() -> None:
+    connector = StubConnector()
+    collector = RecordingCollector()
+    algo = DynamicTradingAlgo(connector=connector, data_collector=collector)
+
+    signal = {
+        "action": ORDER_ACTION_BUY,
+        "note": "collect",
+        "timestamp": datetime(2024, 5, 1, 12, 0, tzinfo=timezone.utc),
+        "intelligence": {"confidence": 0.9},
+    }
+
+    result = algo.execute_trade(signal, lot=0.2, symbol="eurusd")
+
+    assert collector.trades
+    payload = collector.trades[-1]
+    assert payload["trade"]["symbol"] == "EURUSD"
+    assert payload["context"]["symbol"] == "EURUSD"
+    assert payload["context"]["lot"] == pytest.approx(result.lot)
+    assert payload["context"]["profile"]["symbol"] == "EURUSD"
+    assert payload["signal"]["note"] == "collect"
+    assert payload["signal"]["timestamp"].endswith("+00:00")
+
+
+def test_bootstrap_data_collector(monkeypatch: pytest.MonkeyPatch) -> None:
+    sentinel = object()
+    monkeypatch.setenv("DATA_COLLECTION_API_URL", "https://collector.test")
+    monkeypatch.setattr(
+        "dynamic.trading.algo.trading_core.bootstrap_data_collection_api",
+        lambda: sentinel,
+    )
+    monkeypatch.setattr("dynamic.trading.algo.trading_core.MT5Connector", None, raising=False)
+
+    algo = DynamicTradingAlgo()
+
+    assert algo.data_collector is sentinel

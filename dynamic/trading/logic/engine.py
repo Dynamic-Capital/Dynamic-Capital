@@ -2,12 +2,24 @@
 
 from __future__ import annotations
 
+import logging
 from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import date, datetime, timezone
 from math import sqrt
 from statistics import fmean
-from typing import Deque, Iterable, Mapping, MutableMapping
+from typing import Any, Deque, Dict, Iterable, Mapping, MutableMapping
+
+try:  # pragma: no cover - optional dependency
+    from integrations.data_collection_api import (
+        bootstrap_data_collection_api,
+        serialise_for_collection,
+    )
+except Exception:  # pragma: no cover - collector dependency optional
+    bootstrap_data_collection_api = None  # type: ignore
+    serialise_for_collection = None  # type: ignore
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "Position",
@@ -34,6 +46,56 @@ def _normalise_symbol(value: str) -> str:
     if not symbol:
         raise ValueError("symbol must not be empty")
     return symbol
+
+
+def _collection_payload(value: Any) -> Any:
+    if serialise_for_collection is not None:
+        try:
+            return serialise_for_collection(value)
+        except Exception:  # pragma: no cover - defensive
+            pass
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        else:
+            value = value.astimezone(timezone.utc)
+        return value.isoformat()
+    if isinstance(value, date):
+        return datetime(value.year, value.month, value.day, tzinfo=timezone.utc).isoformat()
+    if is_dataclass(value):
+        try:
+            return {key: _collection_payload(val) for key, val in asdict(value).items()}
+        except Exception:  # pragma: no cover - defensive
+            return str(value)
+    if isinstance(value, Mapping):
+        return {str(key): _collection_payload(val) for key, val in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_collection_payload(item) for item in value]
+    to_dict = getattr(value, "to_dict", None)
+    if callable(to_dict):
+        try:
+            mapping = to_dict()
+        except Exception:  # pragma: no cover - user provided
+            mapping = None
+        if isinstance(mapping, Mapping):
+            return {str(key): _collection_payload(val) for key, val in mapping.items()}
+    as_dict_method = getattr(value, "as_dict", None)
+    if callable(as_dict_method):
+        try:
+            mapping = as_dict_method()
+        except Exception:  # pragma: no cover - user provided
+            mapping = None
+        if isinstance(mapping, Mapping):
+            return {str(key): _collection_payload(val) for key, val in mapping.items()}
+    if hasattr(value, "__dict__"):
+        return {
+            str(key): _collection_payload(val)
+            for key, val in vars(value).items()
+            if not key.startswith("_")
+        }
+    return str(value)
 
 
 @dataclass(slots=True)
@@ -117,12 +179,15 @@ class DynamicRisk:
 
     limits: RiskLimits
     returns_horizon: int = 64
+    data_collector: Any | None = None
     _positions: dict[str, Position] = field(default_factory=dict, init=False)
     _portfolio_returns: Deque[float] = field(default_factory=deque, init=False)
 
     def __post_init__(self) -> None:
         if self.returns_horizon <= 1:
             raise ValueError("returns_horizon must be greater than one")
+        if self.data_collector is None:
+            self.data_collector = self._bootstrap_data_collector()
 
     def upsert_position(self, position: Position) -> None:
         self._positions[position.symbol] = position
@@ -171,13 +236,48 @@ class DynamicRisk:
             breaches.append("single_position")
         if var > self.limits.max_var:
             breaches.append("value_at_risk")
-        return RiskTelemetry(
+        telemetry = RiskTelemetry(
             gross_exposure=gross_exposure,
             net_exposure=net_exposure,
             largest_position=largest_position,
             value_at_risk=var,
             breaches=tuple(breaches),
         )
+        self._emit_telemetry(telemetry)
+        return telemetry
 
     def health(self) -> Mapping[str, object]:
         return self.snapshot().as_dict()
+
+    def _emit_telemetry(self, telemetry: RiskTelemetry) -> None:
+        collector = getattr(self, "data_collector", None)
+        if not collector:
+            return
+        record_telemetry = getattr(collector, "record_telemetry", None)
+        if not callable(record_telemetry):
+            return
+
+        payload: Dict[str, Any] = {
+            "telemetry": _collection_payload(telemetry.as_dict()),
+            "limits": _collection_payload(asdict(self.limits)),
+            "positions": [
+                _collection_payload(position.as_dict()) for position in self._positions.values()
+            ],
+            "portfolio_returns": [float(value) for value in self._portfolio_returns],
+            "returns_horizon": self.returns_horizon,
+            "captured_at": _utcnow().isoformat(),
+        }
+
+        try:
+            record_telemetry(payload)
+        except Exception:  # pragma: no cover - telemetry best effort
+            logger.debug("Failed to submit risk telemetry to data collector", exc_info=True)
+
+    def _bootstrap_data_collector(self) -> Any | None:
+        if bootstrap_data_collection_api is None:
+            return None
+        try:
+            return bootstrap_data_collection_api()
+        except Exception:  # pragma: no cover - collector optional
+            logger.debug("Risk data collection bootstrap failed", exc_info=True)
+            return None
