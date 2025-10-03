@@ -9,8 +9,10 @@
 
 from __future__ import annotations
 
+import ast
 from importlib import import_module
-from typing import Dict, Iterable, Tuple
+from pathlib import Path
+from typing import Dict, Iterable, Iterator, Tuple
 
 SymbolExport = str | tuple[str, str]
 
@@ -432,6 +434,127 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
         "WalletSummary",
     ),
 }
+
+
+def _extract_dunder_all(module_name: str, init_file: Path) -> Tuple[str, ...] | None:
+    """Parse ``__all__`` entries from ``init_file`` without importing eagerly."""
+
+    try:
+        source = init_file.read_text(encoding="utf-8")
+    except OSError:
+        return None
+
+    try:
+        tree = ast.parse(source, filename=str(init_file))
+    except SyntaxError:
+        return None
+
+    def extract(node: ast.AST) -> Tuple[str, ...] | None:
+        try:
+            evaluated = ast.literal_eval(node)
+        except (ValueError, SyntaxError):
+            return None
+        if isinstance(evaluated, (list, tuple)) and all(
+            isinstance(item, str) for item in evaluated
+        ):
+            return tuple(evaluated)
+        return None
+
+    saw_assignment = False
+    for statement in tree.body:
+        value_node: ast.AST | None = None
+        if isinstance(statement, ast.Assign):
+            for target in statement.targets:
+                if isinstance(target, ast.Name) and target.id == "__all__":
+                    value_node = statement.value
+                    break
+        elif isinstance(statement, ast.AnnAssign):
+            if (
+                isinstance(statement.target, ast.Name)
+                and statement.target.id == "__all__"
+                and statement.value is not None
+            ):
+                value_node = statement.value
+        if value_node is None:
+            continue
+        saw_assignment = True
+        symbols = extract(value_node)
+        if symbols:
+            return symbols
+
+    if not saw_assignment:
+        return None
+
+    try:
+        module = import_module(module_name)
+    except Exception:  # pragma: no cover - defensive import guard
+        return None
+
+    exported = getattr(module, "__all__", None)
+    if (
+        isinstance(exported, (list, tuple))
+        and all(isinstance(item, str) for item in exported)
+        and exported
+    ):
+        return tuple(exported)
+    return None
+
+
+def _iter_packages(package_root: Path, package_name: str) -> Iterator[Tuple[str, Path]]:
+    """Yield packages under ``package_root`` with their ``__init__`` files."""
+
+    init_file = package_root / "__init__.py"
+    if not init_file.exists():
+        return
+
+    yield package_name, init_file
+
+    for child in sorted(package_root.iterdir(), key=lambda path: path.name):
+        if child.name.startswith(".") or child.name == "__pycache__":
+            continue
+        if not child.is_dir():
+            continue
+        child_init = child / "__init__.py"
+        if not child_init.exists():
+            continue
+        yield from _iter_packages(child, f"{package_name}.{child.name}")
+
+
+def _discover_engine_exports() -> Dict[str, Tuple[str, ...]]:
+    """Collect exports from dynamic namespaces that declare ``__all__``."""
+
+    file_path = Path(__file__).resolve()
+    repo_root = file_path.parents[3]
+    dynamic_root = file_path.parents[2]
+
+    discovered: Dict[str, Tuple[str, ...]] = {}
+    existing = set(_ENGINE_EXPORTS)
+
+    def register(module_name: str, init_file: Path) -> None:
+        if module_name in existing or module_name == __name__:
+            return
+        symbols = _extract_dunder_all(module_name, init_file)
+        if not symbols:
+            return
+        discovered[module_name] = symbols
+        existing.add(module_name)
+
+    for entry in sorted(repo_root.iterdir(), key=lambda path: path.name):
+        if not entry.is_dir():
+            continue
+        if entry.name.startswith("dynamic_"):
+            init_file = entry / "__init__.py"
+            if init_file.exists():
+                register(entry.name, init_file)
+            continue
+        if entry == dynamic_root:
+            for module_name, init_file in _iter_packages(entry, entry.name):
+                register(module_name, init_file)
+
+    return discovered
+
+
+_ENGINE_EXPORTS.update(_discover_engine_exports())
 
 def _export_alias(spec: SymbolExport) -> str:
     return spec[0] if isinstance(spec, tuple) else spec
