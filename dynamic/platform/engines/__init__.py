@@ -197,7 +197,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
         "UsageCycleResult",
     ),
     "dynamic_implicit_memory": ("DynamicImplicitMemory",),
-    "dynamic_index": ("DynamicIndex",),
+    "dynamic_index": (
+        "DynamicIndex",
+        "IndexConstituent",
+        "IndexSignal",
+        "IndexSnapshot",
+    ),
     "dynamic_immune": (
         "DynamicImmuneEngine",
         "ThreatAssessment",
