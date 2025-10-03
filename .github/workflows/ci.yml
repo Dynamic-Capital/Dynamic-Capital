@@ -56,7 +56,7 @@ jobs:
 
       - name: Setup Deno
         if: steps.script-flags.outputs.test != 'undefined'
-        uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@v2
         with:
           deno-version: v1.x
 
