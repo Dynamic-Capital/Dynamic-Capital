@@ -45,6 +45,7 @@ class DynamicEnergyAgent:
             "stability": float(profile.stability),
             "momentum": float(profile.momentum),
             "pressure": float(profile.pressure),
+            "dark_energy": float(profile.dark),
         }
         highlights = list(profile.signals)
         if profile.narrative:
