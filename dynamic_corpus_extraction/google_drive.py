@@ -211,6 +211,13 @@ def _coerce_size(value: object) -> int | None:
         return None
 
 
+def _coerce_positive_int(value: object) -> int | None:
+    candidate = _coerce_size(value)
+    if candidate is None or candidate <= 0:
+        return None
+    return candidate
+
+
 def build_google_drive_pdf_loader(
     *,
     share_link: str | None = None,
@@ -222,6 +229,7 @@ def build_google_drive_pdf_loader(
     client_factory: Callable[[], GoogleDriveClient] | None = None,
     pdf_text_extractor: Callable[[bytes, Mapping[str, object]], str] | None = None,
     max_file_size: int | None = 50_000_000,
+    batch_size: int | None = None,
 ) -> ExtractionLoader:
     """Create a loader that streams Google Drive PDFs as corpus documents."""
 
@@ -247,19 +255,47 @@ def build_google_drive_pdf_loader(
     else:
         factory = client_factory
 
-    extractor = pdf_text_extractor or (lambda payload, metadata: _default_pdf_text_extractor(payload, file_name=str(metadata.get("name", "unknown"))))
+    extractor = pdf_text_extractor or (
+        lambda payload, metadata: _default_pdf_text_extractor(
+            payload,
+            file_name=str(metadata.get("name", "unknown")),
+        )
+    )
     default_tags = tuple(tags or ())
+    configured_batch_size = _coerce_positive_int(batch_size) or 10
 
     def loader(context: CorpusExtractionContext) -> Iterable[Mapping[str, object]]:
         remaining = context.limit
         client = factory()
         seen_ids: set[str] = set()
+        try:
+            metadata_batch_size: object | None = context.metadata.get("batch_size")
+        except AttributeError:  # pragma: no cover - custom mappings without get
+            metadata_batch_size = None
+        effective_batch_size = (
+            _coerce_positive_int(metadata_batch_size)
+            or configured_batch_size
+        )
+        if effective_batch_size > 1000:
+            effective_batch_size = 1000
+
+        def _batched(iterator: Iterable[MutableMapping[str, object]]) -> Iterator[list[MutableMapping[str, object]]]:
+            batch: list[MutableMapping[str, object]] = []
+            for item in iterator:
+                batch.append(item)
+                if len(batch) >= effective_batch_size:
+                    yield batch
+                    batch = []
+            if batch:
+                yield batch
 
         def _should_stop() -> bool:
             return remaining is not None and remaining <= 0
 
         def _yield_document(metadata: MutableMapping[str, object]) -> Iterator[Mapping[str, object]]:
             nonlocal remaining
+            if _should_stop():
+                return
             file_id = str(metadata.get("id") or "").strip()
             if not file_id or file_id in seen_ids:
                 return
@@ -298,19 +334,43 @@ def build_google_drive_pdf_loader(
                 remaining -= 1
 
         if resolved_folder:
-            for entry in client.iter_files(folder_id=resolved_folder, mime_types=(_PDF_MIME_TYPE,)):
+            for batch in _batched(
+                client.iter_files(
+                    folder_id=resolved_folder,
+                    mime_types=(_PDF_MIME_TYPE,),
+                    page_size=effective_batch_size,
+                )
+            ):
                 if _should_stop():
                     break
-                yield from _yield_document(entry)
+                for entry in batch:
+                    if _should_stop():
+                        break
+                    yield from _yield_document(entry)
 
         if not _should_stop() and resolved_files:
+            metadata_batch: list[MutableMapping[str, object]] = []
             for file_id in resolved_files:
                 if _should_stop():
                     break
-                metadata = client.get_file_metadata(file_id, fields="id, name, mimeType, modifiedTime, size, md5Checksum, webViewLink")
+                metadata = client.get_file_metadata(
+                    file_id,
+                    fields="id, name, mimeType, modifiedTime, size, md5Checksum, webViewLink",
+                )
                 if not isinstance(metadata, MutableMapping):
                     continue
-                yield from _yield_document(metadata)
+                metadata_batch.append(metadata)
+                if len(metadata_batch) >= effective_batch_size:
+                    for entry in metadata_batch:
+                        if _should_stop():
+                            break
+                        yield from _yield_document(entry)
+                    metadata_batch.clear()
+            if metadata_batch and not _should_stop():
+                for entry in metadata_batch:
+                    if _should_stop():
+                        break
+                    yield from _yield_document(entry)
 
     return loader
 
