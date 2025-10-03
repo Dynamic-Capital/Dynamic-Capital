@@ -1,5 +1,6 @@
 import { createClient } from "./client.ts";
 import { maybe } from "./env.ts";
+import { getFeatureFlagDefault } from "../../../shared/feature-flags.ts";
 
 // In-memory fallback map when kv_config table is unavailable
 const memStore = new Map<string, unknown>();
@@ -77,12 +78,16 @@ async function setConfig(key: string, val: unknown): Promise<void> {
   memStore.set(key, val);
 }
 
-export async function getFlag(name: string, def = false): Promise<boolean> {
+export async function getFlag(
+  name: string,
+  def = getFeatureFlagDefault(name, false),
+): Promise<boolean> {
   const snap = await getConfig<{ data: Record<string, boolean> }>(
     "features:published",
     { data: {} },
   );
-  return snap.data[name] ?? def;
+  const fallback = getFeatureFlagDefault(name, def);
+  return snap.data[name] ?? fallback;
 }
 
 export async function setFlag(name: string, val: boolean): Promise<void> {

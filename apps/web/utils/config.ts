@@ -6,6 +6,7 @@ import {
   SUPABASE_CONFIG_FROM_ENV,
   SUPABASE_URL,
 } from "@/config/supabase-runtime";
+import { getFeatureFlagDefault } from "../../../shared/feature-flags.ts";
 
 type FlagSnapshot = { ts: number; data: Record<string, boolean> };
 
@@ -66,8 +67,12 @@ async function call<T>(
 
 const activeConfigClient = {
   async getFlag(name: string, def = false): Promise<boolean> {
-    const data = await call<{ data: boolean }>("getFlag", { name, def });
-    return data?.data ?? def;
+    const effectiveDefault = getFeatureFlagDefault(name, def);
+    const data = await call<{ data: boolean }>("getFlag", {
+      name,
+      def: effectiveDefault,
+    });
+    return data?.data ?? effectiveDefault;
   },
 
   async setFlag(name: string, value: boolean): Promise<void> {
@@ -89,10 +94,11 @@ const activeConfigClient = {
 
 const disabledConfigClient = {
   getFlag(name: string, def = false): Promise<boolean> {
+    const effectiveDefault = getFeatureFlagDefault(name, def);
     console.warn(
       `[config] ${CONFIG_DISABLED_MESSAGE} Returning default for "${name}".`,
     );
-    return Promise.resolve(def);
+    return Promise.resolve(effectiveDefault);
   },
 
   setFlag(_name: string, _value: boolean): Promise<void> {

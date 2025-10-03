@@ -340,7 +340,7 @@ export async function sendMiniAppLink(
 ): Promise<string | null> {
   const { silent } = opts;
   if (!BOT_TOKEN) return null;
-  if (!(await getFlag("mini_app_enabled", true))) {
+  if (!(await getFlag("mini_app_enabled"))) {
     if (!silent) {
       const msg = await getContent("checkout_unavailable") ??
         "<b>Checkout is currently unavailable.</b>\nPlease try again later.";
@@ -388,7 +388,7 @@ export async function sendMiniAppLink(
 }
 
 export async function sendMiniAppOrBotOptions(chatId: number): Promise<void> {
-  const enabled = await getFlag("mini_app_enabled", true);
+  const enabled = await getFlag("mini_app_enabled");
   const url = enabled ? await sendMiniAppLink(chatId, { silent: true }) : null;
   const continueText = await getContent("continue_in_bot_button") ??
     "Continue in Bot";
@@ -1845,7 +1845,7 @@ export async function startReceiptPipeline(
 ): Promise<void> {
   try {
     const chatId = update.message!.chat.id;
-    if (!(await getFlag("vip_sync_enabled", true))) {
+    if (!(await getFlag("vip_sync_enabled"))) {
       const msg = await getContent("vip_sync_disabled") ??
         "VIP sync is currently disabled.";
       await notifyUser(chatId, msg);
