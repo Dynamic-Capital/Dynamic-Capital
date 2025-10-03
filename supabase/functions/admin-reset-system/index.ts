@@ -2,8 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { getEnv } from "../_shared/env.ts";
 import {
+  cloneTelegramAllowedUpdates,
   expectedSecret,
-  TELEGRAM_ALLOWED_UPDATES,
 } from "../_shared/telegram_secret.ts";
 import { json, mna, oops } from "../_shared/http.ts";
 
@@ -126,7 +126,7 @@ export async function handler(req: Request): Promise<Response> {
 
       // Re-establish the webhook
       const webhookUrl = `${supabaseUrl}/functions/v1/telegram-bot`;
-      const allowedUpdates = Array.from(TELEGRAM_ALLOWED_UPDATES);
+      const allowedUpdates = cloneTelegramAllowedUpdates();
 
       const setWebhookResponse = await fetch(
         `https://api.telegram.org/bot${botToken}/setWebhook`,

@@ -2,8 +2,8 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { need, optionalEnv } from "../_shared/env.ts";
 import { mna, ok, oops } from "../_shared/http.ts";
 import {
+  cloneTelegramAllowedUpdates,
   ensureWebhookSecret,
-  TELEGRAM_ALLOWED_UPDATES,
 } from "../_shared/telegram_secret.ts";
 import { createClient } from "../_shared/client.ts";
 import { version } from "../_shared/version.ts";
@@ -53,7 +53,7 @@ export async function handler(req: Request): Promise<Response> {
     }
     console.log(`Using webhook secret: ${WEBHOOK_SECRET}`);
 
-    const allowedUpdates = Array.from(TELEGRAM_ALLOWED_UPDATES);
+    const allowedUpdates = cloneTelegramAllowedUpdates();
 
     const telegramResponse = await fetch(
       `https://api.telegram.org/bot${BOT_TOKEN}/setWebhook`,

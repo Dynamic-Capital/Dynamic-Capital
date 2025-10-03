@@ -1,7 +1,7 @@
 import { getEnv } from "../_shared/env.ts";
 import {
+  cloneTelegramAllowedUpdates,
   expectedSecret,
-  TELEGRAM_ALLOWED_UPDATES,
 } from "../_shared/telegram_secret.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
@@ -57,7 +57,7 @@ export const handler = registerHandler(async (req) => {
 
     // 3. Re-establish the webhook
     const webhookUrl = `${supabaseUrl}/functions/v1/telegram-bot`;
-    const allowedUpdates = Array.from(TELEGRAM_ALLOWED_UPDATES);
+    const allowedUpdates = cloneTelegramAllowedUpdates();
 
     const setWebhookResponse = await fetch(
       `https://api.telegram.org/bot${botToken}/setWebhook`,

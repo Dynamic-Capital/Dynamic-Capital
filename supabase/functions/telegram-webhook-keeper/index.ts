@@ -1,8 +1,8 @@
 import { optionalEnv } from "../_shared/env.ts";
 import { mna, nf, ok, oops, unauth } from "../_shared/http.ts";
 import {
+  cloneTelegramAllowedUpdates,
   expectedSecret,
-  TELEGRAM_ALLOWED_UPDATES,
 } from "../_shared/telegram_secret.ts";
 import { envOrSetting } from "../_shared/config.ts";
 import { telegramWebhookUrl } from "../_shared/edge.ts";
@@ -63,7 +63,7 @@ export async function handler(req: Request): Promise<Response> {
         currentSecret === secret;
       let webhookFixed = false;
       if (!webhookOk) {
-        const allowedUpdates = Array.from(TELEGRAM_ALLOWED_UPDATES);
+        const allowedUpdates = cloneTelegramAllowedUpdates();
         const set = await tg(token, "setWebhook", {
           url: expectedWebhook,
           secret_token: secret,

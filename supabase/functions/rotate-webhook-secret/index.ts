@@ -3,7 +3,7 @@ import { mna, ok, oops, unauth } from "../_shared/http.ts";
 import { requireEnv } from "../_shared/env.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { telegramWebhookUrl } from "../_shared/edge.ts";
-import { TELEGRAM_ALLOWED_UPDATES } from "../_shared/telegram_secret.ts";
+import { cloneTelegramAllowedUpdates } from "../_shared/telegram_secret.ts";
 
 function genHex(n = 24) {
   const b = new Uint8Array(n);
@@ -57,7 +57,7 @@ export const handler = registerHandler(async (req) => {
       setting_value: secret,
     }, { onConflict: "setting_key" });
 
-    const allowedUpdates = Array.from(TELEGRAM_ALLOWED_UPDATES);
+    const allowedUpdates = cloneTelegramAllowedUpdates();
 
     await tg(token, "setWebhook", {
       url: expectedUrl,

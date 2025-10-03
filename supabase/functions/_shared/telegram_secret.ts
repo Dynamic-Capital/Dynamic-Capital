@@ -2,13 +2,27 @@ import { maybe, optionalEnv } from "./env.ts";
 import { unauth } from "./http.ts";
 import { getSetting } from "./config.ts";
 
-export const TELEGRAM_ALLOWED_UPDATES = [
+const TELEGRAM_ALLOWED_UPDATES_BASE = [
   "message",
   "callback_query",
   "inline_query",
   "chat_member",
   "my_chat_member",
 ] as const;
+
+export type TelegramAllowedUpdate =
+  typeof TELEGRAM_ALLOWED_UPDATES_BASE[number];
+
+export const TELEGRAM_ALLOWED_UPDATES: ReadonlyArray<TelegramAllowedUpdate> =
+  Object.freeze(Array.from(new Set(TELEGRAM_ALLOWED_UPDATES_BASE)));
+
+export const TELEGRAM_ALLOWED_UPDATES_JSON = JSON.stringify(
+  TELEGRAM_ALLOWED_UPDATES,
+);
+
+export function cloneTelegramAllowedUpdates(): TelegramAllowedUpdate[] {
+  return [...TELEGRAM_ALLOWED_UPDATES];
+}
 
 interface Query {
   eq: (key: string, value: string | boolean) => Query;
