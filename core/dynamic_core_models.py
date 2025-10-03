@@ -7,12 +7,15 @@ from heapq import nlargest
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from types import MappingProxyType
-from typing import Deque, Iterable, Mapping, Sequence
+from typing import ClassVar, Deque, Iterable, Mapping, Sequence
 
 __all__ = [
     "CoreMetricDefinition",
     "CoreMetricStatus",
     "CoreSnapshot",
+    "CoreBlueprint",
+    "BlueprintBackedCoreModel",
+    "CORE_BLUEPRINTS",
     "DynamicCoreModel",
     "DynamicAICoreModel",
     "DynamicAGICoreModel",
@@ -215,6 +218,24 @@ class CoreSnapshot:
         }
 
 
+@dataclass(slots=True, frozen=True)
+class CoreBlueprint:
+    """Immutable blueprint describing a Dynamic Core configuration."""
+
+    domain: str
+    metrics: tuple[CoreMetricDefinition, ...]
+    default_window: int = 12
+
+    def instantiate(self, *, window: int | None = None) -> "DynamicCoreModel":
+        """Create a :class:`DynamicCoreModel` using the blueprint's defaults."""
+
+        return DynamicCoreModel(
+            self.domain,
+            self.metrics,
+            window=self.default_window if window is None else window,
+        )
+
+
 class DynamicCoreModel:
     """Maintain weighted Dynamic Core metrics and surface prioritised gaps."""
 
@@ -380,13 +401,26 @@ class DynamicCoreModel:
         return self._history_sum / len(self._history)
 
 
-class DynamicAICoreModel(DynamicCoreModel):
-    """Optimised Dynamic Core model tuned for the Dynamic AI stack."""
+class BlueprintBackedCoreModel(DynamicCoreModel):
+    """`DynamicCoreModel` that is constructed from a static blueprint."""
 
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic AI",
-            (
+    blueprint: ClassVar[CoreBlueprint]
+
+    def __init__(self, *, window: int | None = None) -> None:
+        if not isinstance(getattr(self, "blueprint", None), CoreBlueprint):
+            raise TypeError(
+                f"{self.__class__.__name__} must define a 'blueprint' class attribute"
+            )
+        blueprint = self.blueprint
+        resolved_window = blueprint.default_window if window is None else window
+        super().__init__(blueprint.domain, blueprint.metrics, window=resolved_window)
+
+
+CORE_BLUEPRINTS: Mapping[str, CoreBlueprint] = MappingProxyType(
+    {
+        "dynamic_ai": CoreBlueprint(
+            domain="Dynamic AI",
+            metrics=(
                 CoreMetricDefinition(
                     key="analysis_accuracy",
                     label="Analysis Accuracy",
@@ -438,17 +472,10 @@ class DynamicAICoreModel(DynamicCoreModel):
                     tags=("observability", "governance"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicAGICoreModel(DynamicCoreModel):
-    """Optimised Dynamic Core model for Dynamic AGI orchestration."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic AGI",
-            (
+        ),
+        "dynamic_agi": CoreBlueprint(
+            domain="Dynamic AGI",
+            metrics=(
                 CoreMetricDefinition(
                     key="orchestration_depth",
                     label="Orchestration Depth",
@@ -500,17 +527,10 @@ class DynamicAGICoreModel(DynamicCoreModel):
                     tags=("governance", "policy"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicAGSCoreModel(DynamicCoreModel):
-    """Optimised Dynamic Core model for the AGS governance program."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic AGS",
-            (
+        ),
+        "dynamic_ags": CoreBlueprint(
+            domain="Dynamic AGS",
+            metrics=(
                 CoreMetricDefinition(
                     key="policy_maturity",
                     label="Policy Maturity",
@@ -562,17 +582,10 @@ class DynamicAGSCoreModel(DynamicCoreModel):
                     tags=("telemetry", "observability"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicETLCoreModel(DynamicCoreModel):
-    """Dynamic Core model focusing on ETL reliability and throughput."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic ETL",
-            (
+        ),
+        "dynamic_etl": CoreBlueprint(
+            domain="Dynamic ETL",
+            metrics=(
                 CoreMetricDefinition(
                     key="pipeline_success_rate",
                     label="Pipeline Success Rate",
@@ -624,17 +637,10 @@ class DynamicETLCoreModel(DynamicCoreModel):
                     tags=("resilience", "incidents"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicDCMCoreModel(DynamicCoreModel):
-    """Dynamic Core model codifying the eleven DCM micro-core stages."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic Core Maiden",
-            (
+        ),
+        "dynamic_dcm": CoreBlueprint(
+            domain="Dynamic Core Maiden",
+            metrics=(
                 CoreMetricDefinition(
                     key="data_processing",
                     label="DCM1 · Data Processing",
@@ -746,17 +752,10 @@ class DynamicDCMCoreModel(DynamicCoreModel):
                     tags=("integration", "handoff"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicDCHCoreModel(DynamicCoreModel):
-    """Dynamic Core model encapsulating the nine DCH capability lanes."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic Core Hollow",
-            (
+        ),
+        "dynamic_dch": CoreBlueprint(
+            domain="Dynamic Core Hollow",
+            metrics=(
                 CoreMetricDefinition(
                     key="natural_language_processing",
                     label="DCH1 · Natural Language Processing",
@@ -848,17 +847,10 @@ class DynamicDCHCoreModel(DynamicCoreModel):
                     tags=("transfer", "rollout"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicDCRCoreModel(DynamicCoreModel):
-    """Dynamic Core model representing the five DCR governance pillars."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic Core Revenant",
-            (
+        ),
+        "dynamic_dcr": CoreBlueprint(
+            domain="Dynamic Core Revenant",
+            metrics=(
                 CoreMetricDefinition(
                     key="governance",
                     label="DCR1 · Governance",
@@ -910,5 +902,48 @@ class DynamicDCRCoreModel(DynamicCoreModel):
                     tags=("reliability", "resilience"),
                 ),
             ),
-            window=window,
-        )
+        ),
+    }
+)
+
+
+class DynamicAICoreModel(BlueprintBackedCoreModel):
+    """Optimised Dynamic Core model tuned for the Dynamic AI stack."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_ai"]
+
+
+class DynamicAGICoreModel(BlueprintBackedCoreModel):
+    """Optimised Dynamic Core model for Dynamic AGI orchestration."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_agi"]
+
+
+class DynamicAGSCoreModel(BlueprintBackedCoreModel):
+    """Optimised Dynamic Core model for the AGS governance program."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_ags"]
+
+
+class DynamicETLCoreModel(BlueprintBackedCoreModel):
+    """Dynamic Core model focusing on ETL reliability and throughput."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_etl"]
+
+
+class DynamicDCMCoreModel(BlueprintBackedCoreModel):
+    """Dynamic Core model codifying the eleven DCM micro-core stages."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_dcm"]
+
+
+class DynamicDCHCoreModel(BlueprintBackedCoreModel):
+    """Dynamic Core model encapsulating the nine DCH capability lanes."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_dch"]
+
+
+class DynamicDCRCoreModel(BlueprintBackedCoreModel):
+    """Dynamic Core model representing the five DCR governance pillars."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_dcr"]
