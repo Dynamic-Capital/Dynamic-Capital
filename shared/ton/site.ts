@@ -1,5 +1,6 @@
 export const TON_SITE_DOMAIN = "dynamiccapital.ton";
-export const TON_SITE_GATEWAY_BASE = "https://ton.site";
+export const TON_SITE_GATEWAY_BASE =
+  "https://ton-gateway.dynamic-capital.ondigitalocean.app";
 
 export const TON_SITE_GATEWAY_ORIGIN = `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMAIN}`;
 

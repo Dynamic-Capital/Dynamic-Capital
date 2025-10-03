@@ -1,7 +1,7 @@
 {
-  "url": "https://ton.site/dynamiccapital.ton",
+  "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
   "name": "Dynamic Capital",
-  "iconUrl": "https://ton.site/dynamiccapital.ton/icon.png",
+  "iconUrl": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/icon.png",
   "termsOfUseUrl": "https://dynamic.capital/terms",
   "privacyPolicyUrl": "https://dynamic.capital/privacy"
 }

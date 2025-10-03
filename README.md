@@ -103,7 +103,7 @@ backed by Supabase.
 
 > **Browser fallback:** Traditional DNS resolvers cannot resolve `.ton` domains
 > and may return `DNS_PROBE_FINISHED_NXDOMAIN`. Use the public gateway at
-> <https://ton.site/dynamiccapital.ton> or install a TON-enabled wallet
+> <https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton> or install a TON-enabled wallet
 > extension (e.g., MyTonWallet) to access the production site.
 
 ## What's New
