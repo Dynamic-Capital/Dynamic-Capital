@@ -7,6 +7,7 @@
 - [Overview](#overview)
 - [Authentication](#authentication)
 - [Rate Limits](#rate-limits)
+- [Error Handling](#error-handling)
 - [Endpoints](#endpoints)
   - [Latest Token Profiles](#latest-token-profiles)
   - [Latest Boosted Tokens](#latest-boosted-tokens)
@@ -42,6 +43,18 @@ The following limits are enforced per IP address:
 | DEX data (pairs, search, token snapshots) | 300 requests per minute |
 
 Exponential backoff is recommended if you receive HTTP `429 Too Many Requests` responses.
+
+## Error Handling
+
+The API returns conventional HTTP status codes:
+
+- `200` range signals a successful response.
+- `400` range indicates malformed requests (for example, invalid `chainId` values).
+- `404` is returned when a requested token or pair cannot be found.
+- `429` indicates a rate-limit violation—back off and retry after a short delay.
+- `500` range reflects transient server errors. Implement retries with jitter for resiliency.
+
+Responses may include additional metadata such as `message` or `errors` fields when an error occurs; log these details for observability.
 
 ## Endpoints
 
