@@ -24,10 +24,11 @@ development.
 
 The Dynamic CLI/CD workbench is restricted to admin operators. Authenticate via
 the Telegram admin gate to mint a session token; the client forwards this token
-to `/api/dynamic-cli` using the `x-admin-token` header (or, when necessary,
-`x-telegram-init-data`), and the API validates it against `ADMIN_API_SECRET`
-before executing the Python CLI. If the token expires you will see an "Admin
-session required" prompt—refresh the admin control room to generate a new token.
+to `/api/dynamic-cli` using the standard `Authorization: Bearer <token>` header
+(falling back to `x-admin-token` or `x-telegram-init-data` for legacy
+compatibility), and the API validates it against `ADMIN_API_SECRET` before
+executing the Python CLI. If the token expires you will see an "Admin session
+required" prompt—refresh the admin control room to generate a new token.
 
 ## Next.js API bridge
 

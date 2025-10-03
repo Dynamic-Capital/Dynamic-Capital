@@ -160,6 +160,7 @@ export async function runDynamicCli(
     "content-type": "application/json",
   };
   if (options.adminToken) {
+    headers["Authorization"] = `Bearer ${options.adminToken}`;
     headers["x-admin-token"] = options.adminToken;
   }
   if (options.adminInitData) {

@@ -146,7 +146,7 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-admin-token": token,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     }),
@@ -228,7 +228,7 @@ Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-admin-token": token,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         scenario: {
