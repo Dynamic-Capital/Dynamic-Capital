@@ -37,6 +37,9 @@ following guidance to expose the services and control access.
 - The resolver contract for `dynamiccapital.ton` is
   `EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo` (verified via
   [TON Contract Verifier](https://verifier.ton.org/EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo)).
+  You can self-host the UI or proxy requests through your infrastructure using
+  the [official Contract Verifier repository](./ton-contract-verifier.md) to
+  align with Dynamic Capital's Supabase verification flow.
 
 ### TON ↔ Supabase bridge (`api.dynamiccapital.ton`)
 
