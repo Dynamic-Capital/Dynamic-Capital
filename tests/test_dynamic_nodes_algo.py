@@ -116,6 +116,33 @@ def test_registry_skips_nodes_not_due() -> None:
     assert [node.node_id for node in ready] == ["market-data", "fusion"]
 
 
+def test_registry_enable_all_nodes() -> None:
+    registry = DynamicNodeRegistry(
+        [
+            {
+                "node_id": "market-data",
+                "type": "ingestion",
+                "interval_sec": 60,
+                "outputs": ["ticks"],
+            },
+            {
+                "node_id": "fusion",
+                "type": "processing",
+                "interval_sec": 60,
+                "dependencies": ["ticks"],
+                "outputs": ["signals"],
+            },
+        ]
+    )
+
+    registry.get("market-data").enabled = False
+    registry.get("fusion").enabled = False
+
+    snapshot = registry.enable_all()
+
+    assert all(node.enabled for node in snapshot)
+
+
 def test_registry_detects_dependency_cycles() -> None:
     registry = DynamicNodeRegistry(
         [

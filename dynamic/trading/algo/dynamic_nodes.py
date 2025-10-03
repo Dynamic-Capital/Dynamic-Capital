@@ -185,6 +185,13 @@ class DynamicNodeRegistry:
 
         return self._nodes.pop(node_id, None) is not None
 
+    def enable_all(self) -> Tuple[DynamicNode, ...]:
+        """Mark every registered node as enabled and return the snapshot."""
+
+        for node in self._nodes.values():
+            node.enabled = True
+        return self.snapshot()
+
     # ------------------------------------------------------------------- lookup
     def get(self, node_id: str) -> DynamicNode:
         try:
