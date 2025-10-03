@@ -17,7 +17,7 @@ from importlib import import_module
 from importlib.util import find_spec
 from pathlib import Path
 from types import MappingProxyType
-from typing import Dict, Iterable, Mapping, MutableMapping, Tuple
+from typing import Dict, Iterable, Iterator, Mapping, MutableMapping, Tuple
 
 # Each entry points to the supporting data models, contexts, and helper classes
 # for a particular domain toolkit.  Symbols are resolved lazily to avoid pulling
@@ -351,6 +351,25 @@ def _merge_declared_exports(exports: MutableMapping[str, Tuple[str, ...]]) -> No
         exports[module_name] = tuple(ordered)
 
 
+def _iter_packages(package_root: Path, package_name: str) -> Iterator[Tuple[str, Path]]:
+    """Yield package names rooted at ``package_root`` with their ``__init__``."""
+
+    init_file = package_root / "__init__.py"
+    if not init_file.exists():
+        return
+    yield package_name, init_file
+
+    for child in sorted(package_root.iterdir(), key=lambda path: path.name):
+        if child.name.startswith(".") or child.name == "__pycache__":
+            continue
+        if not child.is_dir():
+            continue
+        child_init = child / "__init__.py"
+        if not child_init.exists():
+            continue
+        yield from _iter_packages(child, f"{package_name}.{child.name}")
+
+
 def _discover_toolkits() -> Dict[str, Tuple[str, ...]]:
     """Scan the repository for dynamic packages that expose ``__all__``."""
 
@@ -359,17 +378,28 @@ def _discover_toolkits() -> Dict[str, Tuple[str, ...]]:
     discovered: Dict[str, Tuple[str, ...]] = {}
     existing_keys = set(_TOOLKIT_EXPORTS)
 
-    for entry in base_path.iterdir():
-        if not entry.is_dir() or not entry.name.startswith("dynamic_"):
+    def register(module_name: str, init_file: Path) -> None:
+        if module_name in existing_keys or module_name == current_package:
+            return
+        symbols = _extract_dunder_all(module_name, init_file)
+        if not symbols:
+            return
+        discovered[module_name] = symbols
+        existing_keys.add(module_name)
+
+    for entry in sorted(base_path.iterdir(), key=lambda path: path.name):
+        if not entry.is_dir():
             continue
-        if entry.name in existing_keys or entry.name == current_package:
+        if entry.name.startswith("dynamic_"):
+            init_file = entry / "__init__.py"
+            if not init_file.exists():
+                continue
+            register(entry.name, init_file)
             continue
-        init_file = entry / "__init__.py"
-        if not init_file.exists():
+        if entry.name != "dynamic":
             continue
-        symbols = _extract_dunder_all(entry.name, init_file)
-        if symbols:
-            discovered[entry.name] = symbols
+        for module_name, init_file in _iter_packages(entry, entry.name):
+            register(module_name, init_file)
     return discovered
 
 

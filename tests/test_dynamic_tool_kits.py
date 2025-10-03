@@ -56,3 +56,15 @@ def test_available_toolkits_include_module_dunder_all_exports() -> None:
         if not exported:
             continue
         assert set(exported).issubset(toolkits[module_name])
+
+
+def test_dynamic_namespace_packages_are_discovered() -> None:
+    toolkits = dynamic_tool_kits.available_toolkits()
+
+    module_name = "dynamic.intelligence.agi"
+    assert module_name in toolkits
+
+    module = importlib.import_module(module_name)
+    exported = getattr(module, "__all__", ())
+    assert exported
+    assert set(exported).issubset(toolkits[module_name])
