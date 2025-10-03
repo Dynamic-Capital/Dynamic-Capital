@@ -39,6 +39,9 @@ NodeType = str
 
 VALID_NODE_TYPES: tuple[NodeType, ...] = ("ingestion", "processing", "policy", "community")
 
+_FALSEY_TOKENS = {"false", "0", "no", "off", "disabled"}
+_TRUTHY_TOKENS = {"true", "1", "yes", "on", "enabled"}
+
 
 class DynamicNodeError(RuntimeError):
     """Base exception for dynamic node orchestration errors."""
@@ -59,7 +62,9 @@ def _normalise_identifier(value: str) -> str:
     return normalised
 
 
-def _normalise_collection(values: Iterable[str]) -> tuple[str, ...]:
+def _normalise_collection(values: Iterable[str] | None) -> tuple[str, ...]:
+    if values is None:
+        return ()
     seen: set[str] = set()
     normalised: list[str] = []
     for raw in values:
@@ -77,6 +82,24 @@ def _ensure_mapping(metadata: Mapping[str, object] | None) -> Mapping[str, objec
     if not isinstance(metadata, Mapping):  # pragma: no cover - defensive guardrail
         raise NodeConfigError("metadata must be a mapping")
     return dict(metadata)
+
+
+def _normalise_enabled(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return True
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if not lowered:
+            return True
+        if lowered in _FALSEY_TOKENS:
+            return False
+        if lowered in _TRUTHY_TOKENS:
+            return True
+    raise NodeConfigError("enabled must be a boolean or recognisable string token")
 
 
 @dataclass(slots=True)
@@ -108,6 +131,8 @@ class DynamicNode:
             )
         self.type = node_type
 
+        self.enabled = _normalise_enabled(self.enabled)
+
         if self.interval_sec <= 0:
             raise NodeConfigError("interval_sec must be a positive integer")
         self.interval_sec = int(self.interval_sec)
@@ -132,6 +157,8 @@ class DynamicNode:
             return True
 
         current_time = now or datetime.now(timezone.utc)
+        if current_time.tzinfo is None:
+            current_time = current_time.replace(tzinfo=timezone.utc)
         next_due = self.last_run_at + timedelta(seconds=self.interval_sec)
         return current_time >= next_due
 
@@ -320,11 +347,39 @@ class DynamicNodeRegistry:
         return tuple(self._nodes.values())
 
 
+DEFAULT_NODE_CONFIGS: tuple[Mapping[str, object], ...] = (
+    {
+        "node_id": "human-analysis",
+        "type": "processing",
+        "enabled": True,
+        "interval_sec": 21600,
+        "dependencies": (),
+        "outputs": ("fusion",),
+        "metadata": {"source": "analyst_insights"},
+        "weight": 0.25,
+    },
+    {
+        "node_id": "dynamic-hedge",
+        "type": "policy",
+        "enabled": True,
+        "interval_sec": 300,
+        "dependencies": ("trades", "correlations", "risk_settings"),
+        "outputs": ("hedge_actions", "signals"),
+        "metadata": {
+            "description": "Dynamic hedge model evaluating volatility, drawdown, and news triggers",
+            "confidence": 0.9,
+        },
+        "weight": 0.9,
+    },
+)
+
+
 __all__ = [
     "DynamicNode",
     "DynamicNodeRegistry",
     "DynamicNodeError",
     "NodeConfigError",
     "NodeDependencyError",
+    "DEFAULT_NODE_CONFIGS",
 ]
 
