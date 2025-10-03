@@ -80,6 +80,8 @@
     "@aws-sdk/client-s3": "^3.899.0",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@langchain/community": "^0.2.31",
+    "@langchain/openai": "^0.2.10",
     "@radix-ui/react-tabs": "^1.1.13",
     "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/ssr": "^0.7.0",
@@ -114,11 +116,11 @@
     "dotenv": "^17.2.3",
     "firecrawl": "^1.21.1",
     "ngrok": "^5.0.0-beta.2",
+    "png-to-ico": "^2.1.8",
+    "sharp": "^0.33.5",
     "supabase": "^2.47.2",
     "tsx": "^4.20.6",
-    "yaml": "^2.8.1",
-    "sharp": "^0.33.5",
-    "png-to-ico": "^2.1.8"
+    "yaml": "^2.8.1"
   },
   "overrides": {
     "esbuild": "^0.25.10",
