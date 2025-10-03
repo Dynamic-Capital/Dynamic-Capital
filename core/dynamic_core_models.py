@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections import deque
-from heapq import nlargest
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from heapq import nlargest
+from math import isfinite
+from numbers import Integral, Real
 from types import MappingProxyType
 from typing import ClassVar, Deque, Iterable, Mapping, Sequence
 
@@ -65,10 +67,36 @@ def _freeze_mapping(mapping: Mapping[str, object] | None) -> Mapping[str, object
     return MappingProxyType(dict(mapping))
 
 
+def _normalise_window(value: object) -> int:
+    if isinstance(value, bool):
+        raise TypeError("window must be an integer >= 2")
+    if isinstance(value, Integral):
+        numeric = int(value)
+    elif isinstance(value, Real):
+        float_value = float(value)
+        if not isfinite(float_value) or not float_value.is_integer():
+            raise TypeError("window must be an integer >= 2")
+        numeric = int(float_value)
+    else:
+        raise TypeError("window must be an integer >= 2")
+    if numeric < 2:
+        raise ValueError("window must be >= 2")
+    return numeric
+
+
 def _clamp(value: float, *, floor: float, ceiling: float) -> float:
+    if not isfinite(floor) or not isfinite(ceiling):
+        raise ValueError("floor and ceiling must be finite numbers")
     if floor > ceiling:
         raise ValueError("floor must be <= ceiling")
-    numeric = float(value)
+    if isinstance(value, bool):
+        raise TypeError("metric values must be numeric")
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError) as exc:  # pragma: no cover - defensive guard
+        raise TypeError("metric values must be numeric") from exc
+    if not isfinite(numeric):
+        raise ValueError("metric values must be finite")
     if numeric < floor:
         return floor
     if numeric > ceiling:
@@ -105,7 +133,7 @@ class CoreMetricDefinition:
         object.__setattr__(self, "key", _normalise_text(self.key).lower())
         object.__setattr__(self, "label", _normalise_text(self.label))
         weight = float(self.weight)
-        if weight <= 0:
+        if not isfinite(weight) or weight <= 0:
             raise ValueError("weight must be positive")
         object.__setattr__(self, "weight", weight)
         target = float(self.target)
@@ -113,6 +141,8 @@ class CoreMetricDefinition:
         critical = float(self.critical)
         floor = float(self.floor)
         ceiling = float(self.ceiling)
+        if not all(map(isfinite, (target, warning, critical, floor, ceiling))):
+            raise ValueError("core metric thresholds must be finite numbers")
         if floor > ceiling:
             raise ValueError("floor must be <= ceiling")
         if not (floor <= target <= ceiling):
@@ -229,6 +259,18 @@ class CoreBlueprint:
     metrics: tuple[CoreMetricDefinition, ...]
     default_window: int = 12
 
+    def __post_init__(self) -> None:  # type: ignore[override]
+        object.__setattr__(self, "domain", _normalise_text(self.domain))
+        if not self.metrics:
+            raise ValueError("a core blueprint must declare at least one metric")
+        metrics: list[CoreMetricDefinition] = []
+        for definition in self.metrics:
+            if not isinstance(definition, CoreMetricDefinition):
+                raise TypeError("blueprint metrics must be CoreMetricDefinition instances")
+            metrics.append(definition)
+        object.__setattr__(self, "metrics", tuple(metrics))
+        object.__setattr__(self, "default_window", _normalise_window(self.default_window))
+
     def instantiate(self, *, window: int | None = None) -> "DynamicCoreModel":
         """Create a :class:`DynamicCoreModel` using the blueprint's defaults."""
 
@@ -255,12 +297,15 @@ class DynamicCoreModel:
             raise ValueError("at least one metric definition is required")
         lookup: dict[str, CoreMetricDefinition] = {}
         for definition in definition_list:
+            if not isinstance(definition, CoreMetricDefinition):
+                raise TypeError("metric definitions must be CoreMetricDefinition instances")
             if definition.key in lookup:
                 raise ValueError(f"duplicate metric definition: {definition.key}")
             lookup[definition.key] = definition
         self._definitions: tuple[CoreMetricDefinition, ...] = tuple(definition_list)
         self._lookup: Mapping[str, CoreMetricDefinition] = MappingProxyType(lookup)
-        self._history: Deque[float] = deque(maxlen=max(int(window), 2))
+        window_size = _normalise_window(window)
+        self._history: Deque[float] = deque(maxlen=window_size)
         self._history_sum: float = 0.0
         self._samples: int = 0
         self._last_snapshot: CoreSnapshot | None = None
@@ -282,6 +327,8 @@ class DynamicCoreModel:
         timestamp: datetime | None = None,
         metadata: Mapping[str, Mapping[str, object] | None] | None = None,
     ) -> CoreSnapshot:
+        if not isinstance(values, Mapping):
+            raise TypeError("values must be a mapping of metric keys to numbers")
         if not values:
             raise ValueError("values must not be empty")
         unknown = set(values).difference(self._lookup)
@@ -297,13 +344,22 @@ class DynamicCoreModel:
         ]
         if missing:
             raise KeyError(f"missing core metric values: {missing}")
+        if timestamp is not None and not isinstance(timestamp, datetime):
+            raise TypeError("timestamp must be a datetime instance")
         ts = timestamp if timestamp is not None else _utcnow()
         ts = ts if ts.tzinfo is not None else ts.replace(tzinfo=timezone.utc)
-        resolved_metadata: Mapping[str, Mapping[str, object] | None] = (
-            MappingProxyType({key: _freeze_mapping(value) for key, value in metadata.items()})
-            if metadata is not None
-            else MappingProxyType({})
-        )
+        ts = ts.astimezone(timezone.utc)
+        if metadata is not None and not isinstance(metadata, Mapping):
+            raise TypeError("metadata must be a mapping")
+        if metadata is not None:
+            unknown_metadata = set(metadata).difference(self._lookup)
+            if unknown_metadata:
+                raise KeyError(f"unknown metadata metric keys: {sorted(unknown_metadata)}")
+            resolved_metadata: Mapping[str, Mapping[str, object] | None] = MappingProxyType(
+                {key: _freeze_mapping(value) for key, value in metadata.items()}
+            )
+        else:
+            resolved_metadata = MappingProxyType({})
         statuses: list[CoreMetricStatus] = []
         alerts: list[str] = []
         weighted_total = 0.0
