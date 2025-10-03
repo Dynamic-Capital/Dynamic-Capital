@@ -307,26 +307,39 @@ class DynamicMethodEngine:
         metrics: Mapping[str, float],
         dominant_drivers: Sequence[str],
     ) -> tuple[str, ...]:
-        pillars: list[str] = ["Mission clarity & stakeholder alignment"]
-        if context.is_innovation_led or metrics["ambiguity"] >= 0.6:
-            pillars.append("Hypothesis-driven discovery loops")
-        if context.is_low_maturity:
-            pillars.append("Capability and playbook uplift")
-        if context.ops_maturity >= 0.6 and metrics["discipline"] >= 0.55:
-            pillars.append("Measured execution discipline")
-        if metrics["leverage"] >= 0.6:
-            pillars.append("Compounding leverage amplification")
-        if metrics["risk"] >= 0.6 or context.is_high_compliance:
-            pillars.append("Embedded governance & risk sensing")
-        if dominant_drivers:
-            pillars.append("Driver focus: " + ", ".join(dominant_drivers))
+        base_pillars: list[str] = [
+            "Mission clarity & stakeholder alignment",
+            "Hypothesis-driven discovery loops",
+            "Capability and playbook uplift",
+            "Measured execution discipline",
+            "Compounding leverage amplification",
+            "Embedded governance & risk sensing",
+        ]
 
-        seen: set[str] = set()
+        priority: list[str] = []
+        if context.is_innovation_led or metrics["ambiguity"] >= 0.6:
+            priority.append("Hypothesis-driven discovery loops")
+        if context.is_low_maturity:
+            priority.append("Capability and playbook uplift")
+        if context.ops_maturity >= 0.6 and metrics["discipline"] >= 0.55:
+            priority.append("Measured execution discipline")
+        if metrics["leverage"] >= 0.6:
+            priority.append("Compounding leverage amplification")
+        if metrics["risk"] >= 0.6 or context.is_high_compliance:
+            priority.append("Embedded governance & risk sensing")
+
         ordered: list[str] = []
-        for pillar in pillars:
+        seen: set[str] = set()
+        for pillar in [*priority, *base_pillars]:
             if pillar not in seen:
                 seen.add(pillar)
                 ordered.append(pillar)
+
+        if dominant_drivers:
+            driver_focus = "Driver focus: " + ", ".join(dominant_drivers)
+            if driver_focus not in seen:
+                ordered.append(driver_focus)
+
         return tuple(ordered)
 
     def _governance_focus(
