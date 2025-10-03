@@ -1,7 +1,7 @@
 import { registerHandler } from "../_shared/serve.ts";
 import { bad, corsHeaders, json, methodNotAllowed } from "../_shared/http.ts";
 import { createClient } from "../_shared/client.ts";
-import { need, optionalEnv } from "../_shared/env.ts";
+import { optionalEnv } from "../_shared/env.ts";
 import {
   publishBurnExecutedEvent,
   publishPaymentRecordedEvent,
@@ -43,6 +43,19 @@ type VerifiedTonPayment = {
   error: string;
 };
 
+interface TonIndexerTransaction {
+  destination?: string;
+  account?: { address?: string };
+  in_msg?: { destination?: string; value?: number | string };
+  out_msg?: { destination?: string };
+  amountTon?: number | string;
+  amount?: number | string;
+  value?: number | string;
+  coins?: number | string;
+  utime?: number | string;
+  timestamp?: string;
+}
+
 interface SwapResult {
   dctAmount: number;
   swapTxHash: string;
@@ -80,9 +93,100 @@ const EARLY_EXIT_PENALTY_BPS = 200;
 
 const ORACLE_SYMBOL = "DCTUSDT";
 
+const serviceSupabase = createClient("service");
+type SupabaseClient = typeof serviceSupabase;
+
+const APP_CONFIG_TTL_MS = 60_000;
+
+let cachedConfig:
+  | { value: DctAppConfig; expiresAt: number }
+  | null = null;
+let configFetchPromise: Promise<DctAppConfig> | null = null;
+
+interface DctAppConfig {
+  operationsWallet: string;
+  intakeWallet: string | null;
+  dctMaster: string;
+  dexRouter: string;
+  tonIndexerUrl: string | null;
+}
+
+function toNonEmptyString(value: unknown, field: string): string {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+  throw new Error(`DCT app config missing ${field}`);
+}
+
+function toOptionalString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+async function fetchAppConfig(
+  client: SupabaseClient,
+): Promise<DctAppConfig> {
+  const now = Date.now();
+  if (cachedConfig && cachedConfig.expiresAt > now) {
+    return cachedConfig.value;
+  }
+
+  if (configFetchPromise) {
+    return configFetchPromise;
+  }
+
+  configFetchPromise = (async () => {
+    const { data, error } = await client
+      .from("dct_app_config")
+      .select(
+        "operations_wallet, ton_intake_wallet, dct_jetton_master, dex_router, ton_indexer_url",
+      )
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to load DCT app config: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error("DCT app config row is missing");
+    }
+
+    const config: DctAppConfig = {
+      operationsWallet: toNonEmptyString(
+        data.operations_wallet,
+        "operations_wallet",
+      ),
+      intakeWallet: toOptionalString(data.ton_intake_wallet),
+      dctMaster: toNonEmptyString(data.dct_jetton_master, "dct_jetton_master"),
+      dexRouter: toNonEmptyString(data.dex_router, "dex_router"),
+      tonIndexerUrl: toOptionalString(data.ton_indexer_url),
+    };
+
+    cachedConfig = {
+      value: config,
+      expiresAt: Date.now() + APP_CONFIG_TTL_MS,
+    };
+
+    return config;
+  })();
+
+  try {
+    return await configFetchPromise;
+  } catch (error) {
+    cachedConfig = null;
+    throw error;
+  } finally {
+    configFetchPromise = null;
+  }
+}
+
 async function fetchOraclePrice() {
-  const supabase = createClient("service");
-  const { data, error } = await supabase
+  const { data, error } = await serviceSupabase
     .from("price_snapshots")
     .select("id, price_usd, signed_at")
     .eq("symbol", ORACLE_SYMBOL)
@@ -162,20 +266,32 @@ async function verifyTonPayment(
   txHash: string,
   expectedWallet: string,
   expectedAmount: number,
+  indexerUrl: string | null,
 ): Promise<VerifiedTonPayment> {
-  const indexerUrl = optionalEnv("TON_INDEXER_URL");
   if (!indexerUrl) {
     return { ok: true, amountTon: expectedAmount };
   }
 
-  const response = await fetch(
-    `${indexerUrl.replace(/\/$/, "")}/transactions/${txHash}`,
-  );
+  let response: Response;
+  try {
+    response = await fetch(
+      `${indexerUrl.replace(/\/$/, "")}/transactions/${txHash}`,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    return { ok: false, error: `Indexer request failed: ${message}` };
+  }
+
   if (!response.ok) {
     return { ok: false, error: `Indexer returned ${response.status}` };
   }
 
-  const payload = await response.json();
+  let payload: TonIndexerTransaction;
+  try {
+    payload = await response.json() as TonIndexerTransaction;
+  } catch {
+    return { ok: false, error: "Indexer response was not valid JSON" };
+  }
   const destination: string | undefined = payload.destination ??
     payload.account?.address ??
     payload.in_msg?.destination ??
@@ -212,21 +328,14 @@ async function verifyTonPayment(
   return { ok: true, amountTon, blockTime };
 }
 
-async function executeSwap(
-  tonAmount: number,
-  tag: SwapTag,
-): Promise<SwapResult> {
-  if (tonAmount <= 0) {
-    return {
-      dctAmount: 0,
-      swapTxHash: "",
-      routerSwapId: "",
-      priceSnapshotId: null,
-      oraclePrice: null,
-      usdNotional: 0,
-    };
-  }
+interface SwapPricing {
+  tonUsd: number;
+  overridePrice: number | null;
+  oraclePrice: number | null;
+  priceSnapshotId: string | null;
+}
 
+async function resolveSwapPricing(): Promise<SwapPricing> {
   const tonUsdOverride = optionalEnv("TON_USD_PRICE");
   const tonUsd = tonUsdOverride ? Number(tonUsdOverride) : 1;
   if (!Number.isFinite(tonUsd) || tonUsd <= 0) {
@@ -239,27 +348,68 @@ async function executeSwap(
     if (!Number.isFinite(price) || price <= 0) {
       throw new Error("Invalid DCT_PRICE_OVERRIDE value");
     }
-    const usdNotional = roundTon(tonAmount * tonUsd);
-    const dctAmount = roundTon(usdNotional / price);
     return {
-      dctAmount,
-      swapTxHash: `simulated-${tag}`,
-      routerSwapId: `sim-${crypto.randomUUID()}`,
-      priceSnapshotId: null,
+      tonUsd,
+      overridePrice: price,
       oraclePrice: price,
-      usdNotional,
+      priceSnapshotId: null,
     };
   }
 
   const oracle = await fetchOraclePrice();
-  const usdNotional = roundTon(tonAmount * tonUsd);
-  const dctAmount = roundTon(usdNotional / oracle.price);
+  return {
+    tonUsd,
+    overridePrice: null,
+    oraclePrice: oracle.price,
+    priceSnapshotId: oracle.snapshotId ?? null,
+  };
+}
+
+function computeSwap(
+  tonAmount: number,
+  tag: SwapTag,
+  pricing: SwapPricing | null,
+): SwapResult {
+  if (tonAmount <= 0) {
+    return {
+      dctAmount: 0,
+      swapTxHash: "",
+      routerSwapId: "",
+      priceSnapshotId: null,
+      oraclePrice: null,
+      usdNotional: 0,
+    };
+  }
+
+  if (!pricing) {
+    throw new Error("Swap pricing unavailable");
+  }
+
+  const usdNotional = roundTon(tonAmount * pricing.tonUsd);
+
+  if (pricing.overridePrice !== null) {
+    const dctAmount = roundTon(usdNotional / pricing.overridePrice);
+    return {
+      dctAmount,
+      swapTxHash: `simulated-${tag}`,
+      routerSwapId: `sim-${tag}-${crypto.randomUUID()}`,
+      priceSnapshotId: null,
+      oraclePrice: pricing.overridePrice,
+      usdNotional,
+    };
+  }
+
+  if (!pricing.oraclePrice) {
+    throw new Error("Oracle price unavailable");
+  }
+
+  const dctAmount = roundTon(usdNotional / pricing.oraclePrice);
   return {
     dctAmount,
     swapTxHash: `allocator-${tag}-${crypto.randomUUID()}`,
-    routerSwapId: oracle.snapshotId ?? "",
-    priceSnapshotId: oracle.snapshotId ?? null,
-    oraclePrice: oracle.price,
+    routerSwapId: pricing.priceSnapshotId ?? "",
+    priceSnapshotId: pricing.priceSnapshotId,
+    oraclePrice: pricing.oraclePrice,
     usdNotional,
   };
 }
@@ -351,14 +501,43 @@ export const handler = registerHandler(async (req) => {
     );
   }
 
-  const intakeWallet = need("INTAKE_WALLET");
-  const operationsWallet = need("OPERATIONS_TREASURY_WALLET");
-  const dctMaster = need("DCT_JETTON_MASTER");
+  let config: DctAppConfig;
+  try {
+    config = await fetchAppConfig(serviceSupabase);
+  } catch (error) {
+    return bad(
+      error instanceof Error
+        ? error.message
+        : "Failed to load DCT configuration",
+      undefined,
+      req,
+    );
+  }
+
+  const intakeWallet = config.intakeWallet ?? optionalEnv("INTAKE_WALLET");
+  if (!intakeWallet) {
+    return bad("Intake wallet unavailable", undefined, req);
+  }
+
+  const operationsWallet = config.operationsWallet ??
+    optionalEnv("OPERATIONS_TREASURY_WALLET");
+  if (!operationsWallet) {
+    return bad("Operations wallet unavailable", undefined, req);
+  }
+
+  const dctMaster = config.dctMaster ?? optionalEnv("DCT_JETTON_MASTER");
+  if (!dctMaster) {
+    return bad("Jetton master unavailable", undefined, req);
+  }
+
+  const tonIndexerUrl = optionalEnv("TON_INDEXER_URL") ??
+    config.tonIndexerUrl ?? null;
 
   const verification = await verifyTonPayment(
     body.tonTxHash,
     intakeWallet,
     body.tonAmount,
+    tonIndexerUrl,
   );
 
   if (!verification.ok) {
@@ -370,26 +549,25 @@ export const handler = registerHandler(async (req) => {
   const autoInvestTon = roundTon((tonAmount * splits.autoInvestPct) / 100);
   const burnTon = roundTon(tonAmount - operationsTon - autoInvestTon);
 
-  let autoInvestSwap: SwapResult = {
-    dctAmount: 0,
-    swapTxHash: "",
-    routerSwapId: "",
-    priceSnapshotId: null,
-    oraclePrice: null,
-    usdNotional: 0,
-  };
-  let burnSwap: SwapResult = {
-    dctAmount: 0,
-    swapTxHash: "",
-    routerSwapId: "",
-    priceSnapshotId: null,
-    oraclePrice: null,
-    usdNotional: 0,
-  };
+  let pricing: SwapPricing | null = null;
+  if (autoInvestTon > 0 || burnTon > 0) {
+    try {
+      pricing = await resolveSwapPricing();
+    } catch (error) {
+      return bad(
+        error instanceof Error ? error.message : "Swap pricing unavailable",
+        undefined,
+        req,
+      );
+    }
+  }
+
+  let autoInvestSwap: SwapResult;
+  let burnSwap: SwapResult;
 
   try {
-    autoInvestSwap = await executeSwap(autoInvestTon, "auto-invest");
-    burnSwap = await executeSwap(burnTon, "buyback-burn");
+    autoInvestSwap = computeSwap(autoInvestTon, "auto-invest", pricing);
+    burnSwap = computeSwap(burnTon, "buyback-burn", pricing);
   } catch (error) {
     return bad(
       error instanceof Error ? error.message : "Swap failed",
@@ -412,7 +590,7 @@ export const handler = registerHandler(async (req) => {
     );
   }
 
-  const supabase = createClient("service");
+  const supabase = serviceSupabase;
 
   const userPayload = {
     telegram_id: body.telegramId ?? null,
