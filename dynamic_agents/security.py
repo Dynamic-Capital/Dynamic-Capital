@@ -76,8 +76,12 @@ class DynamicSecurityAgent:
         return candidate or self._default_domain
 
     def _snapshot(self, domain: str, *, horizon_hours: int) -> SecurityPostureSnapshot:
-        key = domain.lower()
-        if key in {"all", "*", "global", "security"}:
+        key = domain.strip().lower()
+        aggregate_keys = {"all", "*", "global", "security", "all domains"}
+        default_key = self._default_domain.strip().lower()
+        if default_key:
+            aggregate_keys.add(default_key)
+        if key in aggregate_keys:
             return self._engine.aggregate_posture(horizon_hours=horizon_hours)
         return self._engine.posture(domain, horizon_hours=horizon_hours)
 
