@@ -2,11 +2,11 @@
   .__SUPABASE_SKIP_AUTO_SERVE__ = true;
 
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import type {
-  PostgrestError,
-  SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2?dts";
-import { incrementDailyAnalytics } from "../web-app-analytics/index.ts";
+import {
+  type DailyAnalyticsClient,
+  incrementDailyAnalytics,
+  type PostgrestErrorLike,
+} from "../web-app-analytics/daily-analytics.ts";
 
 type StoredButtonClicks = Record<string, number | string>;
 
@@ -19,9 +19,9 @@ interface MockConfig {
   rows?: Record<string, StoredButtonClicks>;
   selectResponses?: Array<{
     data: { button_clicks: StoredButtonClicks } | null;
-    error: PostgrestError | null;
+    error: PostgrestErrorLike | null;
   }>;
-  upsertError?: PostgrestError | null;
+  upsertError?: PostgrestErrorLike | null;
 }
 
 function createMockSupabase(config: MockConfig = {}) {
@@ -31,7 +31,7 @@ function createMockSupabase(config: MockConfig = {}) {
     : null;
   const upsertCalls: UpsertCall[] = [];
 
-  const client = {
+  const client: DailyAnalyticsClient = {
     from(table: string) {
       if (table !== "daily_analytics") {
         throw new Error(`Unexpected table ${table}`);
@@ -78,7 +78,7 @@ function createMockSupabase(config: MockConfig = {}) {
   } satisfies Record<string, unknown>;
 
   return {
-    client: client as unknown as SupabaseClient,
+    client,
     getRow(date: string) {
       return rows.get(date) ?? null;
     },
@@ -125,7 +125,7 @@ Deno.test("incrementDailyAnalytics increments existing counts and preserves othe
 });
 
 Deno.test("incrementDailyAnalytics surfaces upsert errors", async () => {
-  const mockError: PostgrestError = {
+  const mockError: PostgrestErrorLike = {
     code: "23505",
     details: "duplicate",
     hint: null,
@@ -161,7 +161,7 @@ Deno.test("incrementDailyAnalytics ignores missing-row errors", async () => {
 });
 
 Deno.test("incrementDailyAnalytics returns other select errors", async () => {
-  const mockError: PostgrestError = {
+  const mockError: PostgrestErrorLike = {
     code: "PGRST123",
     details: "boom",
     hint: null,

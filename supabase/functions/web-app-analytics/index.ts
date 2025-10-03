@@ -3,7 +3,7 @@ import {
   createSupabaseClient,
   type SupabaseClient,
 } from "../_shared/client.ts";
-import type { PostgrestError } from "https://esm.sh/@supabase/supabase-js@2?dts";
+import { incrementDailyAnalytics } from "./daily-analytics.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -160,79 +160,6 @@ async function trackEvent(
       },
     );
   }
-}
-
-interface DailyAnalyticsRow {
-  button_clicks: Record<string, unknown> | null;
-}
-
-type ButtonClickMap = Record<string, number>;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function coerceCount(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === "string") {
-    const parsed = Number.parseInt(value, 10);
-    if (!Number.isNaN(parsed)) {
-      return parsed;
-    }
-  }
-  return null;
-}
-
-function normalizeButtonClicks(value: unknown): ButtonClickMap {
-  if (!isRecord(value)) {
-    return {};
-  }
-
-  const normalized: ButtonClickMap = {};
-  for (const [key, raw] of Object.entries(value)) {
-    const count = coerceCount(raw);
-    if (count !== null) {
-      normalized[key] = count;
-    }
-  }
-  return normalized;
-}
-
-export async function incrementDailyAnalytics(
-  supabase: SupabaseClient,
-  date: string,
-  eventType: string,
-): Promise<PostgrestError | null> {
-  const { data, error } = await supabase
-    .from<DailyAnalyticsRow>("daily_analytics")
-    .select("button_clicks")
-    .eq("date", date)
-    .maybeSingle();
-
-  if (error && error.code !== "PGRST116") {
-    return error;
-  }
-
-  const current = normalizeButtonClicks(data?.button_clicks ?? {});
-  const nextCount = (current[eventType] ?? 0) + 1;
-  const updated: ButtonClickMap = {
-    ...current,
-    [eventType]: nextCount,
-  };
-
-  const { error: upsertError } = await supabase
-    .from("daily_analytics")
-    .upsert({
-      date,
-      button_clicks: updated,
-    }, {
-      onConflict: "date",
-      ignoreDuplicates: false,
-    });
-
-  return upsertError ?? null;
 }
 
 async function getAnalytics(
