@@ -116,7 +116,7 @@ export function resolveTonManifestUrl(baseUrl = resolveTonBaseUrl()): string {
       LOCALHOST_HOSTNAMES.has(hostname) ||
       hostname.endsWith(".localhost")
     ) {
-      return new URL(TON_MANIFEST_PATH, baseUrl).toString();
+      return new URL(TON_MANIFEST_PATH, base).toString();
     }
   } catch {
     // If the base URL can't be parsed, fall through to the production default.
