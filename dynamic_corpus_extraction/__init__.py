@@ -18,9 +18,11 @@ from .onedrive import (
     to_share_id,
 )
 from .google_drive import (
+    DriveShareTarget,
     GoogleDriveClient,
     build_google_drive_pdf_loader,
     parse_drive_share_link,
+    parse_drive_share_link_details,
 )
 
 __all__ = [
@@ -38,4 +40,6 @@ __all__ = [
     "GoogleDriveClient",
     "build_google_drive_pdf_loader",
     "parse_drive_share_link",
+    "parse_drive_share_link_details",
+    "DriveShareTarget",
 ]

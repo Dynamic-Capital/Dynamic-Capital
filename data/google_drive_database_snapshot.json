@@ -1,0 +1,74 @@
+{
+  "summary": {
+    "documents": 1,
+    "duplicate_count": 0,
+    "source_statistics": {
+      "google_drive": 1
+    },
+    "elapsed_seconds": 0.05672723199995744,
+    "ocr_enabled": false
+  },
+  "snapshot": {
+    "table": "google_drive_pdfs",
+    "record_count": 1,
+    "mean_confidence": 0.65,
+    "mean_relevance": 0.6,
+    "mean_freshness": 0.55,
+    "tag_catalog": [
+      "google_drive",
+      "pdf"
+    ],
+    "updated_at": "2025-10-03T08:39:45.367413+00:00",
+    "records": [
+      {
+        "key": "google-drive-local-9ced8e013eb6",
+        "canonical_key": "google-drive-local-9ced8e013eb6",
+        "payload": {
+          "content": "Dynamic Trading Reference Guide\n--------------------------------\nThis PDF summarises key trading concepts for extraction testing.\nSection 1: Market Structure and Order Flow.\nSection 2: Risk Management and Position Sizing.\nSection 3: Execution Playbooks and Review Cadence.",
+          "source": "google_drive",
+          "metadata": {
+            "file_id": "local-9ced8e013eb6",
+            "file_name": "trading.pdf",
+            "mime_type": "application/pdf",
+            "modified_time": "2025-10-03T08:13:02.178319+00:00",
+            "web_view_link": "file:///workspace/Dynamic-Capital/data/knowledge_base/dynamic_trading/raw/trading.pdf",
+            "size": 1595,
+            "local_path": "trading.pdf",
+            "source": "google_drive"
+          },
+          "document_tags": [
+            "google_drive",
+            "pdf"
+          ],
+          "links": [
+            "file:///workspace/Dynamic-Capital/data/knowledge_base/dynamic_trading/raw/trading.pdf"
+          ]
+        },
+        "confidence": 0.65,
+        "relevance": 0.6,
+        "freshness": 0.55,
+        "weight": 1.0,
+        "timestamp": "2025-10-03T08:39:45.367413+00:00",
+        "tags": [
+          "google_drive",
+          "pdf"
+        ],
+        "sources": [
+          "google_drive",
+          "file:///workspace/Dynamic-Capital/data/knowledge_base/dynamic_trading/raw/trading.pdf"
+        ]
+      }
+    ],
+    "recent_events": [
+      {
+        "table": "google_drive_pdfs",
+        "key": "google-drive-local-9ced8e013eb6",
+        "action": "insert",
+        "confidence_shift": 0.65,
+        "relevance_shift": 0.6,
+        "timestamp": "2025-10-03T08:39:45.367452+00:00"
+      }
+    ]
+  },
+  "indexed_records": 1
+}
