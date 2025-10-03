@@ -1,0 +1,19 @@
+{
+  "domains": {
+    "DAI": {
+      "coverage": { "present": 57, "required": 60 },
+      "accuracy": { "passing": 92, "sampled": 98 },
+      "governance": { "hours_since_last_probe": 18, "failed_probes": 0 }
+    },
+    "DAGI": {
+      "coverage": { "present": 48, "required": 54 },
+      "accuracy": { "passing": 81, "sampled": 90 },
+      "governance": { "hours_since_last_probe": 34, "failed_probes": 1 }
+    },
+    "DAGS": {
+      "coverage": { "present": 39, "required": 52 },
+      "accuracy": { "passing": 66, "sampled": 88 },
+      "governance": { "hours_since_last_probe": 76, "failed_probes": 2 }
+    }
+  }
+}
