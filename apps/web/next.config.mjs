@@ -25,6 +25,11 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "stub-anon-key";
 
+const DYNAMIC_CAPITAL_TON_HOST = "dynamiccapital.ton";
+const DYNAMIC_CAPITAL_TON_ORIGIN = `https://${DYNAMIC_CAPITAL_TON_HOST}`;
+const DYNAMIC_CAPITAL_TON_WWW_ORIGIN =
+  `https://www.${DYNAMIC_CAPITAL_TON_HOST}`;
+
 function coerceSiteUrl(raw) {
   if (!raw) return undefined;
   const trimmed = `${raw}`.trim();
@@ -80,11 +85,13 @@ for (const [source, value] of siteUrlSources) {
 }
 
 if (!SITE_URL) {
-  SITE_URL = "http://localhost:3000";
   if (process.env.NODE_ENV === "production") {
+    SITE_URL = DYNAMIC_CAPITAL_TON_ORIGIN;
     console.warn(
-      "SITE_URL is not configured; defaulting to http://localhost:3000. Set SITE_URL or NEXT_PUBLIC_SITE_URL to your canonical domain.",
+      `SITE_URL is not configured; defaulting to ${DYNAMIC_CAPITAL_TON_ORIGIN}. Set SITE_URL or NEXT_PUBLIC_SITE_URL to your canonical domain.`,
     );
+  } else {
+    SITE_URL = "http://localhost:3000";
   }
 } else if (
   process.env.NODE_ENV === "production" &&
@@ -128,7 +135,13 @@ if (!CANONICAL_HOST) {
   }
 }
 
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS || SITE_URL;
+const defaultAllowedOrigins = new Set([SITE_URL]);
+if (process.env.NODE_ENV === "production") {
+  defaultAllowedOrigins.add(DYNAMIC_CAPITAL_TON_ORIGIN);
+  defaultAllowedOrigins.add(DYNAMIC_CAPITAL_TON_WWW_ORIGIN);
+}
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS ||
+  Array.from(defaultAllowedOrigins).join(",");
 
 function normalizeLocale(value) {
   if (typeof value !== "string") return undefined;

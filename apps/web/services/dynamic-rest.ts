@@ -16,6 +16,8 @@ import {
 } from "@/data/instruments";
 
 export const DYNAMIC_REST_CACHE_TAG = "dynamic-rest" as const;
+export const DYNAMIC_REST_CACHE_CONTROL_HEADER =
+  "public, max-age=0, s-maxage=300, stale-while-revalidate=86400" as const;
 
 const ASSET_CLASSES = [
   "commodities",
@@ -83,6 +85,22 @@ export interface DynamicRestResponse {
   };
   endpoints: RestEndpointDescriptor[];
   resources: DynamicRestResources;
+}
+
+export interface DynamicRestResourceEnvelope<Resource> {
+  status: "ok";
+  generatedAt: string;
+  metadata: DynamicRestResponse["metadata"];
+  resource: Resource;
+}
+
+const RESPONSE_METADATA = Object.freeze({
+  version: 1,
+  repository: "Dynamic Capital",
+});
+
+function buildMetadata(): DynamicRestResponse["metadata"] {
+  return { ...RESPONSE_METADATA };
 }
 
 type TradingDeskPlan = Record<string, TradingPlan | undefined>;
@@ -196,10 +214,7 @@ export function buildDynamicRestResponse(
   return {
     status: "ok",
     generatedAt: now.toISOString(),
-    metadata: {
-      version: 1,
-      repository: "Dynamic Capital",
-    },
+    metadata: buildMetadata(),
     endpoints: [
       {
         method: "GET",
@@ -231,4 +246,37 @@ export function buildDynamicRestResponse(
       bondYields,
     },
   } satisfies DynamicRestResponse;
+}
+
+export function buildDynamicRestInstrumentsResponse(
+  now: Date = new Date(),
+): DynamicRestResourceEnvelope<DynamicRestResources["instruments"]> {
+  return {
+    status: "ok",
+    generatedAt: now.toISOString(),
+    metadata: buildMetadata(),
+    resource: summariseInstruments(),
+  } satisfies DynamicRestResourceEnvelope<DynamicRestResources["instruments"]>;
+}
+
+export function buildDynamicRestTradingDeskResponse(
+  now: Date = new Date(),
+): DynamicRestResourceEnvelope<DynamicRestResources["tradingDesk"]> {
+  return {
+    status: "ok",
+    generatedAt: now.toISOString(),
+    metadata: buildMetadata(),
+    resource: summariseTradingDesk(),
+  } satisfies DynamicRestResourceEnvelope<DynamicRestResources["tradingDesk"]>;
+}
+
+export function buildDynamicRestBondYieldsResponse(
+  now: Date = new Date(),
+): DynamicRestResourceEnvelope<DynamicRestResources["bondYields"]> {
+  return {
+    status: "ok",
+    generatedAt: now.toISOString(),
+    metadata: buildMetadata(),
+    resource: summariseBondYields(),
+  } satisfies DynamicRestResourceEnvelope<DynamicRestResources["bondYields"]>;
 }

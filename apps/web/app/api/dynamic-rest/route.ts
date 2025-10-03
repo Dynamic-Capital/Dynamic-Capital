@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { withApiMetrics } from "@/observability/server-metrics.ts";
 import {
   buildDynamicRestResponse,
+  DYNAMIC_REST_CACHE_CONTROL_HEADER,
   DYNAMIC_REST_CACHE_TAG,
 } from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
@@ -27,8 +28,7 @@ export async function GET(req: Request) {
       payload,
       {
         headers: {
-          "cache-control":
-            "public, max-age=0, s-maxage=300, stale-while-revalidate=86400",
+          "cache-control": DYNAMIC_REST_CACHE_CONTROL_HEADER,
         },
       },
       req,
