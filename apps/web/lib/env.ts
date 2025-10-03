@@ -53,6 +53,7 @@ export const serverSchema = z.object({
   LOG_LEVEL: z.string().optional(),
   SITE_URL: z.string().url().optional(),
   ROUTE_GUARD_PASSWORD: z.string().min(1),
+  CACHE_TTL_SECONDS: z.string().optional(),
 });
 
 export const envDefinition = {
@@ -173,6 +174,7 @@ function validateServerEnv(): ValidationResult {
     LOG_LEVEL: optionalEnvVar("LOG_LEVEL"),
     SITE_URL: optionalEnvVar("SITE_URL", ["NEXT_PUBLIC_SITE_URL"]),
     ROUTE_GUARD_PASSWORD: getEnvVar("ROUTE_GUARD_PASSWORD"),
+    CACHE_TTL_SECONDS: optionalEnvVar("CACHE_TTL_SECONDS"),
   } satisfies Record<string, string | undefined>;
 
   const result = serverSchema.safeParse(raw);

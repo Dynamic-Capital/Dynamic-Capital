@@ -358,6 +358,10 @@ if (!process.env.COMMIT_SHA) {
   process.env.COMMIT_SHA = COMMIT_SHA;
 }
 
+if (!process.env.NEXT_PUBLIC_COMMIT_SHA) {
+  process.env.NEXT_PUBLIC_COMMIT_SHA = process.env.COMMIT_SHA;
+}
+
 let allowedOrigins;
 if (rawAllowedOrigins === undefined) {
   allowedOrigins = [defaultOrigin];

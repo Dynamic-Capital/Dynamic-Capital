@@ -5,12 +5,13 @@ import {
   buildDynamicRestResponse,
   DYNAMIC_REST_CACHE_CONTROL_HEADER,
   DYNAMIC_REST_CACHE_TAG,
+  DYNAMIC_REST_CACHE_TTL_SECONDS,
 } from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 const ROUTE_NAME = "/api/dynamic-rest";
 const CACHE_KEY = "dynamic-rest-response";
-export const revalidate = 300;
+export const revalidate = DYNAMIC_REST_CACHE_TTL_SECONDS;
 
 const getDynamicRestResponse = unstable_cache(
   () => Promise.resolve(buildDynamicRestResponse()),
