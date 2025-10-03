@@ -101,11 +101,88 @@ def test_dynamic_mapping_engine_compose_blueprint() -> None:
     assert len(blueprint.highlighted_nodes) == 2
     assert all(node.identifier in {"north_hub", "innovation_lab", "south_hub"} for node in blueprint.highlighted_nodes)
     assert blueprint.highlighted_connections
+    assert blueprint.routes, "expected at least one recommended route"
+    top_route = blueprint.routes[0]
+    assert top_route.hops >= 1
+    assert 0.0 <= top_route.score <= 1.0
+    assert len(top_route.waypoints) >= 2
+    assert all(
+        waypoint.identifier in {"north_hub", "south_hub", "innovation_lab"}
+        for waypoint in top_route.waypoints
+    )
+    assert all(connection.relation for connection in top_route.connections)
     assert blueprint.insights
     assert blueprint.recommended_actions
     payload = blueprint.as_dict()
     assert payload["scenario"]["name"] == "Growth Push"
     assert payload["highlighted_nodes"], "highlighted nodes should serialise"
+    assert payload["routes"] and payload["routes"][0]["waypoints"], "routes should serialise"
+
+
+def test_mapping_routes_prefer_stronger_paths() -> None:
+    engine = DynamicMappingEngine()
+    nodes = (
+        MapNode(
+            identifier="hub_a",
+            name="Hub A",
+            weight=0.9,
+            tags=("alpha",),
+        ),
+        MapNode(
+            identifier="hub_b",
+            name="Hub B",
+            weight=0.8,
+            tags=("beta",),
+        ),
+        MapNode(
+            identifier="hub_c",
+            name="Hub C",
+            weight=0.7,
+            tags=("beta",),
+        ),
+        MapNode(
+            identifier="hub_d",
+            name="Hub D",
+            weight=0.6,
+            tags=("gamma",),
+        ),
+    )
+    connections = (
+        MapConnection(source="hub_a", target="hub_b", relation="link", intensity=0.9),
+        MapConnection(source="hub_b", target="hub_c", relation="relay", intensity=0.6),
+        MapConnection(source="hub_c", target="hub_d", relation="handoff", intensity=0.4),
+        MapConnection(source="hub_a", target="hub_d", relation="express", intensity=0.3),
+    )
+    layer = MapLayer(
+        name="Routing Grid",
+        description="Route testing grid",
+        nodes=nodes,
+        connections=connections,
+    )
+    engine.register_layer(layer)
+
+    scenario = MapScenario(
+        name="Route Scenario",
+        objective="Optimise throughput",
+        key_layers=("Routing Grid",),
+        focus_tags=("beta",),
+    )
+    view = MapView(
+        title="Route View",
+        narrative="Evaluate candidate routes",
+        highlight_limit=3,
+    )
+
+    blueprint = engine.compose(scenario, view)
+
+    assert len(blueprint.routes) >= 1
+    best_route = blueprint.routes[0]
+    waypoint_ids = {waypoint.identifier for waypoint in best_route.waypoints}
+    assert "hub_a" in waypoint_ids
+    assert waypoint_ids & {"hub_b", "hub_c", "hub_d"}
+    assert best_route.score >= 0.3
+    if len(blueprint.routes) > 1:
+        assert blueprint.routes[0].score >= blueprint.routes[1].score
 
 
 def test_layer_rejects_missing_node_connections() -> None:
