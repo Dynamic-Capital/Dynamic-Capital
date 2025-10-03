@@ -2,18 +2,18 @@ import { unstable_cache } from "next/cache";
 
 import { withApiMetrics } from "@/observability/server-metrics.ts";
 import {
-  buildDynamicRestResponse,
+  buildDynamicRestInstrumentsResponse,
   DYNAMIC_REST_CACHE_CONTROL_HEADER,
   DYNAMIC_REST_CACHE_TAG,
 } from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
-const ROUTE_NAME = "/api/dynamic-rest";
-const CACHE_KEY = "dynamic-rest-response";
+const ROUTE_NAME = "/api/dynamic-rest/resources/instruments";
+const CACHE_KEY = "dynamic-rest-resources-instruments";
 export const revalidate = 300;
 
-const getDynamicRestResponse = unstable_cache(
-  () => Promise.resolve(buildDynamicRestResponse()),
+const getDynamicRestInstruments = unstable_cache(
+  () => Promise.resolve(buildDynamicRestInstrumentsResponse()),
   [CACHE_KEY],
   {
     revalidate,
@@ -23,7 +23,7 @@ const getDynamicRestResponse = unstable_cache(
 
 export async function GET(req: Request) {
   return withApiMetrics(req, ROUTE_NAME, async () => {
-    const payload = await getDynamicRestResponse();
+    const payload = await getDynamicRestInstruments();
     return jsonResponse(
       payload,
       {
