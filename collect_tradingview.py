@@ -11,7 +11,12 @@ import sys
 from typing import Iterable, List, Optional
 
 import requests
-from bs4 import BeautifulSoup
+try:
+  from bs4 import BeautifulSoup
+except ModuleNotFoundError as exc:
+  raise ModuleNotFoundError(
+    "BeautifulSoup is required for HTML parsing. Install it with `pip install beautifulsoup4`.",
+  ) from exc
 
 LOGGER = logging.getLogger("tradingview-collector")
 BIAS_KEYWORDS = {
