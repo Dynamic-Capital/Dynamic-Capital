@@ -1,5 +1,8 @@
 project_id = "qeejuomcapbdlhnjqjcc"
 
+[edge_runtime]
+  policy = "per_worker"
+
 [global]
   site_url = "https://dynamiccapital.ton"
   additional_redirect_urls = [
