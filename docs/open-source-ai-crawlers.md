@@ -16,7 +16,7 @@ configurability, and integration requirements.
 | Crawl4AI      | Python              | High-throughput crawling engine with concurrency controls and hook-based customization                                | Markdown (primary), JSON | Engineering teams building large-scale, automated ingestion loops                       |
 | ScrapeGraphAI | Python              | Prompt-driven pipeline assembly that combines LLM reasoning with graph execution                                      | HTML, JSON, Markdown     | Developers comfortable with natural-language specifications who want flexible workflows |
 | Firecrawl     | Python              | Cleans and normalizes modern websites while defending against anti-bot measures; integrates with LangChain/LlamaIndex | Markdown, JSON           | AI platform teams feeding RAG or fine-tuning corpora with minimal preprocessing         |
-| Crawlee       | Python & JavaScript | Battle-tested crawling toolkit with proxy rotation, link discovery, and Playwright/BeautifulSoup adapters             | User-defined             | Full-stack teams needing browser automation and resilient scheduling                    |
+| Crawlee       | TypeScript & Python | Battle-tested crawling toolkit with proxy rotation, link discovery, and Playwright/BeautifulSoup adapters             | User-defined             | Full-stack teams needing browser automation and resilient scheduling                    |
 | LLM Scraper   | TypeScript          | Schema-first extraction orchestrated by LLMs on top of Playwright sessions                                            | JSON (schema-aligned)    | Teams that require precise, typed payloads from complex pages                           |
 
 ## Framework Profiles
@@ -59,7 +59,7 @@ configurability, and integration requirements.
 ### Crawlee
 
 - **Core Focus:** General-purpose crawling and browser automation available for
-  both Python and JavaScript ecosystems.
+  both TypeScript and Python ecosystems.
 - **Key Features:** Provides request queues, link crawling helpers, proxy
   rotation, and adapters for Playwright, BeautifulSoup, or raw HTTP clients.
 - **Data Output:** User-defined; Crawlee supplies the orchestration while

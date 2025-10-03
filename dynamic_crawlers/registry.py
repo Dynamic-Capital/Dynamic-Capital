@@ -262,7 +262,7 @@ def _build_crawl4ai_spec() -> CrawlerSpec:
     metadata = CrawlerMetadata(
         name="Crawl4AI",
         language="Python",
-        homepage="https://github.com/crawl4ai/crawl4ai",
+        homepage="https://github.com/unclecode/crawl4ai",
         license="Apache-2.0",
         description="High-throughput crawler optimised for AI-ready Markdown output.",
     )
@@ -325,7 +325,7 @@ def _build_firecrawl_spec() -> CrawlerSpec:
     metadata = CrawlerMetadata(
         name="Firecrawl",
         language="TypeScript",
-        homepage="https://github.com/mendableai/firecrawl",
+        homepage="https://github.com/firecrawl/firecrawl",
         license="MIT",
         description="LLM-ready crawling engine with resilient content normalisation.",
     )
@@ -353,7 +353,7 @@ def _build_firecrawl_spec() -> CrawlerSpec:
 def _build_crawlee_spec() -> CrawlerSpec:
     metadata = CrawlerMetadata(
         name="Crawlee",
-        language="TypeScript",
+        language="TypeScript & Python",
         homepage="https://github.com/apify/crawlee",
         license="Apache-2.0",
         description="Browser automation toolkit for robust web crawling at scale.",
@@ -383,7 +383,7 @@ def _build_llm_scraper_spec() -> CrawlerSpec:
     metadata = CrawlerMetadata(
         name="LLM Scraper",
         language="TypeScript",
-        homepage="https://github.com/0xPlaygrounds/llm-scraper",
+        homepage="https://github.com/mishushakov/llm-scraper",
         license="Apache-2.0",
         description="Schema-driven extraction powered by Playwright and LLM reasoning.",
     )
