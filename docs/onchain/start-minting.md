@@ -21,25 +21,46 @@ from the new addresses supplied by governance.
 The `tools/ton/start-minting.ts` helper builds a Jetton `mint` message body that
 can be pasted into the multisig proposal UI or sent through the TON CLI. Run the
 script with the desired mint amount (decimals respected) and the target jetton
-wallet address.
+wallet address. The helper defaults to the production treasury multisig and
+jetton master coordinates listed in the table below, so operators only need to
+provide the mint amount and destination wallet in the common case.
+
+| Default                                | Value                                              |
+| -------------------------------------- | -------------------------------------------------- |
+| Treasury multisig (transaction source) | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` |
+| Jetton master (transaction target)     | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` |
+| Forwarded TON                          | `0.05`                                             |
+
+> Override the defaults with `--master`, `--forward-ton`, or `--response` when
+> minting to a non-treasury destination.
 
 ```bash
 npm run ton:start-minting -- \
   --amount 250000 \
   --destination EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq \
   --comment "Mint 250k DCT to treasury" \
-  --forward-ton 0.05
+  --save-boc tmp/dct-mint-250k.boc
 ```
 
 The command prints:
 
 - The base64-encoded BOC payload for the `mint` call.
-- The nano DCT amount that will be minted (`250000 * 1e9` in the example).
-- The TON forwarded to the destination jetton wallet (covers wallet storage and
-  forwarding costs).
+- The mint parameters, including the jetton master, destination wallet, nano DCT
+  amount (`250000 * 1e9` in the example), and forwarded TON for wallet storage
+  and gas.
+- If `--save-boc` is supplied the helper persists a ready-to-upload binary BOC
+  at the provided path (useful for Tonkeeper or multisig proposals).
 
 If you already calculated the nano DCT amount externally, pass `--nano-amount`
 instead of `--amount`.
+
+### Optional outputs
+
+- Append `--json` to emit a machine-readable summary that downstream tooling can
+  consume when orchestrating mint proposals programmatically.
+- Use `--master` to target an alternate jetton minter (for example, when
+  preparing testnet rehearsals). The CLI validates that the provided address is
+  syntactically correct before building the payload.
 
 ## Submit through the treasury multisig
 

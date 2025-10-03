@@ -50,10 +50,10 @@ balances so auditors can independently replay the queries.
 When governance approves fresh emissions, operators can resume minting using the
 [`DCT Mint Activation Runbook`](./start-minting.md). The helper script defined
 there (`npm run ton:start-minting`) prepares the Jetton `mint` payload with the
-new treasury and master addresses baked in, ensuring subsequent multisig
-submissions originate from `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` to
-the canonical master contract
-`EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`.
+new treasury and master addresses baked in, emits human-readable and JSON
+summaries, and can persist a ready-to-upload BOC so multisig submissions
+originate from `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` to the
+canonical master contract `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`.
 
 ## Checklist Outcome
 
