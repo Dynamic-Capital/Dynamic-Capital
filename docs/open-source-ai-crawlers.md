@@ -31,6 +31,7 @@ configurability, and integration requirements.
   retrieval-augmented generation (RAG) or fine-tuning workflows.
 - **Best For:** Teams running large-scale ingestion jobs that need deterministic
   structure and seamless LLM alignment without bolting on extra tooling.
+- **Install:** `pip install --upgrade "crawl4ai @ git+https://github.com/unclecode/crawl4ai"`
 
 ### ScrapeGraphAI
 
@@ -43,6 +44,7 @@ configurability, and integration requirements.
   teams iterate quickly without rewriting code.
 - **Best For:** Developers who want to describe desired data in natural language
   and let the system synthesize the extraction plan.
+- **Install:** `pip install --upgrade "scrapegraphai @ git+https://github.com/ScrapeGraphAI/Scrapegraph-ai"`
 
 ### Firecrawl
 
@@ -55,6 +57,7 @@ configurability, and integration requirements.
   knowledge bases, agent memories, or fine-tuning datasets.
 - **Best For:** Teams that prioritize rapid ingestion of clean content into AI
   stacks without spending cycles on transformation scripts.
+- **Install:** `npm install --no-save firecrawl@github:firecrawl/firecrawl`
 
 ### Crawlee
 
@@ -66,6 +69,7 @@ configurability, and integration requirements.
   letting you decide how to serialize and persist results.
 - **Best For:** Engineering squads that need a resilient crawler capable of
   complex interactions, login flows, or custom scheduling.
+- **Install:** `npm install --no-save crawlee@github:apify/crawlee`
 
 ### LLM Scraper
 
@@ -77,6 +81,7 @@ configurability, and integration requirements.
   precise ingestion into typed pipelines.
 - **Best For:** Teams that must guarantee schema fidelity when scraping dynamic,
   JavaScript-heavy pages.
+- **Install:** `npm install --no-save llm-scraper@github:mishushakov/llm-scraper`
 
 ## Selection Guide
 

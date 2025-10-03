@@ -40,12 +40,17 @@ def test_crawl4ai_plan_includes_urls_and_options(tmp_path: Path) -> None:
     config = CrawlerConfig(concurrency=2, dynamic_content=False, output_format="markdown")
     plan = registry.build_plan("Crawl4AI", job, config=config)
 
-    assert plan.commands[0].startswith("crawl4ai run")
-    assert "--input crawlers/market-sweep/crawl4ai_urls.txt" in plan.commands[0]
-    assert "--max-concurrency 2" in plan.commands[0]
-    assert "--render-engine" not in plan.commands[0]
+    assert plan.commands[0].startswith(
+        "python -m pip install --upgrade --disable-pip-version-check -r "
+    )
+    assert plan.commands[1].startswith("crawl4ai run")
+    assert "--input crawlers/market-sweep/crawl4ai_urls.txt" in plan.commands[1]
+    assert "--max-concurrency 2" in plan.commands[1]
+    assert "--render-engine" not in plan.commands[1]
     assert plan.files[0].path.endswith("crawl4ai_urls.txt")
     assert "https://example.com/a" in plan.files[0].content
+    assert plan.files[1].path.endswith("crawl4ai_requirements.txt")
+    assert "git+https://github.com/unclecode/crawl4ai" in plan.files[1].content
 
 
 def test_scrapegraphai_plan_serialises_schema(tmp_path: Path) -> None:
@@ -113,6 +118,10 @@ def test_crawlee_plan_toggles_browser_mode(tmp_path: Path) -> None:
     config = CrawlerConfig(dynamic_content=False, concurrency=3, output_format="json")
     plan = registry.build_plan("Crawlee", job, config=config)
 
+    assert plan.commands[0].startswith(
+        "npm install --no-save crawlee@github:apify/crawlee playwright"
+    )
+    assert plan.commands[1].startswith("npx ts-node ")
     assert plan.environment["CRAWLEE_USE_BROWSER"] == "false"
     script_body = plan.files[0].content
     assert "CheerioCrawler" in script_body
@@ -138,6 +147,10 @@ def test_llm_scraper_plan_prefers_config_schema(tmp_path: Path) -> None:
     payload = json.loads(plan.files[0].content)
     assert payload["schema"] == {"config": True}
     assert plan.environment["LLM_SCRAPER_PROVIDER"] == "anthropic:claude-3-haiku"
+    assert plan.commands[0].startswith(
+        "npm install --no-save llm-scraper@github:mishushakov/llm-scraper"
+    )
+    assert plan.commands[1].startswith("npx llm-scraper run ")
 
 
 def test_register_default_crawlers_can_extend_existing_registry() -> None:
