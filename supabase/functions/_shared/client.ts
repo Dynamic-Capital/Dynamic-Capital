@@ -154,15 +154,21 @@ export function createClientForRequest(
     ...(authHeader ? { Authorization: authHeader } : {}),
   };
 
+  const hasMergedHeaders = Object.keys(mergedHeaders).length > 0;
+  const hasRestOptions = Object.keys(restOptions ?? {}).length > 0;
+  const shouldAttachGlobal = global !== undefined || hasMergedHeaders;
+
+  if (!hasRestOptions && !shouldAttachGlobal) {
+    return createClient(role);
+  }
+
   const finalOptions: SupabaseClientOptions<"public"> = {
-    ...restOptions,
-    ...(global || authHeader
+    ...(hasRestOptions ? { ...restOptions } : {}),
+    ...(shouldAttachGlobal
       ? {
         global: {
           ...global,
-          ...(Object.keys(mergedHeaders).length > 0
-            ? { headers: mergedHeaders }
-            : {}),
+          ...(hasMergedHeaders ? { headers: mergedHeaders } : {}),
         },
       }
       : {}),
