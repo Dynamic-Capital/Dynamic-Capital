@@ -23,6 +23,27 @@ type BondYieldsResource = {
   markets: Array<{ tenors: unknown[] }>;
 };
 
+type OpenSourceCategory = {
+  name: string;
+  license: string;
+};
+
+type OpenSourceResource = {
+  totals: {
+    helpers: number;
+    languageModels: number;
+    adapters: number;
+    toolkits: number;
+    overall: number;
+  };
+  categories: {
+    helpers: OpenSourceCategory[];
+    languageModels: OpenSourceCategory[];
+    adapters: OpenSourceCategory[];
+    toolkits: OpenSourceCategory[];
+  };
+};
+
 async function run() {
   const { GET } = await import(
     /* @vite-ignore */ "../../apps/web/app/api/dynamic-rest/route.ts"
@@ -52,6 +73,12 @@ async function run() {
   assert.ok(
     endpoints.some((endpoint) => endpoint.path === "/api/dynamic-rest"),
     "primary endpoint descriptor missing",
+  );
+  assert.ok(
+    endpoints.some((endpoint) =>
+      endpoint.path === "/api/dynamic-rest/resources/open-source"
+    ),
+    "open-source endpoint descriptor missing",
   );
 
   const instruments = body.resources.instruments as InstrumentResource;
@@ -90,6 +117,61 @@ async function run() {
     bondYields.markets.some((market) => market.tenors.length > 1),
     "expected multi-tenor coverage in bond markets",
   );
+
+  const openSource = body.resources.openSource as OpenSourceResource;
+  assert.equal(
+    openSource.totals.overall,
+    openSource.totals.helpers +
+      openSource.totals.languageModels +
+      openSource.totals.adapters +
+      openSource.totals.toolkits,
+    "overall total should equal the sum of category totals",
+  );
+  assert.equal(
+    openSource.totals.helpers,
+    openSource.categories.helpers.length,
+    "helpers total should track helper catalog entries",
+  );
+  assert.ok(
+    openSource.categories.languageModels.some((entry) =>
+      entry.name.includes("Mistral")
+    ),
+    "expected representative language model",
+  );
+  assert.ok(
+    openSource.categories.adapters.every((entry) => entry.license.length > 0),
+    "adapter entries should include license metadata",
+  );
+  assert.equal(
+    openSource.totals.languageModels,
+    openSource.categories.languageModels.length,
+    "language model total should track catalog entries",
+  );
+  assert.equal(
+    openSource.totals.adapters,
+    openSource.categories.adapters.length,
+    "adapter total should match adapter catalog entries",
+  );
+  assert.equal(
+    openSource.totals.toolkits,
+    openSource.categories.toolkits.length,
+    "toolkit total should match toolkit catalog entries",
+  );
+
+  const { GET: getResource } = await import(
+    /* @vite-ignore */
+    "../../apps/web/app/api/dynamic-rest/resources/[resource]/route.ts"
+  );
+
+  const resourceResponse = await getResource(
+    new Request("http://localhost/api/dynamic-rest/resources/open-source"),
+    { params: { resource: "open-source" } },
+  );
+
+  assert.equal(resourceResponse.status, 200);
+  const resourceBody = await resourceResponse.json();
+  assert.equal(resourceBody.status, "ok");
+  assert.equal(resourceBody.resource.totals.overall, openSource.totals.overall);
 }
 
 if (typeof Deno !== "undefined") {

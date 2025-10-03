@@ -1179,66 +1179,51 @@ class SupabaseStub {
   };
 }
 
+type RequestLike = Pick<Request, "headers"> | {
+  headers: { get(name: string): string | null | undefined };
+};
+
 export interface RequestClientOptions {
   role?: "anon" | "service";
   requireAuthorization?: boolean;
   [key: string]: unknown;
 }
 
-interface RequestLike {
-  headers: {
-    get(name: string): string | null | undefined;
-  };
-}
-
-export function createClientForRequest(
-  req: RequestLike,
-  options?: RequestClientOptions,
-) {
-  const role = options?.role ?? "anon";
-  const requireAuthorization = options?.requireAuthorization ?? false;
-
-  const authHeader = req.headers?.get?.("Authorization")?.trim() ?? "";
-
-  if (requireAuthorization && authHeader.length === 0) {
-    throw new Error("Missing Authorization header for createClientForRequest");
+function readAuthorizationHeader(req: RequestLike): string {
+  try {
+    const value = req.headers?.get?.("Authorization");
+    return value ? value.trim() : "";
+  } catch {
+    return "";
   }
-
-  return createClient(role as "anon" | "service");
 }
 
-export function createClient(role: "anon" | "service" = "anon") {
+export function createClient(
+  role: "anon" | "service" = "anon",
+  _options?: Record<string, unknown>,
+) {
   return new SupabaseStub(stubState, role) as unknown as {
     [key: string]: unknown;
   };
 }
 
-type RequestLike = Pick<Request, "headers">;
-
-type RequestClientOptions = {
-  role?: "anon" | "service";
-  requireAuthorization?: boolean;
-  [key: string]: unknown;
-};
+export type SupabaseClient = ReturnType<typeof createClient>;
 
 export function createClientForRequest(
   req: RequestLike,
   options?: RequestClientOptions,
-) {
-  if (options?.requireAuthorization) {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error(
-        "Missing Authorization header for createClientForRequest",
-      );
-    }
+): SupabaseClient {
+  const role = options?.role ?? "anon";
+  const requireAuthorization = options?.requireAuthorization ?? false;
+
+  const authHeader = readAuthorizationHeader(req);
+  if (requireAuthorization && authHeader.length === 0) {
+    throw new Error("Missing Authorization header for createClientForRequest");
   }
 
-  return createClient();
+  return createClient(role);
 }
 
-export type SupabaseClient = ReturnType<typeof createClient>;
-
-export function createSupabaseClient(..._args: unknown[]) {
+export function createSupabaseClient(..._args: unknown[]): SupabaseClient {
   return createClient();
 }
