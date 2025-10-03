@@ -1,5 +1,8 @@
 import { optionalEnv } from "../_shared/env.ts";
-import { expectedSecret } from "../_shared/telegram_secret.ts";
+import {
+  expectedSecret,
+  TELEGRAM_ALLOWED_UPDATES_JSON,
+} from "../_shared/telegram_secret.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 const BOT = optionalEnv("TELEGRAM_BOT_TOKEN") || "";
@@ -39,6 +42,7 @@ export const handler = registerHandler(async (req) => {
   const form = new URLSearchParams();
   form.set("url", url);
   if (SECRET) form.set("secret_token", SECRET);
+  form.set("allowed_updates", TELEGRAM_ALLOWED_UPDATES_JSON);
 
   const res = await fetch(`https://api.telegram.org/bot${BOT}/setWebhook`, {
     method: "POST",

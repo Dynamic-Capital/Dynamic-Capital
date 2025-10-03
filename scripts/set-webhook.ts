@@ -13,6 +13,8 @@
  * Usage:
  *   deno run -A scripts/set-webhook.ts
  */
+import { TELEGRAM_ALLOWED_UPDATES_JSON } from "../supabase/functions/_shared/telegram_secret.ts";
+
 const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const baseUrl = Deno.env.get("TELEGRAM_WEBHOOK_URL");
 const secret = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
@@ -34,6 +36,7 @@ const params = new URLSearchParams();
 params.set("url", baseUrl);
 params.set("secret_token", secret);
 params.set("drop_pending_updates", "true");
+params.set("allowed_updates", TELEGRAM_ALLOWED_UPDATES_JSON);
 
 const setRes = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
   method: "POST",

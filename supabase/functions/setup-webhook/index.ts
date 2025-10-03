@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { getEnv, optionalEnv } from "../_shared/env.ts";
 import { createLogger } from "../_shared/logger.ts";
-import { ensureWebhookSecret } from "../_shared/telegram_secret.ts";
+import {
+  cloneTelegramAllowedUpdates,
+  ensureWebhookSecret,
+} from "../_shared/telegram_secret.ts";
 import { createClient } from "../_shared/client.ts";
 import { json, mna, oops, unauth } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
@@ -61,6 +64,7 @@ export async function handler(req: Request): Promise<Response> {
     const supabaseUrl = getEnv("SUPABASE_URL");
     const supa = createClient();
     const secret = await ensureWebhookSecret(supa);
+    const allowedUpdates = cloneTelegramAllowedUpdates();
 
     const webhookUrl = `${supabaseUrl}/functions/v1/telegram-bot`;
 
@@ -81,7 +85,7 @@ export async function handler(req: Request): Promise<Response> {
         body: JSON.stringify({
           url: webhookUrl,
           secret_token: secret,
-          allowed_updates: ["message", "callback_query", "inline_query"],
+          allowed_updates: allowedUpdates,
           drop_pending_updates: true,
         }),
       },
