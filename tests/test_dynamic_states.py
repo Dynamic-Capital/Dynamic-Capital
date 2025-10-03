@@ -6,7 +6,7 @@ import math
 
 import pytest
 
-from dynamic_states import DynamicStateEngine, StateDefinition, StateSignal
+from dynamic_states import DynamicStateEngine, StateDefinition, StateSignal, StateSnapshot
 
 
 @pytest.fixture()
@@ -69,3 +69,17 @@ def test_overview_returns_all_states(engine: DynamicStateEngine) -> None:
     assert set(overview.keys()) == {"alert", "calm"}
     assert overview["alert"].summary.startswith("Alert state")
     assert overview["calm"].value == pytest.approx(0.0)
+
+
+def test_legacy_engines_module_exports_state_symbols() -> None:
+    from dynamic.platform.engines import (  # type: ignore-import-not-found
+        DynamicStateEngine as LegacyEngine,
+        StateDefinition as LegacyDefinition,
+        StateSignal as LegacySignal,
+        StateSnapshot as LegacySnapshot,
+    )
+
+    assert LegacyEngine is DynamicStateEngine
+    assert LegacySignal is StateSignal
+    assert LegacyDefinition is StateDefinition
+    assert LegacySnapshot is StateSnapshot

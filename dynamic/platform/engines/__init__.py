@@ -298,7 +298,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_source": ("DynamicSourceEngine",),
     "dynamic_space.engine": ("DynamicSpaceEngine",),
     "dynamic_spheres": ("DynamicSpheresEngine",),
-    "dynamic_states": ("DynamicStateEngine",),
+    "dynamic_states": (
+        "DynamicStateEngine",
+        "StateSignal",
+        "StateDefinition",
+        "StateSnapshot",
+    ),
     "dynamic_stem_cell": ("DynamicStemCell",),
     "dynamic_syncronization": ("DynamicSyncronizationOrchestrator",),
     "dynamic_supply": (
