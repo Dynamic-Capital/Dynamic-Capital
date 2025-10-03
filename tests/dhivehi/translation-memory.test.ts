@@ -1,8 +1,4 @@
-import {
-  assert,
-  assertEquals,
-  assertGreater,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals, assertGreater } from "../asserts.ts";
 import { TranslationMemory } from "../../tools/dhivehi/translation-memory.ts";
 
 Deno.test("stores and retrieves translation segments", () => {

@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals } from "../asserts.ts";
 import { defaultGlossary, Glossary } from "../../tools/dhivehi/glossary.ts";
 
 Deno.test("loads baseline glossary entries", () => {

@@ -68,6 +68,12 @@ from the very first ticket.
 - Seed the shared utilities workspace with transliteration helpers
   (`tools/dhivehi/transliteration.ts`) so Storybook examples can rely on a
   vetted mapping and reverse conversions.
+- Add a QA harness that replays the open-source `div-transliteration` evaluation
+  pairs via `evaluateTransliterationBenchmark` to surface accuracy and
+  Levenshtein scores inside tooling dashboards.
+- Ship a reusable keyboard binding manifest
+  (`tools/dhivehi/thaana-input-toolkit.ts`) so client apps can render virtual
+  Thaana layouts, intercept key events, and replay sequences for QA scenarios.
 
 #### Checklist
 
