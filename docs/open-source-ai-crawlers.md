@@ -19,6 +19,14 @@ configurability, and integration requirements.
 | Crawlee       | TypeScript & Python | Battle-tested crawling toolkit with proxy rotation, link discovery, and Playwright/BeautifulSoup adapters             | User-defined             | Full-stack teams needing browser automation and resilient scheduling                    |
 | LLM Scraper   | TypeScript          | Schema-first extraction orchestrated by LLMs on top of Playwright sessions                                            | JSON (schema-aligned)    | Teams that require precise, typed payloads from complex pages                           |
 
+## Repository Installation
+
+- **Node toolchains:** Run `npm run crawlers:install` to fetch Crawlee, Firecrawl,
+  and LLM Scraper directly from their GitHub repositories alongside the rest of
+  the workspace dependencies.
+- **Python libraries:** Execute `python -m pip install --upgrade --disable-pip-version-check -r dynamic_crawlers/requirements-github.txt`
+  to install Crawl4AI and ScrapeGraphAI from source.
+
 ## Framework Profiles
 
 ### Crawl4AI
