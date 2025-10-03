@@ -13,12 +13,26 @@ the box.
 ```ts
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+const requireEnv = (name: string) => {
+  const value = Deno.env.get(name);
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+
+  return value;
+};
+
 Deno.serve(async (req) => {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response("Missing Authorization header", { status: 401 });
+  }
+
   try {
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "",
-      { global: { headers: { Authorization: req.headers.get("Authorization")! } } },
+      requireEnv("SUPABASE_URL"),
+      requireEnv("SUPABASE_PUBLISHABLE_KEY"),
+      { global: { headers: { Authorization: authHeader } } },
     );
 
     const { data, error } = await supabase.from("countries").select("*");
@@ -53,20 +67,32 @@ import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 const pool = new Pool(
   {
     tls: { enabled: false },
-    database: "postgres",
+    database: Deno.env.get("DB_NAME") ?? "postgres",
     hostname: Deno.env.get("DB_HOSTNAME"),
     user: Deno.env.get("DB_USER"),
-    port: 6543,
+    port: Number(Deno.env.get("DB_PORT") ?? 6543),
     password: Deno.env.get("DB_PASSWORD"),
   },
   1,
 );
 
+Deno.addSignalListener("SIGTERM", () => {
+  pool.end().catch((err) => console.error("Failed to close pool", err));
+});
+
 Deno.serve(async (_req) => {
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), 10_000);
+
   try {
     const connection = await pool.connect();
     try {
-      const result = await connection.queryObject`SELECT * FROM animals`;
+      const result = await connection.queryObject({
+        text: "SELECT * FROM animals",
+        args: [],
+        signal: abortController.signal,
+      });
+
       const animals = result.rows;
       const body = JSON.stringify(
         animals,
@@ -84,6 +110,8 @@ Deno.serve(async (_req) => {
   } catch (err) {
     console.error(err);
     return new Response(String(err?.message ?? err), { status: 500 });
+  } finally {
+    clearTimeout(timeout);
   }
 });
 ```
@@ -109,15 +137,38 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { countries } from "../_shared/schema.ts";
 
-const connectionString = Deno.env.get("SUPABASE_DB_URL")!;
+const connectionString = Deno.env.get("SUPABASE_DB_URL");
+if (!connectionString) {
+  throw new Error("SUPABASE_DB_URL must be defined");
+}
 
 Deno.serve(async (_req) => {
   const client = postgres(connectionString, { prepare: false });
-  const db = drizzle(client);
-  const allCountries = await db.select().from(countries);
-  return Response.json(allCountries);
+
+  try {
+    const db = drizzle(client);
+    const allCountries = await db.select().from(countries);
+    return Response.json(allCountries);
+  } finally {
+    await client.end({ timeout: 5_000 });
+  }
 });
 ```
+
+### Hardening checklist
+
+Regardless of the client you choose, apply the following safeguards:
+
+- Validate all required environment variables at startup to fail fast during
+  deployment.
+- Enforce authentication checks at the edge (for example by requiring the
+  `Authorization` header) before touching the database.
+- Set defensible timeouts for database operations to avoid exhausting the Edge
+  Function runtime when Postgres is under load.
+- Release or close clients and pools in a `finally` block and hook into process
+  signals so that upgrades drain connections cleanly.
+- Avoid logging raw secrets—mask tokens before writing to the console or
+  observability pipelines.
 
 ## SSL connections
 
