@@ -262,7 +262,7 @@ def _build_crawl4ai_spec() -> CrawlerSpec:
     metadata = CrawlerMetadata(
         name="Crawl4AI",
         language="Python",
-        homepage="https://github.com/crawl4ai/crawl4ai",
+        homepage="https://github.com/unclecode/crawl4ai",
         license="Apache-2.0",
         description="High-throughput crawler optimised for AI-ready Markdown output.",
     )
@@ -325,7 +325,7 @@ def _build_firecrawl_spec() -> CrawlerSpec:
     metadata = CrawlerMetadata(
         name="Firecrawl",
         language="TypeScript",
-        homepage="https://github.com/mendableai/firecrawl",
+        homepage="https://github.com/firecrawl/firecrawl",
         license="MIT",
         description="LLM-ready crawling engine with resilient content normalisation.",
     )
@@ -353,7 +353,7 @@ def _build_firecrawl_spec() -> CrawlerSpec:
 def _build_crawlee_spec() -> CrawlerSpec:
     metadata = CrawlerMetadata(
         name="Crawlee",
-        language="TypeScript",
+        language="TypeScript & Python",
         homepage="https://github.com/apify/crawlee",
         license="Apache-2.0",
         description="Browser automation toolkit for robust web crawling at scale.",
@@ -383,7 +383,7 @@ def _build_llm_scraper_spec() -> CrawlerSpec:
     metadata = CrawlerMetadata(
         name="LLM Scraper",
         language="TypeScript",
-        homepage="https://github.com/0xPlaygrounds/llm-scraper",
+        homepage="https://github.com/mishushakov/llm-scraper",
         license="Apache-2.0",
         description="Schema-driven extraction powered by Playwright and LLM reasoning.",
     )
@@ -423,6 +423,12 @@ def _build_crawl4ai_plan(job: CrawlJob, config: CrawlerConfig) -> CrawlerPlan:
         path=f"crawlers/{slug}/crawl4ai_urls.txt",
         content="\n".join(job.urls) + "\n",
     )
+    requirements_file = PlanFile(
+        path=f"crawlers/{slug}/crawl4ai_requirements.txt",
+        content=_ensure_trailing_newline(
+            "crawl4ai @ git+https://github.com/unclecode/crawl4ai",
+        ),
+    )
     command_parts = [
         "crawl4ai run",
         f"--input {url_file.path}",
@@ -438,14 +444,18 @@ def _build_crawl4ai_plan(job: CrawlJob, config: CrawlerConfig) -> CrawlerPlan:
         command_parts.append(f"--limit {config.max_pages}")
     for key, value in sorted((config.extra_options or {}).items()):
         command_parts.append(f"--{_slugify(str(key)).replace('-', '_')} {value}")
+    install_command = (
+        "python -m pip install --upgrade --disable-pip-version-check "
+        f"-r {requirements_file.path}"
+    )
     notes = (
-        "Install Crawl4AI (`pip install crawl4ai`) and Playwright browsers before executing.",
+        "Install Crawl4AI from the GitHub repository using the generated requirements file, then install Playwright browsers.",
         "The generated Markdown is ready for ingestion into Dynamic Capital's RAG pipelines.",
     )
     return CrawlerPlan(
-        commands=(" ".join(command_parts),),
+        commands=(install_command, " ".join(command_parts)),
         environment={},
-        files=(url_file,),
+        files=(url_file, requirements_file),
         notes=notes,
     )
 
@@ -519,12 +529,16 @@ def _build_firecrawl_plan(job: CrawlJob, config: CrawlerConfig) -> CrawlerPlan:
         command_parts.append("--javascript")
     if config.max_pages is not None:
         command_parts.append(f"--limit {config.max_pages}")
+    install_command = (
+        "npm install --no-save firecrawl@github:firecrawl/firecrawl"
+    )
     notes = (
+        "Install Firecrawl directly from GitHub before running the crawl command.",
         "Firecrawl requires a configured data store; set FIRECRAWL_API_KEY if using the hosted API.",
         "Outputs are streamed as Markdown/JSON optimised for downstream LLM consumption.",
     )
     return CrawlerPlan(
-        commands=(" ".join(command_parts),),
+        commands=(install_command, " ".join(command_parts)),
         environment={"FIRECRAWL_OUTPUT_PATH": job.destination},
         files=(url_file,),
         notes=notes,
@@ -537,8 +551,11 @@ def _build_crawlee_plan(job: CrawlJob, config: CrawlerConfig) -> CrawlerPlan:
         path=f"crawlers/{slug}/crawlee-runner.ts",
         content=_render_crawlee_script(job, config),
     )
+    install_command = (
+        "npm install --no-save crawlee@github:apify/crawlee playwright"
+    )
     notes = (
-        "Install Crawlee and Playwright dependencies (`npm install crawlee playwright`).",
+        "Install Crawlee from GitHub alongside Playwright dependencies before executing the runner script.",
         "Set `CRAWLEE_USE_BROWSER=true` to enable full browser rendering for dynamic sites.",
     )
     environment = {
@@ -546,7 +563,7 @@ def _build_crawlee_plan(job: CrawlJob, config: CrawlerConfig) -> CrawlerPlan:
         "CRAWLEE_USE_BROWSER": "true" if config.dynamic_content else "false",
     }
     return CrawlerPlan(
-        commands=(f"npx ts-node {script.path}",),
+        commands=(install_command, f"npx ts-node {script.path}"),
         environment=environment,
         files=(script,),
         notes=notes,
@@ -573,7 +590,11 @@ def _build_llm_scraper_plan(job: CrawlJob, config: CrawlerConfig) -> CrawlerPlan
             indent=2,
         ),
     )
+    install_command = (
+        "npm install --no-save llm-scraper@github:mishushakov/llm-scraper"
+    )
     notes = (
+        "Install LLM Scraper directly from GitHub before running the CLI.",
         "LLM Scraper uses Playwright; run `npx playwright install` if not already installed.",
         "Provide API keys for the selected LLM provider via environment variables understood by LLM Scraper.",
     )
@@ -583,7 +604,7 @@ def _build_llm_scraper_plan(job: CrawlJob, config: CrawlerConfig) -> CrawlerPlan
     if config.llm_provider:
         environment["LLM_SCRAPER_PROVIDER"] = config.llm_provider
     return CrawlerPlan(
-        commands=(f"npx llm-scraper run {config_file.path}",),
+        commands=(install_command, f"npx llm-scraper run {config_file.path}"),
         environment=environment,
         files=(config_file,),
         notes=notes,

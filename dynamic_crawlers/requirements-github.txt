@@ -1,0 +1,2 @@
+crawl4ai @ git+https://github.com/unclecode/crawl4ai
+scrapegraphai @ git+https://github.com/ScrapeGraphAI/Scrapegraph-ai

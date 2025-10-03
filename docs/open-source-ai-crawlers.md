@@ -16,8 +16,16 @@ configurability, and integration requirements.
 | Crawl4AI      | Python              | High-throughput crawling engine with concurrency controls and hook-based customization                                | Markdown (primary), JSON | Engineering teams building large-scale, automated ingestion loops                       |
 | ScrapeGraphAI | Python              | Prompt-driven pipeline assembly that combines LLM reasoning with graph execution                                      | HTML, JSON, Markdown     | Developers comfortable with natural-language specifications who want flexible workflows |
 | Firecrawl     | Python              | Cleans and normalizes modern websites while defending against anti-bot measures; integrates with LangChain/LlamaIndex | Markdown, JSON           | AI platform teams feeding RAG or fine-tuning corpora with minimal preprocessing         |
-| Crawlee       | Python & JavaScript | Battle-tested crawling toolkit with proxy rotation, link discovery, and Playwright/BeautifulSoup adapters             | User-defined             | Full-stack teams needing browser automation and resilient scheduling                    |
+| Crawlee       | TypeScript & Python | Battle-tested crawling toolkit with proxy rotation, link discovery, and Playwright/BeautifulSoup adapters             | User-defined             | Full-stack teams needing browser automation and resilient scheduling                    |
 | LLM Scraper   | TypeScript          | Schema-first extraction orchestrated by LLMs on top of Playwright sessions                                            | JSON (schema-aligned)    | Teams that require precise, typed payloads from complex pages                           |
+
+## Repository Installation
+
+- **Node toolchains:** Run `npm run crawlers:install` to fetch Crawlee, Firecrawl,
+  and LLM Scraper directly from their GitHub repositories alongside the rest of
+  the workspace dependencies.
+- **Python libraries:** Execute `python -m pip install --upgrade --disable-pip-version-check -r dynamic_crawlers/requirements-github.txt`
+  to install Crawl4AI and ScrapeGraphAI from source.
 
 ## Framework Profiles
 
@@ -31,6 +39,7 @@ configurability, and integration requirements.
   retrieval-augmented generation (RAG) or fine-tuning workflows.
 - **Best For:** Teams running large-scale ingestion jobs that need deterministic
   structure and seamless LLM alignment without bolting on extra tooling.
+- **Install:** `pip install --upgrade "crawl4ai @ git+https://github.com/unclecode/crawl4ai"`
 
 ### ScrapeGraphAI
 
@@ -43,6 +52,7 @@ configurability, and integration requirements.
   teams iterate quickly without rewriting code.
 - **Best For:** Developers who want to describe desired data in natural language
   and let the system synthesize the extraction plan.
+- **Install:** `pip install --upgrade "scrapegraphai @ git+https://github.com/ScrapeGraphAI/Scrapegraph-ai"`
 
 ### Firecrawl
 
@@ -55,17 +65,19 @@ configurability, and integration requirements.
   knowledge bases, agent memories, or fine-tuning datasets.
 - **Best For:** Teams that prioritize rapid ingestion of clean content into AI
   stacks without spending cycles on transformation scripts.
+- **Install:** `npm install --no-save firecrawl@github:firecrawl/firecrawl`
 
 ### Crawlee
 
 - **Core Focus:** General-purpose crawling and browser automation available for
-  both Python and JavaScript ecosystems.
+  both TypeScript and Python ecosystems.
 - **Key Features:** Provides request queues, link crawling helpers, proxy
   rotation, and adapters for Playwright, BeautifulSoup, or raw HTTP clients.
 - **Data Output:** User-defined; Crawlee supplies the orchestration while
   letting you decide how to serialize and persist results.
 - **Best For:** Engineering squads that need a resilient crawler capable of
   complex interactions, login flows, or custom scheduling.
+- **Install:** `npm install --no-save crawlee@github:apify/crawlee`
 
 ### LLM Scraper
 
@@ -77,6 +89,7 @@ configurability, and integration requirements.
   precise ingestion into typed pipelines.
 - **Best For:** Teams that must guarantee schema fidelity when scraping dynamic,
   JavaScript-heavy pages.
+- **Install:** `npm install --no-save llm-scraper@github:mishushakov/llm-scraper`
 
 ## Selection Guide
 
