@@ -165,7 +165,12 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "CognitiveAlignmentEngine",
         "CognitiveAlignmentReport",
     ),
-    "dynamic_consciousness": ("ConsciousnessContext", "ConsciousnessSignal", "ConsciousnessState"),
+    "dynamic_consciousness": (
+        "ConsciousnessContext",
+        "ConsciousnessSignal",
+        "ConsciousnessState",
+        "DynamicConsciousness",
+    ),
     "dynamic_creative_thinking": ("CreativeContext", "CreativeFrame", "CreativeSignal"),
     "dynamic_critical_thinking": ("CriticalEvaluation", "CriticalSignal", "EvaluationContext"),
     "dynamic_development_team": (
