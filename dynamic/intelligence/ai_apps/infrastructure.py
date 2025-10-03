@@ -441,6 +441,40 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
         notes=("Backed by vector store with encryption at rest",),
     ),
     ModuleRegistration(
+        name="dynamic_implicit_memory",
+        domain=ModuleDomain.AI_COGNITION,
+        responsibilities=(
+            "Capture somatic cues and implicit memory traces",
+            "Recommend regulation and reconsolidation protocols",
+            "Track integration anchors for practitioner handoffs",
+        ),
+        success_metrics=(
+            "Priming index recalculated after every session",
+            "Regulation need trends below 0.4 on rolling basis",
+            "Integration readiness improves week over week",
+        ),
+        notes=(
+            "Powered by DynamicImplicitMemory reports and MemoryContext scoring",
+        ),
+    ),
+    ModuleRegistration(
+        name="dynamic_memory_reconsolidation",
+        domain=ModuleDomain.AI_COGNITION,
+        responsibilities=(
+            "Design reconsolidation plans for memory fragments",
+            "Sequence retrieval, rehearsal, and integration steps",
+            "Surface keeper-ready guidance for consolidation rituals",
+        ),
+        success_metrics=(
+            "Reconsolidation plans issued for each consolidation cycle",
+            "Trace integration success averages above 0.7",
+            "Keeper feedback loops processed within 48 hours",
+        ),
+        notes=(
+            "Runs on DynamicMemoryReconsolidation planning engine and MemoryTrace models",
+        ),
+    ),
+    ModuleRegistration(
         name="dynamic_datasets",
         domain=ModuleDomain.AI_COGNITION,
         responsibilities=(

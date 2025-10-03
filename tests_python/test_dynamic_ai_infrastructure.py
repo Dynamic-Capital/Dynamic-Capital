@@ -70,6 +70,27 @@ def test_module_registration_uses_notes_and_metrics() -> None:
     assert memory_module.instrumentation == memory_module.success_metrics
 
 
+def test_all_memory_modules_are_registered() -> None:
+    infrastructure = build_default_infrastructure()
+
+    implicit_memory = infrastructure.get_module("dynamic_implicit_memory")
+    reconsolidation = infrastructure.get_module("dynamic_memory_reconsolidation")
+
+    assert implicit_memory.domain is ModuleDomain.AI_COGNITION
+    assert any(
+        "implicit" in responsibility.lower()
+        for responsibility in implicit_memory.responsibilities
+    )
+    assert any("priming index" in metric.lower() for metric in implicit_memory.success_metrics)
+
+    assert reconsolidation.domain is ModuleDomain.AI_COGNITION
+    assert any(
+        "reconsolidation" in responsibility.lower()
+        for responsibility in reconsolidation.responsibilities
+    )
+    assert any("plan" in note.lower() for note in reconsolidation.notes)
+
+
 def test_default_registration_catalog_is_consistent() -> None:
     registered_names = {registration.name for registration in DEFAULT_MODULE_REGISTRATIONS}
     infrastructure = build_default_infrastructure()
