@@ -113,6 +113,7 @@ def test_loader_streams_folder_documents():
     assert document["content"] == "text:doc-1"
     assert document["tags"] == ("google_drive", "pdf")
     assert document["metadata"]["file_id"] == "doc-1"
+    assert document["metadata"]["source_folder_id"] == "folder"
     assert document["metadata"]["md5_checksum"] == "hash-1"
     assert document["metadata"]["web_view_link"].startswith("https://drive.google.com")
 
@@ -176,6 +177,7 @@ def test_loader_fetches_explicit_files():
     assert [doc["identifier"] for doc in documents] == ["google-drive-file-1"]
     assert client.metadata_calls == [("file-1", "id, name, mimeType, modifiedTime, size, md5Checksum, webViewLink")]
     assert client.download_calls == ["file-1"]
+    assert documents[0]["metadata"]["source_file_ids"] == ("file-1",)
 
 
 def test_loader_uses_ocr_fallback(monkeypatch):

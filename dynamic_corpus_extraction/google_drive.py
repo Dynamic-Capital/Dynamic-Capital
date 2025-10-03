@@ -329,7 +329,11 @@ def build_google_drive_pdf_loader(
     """
 
     resolved_folder: str | None = folder_id.strip() if folder_id else None
-    resolved_files: list[str] = [file_id.strip() for file_id in file_ids or [] if file_id and file_id.strip()]
+    resolved_files: list[str] = [
+        file_id.strip()
+        for file_id in file_ids or []
+        if file_id and file_id.strip()
+    ]
 
     if share_link:
         target_type, identifier = parse_drive_share_link(share_link)
@@ -441,6 +445,10 @@ def build_google_drive_pdf_loader(
                 "file_name": metadata.get("name"),
                 "mime_type": mime_type or _PDF_MIME_TYPE,
             }
+            if resolved_folder:
+                document_metadata["source_folder_id"] = resolved_folder
+            if resolved_files:
+                document_metadata["source_file_ids"] = tuple(resolved_files)
             if "modifiedTime" in metadata:
                 document_metadata["modified_time"] = metadata["modifiedTime"]
             if "md5Checksum" in metadata:

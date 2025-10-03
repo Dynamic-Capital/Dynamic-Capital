@@ -1078,6 +1078,39 @@ now modelled end-to-end:
 Set `TRADINGVIEW_LOG_LEVEL=DEBUG` locally to inspect scraping output when
 troubleshooting.
 
+### Google Drive corpus extraction
+
+Use `scripts/index_google_drive_pdfs.py` to convert shared Drive folders into
+structured corpus documents that can be indexed downstream. The loader walks the
+folder (or explicit file list), downloads PDF content, and optionally performs
+OCR when embedded text is missing.
+
+```bash
+python scripts/index_google_drive_pdfs.py \
+  --share-link "https://drive.google.com/drive/folders/<FOLDER_ID>" \
+  --api-key "$GOOGLE_API_KEY" \
+  --output data/google_drive_snapshot.json \
+  --documents-jsonl data/google_drive_documents.jsonl
+```
+
+- You can omit the credential flags if `GOOGLE_API_KEY` or
+  `GOOGLE_ACCESS_TOKEN` are exported in your shell environment; the script will
+  automatically pick them up.
+- Supply `--folder-id` or `--file-id` if you prefer explicit identifiers over a
+  share link.
+- Pass `--enable-ocr` and one or more `--ocr-language` values to rasterise scans
+  via Tesseract.
+- When `--documents-jsonl` is provided the extraction engine emits one JSON
+  document per line containing the identifier, cleaned text, Drive metadata, and
+  tags. The default snapshot payload still includes summarised indexing metrics
+  and the bookkeeper state.
+- The run manifest captures the resolved `folder_id` and the full list of
+  `file_ids` (including those derived from share links) under a `source`
+  section, and each exported document includes these identifiers in its
+  metadata so future runs can be scoped or audited precisely.
+
+Install the optional OCR toolchain before enabling OCR: `pip install PyPDF2 pdf2image pytesseract Pillow`.
+
 ### LLM-native crawling stack
 
 - **Crawl4AI** ([GitHub](https://github.com/unclecode/crawl4ai)) — open-source

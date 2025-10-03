@@ -4,9 +4,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
+import sys
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from dynamic_corpus_extraction.engine import DynamicCorpusExtractionEngine
-from dynamic_corpus_extraction.google_drive import build_google_drive_pdf_loader
+from dynamic_corpus_extraction.google_drive import (
+    build_google_drive_pdf_loader,
+    parse_drive_share_link,
+)
 from dynamic_keepers.bookkeeping import GoogleDriveBookkeeper
 
 
@@ -82,6 +92,14 @@ def _parse_args() -> argparse.Namespace:
         default="data/google_drive_database_snapshot.json",
         help="Location where the resulting snapshot JSON will be stored.",
     )
+    parser.add_argument(
+        "--documents-jsonl",
+        help=(
+            "Optional path to export the extracted corpus documents as JSONL. "
+            "Each line will contain the identifier, content, metadata, and tags "
+            "returned by the extraction engine."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -90,6 +108,56 @@ def _ensure_source(args: argparse.Namespace) -> None:
         raise SystemExit(
             "At least one --share-link, --folder-id, or --file-id value must be provided."
         )
+
+
+def _normalise_credential(value: str | None) -> str | None:
+    if value is None:
+        return None
+    trimmed = value.strip()
+    return trimmed or None
+
+
+def _resolve_credentials(args: argparse.Namespace) -> tuple[str | None, str | None]:
+    api_key = _normalise_credential(args.api_key)
+    access_token = _normalise_credential(args.access_token)
+
+    if api_key is None:
+        api_key = _normalise_credential(os.getenv("GOOGLE_API_KEY"))
+    if access_token is None:
+        access_token = _normalise_credential(os.getenv("GOOGLE_ACCESS_TOKEN"))
+
+    if api_key is None and access_token is None:
+        raise SystemExit(
+            "Google Drive credentials are required. Provide --api-key/--access-token "
+            "arguments or set GOOGLE_API_KEY/GOOGLE_ACCESS_TOKEN environment variables."
+        )
+
+    return api_key, access_token
+
+
+def _resolve_source_identifiers(
+    args: argparse.Namespace,
+) -> tuple[str | None, list[str]]:
+    folder_id = args.folder_id.strip() if args.folder_id else None
+    file_ids = [
+        value.strip()
+        for value in (args.file_ids or [])
+        if value and value.strip()
+    ]
+
+    if args.share_link:
+        target_type, identifier = parse_drive_share_link(args.share_link)
+        if target_type == "folder":
+            if folder_id and folder_id != identifier:
+                raise SystemExit(
+                    "Conflicting folder identifiers detected between --folder-id and --share-link"
+                )
+            folder_id = identifier
+        else:
+            if identifier not in file_ids:
+                file_ids.append(identifier)
+
+    return folder_id, file_ids
 
 
 def _serialise_snapshot(keeper: GoogleDriveBookkeeper) -> dict[str, object]:
@@ -135,13 +203,15 @@ def _serialise_snapshot(keeper: GoogleDriveBookkeeper) -> dict[str, object]:
 def _run() -> None:
     args = _parse_args()
     _ensure_source(args)
+    folder_id, file_ids = _resolve_source_identifiers(args)
+    api_key, access_token = _resolve_credentials(args)
 
     loader = build_google_drive_pdf_loader(
         share_link=args.share_link,
-        folder_id=args.folder_id,
-        file_ids=args.file_ids,
-        api_key=args.api_key,
-        access_token=args.access_token,
+        folder_id=folder_id,
+        file_ids=file_ids,
+        api_key=api_key,
+        access_token=access_token,
         enable_ocr=args.enable_ocr,
         ocr_languages=args.ocr_languages,
         ocr_dpi=args.ocr_dpi,
@@ -152,6 +222,13 @@ def _run() -> None:
     engine = DynamicCorpusExtractionEngine()
     engine.register_source("google_drive", loader)
     summary = engine.extract(limit=args.limit)
+
+    if args.documents_jsonl:
+        export_path = Path(args.documents_jsonl)
+        exported_count = summary.export_jsonl(export_path, ensure_ascii=False)
+        print(
+            f"Exported {exported_count} document(s) to JSONL at {export_path.resolve()}"
+        )
 
     keeper = GoogleDriveBookkeeper(table=args.table)
     extra_tags = ("ocr",) if args.enable_ocr else ()
@@ -167,6 +244,11 @@ def _run() -> None:
         },
         "snapshot": _serialise_snapshot(keeper),
         "indexed_records": len(indexed_records),
+        "source": {
+            "share_link": args.share_link,
+            "folder_id": folder_id,
+            "file_ids": file_ids,
+        },
     }
 
     output_path = Path(args.output)
