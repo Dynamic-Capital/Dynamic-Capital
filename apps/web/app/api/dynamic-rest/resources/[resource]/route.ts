@@ -7,15 +7,14 @@ import {
   buildDynamicRestTradingDeskResponse,
   DYNAMIC_REST_CACHE_CONTROL_HEADER,
   DYNAMIC_REST_CACHE_TAG,
+  DYNAMIC_REST_CACHE_TTL_SECONDS,
   type DynamicRestResourceEnvelope,
   type DynamicRestResources,
 } from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 const ROUTE_BASE = "/api/dynamic-rest/resources" as const;
-const CACHE_TTL_SECONDS = 300;
-
-export const revalidate = CACHE_TTL_SECONDS;
+export const revalidate = DYNAMIC_REST_CACHE_TTL_SECONDS;
 
 type ResourceSlug = "instruments" | "trading-desk" | "bond-yields";
 

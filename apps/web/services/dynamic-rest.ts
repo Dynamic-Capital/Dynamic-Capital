@@ -14,10 +14,30 @@ import {
   type InstrumentMetadata,
   listInstruments,
 } from "@/data/instruments";
+import { optionalEnvVar } from "@/utils/env.ts";
 
 export const DYNAMIC_REST_CACHE_TAG = "dynamic-rest" as const;
+const DEFAULT_DYNAMIC_REST_CACHE_TTL_SECONDS = 300;
+
+function resolveDynamicRestCacheTtl(rawValue: string | undefined): number {
+  if (!rawValue) {
+    return DEFAULT_DYNAMIC_REST_CACHE_TTL_SECONDS;
+  }
+
+  const parsed = Number.parseInt(rawValue, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return DEFAULT_DYNAMIC_REST_CACHE_TTL_SECONDS;
+  }
+
+  return parsed;
+}
+
+export const DYNAMIC_REST_CACHE_TTL_SECONDS = resolveDynamicRestCacheTtl(
+  optionalEnvVar("CACHE_TTL_SECONDS"),
+);
+
 export const DYNAMIC_REST_CACHE_CONTROL_HEADER =
-  "public, max-age=0, s-maxage=300, stale-while-revalidate=86400" as const;
+  `public, max-age=0, s-maxage=${DYNAMIC_REST_CACHE_TTL_SECONDS}, stale-while-revalidate=86400` as const;
 
 const ASSET_CLASSES = [
   "commodities",
