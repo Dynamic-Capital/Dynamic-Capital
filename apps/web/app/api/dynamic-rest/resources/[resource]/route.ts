@@ -5,6 +5,7 @@ import {
   buildDynamicRestBondYieldsResponse,
   buildDynamicRestDexScreenerResponse,
   buildDynamicRestInstrumentsResponse,
+  buildDynamicRestMarketAdvisoriesResponse,
   buildDynamicRestOpenSourceResponse,
   buildDynamicRestTradingDeskResponse,
   DYNAMIC_REST_CACHE_CONTROL_HEADER,
@@ -87,6 +88,13 @@ const RESOURCE_DEFINITIONS = {
     getResource: createCachedResource(
       "dynamic-rest-resources-open-source",
       buildDynamicRestOpenSourceResponse,
+    ),
+  },
+  [RESOURCE_ENDPOINTS.marketAdvisories.slug]: {
+    endpoint: RESOURCE_ENDPOINTS.marketAdvisories,
+    getResource: createCachedResource(
+      "dynamic-rest-resources-market-advisories",
+      buildDynamicRestMarketAdvisoriesResponse,
     ),
   },
   [RESOURCE_ENDPOINTS.dexScreener.slug]: {
