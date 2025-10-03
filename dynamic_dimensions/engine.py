@@ -115,6 +115,7 @@ class DimensionProfile:
     momentum: float
     volatility: float
     sample_size: int
+    category_scores: Mapping[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.sample_size <= 0:
@@ -124,11 +125,19 @@ class DimensionProfile:
         object.__setattr__(self, "volatility", max(float(self.volatility), 0.0))
         scores = {key: _clamp_unit(value) for key, value in self.axis_scores.items()}
         object.__setattr__(self, "axis_scores", MappingProxyType(scores))
+        categories = {key: _clamp_unit(value) for key, value in self.category_scores.items()}
+        object.__setattr__(self, "category_scores", MappingProxyType(categories))
 
     def top_axes(self, limit: int = 3) -> list[tuple[str, float]]:
         if limit <= 0:
             return []
         ordered = sorted(self.axis_scores.items(), key=lambda item: item[1], reverse=True)
+        return ordered[:limit]
+
+    def top_categories(self, limit: int = 3) -> list[tuple[str, float]]:
+        if limit <= 0:
+            return []
+        ordered = sorted(self.category_scores.items(), key=lambda item: item[1], reverse=True)
         return ordered[:limit]
 
 
@@ -208,12 +217,14 @@ class DynamicDimensionEngine:
             momentum = 0.0
         composites = [self._composite_for_snapshot(snapshot) for snapshot in self._history]
         volatility = pstdev(composites) if len(composites) >= 2 else 0.0
+        category_scores = self._compute_category_scores(axis_scores)
         return DimensionProfile(
             composite=composite,
             axis_scores=axis_scores,
             momentum=momentum,
             volatility=volatility,
             sample_size=len(self._history),
+            category_scores=category_scores,
         )
 
     def _composite_for_snapshot(self, snapshot: DimensionSnapshot) -> float:
@@ -221,3 +232,22 @@ class DynamicDimensionEngine:
 
     def reset(self) -> None:
         self._history.clear()
+
+    def _compute_category_scores(self, axis_scores: Mapping[str, float]) -> Mapping[str, float]:
+        category_totals: dict[str, float] = {}
+        category_weights: dict[str, float] = {}
+        for axis in self._axes:
+            if axis.category is None:
+                continue
+            score = axis_scores.get(axis.key)
+            if score is None:
+                continue
+            weight = self._weights[axis.key]
+            category = axis.category
+            category_totals[category] = category_totals.get(category, 0.0) + score * weight
+            category_weights[category] = category_weights.get(category, 0.0) + weight
+        return {
+            category: total / category_weights[category]
+            for category, total in category_totals.items()
+            if category_weights[category] > 0.0
+        }

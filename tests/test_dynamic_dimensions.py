@@ -56,3 +56,24 @@ def test_unknown_dimension_rejected() -> None:
     engine = DynamicDimensionEngine([DimensionAxis("impact", "Impact")])
     with raises(KeyError):
         engine.ingest({"unknown": 0.5})
+
+
+def test_category_scores_and_rankings() -> None:
+    axes = [
+        DimensionAxis("strategy", "Strategy", weight=2.0, category="mind"),
+        DimensionAxis("wellness", "Wellness", weight=1.0, category="body"),
+        DimensionAxis("creativity", "Creativity", weight=1.0, category="mind"),
+    ]
+    engine = DynamicDimensionEngine(axes, window=3)
+
+    engine.ingest({"strategy": 0.5, "wellness": 0.7, "creativity": 0.6})
+    profile = engine.ingest({"strategy": 0.9, "wellness": 0.8, "creativity": 0.4})
+
+    assert profile.sample_size == 2
+    category_scores = dict(profile.category_scores)
+    assert category_scores["mind"] == approx((0.7 * 2.0 + 0.5 * 1.0) / (2.0 + 1.0))
+    assert category_scores["body"] == approx(0.75)
+
+    top_categories = profile.top_categories()
+    assert top_categories[0][0] == "body"
+    assert top_categories[0][1] == approx(0.75)
