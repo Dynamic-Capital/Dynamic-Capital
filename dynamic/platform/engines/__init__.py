@@ -95,6 +95,14 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_consciousness": ("DynamicConsciousness",),
     "dynamic_creative_thinking": ("DynamicCreativeThinking",),
     "dynamic_critical_thinking": ("DynamicCriticalThinking",),
+    "dynamic_cycle": (
+        "DynamicCycleOrchestrator",
+        "CycleEvent",
+        "CyclePhase",
+        "CycleSnapshot",
+        "create_dynamic_life_cycle",
+        "LIFE_CYCLE_BLUEPRINT",
+    ),
     "dynamic_data_training": (
         "DataTrainingSummary",
         "DynamicDataTrainingEngine",
