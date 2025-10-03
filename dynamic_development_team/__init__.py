@@ -18,10 +18,10 @@ LLM copilots) without requiring any additional dependencies.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, Mapping, MutableMapping
+from typing import Any, Dict, Iterable, Mapping, MutableMapping, Type
 
+from algorithms.python import TEAM_DEVELOPMENT_PLAYBOOKS
 from algorithms.python.desk_sync import DynamicTeamRoleSyncAlgorithm, TeamRolePlaybook
-from algorithms.python.team_operations import TEAM_DEVELOPMENT_PLAYBOOKS
 
 __all__ = [
     "DevelopmentAgentResult",
@@ -237,14 +237,23 @@ def get_development_playbook(role: str) -> TeamRolePlaybook:
 def list_development_agents() -> Dict[str, DevelopmentTeamAgent]:
     """Return ready-to-use agents keyed by role name."""
 
-    return {
-        "Front-End Developer": FrontEndDeveloperAgent(),
-        "Back-End Developer": BackEndDeveloperAgent(),
-        "Blockchain Developer": BlockchainDeveloperAgent(),
-        "Dynamic Languages Expert": DynamicLanguagesExpertAgent(),
-        "UI/UX Designer": UiUxDesignerAgent(),
-        "DevOps Engineer": DevOpsEngineerAgent(),
+    role_factories: Dict[str, Type[DevelopmentTeamAgent]] = {
+        "Front-End Developer": FrontEndDeveloperAgent,
+        "Back-End Developer": BackEndDeveloperAgent,
+        "Blockchain Developer": BlockchainDeveloperAgent,
+        "Dynamic Languages Expert": DynamicLanguagesExpertAgent,
+        "UI/UX Designer": UiUxDesignerAgent,
+        "DevOps Engineer": DevOpsEngineerAgent,
     }
+
+    agents: Dict[str, DevelopmentTeamAgent] = {}
+    for role, playbook in TEAM_DEVELOPMENT_PLAYBOOKS.items():
+        factory = role_factories.get(role)
+        if factory is not None:
+            agents[role] = factory()
+        else:
+            agents[role] = DevelopmentTeamAgent(playbook)
+    return agents
 
 
 def build_development_team_sync() -> DynamicTeamRoleSyncAlgorithm:
