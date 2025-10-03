@@ -60,6 +60,67 @@ def _default_pdf_text_extractor(payload: bytes, *, file_name: str) -> str:
     return text
 
 
+def _extract_pdf_page_texts(
+    payload: bytes,
+    *,
+    file_name: str,
+    enable_ocr: bool,
+    languages: str | None,
+    dpi: int,
+) -> list[str]:
+    """Return per-page text for a PDF, optionally filling gaps with OCR."""
+
+    PyPDF2 = _load_pypdf()
+    reader = PyPDF2.PdfReader(io.BytesIO(payload))
+    page_texts: list[str] = []
+    for page_index, page in enumerate(reader.pages, start=1):
+        try:
+            extracted = page.extract_text() or ""
+        except Exception as error:  # pragma: no cover - defensive guard
+            raise RuntimeError(
+                f"Failed to extract text from page {page_index} of PDF '{file_name}'"
+            ) from error
+        page_texts.append(extracted.strip())
+
+    if not enable_ocr:
+        return page_texts
+
+    if not any(not text for text in page_texts):
+        return page_texts
+
+    pdf2image, pytesseract = _load_pdf_ocr_toolchain()
+    try:
+        images = pdf2image.convert_from_bytes(payload, dpi=dpi)
+    except Exception as error:  # pragma: no cover - conversion failure
+        raise RuntimeError(f"Failed to rasterise PDF '{file_name}' for OCR") from error
+
+    try:
+        for index, image in enumerate(images):
+            try:
+                if index >= len(page_texts) or page_texts[index]:
+                    continue
+                if languages:
+                    extracted = pytesseract.image_to_string(image, lang=languages)
+                else:
+                    extracted = pytesseract.image_to_string(image)
+                cleaned = extracted.strip()
+                if cleaned:
+                    page_texts[index] = cleaned
+            finally:
+                try:
+                    image.close()
+                except Exception:  # pragma: no cover - defensive cleanup
+                    pass
+    finally:
+        for image in images:
+            try:
+                image.close()
+            except Exception:  # pragma: no cover - defensive cleanup
+                pass
+
+    return page_texts
+
+
 def _normalise_ocr_languages(languages: Sequence[str] | str | None) -> str | None:
     if languages is None:
         return None
@@ -315,6 +376,7 @@ def build_google_drive_pdf_loader(
     pdf_text_extractor: Callable[[bytes, Mapping[str, object]], str] | None = None,
     max_file_size: int | None = 50_000_000,
     batch_size: int | None = None,
+    page_batch_size: int | None = None,
     enable_ocr: bool = False,
     ocr_languages: Sequence[str] | str | None = ("eng",),
     ocr_dpi: int = 300,
@@ -354,40 +416,47 @@ def build_google_drive_pdf_loader(
     else:
         factory = client_factory
 
-    extractor = pdf_text_extractor or (
+    base_extractor = pdf_text_extractor or (
         lambda payload, metadata: _default_pdf_text_extractor(
             payload,
             file_name=str(metadata.get("name", "unknown")),
         )
     )
-    if enable_ocr:
-        languages = _normalise_ocr_languages(ocr_languages)
-        dpi = max(int(ocr_dpi or 0), 72)
 
-        def _ocr_enabled_extractor(payload: bytes, metadata: Mapping[str, object]) -> str:
-            base_error: Exception | None = None
-            try:
-                text = extractor(payload, metadata)
-                if text.strip():
-                    return text
-            except Exception as error:  # pragma: no cover - defensive fallback
-                base_error = error
-            try:
-                return _ocr_pdf_text_extractor(
-                    payload,
-                    file_name=str(metadata.get("name", "unknown")),
-                    languages=languages,
-                    dpi=dpi,
-                )
-            except Exception as ocr_error:  # pragma: no cover - fallback path
-                if base_error is not None:
-                    raise RuntimeError(
-                        "Both direct text extraction and OCR failed for PDF "
-                        f"'{metadata.get('name', 'unknown')}'"
-                    ) from ocr_error
-                raise
+    languages = _normalise_ocr_languages(ocr_languages) if enable_ocr else None
+    dpi = max(int(ocr_dpi or 0), 72)
 
-        extractor = _ocr_enabled_extractor
+    def _full_text_extractor(payload: bytes, metadata: Mapping[str, object]) -> str:
+        text_result = base_extractor(payload, metadata)
+        if isinstance(text_result, (list, tuple)):
+            combined = "\n\n".join(str(part).strip() for part in text_result if str(part).strip())
+            if combined:
+                return combined
+            text_result = ""
+        if isinstance(text_result, bytes):
+            text_result = text_result.decode("utf-8", errors="ignore")
+        text = str(text_result)
+        if text.strip():
+            return text
+        if not enable_ocr:
+            return text
+        try:
+            extracted = _ocr_pdf_text_extractor(
+                payload,
+                file_name=str(metadata.get("name", "unknown")),
+                languages=languages,
+                dpi=dpi,
+            )
+            return extracted
+        except Exception as ocr_error:  # pragma: no cover - fallback path
+            if isinstance(text_result, str) and text_result:
+                return text_result
+            raise RuntimeError(
+                "Both direct text extraction and OCR failed for PDF "
+                f"'{metadata.get('name', 'unknown')}'"
+            ) from ocr_error
+
+    page_chunk_size = _coerce_positive_int(page_batch_size)
 
     default_tags = tuple(tags or ())
     if enable_ocr and "ocr" not in default_tags:
@@ -439,7 +508,6 @@ def build_google_drive_pdf_loader(
             payload = client.download_file(file_id)
             if max_file_size is not None and len(payload) > max_file_size:
                 return
-            text = extractor(payload, metadata)
             document_metadata: dict[str, object] = {
                 "file_id": file_id,
                 "file_name": metadata.get("name"),
@@ -458,14 +526,81 @@ def build_google_drive_pdf_loader(
             if size_value is not None:
                 document_metadata["size"] = size_value
 
-            yield {
-                "identifier": f"google-drive-{file_id}",
-                "content": text,
-                "metadata": document_metadata,
-                "tags": default_tags,
-            }
-            if remaining is not None:
-                remaining -= 1
+            if page_chunk_size is not None:
+                if pdf_text_extractor is None:
+                    page_texts = _extract_pdf_page_texts(
+                        payload,
+                        file_name=str(metadata.get("name", "unknown")),
+                        enable_ocr=enable_ocr,
+                        languages=languages,
+                        dpi=dpi,
+                    )
+                else:
+                    result = base_extractor(payload, metadata)
+                    if isinstance(result, (list, tuple)):
+                        page_texts = [str(part).strip() for part in result]
+                    else:
+                        raise RuntimeError(
+                            "Custom pdf_text_extractor must return a sequence of page texts "
+                            "when page_batch_size is provided"
+                        )
+
+                total_pages = len(page_texts)
+                if total_pages == 0:
+                    raise RuntimeError(
+                        f"No pages discovered while extracting PDF '{metadata.get('name', 'unknown')}'"
+                    )
+                total_batches = (total_pages + page_chunk_size - 1) // page_chunk_size
+                produced = False
+                for batch_number, start_index in enumerate(
+                    range(0, total_pages, page_chunk_size), start=1
+                ):
+                    if _should_stop():
+                        break
+                    end_index = min(start_index + page_chunk_size, total_pages)
+                    chunk_parts = [
+                        part.strip() for part in page_texts[start_index:end_index] if part.strip()
+                    ]
+                    if not chunk_parts:
+                        continue
+                    content = "\n\n".join(chunk_parts)
+                    chunk_metadata = dict(document_metadata)
+                    chunk_metadata.update(
+                        page_start=start_index + 1,
+                        page_end=end_index,
+                        page_count=end_index - start_index,
+                        total_pages=total_pages,
+                        batch_number=batch_number,
+                        total_batches=total_batches,
+                        pages_per_batch=page_chunk_size,
+                    )
+                    yield {
+                        "identifier": (
+                            f"google-drive-{file_id}-p{start_index + 1:04d}-p{end_index:04d}"
+                        ),
+                        "content": content,
+                        "metadata": chunk_metadata,
+                        "tags": default_tags,
+                    }
+                    produced = True
+                    if remaining is not None:
+                        remaining -= 1
+                        if remaining <= 0:
+                            break
+                if not produced:
+                    raise RuntimeError(
+                        f"No extractable text found in PDF '{metadata.get('name', 'unknown')}'"
+                    )
+            else:
+                text = _full_text_extractor(payload, metadata)
+                yield {
+                    "identifier": f"google-drive-{file_id}",
+                    "content": text,
+                    "metadata": document_metadata,
+                    "tags": default_tags,
+                }
+                if remaining is not None:
+                    remaining -= 1
 
         if resolved_folder:
             for batch in _batched(

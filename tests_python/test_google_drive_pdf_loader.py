@@ -220,3 +220,117 @@ def test_loader_uses_ocr_fallback(monkeypatch):
 
     assert documents[0]["content"] == "ocr-text"
     assert client.download_calls == ["ocr"]
+
+
+def test_loader_batches_pages_when_configured():
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "batched",
+                "name": "Batch.pdf",
+                "mimeType": "application/pdf",
+            }
+        ],
+        file_payloads={"batched": b"payload"},
+    )
+
+    def per_page_extractor(payload: bytes, metadata: MutableMapping[str, object]) -> list[str]:
+        return [f"Page {index}" for index in range(1, 6)]
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        pdf_text_extractor=per_page_extractor,
+        page_batch_size=2,
+    )
+
+    context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
+    documents = list(loader(context))
+
+    assert [doc["identifier"] for doc in documents] == [
+        "google-drive-batched-p0001-p0002",
+        "google-drive-batched-p0003-p0004",
+        "google-drive-batched-p0005-p0005",
+    ]
+
+    first_metadata = documents[0]["metadata"]
+    assert first_metadata["page_start"] == 1
+    assert first_metadata["page_end"] == 2
+    assert first_metadata["page_count"] == 2
+    assert first_metadata["total_pages"] == 5
+    assert first_metadata["batch_number"] == 1
+    assert first_metadata["total_batches"] == 3
+    assert first_metadata["pages_per_batch"] == 2
+    assert documents[0]["content"] == "Page 1\n\nPage 2"
+
+    last_metadata = documents[-1]["metadata"]
+    assert last_metadata["page_start"] == 5
+    assert last_metadata["page_end"] == 5
+    assert last_metadata["page_count"] == 1
+
+    limited_context = CorpusExtractionContext(source="google_drive", limit=2, metadata={})
+    limited_documents = list(loader(limited_context))
+    assert [doc["identifier"] for doc in limited_documents] == [
+        "google-drive-batched-p0001-p0002",
+        "google-drive-batched-p0003-p0004",
+    ]
+
+
+def test_loader_batches_pages_with_default_extractor(monkeypatch):
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "default",
+                "name": "Default.pdf",
+                "mimeType": "application/pdf",
+            }
+        ],
+        file_payloads={"default": b"pdf-bytes"},
+    )
+
+    monkeypatch.setattr(
+        "dynamic_corpus_extraction.google_drive._extract_pdf_page_texts",
+        lambda payload, file_name, enable_ocr, languages, dpi: ["Alpha", "", "Gamma"],
+    )
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        page_batch_size=2,
+    )
+
+    context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
+    documents = list(loader(context))
+
+    assert [doc["identifier"] for doc in documents] == [
+        "google-drive-default-p0001-p0002",
+        "google-drive-default-p0003-p0003",
+    ]
+    assert documents[0]["content"] == "Alpha"
+    assert documents[0]["metadata"]["page_count"] == 2
+    assert documents[1]["content"] == "Gamma"
+    assert documents[1]["metadata"]["total_pages"] == 3
+
+
+def test_loader_requires_sequence_for_page_batching():
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "single",
+                "name": "Single.pdf",
+                "mimeType": "application/pdf",
+            }
+        ],
+        file_payloads={"single": b"pdf"},
+    )
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        pdf_text_extractor=lambda payload, metadata: "text",
+        page_batch_size=2,
+    )
+
+    context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
+    with pytest.raises(RuntimeError, match="sequence of page texts"):
+        list(loader(context))

@@ -76,6 +76,15 @@ def _parse_args() -> argparse.Namespace:
         help="Override the batch size used when paging Drive results.",
     )
     parser.add_argument(
+        "--pages-per-document",
+        type=int,
+        default=99,
+        help=(
+            "Maximum number of PDF pages to include in each extracted document. "
+            "Set to 0 to disable page batching (default: 99)."
+        ),
+    )
+    parser.add_argument(
         "--max-file-size",
         type=int,
         default=50_000_000,
@@ -217,6 +226,7 @@ def _run() -> None:
         ocr_dpi=args.ocr_dpi,
         max_file_size=args.max_file_size,
         batch_size=args.batch_size,
+        page_batch_size=args.pages_per_document,
     )
 
     engine = DynamicCorpusExtractionEngine()
