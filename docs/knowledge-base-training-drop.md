@@ -48,6 +48,22 @@ into Supabase Storage and the local repository when preparing new runs.
 
 - Update experiment configs under `dynamic_trainer/` or `ml/` to point to the
   new local mirror when running fine-tuning or embedding refresh jobs.
+- Run the lightweight
+  `dynamic_knowledge_base_training.DynamicKnowledgeBaseTrainer` helper to sanity
+  check JSON/JSONL drops before promotion. For example:
+  ```bash
+  python - <<'PY'
+  from dynamic_knowledge_base_training import DynamicKnowledgeBaseTrainer
+
+  trainer = DynamicKnowledgeBaseTrainer()
+  summary = trainer.summarise([
+      "data/knowledge_base/research/processed/dhivehi_training_corpus.jsonl",
+  ])
+  print(summary.readiness)
+  PY
+  ```
+- When validating several reports back-to-back, preload the dataset once with
+  `load_knowledge_base_records` and reuse it to avoid repeated disk I/O.
 - Rebuild vector indexes after syncing by executing the pipeline that feeds the
   retrieval layer (for example, `npm run embeddings:refresh knowledge_base`).
 - Capture evaluation metrics and push summaries back into the `knowledge_base/`
