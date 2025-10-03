@@ -81,6 +81,8 @@ vi.mock("lucide-react", () => {
     Loader2: createIcon("Loader2"),
     Minimize2: createIcon("Minimize2"),
     Radar: createIcon("Radar"),
+    Play: createIcon("Play"),
+    Download: createIcon("Download"),
     RefreshCw: createIcon("RefreshCw"),
     RotateCcw: createIcon("RotateCcw"),
     Sparkles: createIcon("Sparkles"),
