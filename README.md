@@ -1093,6 +1093,9 @@ python scripts/index_google_drive_pdfs.py \
   --documents-jsonl data/google_drive_documents.jsonl
 ```
 
+- You can omit the credential flags if `GOOGLE_API_KEY` or
+  `GOOGLE_ACCESS_TOKEN` are exported in your shell environment; the script will
+  automatically pick them up.
 - Supply `--folder-id` or `--file-id` if you prefer explicit identifiers over a
   share link.
 - Pass `--enable-ocr` and one or more `--ocr-language` values to rasterise scans

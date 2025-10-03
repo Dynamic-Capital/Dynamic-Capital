@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -109,6 +110,31 @@ def _ensure_source(args: argparse.Namespace) -> None:
         )
 
 
+def _normalise_credential(value: str | None) -> str | None:
+    if value is None:
+        return None
+    trimmed = value.strip()
+    return trimmed or None
+
+
+def _resolve_credentials(args: argparse.Namespace) -> tuple[str | None, str | None]:
+    api_key = _normalise_credential(args.api_key)
+    access_token = _normalise_credential(args.access_token)
+
+    if api_key is None:
+        api_key = _normalise_credential(os.getenv("GOOGLE_API_KEY"))
+    if access_token is None:
+        access_token = _normalise_credential(os.getenv("GOOGLE_ACCESS_TOKEN"))
+
+    if api_key is None and access_token is None:
+        raise SystemExit(
+            "Google Drive credentials are required. Provide --api-key/--access-token "
+            "arguments or set GOOGLE_API_KEY/GOOGLE_ACCESS_TOKEN environment variables."
+        )
+
+    return api_key, access_token
+
+
 def _resolve_source_identifiers(
     args: argparse.Namespace,
 ) -> tuple[str | None, list[str]]:
@@ -178,13 +204,14 @@ def _run() -> None:
     args = _parse_args()
     _ensure_source(args)
     folder_id, file_ids = _resolve_source_identifiers(args)
+    api_key, access_token = _resolve_credentials(args)
 
     loader = build_google_drive_pdf_loader(
         share_link=args.share_link,
         folder_id=folder_id,
         file_ids=file_ids,
-        api_key=args.api_key,
-        access_token=args.access_token,
+        api_key=api_key,
+        access_token=access_token,
         enable_ocr=args.enable_ocr,
         ocr_languages=args.ocr_languages,
         ocr_dpi=args.ocr_dpi,
