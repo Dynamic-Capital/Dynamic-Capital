@@ -21,6 +21,10 @@ export type AdminVerificationResult =
 
 const ADMIN_TOKEN_HEADER = "x-admin-token";
 const ADMIN_INIT_DATA_HEADER = "x-telegram-init-data";
+const AUTHORIZATION_HEADER = "authorization";
+
+const MAX_JWT_LENGTH = 4096;
+const JWT_SEGMENT_PATTERN = /^[A-Za-z0-9_-]+={0,2}$/;
 
 interface AdminTokenClaims {
   sub?: string;
@@ -37,26 +41,105 @@ function normalizeBase64Url(segment: string): string {
   return sanitized + "=".repeat(4 - padding);
 }
 
-function base64UrlDecode(segment: string): Buffer {
-  return Buffer.from(normalizeBase64Url(segment), "base64");
+function base64UrlDecodeStrict(segment: string): Buffer | null {
+  if (!JWT_SEGMENT_PATTERN.test(segment)) {
+    return null;
+  }
+
+  try {
+    const normalized = normalizeBase64Url(segment);
+    const decoded = Buffer.from(normalized, "base64");
+    const reencoded = decoded
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/g, "");
+    const sanitizedSegment = segment
+      .replace(/=+$/g, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
+
+    if (reencoded !== sanitizedSegment) {
+      return null;
+    }
+
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeHeaderValue(value: string | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function extractBearerToken(value: string | null): string | undefined {
+  if (!value) return undefined;
+  const match = value.match(/^Bearer\s+(.+)$/i);
+  if (!match) {
+    return undefined;
+  }
+  return normalizeHeaderValue(match[1] ?? "");
+}
+
+function resolveAdminTokenHeader(req: Request): string | undefined {
+  const explicitToken = normalizeHeaderValue(
+    req.headers.get(ADMIN_TOKEN_HEADER),
+  );
+  if (explicitToken) {
+    return explicitToken;
+  }
+  return extractBearerToken(req.headers.get(AUTHORIZATION_HEADER));
+}
+
+function splitJwt(token: string):
+  | [header: string, payload: string, signature: string]
+  | null {
+  if (!token || token.length > MAX_JWT_LENGTH || /\s/.test(token)) {
+    return null;
+  }
+
+  const parts = token.split(".");
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const [headerSegment, payloadSegment, signatureSegment] = parts;
+  if (!headerSegment || !payloadSegment || !signatureSegment) {
+    return null;
+  }
+
+  return [headerSegment, payloadSegment, signatureSegment];
 }
 
 function verifyAdminToken(
   token: string,
   secret: string,
 ): AdminTokenClaims | null {
-  const parts = token.split(".");
-  if (parts.length !== 3) {
+  const segments = splitJwt(token);
+  if (!segments) {
     return null;
   }
-  const [headerSegment, payloadSegment, signatureSegment] = parts;
+  const [headerSegment, payloadSegment, signatureSegment] = segments;
 
-  let header: { alg?: string };
+  let headerRaw: unknown;
   try {
-    header = JSON.parse(base64UrlDecode(headerSegment).toString("utf-8"));
+    const decodedHeader = base64UrlDecodeStrict(headerSegment);
+    if (!decodedHeader) {
+      return null;
+    }
+    headerRaw = JSON.parse(decodedHeader.toString("utf-8"));
   } catch {
     return null;
   }
+
+  if (!headerRaw || typeof headerRaw !== "object" || Array.isArray(headerRaw)) {
+    return null;
+  }
+
+  const header = headerRaw as { alg?: string };
 
   if (header.alg !== "HS256") {
     return null;
@@ -66,7 +149,10 @@ function verifyAdminToken(
   const expectedSignature = createHmac("sha256", secret)
     .update(signingInput)
     .digest();
-  const providedSignature = base64UrlDecode(signatureSegment);
+  const providedSignature = base64UrlDecodeStrict(signatureSegment);
+  if (!providedSignature) {
+    return null;
+  }
 
   if (
     expectedSignature.length !== providedSignature.length ||
@@ -75,14 +161,26 @@ function verifyAdminToken(
     return null;
   }
 
-  let payload: AdminTokenClaims;
+  let payloadRaw: unknown;
   try {
-    payload = JSON.parse(base64UrlDecode(payloadSegment).toString("utf-8"));
+    const decodedPayload = base64UrlDecodeStrict(payloadSegment);
+    if (!decodedPayload) {
+      return null;
+    }
+    payloadRaw = JSON.parse(decodedPayload.toString("utf-8"));
   } catch {
     return null;
   }
 
-  if (!payload || payload.admin !== true) {
+  if (
+    !payloadRaw || typeof payloadRaw !== "object" || Array.isArray(payloadRaw)
+  ) {
+    return null;
+  }
+
+  const payload = payloadRaw as AdminTokenClaims;
+
+  if (payload.admin !== true) {
     return null;
   }
 
@@ -148,8 +246,10 @@ async function verifyAdminInitData(
 export async function verifyAdminRequest(
   req: Request,
 ): Promise<AdminVerificationResult> {
-  const token = req.headers.get(ADMIN_TOKEN_HEADER)?.trim();
-  const initData = req.headers.get(ADMIN_INIT_DATA_HEADER)?.trim();
+  const token = resolveAdminTokenHeader(req);
+  const initData = normalizeHeaderValue(
+    req.headers.get(ADMIN_INIT_DATA_HEADER),
+  );
 
   if (token) {
     const secret = getEnvVar("ADMIN_API_SECRET");
@@ -191,7 +291,7 @@ export async function verifyAdminRequest(
 }
 
 export function getAdminHeaders(): string[] {
-  return [ADMIN_TOKEN_HEADER, ADMIN_INIT_DATA_HEADER];
+  return [ADMIN_TOKEN_HEADER, ADMIN_INIT_DATA_HEADER, AUTHORIZATION_HEADER];
 }
 
 export function isAdminVerificationFailure(
