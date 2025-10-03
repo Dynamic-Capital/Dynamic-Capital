@@ -10,7 +10,9 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Iterable, Iterator, Optional
 
-_CHECKLIST_LINE = re.compile(r"^- \[( |x)\] (.+)$")
+_CHECKLIST_LINE = re.compile(
+    r"^\s*-\s*\[(?P<state>[ xX])\]\s+(?P<text>.+)$"
+)
 _DUE_DATE = re.compile(r"@(?P<date>\d{4}-\d{2}-\d{2})\b")
 
 
@@ -45,7 +47,8 @@ def _iter_checklist_lines(lines: Iterable[str]) -> Iterator[tuple[str, str]]:
         match = _CHECKLIST_LINE.match(line)
         if not match:
             continue
-        status_char, text = match.groups()
+        status_char = match.group("state").lower()
+        text = match.group("text").strip()
         status = "done" if status_char == "x" else "pending"
         yield status, text
 
