@@ -14,6 +14,7 @@ import ast
 from ast import literal_eval
 from collections import defaultdict
 from importlib import import_module
+from importlib.util import find_spec
 from pathlib import Path
 from types import MappingProxyType
 from typing import Dict, Iterable, Mapping, MutableMapping, Tuple
@@ -321,6 +322,35 @@ def _extract_dunder_all(
     return None
 
 
+def _resolve_module_init(module_name: str) -> Path | None:
+    """Locate the ``__init__`` file for ``module_name`` without importing it."""
+
+    try:
+        spec = find_spec(module_name)
+    except (ImportError, AttributeError, ValueError):
+        return None
+    if spec is None or spec.origin is None:
+        return None
+    origin = Path(spec.origin)
+    if spec.submodule_search_locations is None:
+        return origin if origin.exists() else None
+    return origin
+
+
+def _merge_declared_exports(exports: MutableMapping[str, Tuple[str, ...]]) -> None:
+    """Augment explicit exports with any symbols declared in ``__all__``."""
+
+    for module_name, symbols in list(exports.items()):
+        init_file = _resolve_module_init(module_name)
+        if init_file is None:
+            continue
+        module_symbols = _extract_dunder_all(module_name, init_file)
+        if not module_symbols:
+            continue
+        ordered = dict.fromkeys((*symbols, *module_symbols))
+        exports[module_name] = tuple(ordered)
+
+
 def _discover_toolkits() -> Dict[str, Tuple[str, ...]]:
     """Scan the repository for dynamic packages that expose ``__all__``."""
 
@@ -343,6 +373,7 @@ def _discover_toolkits() -> Dict[str, Tuple[str, ...]]:
     return discovered
 
 
+_merge_declared_exports(_TOOLKIT_EXPORTS)
 _TOOLKIT_EXPORTS.update(_discover_toolkits())
 
 
