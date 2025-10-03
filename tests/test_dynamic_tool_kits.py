@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import types
 
 import pytest
@@ -44,3 +45,26 @@ def test_resolve_toolkit_symbol_invalid_module() -> None:
         dynamic_tool_kits.resolve_toolkit_symbol(
             "BloodAgent", module_name="dynamic.non_existent"
         )
+
+
+def test_available_toolkits_include_module_dunder_all_exports() -> None:
+    toolkits = dynamic_tool_kits.available_toolkits()
+
+    for module_name in ("dynamic_consciousness", "dynamic_cognition"):
+        module = importlib.import_module(module_name)
+        exported = getattr(module, "__all__", ())
+        if not exported:
+            continue
+        assert set(exported).issubset(toolkits[module_name])
+
+
+def test_dynamic_namespace_packages_are_discovered() -> None:
+    toolkits = dynamic_tool_kits.available_toolkits()
+
+    module_name = "dynamic.intelligence.agi"
+    assert module_name in toolkits
+
+    module = importlib.import_module(module_name)
+    exported = getattr(module, "__all__", ())
+    assert exported
+    assert set(exported).issubset(toolkits[module_name])
