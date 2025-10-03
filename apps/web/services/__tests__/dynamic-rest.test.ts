@@ -4,13 +4,14 @@ import {
   buildDynamicRestBondYieldsResponse,
   buildDynamicRestDexScreenerResponse,
   buildDynamicRestInstrumentsResponse,
+  buildDynamicRestMarketAdvisoriesResponse,
   buildDynamicRestResponse,
   buildDynamicRestTradingDeskResponse,
 } from "../dynamic-rest";
 import {
+  __setDexScreenerFetchOverride,
   DEX_SCREENER_API_BASE_URL,
   DEX_SCREENER_API_ENDPOINTS,
-  __setDexScreenerFetchOverride,
 } from "../dex-screener";
 
 const DEX_SCREENER_STUB_DATA = {
@@ -65,7 +66,8 @@ function jsonResponse(payload: unknown, status = 200): Response {
 }
 
 function createDexScreenerStub(): typeof fetch {
-  const { latestProfiles, latestBoosts, topBoosts } = DEX_SCREENER_API_ENDPOINTS;
+  const { latestProfiles, latestBoosts, topBoosts } =
+    DEX_SCREENER_API_ENDPOINTS;
   const profileUrl = `${DEX_SCREENER_API_BASE_URL}${latestProfiles}`;
   const latestBoostsUrl = `${DEX_SCREENER_API_BASE_URL}${latestBoosts}`;
   const topBoostsUrl = `${DEX_SCREENER_API_BASE_URL}${topBoosts}`;
@@ -74,8 +76,8 @@ function createDexScreenerStub(): typeof fetch {
     const target = typeof input === "string"
       ? input
       : input instanceof URL
-        ? input.toString()
-        : (input as Request).url;
+      ? input.toString()
+      : (input as Request).url;
 
     if (target === profileUrl) {
       return jsonResponse(DEX_SCREENER_STUB_DATA.profiles);
@@ -110,6 +112,13 @@ describe("dynamic REST metadata", () => {
     expect(stocksSummary.count).toBeGreaterThan(0);
     expect(stocksSummary.sample.map((entry) => entry.id)).toContain("AAPL");
     expect(response.resources.dexScreener.totals.profiles).toBeGreaterThan(0);
+    expect(response.resources.marketAdvisories.total).toBeGreaterThan(0);
+    expect(
+      Object.values(response.resources.marketAdvisories.stanceBreakdown).reduce(
+        (sum, value) => sum + value,
+        0,
+      ),
+    ).toBe(response.resources.marketAdvisories.total);
   });
 
   it("builds an instrument resource envelope", () => {
@@ -138,6 +147,17 @@ describe("dynamic REST metadata", () => {
     expect(response.status).toBe("ok");
     expect(response.generatedAt).toBe(now.toISOString());
     expect(response.resource.totalMarkets).toBeGreaterThan(0);
+  });
+
+  it("builds a market advisories resource envelope", () => {
+    const now = new Date("2025-09-25T03:30:00Z");
+    const response = buildDynamicRestMarketAdvisoriesResponse(now);
+
+    expect(response.status).toBe("ok");
+    expect(response.generatedAt).toBe(now.toISOString());
+    expect(response.resource.total).toBeGreaterThan(0);
+    expect(response.resource.topConviction.length).toBeGreaterThan(0);
+    expect(response.resource.stanceBreakdown.Bullish).toBeGreaterThanOrEqual(0);
   });
 
   it("builds a dex screener resource envelope", async () => {

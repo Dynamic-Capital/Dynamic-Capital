@@ -1,7 +1,10 @@
 import tradingDeskPlan from "@/data/trading-desk-plan.json" with {
   type: "json",
 };
-import { buildDexScreenerResource, type DexScreenerResource } from "./dex-screener";
+import {
+  buildDexScreenerResource,
+  type DexScreenerResource,
+} from "./dex-screener";
 import {
   BOND_FEED_CAPABILITIES,
   BOND_MARKET_COVERAGE,
@@ -15,6 +18,10 @@ import {
   type InstrumentMetadata,
   listInstruments,
 } from "@/data/instruments";
+import {
+  LIVE_MARKET_ADVISORIES,
+  type LiveMarketAdvisory,
+} from "@/data/live-market-advisories";
 import {
   OPEN_SOURCE_CATALOG,
   type OpenSourceCatalogData,
@@ -76,6 +83,23 @@ export interface TradingPlanSummary {
   planSummary: string[];
 }
 
+export type MarketAdvisoryStance = LiveMarketAdvisory["stance"];
+
+export interface MarketAdvisorySummary {
+  symbol: string;
+  name: string;
+  assetClass: AssetClass;
+  stance: MarketAdvisoryStance;
+  conviction: number;
+  headline: string;
+  summary: string;
+  actions: string[];
+  hedges: string[];
+  riskNotes: string[];
+  macroDrivers: string[];
+  updatedAt: string;
+}
+
 export interface DynamicRestResources {
   instruments: {
     total: number;
@@ -105,6 +129,13 @@ export interface DynamicRestResources {
       number
     >;
     categories: OpenSourceCatalogData;
+  };
+  marketAdvisories: {
+    total: number;
+    updatedAt: string;
+    stanceBreakdown: Record<MarketAdvisoryStance, number>;
+    advisories: MarketAdvisorySummary[];
+    topConviction: MarketAdvisorySummary[];
   };
   dexScreener: DexScreenerResource;
 }
@@ -204,6 +235,14 @@ const RESOURCE_DYNAMIC_REST_ENDPOINTS = Object.freeze(
         "Catalog of open-source helpers, language models, adapters, and toolkits.",
       resourceKey: "openSource",
       slug: "open-source",
+    },
+    marketAdvisories: {
+      method: "GET",
+      path: "/api/dynamic-rest/resources/market-advisories",
+      description:
+        "Narrative advisories synthesising desk bias, automation cues, and hedge notes.",
+      resourceKey: "marketAdvisories",
+      slug: "market-advisories",
     },
     dexScreener: {
       method: "GET",
@@ -335,6 +374,61 @@ function summariseOpenSource(): DynamicRestResources["openSource"] {
   } satisfies DynamicRestResources["openSource"];
 }
 
+function summariseMarketAdvisories(
+  now: Date = new Date(),
+): DynamicRestResources["marketAdvisories"] {
+  const advisories: MarketAdvisorySummary[] = LIVE_MARKET_ADVISORIES.map(
+    (entry) => ({
+      symbol: entry.symbol,
+      name: entry.name,
+      assetClass: entry.assetClass,
+      stance: entry.stance,
+      conviction: entry.conviction,
+      headline: entry.headline,
+      summary: entry.summary,
+      actions: [...entry.actions],
+      hedges: [...entry.hedges],
+      riskNotes: [...entry.riskNotes],
+      macroDrivers: [...entry.macroDrivers],
+      updatedAt: entry.updatedAt,
+    }),
+  );
+
+  const stanceBreakdown: Record<MarketAdvisoryStance, number> = {
+    Bullish: 0,
+    Neutral: 0,
+    Bearish: 0,
+  };
+
+  let latestTimestamp: number | null = null;
+
+  for (const advisory of advisories) {
+    stanceBreakdown[advisory.stance] += 1;
+    const parsed = Date.parse(advisory.updatedAt);
+    if (!Number.isNaN(parsed)) {
+      latestTimestamp = latestTimestamp === null || parsed > latestTimestamp
+        ? parsed
+        : latestTimestamp;
+    }
+  }
+
+  const updatedAt = latestTimestamp !== null
+    ? new Date(latestTimestamp).toISOString()
+    : now.toISOString();
+
+  const topConviction = [...advisories]
+    .sort((a, b) => b.conviction - a.conviction)
+    .slice(0, 3);
+
+  return {
+    total: advisories.length,
+    updatedAt,
+    stanceBreakdown,
+    advisories,
+    topConviction,
+  } satisfies DynamicRestResources["marketAdvisories"];
+}
+
 export async function buildDynamicRestResponse(
   now: Date = new Date(),
 ): Promise<DynamicRestResponse> {
@@ -343,12 +437,14 @@ export async function buildDynamicRestResponse(
     tradingDesk,
     bondYields,
     openSource,
+    marketAdvisories,
     dexScreener,
   ] = await Promise.all([
     Promise.resolve(summariseInstruments()),
     Promise.resolve(summariseTradingDesk()),
     Promise.resolve(summariseBondYields()),
     Promise.resolve(summariseOpenSource()),
+    Promise.resolve(summariseMarketAdvisories(now)),
     buildDexScreenerResource(),
   ]);
 
@@ -365,6 +461,7 @@ export async function buildDynamicRestResponse(
       tradingDesk,
       bondYields,
       openSource,
+      marketAdvisories,
       dexScreener,
     },
   } satisfies DynamicRestResponse;
@@ -412,6 +509,19 @@ export function buildDynamicRestOpenSourceResponse(
     metadata: buildMetadata(),
     resource: summariseOpenSource(),
   } satisfies DynamicRestResourceEnvelope<DynamicRestResources["openSource"]>;
+}
+
+export function buildDynamicRestMarketAdvisoriesResponse(
+  now: Date = new Date(),
+): DynamicRestResourceEnvelope<DynamicRestResources["marketAdvisories"]> {
+  return {
+    status: "ok",
+    generatedAt: now.toISOString(),
+    metadata: buildMetadata(),
+    resource: summariseMarketAdvisories(now),
+  } satisfies DynamicRestResourceEnvelope<
+    DynamicRestResources["marketAdvisories"]
+  >;
 }
 
 export async function buildDynamicRestDexScreenerResponse(
