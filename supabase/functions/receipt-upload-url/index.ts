@@ -1,6 +1,5 @@
 import { registerHandler } from "../_shared/serve.ts";
-import { createClient, createSupabaseClient } from "../_shared/client.ts";
-import { getEnv } from "../_shared/env.ts";
+import { createClient, createClientForRequest } from "../_shared/client.ts";
 import { bad, json, mna, oops } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
@@ -34,14 +33,9 @@ export async function handler(req: Request): Promise<Response> {
 
   if (authHeader) {
     // Web user authentication
-    const supaAuth = createSupabaseClient(
-      getEnv("SUPABASE_URL"),
-      getEnv("SUPABASE_ANON_KEY"),
-      {
-        global: { headers: { Authorization: authHeader } },
-        auth: { persistSession: false },
-      },
-    );
+    const supaAuth = createClientForRequest(req, {
+      auth: { persistSession: false },
+    });
 
     const { data: { user } } = await supaAuth.auth.getUser();
     if (user) {

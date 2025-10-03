@@ -1,6 +1,5 @@
-import { createClient, createSupabaseClient } from "../_shared/client.ts";
+import { createClient, createClientForRequest } from "../_shared/client.ts";
 import { bad, json, oops, unauth } from "../_shared/http.ts";
-import { getEnv } from "../_shared/env.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { hashBlob } from "../_shared/hash.ts";
@@ -28,14 +27,9 @@ export const handler = registerHandler(async (req) => {
   let telegramId: string | null = null;
   if (authHeader) {
     try {
-      const supaAuth = createSupabaseClient(
-        getEnv("SUPABASE_URL"),
-        getEnv("SUPABASE_ANON_KEY"),
-        {
-          global: { headers: { Authorization: authHeader } },
-          auth: { persistSession: false },
-        },
-      );
+      const supaAuth = createClientForRequest(req, {
+        auth: { persistSession: false },
+      });
       const { data: { user } } = await supaAuth.auth.getUser();
       if (user) {
         telegramId = user.user_metadata?.telegram_id || user.id;
