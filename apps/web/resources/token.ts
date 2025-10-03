@@ -9,6 +9,8 @@ const OPERATIONS_TREASURY_WALLET =
   "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
 const OPERATIONS_TREASURY_EXPLORER_URL =
   `https://tonviewer.com/${OPERATIONS_TREASURY_WALLET}`;
+const buildJettonExplorerUrl = (address?: string) =>
+  address ? `https://tonviewer.com/jetton/${address}` : undefined;
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-US").format(value);
@@ -84,6 +86,8 @@ type TokenDescriptor = {
   decimals: number;
   maxSupply: number;
   externalUrl?: string;
+  address?: string;
+  image?: string;
 };
 
 const tokenDescriptor: TokenDescriptor = {
@@ -93,9 +97,12 @@ const tokenDescriptor: TokenDescriptor = {
   decimals: jettonMetadata.decimals,
   maxSupply: 100_000_000,
   externalUrl: jettonMetadata.external_url,
+  address: jettonMetadata.address,
+  image: jettonMetadata.image,
 };
 
 const tokenPath = "/token" as const;
+const tokenJettonExplorerUrl = buildJettonExplorerUrl(tokenDescriptor.address);
 const tokenTitle = `${tokenDescriptor.name} (${tokenDescriptor.symbol})`;
 const tokenIntro =
   "The membership currency that powers Dynamic Capital automations, treasury governance, and community rewards.";
@@ -114,6 +121,18 @@ const tokenHighlights = [
     description: "Utility and governance jetton anchored to desk performance.",
     icon: "sparkles",
   },
+  ...(tokenDescriptor.address
+    ? [
+      {
+        label: "Jetton master",
+        value: shortenTonAddress(tokenDescriptor.address),
+        description:
+          "Canonical DCT master contract securing supply, metadata, and mint controls.",
+        icon: "openLink",
+        href: tokenJettonExplorerUrl,
+      } satisfies TokenHighlight,
+    ]
+    : []),
   {
     label: "Treasury TON wallet",
     value: shortenTonAddress(OPERATIONS_TREASURY_WALLET),
@@ -136,7 +155,7 @@ const tokenHighlights = [
       "TGE float powering staking, rewards, and liquidity programmes.",
     icon: "chartPie",
   },
-] as const satisfies readonly TokenHighlight[];
+] satisfies readonly TokenHighlight[];
 
 const tokenSupplySplits = [
   {
@@ -203,7 +222,10 @@ const tokenDexPools = [
   },
 ] as const satisfies readonly DexPool[];
 
-const tokenSameAs = tokenDexPools.map((pool) => pool.url) as readonly string[];
+const tokenSameAs = [
+  ...tokenDexPools.map((pool) => pool.url),
+  ...(tokenJettonExplorerUrl ? [tokenJettonExplorerUrl] : []),
+] satisfies readonly string[];
 
 const tokenContent: TokenContent = {
   path: tokenPath,
