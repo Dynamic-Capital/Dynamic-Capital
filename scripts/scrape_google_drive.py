@@ -1,10 +1,10 @@
-"""Utilities for scraping metadata from a public Google Drive folder.
+"""Utilities for scraping and downloading content from a public Google Drive folder.
 
 This module downloads the HTML representation of a Google Drive folder and
 parses the inline `_DRIVE_ivd` payload that Drive exposes to its web client.
 The payload contains structured metadata for each child item. We convert that
-into a Python data structure and optionally recurse through nested folders to
-produce a full tree of the publicly accessible files.
+into a Python data structure, optionally recurse through nested folders, and
+can stream each file locally while extracting text with OCR fallbacks.
 """
 
 from __future__ import annotations
@@ -13,9 +13,13 @@ import argparse
 import html
 import json
 import re
+import sys
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Iterable, List, Optional
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Iterable, Iterator, List, Optional, Sequence, Tuple
 from urllib.parse import parse_qs, urlparse
 
 import requests
@@ -209,6 +213,187 @@ class DriveScraper:
         )
 
 
+class DriveDownloader:
+    """Download helper for Google Drive files.
+
+    The downloader handles the additional confirmation token that Google Drive
+    requires for large files. Downloads stream to disk in chunks to avoid
+    holding the entire payload in memory.
+    """
+
+    _DOWNLOAD_URL = "https://drive.google.com/uc"
+
+    def __init__(self, *, chunk_size: int = 1 << 20) -> None:
+        self._session = requests.Session()
+        self._session.headers["User-Agent"] = (
+            "Mozilla/5.0 (X11; Linux x86_64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        )
+        self._chunk_size = chunk_size
+
+    def download(
+        self,
+        item: DriveItem,
+        destination: Path,
+        *,
+        skip_existing: bool,
+    ) -> Path:
+        if item.is_folder:
+            raise ValueError("Cannot download a folder; iterate over its children instead.")
+
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if skip_existing and destination.exists():
+            return destination
+
+        response = self._resolve_request(item.id)
+        response.raise_for_status()
+
+        try:
+            with destination.open("wb") as fh:
+                for chunk in response.iter_content(self._chunk_size):
+                    if chunk:
+                        fh.write(chunk)
+        finally:
+            response.close()
+
+        return destination
+
+    def _resolve_request(self, file_id: str) -> requests.Response:
+        params = {"export": "download", "id": file_id}
+        initial = self._session.get(self._DOWNLOAD_URL, params=params, allow_redirects=True)
+        if "content-disposition" in initial.headers:
+            initial.close()
+            return self._session.get(self._DOWNLOAD_URL, params=params, stream=True)
+
+        token = self._extract_confirm_token(initial)
+        if not token:
+            initial.raise_for_status()
+            raise RuntimeError("Unable to resolve Google Drive download confirmation token.")
+
+        initial.close()
+        confirmed_params = {**params, "confirm": token}
+        return self._session.get(self._DOWNLOAD_URL, params=confirmed_params, stream=True)
+
+    @staticmethod
+    def _extract_confirm_token(response: requests.Response) -> Optional[str]:
+        for key, value in response.cookies.items():
+            if key.startswith("download_warning"):
+                return value
+
+        text: Optional[str]
+        try:
+            text = response.text
+        except Exception:  # pragma: no cover - defensive fallback
+            text = None
+
+        if text:
+            match = re.search(r"confirm=([0-9A-Za-z_]+)", text)
+            if match:
+                return match.group(1)
+        return None
+
+
+def _sanitize_path_component(name: str, *, fallback: str) -> str:
+    cleaned = re.sub(r"[\\/:*?\"<>|]+", "_", name.strip())
+    cleaned = cleaned.strip(" .")
+    return cleaned or fallback
+
+
+def _walk_items(
+    item: DriveItem,
+    *,
+    prefix: Sequence[str] = (),
+) -> Iterator[Tuple[Tuple[str, ...], DriveItem]]:
+    current_name = _sanitize_path_component(item.name or item.id, fallback=item.id)
+    current_prefix = tuple(prefix) + (current_name,)
+
+    if item.is_folder:
+        for child in item.children:
+            yield from _walk_items(child, prefix=current_prefix)
+    else:
+        yield current_prefix, item
+
+
+def _extract_pdf_text(path: Path) -> str:
+    try:
+        from pypdf import PdfReader
+    except ImportError as exc:  # pragma: no cover - optional dependency
+        raise RuntimeError(
+            "pypdf is required for PDF text extraction. Install it with 'pip install pypdf'."
+        ) from exc
+
+    reader = PdfReader(str(path))
+    texts: List[str] = []
+    for page in reader.pages:
+        content = page.extract_text() or ""
+        texts.append(content)
+    return "\n".join(texts)
+
+
+def _ocr_image(image_source) -> str:
+    try:
+        from PIL import Image
+    except ImportError as exc:  # pragma: no cover - optional dependency
+        raise RuntimeError(
+            "Pillow is required for OCR image processing. Install it with 'pip install Pillow'."
+        ) from exc
+
+    try:
+        import pytesseract
+    except ImportError as exc:  # pragma: no cover - optional dependency
+        raise RuntimeError(
+            "pytesseract is required for OCR. Install it with 'pip install pytesseract'."
+        ) from exc
+
+    if isinstance(image_source, Image.Image):
+        image = image_source
+    else:
+        image = Image.open(image_source)
+
+    try:
+        return pytesseract.image_to_string(image)
+    finally:
+        if not isinstance(image_source, Image.Image):
+            image.close()
+
+
+def _ocr_pdf(path: Path) -> str:
+    try:
+        from pdf2image import convert_from_path
+    except ImportError as exc:  # pragma: no cover - optional dependency
+        raise RuntimeError(
+            "pdf2image is required for PDF OCR. Install it with 'pip install pdf2image'."
+        ) from exc
+
+    images = convert_from_path(str(path))
+    try:
+        texts = [_ocr_image(image) for image in images]
+    finally:
+        for image in images:
+            image.close()
+    return "\n".join(texts)
+
+
+def extract_text_from_file(path: Path, *, enable_ocr: bool) -> str:
+    suffix = path.suffix.lower()
+    if suffix in {".txt", ".md", ".csv", ".json", ".yaml", ".yml"}:
+        return path.read_text(encoding="utf-8")
+
+    if suffix == ".pdf":
+        text = _extract_pdf_text(path)
+        if text.strip() or not enable_ocr:
+            return text
+        return _ocr_pdf(path)
+
+    if suffix in {".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".gif", ".webp"}:
+        if not enable_ocr:
+            raise RuntimeError("OCR is disabled but required to extract text from image files.")
+        return _ocr_image(path)
+
+    raise RuntimeError(f"Unsupported file type for extraction: {path.suffix or '<unknown>'}")
+
+
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("folder", help="Google Drive folder URL or identifier")
@@ -230,6 +415,29 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         default=2,
         help="JSON indentation level for pretty-printing",
     )
+    parser.add_argument(
+        "--download-dir",
+        type=Path,
+        default=None,
+        help="If provided, download all files into this directory mirroring the Drive structure",
+    )
+    parser.add_argument(
+        "--text-output-dir",
+        type=Path,
+        default=None,
+        help="If provided, extract text for downloaded files into this directory",
+    )
+    parser.add_argument(
+        "--enable-ocr",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Enable OCR fallback for scanned PDFs and images (enabled by default)",
+    )
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Skip downloading or extracting when the destination file already exists",
+    )
     return parser
 
 
@@ -249,6 +457,95 @@ def main(argv: Optional[Iterable[str]] = None) -> None:
             fh.write(json_output)
     else:
         print(json_output)
+
+    download_dir: Optional[Path] = args.download_dir
+    text_output_dir: Optional[Path] = args.text_output_dir
+
+    if not download_dir and not text_output_dir:
+        return
+
+    downloader = DriveDownloader()
+
+    temp_context = (
+        TemporaryDirectory()
+        if text_output_dir is not None and download_dir is None
+        else nullcontext(None)
+    )
+
+    with temp_context as temp_dir_name:
+        temp_dir = Path(temp_dir_name) if temp_dir_name else None
+        for components, file_item in _walk_items(root_item):
+            if file_item.is_folder:
+                continue
+
+            relative_path = Path(*components)
+            download_path: Optional[Path] = None
+
+            if download_dir:
+                destination = download_dir / relative_path
+                try:
+                    download_path = downloader.download(
+                        file_item,
+                        destination,
+                        skip_existing=args.skip_existing,
+                    )
+                except Exception as exc:
+                    print(
+                        f"Failed to download {file_item.name}: {exc}",
+                        file=sys.stderr,
+                    )
+                    continue
+
+            if text_output_dir:
+                text_destination = (text_output_dir / relative_path).with_suffix(".txt")
+
+                if args.skip_existing and text_destination.exists():
+                    continue
+
+                text_destination.parent.mkdir(parents=True, exist_ok=True)
+
+                source_path = download_path
+                cleanup_path: Optional[Path] = None
+
+                if source_path is None:
+                    if temp_dir is None:
+                        raise RuntimeError(
+                            "Temporary directory not initialised for text extraction."
+                        )
+                    temp_file = temp_dir / relative_path
+                    temp_file.parent.mkdir(parents=True, exist_ok=True)
+                    try:
+                        source_path = downloader.download(
+                            file_item,
+                            temp_file,
+                            skip_existing=False,
+                        )
+                        cleanup_path = source_path
+                    except Exception as exc:
+                        print(
+                            f"Failed to download {file_item.name} for extraction: {exc}",
+                            file=sys.stderr,
+                        )
+                        continue
+
+                try:
+                    extracted = extract_text_from_file(
+                        source_path,
+                        enable_ocr=args.enable_ocr,
+                    )
+                except Exception as exc:
+                    print(
+                        f"Failed to extract text from {file_item.name}: {exc}",
+                        file=sys.stderr,
+                    )
+                    if cleanup_path and cleanup_path.exists():
+                        cleanup_path.unlink(missing_ok=True)
+                    continue
+
+                text_destination.write_text(extracted, encoding="utf-8")
+
+                if cleanup_path and cleanup_path.exists():
+                    cleanup_path.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
