@@ -1,0 +1,1644 @@
+{
+  "id": "1jD0Z06Hhfj4XSzGL81h9x8olE4KkmVZR",
+  "name": "books",
+  "mime_type": "application/vnd.google-apps.folder",
+  "is_folder": true,
+  "parents": [],
+  "children": [
+    {
+      "id": "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR",
+      "name": "Law",
+      "mime_type": "application/vnd.google-apps.folder",
+      "is_folder": true,
+      "parents": [
+        "1jD0Z06Hhfj4XSzGL81h9x8olE4KkmVZR"
+      ],
+      "children": [
+        {
+          "id": "1Tay4kBz39ooIkRqApYwV7i-CTJLMVsnh",
+          "name": "AssocAct.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 238212,
+          "modified_time": "2023-06-13T12:39:40+00:00",
+          "view_url": "https://drive.google.com/file/d/1Tay4kBz39ooIkRqApYwV7i-CTJLMVsnh/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1czP9pvgHJMy_I17lTonV8Fj5CBUwAmWj",
+          "name": "Corruption.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 121735,
+          "modified_time": "2023-06-13T12:39:30+00:00",
+          "view_url": "https://drive.google.com/file/d/1czP9pvgHJMy_I17lTonV8Fj5CBUwAmWj/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1AOwwa12dASo0l08Q_wGSSMyChwZztsEd",
+          "name": "Family.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 140227,
+          "modified_time": "2023-06-13T12:39:34+00:00",
+          "view_url": "https://drive.google.com/file/d/1AOwwa12dASo0l08Q_wGSSMyChwZztsEd/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1txny5zEYwK7V7INWdQr1YO_Zhq48H7-a",
+          "name": "FIL.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 67466,
+          "modified_time": "2023-06-13T12:38:56+00:00",
+          "view_url": "https://drive.google.com/file/d/1txny5zEYwK7V7INWdQr1YO_Zhq48H7-a/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1oXO3vxLbxPErq_5Wk3xOZosauLLxGEx0",
+          "name": "HRC.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 206949,
+          "modified_time": "2023-06-13T12:39:44+00:00",
+          "view_url": "https://drive.google.com/file/d/1oXO3vxLbxPErq_5Wk3xOZosauLLxGEx0/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1cm0tpnmuRyS8IoWegnuPTAA5EoiyPHi7",
+          "name": "Land.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 180415,
+          "modified_time": "2023-06-13T12:39:38+00:00",
+          "view_url": "https://drive.google.com/file/d/1cm0tpnmuRyS8IoWegnuPTAA5EoiyPHi7/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "16RBXOprj98epQj4qFqNn3whhRw-1r1hX",
+          "name": "maldives-penal-code-2014.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 670896,
+          "modified_time": "2023-06-13T12:41:28+00:00",
+          "view_url": "https://drive.google.com/file/d/16RBXOprj98epQj4qFqNn3whhRw-1r1hX/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1BSDfVyZz-qg4cF60po83EuBoZ8NQvM0H",
+          "name": "PC1.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 90595,
+          "modified_time": "2023-06-13T12:39:08+00:00",
+          "view_url": "https://drive.google.com/file/d/1BSDfVyZz-qg4cF60po83EuBoZ8NQvM0H/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1N_5YUILjulA2T0jbVFjW2RGDcwHIXCm7",
+          "name": "PC2.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 47160,
+          "modified_time": "2023-06-13T12:39:14+00:00",
+          "view_url": "https://drive.google.com/file/d/1N_5YUILjulA2T0jbVFjW2RGDcwHIXCm7/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "17U_tEHQWVigFiG2Mto55cqoc5O1W_k84",
+          "name": "PC3.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 73175,
+          "modified_time": "2023-06-13T12:39:22+00:00",
+          "view_url": "https://drive.google.com/file/d/17U_tEHQWVigFiG2Mto55cqoc5O1W_k84/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1vBTbrglsPZhqS6DbSGeJD27LgBud4Aqw",
+          "name": "PC4.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 128015,
+          "modified_time": "2023-06-13T12:39:26+00:00",
+          "view_url": "https://drive.google.com/file/d/1vBTbrglsPZhqS6DbSGeJD27LgBud4Aqw/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1JzKJCk0jPe5JcvaGZX7UDV0vlv-GoZA3",
+          "name": "Securities.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 195892,
+          "modified_time": "2023-06-13T12:39:50+00:00",
+          "view_url": "https://drive.google.com/file/d/1JzKJCk0jPe5JcvaGZX7UDV0vlv-GoZA3/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1LaArkBZJzVm1JOCiffv-QJPUoWhJ54IO",
+          "name": "Terrorism.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+          ],
+          "children": [],
+          "size_bytes": 34776,
+          "modified_time": "2023-06-13T12:39:20+00:00",
+          "view_url": "https://drive.google.com/file/d/1LaArkBZJzVm1JOCiffv-QJPUoWhJ54IO/view?usp=drivesdk",
+          "file_extension": "pdf"
+        }
+      ],
+      "modified_time": "2025-10-03T03:45:55.811000+00:00",
+      "view_url": "https://drive.google.com/drive/folders/1uRThu_UNhOoDRmGgWs5K6Y5AxZ-QgdQR"
+    },
+    {
+      "id": "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu",
+      "name": "Others",
+      "mime_type": "application/vnd.google-apps.folder",
+      "is_folder": true,
+      "parents": [
+        "1jD0Z06Hhfj4XSzGL81h9x8olE4KkmVZR"
+      ],
+      "children": [
+        {
+          "id": "1ELpF9KW7QjIjZEwdkD6HRXBwZbT9i26V",
+          "name": "SELF NOTE",
+          "mime_type": "application/vnd.google-apps.folder",
+          "is_folder": true,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [
+            {
+              "id": "1qyrVvr4ApmkO_KqmbvTQPKT1y7qkkCHO",
+              "name": "Attachment Styles.docx",
+              "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "is_folder": false,
+              "parents": [
+                "1ELpF9KW7QjIjZEwdkD6HRXBwZbT9i26V"
+              ],
+              "children": [],
+              "size_bytes": 206582,
+              "modified_time": "2021-01-21T10:29:18+00:00",
+              "view_url": "https://docs.google.com/document/d/1qyrVvr4ApmkO_KqmbvTQPKT1y7qkkCHO/edit?usp=drivesdk&rtpof=true&sd=true",
+              "file_extension": "docx"
+            }
+          ],
+          "modified_time": "2025-10-03T03:45:56.909000+00:00",
+          "view_url": "https://drive.google.com/drive/folders/1ELpF9KW7QjIjZEwdkD6HRXBwZbT9i26V"
+        },
+        {
+          "id": "1uevdp4rV-PCVY3G2VS8kCnWCZdfQCCkd",
+          "name": "(Cambridge International AS & A Level) Colin Bamford, Susan Grant - Cambridge International AS and A Level Economics Coursebook-Cambridge University Press (2014).pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 29722483,
+          "modified_time": "2023-06-12T11:13:00+00:00",
+          "view_url": "https://drive.google.com/file/d/1uevdp4rV-PCVY3G2VS8kCnWCZdfQCCkd/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1lF7FXUnEhDfc4QuyMArGn4Cnz6qXtDq8",
+          "name": "37-38.-Diagnosis-Treatment-and-Prevention-of-Upper-Respiratory-Tract-Infections-in-Cats.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 58386,
+          "modified_time": "2023-04-27T22:18:32+00:00",
+          "view_url": "https://drive.google.com/file/d/1lF7FXUnEhDfc4QuyMArGn4Cnz6qXtDq8/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1vyZ6DwTsuzdhGMXTJXZp317gnCmmRvdd",
+          "name": "2015_aaha_canine_and_feline_behavior_management_guidelines_final.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 193802,
+          "modified_time": "2023-04-27T22:15:18+00:00",
+          "view_url": "https://drive.google.com/file/d/1vyZ6DwTsuzdhGMXTJXZp317gnCmmRvdd/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1vd0MJjxWiRT8DqdwP67qj5ZruoOR-knq",
+          "name": "2575.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 3215094,
+          "modified_time": "2020-11-14T12:14:22+00:00",
+          "view_url": "https://drive.google.com/file/d/1vd0MJjxWiRT8DqdwP67qj5ZruoOR-knq/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1P7CYP5t6nvwXNQ8Y1UF7sLuJEHFln5h5",
+          "name": "3821-13531-1-PB   Psychology in SL legal system .pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 261756,
+          "modified_time": "2018-04-06T17:30:08+00:00",
+          "view_url": "https://drive.google.com/file/d/1P7CYP5t6nvwXNQ8Y1UF7sLuJEHFln5h5/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1em9-P6LWZNbS9_Cpzc7G_9DonLOlchZm",
+          "name": "50423_ch_2profiling.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 321403,
+          "modified_time": "2018-04-06T17:30:16+00:00",
+          "view_url": "https://drive.google.com/file/d/1em9-P6LWZNbS9_Cpzc7G_9DonLOlchZm/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1zzkc3xurDjf32AhScWHsmw_o31S1BQdg",
+          "name": "academic-english-study-skills-assignment.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 204811,
+          "modified_time": "2023-03-14T16:25:44+00:00",
+          "view_url": "https://docs.google.com/document/d/1zzkc3xurDjf32AhScWHsmw_o31S1BQdg/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1JbStesXvItJOMGtpWMR4x0mZQREDZZTl",
+          "name": "ACCOUNTS AND ECONOMICS ASSIGNMENT.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 717912,
+          "modified_time": "2023-03-26T10:03:18+00:00",
+          "view_url": "https://drive.google.com/file/d/1JbStesXvItJOMGtpWMR4x0mZQREDZZTl/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1yaVYI4AhJ1M_2RYdMRVWLxxSpA0ul49D",
+          "name": "American-Psycho-Book.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 987064,
+          "modified_time": "2020-11-18T16:04:52+00:00",
+          "view_url": "https://drive.google.com/file/d/1yaVYI4AhJ1M_2RYdMRVWLxxSpA0ul49D/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1VdPnkGy1tjuTK-vzsDLgc81H4LZhqUSt",
+          "name": "ASSESSMENT & REFERRAL.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 17675,
+          "modified_time": "2021-01-21T09:07:30+00:00",
+          "view_url": "https://docs.google.com/document/d/1VdPnkGy1tjuTK-vzsDLgc81H4LZhqUSt/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1SQi4yEJu8OCMee8KSLtM00sM1MUDTXi1",
+          "name": "Attachment Draft .docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 24071,
+          "modified_time": "2021-02-19T19:03:00+00:00",
+          "view_url": "https://docs.google.com/document/d/1SQi4yEJu8OCMee8KSLtM00sM1MUDTXi1/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1TqfNOoTn73x8Pj9vwYCLRgNU_gF8Gfwt",
+          "name": "Attachment theory.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 458672,
+          "modified_time": "2020-12-28T19:13:30+00:00",
+          "view_url": "https://docs.google.com/document/d/1TqfNOoTn73x8Pj9vwYCLRgNU_gF8Gfwt/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1e9uVUoMbNUGsRz_oZvb46O6OiXc_Md1T",
+          "name": "Attitude Formation.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 18646,
+          "modified_time": "2021-02-11T09:41:58+00:00",
+          "view_url": "https://docs.google.com/document/d/1e9uVUoMbNUGsRz_oZvb46O6OiXc_Md1T/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "16O8Oo5qlixOfot0_hUPdVPLIaBjfGYgp",
+          "name": "Attitude.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 32151,
+          "modified_time": "2021-02-11T09:44:50+00:00",
+          "view_url": "https://docs.google.com/document/d/16O8Oo5qlixOfot0_hUPdVPLIaBjfGYgp/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1_xAqgBXSKl93qdlSQqv0ZbSmNm_B91C8",
+          "name": "Banned Mind Control Techniques Unleashed_ Learn The Dark Secrets Of Hypnosis, Manipulation, Deception, Persuasion, Brainwashing And Human Psychology ( PDFDrive ).pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 809915,
+          "modified_time": "2023-04-27T22:29:20+00:00",
+          "view_url": "https://drive.google.com/file/d/1_xAqgBXSKl93qdlSQqv0ZbSmNm_B91C8/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1ouEqWUytDp5enbLEEBKDmBgt6W_lcr3Z",
+          "name": "Barriers to Communication.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 111896,
+          "modified_time": "2023-07-04T08:33:22+00:00",
+          "view_url": "https://drive.google.com/file/d/1ouEqWUytDp5enbLEEBKDmBgt6W_lcr3Z/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "16wdeUlFdh72Vtl5ukpj2IymnzOtn7HDT",
+          "name": "Bowlby Attachment.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 1417533,
+          "modified_time": "2021-02-19T17:21:44+00:00",
+          "view_url": "https://drive.google.com/file/d/16wdeUlFdh72Vtl5ukpj2IymnzOtn7HDT/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1CMuHX4dqb2mD4aV4zZ2x0_78fgpXAu6s",
+          "name": "Brain Structure Psychology.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 574834,
+          "modified_time": "2020-12-03T14:05:44+00:00",
+          "view_url": "https://drive.google.com/file/d/1CMuHX4dqb2mD4aV4zZ2x0_78fgpXAu6s/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1FPUSr0bJiyFlhUU5XhgkM1-7iGjoDBQ_",
+          "name": "business-for-cambridge-international-as-amp-a-level-cie-a-level-studentnbsped-0198399774-9780198399773_compress (1).pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 161550353,
+          "modified_time": "2023-06-12T11:32:04+00:00",
+          "view_url": "https://drive.google.com/file/d/1FPUSr0bJiyFlhUU5XhgkM1-7iGjoDBQ_/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1BAMjC_iqZ06kIZbmQNPkzNnConyQAFmA",
+          "name": "business-for-cambridge-international-as-amp-a-level-cie-a-level-studentnbsped-0198399774-9780198399773_compress.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 161550353,
+          "modified_time": "2023-06-12T11:28:04+00:00",
+          "view_url": "https://drive.google.com/file/d/1BAMjC_iqZ06kIZbmQNPkzNnConyQAFmA/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1sYuPitLQJ7c1D3SB9aG0n9JE7J8SRaQo",
+          "name": "cambridge international as and a level economics 2nd edition - colin bamford and susan grant.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 70000560,
+          "modified_time": "2023-06-12T11:12:12+00:00",
+          "view_url": "https://drive.google.com/file/d/1sYuPitLQJ7c1D3SB9aG0n9JE7J8SRaQo/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1l-mTU-W8bGuHxwm3Tvi81TbGDgO3CQP2",
+          "name": "certificate  in Forensic and Criminal Psychology.pptx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 156778,
+          "modified_time": "2018-11-13T16:29:34+00:00",
+          "view_url": "https://docs.google.com/presentation/d/1l-mTU-W8bGuHxwm3Tvi81TbGDgO3CQP2/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "pptx"
+        },
+        {
+          "id": "175GcPpNXBBxN48nBjKI0VgDU9SZ7bfJ3",
+          "name": "Compliance.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 56346,
+          "modified_time": "2021-04-04T10:31:46+00:00",
+          "view_url": "https://drive.google.com/file/d/175GcPpNXBBxN48nBjKI0VgDU9SZ7bfJ3/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1s76oCnl0QP8aRFOsCVnDMdr8y6Kh_tw9",
+          "name": "Conformity.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 62754,
+          "modified_time": "2021-04-04T10:31:44+00:00",
+          "view_url": "https://drive.google.com/file/d/1s76oCnl0QP8aRFOsCVnDMdr8y6Kh_tw9/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1xLRoHLjrtgWBEdjFG3UoBx6hGxkd5UIB",
+          "name": "Criminal profiling in the investigative process.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 171389,
+          "modified_time": "2018-04-06T17:41:40+00:00",
+          "view_url": "https://drive.google.com/file/d/1xLRoHLjrtgWBEdjFG3UoBx6hGxkd5UIB/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1Czb9p9b6OR5p312vsmO9IqqKYszQaKFR",
+          "name": "criminal-profiling-from-crime-scene-analysis.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 513658,
+          "modified_time": "2018-04-06T17:42:04+00:00",
+          "view_url": "https://drive.google.com/file/d/1Czb9p9b6OR5p312vsmO9IqqKYszQaKFR/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1OVRLxUGH0G6z8u8TTy6qnBhGCOV_gD-I",
+          "name": "Daniel_Kennedy2_Forensics_In_The_Field.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 236970,
+          "modified_time": "2018-04-06T17:30:00+00:00",
+          "view_url": "https://drive.google.com/file/d/1OVRLxUGH0G6z8u8TTy6qnBhGCOV_gD-I/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1bjUUG_-jhrwlokWrvqss2_HDVlT4Zesv",
+          "name": "DEGREES OF DEVIANCE.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 109226,
+          "modified_time": "2021-06-08T15:55:02+00:00",
+          "view_url": "https://docs.google.com/document/d/1bjUUG_-jhrwlokWrvqss2_HDVlT4Zesv/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1YYDOjXuKH2DrdHDiajP2vgIcZQhR8Tvw",
+          "name": "Dennis Howitt_ Dawsonera-Introduction to forensic and criminal psychology-Pearson Educatio.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 12276426,
+          "modified_time": "2018-05-02T17:01:04+00:00",
+          "view_url": "https://drive.google.com/file/d/1YYDOjXuKH2DrdHDiajP2vgIcZQhR8Tvw/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1y-jNdTCEA6T0882cLXMSxulkIih8UkVm",
+          "name": "Draft Assignment.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 14544,
+          "modified_time": "2021-02-17T16:08:12+00:00",
+          "view_url": "https://docs.google.com/document/d/1y-jNdTCEA6T0882cLXMSxulkIih8UkVm/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1MwQKOEQgthnZVGZJiNRHFFEhRkwZ2Kuy",
+          "name": "Duffyetal-2017-FeBARQdevelopment.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 1587264,
+          "modified_time": "2023-04-27T22:16:56+00:00",
+          "view_url": "https://drive.google.com/file/d/1MwQKOEQgthnZVGZJiNRHFFEhRkwZ2Kuy/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "17yW0WIUCn1fexsdoUUnLbk2-J4VGhWQ6",
+          "name": "E-Marketing.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 13778,
+          "modified_time": "2023-07-09T10:00:42+00:00",
+          "view_url": "https://docs.google.com/document/d/17yW0WIUCn1fexsdoUUnLbk2-J4VGhWQ6/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1OLvjjU7qduOiZo2PR7JH9a9-YZK6ozkl",
+          "name": "economics-for-cambridge-international-as-and-a-level-studentnbsped-019839974x-9780198399742_compress.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 88870724,
+          "modified_time": "2023-06-12T11:21:26+00:00",
+          "view_url": "https://drive.google.com/file/d/1OLvjjU7qduOiZo2PR7JH9a9-YZK6ozkl/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1B1MxX-bihaC0Bb4YNBJEGH1IYPvhy0zd",
+          "name": "Explanation of the Dramaturgical Theory.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 16410,
+          "modified_time": "2021-02-11T09:46:36+00:00",
+          "view_url": "https://docs.google.com/document/d/1B1MxX-bihaC0Bb4YNBJEGH1IYPvhy0zd/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1nIEB8ei4IM_aTW_x3g0nG_9DMBxL9NRW",
+          "name": "foundation-accounting-and-economics-1.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 43405,
+          "modified_time": "2023-03-13T10:31:50+00:00",
+          "view_url": "https://docs.google.com/document/d/1nIEB8ei4IM_aTW_x3g0nG_9DMBxL9NRW/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1jT73VJMT9ayC2KQNIWmOar075XALvSgd",
+          "name": "Goffman Dramaturgical Theory.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 14938,
+          "modified_time": "2021-02-11T10:02:42+00:00",
+          "view_url": "https://docs.google.com/document/d/1jT73VJMT9ayC2KQNIWmOar075XALvSgd/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1Zms_-1Km4wElNY2jsufYQT5jLTk1pp9J",
+          "name": "Hare psychopathy checklist.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 18747,
+          "modified_time": "2021-01-24T19:07:40+00:00",
+          "view_url": "https://docs.google.com/document/d/1Zms_-1Km4wElNY2jsufYQT5jLTk1pp9J/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1T9QlwWfQ4jOq-Gv2JOQLXuo9IQ0pUtZB",
+          "name": "HOW TO ADRESS RISK FACTORS.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 374131,
+          "modified_time": "2021-01-23T13:25:38+00:00",
+          "view_url": "https://docs.google.com/document/d/1T9QlwWfQ4jOq-Gv2JOQLXuo9IQ0pUtZB/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1KKUa7t-7lxsXnIKmxr2SzPWhM4-zHmNM",
+          "name": "Howitt, Dennis - Introduction to forensic and criminal psychology-Pearson Education UK (2017) (1).pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 14683678,
+          "modified_time": "2021-04-05T16:47:18+00:00",
+          "view_url": "https://drive.google.com/file/d/1KKUa7t-7lxsXnIKmxr2SzPWhM4-zHmNM/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1coK8Ux9_cih4QKZe0Yr1pM4GbD7u5093",
+          "name": "IMG_20210228_141901.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 511657,
+          "modified_time": "2021-02-28T09:24:56+00:00",
+          "view_url": "https://drive.google.com/file/d/1coK8Ux9_cih4QKZe0Yr1pM4GbD7u5093/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1cGGf-PV37DKeiF5vNQGlMDOjBuNMrINX",
+          "name": "International legal systems note.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 17666,
+          "modified_time": "2020-10-09T11:31:12+00:00",
+          "view_url": "https://docs.google.com/document/d/1cGGf-PV37DKeiF5vNQGlMDOjBuNMrINX/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1mzW3KtbWWthYznRasdbf2JDfwlHIGVHK",
+          "name": "Introduction to Psychology Social Behavior.pptx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 340973,
+          "modified_time": "2020-12-12T09:22:00+00:00",
+          "view_url": "https://docs.google.com/presentation/d/1mzW3KtbWWthYznRasdbf2JDfwlHIGVHK/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "pptx"
+        },
+        {
+          "id": "1ZK0VaNmHx0bfTD197shUDVmX7PncCyOq",
+          "name": "INTRODUCTION TO PSYCHOLOGY SOCIAL BEHAVIOUR.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 24469,
+          "modified_time": "2021-01-23T13:13:34+00:00",
+          "view_url": "https://docs.google.com/document/d/1ZK0VaNmHx0bfTD197shUDVmX7PncCyOq/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1BfNm2AT0JMsIGBWdiM38iERaMSX3BdL7",
+          "name": "INTRODUCTION TO PSYCHOLOGY.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 484167,
+          "modified_time": "2021-01-21T09:35:58+00:00",
+          "view_url": "https://docs.google.com/document/d/1BfNm2AT0JMsIGBWdiM38iERaMSX3BdL7/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1mk_huug-6Xu7zBWdH5HOBI_-2guEUYyD",
+          "name": "introduction-to-business-assignment-brief (1).docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 15877,
+          "modified_time": "2023-03-15T14:54:18+00:00",
+          "view_url": "https://docs.google.com/document/d/1mk_huug-6Xu7zBWdH5HOBI_-2guEUYyD/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "13EvMPE6DXSqE-8-7x5TsCPngcbmRSxru",
+          "name": "introduction-to-business-assignment-brief.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 15877,
+          "modified_time": "2023-03-15T14:54:18+00:00",
+          "view_url": "https://docs.google.com/document/d/13EvMPE6DXSqE-8-7x5TsCPngcbmRSxru/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "1irbMpiKeCGJWqqW4-gPhdDqAeTLQEUL_",
+          "name": "introduction-to-business-assignment-brief.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 94614,
+          "modified_time": "2023-03-13T10:31:52+00:00",
+          "view_url": "https://drive.google.com/file/d/1irbMpiKeCGJWqqW4-gPhdDqAeTLQEUL_/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1_IEJzgwETLQbNCjTm7usgX2DSfFeFyP7",
+          "name": "January.docx",
+          "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 36769,
+          "modified_time": "2021-01-03T08:35:26+00:00",
+          "view_url": "https://docs.google.com/document/d/1_IEJzgwETLQbNCjTm7usgX2DSfFeFyP7/edit?usp=drivesdk&rtpof=true&sd=true",
+          "file_extension": "docx"
+        },
+        {
+          "id": "13ytIZplFRJDxOgVoPr3_yLkTEE5aFFIi",
+          "name": "Jeffrey Dahmer_ Psychopathy and Neglect.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+          ],
+          "children": [],
+          "size_bytes": 1830747,
+          "modified_time": "2020-11-19T11:52:38+00:00",
+          "view_url": "https://drive.google.com/file/d/13ytIZplFRJDxOgVoPr3_yLkTEE5aFFIi/view?usp=drivesdk",
+          "file_extension": "pdf"
+        }
+      ],
+      "modified_time": "2025-10-03T03:45:55.820000+00:00",
+      "view_url": "https://drive.google.com/drive/folders/120VM_2JvfBhSHHCdVHW7JfXhfJzMxfsu"
+    },
+    {
+      "id": "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD",
+      "name": "Trading",
+      "mime_type": "application/vnd.google-apps.folder",
+      "is_folder": true,
+      "parents": [
+        "1jD0Z06Hhfj4XSzGL81h9x8olE4KkmVZR"
+      ],
+      "children": [
+        {
+          "id": "1W2NkvAImJMytlY2EvSuvaauf8Yp3B9YX",
+          "name": "1 (1).png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 206195,
+          "modified_time": "2023-07-04T01:54:10+00:00",
+          "view_url": "https://drive.google.com/file/d/1W2NkvAImJMytlY2EvSuvaauf8Yp3B9YX/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1JEw--BoIYSBH7Eblo9Tijpx1OqGCU0GO",
+          "name": "1 (2).png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 179275,
+          "modified_time": "2023-07-04T01:54:29+00:00",
+          "view_url": "https://drive.google.com/file/d/1JEw--BoIYSBH7Eblo9Tijpx1OqGCU0GO/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1dfes7RvJwr4iPMOj-7VqJ9AL4D24RCQi",
+          "name": "1 (3).png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 362627,
+          "modified_time": "2023-07-04T01:54:47+00:00",
+          "view_url": "https://drive.google.com/file/d/1dfes7RvJwr4iPMOj-7VqJ9AL4D24RCQi/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1E2VtFMDvVcrPX_LeGYsju1Q6ZpOMdtXT",
+          "name": "1 (4).png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 143470,
+          "modified_time": "2023-07-04T01:59:48+00:00",
+          "view_url": "https://drive.google.com/file/d/1E2VtFMDvVcrPX_LeGYsju1Q6ZpOMdtXT/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1r0ue-5NbVbh7XbfYbptKvb04A-Z6BqTr",
+          "name": "1_4996808425825370413.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 14456629,
+          "modified_time": "2025-10-02T01:56:15+00:00",
+          "view_url": "https://drive.google.com/file/d/1r0ue-5NbVbh7XbfYbptKvb04A-Z6BqTr/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1Si35so0DMi_8gY2FCl82xxv25T1fRDIx",
+          "name": "1. Basic Market Struture.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 468301,
+          "modified_time": "2023-07-04T02:00:26+00:00",
+          "view_url": "https://drive.google.com/file/d/1Si35so0DMi_8gY2FCl82xxv25T1fRDIx/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1VpV0ATrzk0QRsTZFyGpjwGNM1pV4z_Vi",
+          "name": "1.1 [Dynamic Capital] - Candle Sticks.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 126749,
+          "modified_time": "2025-07-25T19:45:49+00:00",
+          "view_url": "https://drive.google.com/file/d/1VpV0ATrzk0QRsTZFyGpjwGNM1pV4z_Vi/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1xtFj8jwtenbwnImAPTqoOySeMYpk_qec",
+          "name": "1.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 366289,
+          "modified_time": "2023-07-04T01:55:34+00:00",
+          "view_url": "https://drive.google.com/file/d/1xtFj8jwtenbwnImAPTqoOySeMYpk_qec/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1XixQpoP2EC0FF8O8cxLqFirkik_JZz0x",
+          "name": "2 (2).png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 130047,
+          "modified_time": "2023-07-04T01:59:33+00:00",
+          "view_url": "https://drive.google.com/file/d/1XixQpoP2EC0FF8O8cxLqFirkik_JZz0x/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1i8iSJMl-KTYUigywcM3vAOVufoRtPJTc",
+          "name": "2_3_Dynamic_Capital_Market_Psychology_&_Newtonâs_Laws.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 845699,
+          "modified_time": "2025-07-19T16:21:16+00:00",
+          "view_url": "https://drive.google.com/file/d/1i8iSJMl-KTYUigywcM3vAOVufoRtPJTc/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "12APbq2V1JrBNi78kDlvf_frn7BbON2lh",
+          "name": "2. 3 Types of Strutures - Intro.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 261740,
+          "modified_time": "2023-07-04T02:00:48+00:00",
+          "view_url": "https://drive.google.com/file/d/12APbq2V1JrBNi78kDlvf_frn7BbON2lh/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1a4qOpjW54IFoimiIn0DNRca18xJ7M7cp",
+          "name": "2.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 109777,
+          "modified_time": "2023-07-04T01:55:44+00:00",
+          "view_url": "https://drive.google.com/file/d/1a4qOpjW54IFoimiIn0DNRca18xJ7M7cp/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "19txQrUtCtC2ZziH-NIonGcfmkOYKDw_K",
+          "name": "3_ICT_MARKET_STRUCTURE_SHIFT_INTRO_240627_215614 (1) (2).pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 1005768,
+          "modified_time": "2025-10-02T01:50:33+00:00",
+          "view_url": "https://drive.google.com/file/d/19txQrUtCtC2ZziH-NIonGcfmkOYKDw_K/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1i2YSFtBsM2U3FNb6igI088j0FYzUUUdS",
+          "name": "3_ICT_MARKET_STRUCTURE_SHIFT_INTRO_240627_215614 (1).pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 1005768,
+          "modified_time": "2025-10-02T01:45:53+00:00",
+          "view_url": "https://drive.google.com/file/d/1i2YSFtBsM2U3FNb6igI088j0FYzUUUdS/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1xYXBw8k_5wv-EKJa2xijYfxHFiSQDnuF",
+          "name": "3. Structure Mapping.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 105410,
+          "modified_time": "2023-07-04T02:00:51+00:00",
+          "view_url": "https://drive.google.com/file/d/1xYXBw8k_5wv-EKJa2xijYfxHFiSQDnuF/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1KTrQALtHNMUKc67DIlALr1TCyDW6WTiR",
+          "name": "3.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 275505,
+          "modified_time": "2023-07-04T01:55:57+00:00",
+          "view_url": "https://drive.google.com/file/d/1KTrQALtHNMUKc67DIlALr1TCyDW6WTiR/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1FYjl2SgvXD0e5PVjAxMpFlL-Rfk3iiv6",
+          "name": "4_5969750287966014729.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 1476106,
+          "modified_time": "2025-10-02T01:53:14+00:00",
+          "view_url": "https://drive.google.com/file/d/1FYjl2SgvXD0e5PVjAxMpFlL-Rfk3iiv6/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1snN4-FXLKgx4EfLY5JbPrPvMJbbylFW2",
+          "name": "4_6051012001214238966.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 1176967,
+          "modified_time": "2025-10-02T01:46:47+00:00",
+          "view_url": "https://drive.google.com/file/d/1snN4-FXLKgx4EfLY5JbPrPvMJbbylFW2/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1pXo51LxRTpxf51z06xqm-_I-3Qz9xStg",
+          "name": "4. Fractal Structure (CHoCH) - Theory.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 603647,
+          "modified_time": "2023-07-04T02:01:11+00:00",
+          "view_url": "https://drive.google.com/file/d/1pXo51LxRTpxf51z06xqm-_I-3Qz9xStg/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1Cdv7NCLnNxdrFh-hhGeoe--01RLbT3wW",
+          "name": "4. Liquidity_and_Manipulation.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 1614683,
+          "modified_time": "2025-10-02T01:53:44+00:00",
+          "view_url": "https://drive.google.com/file/d/1Cdv7NCLnNxdrFh-hhGeoe--01RLbT3wW/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1PeaXjXsyv_4U7aJdoffjB6B-W3KWp70h",
+          "name": "4.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 94698,
+          "modified_time": "2023-07-04T01:56:02+00:00",
+          "view_url": "https://drive.google.com/file/d/1PeaXjXsyv_4U7aJdoffjB6B-W3KWp70h/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1-PTTQ6Dtg3reuEQDmSKCr91c8IfTsQFW",
+          "name": "5. Fractal Structure (CHoCH) - Walkthrough.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 355799,
+          "modified_time": "2023-07-04T02:01:50+00:00",
+          "view_url": "https://drive.google.com/file/d/1-PTTQ6Dtg3reuEQDmSKCr91c8IfTsQFW/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1E74YxXvgXzzNFcI_WED_ticOEPPIdMki",
+          "name": "6. Swing Structure - Theory.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 486326,
+          "modified_time": "2023-07-04T02:02:05+00:00",
+          "view_url": "https://drive.google.com/file/d/1E74YxXvgXzzNFcI_WED_ticOEPPIdMki/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1qkFYdjsHVHZKXTs-OwMPAi04viNFK8Uz",
+          "name": "7 Winning Strategies for  Trading Forex@TradersLibrary.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 3191213,
+          "modified_time": "2025-10-02T02:16:06+00:00",
+          "view_url": "https://drive.google.com/file/d/1qkFYdjsHVHZKXTs-OwMPAi04viNFK8Uz/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1lgvEVyRze-3BpCftIodJLDyfBuvv-9eK",
+          "name": "7. Imbalance_1.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 348745,
+          "modified_time": "2025-10-02T01:46:45+00:00",
+          "view_url": "https://drive.google.com/file/d/1lgvEVyRze-3BpCftIodJLDyfBuvv-9eK/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1qn-cEfQbAYndTVZSmXJYHo8XempW4-X2",
+          "name": "7. Swing Structure - Walkthrough.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 312597,
+          "modified_time": "2023-07-04T02:02:20+00:00",
+          "view_url": "https://drive.google.com/file/d/1qn-cEfQbAYndTVZSmXJYHo8XempW4-X2/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1QVPIozIpnfqmz4FrX65bCpcOV7hcHtS5",
+          "name": "8. Mechanical Swing Structure.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 220477,
+          "modified_time": "2023-07-04T02:02:39+00:00",
+          "view_url": "https://drive.google.com/file/d/1QVPIozIpnfqmz4FrX65bCpcOV7hcHtS5/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1Tyh_EFh2aRnkSrxtsXooK991_Orxl97B",
+          "name": "8.1 [Dynamic Capital] - Agressive VS Safe Entry.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 1805136,
+          "modified_time": "2025-10-01T01:13:27+00:00",
+          "view_url": "https://drive.google.com/file/d/1Tyh_EFh2aRnkSrxtsXooK991_Orxl97B/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1EfFy1f6pzfAlgZtrRcE-hoaYB1zS-ICq",
+          "name": "9, 3 Types of Structure - Theory.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 252327,
+          "modified_time": "2023-07-04T02:02:54+00:00",
+          "view_url": "https://drive.google.com/file/d/1EfFy1f6pzfAlgZtrRcE-hoaYB1zS-ICq/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1j5_enDEIsUWmXC7e-fsh0G2DOJOUQfRZ",
+          "name": "9.0 [Dynamic Capital] - Risk and Reward Management.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 4155554,
+          "modified_time": "2025-08-23T04:25:25+00:00",
+          "view_url": "https://drive.google.com/file/d/1j5_enDEIsUWmXC7e-fsh0G2DOJOUQfRZ/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1ZaJJzFO3wDZ_wYcZMK1HVvcmTKVtKZ8D",
+          "name": "10. 3 Types of Structure - Walkthrough.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 118263,
+          "modified_time": "2023-07-04T02:03:12+00:00",
+          "view_url": "https://drive.google.com/file/d/1ZaJJzFO3wDZ_wYcZMK1HVvcmTKVtKZ8D/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1LsordrTErNWphk8j_B1VyOYp4p8-Yv47",
+          "name": "12_simple_Technical_Indicators_That.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 4291486,
+          "modified_time": "2025-10-02T02:17:27+00:00",
+          "view_url": "https://drive.google.com/file/d/1LsordrTErNWphk8j_B1VyOYp4p8-Yv47/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1JmIx7zJy5ptAVwYPbJLauCdCk1oOEV_t",
+          "name": "12. Premium & Discount Pricing - Theory.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 243298,
+          "modified_time": "2023-07-04T02:03:39+00:00",
+          "view_url": "https://drive.google.com/file/d/1JmIx7zJy5ptAVwYPbJLauCdCk1oOEV_t/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1ugd_28QyeModHNcKWZlMUvGddsHk05OW",
+          "name": "13. Premium & Discount Pricing - Walkthrough.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 246316,
+          "modified_time": "2023-07-04T02:03:51+00:00",
+          "view_url": "https://drive.google.com/file/d/1ugd_28QyeModHNcKWZlMUvGddsHk05OW/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "1fVWXtxIDYD9Nc4GDrJ96-ZvtNolk7GY1",
+          "name": "14. MTF Market Structure - Theory.png",
+          "mime_type": "image/png",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 538805,
+          "modified_time": "2023-07-04T02:04:00+00:00",
+          "view_url": "https://drive.google.com/file/d/1fVWXtxIDYD9Nc4GDrJ96-ZvtNolk7GY1/view?usp=drivesdk",
+          "file_extension": "png"
+        },
+        {
+          "id": "16ew_xl2c2-l2SlO211kmDV5a239qvV9G",
+          "name": "17_proven_currency_trading_strat.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 9899720,
+          "modified_time": "2025-10-02T02:21:21+00:00",
+          "view_url": "https://drive.google.com/file/d/16ew_xl2c2-l2SlO211kmDV5a239qvV9G/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1R_qHNEPCbLxfzk_5IQoxdcK2HOOhADUD",
+          "name": "20 Forex Trading Strategies- Thomas Carter @Traderslibrary.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 475786,
+          "modified_time": "2025-10-02T01:59:41+00:00",
+          "view_url": "https://drive.google.com/file/d/1R_qHNEPCbLxfzk_5IQoxdcK2HOOhADUD/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1PfZqMAMbRnWYcaEX86K8bBO6tS3Zw11c",
+          "name": "20 Most Common Trading Mistakes.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 1969502,
+          "modified_time": "2025-10-02T01:57:42+00:00",
+          "view_url": "https://drive.google.com/file/d/1PfZqMAMbRnWYcaEX86K8bBO6tS3Zw11c/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1bi6-VxG9rUgxkh9XIFiuT33UXPs02Mcp",
+          "name": "25_Rules_Of_Forex_Trading_Discipline.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 124738,
+          "modified_time": "2025-10-02T01:52:39+00:00",
+          "view_url": "https://drive.google.com/file/d/1bi6-VxG9rUgxkh9XIFiuT33UXPs02Mcp/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1AcfFCU16l2vF2lsJk_FQ6R51yZaNs7kJ",
+          "name": "30_Days_to_Market_Mastery_A_Step_by_Step_Guide_to_Profitable_Trading.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 21042091,
+          "modified_time": "2025-10-02T01:54:15+00:00",
+          "view_url": "https://drive.google.com/file/d/1AcfFCU16l2vF2lsJk_FQ6R51yZaNs7kJ/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1Jlw7gW5TrYAlp6JHEvvzJlrVDw8-ozWU",
+          "name": "45-ways-to-avoid-losing-money-trading-forex (1).pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 62346,
+          "modified_time": "2025-10-02T01:51:54+00:00",
+          "view_url": "https://drive.google.com/file/d/1Jlw7gW5TrYAlp6JHEvvzJlrVDw8-ozWU/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "17ADZa3RjSs8aPXuWP2T9Angl3uNrIMxa",
+          "name": "58b624_9d56c413520f4ab2b74f38d8f79a5469.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 970568,
+          "modified_time": "2025-10-02T01:56:10+00:00",
+          "view_url": "https://drive.google.com/file/d/17ADZa3RjSs8aPXuWP2T9Angl3uNrIMxa/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "17axW8DMIssW89U5w8v5tcXVXhZN-V6KQ",
+          "name": "63f3dbe4-4191-4f85-b41a-16442daa1ca0.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 1054991,
+          "modified_time": "2025-02-03T13:00:10+00:00",
+          "view_url": "https://drive.google.com/file/d/17axW8DMIssW89U5w8v5tcXVXhZN-V6KQ/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "16setGin18_zl-_FX7xQjfTjf8_MR47eK",
+          "name": "100 Best Stocks to Buy in 2020.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 2027762,
+          "modified_time": "2025-10-02T02:12:54+00:00",
+          "view_url": "https://drive.google.com/file/d/16setGin18_zl-_FX7xQjfTjf8_MR47eK/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1ofEyV-R-177_niNUJgmUhnTs-IwQ8kqA",
+          "name": "2017_Book_EnterpriseRiskManagementModels.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 4013899,
+          "modified_time": "2025-10-02T02:11:22+00:00",
+          "view_url": "https://drive.google.com/file/d/1ofEyV-R-177_niNUJgmUhnTs-IwQ8kqA/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1BVnpu6CztiGTcViAUdj9fFWcmZDkdmrV",
+          "name": "2017_Book_IntroductionToElectronicCommer.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 8086387,
+          "modified_time": "2025-10-02T02:11:21+00:00",
+          "view_url": "https://drive.google.com/file/d/1BVnpu6CztiGTcViAUdj9fFWcmZDkdmrV/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1PEaV1VZsp6ZDeFGYYpl-QnTS3qHYOAbx",
+          "name": "2017_Book_StatisticsAndAnalysisOfScienti.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 7073352,
+          "modified_time": "2025-10-02T02:11:16+00:00",
+          "view_url": "https://drive.google.com/file/d/1PEaV1VZsp6ZDeFGYYpl-QnTS3qHYOAbx/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1IlvUxcyeMGosZFGqTyhi3Ryds1i0pwTI",
+          "name": "2018_Book_AnalyticalCorporateFinance.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 3493810,
+          "modified_time": "2025-10-02T02:12:49+00:00",
+          "view_url": "https://drive.google.com/file/d/1IlvUxcyeMGosZFGqTyhi3Ryds1i0pwTI/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1AsuxMVU_xrAmnoKbvT_KXxSwmbv4eATj",
+          "name": "2018_Book_IntroductionToDeepLearning.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 2576351,
+          "modified_time": "2025-10-02T02:12:49+00:00",
+          "view_url": "https://drive.google.com/file/d/1AsuxMVU_xrAmnoKbvT_KXxSwmbv4eATj/view?usp=drivesdk",
+          "file_extension": "pdf"
+        },
+        {
+          "id": "1nzWlz7Ma3EPv3ZoY3Bz2arKJWefywIiS",
+          "name": "2018_Book_MarketResearch.pdf",
+          "mime_type": "application/pdf",
+          "is_folder": false,
+          "parents": [
+            "1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+          ],
+          "children": [],
+          "size_bytes": 6900377,
+          "modified_time": "2025-10-02T02:12:48+00:00",
+          "view_url": "https://drive.google.com/file/d/1nzWlz7Ma3EPv3ZoY3Bz2arKJWefywIiS/view?usp=drivesdk",
+          "file_extension": "pdf"
+        }
+      ],
+      "modified_time": "2025-10-03T03:45:55.814000+00:00",
+      "view_url": "https://drive.google.com/drive/folders/1DJ2bl8GHEmBOBqo5LsoFIMnSF7pIxbnD"
+    }
+  ],
+  "view_url": "https://drive.google.com/drive/folders/1jD0Z06Hhfj4XSzGL81h9x8olE4KkmVZR"
+}
