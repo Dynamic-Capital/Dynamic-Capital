@@ -1,5 +1,4 @@
-import { createClient, createSupabaseClient } from "./client.ts";
-import { getEnv } from "./env.ts";
+import { createClient, createClientForRequest } from "./client.ts";
 import { verifyInitDataAndGetUser } from "./telegram.ts";
 
 type ServiceClient = ReturnType<typeof createClient>;
@@ -16,14 +15,9 @@ export async function resolveTelegramId(
   const authHeader = req.headers.get("Authorization");
   if (authHeader) {
     try {
-      const supaAuth = createSupabaseClient(
-        getEnv("SUPABASE_URL"),
-        getEnv("SUPABASE_ANON_KEY"),
-        {
-          global: { headers: { Authorization: authHeader } },
-          auth: { persistSession: false },
-        },
-      );
+      const supaAuth = createClientForRequest(req, {
+        auth: { persistSession: false },
+      });
       const { data: { user } } = await supaAuth.auth.getUser();
       if (user) {
         const tgId = user.user_metadata?.telegram_id || user.id;
