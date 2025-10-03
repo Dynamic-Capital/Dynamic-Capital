@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import importlib
+
 import pytest
 
 from dynamic_autonoetic import (
@@ -101,4 +103,20 @@ def test_autonoetic_state_requires_signals() -> None:
 
     with pytest.raises(RuntimeError):
         consciousness.build_state(context)
+
+
+def test_dynamic_namespace_re_exports_autonoetic_utilities() -> None:
+    module = importlib.import_module("dynamic.autonoetic")
+
+    for name in (
+        "AutonoeticConsciousness",
+        "AutonoeticContext",
+        "AutonoeticSignal",
+        "AutonoeticState",
+    ):
+        exported = getattr(module, name)
+        original = getattr(importlib.import_module("dynamic_autonoetic"), name)
+        assert exported is original
+        # Ensure repeated lookups reuse cached attribute and do not raise.
+        assert getattr(module, name) is exported
 
