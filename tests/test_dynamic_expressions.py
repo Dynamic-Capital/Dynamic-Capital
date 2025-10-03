@@ -141,3 +141,32 @@ def test_dynamic_expressions_unbounded_history() -> None:
         )
 
     assert len(engine) == 40
+
+
+def test_dynamic_expressions_history_validation() -> None:
+    with pytest.raises(TypeError):
+        DynamicExpressions(history="invalid")  # type: ignore[arg-type]
+
+    with pytest.raises(ValueError):
+        DynamicExpressions(history=0)
+
+
+def test_dynamic_expressions_extend_bulk_capture() -> None:
+    payloads = (
+        {
+            "name": "Alpha",
+            "expression": "x + 1",
+            "description": "alpha",
+        },
+        {
+            "name": "Beta",
+            "expression": "x + 2",
+            "description": "beta",
+        },
+    )
+
+    engine = DynamicExpressions(history=4)
+    engine.capture(payloads[0])
+    engine.extend(item for item in payloads[1:])
+
+    assert len(engine) == 2

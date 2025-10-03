@@ -306,13 +306,14 @@ class DynamicExpressions:
     """Aggregate expressions and produce an actionable digest."""
 
     def __init__(self, *, history: int | None = 32) -> None:
-        if history is not None and history <= 0:
-            raise ValueError("history must be positive")
-        self._expressions: Deque[ExpressionElement]
-        if history is None:
-            self._expressions = deque()
-        else:
-            self._expressions = deque(maxlen=history)
+        if history is not None:
+            if not isinstance(history, int):
+                raise TypeError("history must be an integer or None")
+            if history <= 0:
+                raise ValueError("history must be positive")
+
+        self._expressions: Deque[ExpressionElement] = deque(maxlen=history)
+        self._history: int | None = history
 
     def __len__(self) -> int:
         return len(self._expressions)
@@ -323,8 +324,9 @@ class DynamicExpressions:
         return resolved
 
     def extend(self, elements: Iterable[ExpressionElement | Mapping[str, object]]) -> None:
-        for element in elements:
-            self.capture(element)
+        resolved_elements = tuple(self._coerce_element(element) for element in elements)
+        if resolved_elements:
+            self._expressions.extend(resolved_elements)
 
     def reset(self) -> None:
         self._expressions.clear()
