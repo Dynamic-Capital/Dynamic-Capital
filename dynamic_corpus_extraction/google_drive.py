@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import importlib
+import importlib.util
 import io
 import json
 import re
@@ -55,6 +57,89 @@ def _default_pdf_text_extractor(payload: bytes, *, file_name: str) -> str:
     text = "\n".join(part.strip() for part in text_parts if part.strip())
     if not text:
         raise RuntimeError(f"No extractable text found in PDF '{file_name}'")
+    return text
+
+
+def _normalise_ocr_languages(languages: Sequence[str] | str | None) -> str | None:
+    if languages is None:
+        return None
+    if isinstance(languages, str):
+        cleaned = languages.strip()
+        return cleaned or None
+    cleaned_sequence: list[str] = []
+    for candidate in languages:
+        text = str(candidate).strip()
+        if text:
+            cleaned_sequence.append(text)
+    unique = []
+    seen: set[str] = set()
+    for entry in cleaned_sequence:
+        if entry and entry not in seen:
+            seen.add(entry)
+            unique.append(entry)
+    if not unique:
+        return None
+    return "+".join(unique)
+
+
+def _load_pdf_ocr_toolchain() -> tuple[object, object]:
+    dependency_map = (
+        ("pdf2image", "pdf2image"),
+        ("pytesseract", "pytesseract"),
+        ("PIL.Image", "Pillow"),
+    )
+    for module_name, package_name in dependency_map:
+        if importlib.util.find_spec(module_name) is None:
+            raise RuntimeError(
+                "PDF OCR support requires the "
+                f"'{package_name}' package. Install it with `pip install {package_name}`."
+            )
+
+    pdf2image = importlib.import_module("pdf2image")
+    pytesseract = importlib.import_module("pytesseract")
+    importlib.import_module("PIL.Image")
+    return pdf2image, pytesseract
+
+
+def _ocr_pdf_text_extractor(
+    payload: bytes,
+    *,
+    file_name: str,
+    languages: str | None,
+    dpi: int,
+) -> str:
+    pdf2image, pytesseract = _load_pdf_ocr_toolchain()
+    try:
+        images = pdf2image.convert_from_bytes(payload, dpi=dpi)
+    except Exception as error:  # pragma: no cover - conversion failure
+        raise RuntimeError(f"Failed to rasterise PDF '{file_name}' for OCR") from error
+
+    text_parts: list[str] = []
+    try:
+        for image in images:
+            try:
+                if languages:
+                    extracted = pytesseract.image_to_string(image, lang=languages)
+                else:
+                    extracted = pytesseract.image_to_string(image)
+            finally:
+                try:
+                    image.close()
+                except Exception:  # pragma: no cover - defensive cleanup
+                    pass
+            cleaned = extracted.strip()
+            if cleaned:
+                text_parts.append(cleaned)
+    finally:
+        for image in images:
+            try:
+                image.close()
+            except Exception:  # pragma: no cover - defensive cleanup
+                pass
+
+    text = "\n".join(text_parts)
+    if not text.strip():
+        raise RuntimeError(f"OCR extraction produced no text for PDF '{file_name}'")
     return text
 
 
@@ -230,8 +315,18 @@ def build_google_drive_pdf_loader(
     pdf_text_extractor: Callable[[bytes, Mapping[str, object]], str] | None = None,
     max_file_size: int | None = 50_000_000,
     batch_size: int | None = None,
+    enable_ocr: bool = False,
+    ocr_languages: Sequence[str] | str | None = ("eng",),
+    ocr_dpi: int = 300,
 ) -> ExtractionLoader:
-    """Create a loader that streams Google Drive PDFs as corpus documents."""
+    """Create a loader that streams Google Drive PDFs as corpus documents.
+
+    When ``enable_ocr`` is ``True`` the loader falls back to rasterising PDF
+    pages and running them through Tesseract OCR whenever text extraction
+    yields empty results.  This allows the pipeline to capture scanned
+    documents while still preferring the faster embedded text path when
+    available.
+    """
 
     resolved_folder: str | None = folder_id.strip() if folder_id else None
     resolved_files: list[str] = [file_id.strip() for file_id in file_ids or [] if file_id and file_id.strip()]
@@ -261,7 +356,38 @@ def build_google_drive_pdf_loader(
             file_name=str(metadata.get("name", "unknown")),
         )
     )
+    if enable_ocr:
+        languages = _normalise_ocr_languages(ocr_languages)
+        dpi = max(int(ocr_dpi or 0), 72)
+
+        def _ocr_enabled_extractor(payload: bytes, metadata: Mapping[str, object]) -> str:
+            base_error: Exception | None = None
+            try:
+                text = extractor(payload, metadata)
+                if text.strip():
+                    return text
+            except Exception as error:  # pragma: no cover - defensive fallback
+                base_error = error
+            try:
+                return _ocr_pdf_text_extractor(
+                    payload,
+                    file_name=str(metadata.get("name", "unknown")),
+                    languages=languages,
+                    dpi=dpi,
+                )
+            except Exception as ocr_error:  # pragma: no cover - fallback path
+                if base_error is not None:
+                    raise RuntimeError(
+                        "Both direct text extraction and OCR failed for PDF "
+                        f"'{metadata.get('name', 'unknown')}'"
+                    ) from ocr_error
+                raise
+
+        extractor = _ocr_enabled_extractor
+
     default_tags = tuple(tags or ())
+    if enable_ocr and "ocr" not in default_tags:
+        default_tags = default_tags + ("ocr",)
     configured_batch_size = _coerce_positive_int(batch_size) or 10
 
     def loader(context: CorpusExtractionContext) -> Iterable[Mapping[str, object]]:
