@@ -1,0 +1,119 @@
+{
+  "reference_time": "2024-02-01T12:00:00+00:00",
+  "domains": {
+    "IonTrap": {
+      "environment": {
+        "vacuum_pressure": 0.58,
+        "background_noise": 0.42,
+        "gravity_gradient": 0.37,
+        "measurement_rate": 0.68,
+        "thermal_load": 0.55
+      },
+      "pulses": [
+        {
+          "system": "ion-alpha",
+          "coherence": 0.94,
+          "entanglement": 0.9,
+          "temperature": 51.0,
+          "flux": 0.18,
+          "phase_variance": 0.22,
+          "timestamp": "2024-02-01T02:30:00+00:00"
+        },
+        {
+          "system": "ion-beta",
+          "coherence": 0.92,
+          "entanglement": 0.88,
+          "temperature": 44.0,
+          "flux": -0.12,
+          "phase_variance": 0.26,
+          "timestamp": "2024-02-01T03:45:00+00:00"
+        },
+        {
+          "system": "ion-gamma",
+          "coherence": 0.91,
+          "entanglement": 0.86,
+          "temperature": 46.0,
+          "flux": 0.05,
+          "phase_variance": 0.24,
+          "timestamp": "2024-02-01T04:15:00+00:00"
+        }
+      ]
+    },
+    "Photonic": {
+      "environment": {
+        "vacuum_pressure": 0.47,
+        "background_noise": 0.63,
+        "gravity_gradient": 0.33,
+        "measurement_rate": 0.61,
+        "thermal_load": 0.52
+      },
+      "pulses": [
+        {
+          "system": "photon-alpha",
+          "coherence": 0.84,
+          "entanglement": 0.79,
+          "temperature": 41.0,
+          "flux": -0.08,
+          "phase_variance": 0.29,
+          "timestamp": "2024-01-31T15:00:00+00:00"
+        },
+        {
+          "system": "photon-beta",
+          "coherence": 0.83,
+          "entanglement": 0.77,
+          "temperature": 48.0,
+          "flux": 0.14,
+          "phase_variance": 0.33,
+          "timestamp": "2024-01-31T18:30:00+00:00"
+        },
+        {
+          "system": "photon-gamma",
+          "coherence": 0.82,
+          "entanglement": 0.75,
+          "temperature": 47.0,
+          "flux": -0.11,
+          "phase_variance": 0.31,
+          "timestamp": "2024-01-31T19:45:00+00:00"
+        }
+      ]
+    },
+    "Superconducting": {
+      "environment": {
+        "vacuum_pressure": 0.62,
+        "background_noise": 0.39,
+        "gravity_gradient": 0.29,
+        "measurement_rate": 0.56,
+        "thermal_load": 0.48
+      },
+      "pulses": [
+        {
+          "system": "sc-alpha",
+          "coherence": 0.97,
+          "entanglement": 0.93,
+          "temperature": 42.0,
+          "flux": 0.09,
+          "phase_variance": 0.18,
+          "timestamp": "2024-02-01T07:00:00+00:00"
+        },
+        {
+          "system": "sc-beta",
+          "coherence": 0.96,
+          "entanglement": 0.92,
+          "temperature": 40.0,
+          "flux": -0.06,
+          "phase_variance": 0.2,
+          "timestamp": "2024-02-01T08:10:00+00:00"
+        },
+        {
+          "system": "sc-gamma",
+          "coherence": 0.95,
+          "entanglement": 0.91,
+          "temperature": 39.0,
+          "flux": 0.04,
+          "phase_variance": 0.19,
+          "timestamp": "2024-02-01T09:20:00+00:00"
+        }
+      ]
+    }
+  }
+}

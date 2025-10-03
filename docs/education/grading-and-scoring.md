@@ -295,6 +295,24 @@ The script loads the JSON benchmark manifest, applies the grade bands above, and
 prints remediation guidance for each domain so you can track improvements over
 time.
 
+### Quantum resonance scenarios
+
+Quantum control teams can reuse the same rubric by translating coherence and
+entanglement telemetry into the coverage/accuracy bands. The helper below loads
+domain-specific pulse histories, computes aggregate resonance frames with
+`dynamic_quantum`, and emits letter grades plus stabilisation guidance:
+
+```bash
+python scripts/run_quantum_benchmark.py --config benchmarks/quantum-resonance.json
+```
+
+Each domain block defines an environment envelope and a series of recent pulses
+captured from hardware or simulation runs. The CLI reports the resulting grade
+table, highlights anomalies discovered by the resonance engine, and summarises
+recommended mitigations (e.g., cooling cycles or shielding adjustments). Use the
+`--reference-time` flag to benchmark historical snapshots against a fixed
+observation window when comparing multiple runs.
+
 ### Latest Benchmark Snapshot
 
 Re-running the benchmark after the most recent fine-tuning cycle yields the

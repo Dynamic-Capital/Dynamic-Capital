@@ -17,6 +17,7 @@ from .gradebook import (
     grade_many,
     summarise,
 )
+from .quantum import QuantumBenchmarkDomain, load_quantum_benchmark
 
 __all__ = [
     "BenchmarkMetric",
@@ -32,4 +33,6 @@ __all__ = [
     "grade_comprehensively",
     "grade_many",
     "summarise",
+    "QuantumBenchmarkDomain",
+    "load_quantum_benchmark",
 ]
