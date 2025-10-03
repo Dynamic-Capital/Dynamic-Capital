@@ -110,6 +110,7 @@
   },
   "devDependencies": {
     "chokidar-cli": "^3.0.0",
+    "@types/node": "^22.10.1",
     "deno": "^2.5.0",
     "dotenv": "^17.2.3",
     "firecrawl": "^1.21.1",

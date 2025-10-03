@@ -1,0 +1,25 @@
+# Example configuration for the cross-platform synchronization tooling.
+# Copy this file to `config/platforms.yaml` and replace the placeholder
+# values with the credentials or identifiers that apply to your
+# deployment. Do **not** commit secrets.
+platforms:
+  github:
+    repo: "your-username/ai-project"
+    branch: "main"
+    data_root: "data"
+  digitalocean:
+    space: "ai-project"
+    region: "nyc3"
+    prefix: "datasets"
+    profile: "do-spaces"
+    cdn_base_url: "https://ai-project.nyc3.digitaloceanspaces.com"
+  gdrive:
+    remote: "gdrive"
+    base_folder: "AI Project/Datasets"
+  supabase:
+    metadata_file: "supabase/metadata/datasets.json"
+  vercel:
+    dataset_api_base: "https://your-vercel-app.vercel.app/api/datasets"
+  ton:
+    registry_file: "dynamic-capital-ton/provenance/datasets.json"
+    network: "mainnet"
