@@ -131,3 +131,189 @@ IPs and let Cloudflare proxy requests to the service running on port `8080`.
 
 Ensure the runtime can reach external services like Supabase over HTTPS
 (`*.supabase.co`). Adjust firewall or egress rules as needed.
+
+## WebSockets on Edge Functions
+
+Supabase Edge Functions can host long-lived WebSocket sessions in addition to
+standard HTTP handlers. Use them to fan out live dashboards, run lightweight
+chat relays, or bridge to upstream streaming APIs.
+
+### Accepting WebSocket upgrades
+
+- Edge Functions accept upgrades through the standard `upgrade` header check and
+  `Deno.upgradeWebSocket` helper.
+- Reject non-WebSocket requests early so the function exits quickly when not
+  needed.
+
+```ts
+Deno.serve((req) => {
+  const upgrade = req.headers.get("upgrade") || "";
+  if (upgrade.toLowerCase() !== "websocket") {
+    return new Response("request isn't trying to upgrade to WebSocket.", {
+      status: 400,
+    });
+  }
+
+  const { socket, response } = Deno.upgradeWebSocket(req);
+  socket.onopen = () => console.log("socket opened");
+  socket.onmessage = (event) => {
+    console.log("socket message:", event.data);
+    socket.send(new Date().toString());
+  };
+  socket.onerror = (event) => console.log("socket errored:", event.message);
+  socket.onclose = () => console.log("socket closed");
+
+  return response;
+});
+```
+
+### Relaying to outbound WebSockets
+
+Combining inbound and outbound sockets lets an Edge Function proxy external
+real-time APIs (for example, the OpenAI Realtime API). Use `npm:ws` in
+`noServer` mode so you can handle the upgrade yourself and fan out events
+between the browser client and the upstream service.
+
+```ts
+import { createServer } from "node:http";
+import { WebSocketServer } from "npm:ws";
+import { RealtimeClient } from "https://raw.githubusercontent.com/openai/openai-realtime-api-beta/refs/heads/main/lib/client.js";
+
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const server = createServer();
+const wss = new WebSocketServer({ noServer: true });
+
+wss.on("connection", async (ws) => {
+  if (!OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not set");
+  }
+
+  const client = new RealtimeClient({ apiKey: OPENAI_API_KEY });
+
+  client.realtime.on("server.*", (event) => {
+    ws.send(JSON.stringify(event));
+  });
+  client.realtime.on("close", () => ws.close());
+
+  const messageQueue: string[] = [];
+  const relay = (data: string) => {
+    const event = JSON.parse(data);
+    client.realtime.send(event.type, event);
+  };
+
+  ws.on("message", (data) => {
+    if (!client.isConnected()) {
+      messageQueue.push(data.toString());
+    } else {
+      relay(data.toString());
+    }
+  });
+
+  ws.on("close", () => client.disconnect());
+
+  await client.connect();
+
+  while (messageQueue.length) {
+    relay(messageQueue.shift()!);
+  }
+});
+
+server.on("upgrade", (req, socket, head) => {
+  wss.handleUpgrade(req, socket, head, (ws) => {
+    wss.emit("connection", ws, req);
+  });
+});
+
+server.listen(8080);
+```
+
+### Authentication strategies
+
+- Supabase CLI and dashboard skip JWT verification for WebSocket handlers unless
+  you pass `--no-verify-jwt` during development and deployment. Handle
+  authentication inside the handler instead.
+- WebSocket clients cannot send custom headers, so pass the JWT via query
+  parameters or negotiated subprotocols. Query parameters may appear in logs, so
+  avoid embedding secrets directly if the log stream is shared.
+- Validate tokens server-side before accepting the connection.
+
+```ts
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL"),
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
+);
+
+Deno.serve(async (req) => {
+  const upgrade = req.headers.get("upgrade") || "";
+  if (upgrade.toLowerCase() !== "websocket") {
+    return new Response("request isn't trying to upgrade to WebSocket.", {
+      status: 400,
+    });
+  }
+
+  const url = new URL(req.url);
+  const jwt = url.searchParams.get("jwt");
+  if (!jwt) {
+    return new Response("Auth token not provided", { status: 403 });
+  }
+
+  const { data, error } = await supabase.auth.getUser(jwt);
+  if (error || !data.user) {
+    return new Response("Invalid token provided", { status: 403 });
+  }
+
+  const { socket, response } = Deno.upgradeWebSocket(req);
+  socket.onmessage = (event) => {
+    socket.send(new Date().toString());
+  };
+
+  return response;
+});
+```
+
+### Repository implementation (`websocket-relay`)
+
+- The function lives at
+  [`supabase/functions/websocket-relay/index.ts`](../supabase/functions/websocket-relay/index.ts)
+  and is deployed as `/websocket-relay` on the Supabase functions domain.
+- The handler expects a `jwt` query parameter and validates it with a
+  service-role Supabase client before completing the WebSocket upgrade.
+- When `OPENAI_API_KEY` is present, the function instantiates the official
+  OpenAI Realtime SDK and relays events between the browser and the upstream
+  session. Queueing ensures that client events sent before the upstream session
+  is ready are forwarded after `session.created` arrives.
+- Set `OPENAI_REALTIME_MODEL` if you need to override the default model for the
+  upstream connection. Leave it empty to let the SDK fall back to the current
+  default (`gpt-4o-realtime-preview-2024-10-01`).
+- Without an API key, the handler downgrades to an authenticated echo server so
+  teams can still validate local WebSocket clients and Supabase authentication.
+- The socket emits JSON envelopes such as `connected`, `heartbeat`,
+  `upstream.ready`, and `relay.error` to keep clients informed about the
+  connection lifecycle. The upstream server's events are forwarded verbatim.
+- Start the function locally with
+  `supabase functions serve websocket-relay --no-verify-jwt` so the CLI skips
+  the default auth middleware and keeps the worker alive for the WebSocket
+  session. Connect via `wscat` or a browser client, passing a valid Supabase
+  JWT:
+
+  ```bash
+  wscat -c "ws://localhost:54321/functions/v1/websocket-relay?jwt=$SUPABASE_JWT"
+  ```
+
+### Local development constraints
+
+- Local Supabase Edge Function instances exit immediately after the request
+  finishes. To keep WebSocket sessions alive, set the edge runtime policy to
+  `per_worker` in `supabase/config.toml`:
+
+  ```toml
+  [edge_runtime]
+  policy = "per_worker"
+  ```
+- The repository's checked-in `supabase/config.toml` already sets this policy so
+  local developers can establish WebSocket sessions without additional manual
+  tweaks.
+- Edge Functions still respect their wall-clock, CPU, and memory limits. The
+  connection closes automatically when any quota is exceeded.
