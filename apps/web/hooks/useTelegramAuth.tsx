@@ -14,6 +14,28 @@ import {
   VipStatusResponse,
 } from "@/types/api";
 
+const ADMIN_STORAGE_KEY = "dc_admin_token";
+
+export async function validateAdminToken(token: string): Promise<boolean> {
+  const { data, error } = await callEdgeFunction<AdminCheckResponse>(
+    "ADMIN_CHECK",
+    {
+      method: "GET",
+      token,
+    },
+  );
+
+  if (error) {
+    if (error.status >= 400 && error.status < 500) {
+      return false;
+    }
+
+    throw new Error(error.message);
+  }
+
+  return data?.ok === true || data?.is_admin === true;
+}
+
 interface TelegramUser {
   id: number;
   first_name: string;
@@ -30,11 +52,17 @@ interface TelegramAuthContextType {
   isVip: boolean;
   loading: boolean;
   initData: string | null;
+  validatedAdminToken: string | null;
+  validatingAdminToken: boolean;
+  adminTokenError: string | null;
   verifyTelegramAuth: () => Promise<boolean>;
   checkAdminStatus: (
     userId?: string,
     initDataOverride?: string,
   ) => Promise<boolean>;
+  refreshValidatedAdminToken: (
+    token?: string,
+  ) => Promise<{ valid: boolean; error?: string }>;
   getAdminAuth: () => { initData?: string; token?: string } | null;
 }
 
@@ -76,6 +104,11 @@ export function TelegramAuthProvider(
   const [isVip, setIsVip] = useState(false);
   const [loading, setLoading] = useState(true);
   const [initData, setInitData] = useState<string | null>(null);
+  const [validatedAdminToken, setValidatedAdminToken] = useState<string | null>(
+    null,
+  );
+  const [validatingAdminToken, setValidatingAdminToken] = useState(false);
+  const [adminTokenError, setAdminTokenError] = useState<string | null>(null);
 
   const verifyTelegramAuth = useCallback(
     async (initDataString?: string): Promise<boolean> => {
@@ -201,6 +234,50 @@ export function TelegramAuthProvider(
     [verifyTelegramAuth, syncUser, checkAdminStatus, checkVipStatus],
   );
 
+  const refreshValidatedAdminToken = useCallback(
+    async (token?: string): Promise<{ valid: boolean; error?: string }> => {
+      const tokenToCheck = token ?? localStorage.getItem(ADMIN_STORAGE_KEY);
+
+      if (!tokenToCheck) {
+        setValidatedAdminToken(null);
+        setAdminTokenError(null);
+        setValidatingAdminToken(false);
+        return { valid: false };
+      }
+
+      setValidatingAdminToken(true);
+      setAdminTokenError(null);
+
+      try {
+        const isValid = await validateAdminToken(tokenToCheck);
+
+        if (!isValid) {
+          localStorage.removeItem(ADMIN_STORAGE_KEY);
+          setValidatedAdminToken(null);
+          const message = "Admin token rejected";
+          setAdminTokenError(message);
+          return { valid: false, error: message };
+        }
+
+        localStorage.setItem(ADMIN_STORAGE_KEY, tokenToCheck);
+        setValidatedAdminToken(tokenToCheck);
+        return { valid: true };
+      } catch (error) {
+        console.error("Failed to validate admin token:", error);
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+        setValidatedAdminToken(null);
+        const message = error instanceof Error
+          ? error.message
+          : "Failed to validate admin token";
+        setAdminTokenError(message);
+        return { valid: false, error: message };
+      } finally {
+        setValidatingAdminToken(false);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     if (globalThis.Telegram?.WebApp) {
       const tg = globalThis.Telegram.WebApp;
@@ -219,23 +296,15 @@ export function TelegramAuthProvider(
     }
   }, [verifyAndCheckStatus]);
 
+  useEffect(() => {
+    void refreshValidatedAdminToken();
+  }, [refreshValidatedAdminToken]);
+
   const getAdminAuth = () => {
-    // Check for stored admin token
-    const token = localStorage.getItem("dc_admin_token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.exp > Date.now() / 1000 && payload.admin) {
-          return { token };
-        }
-        // Token expired, remove it
-        localStorage.removeItem("dc_admin_token");
-      } catch {
-        localStorage.removeItem("dc_admin_token");
-      }
+    if (validatedAdminToken) {
+      return { token: validatedAdminToken };
     }
 
-    // Use initData if available
     if (initData) {
       return { initData };
     }
@@ -249,8 +318,12 @@ export function TelegramAuthProvider(
     isVip,
     loading,
     initData,
+    validatedAdminToken,
+    validatingAdminToken,
+    adminTokenError,
     verifyTelegramAuth,
     checkAdminStatus,
+    refreshValidatedAdminToken,
     getAdminAuth,
   };
 
