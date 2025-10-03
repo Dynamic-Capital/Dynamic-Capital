@@ -68,6 +68,26 @@ def test_dynamic_cap_theorem_toolkit_exports() -> None:
     )
 
 
+def test_dynamic_ultimate_reality_toolkit_exports_engine() -> None:
+    toolkits = dynamic_tool_kits.available_toolkits()
+
+    assert "dynamic_ultimate_reality" in toolkits
+    exports = set(toolkits["dynamic_ultimate_reality"])
+    expected = {
+        "DynamicUltimateReality",
+        "NonDualContext",
+        "UltimateRealitySignal",
+        "UltimateRealityState",
+    }
+    assert expected.issubset(exports)
+    assert (
+        dynamic_tool_kits.resolve_toolkit_symbol(
+            "DynamicUltimateReality", module_name="dynamic_ultimate_reality"
+        )
+        is dynamic_tool_kits.DynamicUltimateReality
+    )
+
+
 def test_available_toolkits_include_module_dunder_all_exports() -> None:
     toolkits = dynamic_tool_kits.available_toolkits()
 

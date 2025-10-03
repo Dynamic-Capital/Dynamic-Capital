@@ -425,7 +425,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
         "TrainerContext",
         "TrainingSignal",
     ),
-    "dynamic_ultimate_reality": ("DynamicUltimateReality",),
+    "dynamic_ultimate_reality": (
+        "DynamicUltimateReality",
+        "NonDualContext",
+        "UltimateRealitySignal",
+        "UltimateRealityState",
+    ),
     "dynamic_volume": ("DynamicVolumeAlgo",),
     "dynamic_wisdom": ("DynamicWisdomEngine",),
     "dynamic.platform.web3": (
