@@ -112,7 +112,7 @@ type NavItem = {
 };
 
 const TONCONNECT_MANIFEST_URL =
-  "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamic-capital-qazf2.ondigitalocean.app/tonconnect-manifest.json";
+  "https://dynamic-capital-qazf2.ondigitalocean.app/tonconnect-manifest.json";
 
 const SECTION_IDS: SectionId[] = [
   "overview",
