@@ -34,8 +34,8 @@ def test_decoherence_reduces_purity_and_coherence(basic_domain: tuple[dict[str, 
     initial_states, configs = basic_domain
     engine = ConsciousCollapseEngine(initial_states, configs)
     snapshot = engine.step(0.4)["quantum"]
-    assert snapshot.purity < pytest.approx(1.0)
-    assert snapshot.coherence < pytest.approx(1.0)
+    assert snapshot.purity < 0.999
+    assert snapshot.coherence < 0.999
 
 
 def test_intention_biases_measurement_probability(basic_domain: tuple[dict[str, np.ndarray], dict[str, DomainConfig]]) -> None:
