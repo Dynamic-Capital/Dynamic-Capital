@@ -1,107 +1,72 @@
 # Dynamic Capital Content Editorial Guidelines
 
-## Purpose
+## Introduction
 
-Dynamic Capital’s content demystifies the crypto industry for readers of all backgrounds. Every article, video, checklist, or social post should help people understand the latest developments, highlight the projects that matter, and show how to participate responsibly.
+Dynamic Capital’s content aims to demystify the crypto industry, helping users from all walks of life understand the latest industry developments, hottest projects, and how to participate and get involved.
 
-To deliver on that promise, contributors:
+We do this by:
 
-- Track trends across every crypto sector and vertical.
-- Investigate the context behind new developments, drawing parallels with broader market history.
-- Select topics and projects carefully so coverage builds trust and credibility.
-- Perform comprehensive research, grounded in verifiable facts rather than hype or fear.
-- Present insights in accessible language supported by charts, diagrams, or videos where helpful.
-- Celebrate innovation while calling out clear risks, pitfalls, or gaps.
+- Constantly having our finger on the pulse of what is happening within the crypto industry, across all sectors and verticals.
+- Diving deeper to understand the context of all of these latest developments, and also drawing parallels and comparisons with broader context and historical examples.
+- Being mindful of the topics but more importantly projects we cover, so that we build trust and credibility with our users.
+- Being comprehensive and meticulous in our research, sticking to being factual and not succumbing to hype or FUD.
+- Articulating the facts in an accessible manner that can be easily understood, leveraging different media such as charts, diagrams, and videos to communicate information.
+- While maintaining an optimistic tone on projects or topics we cover, balancing that by calling out the clear risks and pitfalls.
 
 ## Editorial Values
 
-Dynamic Capital is not a daily news outlet, but we hold ourselves to rigorous editorial standards. Our users trust our market data and rely on our content with the same expectation of accuracy. Upholding that trust requires the following principles:
+While we are not a news outlet, we still strive to uphold the highest standards of editorial quality and integrity. The trust of our users is our most valuable asset, and it is important that we constantly strive to inculcate and preserve that trust through every piece of content that Dynamic Capital publishes. Just as our users rely on our coins and exchanges pages as a trusted source of up-to-date information, the same expectations extend to the content we produce as well.
 
-### Accuracy and Verification
+Accuracy is paramount to our work, whether that is presenting a slice of data analysis, or covering the facts about a newly launched protocol. We are as thorough as possible when researching topics. To the best of our abilities, we fact-check and verify facts and information across multiple sources. When there may be unavoidable gaps in data or we make certain assumptions, it is called out clearly.
 
-- Base every claim on researched facts. Cross-check information with multiple reputable sources whenever possible.
-- Call out unavoidable data gaps, assumptions, or limitations directly in the content.
-- Document the provenance of data sets, screenshots, and analytics exports included in a piece.
+We understand that context matters, and it is always important to frame topics in the right manner. We try to provide as much relevant background information as feasible so that users can understand the broader circumstances, and appreciate the reasons behind certain events happening within the industry.
 
-### Context and Framing
+Crypto is an industry that lends itself to esoteric concepts and jargon. We strive to speak in plain language, in line with our mission to demystify the industry. Where necessary we draw parallels with more commonly understood examples to illustrate concepts, and use the aid of media such as diagrams, charts, infographics to improve our presentation.
 
-- Provide enough background so readers understand why an event matters and how it relates to previous developments.
-- Highlight macro trends, regulatory shifts, historical parallels, or competitive dynamics that shape the story.
+We are optimists but not maximalists. We will give projects a fair shake and the benefit of the doubt, but will also cast their lofty pronunciations and ambitions through a lens of realism. Where there are clear and obvious risks, challenges or gaps, we will call it out in a fair and balanced manner. This also means we are selective in the topics and projects that we choose to cover.
 
-### Clarity and Accessibility
+Finally, we will fiercely assert our editorial independence. Our writers and analysts retain significant agency, and frequently produce original work. We do not publish any content that has not been vetted by our editors. If a particular content is sponsored, the client may suggest certain changes or modifications, but we retain final editorial say. We will not obfuscate material facts, or publish something that could be misleading to our users.
 
-- Use plain language and minimize jargon. When technical terms are required, define them or link to a glossary entry.
-- Use analogies, diagrams, or charts to simplify complex topics.
-- Structure long-form content with headings, summaries, and callouts so readers can scan effectively.
+## Not Financial Advice
 
-### Optimism with Realism
+Dynamic Capital does not, and is not licensed to provide any form of financial advice. While maintaining an optimistic tone, in all of our content we aim to be factual and balanced, without embellishment or bombast. We actively avoid and disallow the mention of any price targets and predictions, except in reference to an external news report or third-party source.
 
-- Give projects a fair evaluation while applying a realistic lens to their claims.
-- Surface known risks, technical hurdles, governance concerns, or market challenges alongside potential upsides.
-- Be selective about which projects receive coverage; our curation is part of our credibility.
-
-### Editorial Independence
-
-- Writers and analysts retain agency over their work. Original analysis is encouraged and supported.
-- Editors review and approve every piece prior to publication.
-- Sponsored partners may suggest feedback, but the content team maintains final editorial control. We never publish misleading or incomplete information to satisfy a sponsor.
-
-## “Not Financial Advice” Standard
-
-Dynamic Capital does not—and is not licensed to—provide financial advice. All content is supplied strictly for general information.
-
-- Do not publish price targets, forward-looking returns, or implied investment recommendations. Reference external price forecasts only when citing and linking to the original source.
-- State clearly that users act on our content at their own risk and discretion.
-- Make the “Not Financial Advice” disclaimer prominent in articles, videos, and downloadable assets.
+All of Dynamic Capital’s content is provided strictly as general information only, and any use or reliance on our content is solely at the user’s own risk and discretion. Any projects mentioned by Dynamic Capital in our content should not be construed as an endorsement or recommendation of their products or services.
 
 ## Conflicts of Interest
 
-Dynamic Capital separates commercial relationships from editorial decisions.
+Dynamic Capital has a dedicated Business Development team that is responsible, amongst other things, for selling advertising on our platforms, as well as content. They work independently of the Content team, and have their own set of guidelines and policies for accepting advertising or content clients.
 
-- The Business Development team manages advertising and sponsored content independently from the Content team.
-- Sponsored pieces follow the same guidelines outlined in this document and the content team retains final say on publication.
-- Advertising relationships, including programmatic placements, do not influence editorial coverage or market data.
-- Contributors disclose any personal investments or DAO participation related to potential coverage. Editors reassign pieces when a significant conflict exists.
-- Content team members do not accept tokens, payments, or other inducements in exchange for coverage.
+While some of our content may be sponsored by a client, they are governed by the Sponsored Content policy described below. All sponsored content relationships are owned by the Business Development team, independent of the Content team. Content team members will not directly accept money, tokens, or other forms of inducement from any individuals or entities to produce any form of content.
 
-## Sponsored Content Policy
+A user may occasionally be served ads in the midst of our content. Advertising relationships have no impact on the content produced by Dynamic Capital, and do not necessarily represent the views of Dynamic Capital and its Content team.
 
-Sponsored content must meet the same standards as organic editorial work.
+Content team members may have some degree of investments or involvement (e.g., through participating in a DAO) in certain projects that we cover. Writers and analysts may not produce content which includes projects that they may have a significant investment, controlling stake, or play a prominent role in. Should such a situation arise, they are required to disclose this to an editor, and the piece is to be reassigned to an unconflicted writer or analyst.
 
-- Label sponsored pieces clearly at the beginning of the article, video description, or social post.
-- Preserve the “Not Financial Advice” disclaimer and factual tone.
-- Decline any sponsorship requests that require withholding material facts or publishing misleading claims.
-- Reinforce that sponsored publication is not an endorsement of the sponsor’s products or services.
-- Sponsored work has no impact on metrics, dashboards, or non-sponsored content across the Dynamic Capital platform.
+## Sponsored Content
+
+As part of our engagement with clients, Dynamic Capital occasionally produces and/or publishes content which is sponsored or paid for by external parties. Where a piece of content is sponsored, we will indicate them clearly as such at the beginning of the piece.
+
+All sponsored content is still held to the exact same editorial guidelines set out in this document, and it is the responsibility of Dynamic Capital editors working with our clients to ensure that these guidelines are met. Specifically, this includes (but is not limited to) “Not Financial Advice”. Dynamic Capital retains final editorial say over all content published on our platforms, including the right to reject any content that does not meet our guidelines.
+
+While we take pains to curate the list of clients that we work with, having Sponsored Content published on any of Dynamic Capital’s platforms should not be construed as Dynamic Capital’s endorsement or recommendation of the client’s products or services.
+
+Sponsored content relationships have no impact on data, metrics (e.g., price information, Trust Score, etc.), reports, and other non-sponsored content provided by Dynamic Capital.
 
 ## Collaborating Contributors and Freelancers
 
-External collaborators and freelancers follow the same rules as internal contributors.
+Dynamic Capital occasionally publishes content from external collaborating contributors, or engages the services of freelancers to produce content for us. All such content is still held to the exact same editorial guidelines set out in this document, and it is the responsibility of Dynamic Capital editors working with these contributors or freelancers to ensure that these guidelines are met. Dynamic Capital retains final editorial say over all content published on our platforms, including the right to reject any content that does not meet our guidelines.
 
-- Editors ensure collaborating writers receive and adhere to these guidelines.
-- Freelancers sign contracts that cover conflicts of interest and disclosure obligations before beginning work.
-- Editors address conflicts immediately, reassigning pieces when necessary.
+Any freelancer engaged by us is required to sign a contract with Dynamic Capital prior to commencing any work. These contracts contain specific clauses addressing conflicts of interest, and require them to take care in avoiding such conflicts, and disclose these conflicts where required. Dynamic Capital editors working with these freelancers are responsible for addressing situations of conflict where they arise.
 
-## Attribution and Plagiarism
+## Attribution
 
-- Attribute all data, images, charts, and media obtained from third parties.
-- Use quotation marks for direct excerpts and summarize responsibly when paraphrasing.
-- Plagiarism is prohibited. Sources must be credited explicitly.
+Crypto is an industry that places a strong emphasis on radical transparency, and all of the data and information available catalyze a constant stream of diverse analysis and content creation.
+
+Any data, images, charts, or media that we may have obtained or adapted from other third-party sources must be attributed clearly. We do not tolerate plagiarism of any kind.
 
 ## Errors and Corrections
 
-- Encourage readers to report errors through the Support channel or designated feedback form.
-- Fix minor issues (typos, formatting) promptly.
-- For substantive corrections, append a note summarizing the change and its rationale. When a correction note cannot be added (e.g., newsletters), include the correction in the next publication.
+While we always strive to provide the most accurate facts and information, errors may occur. We encourage our users to report errors via our Support channel, so that they can be corrected at the earliest.
 
-## Publication Checklist Alignment
-
-Before publishing, confirm that:
-
-1. Facts, metrics, and quotes are verified and cited.
-2. Context and risk factors are clearly documented.
-3. Disclaimers (“Not Financial Advice”) are prominent and accurate.
-4. Conflicts of interest were disclosed and resolved.
-5. Sponsored content—if applicable—is labeled and editorial independence preserved.
-
-Adhering to these guidelines ensures every Dynamic Capital publication is trustworthy, balanced, and accessible.
+Errors, once reported, will be reviewed by the respective editor to determine the next steps. Simple errors, such as typos, will be fixed promptly. For more substantial errors, any corrections will be accompanied with a note at the end of the content explaining the nature of the correction. For content where such a note may not be possible, e.g., in our newsletter, we will publish a correction note in the next earliest publication.
