@@ -8,9 +8,9 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+from dynamic_metadata import DynamicMetadataAlgo, MetadataAttribute  # noqa: E402
 from dynamic.trading.algo import (  # noqa: E402
     DynamicMarketFlow,
-    DynamicMetadataAlgo,
     DynamicPoolAlgo,
 )
 
@@ -96,3 +96,12 @@ def test_metadata_algo_handles_missing_sections() -> None:
     }
     assert metadata["attributes"]  # includes baseline attributes
     assert metadata["tags"] == ["dynamic", "intelligence"]
+
+
+def test_metadata_attribute_reexport() -> None:
+    attribute = MetadataAttribute("Signal Strength", 0.88, "number")
+    assert attribute.as_dict() == {
+        "trait_type": "Signal Strength",
+        "value": 0.88,
+        "display_type": "number",
+    }
