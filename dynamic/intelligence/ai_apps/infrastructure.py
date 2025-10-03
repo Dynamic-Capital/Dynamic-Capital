@@ -409,6 +409,23 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
         notes=("Supabase service role keys held in secure secrets manager",),
     ),
     ModuleRegistration(
+        name="dynamic_adapters",
+        domain=ModuleDomain.TECHNOLOGY_INFRASTRUCTURE,
+        responsibilities=(
+            "Maintain multi-provider LLM adapter roster with hot failovers",
+            "Rotate adapter credentials and runtime configuration safely",
+            "Exercise regression suites across prompt templates and transports",
+        ),
+        success_metrics=(
+            "Adapter uptime above 99.5%",
+            "Failover drills executed each week",
+            "Configuration drift resolved within 1 business day",
+        ),
+        notes=(
+            "Backed by Dolphin, Ollama, and Kimi K2 adapter implementations",
+        ),
+    ),
+    ModuleRegistration(
         name="dynamic_memory",
         domain=ModuleDomain.AI_COGNITION,
         responsibilities=(
@@ -424,6 +441,23 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
         notes=("Backed by vector store with encryption at rest",),
     ),
     ModuleRegistration(
+        name="dynamic_datasets",
+        domain=ModuleDomain.AI_COGNITION,
+        responsibilities=(
+            "Transform learning telemetry into rolling fine-tune datasets",
+            "Publish dataset exports for downstream training pipelines",
+            "Track tag coverage and dataset lineage for governance",
+        ),
+        success_metrics=(
+            "Dataset refresh cadence within 24 hours",
+            "Average example size under 4KB",
+            "Tag coverage above 90% across active datasets",
+        ),
+        notes=(
+            "Powered by DynamicFineTuneDataset and DynamicAGIFineTuner primitives",
+        ),
+    ),
+    ModuleRegistration(
         name="dynamic_task_manager",
         domain=ModuleDomain.BUSINESS_OPERATIONS,
         responsibilities=(
@@ -435,6 +469,23 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
             "Task SLA adherence above 95%",
             "Escalations acknowledged within 30 minutes",
             "Monthly retros capture actionable improvements",
+        ),
+    ),
+    ModuleRegistration(
+        name="dynamic_dev_engine",
+        domain=ModuleDomain.BUSINESS_OPERATIONS,
+        responsibilities=(
+            "Plan engineering iterations across full-stack roles",
+            "Surface dependency chains and unblock development work",
+            "Balance capacity allocations across focus lanes",
+        ),
+        success_metrics=(
+            "Iteration coverage maintained above 90%",
+            "Critical blockers resolved within one business day",
+            "Role utilisation variance kept under 15%",
+        ),
+        notes=(
+            "Backed by DevelopmentTask and DevelopmentCapacity primitives for automation",
         ),
     ),
     ModuleRegistration(
@@ -466,6 +517,23 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
         ),
     ),
     ModuleRegistration(
+        name="dynamic_development_team",
+        domain=ModuleDomain.HUMAN_CREATIVE,
+        responsibilities=(
+            "Publish role-specific playbooks for product delivery",
+            "Capture focus areas and broadcast onboarding packets",
+            "Keep cross-functional collaboration rituals aligned",
+        ),
+        success_metrics=(
+            "Playbook satisfaction above 4.5/5",
+            "Focus updates issued at least weekly",
+            "Onboarding packets prepared before each iteration",
+        ),
+        notes=(
+            "Derived from TEAM_DEVELOPMENT_PLAYBOOKS to accelerate new contributors",
+        ),
+    ),
+    ModuleRegistration(
         name="dynamic_validator",
         domain=ModuleDomain.SECURITY_GOVERNANCE,
         responsibilities=(
@@ -479,6 +547,23 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
             "Compliance attestations issued monthly",
         ),
         notes=("Runbooks mirrored in incident response handbook",),
+    ),
+    ModuleRegistration(
+        name="dynamic_developer",
+        domain=ModuleDomain.AI_COGNITION,
+        responsibilities=(
+            "Translate development engine outputs into iteration blueprints",
+            "Expose role utilisation, focus, and dependency status",
+            "Circulate summaries for automation and copilots to consume",
+        ),
+        success_metrics=(
+            "Iteration summaries refreshed alongside every plan run",
+            "Utilisation forecasts within 10% of realised effort",
+            "Actionable notes captured for each development role",
+        ),
+        notes=(
+            "Synthesises DynamicDevEngine blueprints for downstream agents",
+        ),
     ),
 )
 

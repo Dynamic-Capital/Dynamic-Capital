@@ -76,3 +76,34 @@ def test_default_registration_catalog_is_consistent() -> None:
     module_names = {module.name for module in infrastructure.list_modules()}
 
     assert registered_names == module_names
+
+
+def test_development_modules_expose_dev_focus() -> None:
+    infrastructure = build_default_infrastructure()
+
+    expected_domains = {
+        "dynamic_dev_engine": ModuleDomain.BUSINESS_OPERATIONS,
+        "dynamic_development_team": ModuleDomain.HUMAN_CREATIVE,
+        "dynamic_developer": ModuleDomain.AI_COGNITION,
+    }
+
+    for module_name, domain in expected_domains.items():
+        module = infrastructure.get_module(module_name)
+        assert module.domain is domain
+        assert module.responsibilities
+        assert module.success_metrics
+        assert module.notes
+
+
+def test_adapter_and_dataset_modules_are_registered() -> None:
+    infrastructure = build_default_infrastructure()
+
+    adapters = infrastructure.get_module("dynamic_adapters")
+    assert adapters.domain is ModuleDomain.TECHNOLOGY_INFRASTRUCTURE
+    assert any("adapter" in responsibility for responsibility in adapters.responsibilities)
+    assert any("Dolphin" in note for note in adapters.notes)
+
+    datasets = infrastructure.get_module("dynamic_datasets")
+    assert datasets.domain is ModuleDomain.AI_COGNITION
+    assert any("dataset" in responsibility for responsibility in datasets.responsibilities)
+    assert any("DynamicFineTuneDataset" in note for note in datasets.notes)
