@@ -1,3 +1,4 @@
+import { resolveUrl } from "@/config/url";
 import { getEnvVar } from "@/utils/env.ts";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -25,8 +26,11 @@ const transcriptionTemperatureFromEnv = Number.parseFloat(
   ]) ?? "",
 );
 
-export const DYNAMIC_AI_CHAT_URL = getEnvVar("DYNAMIC_AI_CHAT_URL") ??
-  DEFAULT_CHAT_URL;
+export const DYNAMIC_AI_CHAT_URL = resolveUrl(
+  "DYNAMIC_AI_CHAT_URL",
+  getEnvVar("DYNAMIC_AI_CHAT_URL"),
+  DEFAULT_CHAT_URL,
+);
 export const DYNAMIC_AI_CHAT_KEY = getEnvVar("DYNAMIC_AI_CHAT_KEY", [
   "DYNAMIC_AI_SERVICE_KEY",
 ]);
@@ -38,10 +42,13 @@ export const isDynamicAiConfigured = Boolean(
   DYNAMIC_AI_CHAT_URL && DYNAMIC_AI_CHAT_KEY,
 );
 
-export const DYNAMIC_AI_VOICE_TO_TEXT_URL =
+export const DYNAMIC_AI_VOICE_TO_TEXT_URL = resolveUrl(
+  "DYNAMIC_AI_VOICE_TO_TEXT_URL",
   getEnvVar("DYNAMIC_AI_VOICE_TO_TEXT_URL", [
     "DYNAMIC_AI_TRANSCRIPTION_URL",
-  ]) ?? DEFAULT_TRANSCRIPTION_URL;
+  ]),
+  DEFAULT_TRANSCRIPTION_URL,
+);
 
 export const DYNAMIC_AI_VOICE_TO_TEXT_KEY = getEnvVar(
   "DYNAMIC_AI_VOICE_TO_TEXT_KEY",

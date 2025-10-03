@@ -1,12 +1,12 @@
 import {
-  DYNAMIC_AGI_CHAT_KEY,
-  DYNAMIC_AGI_CHAT_TIMEOUT_MS,
-  DYNAMIC_AGI_CHAT_URL,
-  isDynamicAgiConfigured,
-} from "@/config/dynamic-agi";
+  DYNAMIC_AGS_PLAYBOOK_KEY,
+  DYNAMIC_AGS_PLAYBOOK_URL,
+  DYNAMIC_AGS_TIMEOUT_MS,
+  isDynamicAgsConfigured,
+} from "@/config/dynamic-ags";
 import type { ChatMessage, TokenUsage } from "@/services/llm/types";
 
-interface DynamicAgiChatRequest {
+interface DynamicAgsChatRequest {
   system?: string;
   messages: ChatMessage[];
   temperature?: number;
@@ -14,7 +14,7 @@ interface DynamicAgiChatRequest {
   language?: string;
 }
 
-interface DynamicAgiChatResponse {
+interface DynamicAgsChatResponse {
   message?: { role?: string | null; content?: string | null } | null;
   usage?: {
     inputTokens?: number | null;
@@ -24,17 +24,17 @@ interface DynamicAgiChatResponse {
   [key: string]: unknown;
 }
 
-export interface DynamicAgiChatParams extends DynamicAgiChatRequest {
+export interface DynamicAgsChatParams extends DynamicAgsChatRequest {
   signal?: AbortSignal;
 }
 
-const DYNAMIC_AGI_FETCH_OVERRIDE = Symbol.for(
-  "dynamic-capital.dynamic-agi.fetch-override",
+const DYNAMIC_AGS_FETCH_OVERRIDE = Symbol.for(
+  "dynamic-capital.dynamic-ags.fetch-override",
 );
 
 function getFetch(): typeof fetch {
   const override = (globalThis as Record<PropertyKey, unknown>)[
-    DYNAMIC_AGI_FETCH_OVERRIDE
+    DYNAMIC_AGS_FETCH_OVERRIDE
   ];
   if (typeof override === "function") {
     return override as typeof fetch;
@@ -42,11 +42,88 @@ function getFetch(): typeof fetch {
   return fetch;
 }
 
-function normalizeMessage(
-  message: DynamicAgiChatResponse["message"],
+function estimateTokenCount(text: string | undefined): number {
+  if (!text) return 0;
+  return Math.max(1, Math.round(text.length / 4));
+}
+
+function sanitizeMessages(messages: ChatMessage[]): ChatMessage[] {
+  return messages.map((message, index) => {
+    const content = message.content.trim();
+    if (!content) {
+      throw new Error(
+        `Dynamic AGS chat message at index ${index} cannot be empty`,
+      );
+    }
+    const role = message.role === "assistant" ? "assistant" : "user";
+    return { role, content } satisfies ChatMessage;
+  });
+}
+
+function buildDemoResult(request: DynamicAgsChatRequest) {
+  const latestUserMessage = [...request.messages]
+    .reverse()
+    .find((entry) => entry.role === "user");
+
+  const focusLine = latestUserMessage
+    ? `• Governance focus: ${latestUserMessage.content}`
+    : "• Share a policy or incident to generate a review checklist.";
+
+  const languageLine = request.language
+    ? `• Preferred language: ${request.language}.`
+    : undefined;
+
+  const messageLines = [
+    "🛡️ Dynamic AGS demo governance desk online.",
+    focusLine,
+    "• Validating policy drift, risk overlays, and treasury guard compliance.",
+    "• Coordinating with Dynamic AI for telemetry and Dynamic AGI for execution readiness.",
+    "• Add live credentials to stream real audit logs and approvals.",
+  ];
+
+  if (languageLine) {
+    messageLines.splice(2, 0, languageLine);
+  }
+
+  const responseText = messageLines.join("\n");
+
+  const inputTokens = request.messages.reduce(
+    (total, message) => total + estimateTokenCount(message.content),
+    estimateTokenCount(request.system),
+  );
+  const outputTokens = estimateTokenCount(responseText);
+  const usage: TokenUsage = {
+    inputTokens,
+    outputTokens,
+    totalTokens: inputTokens + outputTokens,
+  };
+
+  const rawResponse: Record<string, unknown> = {
+    mode: "demo",
+    domain: "dynamic-ags",
+  };
+  if (latestUserMessage?.content) {
+    rawResponse.prompt = latestUserMessage.content;
+  }
+  if (request.language) {
+    rawResponse.language = request.language;
+  }
+  if (request.system) {
+    rawResponse.system = request.system;
+  }
+
+  return {
+    message: { role: "assistant", content: responseText } satisfies ChatMessage,
+    usage,
+    rawResponse,
+  };
+}
+
+function normalizeRemoteMessage(
+  message: DynamicAgsChatResponse["message"],
 ): ChatMessage {
   if (!message || typeof message !== "object") {
-    throw new Error("Dynamic AGI response did not include a message payload.");
+    throw new Error("Dynamic AGS response did not include a message payload.");
   }
 
   const content = typeof message.content === "string"
@@ -54,16 +131,15 @@ function normalizeMessage(
     : "";
 
   if (!content) {
-    throw new Error("Dynamic AGI returned an empty message.");
+    throw new Error("Dynamic AGS returned an empty message.");
   }
 
   const role = message.role === "assistant" ? "assistant" : "assistant";
-
   return { role, content } satisfies ChatMessage;
 }
 
-function normalizeUsage(
-  usage: DynamicAgiChatResponse["usage"],
+function normalizeRemoteUsage(
+  usage: DynamicAgsChatResponse["usage"],
 ): TokenUsage | undefined {
   if (!usage || typeof usage !== "object") {
     return undefined;
@@ -89,125 +165,41 @@ function normalizeUsage(
   return { inputTokens, outputTokens, totalTokens } satisfies TokenUsage;
 }
 
-function buildHeaders(): Record<string, string> {
-  return {
-    "content-type": "application/json",
-  };
-}
-
-function estimateTokenCount(text: string | undefined): number {
-  if (!text) return 0;
-  const approximate = Math.max(1, Math.round(text.length / 4));
-  return approximate;
-}
-
-function sanitizeMessages(messages: ChatMessage[]): ChatMessage[] {
-  return messages.map((message, index) => {
-    const content = message.content.trim();
-    if (!content) {
-      throw new Error(
-        `Dynamic AGI chat message at index ${index} cannot be empty`,
-      );
-    }
-    const role = message.role === "assistant" ? "assistant" : "user";
-    return { role, content } satisfies ChatMessage;
-  });
-}
-
-function buildDemoResult(request: DynamicAgiChatRequest) {
-  const latestUserMessage = [...request.messages]
-    .reverse()
-    .find((entry) => entry.role === "user");
-
-  const focusLine = latestUserMessage
-    ? `• Mission focus: ${latestUserMessage.content}`
-    : "• Provide a mission briefing to generate a routed plan.";
-
-  const languageLine = request.language
-    ? `• Preferred delivery language: ${request.language}.`
-    : undefined;
-
-  const contentSegments = [
-    "🚀 Dynamic AGI demo orchestrator engaged.",
-    focusLine,
-    "• Delegating discovery to Dynamic AI and compliance to Dynamic AGS.",
-    "• Sequencing next steps: compile execution brief, open governance review, and publish treasury update.",
-    "• Supply live credentials to stream real orchestration telemetry.",
-  ];
-
-  if (languageLine) {
-    contentSegments.splice(2, 0, languageLine);
-  }
-
-  const responseText = contentSegments.join("\n");
-
-  const inputTokens = request.messages.reduce(
-    (total, message) => total + estimateTokenCount(message.content),
-    estimateTokenCount(request.system),
-  );
-  const outputTokens = estimateTokenCount(responseText);
-  const usage: TokenUsage = {
-    inputTokens,
-    outputTokens,
-    totalTokens: inputTokens + outputTokens,
-  };
-
-  const rawResponse: Record<string, unknown> = {
-    mode: "demo",
-    domain: "dynamic-agi",
-  };
-  if (latestUserMessage?.content) {
-    rawResponse.prompt = latestUserMessage.content;
-  }
-  if (request.language) {
-    rawResponse.language = request.language;
-  }
-  if (request.system) {
-    rawResponse.system = request.system;
-  }
-
-  return {
-    message: { role: "assistant", content: responseText } satisfies ChatMessage,
-    usage,
-    rawResponse,
-  };
-}
-
-export async function callDynamicAgi({
+export async function callDynamicAgs({
   signal,
   ...request
-}: DynamicAgiChatParams): Promise<{
+}: DynamicAgsChatParams): Promise<{
   message: ChatMessage;
   usage?: TokenUsage;
   rawResponse?: unknown;
 }> {
   const normalizedMessages = sanitizeMessages(request.messages);
   if (normalizedMessages.length === 0) {
-    throw new Error("Dynamic AGI chat requires at least one message.");
+    throw new Error("Dynamic AGS chat requires at least one message.");
   }
 
   const normalizedSystem = request.system?.trim() || undefined;
   const normalizedLanguage = request.language?.trim() || undefined;
 
-  const normalizedRequest: DynamicAgiChatRequest = {
+  const normalizedRequest: DynamicAgsChatRequest = {
     ...request,
     system: normalizedSystem,
     messages: normalizedMessages,
     language: normalizedLanguage,
   };
 
-  if (!isDynamicAgiConfigured) {
+  if (!isDynamicAgsConfigured) {
     return buildDemoResult(normalizedRequest);
   }
 
-  const chatUrl = DYNAMIC_AGI_CHAT_URL!;
-  const chatKey = DYNAMIC_AGI_CHAT_KEY!;
+  const playbookUrl = DYNAMIC_AGS_PLAYBOOK_URL!;
+  const playbookKey = DYNAMIC_AGS_PLAYBOOK_KEY!;
 
   const controller = new AbortController();
   const fetcher = getFetch();
   const timeout = setTimeout(
     () => controller.abort(),
-    DYNAMIC_AGI_CHAT_TIMEOUT_MS,
+    DYNAMIC_AGS_TIMEOUT_MS,
   );
 
   let externalAbortHandler: (() => void) | undefined;
@@ -235,12 +227,12 @@ export async function callDynamicAgi({
       payload.language = normalizedLanguage;
     }
 
-    const response = await fetcher(chatUrl, {
+    const response = await fetcher(playbookUrl, {
       method: "POST",
       headers: {
-        ...buildHeaders(),
+        "content-type": "application/json",
         accept: "application/json",
-        authorization: `Bearer ${chatKey}`,
+        authorization: `Bearer ${playbookKey}`,
       },
       body: JSON.stringify(payload),
       signal: controller.signal,
@@ -249,21 +241,21 @@ export async function callDynamicAgi({
     if (!response.ok) {
       const errorBody = await response.text().catch(() => "");
       throw new Error(
-        `Dynamic AGI request failed: ${response.status} ${errorBody}`.trim(),
+        `Dynamic AGS request failed: ${response.status} ${errorBody}`.trim(),
       );
     }
 
-    let body: DynamicAgiChatResponse;
+    let body: DynamicAgsChatResponse;
     try {
-      body = (await response.json()) as DynamicAgiChatResponse;
+      body = (await response.json()) as DynamicAgsChatResponse;
     } catch (error) {
       throw new Error(
-        "Dynamic AGI response was not valid JSON.",
+        "Dynamic AGS response was not valid JSON.",
         error instanceof Error ? { cause: error } : undefined,
       );
     }
-    const message = normalizeMessage(body.message);
-    const usage = normalizeUsage(body.usage);
+    const message = normalizeRemoteMessage(body.message);
+    const usage = normalizeRemoteUsage(body.usage);
 
     return {
       message,
@@ -273,13 +265,13 @@ export async function callDynamicAgi({
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       if (signal?.aborted) {
-        throw new Error("Dynamic AGI request was cancelled.");
+        throw new Error("Dynamic AGS request was cancelled.");
       }
-      throw new Error("Dynamic AGI request timed out.");
+      throw new Error("Dynamic AGS request timed out.");
     }
     throw error instanceof Error
       ? error
-      : new Error("Dynamic AGI request failed.");
+      : new Error("Dynamic AGS request failed.");
   } finally {
     clearTimeout(timeout);
     if (externalAbortHandler) {
@@ -288,14 +280,14 @@ export async function callDynamicAgi({
   }
 }
 
-export function __setDynamicAgiFetchOverride(fn: typeof fetch | undefined) {
+export function __setDynamicAgsFetchOverride(fn: typeof fetch | undefined) {
   if (fn) {
     (globalThis as Record<PropertyKey, unknown>)[
-      DYNAMIC_AGI_FETCH_OVERRIDE
+      DYNAMIC_AGS_FETCH_OVERRIDE
     ] = fn;
     return;
   }
   delete (globalThis as Record<PropertyKey, unknown>)[
-    DYNAMIC_AGI_FETCH_OVERRIDE
+    DYNAMIC_AGS_FETCH_OVERRIDE
   ];
 }

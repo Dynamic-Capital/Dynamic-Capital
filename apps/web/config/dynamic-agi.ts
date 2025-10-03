@@ -1,13 +1,19 @@
+import { resolveUrl } from "@/config/url";
 import { getEnvVar } from "@/utils/env";
 
 const DEFAULT_TIMEOUT_MS = 45_000;
+const DEFAULT_CHAT_URL = "https://api.dynamiccapital.ton/agi/chat";
 
 const timeoutFromEnv = Number.parseInt(
   getEnvVar("DYNAMIC_AGI_CHAT_TIMEOUT_MS") ?? "",
   10,
 );
 
-export const DYNAMIC_AGI_CHAT_URL = getEnvVar("DYNAMIC_AGI_CHAT_URL");
+export const DYNAMIC_AGI_CHAT_URL = resolveUrl(
+  "DYNAMIC_AGI_CHAT_URL",
+  getEnvVar("DYNAMIC_AGI_CHAT_URL"),
+  DEFAULT_CHAT_URL,
+);
 export const DYNAMIC_AGI_CHAT_KEY = getEnvVar("DYNAMIC_AGI_CHAT_KEY", [
   "DYNAMIC_AGI_SERVICE_KEY",
 ]);
