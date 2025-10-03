@@ -120,6 +120,11 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
         "generate_training_report",
         "generate_training_summary",
     ),
+    "dynamic_knowledge_base_training": (
+        "KnowledgeBaseDataset",
+        "load_knowledge_base_records",
+        "DynamicKnowledgeBaseTrainer",
+    ),
     "dynamic_demand": (
         "DynamicDemandEngine",
         "DemandProjection",
