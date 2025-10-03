@@ -116,7 +116,9 @@
     "ngrok": "^5.0.0-beta.2",
     "supabase": "^2.47.2",
     "tsx": "^4.20.6",
-    "yaml": "^2.8.1"
+    "yaml": "^2.8.1",
+    "sharp": "^0.33.5",
+    "png-to-ico": "^2.1.8"
   },
   "overrides": {
     "esbuild": "^0.25.10",

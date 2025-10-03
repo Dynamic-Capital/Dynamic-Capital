@@ -2992,7 +2992,7 @@ define(["./workbox-495fd258"], function (e) {
         url: "/_next/static/media/ba015fad6dcf6784-s.woff2",
         revision: "8ea4f719af3312a055caf09f34c89a77",
       },
-      { url: "/favicon.ico", revision: "566e64364d6957715dc11845f4800700" },
+      { url: "/favicon.ico", revision: "e11a5f0206d813b6d6b9b92f911ccc4d" },
       { url: "/health.html", revision: "eff5bc1ef8ec9d03e640fc4370f5eacd" },
       { url: "/icons/bank.svg", revision: "0402775986442b28c46880fd4baaeacd" },
       {
@@ -3030,8 +3030,8 @@ define(["./workbox-495fd258"], function (e) {
       { url: "/icons/trc20.svg", revision: "36488365f21de9825e4b549ba2e70b4b" },
       { url: "/icons/usdt.svg", revision: "7b0fb7fd1d48415ca39518d541ad66ac" },
       { url: "/icons/visa.svg", revision: "de650a44d8b875b449cb2b40ad16fb48" },
-      { url: "/logo.svg", revision: "8572bdd6950d73f1ee27c05f7dba63c8" },
-      { url: "/manifest.json", revision: "7d4da81180d95ae0e4fbdd138d52fed7" },
+      { url: "/logo.svg", revision: "c93274a3b822f7f8884b885323b2d344" },
+      { url: "/manifest.json", revision: "87842a87986f289ad2397ed3a4ca76aa" },
       { url: "/placeholder.svg", revision: "961736e221b21ae7b3e35817620389e4" },
       { url: "/robots.txt", revision: "f9dff89adf98833e676de2205921996a" },
       {

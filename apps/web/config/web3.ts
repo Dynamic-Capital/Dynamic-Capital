@@ -74,7 +74,7 @@ const DEFAULT_METADATA: Web3AppMetadata = {
   name: "Dynamic Capital",
   description:
     "Dynamic Capital trading desk, LayerZero v2 bridge routing, and portfolio tools",
-  icon: "/logo.svg",
+  icon: "/icon-mark.svg",
   recommendedInjectedWallets: [
     { name: "Bitget Wallet", url: "https://bitkeep.com" },
     { name: "MetaMask", url: "https://metamask.io" },
