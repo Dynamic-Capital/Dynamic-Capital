@@ -116,6 +116,10 @@ class DimensionProfile:
     volatility: float
     sample_size: int
     category_scores: Mapping[str, float] = field(default_factory=dict)
+    axis_momentum: Mapping[str, float] = field(default_factory=dict)
+    axis_volatility: Mapping[str, float] = field(default_factory=dict)
+    category_momentum: Mapping[str, float] = field(default_factory=dict)
+    category_volatility: Mapping[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.sample_size <= 0:
@@ -127,6 +131,16 @@ class DimensionProfile:
         object.__setattr__(self, "axis_scores", MappingProxyType(scores))
         categories = {key: _clamp_unit(value) for key, value in self.category_scores.items()}
         object.__setattr__(self, "category_scores", MappingProxyType(categories))
+        axis_momentum = {key: float(value) for key, value in self.axis_momentum.items()}
+        object.__setattr__(self, "axis_momentum", MappingProxyType(axis_momentum))
+        axis_volatility = {key: max(float(value), 0.0) for key, value in self.axis_volatility.items()}
+        object.__setattr__(self, "axis_volatility", MappingProxyType(axis_volatility))
+        category_momentum = {key: float(value) for key, value in self.category_momentum.items()}
+        object.__setattr__(self, "category_momentum", MappingProxyType(category_momentum))
+        category_volatility = {
+            key: max(float(value), 0.0) for key, value in self.category_volatility.items()
+        }
+        object.__setattr__(self, "category_volatility", MappingProxyType(category_volatility))
 
     def top_axes(self, limit: int = 3) -> list[tuple[str, float]]:
         if limit <= 0:
@@ -139,6 +153,24 @@ class DimensionProfile:
             return []
         ordered = sorted(self.category_scores.items(), key=lambda item: item[1], reverse=True)
         return ordered[:limit]
+
+    def bottom_axes(self, limit: int = 3) -> list[tuple[str, float]]:
+        if limit <= 0:
+            return []
+        ordered = sorted(self.axis_scores.items(), key=lambda item: item[1])
+        return ordered[:limit]
+
+    def bottom_categories(self, limit: int = 3) -> list[tuple[str, float]]:
+        if limit <= 0:
+            return []
+        ordered = sorted(self.category_scores.items(), key=lambda item: item[1])
+        return ordered[:limit]
+
+    def get_axis_score(self, key: str, default: float | None = None) -> float | None:
+        return self.axis_scores.get(key, default)
+
+    def get_category_score(self, key: str, default: float | None = None) -> float | None:
+        return self.category_scores.get(key, default)
 
 
 class DynamicDimensionEngine:
@@ -205,9 +237,18 @@ class DynamicDimensionEngine:
         if not self._history:
             raise ValueError("no observations ingested yet")
         axis_scores: MutableMapping[str, float] = {}
+        axis_momentum: MutableMapping[str, float] = {}
+        axis_volatility: MutableMapping[str, float] = {}
         for key in self._axis_lookup:
             measurements = [snapshot.values[key] for snapshot in self._history if key in snapshot.values]
-            axis_scores[key] = fmean(measurements) if measurements else 0.0
+            if measurements:
+                axis_scores[key] = fmean(measurements)
+                axis_momentum[key] = measurements[-1] - measurements[-2] if len(measurements) >= 2 else 0.0
+                axis_volatility[key] = pstdev(measurements) if len(measurements) >= 2 else 0.0
+            else:
+                axis_scores[key] = 0.0
+                axis_momentum[key] = 0.0
+                axis_volatility[key] = 0.0
         composite = sum(axis_scores[key] * self._weights[key] for key in axis_scores)
         latest_score = self._composite_for_snapshot(self._history[-1])
         if len(self._history) >= 2:
@@ -218,6 +259,25 @@ class DynamicDimensionEngine:
         composites = [self._composite_for_snapshot(snapshot) for snapshot in self._history]
         volatility = pstdev(composites) if len(composites) >= 2 else 0.0
         category_scores = self._compute_category_scores(axis_scores)
+        latest_categories = self._compute_category_scores(self._snapshot_axis_values(self._history[-1]))
+        if len(self._history) >= 2:
+            previous_categories = self._compute_category_scores(self._snapshot_axis_values(self._history[-2]))
+        else:
+            previous_categories = {}
+        all_categories = set(category_scores) | set(latest_categories) | set(previous_categories)
+        category_momentum = {
+            category: latest_categories.get(category, 0.0) - previous_categories.get(category, 0.0)
+            for category in all_categories
+        }
+        category_series: dict[str, list[float]] = {category: [] for category in all_categories}
+        for snapshot in self._history:
+            per_snapshot = self._compute_category_scores(self._snapshot_axis_values(snapshot))
+            for category in all_categories:
+                category_series[category].append(per_snapshot.get(category, 0.0))
+        category_volatility = {
+            category: pstdev(series) if len(series) >= 2 else 0.0
+            for category, series in category_series.items()
+        }
         return DimensionProfile(
             composite=composite,
             axis_scores=axis_scores,
@@ -225,6 +285,10 @@ class DynamicDimensionEngine:
             volatility=volatility,
             sample_size=len(self._history),
             category_scores=category_scores,
+            axis_momentum=axis_momentum,
+            axis_volatility=axis_volatility,
+            category_momentum=category_momentum,
+            category_volatility=category_volatility,
         )
 
     def _composite_for_snapshot(self, snapshot: DimensionSnapshot) -> float:
@@ -251,3 +315,6 @@ class DynamicDimensionEngine:
             for category, total in category_totals.items()
             if category_weights[category] > 0.0
         }
+
+    def _snapshot_axis_values(self, snapshot: DimensionSnapshot) -> Mapping[str, float]:
+        return {axis.key: snapshot.values.get(axis.key, 0.0) for axis in self._axes}
