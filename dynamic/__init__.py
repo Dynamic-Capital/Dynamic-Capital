@@ -8,4 +8,5 @@ __all__ = [
     "tools",
     "models",
     "brand",
+    "framework",
 ]
