@@ -91,6 +91,11 @@ let serviceClient: SupabaseClient | null = null;
 
 export type { SupabaseClient, SupabaseClientOptions };
 
+export interface RequestClientOptions extends SupabaseClientOptions<"public"> {
+  role?: "anon" | "service";
+  requireAuthorization?: boolean;
+}
+
 export function createClient(
   role: "anon" | "service" = "anon",
   options?: SupabaseClientOptions<"public">,
@@ -125,6 +130,51 @@ export function createClient(
   }
 
   return createSupabaseClient(SUPABASE_URL, key, options);
+}
+
+export function createClientForRequest(
+  req: Pick<Request, "headers">,
+  options?: RequestClientOptions,
+): SupabaseClient {
+  const {
+    role = "anon",
+    requireAuthorization = false,
+    ...clientOptions
+  } = options ?? {};
+
+  const { global, ...restOptions } = clientOptions;
+  const authHeader = req.headers.get("Authorization")?.trim();
+
+  if (requireAuthorization && (!authHeader || authHeader.length === 0)) {
+    throw new Error("Missing Authorization header for createClientForRequest");
+  }
+
+  const mergedHeaders: Record<string, string> = {
+    ...(global?.headers ?? {}),
+    ...(authHeader ? { Authorization: authHeader } : {}),
+  };
+
+  const hasMergedHeaders = Object.keys(mergedHeaders).length > 0;
+  const hasRestOptions = Object.keys(restOptions ?? {}).length > 0;
+  const shouldAttachGlobal = global !== undefined || hasMergedHeaders;
+
+  if (!hasRestOptions && !shouldAttachGlobal) {
+    return createClient(role);
+  }
+
+  const finalOptions: SupabaseClientOptions<"public"> = {
+    ...(hasRestOptions ? { ...restOptions } : {}),
+    ...(shouldAttachGlobal
+      ? {
+        global: {
+          ...global,
+          ...(hasMergedHeaders ? { headers: mergedHeaders } : {}),
+        },
+      }
+      : {}),
+  };
+
+  return createClient(role, finalOptions);
 }
 
 export function getServiceClient(): SupabaseClient {

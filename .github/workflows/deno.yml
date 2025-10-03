@@ -36,35 +36,31 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DENO_TLS_CA_STORE: system
+      DENO_NO_UPDATE_CHECK: "1"
 
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
 
       - name: Setup Deno
-        uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@v2
         with:
-          deno-version: v1.x
+          deno-version: v2.x
+          cache: deno
+          cache-dependency-path: |
+            deno.lock
+            supabase/functions/telegram-bot/vendor/import_map.json
 
-      - name: Cache Deno dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/deno
-            ~/.deno
-          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-deno-
+      - name: Run Deno CI checks
+        run: deno task ci
 
-      # Uncomment this step to verify the use of 'deno fmt' on each commit.
-      - name: Verify formatting
-        run: deno fmt check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
-
-      - name: Type check
-        run: deno check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
-
-      - name: Run linter
-        run: deno lint
-
-      - name: Run tests
-        run: deno test -A tests supabase/functions/_tests
+      - name: Ensure working tree is clean
+        run: |
+          if [[ -n "$(git status --short)" ]]; then
+            echo "Git working tree dirty after CI tasks."
+            git status --short
+            git diff --stat
+            exit 1
+          fi
