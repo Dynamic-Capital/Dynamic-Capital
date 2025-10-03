@@ -104,16 +104,18 @@ class EnergyVector:
     mental: float = 0.5
     emotional: float = 0.5
     creative: float = 0.5
+    dark: float = 0.5
 
     def __post_init__(self) -> None:
         self.physical = _clamp(self.physical)
         self.mental = _clamp(self.mental)
         self.emotional = _clamp(self.emotional)
         self.creative = _clamp(self.creative)
+        self.dark = _clamp(self.dark)
 
     @property
     def overall(self) -> float:
-        return fmean((self.physical, self.mental, self.emotional, self.creative))
+        return fmean((self.physical, self.mental, self.emotional, self.creative, self.dark))
 
     def as_dict(self) -> MutableMapping[str, float]:
         return {
@@ -121,6 +123,7 @@ class EnergyVector:
             "mental": self.mental,
             "emotional": self.emotional,
             "creative": self.creative,
+            "dark": self.dark,
         }
 
     def scaled(self, factor: float) -> "EnergyVector":
@@ -129,6 +132,7 @@ class EnergyVector:
             mental=_clamp(self.mental * factor),
             emotional=_clamp(self.emotional * factor),
             creative=_clamp(self.creative * factor),
+            dark=_clamp(self.dark * factor),
         )
 
 
@@ -166,6 +170,7 @@ class EnergyProfile:
     mental: float
     emotional: float
     creative: float
+    dark: float
     stability: float
     momentum: float
     pressure: float
@@ -180,6 +185,7 @@ class EnergyProfile:
             "mental": self.mental,
             "emotional": self.emotional,
             "creative": self.creative,
+            "dark": self.dark,
             "stability": self.stability,
             "momentum": self.momentum,
             "pressure": self.pressure,
@@ -222,6 +228,7 @@ class DynamicEnergyEngine:
         mental_pairs: list[tuple[float, float]] = []
         emotional_pairs: list[tuple[float, float]] = []
         creative_pairs: list[tuple[float, float]] = []
+        dark_pairs: list[tuple[float, float]] = []
         recovery_pairs: list[tuple[float, float]] = []
 
         for event in self._events:
@@ -231,6 +238,7 @@ class DynamicEnergyEngine:
             mental_pairs.append((event.vector.mental, weight))
             emotional_pairs.append((event.vector.emotional, weight))
             creative_pairs.append((event.vector.creative, weight))
+            dark_pairs.append((event.vector.dark, weight))
             recovery_pairs.append((event.recovery_time, weight))
 
         overall = _weighted_mean(pairs, default=baseline_vector.overall)
@@ -238,6 +246,7 @@ class DynamicEnergyEngine:
         mental = _weighted_mean(mental_pairs, default=baseline_vector.mental)
         emotional = _weighted_mean(emotional_pairs, default=baseline_vector.emotional)
         creative = _weighted_mean(creative_pairs, default=baseline_vector.creative)
+        dark = _weighted_mean(dark_pairs, default=baseline_vector.dark)
         recovery = _weighted_mean(recovery_pairs, default=0.5)
 
         stability = 1.0 - abs(overall - recovery)
@@ -250,6 +259,7 @@ class DynamicEnergyEngine:
             mental=mental,
             emotional=emotional,
             creative=creative,
+            dark=dark,
             stability=stability,
             pressure=pressure,
         )
@@ -258,6 +268,7 @@ class DynamicEnergyEngine:
             mental=mental,
             emotional=emotional,
             creative=creative,
+            dark=dark,
             pressure=pressure,
         )
         narrative = self._compose_narrative(
@@ -266,6 +277,7 @@ class DynamicEnergyEngine:
             stability=stability,
             pressure=pressure,
             signals=signals,
+            dark=dark,
         )
 
         return EnergyProfile(
@@ -274,6 +286,7 @@ class DynamicEnergyEngine:
             mental=_clamp(mental),
             emotional=_clamp(emotional),
             creative=_clamp(creative),
+            dark=_clamp(dark),
             stability=_clamp(stability),
             momentum=_clamp(momentum),
             pressure=_clamp(pressure),
@@ -315,6 +328,7 @@ class DynamicEnergyEngine:
         mental: float,
         emotional: float,
         creative: float,
+        dark: float,
         stability: float,
         pressure: float,
     ) -> tuple[str, ...]:
@@ -344,6 +358,11 @@ class DynamicEnergyEngine:
         elif creative >= 0.7:
             signals.append("Creative energy primed for exploration and invention.")
 
+        if dark <= 0.4:
+            signals.append("Dark energy lattice thinning; reinforce restorative stillness.")
+        elif dark >= 0.7:
+            signals.append("Dark energy field stabilised; latent capacity expanding.")
+
         if stability <= 0.45:
             signals.append("Energy volatility high; anchor in recovery routines.")
         elif stability >= 0.75:
@@ -361,6 +380,7 @@ class DynamicEnergyEngine:
         mental: float,
         emotional: float,
         creative: float,
+        dark: float,
         pressure: float,
     ) -> tuple[str, ...]:
         actions: list[str] = []
@@ -372,6 +392,8 @@ class DynamicEnergyEngine:
             actions.append("Reinforce connection rituals and reflective practices.")
         if creative < 0.5:
             actions.append("Schedule exploratory sessions to re-ignite creativity.")
+        if dark < 0.5:
+            actions.append("Practice deep stillness rituals to recharge dark energy reserves.")
         if pressure > 0.55:
             actions.append("Introduce strategic pauses to relieve energetic pressure.")
         if not actions:
@@ -386,6 +408,7 @@ class DynamicEnergyEngine:
         stability: float,
         pressure: float,
         signals: Sequence[str],
+        dark: float,
     ) -> str:
         fragments: list[str] = []
         if overall >= 0.7:
@@ -409,6 +432,11 @@ class DynamicEnergyEngine:
             fragments.append("Demand profile intense; recovery windows essential.")
         elif pressure <= 0.3:
             fragments.append("Demand light; opportunity to invest in expansion.")
+
+        if dark >= 0.7:
+            fragments.append("Dark energy currents supportive and stabilising.")
+        elif dark <= 0.35:
+            fragments.append("Dark energy turbulence detected; expand grounding protocols.")
 
         if signals:
             fragments.append(signals[0])
