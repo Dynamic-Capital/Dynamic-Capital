@@ -3,7 +3,9 @@ set -euo pipefail
 # Echo a deno command that works in this environment with TLS configured to
 # trust the host OS certificate store. The CI environment lacks the Mozilla
 # root bundle that Deno ships with, so forcing the system store avoids
-# UnknownIssuer TLS errors when reaching npm.
+# UnknownIssuer TLS errors when reaching npm. We also disable package.json
+# resolution so Deno doesn't try to prefetch the repository's npm dependencies,
+# which cannot be reached from the sandboxed environment.
 cmd="deno"
 if ! command -v deno >/dev/null 2>&1; then
   REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -45,4 +47,4 @@ if ! command -v deno >/dev/null 2>&1; then
   cmd="${BIN_PATH}"
 fi
 
-echo "env DENO_TLS_CA_STORE=system ${cmd}"
+echo "env DENO_TLS_CA_STORE=system DENO_NO_PACKAGE_JSON=1 ${cmd}"
