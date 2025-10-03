@@ -4,7 +4,14 @@ from typing import Any, Dict, Iterable, Mapping, Sequence
 
 import pytest
 
+from algorithms.python import (
+    DynamicProtocolPlanner as RootDynamicProtocolPlanner,
+    PROTOCOL_CATEGORY_EXECUTORS as ROOT_PROTOCOL_CATEGORY_EXECUTORS,
+    PROTOCOL_CATEGORY_KEYS as ROOT_PROTOCOL_CATEGORY_KEYS,
+    PROTOCOL_HORIZON_KEYS as ROOT_PROTOCOL_HORIZON_KEYS,
+)
 from algorithms.python.dynamic_protocol_planner import (
+    CATEGORY_EXECUTORS,
     CATEGORY_KEYS,
     DynamicProtocolPlanner,
     HORIZON_KEYS,
@@ -268,4 +275,17 @@ def test_optimize_and_generate_syncs_plan(monkeypatch: pytest.MonkeyPatch) -> No
     assert optimisation_annotations["insights"]["snapshot_count"] == 25
     assert optimisation_annotations["backtest"]["ending_equity"] == 12_500.5
     assert draft.annotations["context_supplied"] is True
+
+
+def test_root_package_exports_hardened_protocol_metadata() -> None:
+    assert RootDynamicProtocolPlanner is DynamicProtocolPlanner
+    assert ROOT_PROTOCOL_CATEGORY_KEYS == CATEGORY_KEYS
+    assert ROOT_PROTOCOL_HORIZON_KEYS == HORIZON_KEYS
+    assert isinstance(ROOT_PROTOCOL_CATEGORY_EXECUTORS, Mapping)
+    assert dict(ROOT_PROTOCOL_CATEGORY_EXECUTORS) == CATEGORY_EXECUTORS
+    assert all(
+        isinstance(owners, tuple) for owners in ROOT_PROTOCOL_CATEGORY_EXECUTORS.values()
+    )
+    with pytest.raises(TypeError):
+        ROOT_PROTOCOL_CATEGORY_EXECUTORS["market_outlook"] = ("Override",)
 
