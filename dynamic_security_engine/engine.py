@@ -6,7 +6,8 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from statistics import fmean
-from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
+from threading import RLock
+from typing import Callable, Deque, Iterable, Mapping, MutableMapping, Sequence
 
 __all__ = [
     "SecurityControl",
@@ -372,70 +373,97 @@ class _SecurityDomainState:
 class DynamicSecurityEngine:
     """Store security telemetry and derive posture analytics."""
 
-    def __init__(self, *, signal_history_limit: int = 500) -> None:
+    def __init__(
+        self,
+        *,
+        signal_history_limit: int = 500,
+        clock: Callable[[], datetime] | None = None,
+    ) -> None:
         if signal_history_limit <= 0:
             raise ValueError("signal_history_limit must be positive")
         self._signal_history_limit = signal_history_limit
         self._domains: MutableMapping[str, _SecurityDomainState] = {}
+        self._clock: Callable[[], datetime] = clock or _utcnow
+        self._lock = RLock()
+
+    def _now(self) -> datetime:
+        return _ensure_tzaware(self._clock()) or _utcnow()
+
+    def _ensure_state_locked(self, domain: str) -> _SecurityDomainState:
+        canonical = _normalise_domain(domain)
+        key = canonical.lower()
+        state = self._domains.get(key)
+        if state is None:
+            state = _SecurityDomainState(
+                name=canonical,
+                signals=deque(maxlen=self._signal_history_limit),
+            )
+            self._domains[key] = state
+        return state
 
     # ------------------------------------------------------------------
     # domain management
 
     def register_domain(self, name: str, *, description: str = "") -> None:
-        key = name.lower().strip()
+        canonical = _normalise_domain(name)
+        key = canonical.lower()
+        description = description.strip()
         if not key:
             raise ValueError("domain name must not be empty")
-        if key in self._domains:
-            state = self._domains[key]
-            if description:
-                state.description = description
-            return
-        state = _SecurityDomainState(
-            name=_normalise_domain(name),
-            description=description.strip(),
-            signals=deque(maxlen=self._signal_history_limit),
-        )
-        self._domains[key] = state
-
-    def _ensure_state(self, domain: str) -> _SecurityDomainState:
-        key = domain.lower().strip()
-        if not key:
-            raise ValueError("domain must not be empty")
-        state = self._domains.get(key)
-        if state is None:
-            self.register_domain(domain)
-            state = self._domains[key]
-        return state
+        with self._lock:
+            state = self._domains.get(key)
+            if state is not None:
+                if description:
+                    state.description = description
+                return
+            self._domains[key] = _SecurityDomainState(
+                name=canonical,
+                description=description,
+                signals=deque(maxlen=self._signal_history_limit),
+            )
 
     @property
     def domains(self) -> tuple[str, ...]:
-        return tuple(state.name for state in self._domains.values())
+        with self._lock:
+            return tuple(state.name for state in self._domains.values())
 
     # ------------------------------------------------------------------
     # data ingestion
 
     def upsert_control(self, control: SecurityControl | Mapping[str, object]) -> SecurityControl:
         record = control if isinstance(control, SecurityControl) else SecurityControl(**control)  # type: ignore[arg-type]
-        state = self._ensure_state(record.domain)
-        state.controls[record.identifier] = record
+        with self._lock:
+            state = self._ensure_state_locked(record.domain)
+            state.controls[record.identifier] = record
         return record
 
     def record_signal(self, signal: SecuritySignal | Mapping[str, object]) -> SecuritySignal:
         record = signal if isinstance(signal, SecuritySignal) else SecuritySignal(**signal)  # type: ignore[arg-type]
-        state = self._ensure_state(record.domain)
-        state.signals.append(record)
+        with self._lock:
+            state = self._ensure_state_locked(record.domain)
+            state.signals.append(record)
         return record
 
     def record_signals(self, signals: Iterable[SecuritySignal | Mapping[str, object]]) -> tuple[SecuritySignal, ...]:
         recorded: list[SecuritySignal] = []
+        grouped: dict[str, list[SecuritySignal]] = {}
         for payload in signals:
-            recorded.append(self.record_signal(payload))
+            record = payload if isinstance(payload, SecuritySignal) else SecuritySignal(**payload)  # type: ignore[arg-type]
+            recorded.append(record)
+            grouped.setdefault(record.domain, []).append(record)
+        if not recorded:
+            return ()
+        with self._lock:
+            for domain, items in grouped.items():
+                state = self._ensure_state_locked(domain)
+                state.signals.extend(items)
         return tuple(recorded)
 
     def record_incident(self, incident: SecurityIncident | Mapping[str, object]) -> SecurityIncident:
         record = incident if isinstance(incident, SecurityIncident) else SecurityIncident(**incident)  # type: ignore[arg-type]
-        state = self._ensure_state(record.domain)
-        state.incidents[record.identifier] = record
+        with self._lock:
+            state = self._ensure_state_locked(record.domain)
+            state.incidents[record.identifier] = record
         return record
 
     def close_incident(
@@ -448,18 +476,21 @@ class DynamicSecurityEngine:
         impact: float | None = None,
         status: str | None = "resolved",
     ) -> SecurityIncident:
-        state = self._ensure_state(domain)
         key = _normalise_identifier(identifier)
-        if key not in state.incidents:
-            raise KeyError(f"incident {identifier!r} is not registered for domain {domain!r}")
-        incident = state.incidents[key]
-        updated = incident.with_updates(
-            status=status,
-            contained_at=_ensure_tzaware(contained_at) or incident.contained_at,
-            resolved_at=_ensure_tzaware(resolved_at) or incident.resolved_at,
-            impact=impact,
-        )
-        state.incidents[key] = updated
+        with self._lock:
+            state = self._ensure_state_locked(domain)
+            if key not in state.incidents:
+                raise KeyError(
+                    f"incident {identifier!r} is not registered for domain {domain!r}"
+                )
+            incident = state.incidents[key]
+            updated = incident.with_updates(
+                status=status,
+                contained_at=_ensure_tzaware(contained_at) or incident.contained_at,
+                resolved_at=_ensure_tzaware(resolved_at) or incident.resolved_at,
+                impact=impact,
+            )
+            state.incidents[key] = updated
         return updated
 
     # ------------------------------------------------------------------
@@ -471,18 +502,22 @@ class DynamicSecurityEngine:
         *,
         horizon_hours: int = 24,
     ) -> tuple[SecuritySignal, ...]:
-        state = self._ensure_state(domain)
-        now = _utcnow()
         horizon = timedelta(hours=max(horizon_hours, 1))
-        return tuple(
-            signal for signal in state.signals if now - signal.detected_at <= horizon
-        )
+        now = self._now()
+        with self._lock:
+            state = self._ensure_state_locked(domain)
+            return tuple(
+                signal
+                for signal in tuple(state.signals)
+                if now - signal.detected_at <= horizon
+            )
 
     def active_incidents(self, domain: str) -> tuple[SecurityIncident, ...]:
-        state = self._ensure_state(domain)
-        return tuple(
-            incident for incident in state.incidents.values() if incident.is_open
-        )
+        with self._lock:
+            state = self._ensure_state_locked(domain)
+            return tuple(
+                incident for incident in state.incidents.values() if incident.is_open
+            )
 
     def posture(
         self,
@@ -490,10 +525,12 @@ class DynamicSecurityEngine:
         *,
         horizon_hours: int = 24,
     ) -> SecurityPostureSnapshot:
-        state = self._ensure_state(domain)
-        now = _utcnow()
         horizon = timedelta(hours=max(horizon_hours, 1))
-        return state.to_snapshot(horizon=horizon, generated_at=now)
+        generated_at = self._now()
+        with self._lock:
+            state = self._ensure_state_locked(domain)
+            snapshot = state.to_snapshot(horizon=horizon, generated_at=generated_at)
+        return snapshot
 
     def aggregate_posture(
         self,
@@ -501,14 +538,35 @@ class DynamicSecurityEngine:
         horizon_hours: int = 24,
         label: str = "All Domains",
     ) -> SecurityPostureSnapshot:
-        snapshots = [
-            self.posture(domain, horizon_hours=horizon_hours) for domain in self.domains
-        ]
-        now = _utcnow()
+        horizon = timedelta(hours=max(horizon_hours, 1))
+        generated_at = self._now()
+        with self._lock:
+            states = tuple(self._domains.values())
+            if not states:
+                return SecurityPostureSnapshot(
+                    domain=label,
+                    generated_at=generated_at,
+                    coverage=0.0,
+                    maturity=0.0,
+                    risk_index=0.0,
+                    signal_volume=0,
+                    mean_time_to_detect_hours=0.0,
+                    mean_time_to_resolve_hours=0.0,
+                    open_incident_count=0,
+                    critical_incident_count=0,
+                    controls=(),
+                    signals=(),
+                    incidents=(),
+                )
+            snapshots = [
+                state.to_snapshot(horizon=horizon, generated_at=generated_at)
+                for state in states
+            ]
+
         if not snapshots:
             return SecurityPostureSnapshot(
                 domain=label,
-                generated_at=now,
+                generated_at=generated_at,
                 coverage=0.0,
                 maturity=0.0,
                 risk_index=0.0,
@@ -543,7 +601,7 @@ class DynamicSecurityEngine:
         mttr = _mean([snapshot.mean_time_to_resolve_hours for snapshot in snapshots])
         return SecurityPostureSnapshot(
             domain=label,
-            generated_at=now,
+            generated_at=generated_at,
             coverage=coverage,
             maturity=maturity,
             risk_index=risk,

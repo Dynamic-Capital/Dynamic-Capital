@@ -87,9 +87,10 @@ class DynamicSecurityAgent:
         domain: str | None = None,
         horizon_hours: int = 24,
         tags: Sequence[str] | None = None,
+        snapshot: SecurityPostureSnapshot | None = None,
     ) -> AgentInsight:
         target_domain = self._select_domain(domain)
-        snapshot = self._snapshot(target_domain, horizon_hours=horizon_hours)
+        snapshot = snapshot or self._snapshot(target_domain, horizon_hours=horizon_hours)
         highlights = self._build_highlights(snapshot)
         metrics = self._build_metrics(snapshot)
         details: Mapping[str, object] = {
@@ -120,14 +121,14 @@ class DynamicSecurityAgent:
         horizon_hours: int = 24,
         tags: Sequence[str] | None = None,
     ) -> SecurityAgentInsight:
-        raw = self.generate_insight(domain=domain, horizon_hours=horizon_hours, tags=tags)
-        snapshot_payload = raw.details.get("snapshot") if raw.details else None
-        if isinstance(snapshot_payload, Mapping):
-            snapshot = self._snapshot(
-                raw.title.split(" – ")[-1], horizon_hours=horizon_hours
-            )
-        else:
-            snapshot = self._snapshot(self._select_domain(domain), horizon_hours=horizon_hours)
+        target_domain = self._select_domain(domain)
+        snapshot = self._snapshot(target_domain, horizon_hours=horizon_hours)
+        raw = self.generate_insight(
+            domain=target_domain,
+            horizon_hours=horizon_hours,
+            tags=tags,
+            snapshot=snapshot,
+        )
         return SecurityAgentInsight(raw=raw, snapshot=snapshot)
 
     # ------------------------------------------------------------------
