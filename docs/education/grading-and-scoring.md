@@ -313,6 +313,39 @@ recommended mitigations (e.g., cooling cycles or shielding adjustments). Use the
 `--reference-time` flag to benchmark historical snapshots against a fixed
 observation window when comparing multiple runs.
 
+### Grade-Aware Fine-Tuning
+
+Benchmarking alone does not close the gap—the improvement loop now feeds
+directly into the fine-tune trainer. `FineTuneTrainer.fine_tune_for_grades`
+accepts a mapping of domains → learning snapshots alongside the latest
+`KnowledgeBaseMetrics`. It reuses the rubric to compute severity scores,
+annotates each fine-tune example with the grade context, and boosts priority for
+underperforming slices so remediation batches ship first.
+
+```python
+from dynamic_benchmark.gradebook import KnowledgeBaseMetrics
+from dynamic_fine_tune_engine import FineTuneTrainer
+
+report = trainer.fine_tune_for_grades(
+    domain_snapshots={"DAGS": dags_snapshots},
+    domain_metrics={
+        "DAI": KnowledgeBaseMetrics(...),
+        "DAGI": KnowledgeBaseMetrics(...),
+        "DAGS": KnowledgeBaseMetrics(...),
+    },
+    notes="kb remediation",
+)
+```
+
+The returned payload includes:
+
+- `domain_reports` detailing coverage/accuracy deficits, severity bands, and the
+  boosted quality floor for each slice.
+- `comprehensive_grade` capturing the recomputed rollup so operations leads know
+  whether the remediation cycle lifted the overall letter band.
+- Harvest metadata where the trainer escalates `minimum_quality` to match the
+  most critical domain, ensuring exported batches emphasise the weakest areas.
+
 ### Latest Benchmark Snapshot
 
 Re-running the benchmark after the most recent fine-tuning cycle yields the
