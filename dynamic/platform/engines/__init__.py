@@ -76,6 +76,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicTrafficControl",
         "DynamicProblemSolvingAlgo",
     ),
+    "dynamic.trading.live_sync": (
+        "DEFAULT_LIVE_SYNC_CONTEXT",
+        "DynamicTradingLiveSync",
+        "LiveTradingDecision",
+        "MarketUpdate",
+    ),
     "dynamic_analytical_thinking": ("DynamicAnalyticalThinking",),
     "dynamic_arrow": ("DynamicArrow",),
     "dynamic_bots": ("DynamicTelegramBot",),
