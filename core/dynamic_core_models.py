@@ -16,6 +16,9 @@ __all__ = [
     "CoreBlueprint",
     "BlueprintBackedCoreModel",
     "CORE_BLUEPRINTS",
+    "CORE_MODEL_FACTORIES",
+    "build_core_model",
+    "build_all_core_models",
     "DynamicCoreModel",
     "DynamicAICoreModel",
     "DynamicAGICoreModel",
@@ -947,3 +950,44 @@ class DynamicDCRCoreModel(BlueprintBackedCoreModel):
     """Dynamic Core model representing the five DCR governance pillars."""
 
     blueprint = CORE_BLUEPRINTS["dynamic_dcr"]
+
+
+CORE_MODEL_FACTORIES: Mapping[str, type[BlueprintBackedCoreModel]] = MappingProxyType(
+    {
+        "dynamic_ai": DynamicAICoreModel,
+        "dynamic_agi": DynamicAGICoreModel,
+        "dynamic_ags": DynamicAGSCoreModel,
+        "dynamic_etl": DynamicETLCoreModel,
+        "dynamic_dcm": DynamicDCMCoreModel,
+        "dynamic_dch": DynamicDCHCoreModel,
+        "dynamic_dcr": DynamicDCRCoreModel,
+    }
+)
+
+
+def build_core_model(domain_key: str, *, window: int | None = None) -> DynamicCoreModel:
+    """Construct a Dynamic Core model for ``domain_key``.
+
+    Parameters
+    ----------
+    domain_key:
+        Identifier referencing an entry in :data:`CORE_MODEL_FACTORIES`.
+    window:
+        Optional override for the trailing momentum window used by the
+        constructed model. Defaults to the blueprint's window when omitted.
+    """
+
+    try:
+        model_cls = CORE_MODEL_FACTORIES[domain_key]
+    except KeyError:  # pragma: no cover - defensive guard
+        raise KeyError(f"unknown core domain '{domain_key}'") from None
+    return model_cls(window=window)
+
+
+def build_all_core_models(*, window: int | None = None) -> Mapping[str, DynamicCoreModel]:
+    """Return instantiated models for every registered Dynamic Core domain."""
+
+    return {
+        domain_key: build_core_model(domain_key, window=window)
+        for domain_key in CORE_MODEL_FACTORIES
+    }
