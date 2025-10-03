@@ -2,7 +2,7 @@ import { withApiMetrics } from "@/observability/server-metrics.ts";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 import { healthPayload } from "@/utils/commit.ts";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 const payload = healthPayload();
 
