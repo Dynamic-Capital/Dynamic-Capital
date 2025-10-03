@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import math
+import os
 import random
 from copy import deepcopy
 from dataclasses import asdict, dataclass, field, is_dataclass
@@ -13,6 +15,11 @@ try:  # pragma: no cover - optional dependency
     from integrations.mt5_connector import MT5Connector  # type: ignore
 except Exception:  # pragma: no cover - keep module importable if MT5 deps missing
     MT5Connector = None  # type: ignore
+
+try:  # pragma: no cover - optional dependency
+    from integrations.trade_api_connector import TradeAPIConnector  # type: ignore
+except Exception:  # pragma: no cover - keep module importable when connector deps missing
+    TradeAPIConnector = None  # type: ignore
 
 from dynamic_metadata import ModelVersion, VersionNumber
 
@@ -34,6 +41,9 @@ ALGO_VERSION = ALGO_VERSION_INFO.tag
 
 def _default_version_info() -> Dict[str, Any]:
     return ALGO_VERSION_INFO.as_dict()
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, frozen=True)
@@ -1498,11 +1508,47 @@ class DynamicTradingAlgo:
         return adjusted
 
     def _bootstrap_connector(self) -> Any:
+        api_url = os.environ.get("TRADE_EXECUTION_API_URL") or os.environ.get("TRADE_API_URL")
+        if api_url:
+            if TradeAPIConnector is None:
+                logger.warning(
+                    "Trade execution API configured but TradeAPIConnector is unavailable; falling back to MT5/paper"
+                )
+            else:
+                api_kwargs: Dict[str, Any] = {}
+                api_key = os.environ.get("TRADE_EXECUTION_API_KEY") or os.environ.get("TRADE_API_KEY")
+                if api_key:
+                    api_kwargs["api_key"] = api_key
+                client_id = os.environ.get("TRADE_EXECUTION_CLIENT_ID") or os.environ.get("TRADE_API_CLIENT_ID")
+                if client_id:
+                    api_kwargs["client_id"] = client_id
+                account_id = os.environ.get("TRADE_EXECUTION_ACCOUNT_ID") or os.environ.get("TRADE_API_ACCOUNT_ID")
+                if account_id:
+                    api_kwargs["account_id"] = account_id
+                timeout_value = os.environ.get("TRADE_EXECUTION_API_TIMEOUT") or os.environ.get("TRADE_API_TIMEOUT")
+                timeout = _coerce_float(timeout_value)
+                if timeout and timeout > 0:
+                    api_kwargs["timeout"] = timeout
+                order_endpoint = os.environ.get("TRADE_EXECUTION_ORDER_ENDPOINT")
+                if order_endpoint:
+                    api_kwargs["order_endpoint"] = order_endpoint
+                hedge_endpoint = os.environ.get("TRADE_EXECUTION_HEDGE_ENDPOINT")
+                if hedge_endpoint:
+                    api_kwargs["hedge_endpoint"] = hedge_endpoint
+                try:
+                    connector = TradeAPIConnector(api_url, **api_kwargs)
+                except Exception as exc:  # pragma: no cover - dependency variability
+                    logger.error("Failed to initialise TradeAPIConnector: %s", exc)
+                else:
+                    logger.info("Using TradeAPIConnector for execution at %s", api_url)
+                    return connector
+
         if MT5Connector is None:
             return self._paper_broker
         try:
             return MT5Connector()
-        except Exception:
+        except Exception as exc:  # pragma: no cover - MT5 runtime variability
+            logger.warning("Falling back to paper trading after MT5 bootstrap error: %s", exc)
             return self._paper_broker
 
 

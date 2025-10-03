@@ -1,4 +1,5 @@
 import types
+from typing import Any
 
 import pytest
 
@@ -47,6 +48,27 @@ class StubConnector:
             order=42,
             price=1.2345,
         )
+
+
+def test_bootstrap_connector_prefers_trade_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyConnector:
+        def __init__(self, base_url: str, **kwargs: Any) -> None:
+            self.base_url = base_url
+            self.kwargs = kwargs
+
+    monkeypatch.setenv("TRADE_EXECUTION_API_URL", "https://broker.test/api")
+    monkeypatch.setenv("TRADE_EXECUTION_API_KEY", "token")
+    monkeypatch.setattr(
+        "dynamic.trading.algo.trading_core.TradeAPIConnector",
+        DummyConnector,
+    )
+    monkeypatch.setattr("dynamic.trading.algo.trading_core.MT5Connector", None, raising=False)
+
+    algo = DynamicTradingAlgo()
+
+    assert isinstance(algo.connector, DummyConnector)
+    assert algo.connector.base_url == "https://broker.test/api"
+    assert algo.connector.kwargs["api_key"] == "token"
 
 
 def test_execute_trade_preserves_mapping_response_fields() -> None:
