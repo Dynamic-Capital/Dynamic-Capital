@@ -30,6 +30,11 @@ const DYNAMIC_CAPITAL_TON_HOST = "dynamiccapital.ton";
 const DYNAMIC_CAPITAL_TON_ORIGIN = `https://${DYNAMIC_CAPITAL_TON_HOST}`;
 const DYNAMIC_CAPITAL_TON_WWW_ORIGIN =
   `https://www.${DYNAMIC_CAPITAL_TON_HOST}`;
+const TON_GATEWAY_PRIMARY_HOST =
+  "ton-gateway.dynamic-capital.ondigitalocean.app";
+const TON_GATEWAY_PRIMARY_ORIGIN = `https://${TON_GATEWAY_PRIMARY_HOST}`;
+const TON_GATEWAY_STANDBY_ORIGIN =
+  "https://ton-gateway.dynamic-capital.lovable.app";
 
 const DEFAULT_COMMIT_ENV_KEYS = [
   "NEXT_PUBLIC_COMMIT_SHA",
@@ -186,6 +191,8 @@ const defaultAllowedOrigins = new Set([SITE_URL]);
 if (process.env.NODE_ENV === "production") {
   defaultAllowedOrigins.add(DYNAMIC_CAPITAL_TON_ORIGIN);
   defaultAllowedOrigins.add(DYNAMIC_CAPITAL_TON_WWW_ORIGIN);
+  defaultAllowedOrigins.add(TON_GATEWAY_PRIMARY_ORIGIN);
+  defaultAllowedOrigins.add(TON_GATEWAY_STANDBY_ORIGIN);
 }
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS ||
   Array.from(defaultAllowedOrigins).join(",");
