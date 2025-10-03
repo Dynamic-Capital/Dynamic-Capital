@@ -111,6 +111,9 @@ type NavItem = {
   icon: (props: { active: boolean }) => JSX.Element;
 };
 
+const TONCONNECT_MANIFEST_URL =
+  "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamic-capital-qazf2.ondigitalocean.app/tonconnect-manifest.json";
+
 const SECTION_IDS: SectionId[] = [
   "overview",
   "plans",
@@ -2191,7 +2194,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function Page() {
   return (
     <TonConnectUIProvider
-      manifestUrl="/tonconnect-manifest.json"
+      manifestUrl={TONCONNECT_MANIFEST_URL}
       walletsListConfiguration={WALLETS_LIST_CONFIGURATION}
     >
       <HomeInner />
