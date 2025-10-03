@@ -12,10 +12,14 @@ from __future__ import annotations
 from importlib import import_module
 from typing import Dict, Iterable, Tuple
 
+SymbolExport = str | tuple[str, str]
+
 # Mapping of source modules to the engine-style orchestrators they expose.
 # Symbols are imported lazily so optional dependencies from the source modules
-# do not trigger import errors until the attribute is accessed.
-_ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
+# do not trigger import errors until the attribute is accessed.  Entries may
+# optionally provide an ``(alias, symbol)`` tuple to expose a symbol under a
+# different public name when avoiding collisions.
+_ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
     "dynamic_architect": (
         "DynamicArchitect",
         "DynamicArchitectEngine",
@@ -88,6 +92,13 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_branch": ("DynamicBranchPlanner",),
     "dynamic_bridge": ("DynamicBridgeOrchestrator",),
     "dynamic_candles": ("DynamicCandles",),
+    "dynamic_clusters": (
+        "DynamicClusterEngine",
+        "ClusterAssignment",
+        "ClusterPoint",
+        "ClusterSnapshot",
+        "ClusterSummary",
+    ),
     "dynamic_cognition": (
         "CognitiveAlignmentEngine",
         "CognitiveAlignmentReport",
@@ -349,6 +360,14 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     ),
     "dynamic_stem_cell": ("DynamicStemCell",),
     "dynamic_syncronization": ("DynamicSyncronizationOrchestrator",),
+    "dynamic_superclusters": (
+        "ClusterPulse",
+        ("SuperclusterClusterSnapshot", "ClusterSnapshot"),
+        "ClusterProfile",
+        "DynamicSuperclusterEngine",
+        "SuperclusterSpec",
+        "SuperclusterSnapshot",
+    ),
     "dynamic_supply": (
         "DynamicSupplyEngine",
         "SupplyAdjustment",
@@ -400,20 +419,37 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     ),
 }
 
-__all__ = sorted({symbol for symbols in _ENGINE_EXPORTS.values() for symbol in symbols})
+def _export_alias(spec: SymbolExport) -> str:
+    return spec[0] if isinstance(spec, tuple) else spec
 
 
-def _load_symbol(module_name: str, symbol: str) -> object:
+def _export_symbol(spec: SymbolExport) -> str:
+    return spec[1] if isinstance(spec, tuple) else spec
+
+
+__all__ = sorted(
+    {
+        _export_alias(spec)
+        for specs in _ENGINE_EXPORTS.values()
+        for spec in specs
+    }
+)
+
+
+def _load_symbol(module_name: str, spec: SymbolExport) -> object:
+    alias = _export_alias(spec)
+    symbol = _export_symbol(spec)
     module = import_module(module_name)
     value = getattr(module, symbol)
-    globals()[symbol] = value
+    globals()[alias] = value
     return value
 
 
 def __getattr__(name: str) -> object:
-    for module_name, symbols in _ENGINE_EXPORTS.items():
-        if name in symbols:
-            return _load_symbol(module_name, name)
+    for module_name, specs in _ENGINE_EXPORTS.items():
+        for spec in specs:
+            if _export_alias(spec) == name:
+                return _load_symbol(module_name, spec)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
