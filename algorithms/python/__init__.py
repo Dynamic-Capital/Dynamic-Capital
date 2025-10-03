@@ -157,6 +157,13 @@ from .desk_sync import (
     TradingDeskSynchroniser,
     summarise_trade_logic,
 )
+from .dynamic_protocol_planner import (
+    CATEGORY_EXECUTORS as PROTOCOL_CATEGORY_EXECUTORS,
+    CATEGORY_KEYS as PROTOCOL_CATEGORY_KEYS,
+    DynamicProtocolPlanner,
+    HORIZON_KEYS as PROTOCOL_HORIZON_KEYS,
+    ProtocolDraft,
+)
 from .project_faq_generator import (
     FAQEntry,
     FAQRequest,
@@ -445,6 +452,11 @@ __all__ = _trade_exports + [
     "DynamicAISummary",
     "DynamicAISyncReport",
     "DynamicAISynchroniser",
+    "DynamicProtocolPlanner",
+    "ProtocolDraft",
+    "PROTOCOL_CATEGORY_EXECUTORS",
+    "PROTOCOL_CATEGORY_KEYS",
+    "PROTOCOL_HORIZON_KEYS",
     "dynamic_agent_cycle_adapter",
     "dynamic_algo_sync_adapter",
     "run_dynamic_agent_cycle",
@@ -679,6 +691,11 @@ globals().update(
         "TeamRoleSyncResult": TeamRoleSyncResult,
         "TradingDeskSynchroniser": TradingDeskSynchroniser,
         "summarise_trade_logic": summarise_trade_logic,
+        "DynamicProtocolPlanner": DynamicProtocolPlanner,
+        "ProtocolDraft": ProtocolDraft,
+        "PROTOCOL_CATEGORY_EXECUTORS": PROTOCOL_CATEGORY_EXECUTORS,
+        "PROTOCOL_CATEGORY_KEYS": PROTOCOL_CATEGORY_KEYS,
+        "PROTOCOL_HORIZON_KEYS": PROTOCOL_HORIZON_KEYS,
         "KillZone": KillZone,
         "MVT_TIMEZONE": MVT_TIMEZONE,
         "DynamicTimeKeeperAlgorithm": DynamicTimeKeeperAlgorithm,
