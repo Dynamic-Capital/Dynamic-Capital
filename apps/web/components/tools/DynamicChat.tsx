@@ -99,7 +99,7 @@ const DEFAULT_SYSTEM_PROMPT = composeSystemPrompt(
 export function DynamicChat() {
   const [providers, setProviders] = useState<ProviderSummary[]>([]);
   const [selectedProviderId, setSelectedProviderId] = useState<ProviderId | "">(
-    "dynamic-agi",
+    "dynamic-ai",
   );
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(512);
@@ -205,6 +205,15 @@ export function DynamicChat() {
 
         if (resolvedSelection) {
           setSelectedProviderId(resolvedSelection.id);
+          return;
+        }
+
+        const dynamicAiProvider = data.providers.find((provider) =>
+          provider.id === "dynamic-ai"
+        );
+
+        if (dynamicAiProvider) {
+          setSelectedProviderId(dynamicAiProvider.id);
           return;
         }
 
