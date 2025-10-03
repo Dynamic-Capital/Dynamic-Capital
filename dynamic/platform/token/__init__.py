@@ -9,6 +9,7 @@ from .engine import (
 from .image import (
     GeneratedNFTImage,
     NanoBananaClient,
+    NanoBananaClientError,
     NanoBananaImageGenerator,
     create_nanobanana_generator_from_env,
 )
@@ -25,6 +26,7 @@ __all__ = [
     "GeneratedNFTImage",
     "NFTImageGenerator",
     "NanoBananaClient",
+    "NanoBananaClientError",
     "NanoBananaImageGenerator",
     "create_nanobanana_generator_from_env",
     "committee_signals_from_optimisation",
