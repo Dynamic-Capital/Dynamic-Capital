@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from collections import deque
+from heapq import nlargest
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from statistics import fmean
 from types import MappingProxyType
 from typing import Deque, Iterable, Mapping, Sequence
 
@@ -237,6 +237,7 @@ class DynamicCoreModel:
         self._definitions: tuple[CoreMetricDefinition, ...] = tuple(definition_list)
         self._lookup: Mapping[str, CoreMetricDefinition] = MappingProxyType(lookup)
         self._history: Deque[float] = deque(maxlen=max(int(window), 2))
+        self._history_sum: float = 0.0
         self._samples: int = 0
         self._last_snapshot: CoreSnapshot | None = None
 
@@ -333,12 +334,17 @@ class DynamicCoreModel:
             if status in {"risk", "critical"}:
                 alerts.append(f"{definition.label}: {status.upper()}")
         composite = weighted_total / weight_sum if weight_sum else 0.0
-        if self._history:
-            baseline = fmean(self._history)
+        history_length = len(self._history)
+        if history_length:
+            baseline = self._history_sum / history_length
             momentum = composite - baseline
         else:
             momentum = 0.0
+        oldest = self._history[0] if history_length == self._history.maxlen else 0.0
+        if history_length == self._history.maxlen:
+            self._history_sum -= oldest
         self._history.append(composite)
+        self._history_sum += composite
         self._samples += 1
         snapshot = CoreSnapshot(
             domain=self.domain,
@@ -361,13 +367,17 @@ class DynamicCoreModel:
         if self._last_snapshot is None or limit <= 0:
             return ()
         candidates = [metric for metric in self._last_snapshot.metrics if metric.priority > 0]
-        candidates.sort(key=lambda metric: (metric.priority, metric.weight), reverse=True)
-        return tuple(candidates[:limit])
+        if not candidates:
+            return ()
+        if limit >= len(candidates):
+            candidates.sort(key=lambda metric: (metric.priority, metric.weight), reverse=True)
+            return tuple(candidates)
+        return tuple(nlargest(limit, candidates, key=lambda metric: (metric.priority, metric.weight)))
 
     def trailing_composite_mean(self) -> float:
         if not self._history:
             raise RuntimeError("no composite history available")
-        return fmean(self._history)
+        return self._history_sum / len(self._history)
 
 
 class DynamicAICoreModel(DynamicCoreModel):
