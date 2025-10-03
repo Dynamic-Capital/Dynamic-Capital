@@ -1,34 +1,48 @@
 # SignData in TON via TonConnect: Developer Guide
 
-TonConnect's `signData` request gives wallets a way to confirm sensitive dApp
-actions with a cryptographically verifiable signature instead of a simple button
-press. Wallets display the payload, gather consent, and respond with an Ed25519
-signature that you can validate off-chain or pass to smart contracts for
-on-chain enforcement.
+TonConnect's `signData` request lets wallets collect strong user consent by
+signing structured payloads with the same Ed25519 key that authorizes TON
+transactions. The signature can be validated in your backend or on-chain without
+moving funds.
+
+## Quick Start
+
+1. Pick a payload format (`text`, `binary`, or `cell`).
+2. Call `tonConnectUi.signData(payload)` from your dApp.
+3. Receive `{ signature, address, timestamp, domain, payload }` from the wallet.
+4. Reconstruct the signed bytes or cell and verify the signature with the wallet
+   public key.
+5. Enforce freshness (timestamp) and wallet binding (address) before acting on
+   the result.
 
 ## When to Use SignData
 
-Use SignData whenever a workflow requires explicit, auditable consent without
-executing a TON transaction. Common examples include updating a public profile,
-linking a new email or phone number, or agreeing to DAO terms.
+Reach for SignData whenever you need explicit, auditable confirmation without
+submitting an on-chain transaction—for example, profile updates, email or phone
+linking, DAO membership agreements, or acceptance of terms of service.
 
-Key properties:
+| Property      | Details                                                                 |
+| ------------- | ----------------------------------------------------------------------- |
+| Non-custodial | Wallets sign with the user's transaction key but cannot transfer funds. |
+| Explicit      | Wallets render the payload (or warn for non-readable bytes).            |
+| Auditable     | Persist signatures as receipts or pass them into smart contracts.       |
 
-- **Non-custodial:** The user signs with the same key that approves
-  transactions, but the signature does not expose funds.
-- **Auditable:** You can persist signatures as receipts or feed them into
-  on-chain checks.
-- **Explicit:** Wallets show users exactly what they are approving (for
-  supported formats).
+## Choosing a Payload Format
 
-## Payload Formats
+TonConnect supports three payload types. Use the following matrix to avoid
+back-to-back conversions between human-readable text, hashes, and TL-B cells.
 
-TonConnect supports three payload types. Choose the format that best matches
-your use case and validation strategy.
+| Format   | What the wallet signs              | Wallet UI experience                  | Typical use cases                                                |
+| -------- | ---------------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| `text`   | UTF-8 message                      | Rendered exactly as provided          | Disclosures, policy updates, off-chain agreements                |
+| `binary` | Arbitrary bytes or hashes          | Warning: "Data is not human-readable" | Document receipts, content hashes, capability tokens             |
+| `cell`   | TON cell with TL-B schema metadata | Schema preview + warning              | Smart-contract validated inputs, structured governance decisions |
 
-### Text
+> **Root type note:** When you provide multiple TL-B type definitions in
+> `payload.schema`, the final type acts as the root for serialization and
+> deserialization.
 
-Use text when humans need to read and confirm the content.
+### `text` payload example
 
 ```ts
 const payload = {
@@ -37,12 +51,7 @@ const payload = {
 };
 ```
 
-- Shown exactly as provided in the wallet UI.
-- Ideal for off-chain acknowledgements and legal-style agreements.
-
-### Binary
-
-Use binary when you need to sign arbitrary bytes or a hash.
+### `binary` payload example
 
 ```ts
 const payload = {
@@ -51,13 +60,7 @@ const payload = {
 };
 ```
 
-- Suitable for receipts, document hashes, or data that should not be displayed
-  directly.
-- Wallets warn users that the payload is not human-readable.
-
-### Cell
-
-Use cell when smart contracts must validate or restore the payload.
+### `cell` payload example
 
 ```ts
 const payload = {
@@ -66,12 +69,6 @@ const payload = {
   cell: "te6ccgEBAQEAVwAAqg+KfqVUbeTvKqB4h0AcnDgIAZucsOi6TLrf...",
 };
 ```
-
-- Encodes structured data that contracts can parse with TL-B schemas.
-- Contracts can verify the signature using the schema hash, timestamp, wallet
-  address, and domain.
-- If multiple TL-B types are defined, the final type in the schema is treated as
-  the root during serialization.
 
 ## Requesting a Signature
 
@@ -82,8 +79,7 @@ const result = await tonConnectUi.signData({
 });
 ```
 
-Wallets return an object containing the signature, the signing wallet address,
-timestamp, originating domain, and the payload you provided.
+Wallets resolve with:
 
 ```json
 {
@@ -98,63 +94,68 @@ timestamp, originating domain, and the payload you provided.
 }
 ```
 
-Always verify that the returned `address` matches the wallet you prompted and
-enforce reasonable timestamp freshness to prevent replay attacks.
+## Signature Construction
 
-## How Signatures Are Constructed
+### Text and binary payloads
 
-### Text and Binary Payloads
-
-Wallets construct a byte buffer before signing:
+Wallets concatenate the components below, hash them with SHA-256, and sign the
+result with Ed25519:
 
 ```
 0xffff ++ "ton-connect/sign-data/" ++ Address ++ AppDomain ++ Timestamp ++ Payload
 ```
 
-The payload portion includes a prefix (`txt` or `bin`), the content length, and
-the UTF-8 encoded text or bytes. The wallet signs `sha256(message)` with
-Ed25519.
+The payload chunk encodes a short prefix (`txt` or `bin`), the content length,
+and either the UTF-8 bytes or the raw payload bytes.
 
-### Cell Payloads
+### Cell payloads
 
-Wallets build a TON cell containing:
+Wallets assemble a cell and sign its hash:
 
 1. Prefix `0x75569022`
-2. CRC32 of the TL-B schema
+2. CRC32 of the TL-B schema string
 3. 64-bit timestamp
-4. Wallet address
-5. App domain string reference
-6. A reference to the payload cell
+4. User wallet address
+5. App domain string (stored as a reference)
+6. Reference to the payload cell data
 
-The wallet signs the hash of this cell using Ed25519.
+## Verification Workflow
 
-## Verifying Signatures Off-Chain
+### Off-chain verification
 
-Recreate the message (text/binary) or cell (cell payloads), fetch the signer's
-public key, and validate with an Ed25519 library such as TweetNaCl.
+1. Reconstruct the signed message or cell using the same rules as the wallet.
+2. Fetch the signer's public key (from TonConnect session data or your records).
+3. Validate the signature:
 
-```ts
-import nacl from "tweetnacl";
+   ```ts
+   import nacl from "tweetnacl";
 
-const isValid = nacl.sign.detached.verify(hash, signature, publicKey);
-```
+   const isValid = nacl.sign.detached.verify(hash, signature, publicKey);
+   ```
 
-Reject signatures whose addresses do not match the expected wallet, or whose
-timestamps fall outside your allowed window.
+4. Check that `result.address` matches the expected wallet address.
+5. Enforce a maximum acceptable age for `result.timestamp`.
 
-## Verifying Signatures On-Chain
+### On-chain verification (FunC/TVM)
 
-Smart contracts can verify cell-format signatures by checking:
+Smart contracts can validate `cell` payload signatures by asserting:
 
-1. Prefix `0x75569022`
-2. TL-B schema hash
-3. Timestamp freshness
-4. Wallet address
-5. App domain string
-6. Ed25519 signature using `check_signature`
+1. Prefix `0x75569022`.
+2. TL-B schema hash equality.
+3. Timestamp freshness.
+4. Wallet address match.
+5. App domain string match.
+6. Ed25519 signature validity using `check_signature`.
 
-Example FunC implementations are available in the TonConnect ecosystem
-repositories.
+## Security Checklist
+
+- Bind the signature to the wallet address you initiated the request with.
+- Enforce timestamp freshness to mitigate replay attacks.
+- Persist signatures and payloads for auditing or dispute resolution.
+- For binary payloads, display a human-readable summary in your UI before
+  invoking the wallet prompt.
+- For cell payloads, version your TL-B schema so contracts can reject stale
+  shapes.
 
 ## Resources
 
