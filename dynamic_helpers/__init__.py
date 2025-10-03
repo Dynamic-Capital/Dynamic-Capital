@@ -36,6 +36,7 @@ _HELPER_EXPORTS = {
     ),
     "dynamic_helpers.atom": ("DynamicAtomHelper",),
     "dynamic_helpers.nft_engine": ("DynamicNFTHelper",),
+    "dynamic_helpers.security": ("DynamicSecurityHelper",),
     "dynamic_helpers.physics": ("DynamicPhysicsHelper",),
     "dynamic_helpers.dhivehi_language": ("DynamicDhivehiLanguageHelper",),
     "dynamic_helpers.business": ("DynamicBusinessHelper",),

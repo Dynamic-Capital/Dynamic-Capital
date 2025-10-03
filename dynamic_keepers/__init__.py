@@ -69,6 +69,7 @@ _KEEPER_EXPORTS = {
     "dynamic_keepers.dhivehi_language": ("DynamicDhivehiLanguageKeeper",),
     "dynamic_keepers.business": ("DynamicBusinessKeeper",),
     "dynamic_keepers.physics": ("DynamicPhysicsKeeper",),
+    "dynamic_keepers.security": ("DynamicSecurityKeeper",),
     "dynamic_keepers.atom": ("DynamicAtomKeeper",),
     "dynamic_keepers.ocean": (
         "DynamicOceanLayerKeeper",
