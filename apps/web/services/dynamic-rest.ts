@@ -114,6 +114,13 @@ export interface DynamicRestResourceEnvelope<Resource> {
   resource: Resource;
 }
 
+export interface DynamicRestResourceEndpointDescriptor<
+  Key extends keyof DynamicRestResources,
+> extends RestEndpointDescriptor {
+  resourceKey: Key;
+  slug: string;
+}
+
 const RESPONSE_METADATA = Object.freeze({
   version: 1,
   repository: "Dynamic Capital",
@@ -138,6 +145,52 @@ type TradingPlan = {
 };
 
 const TRADING_DESK_PLAN = tradingDeskPlan as TradingDeskPlan;
+
+const ROOT_DYNAMIC_REST_ENDPOINT = Object.freeze(
+  {
+    method: "GET",
+    path: "/api/dynamic-rest",
+    description: "Retrieve aggregated Dynamic Capital datasets for public use.",
+  } satisfies RestEndpointDescriptor,
+);
+
+type ResourceEndpointMap = {
+  [Key in keyof DynamicRestResources]: DynamicRestResourceEndpointDescriptor<
+    Key
+  >;
+};
+
+const RESOURCE_DYNAMIC_REST_ENDPOINTS = Object.freeze(
+  {
+    instruments: {
+      method: "GET",
+      path: "/api/dynamic-rest/resources/instruments",
+      description: "List curated trading instruments grouped by asset class.",
+      resourceKey: "instruments",
+      slug: "instruments",
+    },
+    tradingDesk: {
+      method: "GET",
+      path: "/api/dynamic-rest/resources/trading-desk",
+      description: "Fetch trading desk plan snapshots with execution context.",
+      resourceKey: "tradingDesk",
+      slug: "trading-desk",
+    },
+    bondYields: {
+      method: "GET",
+      path: "/api/dynamic-rest/resources/bond-yields",
+      description:
+        "Summaries of live sovereign yield coverage and feed capabilities.",
+      resourceKey: "bondYields",
+      slug: "bond-yields",
+    },
+  } satisfies ResourceEndpointMap,
+);
+
+export const DYNAMIC_REST_ENDPOINTS = Object.freeze({
+  root: ROOT_DYNAMIC_REST_ENDPOINT,
+  resources: RESOURCE_DYNAMIC_REST_ENDPOINTS,
+});
 
 function summariseBondYields(): DynamicRestResources["bondYields"] {
   const markets = BOND_MARKET_COVERAGE.map((market) => ({
@@ -236,29 +289,8 @@ export function buildDynamicRestResponse(
     generatedAt: now.toISOString(),
     metadata: buildMetadata(),
     endpoints: [
-      {
-        method: "GET",
-        path: "/api/dynamic-rest",
-        description:
-          "Retrieve aggregated Dynamic Capital datasets for public use.",
-      },
-      {
-        method: "GET",
-        path: "/api/dynamic-rest/resources/instruments",
-        description: "List curated trading instruments grouped by asset class.",
-      },
-      {
-        method: "GET",
-        path: "/api/dynamic-rest/resources/trading-desk",
-        description:
-          "Fetch trading desk plan snapshots with execution context.",
-      },
-      {
-        method: "GET",
-        path: "/api/dynamic-rest/resources/bond-yields",
-        description:
-          "Summaries of live sovereign yield coverage and feed capabilities.",
-      },
+      ROOT_DYNAMIC_REST_ENDPOINT,
+      ...Object.values(RESOURCE_DYNAMIC_REST_ENDPOINTS),
     ],
     resources: {
       instruments,

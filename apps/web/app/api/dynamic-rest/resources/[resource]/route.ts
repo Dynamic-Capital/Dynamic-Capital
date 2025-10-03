@@ -7,12 +7,11 @@ import {
   buildDynamicRestTradingDeskResponse,
   DYNAMIC_REST_CACHE_CONTROL_HEADER,
   DYNAMIC_REST_CACHE_TAG,
+  DYNAMIC_REST_ENDPOINTS,
   type DynamicRestResourceEnvelope,
   type DynamicRestResources,
 } from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
-
-const ROUTE_BASE = "/api/dynamic-rest/resources" as const;
 
 // Keep this fallback in sync with DEFAULT_DYNAMIC_REST_CACHE_TTL_SECONDS in
 // `@/services/dynamic-rest`.
@@ -28,7 +27,11 @@ export const revalidate = parsedRevalidateSeconds !== undefined &&
   ? parsedRevalidateSeconds
   : FALLBACK_REVALIDATE_SECONDS;
 
-type ResourceSlug = "instruments" | "trading-desk" | "bond-yields";
+const RESOURCE_ENDPOINTS = DYNAMIC_REST_ENDPOINTS.resources;
+
+type ResourceEndpoint =
+  (typeof RESOURCE_ENDPOINTS)[keyof typeof RESOURCE_ENDPOINTS];
+type ResourceSlug = ResourceEndpoint["slug"];
 
 type ResourcePayload = DynamicRestResourceEnvelope<
   DynamicRestResources[keyof DynamicRestResources]
@@ -37,7 +40,7 @@ type ResourcePayload = DynamicRestResourceEnvelope<
 type CachedResourceBuilder = () => Promise<ResourcePayload>;
 
 type ResourceDefinition = {
-  routeName: `${typeof ROUTE_BASE}/${ResourceSlug}`;
+  endpoint: ResourceEndpoint;
   getResource: CachedResourceBuilder;
 };
 
@@ -55,29 +58,31 @@ function createCachedResource<Payload extends ResourcePayload>(
   );
 }
 
-const RESOURCE_DEFINITIONS: Record<ResourceSlug, ResourceDefinition> = {
-  instruments: {
-    routeName: `${ROUTE_BASE}/instruments`,
+const RESOURCE_DEFINITIONS = {
+  [RESOURCE_ENDPOINTS.instruments.slug]: {
+    endpoint: RESOURCE_ENDPOINTS.instruments,
     getResource: createCachedResource(
       "dynamic-rest-resources-instruments",
       buildDynamicRestInstrumentsResponse,
     ),
   },
-  "trading-desk": {
-    routeName: `${ROUTE_BASE}/trading-desk`,
+  [RESOURCE_ENDPOINTS.tradingDesk.slug]: {
+    endpoint: RESOURCE_ENDPOINTS.tradingDesk,
     getResource: createCachedResource(
       "dynamic-rest-resources-trading-desk",
       buildDynamicRestTradingDeskResponse,
     ),
   },
-  "bond-yields": {
-    routeName: `${ROUTE_BASE}/bond-yields`,
+  [RESOURCE_ENDPOINTS.bondYields.slug]: {
+    endpoint: RESOURCE_ENDPOINTS.bondYields,
     getResource: createCachedResource(
       "dynamic-rest-resources-bond-yields",
       buildDynamicRestBondYieldsResponse,
     ),
   },
-};
+} satisfies Record<ResourceSlug, ResourceDefinition>;
+
+const RESOURCE_SLUGS = Object.keys(RESOURCE_DEFINITIONS) as ResourceSlug[];
 
 function resolveResource(
   resource: string | undefined,
@@ -86,7 +91,16 @@ function resolveResource(
     return null;
   }
 
-  return RESOURCE_DEFINITIONS[resource as ResourceSlug] ?? null;
+  const normalized = resource.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(RESOURCE_DEFINITIONS, normalized)) {
+    return RESOURCE_DEFINITIONS[normalized as ResourceSlug];
+  }
+
+  return null;
 }
 
 export async function GET(
@@ -100,13 +114,15 @@ export async function GET(
       {
         status: "error",
         message: "Unknown dynamic REST resource",
+        availableResources: RESOURCE_SLUGS,
       },
       { status: 404 },
       req,
     );
   }
 
-  const { routeName, getResource } = definition;
+  const { endpoint, getResource } = definition;
+  const routeName = endpoint.path;
 
   return withApiMetrics(req, routeName, async () => {
     const payload = await getResource();

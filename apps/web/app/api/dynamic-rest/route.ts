@@ -5,10 +5,12 @@ import {
   buildDynamicRestResponse,
   DYNAMIC_REST_CACHE_CONTROL_HEADER,
   DYNAMIC_REST_CACHE_TAG,
+  DYNAMIC_REST_ENDPOINTS,
 } from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
-const ROUTE_NAME = "/api/dynamic-rest";
+const ROUTE_ENDPOINT = DYNAMIC_REST_ENDPOINTS.root;
+const ROUTE_NAME = ROUTE_ENDPOINT.path;
 const CACHE_KEY = "dynamic-rest-response";
 
 // Keep this fallback in sync with DEFAULT_DYNAMIC_REST_CACHE_TTL_SECONDS in
@@ -56,6 +58,6 @@ export const DELETE = methodNotAllowed;
 export const HEAD = (req: Request) => methodNotAllowed(req);
 
 export function OPTIONS(req: Request) {
-  const headers = corsHeaders(req, "GET");
+  const headers = corsHeaders(req, ROUTE_ENDPOINT.method);
   return new Response(null, { status: 204, headers });
 }
