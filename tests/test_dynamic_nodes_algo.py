@@ -15,6 +15,7 @@ from dynamic.trading.algo.dynamic_nodes import (
     DynamicNodeRegistry,
     NodeConfigError,
     NodeDependencyError,
+    DEFAULT_NODE_CONFIGS,
 )
 
 
@@ -39,6 +40,26 @@ def test_dynamic_node_normalises_configuration() -> None:
     assert node.outputs == ("Signals", "signals")
     assert node.metadata == {"source": "fusion"}
     assert node.weight == pytest.approx(0.8)
+
+
+def test_dynamic_node_hardens_enable_and_naive_now() -> None:
+    node = DynamicNode(
+        node_id="collector",
+        type="ingestion",
+        interval_sec=30,
+        enabled="off",
+    )
+
+    assert node.enabled is False
+
+    node.mark_run(completed_at=_ts(0))
+    naive_now = (_ts(0) + timedelta(seconds=45)).replace(tzinfo=None)
+
+    node.enabled = True
+    assert node.is_due(now=naive_now) is True
+
+    with pytest.raises(NodeConfigError):
+        DynamicNode(node_id="x", type="ingestion", interval_sec=10, enabled="maybe")
 
 
 def test_dynamic_node_due_respects_interval_and_enablement() -> None:
@@ -114,6 +135,52 @@ def test_registry_skips_nodes_not_due() -> None:
 
     ready = registry.resolve_ready_nodes(now=_ts(1) + timedelta(seconds=5))
     assert [node.node_id for node in ready] == ["market-data", "fusion"]
+
+
+def test_registry_enable_all_nodes() -> None:
+    registry = DynamicNodeRegistry(
+        [
+            {
+                "node_id": "market-data",
+                "type": "ingestion",
+                "interval_sec": 60,
+                "outputs": ["ticks"],
+            },
+            {
+                "node_id": "fusion",
+                "type": "processing",
+                "interval_sec": 60,
+                "dependencies": ["ticks"],
+                "outputs": ["signals"],
+                "enabled": "false",
+            },
+        ]
+    )
+
+    registry.get("market-data").enabled = False
+    registry.get("fusion").enabled = False
+
+    snapshot = registry.enable_all()
+
+    assert all(node.enabled for node in snapshot)
+
+
+def test_default_node_configs_cover_seeded_nodes() -> None:
+    registry = DynamicNodeRegistry(DEFAULT_NODE_CONFIGS)
+
+    snapshot = registry.snapshot()
+    node_ids = {node.node_id for node in snapshot}
+    assert node_ids == {"human-analysis", "dynamic-hedge"}
+
+    human = registry.get("human-analysis")
+    assert human.outputs == ("fusion",)
+    assert human.metadata["source"] == "analyst_insights"
+    assert human.weight == pytest.approx(0.25)
+
+    hedge = registry.get("dynamic-hedge")
+    assert hedge.dependencies == ("trades", "correlations", "risk_settings")
+    assert hedge.outputs == ("hedge_actions", "signals")
+    assert hedge.metadata["confidence"] == pytest.approx(0.9)
 
 
 def test_registry_detects_dependency_cycles() -> None:
