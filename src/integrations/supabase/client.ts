@@ -1,1 +1,1 @@
-export * from "@/integrations/supabase/client";
+export * from "../../../apps/web/integrations/supabase/client";
