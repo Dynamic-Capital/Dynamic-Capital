@@ -8,6 +8,7 @@ from .engine import DynamicFineTuneEngine, FineTuneRecord, FineTuneRecordBatch
 from .helper import FineTuneHelper
 from .keeper import FineTuneKeeper
 from .model import DynamicFineTuneModel
+from .trainer import FineTuneTrainer
 
 __all__ = [
     "DynamicFineTuneAgent",
@@ -16,6 +17,7 @@ __all__ = [
     "FineTuneBot",
     "FineTuneHelper",
     "FineTuneKeeper",
+    "FineTuneTrainer",
     "FineTuneRecord",
     "FineTuneRecordBatch",
     "FineTuneRecordBuilder",

@@ -1,9 +1,19 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import sys
+import types
 
 import pytest
 
+if "dynamic.trading.algo.dynamic_metadata" not in sys.modules:
+    stub = types.ModuleType("dynamic.trading.algo.dynamic_metadata")
+    stub.DynamicMetadataAlgo = type("DynamicMetadataAlgo", (), {})
+    stub.MetadataAttribute = type("MetadataAttribute", (), {})
+    sys.modules["dynamic.trading.algo.dynamic_metadata"] = stub
+
+from dynamic.intelligence.agi.fine_tune import DynamicAGIFineTuner
+from dynamic.intelligence.agi.self_improvement import ImprovementSignal, LearningSnapshot
 from dynamic_fine_tune_engine import (
     DynamicFineTuneAgent,
     DynamicFineTuneEngine,
@@ -14,6 +24,7 @@ from dynamic_fine_tune_engine import (
     FineTuneRecord,
     FineTuneRecordBuilder,
     FineTuneCrawler,
+    FineTuneTrainer,
 )
 
 
@@ -236,4 +247,51 @@ def test_bot_cycle_runs_end_to_end(tmp_path) -> None:
     assert report["ingested"] == 2
     assert report["batch"].size == 1
     assert (tmp_path / "export.json").exists()
+
+
+def test_trainer_fine_tune_cycle_builds_dataset() -> None:
+    model = DynamicFineTuneModel()
+    agent = DynamicFineTuneAgent(model=model)
+    tuner = DynamicAGIFineTuner(default_tags=("agi", "learning"))
+    trainer = FineTuneTrainer(agent=agent, tuner=tuner)
+
+    snapshot_positive = LearningSnapshot(
+        output={"summary": "Iteration complete"},
+        performance={"accuracy": 0.82, "latency": 0.76},
+        feedback=("Great response coverage",),
+        signals=(
+            ImprovementSignal(metric="accuracy", value=0.9, direction="positive", weight=1.0),
+            ImprovementSignal(metric="latency", value=0.4, direction="negative", weight=0.3),
+        ),
+    )
+    snapshot_negative = LearningSnapshot(
+        output={"summary": "Degraded performance"},
+        performance={"accuracy": 58.0, "latency": 61.0},
+        feedback=("Address latency regressions",),
+        signals=(
+            ImprovementSignal(metric="latency", value=0.6, direction="negative", weight=1.4),
+            ImprovementSignal(metric="consistency", value=0.3, direction="positive", weight=0.6),
+        ),
+    )
+
+    report = trainer.fine_tune(
+        (snapshot_positive, snapshot_negative),
+        batch_size=2,
+        minimum_quality=0.0,
+        notes="weekly tuning",
+    )
+
+    assert report["ingested"] == 2
+    assert report["harvest"].size == 2
+    assert len(report["batches"]) == 1
+    assert report["batches"][0].notes == "weekly tuning"
+    assert report["summary"]["count"] == 2
+    assert report["summary"]["tag_histogram"]["agi"] == 2
+    assert report["summary"]["tag_histogram"]["learning"] == 2
+
+    stats = agent.stats()
+    assert stats["count"] == 2
+    assert stats["sources"]["agi.self_improvement"]["count"] == 2
+    assert stats["average_quality"] > 0.5
+    assert stats["average_priority"] >= 0.45
 
