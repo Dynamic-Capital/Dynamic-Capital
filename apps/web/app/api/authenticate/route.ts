@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+
 import { withApiMetrics } from "@/observability/server-metrics.ts";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 import {
@@ -8,7 +10,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   return withApiMetrics(req, "/api/authenticate", async () => {
     const secret = process.env.ROUTE_GUARD_PASSWORD;
 
@@ -64,6 +66,6 @@ export const PUT = methodNotAllowed;
 export const PATCH = methodNotAllowed;
 export const DELETE = methodNotAllowed;
 export const HEAD = methodNotAllowed;
-export function OPTIONS(req: Request) {
+export function OPTIONS(req: NextRequest) {
   return new Response(null, { status: 204, headers: corsHeaders(req, "POST") });
 }
