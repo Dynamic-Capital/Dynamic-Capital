@@ -299,6 +299,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "SenseFrame",
     ),
     "dynamic_self_awareness": ("DynamicSelfAwareness",),
+    "dynamic_self_healing": ("DynamicSelfHealing",),
     "dynamic_ecosystem": (
         "CascadeSimulation",
         "DynamicEcosystemEngine",
