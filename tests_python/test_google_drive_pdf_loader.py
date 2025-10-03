@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Iterable, Iterator, MutableMapping
+from typing import Iterable, Iterator, MutableMapping, Sequence
 
 import pytest
 
@@ -115,6 +115,7 @@ def test_loader_streams_folder_documents():
     assert document["metadata"]["file_id"] == "doc-1"
     assert document["metadata"]["md5_checksum"] == "hash-1"
     assert document["metadata"]["web_view_link"].startswith("https://drive.google.com")
+    assert document["metadata"]["page_count"] == 1
 
 
 def test_loader_respects_limits_and_size_filters():
@@ -149,6 +150,7 @@ def test_loader_respects_limits_and_size_filters():
     assert len(documents) == 1
     assert documents[0]["identifier"] == "google-drive-ok"
     assert client.download_calls == ["ok"]
+    assert documents[0]["metadata"]["page_count"] == 1
 
 
 def test_loader_fetches_explicit_files():
@@ -176,6 +178,7 @@ def test_loader_fetches_explicit_files():
     assert [doc["identifier"] for doc in documents] == ["google-drive-file-1"]
     assert client.metadata_calls == [("file-1", "id, name, mimeType, modifiedTime, size, md5Checksum, webViewLink")]
     assert client.download_calls == ["file-1"]
+    assert documents[0]["metadata"]["page_count"] == 1
 
 
 def test_loader_uses_ocr_fallback(monkeypatch):
@@ -193,11 +196,17 @@ def test_loader_uses_ocr_fallback(monkeypatch):
     def failing_extractor(payload: bytes, metadata: MutableMapping[str, object]) -> str:
         return ""
 
-    def fake_ocr(payload: bytes, *, file_name: str, languages: str | None, dpi: int) -> str:
+    def fake_ocr(
+        payload: bytes,
+        *,
+        file_name: str,
+        languages: str | None,
+        dpi: int,
+    ) -> Sequence[str]:
         assert file_name == "Scanned.pdf"
         assert dpi == 200
         assert languages == "eng"
-        return "ocr-text"
+        return ["ocr-text"]
 
     monkeypatch.setattr(
         "dynamic_corpus_extraction.google_drive._ocr_pdf_text_extractor",
@@ -218,3 +227,40 @@ def test_loader_uses_ocr_fallback(monkeypatch):
 
     assert documents[0]["content"] == "ocr-text"
     assert client.download_calls == ["ocr"]
+
+
+def test_loader_splits_pages_into_individual_documents():
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "multi",
+                "name": "Multi.pdf",
+                "mimeType": "application/pdf",
+            }
+        ],
+        file_payloads={"multi": b"binary"},
+    )
+
+    def multi_page_extractor(payload: bytes, metadata: MutableMapping[str, object]) -> Sequence[str]:
+        return ["Page one", "", " Page two "]
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        pdf_text_extractor=multi_page_extractor,
+        split_pages=True,
+    )
+
+    context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
+    documents = list(loader(context))
+
+    assert [doc["identifier"] for doc in documents] == [
+        "google-drive-multi-page-1",
+        "google-drive-multi-page-2",
+    ]
+    assert [doc["content"] for doc in documents] == ["Page one", "Page two"]
+    assert documents[0]["metadata"]["page_number"] == 1
+    assert documents[0]["metadata"]["page_count"] == 2
+    assert documents[1]["metadata"]["page_number"] == 2
+    assert documents[1]["metadata"]["page_count"] == 2
+    assert documents[0]["tags"] == ("google_drive", "pdf", "pdf_page")

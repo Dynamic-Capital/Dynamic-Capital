@@ -72,6 +72,11 @@ def _parse_args() -> argparse.Namespace:
         help="Maximum allowed file size in bytes (default: 50MB).",
     )
     parser.add_argument(
+        "--split-pages",
+        action="store_true",
+        help="Emit a separate corpus document for each PDF page.",
+    )
+    parser.add_argument(
         "--table",
         default="google_drive_pdfs",
         help="Database table name used for indexed records.",
@@ -147,6 +152,7 @@ def _run() -> None:
         ocr_dpi=args.ocr_dpi,
         max_file_size=args.max_file_size,
         batch_size=args.batch_size,
+        split_pages=args.split_pages,
     )
 
     engine = DynamicCorpusExtractionEngine()
