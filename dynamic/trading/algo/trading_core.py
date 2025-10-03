@@ -8,7 +8,7 @@ import os
 import random
 from copy import deepcopy
 from dataclasses import asdict, dataclass, field, is_dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from typing import Any, Dict, Mapping, Optional, Tuple
 
 try:  # pragma: no cover - optional dependency
@@ -20,6 +20,17 @@ try:  # pragma: no cover - optional dependency
     from integrations.trade_api_connector import TradeAPIConnector  # type: ignore
 except Exception:  # pragma: no cover - keep module importable when connector deps missing
     TradeAPIConnector = None  # type: ignore
+
+try:  # pragma: no cover - optional dependency
+    from integrations.data_collection_api import (
+        DataCollectionAPI,
+        bootstrap_data_collection_api,
+        serialise_for_collection,
+    )
+except Exception:  # pragma: no cover - collector dependency optional
+    DataCollectionAPI = None  # type: ignore
+    bootstrap_data_collection_api = None  # type: ignore
+    serialise_for_collection = None  # type: ignore
 
 from dynamic_metadata import ModelVersion, VersionNumber
 
@@ -44,6 +55,69 @@ def _default_version_info() -> Dict[str, Any]:
 
 
 logger = logging.getLogger(__name__)
+
+
+def _fallback_collection_serialise(value: Any) -> Any:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        else:
+            value = value.astimezone(timezone.utc)
+        return value.isoformat()
+    if isinstance(value, date):
+        return datetime(value.year, value.month, value.day, tzinfo=timezone.utc).isoformat()
+    if is_dataclass(value):
+        try:
+            return {
+                key: _fallback_collection_serialise(val)
+                for key, val in asdict(value).items()
+            }
+        except Exception:  # pragma: no cover - defensive
+            return str(value)
+    if isinstance(value, Mapping):
+        return {str(key): _fallback_collection_serialise(val) for key, val in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_fallback_collection_serialise(item) for item in value]
+    to_dict = getattr(value, "to_dict", None)
+    if callable(to_dict):
+        try:
+            mapping = to_dict()
+        except Exception:  # pragma: no cover - user provided
+            mapping = None
+        if isinstance(mapping, Mapping):
+            return {
+                str(key): _fallback_collection_serialise(val)
+                for key, val in mapping.items()
+            }
+    as_dict_method = getattr(value, "as_dict", None)
+    if callable(as_dict_method):
+        try:
+            mapping = as_dict_method()
+        except Exception:  # pragma: no cover - user provided
+            mapping = None
+        if isinstance(mapping, Mapping):
+            return {
+                str(key): _fallback_collection_serialise(val)
+                for key, val in mapping.items()
+            }
+    if hasattr(value, "__dict__"):
+        return {
+            str(key): _fallback_collection_serialise(val)
+            for key, val in vars(value).items()
+            if not key.startswith("_")
+        }
+    return str(value)
+
+
+def _collection_payload(value: Any) -> Any:
+    if serialise_for_collection is not None:
+        try:
+            return serialise_for_collection(value)
+        except Exception:  # pragma: no cover - defensive
+            return _fallback_collection_serialise(value)
+    return _fallback_collection_serialise(value)
 
 
 @dataclass(slots=True, frozen=True)
@@ -1146,6 +1220,7 @@ class DynamicTradingAlgo:
         self,
         connector: Optional[Any] = None,
         *,
+        data_collector: Optional[Any] = None,
         instrument_profiles: Mapping[str, InstrumentProfile] | None = None,
         default_symbol: Optional[str] = None,
         version: ModelVersion | Mapping[str, Any] | str | None = ALGO_VERSION,
@@ -1188,6 +1263,7 @@ class DynamicTradingAlgo:
 
         self._paper_broker = _PaperBroker()
         self.connector = connector or self._bootstrap_connector()
+        self.data_collector = data_collector or self._bootstrap_data_collector()
         self._version, self._version_metadata = self._coerce_version(version)
 
     @property
@@ -1243,11 +1319,27 @@ class DynamicTradingAlgo:
         adjusted_lot = self._clamp_lot(adjusted_lot, profile)
 
         if action == ORDER_ACTION_BUY:
-            return self._buy(canonical_symbol, adjusted_lot, profile=profile)
+            result = self._buy(canonical_symbol, adjusted_lot, profile=profile)
+            self._emit_trade_event(
+                result,
+                signal=signal,
+                symbol=canonical_symbol,
+                lot=adjusted_lot,
+                profile=profile,
+            )
+            return result
         if action == ORDER_ACTION_SELL:
-            return self._sell(canonical_symbol, adjusted_lot, profile=profile)
+            result = self._sell(canonical_symbol, adjusted_lot, profile=profile)
+            self._emit_trade_event(
+                result,
+                signal=signal,
+                symbol=canonical_symbol,
+                lot=adjusted_lot,
+                profile=profile,
+            )
+            return result
 
-        return TradeExecutionResult(
+        result = TradeExecutionResult(
             retcode=0,
             message="No trade executed for neutral signal",
             profit=0.0,
@@ -1256,6 +1348,14 @@ class DynamicTradingAlgo:
             version=self._version,
             version_info=self.version_metadata,
         )
+        self._emit_trade_event(
+            result,
+            signal=signal,
+            symbol=canonical_symbol,
+            lot=adjusted_lot,
+            profile=profile,
+        )
+        return result
 
     def _buy(
         self, symbol: str, lot: float, *, profile: InstrumentProfile | None = None
@@ -1295,8 +1395,24 @@ class DynamicTradingAlgo:
         adjusted_lot = self._clamp_lot(lot, profile)
 
         if close:
-            return self._close_hedge(canonical_symbol, adjusted_lot, side, profile=profile)
-        return self._open_hedge(canonical_symbol, adjusted_lot, side, profile=profile)
+            result = self._close_hedge(canonical_symbol, adjusted_lot, side, profile=profile)
+            self._emit_trade_event(
+                result,
+                signal={"action": "HEDGE_CLOSE", "side": side},
+                symbol=canonical_symbol,
+                lot=adjusted_lot,
+                profile=profile,
+            )
+            return result
+        result = self._open_hedge(canonical_symbol, adjusted_lot, side, profile=profile)
+        self._emit_trade_event(
+            result,
+            signal={"action": "HEDGE_OPEN", "side": side},
+            symbol=canonical_symbol,
+            lot=adjusted_lot,
+            profile=profile,
+        )
+        return result
 
     def _open_hedge(
         self,
@@ -1329,6 +1445,44 @@ class DynamicTradingAlgo:
         return self._paper_execute(action, symbol, lot, profile)
 
     # ------------------------------------------------------------------ helpers
+    def _emit_trade_event(
+        self,
+        result: TradeExecutionResult,
+        *,
+        signal: Any,
+        symbol: str,
+        lot: float,
+        profile: InstrumentProfile,
+        context: Mapping[str, Any] | None = None,
+    ) -> None:
+        collector = getattr(self, "data_collector", None)
+        if not collector:
+            return
+        record_trade = getattr(collector, "record_trade", None)
+        if not callable(record_trade):
+            return
+
+        signal_payload = _collection_payload(signal) if signal is not None else None
+        payload: Dict[str, Any] = {
+            "trade": result.to_dict(),
+            "context": {
+                "symbol": symbol,
+                "lot": lot,
+                "profile": _collection_payload(profile),
+                "version": self._version,
+                "version_info": self.version_metadata,
+            },
+        }
+        if context:
+            payload["context"]["extra"] = _collection_payload(context)
+        if signal_payload is not None:
+            payload["signal"] = signal_payload
+
+        try:
+            record_trade(payload)
+        except Exception:  # pragma: no cover - telemetry best effort
+            logger.debug("Failed to submit trade event to data collector", exc_info=True)
+
     def _paper_execute(
         self,
         action: str,
@@ -1550,6 +1704,15 @@ class DynamicTradingAlgo:
         except Exception as exc:  # pragma: no cover - MT5 runtime variability
             logger.warning("Falling back to paper trading after MT5 bootstrap error: %s", exc)
             return self._paper_broker
+
+    def _bootstrap_data_collector(self) -> Any | None:
+        if bootstrap_data_collection_api is None:
+            return None
+        try:
+            return bootstrap_data_collection_api()
+        except Exception:  # pragma: no cover - collector optional
+            logger.debug("Data collection bootstrap failed", exc_info=True)
+            return None
 
 
 __all__ = [
