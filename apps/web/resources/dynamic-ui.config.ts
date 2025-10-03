@@ -34,7 +34,7 @@ const routes: RoutesConfig = {
   "/wallet": true,
   "/tools": { enabled: true, includeChildren: true },
   "/styles": true,
-  "/telegram": true,
+  "/telegram": { enabled: true, includeChildren: true },
   "/token": true,
   "/ui/sandbox": true,
   "/work": { enabled: true, includeChildren: true },
