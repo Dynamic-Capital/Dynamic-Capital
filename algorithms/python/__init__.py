@@ -1,5 +1,8 @@
 """Python trading strategy utilities for Dynamic Capital."""
 
+from types import MappingProxyType
+from typing import Mapping
+
 from . import trade_logic as _trade_logic
 from .alert_notifications import (
     AlertEngine,
@@ -156,6 +159,13 @@ from .desk_sync import (
     TeamRoleSyncResult,
     TradingDeskSynchroniser,
     summarise_trade_logic,
+)
+from .dynamic_protocol_planner import (
+    CATEGORY_EXECUTORS as _PROTOCOL_CATEGORY_EXECUTORS,
+    CATEGORY_KEYS as _PROTOCOL_CATEGORY_KEYS,
+    DynamicProtocolPlanner,
+    HORIZON_KEYS as _PROTOCOL_HORIZON_KEYS,
+    ProtocolDraft,
 )
 from .project_faq_generator import (
     FAQEntry,
@@ -326,6 +336,15 @@ from .trading_algo_enhancement import (
     loop_trading_algo_enhancement_plan,
 )
 
+PROTOCOL_CATEGORY_KEYS: tuple[str, ...] = tuple(_PROTOCOL_CATEGORY_KEYS)
+PROTOCOL_HORIZON_KEYS: tuple[str, ...] = tuple(_PROTOCOL_HORIZON_KEYS)
+PROTOCOL_CATEGORY_EXECUTORS: Mapping[str, tuple[str, ...]] = MappingProxyType(
+    {
+        category: tuple(executors)
+        for category, executors in _PROTOCOL_CATEGORY_EXECUTORS.items()
+    }
+)
+
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
 __all__ = _trade_exports + [
@@ -445,6 +464,11 @@ __all__ = _trade_exports + [
     "DynamicAISummary",
     "DynamicAISyncReport",
     "DynamicAISynchroniser",
+    "DynamicProtocolPlanner",
+    "ProtocolDraft",
+    "PROTOCOL_CATEGORY_EXECUTORS",
+    "PROTOCOL_CATEGORY_KEYS",
+    "PROTOCOL_HORIZON_KEYS",
     "dynamic_agent_cycle_adapter",
     "dynamic_algo_sync_adapter",
     "run_dynamic_agent_cycle",
@@ -679,6 +703,11 @@ globals().update(
         "TeamRoleSyncResult": TeamRoleSyncResult,
         "TradingDeskSynchroniser": TradingDeskSynchroniser,
         "summarise_trade_logic": summarise_trade_logic,
+        "DynamicProtocolPlanner": DynamicProtocolPlanner,
+        "ProtocolDraft": ProtocolDraft,
+        "PROTOCOL_CATEGORY_EXECUTORS": PROTOCOL_CATEGORY_EXECUTORS,
+        "PROTOCOL_CATEGORY_KEYS": PROTOCOL_CATEGORY_KEYS,
+        "PROTOCOL_HORIZON_KEYS": PROTOCOL_HORIZON_KEYS,
         "KillZone": KillZone,
         "MVT_TIMEZONE": MVT_TIMEZONE,
         "DynamicTimeKeeperAlgorithm": DynamicTimeKeeperAlgorithm,
