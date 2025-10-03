@@ -54,6 +54,31 @@
           "purpose": "Template for comparing baseline and refreshed embedding performance across dataset slices."
         }
       ]
+    },
+    {
+      "id": "2025-10-03",
+      "title": "DAI/DAGI/DAGS Knowledge Base Metadata Snapshot",
+      "manifest": "docs/reports/google_drive_corpus_extraction.md",
+      "supabase_mirror": "public.one_drive_assets/knowledge_base/2025-10-03/*",
+      "description": "Metadata-only export of the Google Drive corpus share covering DAI, DAGI, and DAGS artefacts for ingestion planning.",
+      "files": [
+        {
+          "path": "dai_dagi_dags/metadata_summary.json",
+          "purpose": "Domain-level counts, byte totals, and extension tallies for the corpus snapshot."
+        },
+        {
+          "path": "dai_dagi_dags/processed/dai_metadata.jsonl",
+          "purpose": "Per-file metadata records aligned to the Dynamic AI (DAI) knowledge base."
+        },
+        {
+          "path": "dai_dagi_dags/processed/dagi_metadata.jsonl",
+          "purpose": "Per-file metadata records aligned to the Dynamic AGI (DAGI) knowledge base."
+        },
+        {
+          "path": "dai_dagi_dags/processed/dags_metadata.jsonl",
+          "purpose": "Per-file metadata records aligned to the Dynamic AGS (DAGS) governance catalogue."
+        }
+      ]
     }
   ],
   "maintenance": [

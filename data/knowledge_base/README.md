@@ -16,6 +16,7 @@ Run `npx tsx scripts/knowledge_base/sync-readme.ts` after updating `index.json` 
 | --- | --- | --- | --- |
 | 2025-10-15 | Knowledge Base Expansion | [docs/onedrive-shares/evlumlqt-folder.metadata.json](../docs/onedrive-shares/evlumlqt-folder.metadata.json) | `public.one_drive_assets/knowledge_base/2025-10-15/*` |
 | 2025-11-07 | Dynamic AI Knowledge Base Hardening | [docs/onedrive-shares/dynamic-ai-knowledge-base-hardening.metadata.json](../docs/onedrive-shares/dynamic-ai-knowledge-base-hardening.metadata.json) | `public.one_drive_assets/knowledge_base/2025-11-07/*` |
+| 2025-10-03 | DAI/DAGI/DAGS Knowledge Base Metadata Snapshot | [docs/reports/google_drive_corpus_extraction.md](../docs/reports/google_drive_corpus_extraction.md) | `public.one_drive_assets/knowledge_base/2025-10-03/*` |
 
 ### 2025-10-15 — Knowledge Base Expansion
 
@@ -46,6 +47,20 @@ Run `npx tsx scripts/knowledge_base/sync-readme.ts` after updating `index.json` 
 | `2025-11-07/rag-sanity-playbook.md` | Regression prompts and thresholds for validating retrieval and answer quality across key slices. |
 | `2025-11-07/ingestion-metrics.json` | Telemetry snapshot capturing recall, precision, hallucination, and latency metrics for the drop. |
 | `2025-11-07/embedding-evaluation-template.csv` | Template for comparing baseline and refreshed embedding performance across dataset slices. |
+### 2025-10-03 — DAI/DAGI/DAGS Knowledge Base Metadata Snapshot
+
+- **Source manifest:** [docs/reports/google_drive_corpus_extraction.md](../docs/reports/google_drive_corpus_extraction.md)
+- **Supabase mirror:** `public.one_drive_assets/knowledge_base/2025-10-03/*`
+- **Description:** Metadata-only export of the Google Drive corpus share covering DAI, DAGI, and DAGS artefacts for ingestion planning.
+
+#### Files
+
+| Relative path | Purpose |
+| --- | --- |
+| `dai_dagi_dags/metadata_summary.json` | Domain-level counts, byte totals, and extension tallies for the corpus snapshot. |
+| `dai_dagi_dags/processed/dai_metadata.jsonl` | Per-file metadata records aligned to the Dynamic AI (DAI) knowledge base. |
+| `dai_dagi_dags/processed/dagi_metadata.jsonl` | Per-file metadata records aligned to the Dynamic AGI (DAGI) knowledge base. |
+| `dai_dagi_dags/processed/dags_metadata.jsonl` | Per-file metadata records aligned to the Dynamic AGS (DAGS) governance catalogue. |
 
 ### Active OneDrive shares
 
