@@ -5,14 +5,22 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from statistics import fmean
+from heapq import nlargest
+from math import isfinite
+from numbers import Integral, Real
 from types import MappingProxyType
-from typing import Deque, Iterable, Mapping, Sequence
+from typing import ClassVar, Deque, Iterable, Mapping, Sequence
 
 __all__ = [
     "CoreMetricDefinition",
     "CoreMetricStatus",
     "CoreSnapshot",
+    "CoreBlueprint",
+    "BlueprintBackedCoreModel",
+    "CORE_BLUEPRINTS",
+    "CORE_MODEL_FACTORIES",
+    "build_core_model",
+    "build_all_core_models",
     "DynamicCoreModel",
     "DynamicAICoreModel",
     "DynamicAGICoreModel",
@@ -59,10 +67,36 @@ def _freeze_mapping(mapping: Mapping[str, object] | None) -> Mapping[str, object
     return MappingProxyType(dict(mapping))
 
 
+def _normalise_window(value: object) -> int:
+    if isinstance(value, bool):
+        raise TypeError("window must be an integer >= 2")
+    if isinstance(value, Integral):
+        numeric = int(value)
+    elif isinstance(value, Real):
+        float_value = float(value)
+        if not isfinite(float_value) or not float_value.is_integer():
+            raise TypeError("window must be an integer >= 2")
+        numeric = int(float_value)
+    else:
+        raise TypeError("window must be an integer >= 2")
+    if numeric < 2:
+        raise ValueError("window must be >= 2")
+    return numeric
+
+
 def _clamp(value: float, *, floor: float, ceiling: float) -> float:
+    if not isfinite(floor) or not isfinite(ceiling):
+        raise ValueError("floor and ceiling must be finite numbers")
     if floor > ceiling:
         raise ValueError("floor must be <= ceiling")
-    numeric = float(value)
+    if isinstance(value, bool):
+        raise TypeError("metric values must be numeric")
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError) as exc:  # pragma: no cover - defensive guard
+        raise TypeError("metric values must be numeric") from exc
+    if not isfinite(numeric):
+        raise ValueError("metric values must be finite")
     if numeric < floor:
         return floor
     if numeric > ceiling:
@@ -99,7 +133,7 @@ class CoreMetricDefinition:
         object.__setattr__(self, "key", _normalise_text(self.key).lower())
         object.__setattr__(self, "label", _normalise_text(self.label))
         weight = float(self.weight)
-        if weight <= 0:
+        if not isfinite(weight) or weight <= 0:
             raise ValueError("weight must be positive")
         object.__setattr__(self, "weight", weight)
         target = float(self.target)
@@ -107,6 +141,8 @@ class CoreMetricDefinition:
         critical = float(self.critical)
         floor = float(self.floor)
         ceiling = float(self.ceiling)
+        if not all(map(isfinite, (target, warning, critical, floor, ceiling))):
+            raise ValueError("core metric thresholds must be finite numbers")
         if floor > ceiling:
             raise ValueError("floor must be <= ceiling")
         if not (floor <= target <= ceiling):
@@ -215,6 +251,36 @@ class CoreSnapshot:
         }
 
 
+@dataclass(slots=True, frozen=True)
+class CoreBlueprint:
+    """Immutable blueprint describing a Dynamic Core configuration."""
+
+    domain: str
+    metrics: tuple[CoreMetricDefinition, ...]
+    default_window: int = 12
+
+    def __post_init__(self) -> None:  # type: ignore[override]
+        object.__setattr__(self, "domain", _normalise_text(self.domain))
+        if not self.metrics:
+            raise ValueError("a core blueprint must declare at least one metric")
+        metrics: list[CoreMetricDefinition] = []
+        for definition in self.metrics:
+            if not isinstance(definition, CoreMetricDefinition):
+                raise TypeError("blueprint metrics must be CoreMetricDefinition instances")
+            metrics.append(definition)
+        object.__setattr__(self, "metrics", tuple(metrics))
+        object.__setattr__(self, "default_window", _normalise_window(self.default_window))
+
+    def instantiate(self, *, window: int | None = None) -> "DynamicCoreModel":
+        """Create a :class:`DynamicCoreModel` using the blueprint's defaults."""
+
+        return DynamicCoreModel(
+            self.domain,
+            self.metrics,
+            window=self.default_window if window is None else window,
+        )
+
+
 class DynamicCoreModel:
     """Maintain weighted Dynamic Core metrics and surface prioritised gaps."""
 
@@ -231,12 +297,16 @@ class DynamicCoreModel:
             raise ValueError("at least one metric definition is required")
         lookup: dict[str, CoreMetricDefinition] = {}
         for definition in definition_list:
+            if not isinstance(definition, CoreMetricDefinition):
+                raise TypeError("metric definitions must be CoreMetricDefinition instances")
             if definition.key in lookup:
                 raise ValueError(f"duplicate metric definition: {definition.key}")
             lookup[definition.key] = definition
         self._definitions: tuple[CoreMetricDefinition, ...] = tuple(definition_list)
         self._lookup: Mapping[str, CoreMetricDefinition] = MappingProxyType(lookup)
-        self._history: Deque[float] = deque(maxlen=max(int(window), 2))
+        window_size = _normalise_window(window)
+        self._history: Deque[float] = deque(maxlen=window_size)
+        self._history_sum: float = 0.0
         self._samples: int = 0
         self._last_snapshot: CoreSnapshot | None = None
 
@@ -257,6 +327,8 @@ class DynamicCoreModel:
         timestamp: datetime | None = None,
         metadata: Mapping[str, Mapping[str, object] | None] | None = None,
     ) -> CoreSnapshot:
+        if not isinstance(values, Mapping):
+            raise TypeError("values must be a mapping of metric keys to numbers")
         if not values:
             raise ValueError("values must not be empty")
         unknown = set(values).difference(self._lookup)
@@ -272,13 +344,22 @@ class DynamicCoreModel:
         ]
         if missing:
             raise KeyError(f"missing core metric values: {missing}")
+        if timestamp is not None and not isinstance(timestamp, datetime):
+            raise TypeError("timestamp must be a datetime instance")
         ts = timestamp if timestamp is not None else _utcnow()
         ts = ts if ts.tzinfo is not None else ts.replace(tzinfo=timezone.utc)
-        resolved_metadata: Mapping[str, Mapping[str, object] | None] = (
-            MappingProxyType({key: _freeze_mapping(value) for key, value in metadata.items()})
-            if metadata is not None
-            else MappingProxyType({})
-        )
+        ts = ts.astimezone(timezone.utc)
+        if metadata is not None and not isinstance(metadata, Mapping):
+            raise TypeError("metadata must be a mapping")
+        if metadata is not None:
+            unknown_metadata = set(metadata).difference(self._lookup)
+            if unknown_metadata:
+                raise KeyError(f"unknown metadata metric keys: {sorted(unknown_metadata)}")
+            resolved_metadata: Mapping[str, Mapping[str, object] | None] = MappingProxyType(
+                {key: _freeze_mapping(value) for key, value in metadata.items()}
+            )
+        else:
+            resolved_metadata = MappingProxyType({})
         statuses: list[CoreMetricStatus] = []
         alerts: list[str] = []
         weighted_total = 0.0
@@ -333,12 +414,17 @@ class DynamicCoreModel:
             if status in {"risk", "critical"}:
                 alerts.append(f"{definition.label}: {status.upper()}")
         composite = weighted_total / weight_sum if weight_sum else 0.0
-        if self._history:
-            baseline = fmean(self._history)
+        history_length = len(self._history)
+        if history_length:
+            baseline = self._history_sum / history_length
             momentum = composite - baseline
         else:
             momentum = 0.0
+        oldest = self._history[0] if history_length == self._history.maxlen else 0.0
+        if history_length == self._history.maxlen:
+            self._history_sum -= oldest
         self._history.append(composite)
+        self._history_sum += composite
         self._samples += 1
         snapshot = CoreSnapshot(
             domain=self.domain,
@@ -361,22 +447,39 @@ class DynamicCoreModel:
         if self._last_snapshot is None or limit <= 0:
             return ()
         candidates = [metric for metric in self._last_snapshot.metrics if metric.priority > 0]
-        candidates.sort(key=lambda metric: (metric.priority, metric.weight), reverse=True)
-        return tuple(candidates[:limit])
+        if not candidates:
+            return ()
+        if limit >= len(candidates):
+            candidates.sort(key=lambda metric: (metric.priority, metric.weight), reverse=True)
+            return tuple(candidates)
+        return tuple(nlargest(limit, candidates, key=lambda metric: (metric.priority, metric.weight)))
 
     def trailing_composite_mean(self) -> float:
         if not self._history:
             raise RuntimeError("no composite history available")
-        return fmean(self._history)
+        return self._history_sum / len(self._history)
 
 
-class DynamicAICoreModel(DynamicCoreModel):
-    """Optimised Dynamic Core model tuned for the Dynamic AI stack."""
+class BlueprintBackedCoreModel(DynamicCoreModel):
+    """`DynamicCoreModel` that is constructed from a static blueprint."""
 
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic AI",
-            (
+    blueprint: ClassVar[CoreBlueprint]
+
+    def __init__(self, *, window: int | None = None) -> None:
+        if not isinstance(getattr(self, "blueprint", None), CoreBlueprint):
+            raise TypeError(
+                f"{self.__class__.__name__} must define a 'blueprint' class attribute"
+            )
+        blueprint = self.blueprint
+        resolved_window = blueprint.default_window if window is None else window
+        super().__init__(blueprint.domain, blueprint.metrics, window=resolved_window)
+
+
+CORE_BLUEPRINTS: Mapping[str, CoreBlueprint] = MappingProxyType(
+    {
+        "dynamic_ai": CoreBlueprint(
+            domain="Dynamic AI",
+            metrics=(
                 CoreMetricDefinition(
                     key="analysis_accuracy",
                     label="Analysis Accuracy",
@@ -428,17 +531,10 @@ class DynamicAICoreModel(DynamicCoreModel):
                     tags=("observability", "governance"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicAGICoreModel(DynamicCoreModel):
-    """Optimised Dynamic Core model for Dynamic AGI orchestration."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic AGI",
-            (
+        ),
+        "dynamic_agi": CoreBlueprint(
+            domain="Dynamic AGI",
+            metrics=(
                 CoreMetricDefinition(
                     key="orchestration_depth",
                     label="Orchestration Depth",
@@ -490,17 +586,10 @@ class DynamicAGICoreModel(DynamicCoreModel):
                     tags=("governance", "policy"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicAGSCoreModel(DynamicCoreModel):
-    """Optimised Dynamic Core model for the AGS governance program."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic AGS",
-            (
+        ),
+        "dynamic_ags": CoreBlueprint(
+            domain="Dynamic AGS",
+            metrics=(
                 CoreMetricDefinition(
                     key="policy_maturity",
                     label="Policy Maturity",
@@ -552,17 +641,10 @@ class DynamicAGSCoreModel(DynamicCoreModel):
                     tags=("telemetry", "observability"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicETLCoreModel(DynamicCoreModel):
-    """Dynamic Core model focusing on ETL reliability and throughput."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic ETL",
-            (
+        ),
+        "dynamic_etl": CoreBlueprint(
+            domain="Dynamic ETL",
+            metrics=(
                 CoreMetricDefinition(
                     key="pipeline_success_rate",
                     label="Pipeline Success Rate",
@@ -614,17 +696,10 @@ class DynamicETLCoreModel(DynamicCoreModel):
                     tags=("resilience", "incidents"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicDCMCoreModel(DynamicCoreModel):
-    """Dynamic Core model codifying the eleven DCM micro-core stages."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic Core Maiden",
-            (
+        ),
+        "dynamic_dcm": CoreBlueprint(
+            domain="Dynamic Core Maiden",
+            metrics=(
                 CoreMetricDefinition(
                     key="data_processing",
                     label="DCM1 · Data Processing",
@@ -736,17 +811,10 @@ class DynamicDCMCoreModel(DynamicCoreModel):
                     tags=("integration", "handoff"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicDCHCoreModel(DynamicCoreModel):
-    """Dynamic Core model encapsulating the nine DCH capability lanes."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic Core Hollow",
-            (
+        ),
+        "dynamic_dch": CoreBlueprint(
+            domain="Dynamic Core Hollow",
+            metrics=(
                 CoreMetricDefinition(
                     key="natural_language_processing",
                     label="DCH1 · Natural Language Processing",
@@ -838,17 +906,10 @@ class DynamicDCHCoreModel(DynamicCoreModel):
                     tags=("transfer", "rollout"),
                 ),
             ),
-            window=window,
-        )
-
-
-class DynamicDCRCoreModel(DynamicCoreModel):
-    """Dynamic Core model representing the five DCR governance pillars."""
-
-    def __init__(self, *, window: int = 12) -> None:
-        super().__init__(
-            "Dynamic Core Revenant",
-            (
+        ),
+        "dynamic_dcr": CoreBlueprint(
+            domain="Dynamic Core Revenant",
+            metrics=(
                 CoreMetricDefinition(
                     key="governance",
                     label="DCR1 · Governance",
@@ -900,5 +961,89 @@ class DynamicDCRCoreModel(DynamicCoreModel):
                     tags=("reliability", "resilience"),
                 ),
             ),
-            window=window,
-        )
+        ),
+    }
+)
+
+
+class DynamicAICoreModel(BlueprintBackedCoreModel):
+    """Optimised Dynamic Core model tuned for the Dynamic AI stack."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_ai"]
+
+
+class DynamicAGICoreModel(BlueprintBackedCoreModel):
+    """Optimised Dynamic Core model for Dynamic AGI orchestration."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_agi"]
+
+
+class DynamicAGSCoreModel(BlueprintBackedCoreModel):
+    """Optimised Dynamic Core model for the AGS governance program."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_ags"]
+
+
+class DynamicETLCoreModel(BlueprintBackedCoreModel):
+    """Dynamic Core model focusing on ETL reliability and throughput."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_etl"]
+
+
+class DynamicDCMCoreModel(BlueprintBackedCoreModel):
+    """Dynamic Core model codifying the eleven DCM micro-core stages."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_dcm"]
+
+
+class DynamicDCHCoreModel(BlueprintBackedCoreModel):
+    """Dynamic Core model encapsulating the nine DCH capability lanes."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_dch"]
+
+
+class DynamicDCRCoreModel(BlueprintBackedCoreModel):
+    """Dynamic Core model representing the five DCR governance pillars."""
+
+    blueprint = CORE_BLUEPRINTS["dynamic_dcr"]
+
+
+CORE_MODEL_FACTORIES: Mapping[str, type[BlueprintBackedCoreModel]] = MappingProxyType(
+    {
+        "dynamic_ai": DynamicAICoreModel,
+        "dynamic_agi": DynamicAGICoreModel,
+        "dynamic_ags": DynamicAGSCoreModel,
+        "dynamic_etl": DynamicETLCoreModel,
+        "dynamic_dcm": DynamicDCMCoreModel,
+        "dynamic_dch": DynamicDCHCoreModel,
+        "dynamic_dcr": DynamicDCRCoreModel,
+    }
+)
+
+
+def build_core_model(domain_key: str, *, window: int | None = None) -> DynamicCoreModel:
+    """Construct a Dynamic Core model for ``domain_key``.
+
+    Parameters
+    ----------
+    domain_key:
+        Identifier referencing an entry in :data:`CORE_MODEL_FACTORIES`.
+    window:
+        Optional override for the trailing momentum window used by the
+        constructed model. Defaults to the blueprint's window when omitted.
+    """
+
+    try:
+        model_cls = CORE_MODEL_FACTORIES[domain_key]
+    except KeyError:  # pragma: no cover - defensive guard
+        raise KeyError(f"unknown core domain '{domain_key}'") from None
+    return model_cls(window=window)
+
+
+def build_all_core_models(*, window: int | None = None) -> Mapping[str, DynamicCoreModel]:
+    """Return instantiated models for every registered Dynamic Core domain."""
+
+    return {
+        domain_key: build_core_model(domain_key, window=window)
+        for domain_key in CORE_MODEL_FACTORIES
+    }

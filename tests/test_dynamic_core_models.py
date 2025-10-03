@@ -3,9 +3,14 @@ from __future__ import annotations
 import pytest
 
 from core.dynamic_core_models import (
+    CORE_BLUEPRINTS,
+    CORE_MODEL_FACTORIES,
+    CoreBlueprint,
     CoreMetricDefinition,
     DynamicAICoreModel,
     DynamicCoreModel,
+    build_all_core_models,
+    build_core_model,
 )
 
 
@@ -115,3 +120,63 @@ def test_dynamic_core_rejects_unknown_metric_keys() -> None:
 
     with pytest.raises(KeyError):
         model.record({"beta": 0.5})
+
+
+def test_dynamic_core_rejects_invalid_windows() -> None:
+    definition = CoreMetricDefinition(key="alpha", label="Alpha")
+
+    with pytest.raises(ValueError):
+        DynamicCoreModel("Invalid", [definition], window=1)
+
+    with pytest.raises(TypeError):
+        DynamicCoreModel("Invalid", [definition], window=2.5)
+
+
+def test_core_blueprint_validates_configuration() -> None:
+    definition = CoreMetricDefinition(key="alpha", label="Alpha")
+
+    with pytest.raises(ValueError):
+        CoreBlueprint(domain=" Demo ", metrics=(definition,), default_window=1)
+
+
+def test_dynamic_core_rejects_unknown_metadata_keys() -> None:
+    model = DynamicAICoreModel()
+
+    with pytest.raises(KeyError):
+        model.record(_baseline_payload(), metadata={"unknown": {"source": "x"}})
+
+
+def test_dynamic_core_rejects_invalid_timestamp_type() -> None:
+    model = DynamicAICoreModel()
+
+    with pytest.raises(TypeError):
+        model.record(_baseline_payload(), timestamp="2024-01-01")  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("domain_key", tuple(CORE_MODEL_FACTORIES))
+def test_build_core_model_instantiates_registered_domains(domain_key: str) -> None:
+    model = build_core_model(domain_key)
+    blueprint = CORE_BLUEPRINTS[domain_key]
+
+    assert model.domain == blueprint.domain
+    assert model.definitions == blueprint.metrics
+
+
+def test_build_all_core_models_optimises_domains_back_to_back() -> None:
+    models = build_all_core_models()
+
+    assert set(models) == set(CORE_MODEL_FACTORIES)
+
+    for domain_key, model in models.items():
+        blueprint = CORE_BLUEPRINTS[domain_key]
+        baseline = {definition.key: definition.target for definition in blueprint.metrics}
+        follow_up = baseline.copy()
+        first_metric = blueprint.metrics[0]
+        follow_up[first_metric.key] = first_metric.warning
+
+        first_snapshot = model.record(baseline)
+        second_snapshot = model.record(follow_up)
+
+        assert first_snapshot.sample_size == 1
+        assert second_snapshot.sample_size == 2
+        assert second_snapshot.momentum != pytest.approx(0.0)
