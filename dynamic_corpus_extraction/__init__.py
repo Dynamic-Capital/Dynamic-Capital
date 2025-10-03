@@ -17,6 +17,11 @@ from .onedrive import (
     build_onedrive_share_loader,
     to_share_id,
 )
+from .google_drive import (
+    GoogleDriveClient,
+    build_google_drive_pdf_loader,
+    parse_drive_share_link,
+)
 
 __all__ = [
     "CorpusDocument",
@@ -30,4 +35,7 @@ __all__ = [
     "OneDriveGraphClient",
     "build_onedrive_share_loader",
     "to_share_id",
+    "GoogleDriveClient",
+    "build_google_drive_pdf_loader",
+    "parse_drive_share_link",
 ]
