@@ -126,6 +126,20 @@ function methodAllowsBody(method: string): boolean {
   return upper !== "GET" && upper !== "HEAD";
 }
 
+function isReadableStream(
+  value: unknown,
+): value is ReadableStream<Uint8Array> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as ReadableStream<Uint8Array>).getReader === "function"
+  );
+}
+
+function isInvalidSupabasePath(path: string): boolean {
+  return path.length === 0 || path.includes("..") || path.includes("://");
+}
+
 const missingConfigLogContexts = new Set<string>();
 
 export function resetSupabaseFunctionCacheForTesting(): void {
@@ -143,6 +157,104 @@ interface ProxySupabaseOptions {
   readonly cache?: RequestCache;
   readonly body?: BodyInit | null;
   readonly headers?: HeadersInit;
+}
+
+interface BodyResolutionSuccess {
+  readonly ok: true;
+  readonly body: BodyInit | null | undefined;
+  readonly contentType?: string;
+  readonly requiresDuplex: boolean;
+}
+
+interface BodyResolutionFailure {
+  readonly ok: false;
+  readonly response: Response;
+}
+
+type BodyResolutionResult = BodyResolutionSuccess | BodyResolutionFailure;
+
+function invalidProxyPathResponse(context: string): Response {
+  console.error(
+    `[web] Refusing to proxy invalid Supabase path when ${context}`,
+  );
+  return new Response(
+    JSON.stringify({ error: "Invalid Supabase function path" }),
+    { status: 400, headers: { "Content-Type": "application/json" } },
+  );
+}
+
+function bodyAlreadyConsumedResponse(context: string): Response {
+  console.error(`[web] Request body already consumed when ${context}`);
+  return new Response(
+    JSON.stringify({ error: "Request payload was already consumed" }),
+    { status: 400, headers: { "Content-Type": "application/json" } },
+  );
+}
+
+async function resolveProxyBody(
+  options: ProxySupabaseOptions,
+  normalizedMethod: string,
+): Promise<BodyResolutionResult> {
+  const { body, request, context } = options;
+
+  if (!methodAllowsBody(normalizedMethod)) {
+    return { ok: true, body: undefined, requiresDuplex: false };
+  }
+
+  if (body !== undefined) {
+    return {
+      ok: true,
+      body,
+      requiresDuplex: isReadableStream(body),
+    };
+  }
+
+  if (!request) {
+    return { ok: true, body: undefined, requiresDuplex: false };
+  }
+
+  if (request.bodyUsed) {
+    return { ok: false, response: bodyAlreadyConsumedResponse(context) };
+  }
+
+  const requestContentType = request.headers.get("Content-Type") ?? undefined;
+  const streamBody = request.body;
+
+  if (isReadableStream(streamBody)) {
+    return {
+      ok: true,
+      body: streamBody,
+      contentType: requestContentType,
+      requiresDuplex: true,
+    };
+  }
+
+  try {
+    const clone = request.clone();
+    const arrayBuffer = await clone.arrayBuffer();
+
+    if (arrayBuffer.byteLength === 0) {
+      return { ok: true, body: null, requiresDuplex: false };
+    }
+
+    const fallbackContentType = requestContentType ?? "application/json";
+
+    return {
+      ok: true,
+      body: arrayBuffer,
+      contentType: fallbackContentType,
+      requiresDuplex: false,
+    };
+  } catch (error) {
+    console.error(`[web] Failed to read request body when ${context}`, error);
+    return {
+      ok: false,
+      response: new Response(
+        JSON.stringify({ error: "Invalid request payload" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    };
+  }
 }
 
 export async function proxySupabaseEdgeFunction({
@@ -165,6 +277,10 @@ export async function proxySupabaseEdgeFunction({
     return missingSupabaseConfigResponse();
   }
 
+  if (isInvalidSupabasePath(path)) {
+    return invalidProxyPathResponse(context);
+  }
+
   const normalizedMethod = method.toUpperCase();
   const headers = new Headers(buildSupabaseFunctionHeaders());
 
@@ -174,26 +290,25 @@ export async function proxySupabaseEdgeFunction({
     }
   }
 
-  let requestBody = body ?? undefined;
+  const bodyResolution = await resolveProxyBody(
+    { request, path, method, context, cache, body, headers: extraHeaders },
+    normalizedMethod,
+  );
+
+  if (bodyResolution.ok === false) {
+    return bodyResolution.response;
+  }
+
+  const { body: resolvedBody, contentType, requiresDuplex } = bodyResolution;
+  const requestBody = resolvedBody ?? undefined;
 
   if (
-    request && methodAllowsBody(normalizedMethod) && requestBody === undefined
+    !headers.has("Content-Type") &&
+    contentType &&
+    requestBody !== undefined &&
+    requestBody !== null
   ) {
-    try {
-      const rawBody = await request.text();
-      requestBody = rawBody.length > 0 ? rawBody : undefined;
-    } catch (error) {
-      console.error(`[web] Failed to read request body when ${context}`, error);
-      return new Response(
-        JSON.stringify({ error: "Invalid request payload" }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    if (!headers.has("Content-Type") && requestBody !== undefined) {
-      const requestContentType = request.headers.get("Content-Type");
-      headers.set("Content-Type", requestContentType ?? "application/json");
-    }
+    headers.set("Content-Type", contentType);
   }
 
   const endpoint = new URL(
@@ -201,13 +316,21 @@ export async function proxySupabaseEdgeFunction({
     `${supabaseFnUrl}/`,
   ).toString();
 
-  try {
-    const response = await fetch(endpoint, {
+  const fetchOptions:
+    & RequestInit
+    & { cache?: RequestCache; duplex?: "half" } = {
       method: normalizedMethod,
       headers,
-      body: requestBody,
+      body: requestBody ?? null,
       cache,
-    });
+    };
+
+  if (requiresDuplex) {
+    fetchOptions.duplex = "half";
+  }
+
+  try {
+    const response = await fetch(endpoint, fetchOptions);
 
     if (!response.ok && response.status >= 500) {
       console.error(
