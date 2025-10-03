@@ -1,8 +1,6 @@
 import { Telegraf } from "telegraf";
 import process from "node:process";
 
-type Context = Parameters<Telegraf["start"]>[0];
-
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 const appUrl = process.env.APP_URL;
 
@@ -16,7 +14,7 @@ if (!appUrl) {
 
 const bot = new Telegraf(botToken);
 
-bot.start((ctx: Context) =>
+bot.start((ctx) =>
   ctx.reply(
     "🚀 Welcome to Dynamic Capital!\n\nConnect your wallet & subscribe in the Mini App:",
     {

@@ -10,8 +10,15 @@ TELEGRAM_BOT_TOKEN=xxxxxxxx
 APP_URL=https://dynamiccapital.ton
 ```
 
-Install dependencies with `pnpm install` and run the bot locally using:
+Install dependencies with `pnpm install` and use the provided scripts:
 
 ```bash
-pnpm exec ts-node index.ts
+# Start the TypeScript entrypoint with live type checking
+pnpm run dev
+
+# Emit ESM output into dist/
+pnpm run build
+
+# Launch the compiled bot (after pnpm run build)
+pnpm start
 ```

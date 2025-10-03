@@ -5,12 +5,14 @@
   "type": "module",
   "main": "engine/index.ts",
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "replace": "ts-node --esm engine/cli.ts examples/sample.module.ts"
   },
   "dependencies": {
     "fs-extra": "^11.2.0"
   },
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   }

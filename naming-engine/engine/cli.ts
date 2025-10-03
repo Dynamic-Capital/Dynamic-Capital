@@ -6,9 +6,9 @@ import { ensureDir, pathExists, readFile, readdir, stat, writeFile } from 'fs-ex
 import { getAllMappings } from './index.js';
 
 interface CliOptions {
-  readonly dryRun: boolean;
-  readonly backup: boolean;
-  readonly silent: boolean;
+  dryRun: boolean;
+  backup: boolean;
+  silent: boolean;
 }
 
 interface ReplacementResult {
@@ -39,7 +39,7 @@ async function collectFiles(targetPath: string): Promise<string[]> {
 
     const entries = await readdir(targetPath);
     const nested = await Promise.all(
-      entries.map((entry) => collectFiles(path.join(targetPath, entry))),
+      entries.map((entry: string) => collectFiles(path.join(targetPath, entry))),
     );
     return nested.flat();
   }

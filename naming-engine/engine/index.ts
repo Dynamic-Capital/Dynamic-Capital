@@ -1,4 +1,4 @@
-import namingMapJson from '../naming.schema.json' assert { type: 'json' };
+import namingMapJson from '../naming.schema.json' with { type: 'json' };
 
 export type NamingMap = Record<string, string>;
 
