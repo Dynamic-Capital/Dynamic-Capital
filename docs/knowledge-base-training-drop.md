@@ -62,6 +62,8 @@ into Supabase Storage and the local repository when preparing new runs.
   print(summary.readiness)
   PY
   ```
+- When validating several reports back-to-back, preload the dataset once with
+  `load_knowledge_base_records` and reuse it to avoid repeated disk I/O.
 - Rebuild vector indexes after syncing by executing the pipeline that feeds the
   retrieval layer (for example, `npm run embeddings:refresh knowledge_base`).
 - Capture evaluation metrics and push summaries back into the `knowledge_base/`

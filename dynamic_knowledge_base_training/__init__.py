@@ -50,6 +50,9 @@ class KnowledgeBaseDataset:
             raise ValueError("sources must not be empty")
 
 
+KnowledgeBaseSources = Path | str | Iterable[Path | str] | KnowledgeBaseDataset
+
+
 def _ensure_path(source: Path | str) -> Path:
     path = Path(source)
     if not path.exists():
@@ -103,10 +106,16 @@ def _load_json(path: Path) -> list[Mapping[str, object]]:
     )
 
 
-def load_knowledge_base_records(
-    sources: Path | str | Iterable[Path | str],
-) -> KnowledgeBaseDataset:
-    """Load records from one or more knowledge base dataset files."""
+def load_knowledge_base_records(sources: KnowledgeBaseSources) -> KnowledgeBaseDataset:
+    """Load records from one or more knowledge base dataset files.
+
+    Passing an existing :class:`KnowledgeBaseDataset` allows callers to reuse
+    preloaded corpora across multiple trainer invocations without incurring
+    repeated disk access.
+    """
+
+    if isinstance(sources, KnowledgeBaseDataset):
+        return sources
 
     if isinstance(sources, (str, Path)):
         sources_iterable: tuple[Path | str, ...] = (sources,)
@@ -163,15 +172,13 @@ class DynamicKnowledgeBaseTrainer:
     def window(self) -> int | None:
         return self._engine.window
 
-    def summarise(
-        self, sources: Path | str | Iterable[Path | str]
-    ) -> DataTrainingSummary:
+    def summarise(self, sources: KnowledgeBaseSources) -> DataTrainingSummary:
         """Load the provided sources and return the training summary."""
 
         dataset = load_knowledge_base_records(sources)
         return self._engine.summarise(dataset.records)
 
-    def report(self, sources: Path | str | Iterable[Path | str]) -> dict[str, object]:
+    def report(self, sources: KnowledgeBaseSources) -> dict[str, object]:
         """Return a JSON-serialisable report for the supplied dataset files."""
 
         dataset = load_knowledge_base_records(sources)

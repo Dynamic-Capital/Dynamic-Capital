@@ -75,3 +75,16 @@ def test_dynamic_knowledge_base_trainer_builds_summary(sample_datasets: tuple[Pa
     assert summary.readiness.sample_size == len(summary.signals)
     assert report["objective"] == "knowledge-base-training"
     assert report["sources"] == [str(path) for path in sample_datasets]
+
+
+def test_dynamic_knowledge_base_trainer_accepts_preloaded_dataset(
+    sample_datasets: tuple[Path, Path]
+) -> None:
+    trainer = DynamicKnowledgeBaseTrainer()
+    dataset = load_knowledge_base_records(sample_datasets)
+
+    summary = trainer.summarise(dataset)
+    report = trainer.report(dataset)
+
+    assert summary.readiness.sample_size == len(dataset.records)
+    assert report["sources"] == [str(path) for path in dataset.sources]
