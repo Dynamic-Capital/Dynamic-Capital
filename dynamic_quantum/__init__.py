@@ -8,6 +8,12 @@ from .engine import (
     QuantumPulse,
     QuantumResonanceFrame,
 )
+from .collapse_cycle import (
+    ConsciousCollapseEngine,
+    DomainConfig,
+    DomainSnapshot,
+    LindbladChannel,
+)
 from .training import (
     EngineTrainingAdapter,
     expectation_value_cost,
@@ -22,6 +28,10 @@ __all__ = [
     "QuantumEnvironment",
     "QuantumPulse",
     "QuantumResonanceFrame",
+    "ConsciousCollapseEngine",
+    "DomainConfig",
+    "DomainSnapshot",
+    "LindbladChannel",
     "EngineTrainingAdapter",
     "expectation_value_cost",
     "fidelity_cost",
