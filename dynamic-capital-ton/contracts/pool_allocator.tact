@@ -141,6 +141,7 @@ contract TonPoolAllocator {
 
     body.loadUint(64); // query id
     Int jettonAmount = body.loadCoins();
+    require(jettonAmount > 0, "allocator: invalid jetton amount");
     body.loadMsgAddress(); // destination
     body.loadMsgAddress(); // response destination
     body.loadMaybeRef(); // skip custom payload
