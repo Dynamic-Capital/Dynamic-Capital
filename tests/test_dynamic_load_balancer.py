@@ -137,3 +137,26 @@ def test_load_balancer_enforces_concurrency_and_cooldown() -> None:
 
     balancer.record_result("edge-a", success=True, latency_ms=140, now=recovery_time)
     assert balancer.get_snapshot("edge-a").healthy is True
+
+
+def test_load_balancer_enable_all_recovers_targets() -> None:
+    balancer = DynamicLoadBalancer(
+        [
+            {"identifier": "edge-a", "weight": 1.0, "recovery_threshold": 0.6},
+            {"identifier": "edge-b", "weight": 1.0, "recovery_threshold": 0.65},
+        ],
+        decay=0.4,
+    )
+
+    for index in range(4):
+        balancer.record_result("edge-a", success=False, latency_ms=450, now=_ts(seconds=index))
+        balancer.record_result("edge-b", success=False, latency_ms=520, now=_ts(seconds=index))
+
+    assert balancer.get_snapshot("edge-a").healthy is False
+    assert balancer.get_snapshot("edge-b").healthy is False
+
+    snapshots = balancer.enable_all()
+
+    assert all(snapshot.healthy for snapshot in snapshots)
+    assert balancer.get_snapshot("edge-a").success_score >= 0.6
+    assert balancer.get_snapshot("edge-b").success_score >= 0.65

@@ -282,6 +282,19 @@ class DynamicLoadBalancer:
     def remove_target(self, identifier: str) -> bool:
         return self._targets.pop(_normalise_identifier(identifier), None) is not None
 
+    def enable_all(self) -> Sequence[LoadTargetSnapshot]:
+        """Mark every registered target as healthy and return their snapshots."""
+
+        snapshots: list[LoadTargetSnapshot] = []
+        for state in self._targets.values():
+            state.healthy = True
+            state.last_failure_at = None
+            if state.success_ewma < state.config.recovery_threshold:
+                state.success_ewma = state.config.recovery_threshold
+            snapshots.append(state.snapshot())
+
+        return tuple(snapshots)
+
     # ------------------------------------------------------------------- selection
     def _select_state(self, *, now: datetime | None, allow_unhealthy: bool) -> _TargetState | None:
         candidates: list[tuple[float, _TargetState]] = []
