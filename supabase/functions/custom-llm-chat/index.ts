@@ -4,7 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // Provider configurations
@@ -66,8 +67,10 @@ serve(async (req) => {
       : null;
 
     // Determine API configuration
-    const providerConfig = PROVIDERS[provider as keyof typeof PROVIDERS] || PROVIDERS.custom;
-    const apiUrl = baseUrl || Deno.env.get("CUSTOM_LLM_BASE_URL") || providerConfig.defaultUrl;
+    const providerConfig = PROVIDERS[provider as keyof typeof PROVIDERS] ||
+      PROVIDERS.custom;
+    const apiUrl = baseUrl || Deno.env.get("CUSTOM_LLM_BASE_URL") ||
+      providerConfig.defaultUrl;
     const apiKeyToUse = apiKey ||
       Deno.env.get("CUSTOM_LLM_API_KEY") ||
       Deno.env.get("OPENAI_API_KEY") ||
@@ -90,7 +93,10 @@ serve(async (req) => {
     // Add parameters based on model and provider
     if (provider === "openai") {
       // GPT-5 and newer models use max_completion_tokens
-      if (requestBody.model.includes("gpt-5") || requestBody.model.includes("o3") || requestBody.model.includes("o4")) {
+      if (
+        requestBody.model.includes("gpt-5") ||
+        requestBody.model.includes("o3") || requestBody.model.includes("o4")
+      ) {
         if (maxTokens) requestBody.max_completion_tokens = maxTokens;
         // Don't add temperature for these models
       } else {
@@ -105,7 +111,11 @@ serve(async (req) => {
       if (temperature !== undefined) requestBody.temperature = temperature;
     }
 
-    console.log(`Calling ${provider} API:`, { url: apiUrl, model: requestBody.model, stream });
+    console.log(`Calling ${provider} API:`, {
+      url: apiUrl,
+      model: requestBody.model,
+      stream,
+    });
 
     // Make API request
     const response = await fetch(apiUrl, {
@@ -123,21 +133,37 @@ serve(async (req) => {
 
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: "Rate limit exceeded. Please try again later.",
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Payment required. Please check your API credits." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: "Payment required. Please check your API credits.",
+          }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
       return new Response(
-        JSON.stringify({ error: `API error: ${response.status}`, details: errorText }),
-        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: `API error: ${response.status}`,
+          details: errorText,
+        }),
+        {
+          status: response.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -155,15 +181,19 @@ serve(async (req) => {
 
     // Non-streaming response
     const data = await response.json();
-    
+
     // Save to chat history if session provided
     if (sessionId && supabase) {
-      const assistantMessage = provider === "anthropic" 
-        ? data.content[0].text 
+      const assistantMessage = provider === "anthropic"
+        ? data.content[0].text
         : data.choices[0].message.content;
 
       await supabase.from("chat_messages").insert([
-        { session_id: sessionId, role: "user", content: messages[messages.length - 1].content },
+        {
+          session_id: sessionId,
+          role: "user",
+          content: messages[messages.length - 1].content,
+        },
         { session_id: sessionId, role: "assistant", content: assistantMessage },
       ]);
     }
@@ -174,8 +204,13 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in custom-llm-chat:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });
