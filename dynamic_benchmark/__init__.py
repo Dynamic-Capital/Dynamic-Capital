@@ -8,6 +8,16 @@ from .engine import (
     BenchmarkReport,
     DynamicBenchmark,
 )
+from .gradebook import (
+    ComprehensiveGrade,
+    KnowledgeBaseGrade,
+    KnowledgeBaseMetrics,
+    grade_knowledge_base,
+    grade_comprehensively,
+    grade_many,
+    summarise,
+)
+from .quantum import QuantumBenchmarkDomain, load_quantum_benchmark
 
 __all__ = [
     "BenchmarkMetric",
@@ -16,4 +26,13 @@ __all__ = [
     "MetricAssessment",
     "BenchmarkReport",
     "DynamicBenchmark",
+    "ComprehensiveGrade",
+    "KnowledgeBaseMetrics",
+    "KnowledgeBaseGrade",
+    "grade_knowledge_base",
+    "grade_comprehensively",
+    "grade_many",
+    "summarise",
+    "QuantumBenchmarkDomain",
+    "load_quantum_benchmark",
 ]

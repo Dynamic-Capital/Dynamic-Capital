@@ -1,9 +1,20 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import sys
+import types
 
 import pytest
 
+if "dynamic.trading.algo.dynamic_metadata" not in sys.modules:
+    stub = types.ModuleType("dynamic.trading.algo.dynamic_metadata")
+    stub.DynamicMetadataAlgo = type("DynamicMetadataAlgo", (), {})
+    stub.MetadataAttribute = type("MetadataAttribute", (), {})
+    sys.modules["dynamic.trading.algo.dynamic_metadata"] = stub
+
+from dynamic.intelligence.agi.fine_tune import DynamicAGIFineTuner
+from dynamic.intelligence.agi.self_improvement import ImprovementSignal, LearningSnapshot
+from dynamic_benchmark.gradebook import KnowledgeBaseMetrics
 from dynamic_fine_tune_engine import (
     DynamicFineTuneAgent,
     DynamicFineTuneEngine,
@@ -14,6 +25,7 @@ from dynamic_fine_tune_engine import (
     FineTuneRecord,
     FineTuneRecordBuilder,
     FineTuneCrawler,
+    FineTuneTrainer,
 )
 
 
@@ -236,4 +248,125 @@ def test_bot_cycle_runs_end_to_end(tmp_path) -> None:
     assert report["ingested"] == 2
     assert report["batch"].size == 1
     assert (tmp_path / "export.json").exists()
+
+
+def test_trainer_fine_tune_cycle_builds_dataset() -> None:
+    model = DynamicFineTuneModel()
+    agent = DynamicFineTuneAgent(model=model)
+    tuner = DynamicAGIFineTuner(default_tags=("agi", "learning"))
+    trainer = FineTuneTrainer(agent=agent, tuner=tuner)
+
+    snapshot_positive = LearningSnapshot(
+        output={"summary": "Iteration complete"},
+        performance={"accuracy": 0.82, "latency": 0.76},
+        feedback=("Great response coverage",),
+        signals=(
+            ImprovementSignal(metric="accuracy", value=0.9, direction="positive", weight=1.0),
+            ImprovementSignal(metric="latency", value=0.4, direction="negative", weight=0.3),
+        ),
+    )
+    snapshot_negative = LearningSnapshot(
+        output={"summary": "Degraded performance"},
+        performance={"accuracy": 58.0, "latency": 61.0},
+        feedback=("Address latency regressions",),
+        signals=(
+            ImprovementSignal(metric="latency", value=0.6, direction="negative", weight=1.4),
+            ImprovementSignal(metric="consistency", value=0.3, direction="positive", weight=0.6),
+        ),
+    )
+
+    report = trainer.fine_tune(
+        (snapshot_positive, snapshot_negative),
+        batch_size=2,
+        minimum_quality=0.0,
+        notes="weekly tuning",
+    )
+
+    assert report["ingested"] == 2
+    assert report["harvest"].size == 2
+    assert len(report["batches"]) == 1
+    assert report["batches"][0].notes == "weekly tuning"
+    assert report["summary"]["count"] == 2
+    assert report["summary"]["tag_histogram"]["agi"] == 2
+    assert report["summary"]["tag_histogram"]["learning"] == 2
+
+    stats = agent.stats()
+    assert stats["count"] == 2
+    assert stats["sources"]["agi.self_improvement"]["count"] == 2
+    assert stats["average_quality"] > 0.5
+    assert stats["average_priority"] >= 0.45
+
+
+def test_grade_informed_fine_tune_prioritises_low_grades() -> None:
+    model = DynamicFineTuneModel()
+    agent = DynamicFineTuneAgent(model=model)
+    tuner = DynamicAGIFineTuner(default_tags=("kb",))
+    trainer = FineTuneTrainer(agent=agent, tuner=tuner)
+
+    snapshots = {
+        "DAI": (
+            LearningSnapshot(
+                output={"summary": "Sustain knowledge freshness"},
+                performance={"accuracy": 0.91, "coverage": 0.9},
+                feedback=("Tune governance coverage",),
+                signals=(
+                    ImprovementSignal(metric="accuracy", value=0.82, direction="positive", weight=0.8),
+                    ImprovementSignal(metric="coverage", value=0.6, direction="negative", weight=0.4),
+                ),
+            ),
+        ),
+        "DAGS": (
+            LearningSnapshot(
+                output={"summary": "Improve missing catalogues"},
+                performance={"accuracy": 0.55, "coverage": 0.58},
+                feedback=("Fill coverage gaps", "Reduce stale telemetry"),
+                signals=(
+                    ImprovementSignal(metric="accuracy", value=0.45, direction="negative", weight=1.2),
+                    ImprovementSignal(metric="staleness", value=0.7, direction="negative", weight=1.0),
+                ),
+            ),
+        ),
+    }
+
+    metrics = {
+        "DAI": KnowledgeBaseMetrics(
+            coverage_ratio=0.92,
+            accuracy_ratio=0.94,
+            telemetry_staleness_hours=18.0,
+            failed_health_checks=0,
+        ),
+        "DAGS": KnowledgeBaseMetrics(
+            coverage_ratio=0.6,
+            accuracy_ratio=0.58,
+            telemetry_staleness_hours=80.0,
+            failed_health_checks=4,
+        ),
+    }
+
+    report = trainer.fine_tune_for_grades(
+        snapshots,
+        metrics,
+        batch_size=2,
+        minimum_quality=0.6,
+        remove=False,
+        notes="kb remediation",
+    )
+
+    assert report["ingested"] == 2
+    assert report["harvest"].notes == "kb remediation"
+    assert report["domain_reports"]["DAGS"]["severity"] > report["domain_reports"]["DAI"]["severity"]
+    assert report["domain_reports"]["DAGS"]["accepted"] >= 1
+    assert report["domain_reports"]["DAGS"]["focus"] in {"coverage", "accuracy", "staleness", "governance"}
+    assert report["comprehensive_grade"]["grade"]["letter"] == "C"
+
+    records = agent.model.snapshot()
+    assert len(records) == 2
+    letters = {record["metadata"]["grade_letter"] for record in records}
+    assert letters == {"B", "D"}
+    dag_record = next(record for record in records if record["metadata"]["domain"] == "DAGS")
+    dai_record = next(record for record in records if record["metadata"]["domain"] == "DAI")
+    assert dag_record["priority"] >= dai_record["priority"]
+    assert "grade-remediation" in dag_record["tags"]
+    assert dag_record["metadata"]["grade_severity_label"] == "high"
+    assert report["domain_reports"]["DAGS"]["quality_floor"] > report["domain_reports"]["DAI"]["quality_floor"]
 
