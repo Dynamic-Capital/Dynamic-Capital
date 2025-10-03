@@ -22,3 +22,6 @@ project_id = "qeejuomcapbdlhnjqjcc"
 
 [functions.agi-chat]
 verify_jwt = true
+
+[functions.custom-llm-chat]
+verify_jwt = true
