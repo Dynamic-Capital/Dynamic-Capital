@@ -91,6 +91,7 @@ documenting which assets were consulted.
 | 5.8  | [TELEGRAM_WEBHOOK_KEEPER.md](./TELEGRAM_WEBHOOK_KEEPER.md) | Bot keeper that maintains webhook health and retries updates.                              |
 | 5.9  | [webhook.md](./webhook.md)                                 | Telegram webhook configuration, rotation, and troubleshooting guide.                       |
 | 5.10 | [LINKAGE_CHECKLIST.md](./LINKAGE_CHECKLIST.md)             | Audit to ensure bot, Mini App, and Supabase edge functions share consistent hosts/secrets. |
+| 5.11 | [tonkeeper-deep-linking.md](./tonkeeper-deep-linking.md)   | Deep link reference covering wallet schemes and action-specific parameters for Tonkeeper.  |
 
 ## 6. Trading & Financial Operations
 
