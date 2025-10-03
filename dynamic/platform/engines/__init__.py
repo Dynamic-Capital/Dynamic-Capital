@@ -309,7 +309,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "SupplySummary",
     ),
     "dynamic_text": ("DynamicTextEngine",),
-    "dynamic_thinking": ("DynamicThinkingEngine",),
+    "dynamic_thinking": (
+        "DynamicThinkingEngine",
+        "ThinkingContext",
+        "ThinkingFrame",
+        "ThinkingSignal",
+    ),
     "dynamic.platform.token": ("DynamicTreasuryAlgo",),
     "dynamic_ton": (
         "DynamicTonEngine",

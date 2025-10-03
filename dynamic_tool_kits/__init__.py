@@ -246,7 +246,12 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_stem_cell": ("StemCellContext", "StemCellProfile", "StemCellSignal"),
     "dynamic_syncronization": ("SyncDependency", "SyncEvent", "SyncIncident", "SyncStatusSnapshot", "SyncSystem"),
     "dynamic_text": ("TextFragment", "TextContext", "TextDigest"),
-    "dynamic_thinking": ("ThinkingContext", "ThinkingFrame", "ThinkingSignal"),
+    "dynamic_thinking": (
+        "DynamicThinkingEngine",
+        "ThinkingContext",
+        "ThinkingFrame",
+        "ThinkingSignal",
+    ),
     "dynamic_ultimate_reality": ("NonDualContext", "UltimateRealitySignal", "UltimateRealityState"),
     "dynamic_volume": ("BookLevel", "VolumeAlert", "VolumeSnapshot", "VolumeThresholds"),
     "dynamic_wisdom": ("WisdomContext", "WisdomFrame", "WisdomSignal"),
