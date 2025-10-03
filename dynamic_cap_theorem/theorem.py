@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections import Counter, deque
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
@@ -42,6 +42,8 @@ def _normalise_tags(tags: Sequence[str] | None) -> tuple[str, ...]:
     seen: set[str] = set()
     ordered: list[str] = []
     for tag in tags:
+        if not isinstance(tag, str):
+            raise TypeError("tags must be strings")
         cleaned = tag.strip().lower()
         if cleaned and cleaned not in seen:
             seen.add(cleaned)
@@ -54,7 +56,12 @@ def _coerce_mapping(mapping: Mapping[str, float] | None) -> Mapping[str, float] 
         return None
     if not isinstance(mapping, Mapping):  # pragma: no cover - defensive guard
         raise TypeError("metadata must be a mapping")
-    return dict(mapping)
+    coerced: dict[str, float] = {}
+    for key, value in mapping.items():
+        if not isinstance(key, str):  # pragma: no cover - defensive guard
+            raise TypeError("metadata keys must be strings")
+        coerced[key] = float(value)
+    return coerced
 
 
 @dataclass(slots=True)
@@ -212,7 +219,33 @@ class DynamicCapTheorem:
         if window <= 0:
             raise ValueError("window must be positive")
         self._window = window
-        self._events: Deque[CapEvent] = deque(maxlen=window)
+        self._events: Deque[CapEvent] = deque()
+        self._pressure_totals = self._new_pressure_totals()
+
+    @staticmethod
+    def _new_pressure_totals() -> MutableMapping[str, float]:
+        return {
+            "consistency": 0.0,
+            "availability": 0.0,
+            "partition_tolerance": 0.0,
+        }
+
+    def _evict_if_needed(self) -> None:
+        if len(self._events) < self._window:
+            return
+        evicted = self._events.popleft()
+        c_delta, a_delta, p_delta = evicted.weighted_deltas()
+        self._pressure_totals["consistency"] -= c_delta
+        self._pressure_totals["availability"] -= a_delta
+        self._pressure_totals["partition_tolerance"] -= p_delta
+
+    def _record_event(self, event: CapEvent) -> None:
+        self._evict_if_needed()
+        self._events.append(event)
+        c_delta, a_delta, p_delta = event.weighted_deltas()
+        self._pressure_totals["consistency"] += c_delta
+        self._pressure_totals["availability"] += a_delta
+        self._pressure_totals["partition_tolerance"] += p_delta
 
     @property
     def window(self) -> int:
@@ -223,28 +256,28 @@ class DynamicCapTheorem:
 
     def clear(self) -> None:
         self._events.clear()
+        self._pressure_totals = self._new_pressure_totals()
 
     def register(self, event: CapEvent) -> None:
         if not isinstance(event, CapEvent):  # pragma: no cover - defensive guard
             raise TypeError("event must be a CapEvent")
-        self._events.append(event)
+        self._record_event(event)
 
     def extend(self, events: Iterable[CapEvent]) -> None:
+        buffered: list[CapEvent] = []
         for event in events:
-            self.register(event)
+            if not isinstance(event, CapEvent):
+                raise TypeError("events must be CapEvent instances")
+            buffered.append(event)
+        for event in buffered:
+            self._record_event(event)
 
     @property
     def events(self) -> tuple[CapEvent, ...]:
         return tuple(self._events)
 
     def _aggregate_event_pressure(self) -> Mapping[str, float]:
-        counter = Counter({"consistency": 0.0, "availability": 0.0, "partition_tolerance": 0.0})
-        for event in self._events:
-            c_delta, a_delta, p_delta = event.weighted_deltas()
-            counter["consistency"] += c_delta
-            counter["availability"] += a_delta
-            counter["partition_tolerance"] += p_delta
-        return dict(counter)
+        return dict(self._pressure_totals)
 
     def _derive_focus(
         self,

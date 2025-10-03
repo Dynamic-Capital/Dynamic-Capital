@@ -34,7 +34,7 @@ def test_cap_event_normalises_inputs() -> None:
     assert c_delta == pytest.approx(-0.198)
     assert a_delta == pytest.approx(-0.2376)
     assert p_delta == pytest.approx(-0.1584)
-    assert event.metadata == {"region": 3}
+    assert event.metadata == {"region": 3.0}
 
 
 def test_dynamic_cap_theorem_snapshot_produces_assessment() -> None:
@@ -107,3 +107,52 @@ def test_platform_engines_exposes_dynamic_cap_theorem() -> None:
     from dynamic.platform import engines as platform_engines
 
     assert platform_engines.DynamicCapTheorem is DynamicCapTheorem
+
+
+def test_extend_is_atomic_and_validates_events() -> None:
+    theorem = DynamicCapTheorem(window=2)
+    valid_event = CapEvent(
+        label="Valid",
+        consistency_delta=0.1,
+        availability_delta=0.0,
+        partition_delta=0.0,
+    )
+
+    with pytest.raises(TypeError):
+        theorem.extend([valid_event, object()])
+
+    assert theorem.events == ()
+
+
+def test_register_evicts_old_events_and_updates_pressure() -> None:
+    theorem = DynamicCapTheorem(window=2)
+    baseline = CapVector(consistency=0.5, availability=0.5, partition_tolerance=0.5)
+    context = CapContext()
+
+    def _event(delta: float, label: str) -> CapEvent:
+        return CapEvent(
+            label=label,
+            consistency_delta=delta,
+            availability_delta=0.0,
+            partition_delta=0.0,
+            criticality=1.0,
+            persistence=1.0,
+        )
+
+    first = _event(-0.2, "first")
+    second = _event(0.1, "second")
+    third = _event(0.3, "third")
+
+    theorem.extend([first, second])
+    theorem.register(third)
+
+    events = theorem.events
+    assert len(events) == 2
+    assert events[0] is second
+    assert events[1] is third
+
+    assessment = theorem.snapshot(baseline=baseline, context=context)
+    expected_consistency = baseline.adjusted(
+        consistency=second.weighted_deltas()[0] + third.weighted_deltas()[0]
+    ).consistency
+    assert assessment.vector.consistency == pytest.approx(expected_consistency)
