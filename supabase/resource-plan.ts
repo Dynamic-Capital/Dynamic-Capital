@@ -1735,6 +1735,297 @@ export const resourcePlan: ResourcePlan = {
         },
       ],
     },
+    {
+      schema: "public",
+      name: "memory_cores",
+      comment:
+        "External memory core endpoints that participate in scheduled exports.",
+      columns: [
+        {
+          name: "id",
+          type: "text",
+          nullable: false,
+          comment:
+            "Stable identifier for the memory core, matching config/export targets.",
+        },
+        {
+          name: "display_name",
+          type: "text",
+          nullable: false,
+          comment: "Human readable label displayed in operational tooling.",
+        },
+        {
+          name: "provider",
+          type: "text",
+          nullable: false,
+          comment:
+            "Storage provider hosting the memory core (Google Drive, OneDrive, etc.).",
+        },
+        {
+          name: "link",
+          type: "text",
+          nullable: false,
+          comment:
+            "Direct sharing link or mount point URL for the storage location.",
+        },
+        {
+          name: "capacity_gb",
+          type: "numeric",
+          nullable: true,
+          comment: "Total storage capacity in gigabytes.",
+        },
+        {
+          name: "used_gb",
+          type: "numeric",
+          nullable: true,
+          comment: "Currently utilized storage capacity in gigabytes.",
+        },
+        {
+          name: "pending_gb",
+          type: "numeric",
+          nullable: true,
+          comment: "Outstanding backlog in gigabytes awaiting export.",
+        },
+        {
+          name: "sync_source",
+          type: "text",
+          nullable: false,
+          comment: "Identifier for the sync source feeding the export target.",
+        },
+        {
+          name: "sustained_throughput_mbps",
+          type: "numeric",
+          nullable: true,
+          comment: "Measured sustained throughput in megabits per second.",
+        },
+        {
+          name: "priority",
+          type: "text",
+          nullable: false,
+          default: "'medium'",
+          comment: "Operational priority level for scheduling exports.",
+        },
+        {
+          name: "updated_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment:
+            "Timestamp when the record was last refreshed from automation.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      checks: [
+        {
+          name: "memory_cores_priority_check",
+          expression: "(priority = ANY (ARRAY['low','medium','high']))",
+        },
+      ],
+      indexes: [
+        {
+          name: "memory_cores_priority_idx",
+          expression: "(priority)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+        force: true,
+      },
+      policies: [
+        {
+          name: "memory_cores_service_all",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "true",
+          withCheck: "true",
+          comment:
+            "Allow the service role to manage memory core configuration metadata.",
+        },
+        {
+          name: "memory_cores_authenticated_read",
+          command: "SELECT",
+          roles: ["authenticated"],
+          using: "true",
+          comment:
+            "Permit authenticated operators to inspect available memory cores.",
+        },
+      ],
+      postDeploymentSql: [
+        "CREATE OR REPLACE FUNCTION public.set_memory_core_updated_at()\nRETURNS TRIGGER\nLANGUAGE plpgsql AS $$\nBEGIN\n  NEW.updated_at := now();\n  RETURN NEW;\nEND;\n$$;",
+        "DROP TRIGGER IF EXISTS memory_cores_set_updated_at ON public.memory_cores;",
+        "CREATE TRIGGER memory_cores_set_updated_at\nBEFORE UPDATE ON public.memory_cores\nFOR EACH ROW EXECUTE FUNCTION public.set_memory_core_updated_at();",
+      ],
+    },
+    {
+      schema: "public",
+      name: "memory_sync_snapshots",
+      comment:
+        "Historical snapshots of sync health and export planning metrics for each memory core.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary key for the snapshot record.",
+        },
+        {
+          name: "core_id",
+          type: "text",
+          nullable: false,
+          references: {
+            schema: "public",
+            table: "memory_cores",
+            column: "id",
+            onDelete: "CASCADE",
+          },
+          comment: "Memory core identifier the snapshot applies to.",
+        },
+        {
+          name: "captured_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the snapshot was recorded.",
+        },
+        {
+          name: "observed_latency_ms",
+          type: "numeric",
+          nullable: true,
+          comment: "Observed end-to-end latency in milliseconds.",
+        },
+        {
+          name: "observed_jitter_ms",
+          type: "numeric",
+          nullable: true,
+          comment: "Observed jitter in milliseconds.",
+        },
+        {
+          name: "observed_offset_ms",
+          type: "numeric",
+          nullable: true,
+          comment:
+            "Clock offset observed between orchestrator and storage in milliseconds.",
+        },
+        {
+          name: "backlog_gb",
+          type: "numeric",
+          nullable: true,
+          comment: "Current backlog awaiting export in gigabytes.",
+        },
+        {
+          name: "available_gb",
+          type: "numeric",
+          nullable: true,
+          comment: "Free capacity in gigabytes.",
+        },
+        {
+          name: "recommended_batch_gb",
+          type: "numeric",
+          nullable: true,
+          comment:
+            "Recommended batch size in gigabytes for the next export run.",
+        },
+        {
+          name: "batches_required",
+          type: "integer",
+          nullable: true,
+          comment: "Number of batches required to clear the backlog.",
+        },
+        {
+          name: "recommended_parallelism",
+          type: "integer",
+          nullable: true,
+          comment: "Recommended parallel streams for the export.",
+        },
+        {
+          name: "estimated_duration_minutes",
+          type: "numeric",
+          nullable: true,
+          comment: "Estimated batch duration in minutes per stream.",
+        },
+        {
+          name: "sync_health",
+          type: "numeric",
+          nullable: true,
+          comment:
+            "Composite health score derived from latency, jitter, and offset measurements.",
+        },
+        {
+          name: "score",
+          type: "numeric",
+          nullable: true,
+          comment:
+            "Composite scheduling score including capacity and priority adjustments.",
+        },
+        {
+          name: "issues",
+          type: "jsonb",
+          nullable: true,
+          comment:
+            "JSON array of issues detected while building the export plan.",
+        },
+        {
+          name: "target_latency_ms",
+          type: "numeric",
+          nullable: true,
+          comment: "Configured latency target in milliseconds.",
+        },
+        {
+          name: "max_jitter_seconds",
+          type: "numeric",
+          nullable: true,
+          comment: "Configured jitter threshold in seconds.",
+        },
+        {
+          name: "offset_tolerance_ms",
+          type: "numeric",
+          nullable: true,
+          comment: "Configured offset tolerance in milliseconds.",
+        },
+        {
+          name: "horizon_minutes",
+          type: "numeric",
+          nullable: true,
+          comment:
+            "Planning horizon in minutes used when computing the schedule.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "memory_sync_snapshots_core_captured_idx",
+          expression: "(core_id, captured_at DESC)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+        force: true,
+      },
+      policies: [
+        {
+          name: "memory_sync_snapshots_service_all",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "true",
+          withCheck: "true",
+          comment:
+            "Allow the service role to record sync metrics and export planning snapshots.",
+        },
+        {
+          name: "memory_sync_snapshots_authenticated_read",
+          command: "SELECT",
+          roles: ["authenticated"],
+          using: "true",
+          comment:
+            "Permit authenticated analysts to query historical sync health snapshots.",
+        },
+      ],
+    },
   ],
   sql: [
     {

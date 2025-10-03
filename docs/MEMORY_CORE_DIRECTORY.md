@@ -29,3 +29,8 @@ overfilling the drives.
   `deno run -A scripts/ops/optimize-memory-sync.ts`. Pass `--json` to emit the
   plan in machine-readable form or `--config` to point at an alternate
   configuration snapshot.
+- Append `--sync-supabase` (and optionally `--supabase-url` / `--supabase-key`)
+  to publish the computed plan into Supabase. The automation upserts metadata
+  into `public.memory_cores` and records a timestamped snapshot in
+  `public.memory_sync_snapshots`. When flags are omitted the script falls back
+  to the `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` environment variables.

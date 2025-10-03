@@ -1,5 +1,6 @@
 #!/usr/bin/env -S deno run -A
 import { parse } from "https://deno.land/std@0.224.0/flags/mod.ts";
+import { createClient } from "https://cdn.skypack.dev/@supabase/supabase-js@2.45.1?dts";
 
 interface SyncSourceConfig {
   id: string;
@@ -56,6 +57,64 @@ interface ExportPlanEntry {
   syncHealth: number;
   score: number;
   issues: string[];
+}
+
+interface SupabaseSyncOptions {
+  url: string;
+  serviceRoleKey: string;
+}
+
+interface SupabaseSyncResult {
+  coresProcessed: number;
+  snapshotsInserted: number;
+}
+
+interface MemoryCoreRow {
+  id: string;
+  display_name: string;
+  provider: string;
+  link: string;
+  capacity_gb: number;
+  used_gb: number;
+  pending_gb: number;
+  sync_source: string;
+  sustained_throughput_mbps: number;
+  priority: "low" | "medium" | "high";
+  updated_at: string;
+}
+
+interface MemorySyncSnapshotRow {
+  core_id: string;
+  captured_at: string;
+  observed_latency_ms: number | null;
+  observed_jitter_ms: number | null;
+  observed_offset_ms: number | null;
+  backlog_gb: number;
+  available_gb: number;
+  recommended_batch_gb: number;
+  batches_required: number;
+  recommended_parallelism: number;
+  estimated_duration_minutes: number;
+  sync_health: number;
+  score: number;
+  issues: string[];
+  target_latency_ms: number;
+  max_jitter_seconds: number;
+  offset_tolerance_ms: number;
+  horizon_minutes: number;
+}
+
+function readStringFlag(
+  flags: Record<string, unknown>,
+  ...keys: string[]
+): string | undefined {
+  for (const key of keys) {
+    const value = flags[key];
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return undefined;
 }
 
 function asNumber(value: unknown, message: string): number {
@@ -388,11 +447,101 @@ function printPlan(plan: ExportPlanEntry[], config: MemorySyncConfig): void {
   });
 }
 
+async function syncPlanToSupabase(
+  plan: ExportPlanEntry[],
+  config: MemorySyncConfig,
+  options: SupabaseSyncOptions,
+): Promise<SupabaseSyncResult> {
+  const client = createClient(options.url, options.serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+
+  const nowIso = new Date().toISOString();
+  const sourceMap = new Map(config.sync.sources.map((source) => [
+    source.id,
+    source,
+  ]));
+  const targetMap = new Map(config.export.targets.map((target) => [
+    target.core,
+    target,
+  ]));
+
+  const coreRows: MemoryCoreRow[] = config.export.targets.map((target) => ({
+    id: target.core,
+    display_name: target.displayName,
+    provider: target.provider,
+    link: target.link,
+    capacity_gb: target.capacityGb,
+    used_gb: target.usedGb,
+    pending_gb: target.pendingGb,
+    sync_source: target.syncSource,
+    sustained_throughput_mbps: target.sustainedThroughputMbps,
+    priority: target.priority ?? "medium",
+    updated_at: nowIso,
+  }));
+
+  const { error: coreError } = await client.from<MemoryCoreRow>("memory_cores")
+    .upsert(coreRows, {
+      onConflict: "id",
+    });
+  if (coreError) {
+    throw new Error(`Failed to upsert memory cores: ${coreError.message}`);
+  }
+
+  const snapshotRows: MemorySyncSnapshotRow[] = plan.map((entry) => {
+    const target = targetMap.get(entry.core);
+    const source = target ? sourceMap.get(target.syncSource) : undefined;
+    return {
+      core_id: entry.core,
+      captured_at: nowIso,
+      observed_latency_ms: source?.observedLatencyMs ?? null,
+      observed_jitter_ms: source?.observedJitterMs ?? null,
+      observed_offset_ms: source?.observedOffsetMs ?? null,
+      backlog_gb: entry.backlogGb,
+      available_gb: entry.availableGb,
+      recommended_batch_gb: entry.recommendedBatchGb,
+      batches_required: entry.batchesRequired,
+      recommended_parallelism: entry.recommendedParallelism,
+      estimated_duration_minutes: entry.estimatedDurationMinutes,
+      sync_health: entry.syncHealth,
+      score: entry.score,
+      issues: entry.issues,
+      target_latency_ms: config.sync.targetLatencyMs,
+      max_jitter_seconds: config.sync.maxJitterSeconds,
+      offset_tolerance_ms: config.sync.offsetToleranceMs,
+      horizon_minutes: config.sync.horizonMinutes,
+    };
+  });
+
+  if (snapshotRows.length > 0) {
+    const { error: snapshotError } = await client
+      .from<MemorySyncSnapshotRow>("memory_sync_snapshots")
+      .insert(snapshotRows);
+    if (snapshotError) {
+      throw new Error(
+        `Failed to insert memory sync snapshots: ${snapshotError.message}`,
+      );
+    }
+  }
+
+  return {
+    coresProcessed: coreRows.length,
+    snapshotsInserted: snapshotRows.length,
+  };
+}
+
 async function main(): Promise<void> {
   const flags = parse(Deno.args, {
-    string: ["config"],
-    boolean: ["json", "help"],
-    alias: { c: "config", j: "json", h: "help" },
+    string: ["config", "supabase-url", "supabase-key"],
+    boolean: ["json", "help", "sync-supabase"],
+    alias: {
+      c: "config",
+      j: "json",
+      h: "help",
+      s: "sync-supabase",
+      u: "supabase-url",
+      k: "supabase-key",
+    },
   });
 
   if (flags.help) {
@@ -403,6 +552,15 @@ async function main(): Promise<void> {
       "  --config, -c   Path to memory sync configuration file (default config/memory-sync.config.json)",
     );
     console.log("  --json, -j     Emit JSON instead of human readable output");
+    console.log(
+      "  --sync-supabase, -s  Upsert memory cores and record a snapshot in Supabase",
+    );
+    console.log(
+      "  --supabase-url, -u    Supabase project URL (defaults to SUPABASE_URL)",
+    );
+    console.log(
+      "  --supabase-key, -k    Supabase service role key (defaults to SUPABASE_SERVICE_ROLE_KEY)",
+    );
     console.log("  --help, -h     Show this message");
     return;
   }
@@ -412,16 +570,56 @@ async function main(): Promise<void> {
       ? flags.config
       : "config/memory-sync.config.json";
   const emitJson = Boolean(flags.json);
+  const syncSupabase = Boolean(flags["sync-supabase"]);
 
   const config = await loadConfiguration(configPath);
   const plan = computePlan(config);
 
+  let supabaseResult: SupabaseSyncResult | undefined;
+  if (syncSupabase) {
+    const supabaseUrl = readStringFlag(
+      flags as Record<string, unknown>,
+      "supabase-url",
+      "supabaseUrl",
+    ) ??
+      Deno.env.get("SUPABASE_URL") ??
+      Deno.env.get("SUPABASE_PROJECT_URL");
+    if (!supabaseUrl) {
+      throw new Error(
+        "Supabase URL is required via --supabase-url or SUPABASE_URL",
+      );
+    }
+    const supabaseKey = readStringFlag(
+      flags as Record<string, unknown>,
+      "supabase-key",
+      "supabaseKey",
+    ) ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseKey) {
+      throw new Error(
+        "Supabase service role key is required via --supabase-key or SUPABASE_SERVICE_ROLE_KEY",
+      );
+    }
+
+    supabaseResult = await syncPlanToSupabase(plan, config, {
+      url: supabaseUrl,
+      serviceRoleKey: supabaseKey,
+    });
+  }
+
   if (emitJson) {
+    const supabaseMeta = supabaseResult
+      ? {
+        synced: true,
+        coresProcessed: supabaseResult.coresProcessed,
+        snapshotsInserted: supabaseResult.snapshotsInserted,
+      }
+      : { synced: false };
     console.log(JSON.stringify(
       {
         generatedAt: new Date().toISOString(),
         configPath,
         plan,
+        supabase: supabaseMeta,
       },
       null,
       2,
@@ -430,6 +628,11 @@ async function main(): Promise<void> {
   }
 
   printPlan(plan, config);
+  if (supabaseResult) {
+    console.log(
+      `\n✓ Synced ${supabaseResult.coresProcessed} core(s) and ${supabaseResult.snapshotsInserted} snapshot(s) to Supabase`,
+    );
+  }
 }
 
 if (import.meta.main) {
