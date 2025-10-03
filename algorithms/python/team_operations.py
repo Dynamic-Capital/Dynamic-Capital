@@ -489,6 +489,66 @@ DEVOPS_ENGINEER_PLAYBOOK = TeamRolePlaybook(
 )
 
 
+QUALITY_ASSURANCE_PLAYBOOK = TeamRolePlaybook(
+    name="Quality Assurance",
+    objectives=(
+        "Safeguard product quality with risk-based testing aligned to release goals.",
+        "Maintain fast feedback loops by automating high-value regression suites.",
+        "Provide actionable insights on defects, coverage, and readiness to ship.",
+    ),
+    workflow=(
+        "Review iteration goals, critical user journeys, and recent incidents to refine the test strategy.",
+        "Update automation suites and exploratory charters focusing on high-risk areas and new capabilities.",
+        "Execute smoke and regression suites on every build; file defects with reproducible steps and severity.",
+        "Pair with developers to reproduce and isolate issues, validating fixes within the same cycle.",
+        "Track coverage, defect trends, and flake rates; escalate blocking quality risks immediately.",
+        "Publish release readiness summaries including open defects, test evidence, and sign-off status.",
+    ),
+    outputs=(
+        "Risk-based test plan",
+        "Automated and exploratory test results",
+        "Defect log with remediation status",
+        "Release readiness summary",
+    ),
+    kpis=(
+        "Defect escape rate",
+        "Automation pass rate",
+        "Mean time to validate fixes",
+        "Critical defect closure time",
+    ),
+)
+
+
+GENERAL_DEVELOPMENT_PLAYBOOK = TeamRolePlaybook(
+    name="General Development",
+    objectives=(
+        "Deliver cross-functional iteration work that accelerates product outcomes.",
+        "Support teammates by filling gaps across stack, process, and documentation needs.",
+        "Continuously reduce tech debt while maintaining shipping momentum.",
+    ),
+    workflow=(
+        "Clarify objectives and unblockers across squads; pull the highest impact tasks lacking an owner.",
+        "Pair with specialists to progress stories outside their primary domains and capture key learnings.",
+        "Implement changes with tests, docs, and telemetry ensuring standards remain consistent.",
+        "Proactively tackle tech debt tickets when cycle slack appears, documenting rationale and outcomes.",
+        "Facilitate async status updates highlighting progress, blockers, and support provided to peers.",
+        "Log retrospectives on cross-functional work and propose improvements to tooling or process.",
+    ),
+    outputs=(
+        "Multi-domain implementation notes",
+        "Pull request summaries with linked evidence",
+        "Updated documentation or runbooks",
+        "Tech debt remediation log",
+    ),
+    kpis=(
+        "Cross-team blocker resolution time",
+        "Cycle time for generalist tickets",
+        "Documentation completeness",
+        "Tech debt reduction velocity",
+    ),
+)
+
+
 DEVELOPMENT_PLAYBOOKS = {
     playbook.name: playbook
     for playbook in (
@@ -708,6 +768,8 @@ OPTIONAL_PLAYBOOKS = {
         GROWTH_HACKER_PLAYBOOK,
         SECURITY_SPECIALIST_PLAYBOOK,
         LOCAL_COMMUNITY_LEAD_PLAYBOOK,
+        QUALITY_ASSURANCE_PLAYBOOK,
+        GENERAL_DEVELOPMENT_PLAYBOOK,
     )
 }
 

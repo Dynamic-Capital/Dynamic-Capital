@@ -34,6 +34,10 @@ def test_list_team_agents_respects_optional_flag() -> None:
 
     assert "Growth Hacker" in all_agents
     assert "Growth Hacker" not in core_agents
+    assert "Quality Assurance" in all_agents
+    assert "Quality Assurance" not in core_agents
+    assert "General Development" in all_agents
+    assert "General Development" not in core_agents
 
     strategist_result = all_agents["Marketing Strategist"].run({"focus": ["Launch"]})
     assert strategist_result.focus == ("Launch",)
