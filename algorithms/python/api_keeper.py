@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Sequence, Tuple
 
@@ -133,7 +133,103 @@ class DynamicAPIKeeperAlgorithm:
     def register_endpoint(self, endpoint: ApiEndpoint) -> None:
         """Register a persistent API endpoint managed by the keeper."""
 
-        self._endpoints.append(endpoint)
+        for index, existing in enumerate(self._endpoints):
+            if existing.name == endpoint.name:
+                self._endpoints[index] = endpoint
+                break
+        else:
+            self._endpoints.append(endpoint)
+
+    def enable_dynamic_api_trading(
+        self,
+        *,
+        schema: Optional[Mapping[str, Any]] = None,
+        monitor: Optional[Mapping[str, Any]] = None,
+        endpoint_overrides: Optional[Mapping[str, Any]] = None,
+    ) -> ApiEndpoint:
+        """Register the Dynamic Capital trading API and supporting metadata."""
+
+        payload_defaults: Dict[str, Any] = {
+            "name": "trading-api",
+            "method": "POST",
+            "path": "/v1/trades",
+            "owner": "Execution",
+            "version": "2024-05-01",
+            "status": "operational",
+            "tier": "critical",
+            "priority": 10,
+            "documentation_url": "https://docs.dynamic.capital/apis/trading",
+            "description": "Primary trade execution endpoint",
+            "consumers": ("mobile", "partners"),
+            "tags": ("core", "ton"),
+        }
+        existing_endpoint = self._get_endpoint("trading-api")
+        payload: Dict[str, Any] = dict(payload_defaults)
+        if existing_endpoint is not None:
+            payload.update(asdict(existing_endpoint))
+
+        if endpoint_overrides:
+            for key, value in endpoint_overrides.items():
+                if key == "name" and value and value != payload_defaults["name"]:
+                    raise ValueError("Trading endpoint name cannot be overridden")
+                if value is None:
+                    payload.pop(key, None)
+                else:
+                    payload[key] = value
+
+        endpoint = ApiEndpoint(**payload)
+        self.register_endpoint(endpoint)
+
+        default_schema: Mapping[str, Any] = {
+            "version": endpoint.version or payload_defaults["version"],
+            "checksum": "trading-api-20240501",
+        }
+        existing_schema = self._schemas.get(endpoint.name)
+        resolved_schema = self._resolve_component(default_schema, schema, existing_schema)
+        self.register_schema(endpoint.name, resolved_schema)
+
+        default_monitor: Mapping[str, Any] = {
+            "error_rate": 0.004,
+            "error_budget": 0.01,
+            "p95_latency_ms": 120,
+            "latency_slo_ms": 200,
+            "uptime": 99.95,
+            "uptime_slo": 99.9,
+        }
+        existing_monitor = self._monitors.get(endpoint.name)
+        resolved_monitor = self._resolve_component(default_monitor, monitor, existing_monitor)
+        self.register_monitor(endpoint.name, resolved_monitor)
+
+        return endpoint
+
+    def _get_endpoint(self, name: str) -> Optional[ApiEndpoint]:
+        for endpoint in self._endpoints:
+            if endpoint.name == name:
+                return endpoint
+        return None
+
+    @staticmethod
+    def _resolve_component(
+        defaults: Mapping[str, Any],
+        override: Optional[Mapping[str, Any]],
+        existing: Optional[Mapping[str, Any]],
+    ) -> Mapping[str, Any]:
+        base: Dict[str, Any] = {}
+        if existing is not None:
+            base.update(dict(existing))
+        else:
+            base.update(dict(defaults))
+
+        if override is None:
+            return base
+
+        resolved = dict(base)
+        for key, value in override.items():
+            if value is None:
+                resolved.pop(key, None)
+            else:
+                resolved[key] = value
+        return resolved
 
     def register_schema(self, endpoint: str, schema: Mapping[str, Any]) -> None:
         """Register the schema metadata for an endpoint."""
