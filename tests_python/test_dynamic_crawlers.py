@@ -212,3 +212,19 @@ def test_build_plan_requires_enabled_crawler(tmp_path: Path) -> None:
     registry.enable("Crawl4AI")
     plan = registry.build_plan("Crawl4AI", job)
     assert plan.commands
+
+
+def test_enable_live_data_crawlers_is_idempotent() -> None:
+    registry = DynamicCrawlerRegistry()
+    register_default_crawlers(registry)
+
+    # register_default_crawlers already enables all live-data capable crawlers
+    assert registry.enable_live_data_crawlers() == ()
+
+    registry.disable("Crawl4AI")
+    registry.disable("Firecrawl")
+
+    reenabled = registry.enable_live_data_crawlers()
+    assert reenabled == ("Crawl4AI", "Firecrawl")
+    assert registry.is_enabled("Crawl4AI")
+    assert registry.is_enabled("Firecrawl")

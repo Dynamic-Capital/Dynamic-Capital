@@ -238,15 +238,22 @@ class DynamicCrawlerRegistry:
         return self.get(name).enabled
 
     def enable_live_data_crawlers(self) -> tuple[str, ...]:
-        """Enable all crawlers capable of handling dynamic (live) content."""
+        """Enable all crawlers capable of handling dynamic (live) content.
 
-        enabled: list[str] = []
-        for key, spec in self._crawlers.items():
-            if spec.capabilities.dynamic_content:
-                if not spec.enabled:
-                    spec.enable()
-                enabled.append(spec.metadata.name)
-        return tuple(sorted(enabled))
+        Returns a sorted tuple containing the human-readable names of crawlers
+        whose state changed from disabled to enabled during this call. A
+        subsequent invocation therefore only reports crawlers that were
+        re-enabled in the interim, making the helper safe for back-to-back use
+        without accumulating duplicates in the output.
+        """
+
+        newly_enabled: list[str] = []
+        for spec in self._crawlers.values():
+            if not spec.capabilities.dynamic_content or spec.enabled:
+                continue
+            spec.enable()
+            newly_enabled.append(spec.metadata.name)
+        return tuple(sorted(newly_enabled))
 
     def build_plan(
         self, name: str, job: CrawlJob, config: CrawlerConfig | None = None
