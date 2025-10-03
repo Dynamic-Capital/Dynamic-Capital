@@ -122,6 +122,13 @@ def _parse_args() -> argparse.Namespace:
             "offline using the local files instead of contacting Google Drive."
         ),
     )
+    parser.add_argument(
+        "--include-page-data",
+        action="store_true",
+        help=(
+            "Attach per-page text content to the extracted document metadata."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -367,6 +374,7 @@ def _run() -> None:
         batch_size=args.batch_size,
         install_missing_pypdf2=args.install_missing_pypdf2,
         client_factory=client_factory,
+        include_page_data=args.include_page_data,
     )
 
     engine = DynamicCorpusExtractionEngine()

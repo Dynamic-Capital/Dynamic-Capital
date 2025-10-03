@@ -259,6 +259,50 @@ def test_loader_handles_resource_key_share_link():
     assert documents[0]["metadata"]["resource_key"] == "secret-key"
 
 
+def test_loader_attaches_page_metadata(monkeypatch):
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "page-doc",
+                "name": "Paged.pdf",
+                "mimeType": "application/pdf",
+            }
+        ],
+        file_payloads={"page-doc": b"pdf-bytes"},
+    )
+
+    page_calls: list[bytes] = []
+
+    def fake_extract_pdf_pages(payload: bytes, *, auto_install: bool = False) -> list[str]:
+        page_calls.append(payload)
+        return ["Page 1 text", "Page 2 text"]
+
+    monkeypatch.setattr(
+        "dynamic_corpus_extraction.google_drive._extract_pdf_pages",
+        fake_extract_pdf_pages,
+    )
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        include_page_data=True,
+    )
+
+    context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
+    documents = list(loader(context))
+
+    assert len(documents) == 1
+    document = documents[0]
+    assert document["content"] == "Page 1 text\nPage 2 text"
+    metadata = document["metadata"]
+    assert metadata["page_count"] == 2
+    assert metadata["pages"] == [
+        {"page_number": 1, "content": "Page 1 text"},
+        {"page_number": 2, "content": "Page 2 text"},
+    ]
+    assert len(page_calls) == 1
+
+
 def test_loader_uses_ocr_fallback(monkeypatch):
     client = FakeDriveClient(
         folder_entries=[

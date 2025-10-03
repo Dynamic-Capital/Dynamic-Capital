@@ -79,20 +79,30 @@ def _load_pypdf(*, auto_install: bool = False) -> "PyPDF2":  # type: ignore[name
     return PyPDF2
 
 
+def _extract_pdf_pages(
+    payload: bytes,
+    *,
+    auto_install: bool = False,
+) -> list[str]:
+    """Return the extracted text for each page in ``payload``."""
+
+    PyPDF2 = _load_pypdf(auto_install=auto_install)
+    reader = PyPDF2.PdfReader(io.BytesIO(payload))
+    pages: list[str] = []
+    for page in reader.pages:
+        extracted = page.extract_text() or ""
+        pages.append(extracted.strip())
+    return pages
+
+
 def _default_pdf_text_extractor(
     payload: bytes,
     *,
     file_name: str,
     auto_install: bool = False,
 ) -> str:
-    PyPDF2 = _load_pypdf(auto_install=auto_install)
-    reader = PyPDF2.PdfReader(io.BytesIO(payload))
-    text_parts: list[str] = []
-    for page in reader.pages:
-        extracted = page.extract_text() or ""
-        if extracted:
-            text_parts.append(extracted)
-    text = "\n".join(part.strip() for part in text_parts if part.strip())
+    page_segments = _extract_pdf_pages(payload, auto_install=auto_install)
+    text = "\n".join(part for part in page_segments if part)
     if not text:
         raise RuntimeError(f"No extractable text found in PDF '{file_name}'")
     return text
@@ -389,6 +399,7 @@ def build_google_drive_pdf_loader(
     ocr_languages: Sequence[str] | str | None = ("eng",),
     ocr_dpi: int = 300,
     install_missing_pypdf2: bool = False,
+    include_page_data: bool = False,
 ) -> ExtractionLoader:
     """Create a loader that streams Google Drive PDFs as corpus documents.
 
@@ -433,13 +444,24 @@ def build_google_drive_pdf_loader(
     else:
         factory = client_factory
 
-    extractor = pdf_text_extractor or (
-        lambda payload, metadata: _default_pdf_text_extractor(
-            payload,
-            file_name=str(metadata.get("name", "unknown")),
-            auto_install=install_missing_pypdf2,
-        )
-    )
+    page_cache: dict[str, list[str]] = {}
+
+    if pdf_text_extractor is None:
+
+        def extractor(payload: bytes, metadata: Mapping[str, object]) -> str:
+            pages = _extract_pdf_pages(payload, auto_install=install_missing_pypdf2)
+            file_key = str(metadata.get("id") or "")
+            if include_page_data and file_key:
+                page_cache[file_key] = pages
+            text = "\n".join(part for part in pages if part)
+            if not text:
+                raise RuntimeError(
+                    f"No extractable text found in PDF '{metadata.get('name', 'unknown')}'"
+                )
+            return text
+
+    else:
+        extractor = pdf_text_extractor
     if enable_ocr:
         languages = _normalise_ocr_languages(ocr_languages)
         dpi = max(int(ocr_dpi or 0), 72)
@@ -521,6 +543,14 @@ def build_google_drive_pdf_loader(
             if max_file_size is not None and len(payload) > max_file_size:
                 return
             text = extractor(payload, metadata)
+            page_segments: list[str] | None = None
+            if include_page_data:
+                cached = None
+                if file_id:
+                    cached = page_cache.pop(file_id, None)
+                if cached is None:
+                    cached = _extract_pdf_pages(payload, auto_install=install_missing_pypdf2)
+                page_segments = cached
             document_metadata: dict[str, object] = {
                 "file_id": file_id,
                 "file_name": metadata.get("name"),
@@ -538,6 +568,18 @@ def build_google_drive_pdf_loader(
                 document_metadata["size"] = size_value
             if "localPath" in metadata:
                 document_metadata["local_path"] = metadata["localPath"]
+            if include_page_data and page_segments is not None:
+                document_metadata["page_count"] = len(page_segments)
+                page_entries = [
+                    {
+                        "page_number": index + 1,
+                        "content": segment,
+                    }
+                    for index, segment in enumerate(page_segments)
+                    if segment
+                ]
+                if page_entries:
+                    document_metadata["pages"] = page_entries
 
             yield {
                 "identifier": f"google-drive-{file_id}",
