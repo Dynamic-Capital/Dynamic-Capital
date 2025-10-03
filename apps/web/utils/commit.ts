@@ -8,6 +8,8 @@ type DenoEnvNamespace = {
   };
 };
 
+import commitEnvKeys from "@/config/commit-env-keys.json" with { type: "json" };
+
 type GlobalWithRuntimes = typeof globalThis & {
   process?: NodeProcessLike;
   Deno?: DenoEnvNamespace;
@@ -19,7 +21,7 @@ const nodeProcess = runtimeGlobal.process;
 
 const denoEnv = runtimeGlobal.Deno?.env;
 
-export const COMMIT_ENV_KEYS = [
+const DEFAULT_COMMIT_ENV_KEYS = [
   "NEXT_PUBLIC_COMMIT_SHA",
   "COMMIT_SHA",
   "GIT_COMMIT_SHA",
@@ -32,6 +34,11 @@ export const COMMIT_ENV_KEYS = [
   "RENDER_GIT_COMMIT",
   "HEROKU_SLUG_COMMIT",
 ] as const;
+
+export const COMMIT_ENV_KEYS: readonly string[] =
+  Array.isArray(commitEnvKeys) && commitEnvKeys.length > 0
+    ? commitEnvKeys
+    : DEFAULT_COMMIT_ENV_KEYS;
 
 function readEnv(key: string): string | undefined {
   const fromDeno = denoEnv?.get?.(key);

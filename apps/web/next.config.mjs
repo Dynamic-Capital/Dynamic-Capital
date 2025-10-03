@@ -3,6 +3,7 @@ import path from "path";
 import nextPWA from "next-pwa";
 import bundleAnalyzer from "@next/bundle-analyzer";
 import createMDX from "@next/mdx";
+import commitEnvKeys from "./config/commit-env-keys.json" with { type: "json" };
 import localeConfig from "./config/locales.json" with { type: "json" };
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +31,7 @@ const DYNAMIC_CAPITAL_TON_ORIGIN = `https://${DYNAMIC_CAPITAL_TON_HOST}`;
 const DYNAMIC_CAPITAL_TON_WWW_ORIGIN =
   `https://www.${DYNAMIC_CAPITAL_TON_HOST}`;
 
-const COMMIT_ENV_KEYS = [
+const DEFAULT_COMMIT_ENV_KEYS = [
   "NEXT_PUBLIC_COMMIT_SHA",
   "COMMIT_SHA",
   "GIT_COMMIT_SHA",
@@ -43,6 +44,10 @@ const COMMIT_ENV_KEYS = [
   "RENDER_GIT_COMMIT",
   "HEROKU_SLUG_COMMIT",
 ];
+
+const COMMIT_ENV_KEYS = Array.isArray(commitEnvKeys) && commitEnvKeys.length > 0
+  ? commitEnvKeys
+  : DEFAULT_COMMIT_ENV_KEYS;
 
 function coerceCommit(raw) {
   if (!raw) return undefined;
