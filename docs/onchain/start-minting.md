@@ -66,16 +66,17 @@ instead of `--amount`.
 
 1. Open the treasury multisig in Tonkeeper or your preferred wallet.
 2. Create a new transaction targeting the jetton master address
-   `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` and attach at least the
-   forwarded TON amount from the helper output (`0.05 TON` by default) plus
-   enough headroom for fees (allocate `~0.01–0.02 TON`).
+   `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`.
+   Set the TON value to cover the forwarded amount reported by the helper
+   (`0.05 TON` by default) **plus** an additional `~0.01–0.02 TON` for gas. In
+   Tonkeeper this means entering `0.06–0.07 TON` in the amount field.
 3. Paste the base64 payload generated in the previous step into the comment/body
    field.
 4. Collect the required multisig approvals and broadcast the transaction.
 
 The mint executes once the transaction is confirmed on-chain. The jetton master
-forwards the minted balance plus the configured TON amount to the destination
-jetton wallet.
+forwards both the minted balance and the forwarded TON to the destination
+jetton wallet; only the extra headroom is consumed for fees.
 
 ## Post-mint verification
 
