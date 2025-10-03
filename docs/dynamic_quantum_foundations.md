@@ -129,9 +129,9 @@ resonance engine and parameterised quantum circuits:
 3. Define a cost function representing your target Hamiltonian expectation or
    fidelity score, then instantiate `ParameterShiftTrainer` with the initial
    parameters.
-4. During each optimisation step, pass the current
-   `QuantumEnvironment` (e.g. observability noise, thermal load) into
-   `EngineTrainingAdapter.run_step` to retain governance-grade telemetry.
+4. During each optimisation step, pass the current `QuantumEnvironment` (e.g.
+   observability noise, thermal load) into `EngineTrainingAdapter.run_step` to
+   retain governance-grade telemetry.
 5. Feed the resulting parameter updates into your quantum simulator or hardware
    backend and iterate until convergence.
 

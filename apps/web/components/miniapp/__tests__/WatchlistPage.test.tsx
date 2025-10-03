@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 
 import { useMarketWatchlistData } from "@/components/dynamic-portfolio/home/MarketWatchlist";
 

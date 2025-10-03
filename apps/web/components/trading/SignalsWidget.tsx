@@ -13,12 +13,15 @@ export function SignalsWidget() {
           </div>
           <div>
             <h3 className="font-semibold">Dynamic Signals</h3>
-            <Badge variant="outline" className="mt-1 bg-success/10 text-success border-success/20">
+            <Badge
+              variant="outline"
+              className="mt-1 bg-success/10 text-success border-success/20"
+            >
               {dynamicSignals.status}
             </Badge>
           </div>
         </div>
-        
+
         <div className="flex gap-1">
           {dynamicSignals.indicators.map((indicator, i) => (
             <div

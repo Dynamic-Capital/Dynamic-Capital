@@ -9,7 +9,7 @@ export function QuadrantChart() {
   return (
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4">Market Positioning</h3>
-      
+
       <div className="relative aspect-square w-full max-w-2xl mx-auto">
         {/* Background quadrants */}
         <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
@@ -20,21 +20,21 @@ export function QuadrantChart() {
               <p className="text-xs text-error/80">BUT WEAKENING</p>
             </div>
           </div>
-          
+
           {/* Top-right: Bullish */}
           <div className="bg-success/30 border border-success/40 flex items-center justify-center">
             <div className="text-center p-4">
               <p className="text-sm font-semibold text-success">BULLISH</p>
             </div>
           </div>
-          
+
           {/* Bottom-left: Bearish */}
           <div className="bg-error/30 border border-error/40 flex items-center justify-center">
             <div className="text-center p-4">
               <p className="text-sm font-semibold text-error">BEARISH</p>
             </div>
           </div>
-          
+
           {/* Bottom-right: Bullish but weakening */}
           <div className="bg-success/20 border border-success/30 flex items-center justify-center">
             <div className="text-center p-4">
@@ -62,7 +62,8 @@ export function QuadrantChart() {
                 <span className="text-xs font-bold">{currency.currency}</span>
               </div>
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap">
-                {currency.x > 0 ? "+" : ""}{currency.x.toFixed(1)}%
+                {currency.x > 0 ? "+" : ""}
+                {currency.x.toFixed(1)}%
               </div>
             </div>
           );
@@ -73,7 +74,9 @@ export function QuadrantChart() {
       <div className="flex justify-between items-center mt-6 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <span>← PRICE vs.</span>
-          <div className="bg-primary text-primary-foreground px-2 py-1 rounded">20</div>
+          <div className="bg-primary text-primary-foreground px-2 py-1 rounded">
+            20
+          </div>
           <span>SMA (%) →</span>
         </div>
       </div>

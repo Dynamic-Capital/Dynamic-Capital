@@ -1,9 +1,13 @@
 "use client";
 
-import { TonConnectButton, useTonAddress, useTonWallet } from '@tonconnect/ui-react';
-import { useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import {
+  TonConnectButton,
+  useTonAddress,
+  useTonWallet,
+} from "@tonconnect/ui-react";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export function TonWalletButton() {
   const wallet = useTonWallet();
@@ -18,27 +22,27 @@ export function TonWalletButton() {
   const saveTonAddress = async (tonAddress: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
-        console.warn('[TonWallet] No authenticated user');
+        console.warn("[TonWallet] No authenticated user");
         return;
       }
 
       const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          ton_wallet_address: tonAddress
+        .from("profiles")
+        .update({
+          ton_wallet_address: tonAddress,
         })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (error) {
-        console.error('[TonWallet] Failed to save address:', error);
-        toast.error('Failed to save TON wallet address');
+        console.error("[TonWallet] Failed to save address:", error);
+        toast.error("Failed to save TON wallet address");
       } else {
-        toast.success('TON wallet connected successfully');
+        toast.success("TON wallet connected successfully");
       }
     } catch (error) {
-      console.error('[TonWallet] Error saving address:', error);
+      console.error("[TonWallet] Error saving address:", error);
     }
   };
 

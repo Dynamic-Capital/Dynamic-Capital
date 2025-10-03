@@ -201,8 +201,8 @@ implementation and verification tables after recent documentation updates.
 
 **Highlights**
 
-- Streams the status summary for both checklists with zero completed items
-  so teams know the roadmap remains pending.
+- Streams the status summary for both checklists with zero completed items so
+  teams know the roadmap remains pending.
 - Confirms the helper exits cleanly without requiring optional tasks or
   additional flags.
 
@@ -236,8 +236,8 @@ inventory referenced during the TradingView ↔ MT5 architecture review.
 
 **Highlights**
 
-- Prints every section (TradingView signals, Vercel webhook, Supabase, MT5
-  EA, hosting, CI/CD, validation) with open task counts.
+- Prints every section (TradingView signals, Vercel webhook, Supabase, MT5 EA,
+  hosting, CI/CD, validation) with open task counts.
 - Captures the normalized alert schema and infrastructure TODOs, helping the
   integration team prioritize implementation work.
 

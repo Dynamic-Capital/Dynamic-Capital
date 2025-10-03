@@ -1,11 +1,11 @@
 # Dynamic CLI/CD Web Workbench
 
 The Dynamic CLI/CD workbench exposes the Python `dynamic.intelligence.agi.build`
-CLI (powered by the `dynamic_framework` engine)
-through the Next.js application so product, platform, and operations teams can
-experiment with maturity scenarios without leaving the browser. This document
-summarises how the GUI maps to the existing CLI workflow and the environment
-variables required for local development.
+CLI (powered by the `dynamic_framework` engine) through the Next.js application
+so product, platform, and operations teams can experiment with maturity
+scenarios without leaving the browser. This document summarises how the GUI maps
+to the existing CLI workflow and the environment variables required for local
+development.
 
 ## Features
 
@@ -17,9 +17,8 @@ variables required for local development.
   to produce compact JSON.
 - **Fine-tune tags**: Adds up to 16 default tags, forwarding them via the
   repeatable `--fine-tune-tag` CLI flag.
-- **Dataset toggle**: Streams the dataset inline by invoking
-  `--dataset -`, allowing the API to return both report text/JSON and
-  the training payload.
+- **Dataset toggle**: Streams the dataset inline by invoking `--dataset -`,
+  allowing the API to return both report text/JSON and the training payload.
 
 ## Admin access
 
@@ -48,29 +47,30 @@ non-zero codes → HTTP 500) with stderr returned as the `error` field.
 
 ## Environment variables
 
-| Variable               | Default   | Description |
-| ---------------------- | --------- | ----------- |
-| `DYNAMIC_AGI_PYTHON`   | `python3` | Preferred path to the Python interpreter that exposes the `dynamic.intelligence.agi.build` module. Set this when a virtual environment or custom interpreter should run the Dynamic CLI. |
-| `DYNAMIC_CLI_PYTHON`   | _(legacy)_ | Backwards-compatible override for environments still wired to `dynamic_framework`. Only consulted when `DYNAMIC_AGI_PYTHON` is unset. |
+| Variable             | Default    | Description                                                                                                                                                                              |
+| -------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DYNAMIC_AGI_PYTHON` | `python3`  | Preferred path to the Python interpreter that exposes the `dynamic.intelligence.agi.build` module. Set this when a virtual environment or custom interpreter should run the Dynamic CLI. |
+| `DYNAMIC_CLI_PYTHON` | _(legacy)_ | Backwards-compatible override for environments still wired to `dynamic_framework`. Only consulted when `DYNAMIC_AGI_PYTHON` is unset.                                                    |
 
 Ensure the Python environment includes the repository (`pip install -e .`) so
-that `python -m dynamic.intelligence.agi.build` succeeds. The API route
-inherits the current process environment, so activating a virtual environment
-before starting the Next.js dev server is sufficient.
+that `python -m dynamic.intelligence.agi.build` succeeds. The API route inherits
+the current process environment, so activating a virtual environment before
+starting the Next.js dev server is sufficient.
 
 ## Local development checklist
 
 1. Activate the Python environment (e.g. `source .venv/bin/activate`).
-2. Optionally export `DYNAMIC_AGI_PYTHON` (or legacy `DYNAMIC_CLI_PYTHON`) if the interpreter is not `python3`.
+2. Optionally export `DYNAMIC_AGI_PYTHON` (or legacy `DYNAMIC_CLI_PYTHON`) if
+   the interpreter is not `python3`.
 3. Run `npm run dev` and navigate to `http://localhost:3000/tools/dynamic-cli`.
 4. Submit the default scenario to verify the CLI report and dataset preview.
 
 ## Troubleshooting
 
 - **"command not found" errors**: Confirm the configured `DYNAMIC_AGI_PYTHON`
-  path exists and that the interpreter has the `dynamic.intelligence.agi.build` module
-  installed (`pip show dynamic-framework`). Restart the Next.js server after
-  adjusting the environment so the API route inherits the new PATH.
+  path exists and that the interpreter has the `dynamic.intelligence.agi.build`
+  module installed (`pip show dynamic-framework`). Restart the Next.js server
+  after adjusting the environment so the API route inherits the new PATH.
 - **Permission denied when spawning Python**: On Unix systems, ensure the
   interpreter binary is executable (`chmod +x`) and that the repository is not
   mounted with `noexec`. Running the dev server from within the activated

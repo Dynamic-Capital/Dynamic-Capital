@@ -1,8 +1,10 @@
 import { Card } from "@/components/ui/card";
-import { currencyStrength, currencies } from "@/lib/mock-data";
+import { currencies, currencyStrength } from "@/lib/mock-data";
 
 export function StrengthMeter() {
-  const maxStrength = Math.max(...currencyStrength.map((c) => Math.abs(c.strength)));
+  const maxStrength = Math.max(
+    ...currencyStrength.map((c) => Math.abs(c.strength)),
+  );
 
   return (
     <Card className="p-6">
@@ -30,7 +32,9 @@ export function StrengthMeter() {
                   }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-medium">{currency.strength}</span>
+                  <span className="text-xs font-medium">
+                    {currency.strength}
+                  </span>
                 </div>
               </div>
             </div>

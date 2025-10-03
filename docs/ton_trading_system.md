@@ -1,22 +1,24 @@
 # TON AI Trading System Architecture
 
 This document describes how to assemble an end-to-end quantitative trading stack
-for the TON (The Open Network) ecosystem.  It builds upon the reusable
-components found in `dynamic_ton` and highlights how data, AI modelling, and
-on-chain execution interact.
+for the TON (The Open Network) ecosystem. It builds upon the reusable components
+found in `dynamic_ton` and highlights how data, AI modelling, and on-chain
+execution interact.
 
 ## 1. TON-Native Tooling
 
 Leverage the TON-specific utilities maintained inside `dynamic_ton` alongside
 open-source tooling from the wider ecosystem:
 
-- **Core access**: [`ton-http-api`](https://github.com/ton-community/ton-http-api)
-  for REST access to blocks and accounts, [`ton-contract-executor`](https://github.com/ton-community/ton-contract-executor)
+- **Core access**:
+  [`ton-http-api`](https://github.com/ton-community/ton-http-api) for REST
+  access to blocks and accounts,
+  [`ton-contract-executor`](https://github.com/ton-community/ton-contract-executor)
   for offline smart contract calls, and [`ton-access`](https://tonaccess.io)
   gateways for resilient RPC routing across mainnet and testnet.
-- **State & storage**: [`ton-storage`](https://github.com/ton-community/ton-storage)
-  to persist large artifacts (model weights, feature snapshots) directly on TON
-  storage backends.
+- **State & storage**:
+  [`ton-storage`](https://github.com/ton-community/ton-storage) to persist large
+  artifacts (model weights, feature snapshots) directly on TON storage backends.
 
 These services complement the existing `TonDataCollector` connectors and ensure
 that upstream APIs remain redundant and portable.
@@ -47,14 +49,14 @@ that upstream APIs remain redundant and portable.
 
 The `TonDataCollector` class abstracts these sources by converting the raw JSON
 payloads into strongly typed dataclasses (`TonPricePoint`,
-`TonLiquiditySnapshot`, `TonWalletDistribution`).  It is asynchronous by design
+`TonLiquiditySnapshot`, `TonWalletDistribution`). It is asynchronous by design
 so it can be embedded in Jupyter notebooks, FastAPI services, or async job
 runners.
 
 ## 3. Feature Engineering
 
 `TonFeatureEngineer` converts raw network snapshots into a modelling-ready
-feature dictionary.  The current implementation derives:
+feature dictionary. The current implementation derives:
 
 - Price-based metrics (close, midpoint, true range, rolling returns).
 - Liquidity information (TON/quote depth, depth ratios, venue utilisation).
@@ -80,9 +82,10 @@ layer.
 ## 4. AI Modelling
 
 The `TonModelCoordinator` façade allows any incremental learning model to be
-plugged in via the `SupportsModel` protocol.  Example integrations:
+plugged in via the `SupportsModel` protocol. Example integrations:
 
-- **Supervised Forecasting**: online regressors such as `sklearn.linear_model.SGDRegressor`.
+- **Supervised Forecasting**: online regressors such as
+  `sklearn.linear_model.SGDRegressor`.
 - **Reinforcement Learning**: custom agents that expose `partial_fit` for policy
   updates.
 - **Anomaly Detection**: models like `River`'s `OneClassSVM` for detecting
@@ -114,9 +117,9 @@ plugged in via the `SupportsModel` protocol.  Example integrations:
 - **Risk Management**: Integrate treasury posture outputs from
   `dynamic_ton.engine` to cap exposure, rebalance liquidity, and manage hedges.
   Enhance guardrails with [`PyRisk`](https://github.com/anfederico/pyrisk) for
-  risk factor decomposition, [`QuantStats`](https://github.com/ranaroussi/QuantStats)
-  for portfolio analytics, and `QFL` libraries for quantitative finance
-  backtesting scenarios.
+  risk factor decomposition,
+  [`QuantStats`](https://github.com/ranaroussi/QuantStats) for portfolio
+  analytics, and `QFL` libraries for quantitative finance backtesting scenarios.
 - **Security Tooling**: Incorporate static and dynamic analyzers such as
   [`Crytic-compile`](https://github.com/crytic/crytic-compile) and
   [`Mythril`](https://mythril-classic.readthedocs.io) for contract security,
@@ -129,15 +132,17 @@ plugged in via the `SupportsModel` protocol.  Example integrations:
 - **Orchestration**: Use Airflow, Dagster, or Prefect for scheduled training and
   execution.
 - **Containerization & Serving**: Package services with Docker, orchestrate via
-  Kubernetes, and deploy models through [Seldon Core](https://www.seldon.io/seldon-core)
-  or [KServe](https://kserve.github.io/website/).
+  Kubernetes, and deploy models through
+  [Seldon Core](https://www.seldon.io/seldon-core) or
+  [KServe](https://kserve.github.io/website/).
 - **API & Dashboards**: Use `FastAPI` for REST/GraphQL interfaces and
   `Streamlit` for rapid analytics consoles.
 - **Monitoring**: Emit Prometheus metrics for model performance, API latency,
   and smart contract execution outcomes. Couple with Grafana for visualization
   and Evidently/Arize exports for ML-specific metrics.
-- **Security**: Store private keys in HSM or MPC wallets, enforce least privilege
-  for deployment pipelines, and monitor for anomalous withdrawal patterns.
+- **Security**: Store private keys in HSM or MPC wallets, enforce least
+  privilege for deployment pipelines, and monitor for anomalous withdrawal
+  patterns.
 
 ## 7. Reference Architecture
 
@@ -162,10 +167,11 @@ Monitoring:
 
 Adopt a phased rollout to move from prototype to production:
 
-1. **Phase 1 – MVP**: `tonweb + ccxt + pandas + pandas-ta + sklearn/xgboost + backtrader + fastapi`.
+1. **Phase 1 – MVP**:
+   `tonweb + ccxt + pandas + pandas-ta + sklearn/xgboost + backtrader + fastapi`.
 2. **Phase 2 – Production**: Layer in `MLflow`, `PostgreSQL/TimescaleDB`,
-   containerization with Docker, message streaming via Kafka (or NATS), and
-   deep learning frameworks such as `PyTorch`.
+   containerization with Docker, message streaming via Kafka (or NATS), and deep
+   learning frameworks such as `PyTorch`.
 3. **Phase 3 – Advanced**: Introduce feature stores, reinforcement learning
    agents (`Stable-Baselines3`), real-time inference services on Kubernetes, and
    full-stack monitoring with Evidently, Arize, and Prometheus/Grafana.

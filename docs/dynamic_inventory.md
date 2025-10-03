@@ -275,8 +275,8 @@ assets:
 
 ## Next steps to enrich the knowledge base
 
-1. Map relationships across domains (e.g., `dynamic.intelligence.ai_apps` → `dynamic_agents` →
-   `dynamic_task_manager`).
+1. Map relationships across domains (e.g., `dynamic.intelligence.ai_apps` →
+   `dynamic_agents` → `dynamic_task_manager`).
 2. Standardize a reusable playbook template covering overview, principles, use
    cases, examples, and links.
 3. Build navigational indices such as a table of contents or a search-friendly

@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { DynamicAGIChat } from '@/components/chat/DynamicAGIChat';
-import { Card } from '@/components/ui/card';
+import { useState } from "react";
+import { DynamicAGIChat } from "@/components/chat/DynamicAGIChat";
+import { Card } from "@/components/ui/card";
 
 export default function ChatPage() {
   const [sessionId, setSessionId] = useState<string | undefined>();
@@ -16,7 +16,7 @@ export default function ChatPage() {
         </div>
 
         <Card className="h-[calc(100vh-16rem)]">
-          <DynamicAGIChat 
+          <DynamicAGIChat
             sessionId={sessionId}
             onSessionChange={setSessionId}
           />

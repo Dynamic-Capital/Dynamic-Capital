@@ -30,8 +30,8 @@ export ONEDRIVE_SHARE_LINK="https://1drv.ms/f/c/2ff0428a2f57c7a4/EpBJVZO1-P1Llt5
   curl -I "${ONEDRIVE_SHARE_LINK}"
   ```
 
-- Following the redirect anonymously still yields the HTML stub with the
-  message `The request is blocked.` from `onedrive.live.com`. Capture the output
+- Following the redirect anonymously still yields the HTML stub with the message
+  `The request is blocked.` from `onedrive.live.com`. Capture the output
   whenever you retry the command to watch for changes in the Edge `Ref`
   telemetry or HTTP status:
 
@@ -124,9 +124,11 @@ large drops.
 
 ## Unauthenticated API probes (2025-10-02)
 
-Anonymous access is still blocked, but the OneDrive web client now exposes a couple of useful endpoints worth capturing:
+Anonymous access is still blocked, but the OneDrive web client now exposes a
+couple of useful endpoints worth capturing:
 
-- The landing page loads when requesting the long URL directly with a modern browser user agent, e.g.:
+- The landing page loads when requesting the long URL directly with a modern
+  browser user agent, e.g.:
 
   ```bash
   curl \
@@ -135,7 +137,9 @@ Anonymous access is still blocked, but the OneDrive web client now exposes a cou
     --output /tmp/epbjvzo1-landing.html
   ```
 
-- The frontend subsequently posts to the legacy API with an `authKey`. The request fails with a `userContentMigrated` response, but the `Location` header documents the current personal-content domain:
+- The frontend subsequently posts to the legacy API with an `authKey`. The
+  request fails with a `userContentMigrated` response, but the `Location` header
+  documents the current personal-content domain:
 
   ```bash
   curl \
@@ -144,6 +148,10 @@ Anonymous access is still blocked, but the OneDrive web client now exposes a cou
     "https://api.onedrive.com/v1.0/drives/${CID}/items/${RESID}/children?authKey=${AUTHKEY}&$top=100"
   ```
 
-- Following the redirect to `https://my.microsoftpersonalcontent.com/` without valid Microsoft credentials yields `401 Unauthenticated`. Capture the exact headers whenever authentication access is available.
+- Following the redirect to `https://my.microsoftpersonalcontent.com/` without
+  valid Microsoft credentials yields `401 Unauthenticated`. Capture the exact
+  headers whenever authentication access is available.
 
-These probes confirm that the share has been migrated to the personal content service; once a valid token is available the same payload should enumerate the folder without switching code paths.
+These probes confirm that the share has been migrated to the personal content
+service; once a valid token is available the same payload should enumerate the
+folder without switching code paths.
