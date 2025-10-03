@@ -13,6 +13,7 @@ import {
   tokenContent,
   tokenDescriptor,
 } from "@/resources";
+import { cn } from "@/utils";
 
 const normalizeBaseURL = (value: string) =>
   value.endsWith("/") ? value.slice(0, -1) : value;
@@ -38,6 +39,12 @@ export function generateMetadata() {
 }
 
 const formatNumber = (value: number) => value.toLocaleString("en-US");
+const formatCurrency = (value: number) =>
+  value.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
 
 export default function TokenPage() {
   return (
@@ -72,6 +79,62 @@ export default function TokenPage() {
         >
           {tokenContent.intro}
         </Text>
+        <Row
+          gap="16"
+          wrap
+          horizontal="center"
+          className="w-full max-w-5xl"
+        >
+          {tokenContent.highlights.map((highlight) => {
+            const linkProps = highlight.href
+              ? {
+                as: "a" as const,
+                href: highlight.href,
+                target: "_blank",
+                rel: "noreferrer",
+              }
+              : {};
+
+            return (
+              <Column
+                key={highlight.label}
+                gap="12"
+                padding="16"
+                radius="l"
+                background="surface"
+                border="neutral-alpha-medium"
+                className="min-w-[240px] flex-1 bg-background/70 shadow-lg shadow-primary/5"
+              >
+                <Row gap="8" vertical="center">
+                  <Icon name={highlight.icon} onBackground="brand-medium" />
+                  <Text variant="label-strong-s" onBackground="neutral-strong">
+                    {highlight.label}
+                  </Text>
+                </Row>
+                <Text
+                  {...linkProps}
+                  variant="heading-strong-xs"
+                  onBackground="neutral-strong"
+                  className={cn(
+                    "font-mono",
+                    highlight.href
+                      ? "transition-colors hover:text-brand-medium"
+                      : undefined,
+                  )}
+                >
+                  {highlight.value}
+                </Text>
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                  wrap="balance"
+                >
+                  {highlight.description}
+                </Text>
+              </Column>
+            );
+          })}
+        </Row>
         <Row gap="16" wrap horizontal="center">
           <Row
             gap="8"
@@ -97,6 +160,34 @@ export default function TokenPage() {
             <Icon name="sparkles" onBackground="brand-medium" />
             <Text variant="label-strong-s">
               Decimals {tokenDescriptor.decimals}
+            </Text>
+          </Row>
+          <Row
+            gap="8"
+            background="page"
+            border="neutral-alpha-medium"
+            radius="l"
+            padding="12"
+            vertical="center"
+          >
+            <Icon name="currencyDollar" onBackground="brand-medium" />
+            <Text variant="label-strong-s">
+              Market cap {formatCurrency(tokenContent.marketCapUsd)}
+            </Text>
+          </Row>
+          <Row
+            gap="8"
+            background="page"
+            border="neutral-alpha-medium"
+            radius="l"
+            padding="12"
+            vertical="center"
+          >
+            <Icon name="chartPie" onBackground="brand-medium" />
+            <Text variant="label-strong-s">
+              Circulating supply {formatNumber(tokenContent.circulatingSupply)}
+              {" "}
+              {tokenDescriptor.symbol}
             </Text>
           </Row>
         </Row>

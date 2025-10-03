@@ -6,7 +6,9 @@ import {
   HiArrowTopRightOnSquare,
   HiArrowUpRight,
   HiCalendarDays,
+  HiChartPie,
   HiCheckCircle,
+  HiCurrencyDollar,
   HiEnvelope,
   HiMapPin,
   HiOutlineDocument,
@@ -17,6 +19,7 @@ import {
   HiOutlineRocketLaunch,
   HiPhone,
   HiSparkles,
+  HiWallet,
 } from "react-icons/hi2";
 
 import {
@@ -65,6 +68,7 @@ export const iconLibrary: Record<string, IconType> = {
   home: PiHouseDuotone,
   gallery: PiImageDuotone,
   crown: PiCrownSimpleDuotone,
+  wallet: HiWallet,
   discord: FaDiscord,
   eye: HiOutlineEye,
   eyeOff: HiOutlineEyeSlash,
@@ -93,6 +97,8 @@ export const iconLibrary: Record<string, IconType> = {
   reddit: FaReddit,
   telegram: FaTelegram,
   tradingview: SiTradingview,
+  currencyDollar: HiCurrencyDollar,
+  chartPie: HiChartPie,
 };
 
 export type IconLibrary = typeof iconLibrary;

@@ -3,6 +3,33 @@ import jettonMetadata from "../../../dynamic-capital-ton/contracts/jetton/metada
 };
 import type { IconName } from "./icons";
 
+const TGE_CIRCULATING_SUPPLY = 13_000_000;
+const TGE_MARKET_CAP_USD = 13_000_000;
+const OPERATIONS_TREASURY_WALLET =
+  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
+const OPERATIONS_TREASURY_EXPLORER_URL =
+  `https://tonviewer.com/${OPERATIONS_TREASURY_WALLET}`;
+
+const formatNumber = (value: number) =>
+  new Intl.NumberFormat("en-US").format(value);
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const shortenTonAddress = (value: string, visible = 6) => {
+  if (value.length <= visible * 2) {
+    return value;
+  }
+
+  const head = value.slice(0, visible);
+  const tail = value.slice(-visible);
+  return `${head}…${tail}`;
+};
+
 type DexPool = {
   dex: string;
   pair: string;
@@ -15,6 +42,14 @@ type SupplySplit = {
   value: string;
   description: string;
   icon: IconName;
+};
+
+type TokenHighlight = {
+  label: string;
+  value: string;
+  description: string;
+  icon: IconName;
+  href?: string;
 };
 
 type LockTier = {
@@ -34,7 +69,12 @@ type TokenContent = {
   supplySplits: readonly SupplySplit[];
   lockTiers: readonly LockTier[];
   dexPools: readonly DexPool[];
+  highlights: readonly TokenHighlight[];
   sameAs: readonly string[];
+  circulatingSupply: number;
+  marketCapUsd: number;
+  treasuryWalletAddress: string;
+  treasuryWalletUrl: string;
 };
 
 type TokenDescriptor = {
@@ -66,6 +106,37 @@ const tokenUtilities = [
   "Stake into the auto-invest pool to participate in weekly performance.",
   "Vote on treasury moves through the 48-hour guarded governance window.",
 ] as const;
+
+const tokenHighlights = [
+  {
+    label: "Dynamic Capital Token",
+    value: `${tokenDescriptor.symbol} on TON`,
+    description: "Utility and governance jetton anchored to desk performance.",
+    icon: "sparkles",
+  },
+  {
+    label: "Treasury TON wallet",
+    value: shortenTonAddress(OPERATIONS_TREASURY_WALLET),
+    description:
+      "Operations multisig safeguarding buybacks, burns, and rewards.",
+    icon: "wallet",
+    href: OPERATIONS_TREASURY_EXPLORER_URL,
+  },
+  {
+    label: "Market cap",
+    value: formatCurrency(TGE_MARKET_CAP_USD),
+    description:
+      "Fully collateralised by Dynamic Capital desk assets at launch.",
+    icon: "currencyDollar",
+  },
+  {
+    label: "Circulating supply",
+    value: `${formatNumber(TGE_CIRCULATING_SUPPLY)} ${tokenDescriptor.symbol}`,
+    description:
+      "TGE float powering staking, rewards, and liquidity programmes.",
+    icon: "chartPie",
+  },
+] as const satisfies readonly TokenHighlight[];
 
 const tokenSupplySplits = [
   {
@@ -144,7 +215,12 @@ const tokenContent: TokenContent = {
   supplySplits: tokenSupplySplits,
   lockTiers: tokenLockTiers,
   dexPools: tokenDexPools,
+  highlights: tokenHighlights,
   sameAs: tokenSameAs,
+  circulatingSupply: TGE_CIRCULATING_SUPPLY,
+  marketCapUsd: TGE_MARKET_CAP_USD,
+  treasuryWalletAddress: OPERATIONS_TREASURY_WALLET,
+  treasuryWalletUrl: OPERATIONS_TREASURY_EXPLORER_URL,
 };
 
 export { tokenContent, tokenDescriptor };
