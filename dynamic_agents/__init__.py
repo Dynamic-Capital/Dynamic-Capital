@@ -39,6 +39,8 @@ __all__ = [
     "DynamicRecyclingAgent",
     "DynamicNFTAgent",
     "NFTAgentInsight",
+    "DynamicPhysicsAgent",
+    "PhysicsAgentInsight",
     "DynamicDhivehiLanguageAgent",
     "DhivehiLanguageAgentInsight",
     "DynamicBusinessAgent",
@@ -111,6 +113,8 @@ _LAZY = LazyNamespace(
         "DynamicRecyclingAgent": "dynamic_agents.recycling",
         "DynamicNFTAgent": "dynamic_agents.nft_engine",
         "NFTAgentInsight": "dynamic_agents.nft_engine",
+        "DynamicPhysicsAgent": "dynamic_agents.physics_agent",
+        "PhysicsAgentInsight": "dynamic_agents.physics_agent",
         "DynamicDhivehiLanguageAgent": "dynamic_agents.dhivehi_language",
         "DhivehiLanguageAgentInsight": "dynamic_agents.dhivehi_language",
         "DynamicBusinessAgent": "dynamic_agents.business",
@@ -189,6 +193,10 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
     from dynamic_agents.nft_engine import (
         DynamicNFTAgent,
         NFTAgentInsight,
+    )
+    from dynamic_agents.physics_agent import (
+        DynamicPhysicsAgent,
+        PhysicsAgentInsight,
     )
     from dynamic_agents.dhivehi_language import (
         DhivehiLanguageAgentInsight,
