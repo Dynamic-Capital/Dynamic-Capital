@@ -12,7 +12,11 @@ const config = {
     },
   },
   test: {
-    include: ["components/**/*.test.tsx", "hooks/**/*.test.tsx"],
+    include: [
+      "components/**/*.test.tsx",
+      "hooks/**/*.test.tsx",
+      "services/**/*.test.ts",
+    ],
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.tsx"],
