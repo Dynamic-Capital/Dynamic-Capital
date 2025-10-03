@@ -93,3 +93,17 @@ def test_development_modules_expose_dev_focus() -> None:
         assert module.responsibilities
         assert module.success_metrics
         assert module.notes
+
+
+def test_adapter_and_dataset_modules_are_registered() -> None:
+    infrastructure = build_default_infrastructure()
+
+    adapters = infrastructure.get_module("dynamic_adapters")
+    assert adapters.domain is ModuleDomain.TECHNOLOGY_INFRASTRUCTURE
+    assert any("adapter" in responsibility for responsibility in adapters.responsibilities)
+    assert any("Dolphin" in note for note in adapters.notes)
+
+    datasets = infrastructure.get_module("dynamic_datasets")
+    assert datasets.domain is ModuleDomain.AI_COGNITION
+    assert any("dataset" in responsibility for responsibility in datasets.responsibilities)
+    assert any("DynamicFineTuneDataset" in note for note in datasets.notes)

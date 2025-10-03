@@ -409,6 +409,23 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
         notes=("Supabase service role keys held in secure secrets manager",),
     ),
     ModuleRegistration(
+        name="dynamic_adapters",
+        domain=ModuleDomain.TECHNOLOGY_INFRASTRUCTURE,
+        responsibilities=(
+            "Maintain multi-provider LLM adapter roster with hot failovers",
+            "Rotate adapter credentials and runtime configuration safely",
+            "Exercise regression suites across prompt templates and transports",
+        ),
+        success_metrics=(
+            "Adapter uptime above 99.5%",
+            "Failover drills executed each week",
+            "Configuration drift resolved within 1 business day",
+        ),
+        notes=(
+            "Backed by Dolphin, Ollama, and Kimi K2 adapter implementations",
+        ),
+    ),
+    ModuleRegistration(
         name="dynamic_memory",
         domain=ModuleDomain.AI_COGNITION,
         responsibilities=(
@@ -422,6 +439,23 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
             "Audit trail retained for 90 days",
         ),
         notes=("Backed by vector store with encryption at rest",),
+    ),
+    ModuleRegistration(
+        name="dynamic_datasets",
+        domain=ModuleDomain.AI_COGNITION,
+        responsibilities=(
+            "Transform learning telemetry into rolling fine-tune datasets",
+            "Publish dataset exports for downstream training pipelines",
+            "Track tag coverage and dataset lineage for governance",
+        ),
+        success_metrics=(
+            "Dataset refresh cadence within 24 hours",
+            "Average example size under 4KB",
+            "Tag coverage above 90% across active datasets",
+        ),
+        notes=(
+            "Powered by DynamicFineTuneDataset and DynamicAGIFineTuner primitives",
+        ),
     ),
     ModuleRegistration(
         name="dynamic_task_manager",

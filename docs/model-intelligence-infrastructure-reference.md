@@ -188,9 +188,9 @@ playbook in code. It defines the shared role palette, per-domain blueprints, and
 a `DynamicInfrastructure` registry that can register modules, assign role
 owners, and emit operational playbooks. Use `build_default_infrastructure()`
 when you need a ready-to-run baseline covering core modules such as
-`dynamic_supabase`, `dynamic_memory`, `dynamic_task_manager`,
-`dynamic_dev_engine`, `dynamic_development_team`, `dynamic_developer`, and
-`dynamic_validator`.
+`dynamic_supabase`, `dynamic_adapters`, `dynamic_memory`, `dynamic_datasets`,
+`dynamic_task_manager`, `dynamic_dev_engine`, `dynamic_development_team`,
+`dynamic_developer`, and `dynamic_validator`.
 
 For hands-on experiments, the repo now provides lightweight compatibility
 packages for the core operational personas:
@@ -201,3 +201,7 @@ packages for the core operational personas:
   `algorithms.python` without forcing a heavy import on cold start.
 - `dynamic_watchers` introduces an in-memory telemetry watcher that can ingest
   signals, evaluate threshold rules, and produce alert-focused summaries.
+- `dynamic_adapters` restores the lightweight import path for the Dolphin,
+  Ollama, and Kimi K2 adapters that power the reasoning stack.
+- `dynamic_datasets` forwards fine-tune dataset builders and training model
+  generators so historical workflows keep producing AGI-ready payloads.
