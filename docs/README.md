@@ -136,23 +136,24 @@ documenting which assets were consulted.
 
 ## 8. Security, Compliance & Legal
 
-| Ref  | Document                                                         | Summary                                                               |
-| ---- | ---------------------------------------------------------------- | --------------------------------------------------------------------- |
-| 8.1  | [secrets-checklist.md](./secrets-checklist.md)                   | Environment-specific secret coverage required before shipping.        |
-| 8.2  | [SECURITY_service-role.md](./SECURITY_service-role.md)           | Handling and rotation procedures for the Supabase service-role key.   |
-| 8.3  | [supabase-audit-report.md](./supabase-audit-report.md)           | Generated audit of Supabase tables, policies, functions, and indexes. |
-| 8.4  | [content-policy.md](./content-policy.md)                         | Content moderation rules governing bot responses and marketing copy.  |
-| 8.5  | [compliance/README.md](./compliance/README.md)                   | Entry point for compliance evidence and certification summaries.      |
-| 8.6  | [compliance/gdpr.md](./compliance/gdpr.md)                       | GDPR compliance posture and required controls.                        |
-| 8.7  | [compliance/hipaa.md](./compliance/hipaa.md)                     | HIPAA considerations for handling sensitive financial data.           |
-| 8.8  | [compliance/iso-27001.md](./compliance/iso-27001.md)             | ISO 27001 control mapping for the project.                            |
-| 8.9  | [compliance/pci-dss-level1.md](./compliance/pci-dss-level1.md)   | PCI DSS Level 1 checklist tailored to the bot workflow.               |
-| 8.10 | [compliance/soc1-type2.md](./compliance/soc1-type2.md)           | SOC 1 Type II readiness documentation.                                |
-| 8.11 | [compliance/soc2-type2.md](./compliance/soc2-type2.md)           | SOC 2 Type II readiness documentation.                                |
-| 8.12 | [compliance/dpf.md](./compliance/dpf.md)                         | Digital Platform Fairness compliance overview.                        |
-| 8.13 | [compliance/certificates.json](./compliance/certificates.json)   | Machine-readable compliance certificates referenced by audits.        |
-| 8.14 | [legal/README.md](./legal/README.md)                             | Legal documentation index for licensing obligations.                  |
-| 8.15 | [legal/THIRD_PARTY_LICENSES.md](./legal/THIRD_PARTY_LICENSES.md) | Third-party license disclosures bundled with the project.             |
+| Ref  | Document                                                                               | Summary                                                                        |
+| ---- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| 8.1  | [secrets-checklist.md](./secrets-checklist.md)                                         | Environment-specific secret coverage required before shipping.                 |
+| 8.2  | [SECURITY_service-role.md](./SECURITY_service-role.md)                                 | Handling and rotation procedures for the Supabase service-role key.            |
+| 8.3  | [supabase-audit-report.md](./supabase-audit-report.md)                                 | Generated audit of Supabase tables, policies, functions, and indexes.          |
+| 8.4  | [content-policy.md](./content-policy.md)                                               | Content moderation rules governing bot responses and marketing copy.           |
+| 8.5  | [compliance/README.md](./compliance/README.md)                                         | Entry point for compliance evidence and certification summaries.               |
+| 8.6  | [compliance/gdpr.md](./compliance/gdpr.md)                                             | GDPR compliance posture and required controls.                                 |
+| 8.7  | [compliance/hipaa.md](./compliance/hipaa.md)                                           | HIPAA considerations for handling sensitive financial data.                    |
+| 8.8  | [compliance/iso-27001.md](./compliance/iso-27001.md)                                   | ISO 27001 control mapping for the project.                                     |
+| 8.9  | [compliance/pci-dss-level1.md](./compliance/pci-dss-level1.md)                         | PCI DSS Level 1 checklist tailored to the bot workflow.                        |
+| 8.10 | [compliance/soc1-type2.md](./compliance/soc1-type2.md)                                 | SOC 1 Type II readiness documentation.                                         |
+| 8.11 | [compliance/soc2-type2.md](./compliance/soc2-type2.md)                                 | SOC 2 Type II readiness documentation.                                         |
+| 8.12 | [compliance/dpf.md](./compliance/dpf.md)                                               | Digital Platform Fairness compliance overview.                                 |
+| 8.13 | [compliance/certificates.json](./compliance/certificates.json)                         | Machine-readable compliance certificates referenced by audits.                 |
+| 8.14 | [legal/README.md](./legal/README.md)                                                   | Legal documentation index for licensing obligations.                           |
+| 8.15 | [legal/THIRD_PARTY_LICENSES.md](./legal/THIRD_PARTY_LICENSES.md)                       | Third-party license disclosures bundled with the project.                      |
+| 8.16 | [security/open-source-ai-defense-stack.md](./security/open-source-ai-defense-stack.md) | Layered plan for deploying open-source adversarial, privacy, and LLM defenses. |
 
 ## 9. Checklists & Automation
 

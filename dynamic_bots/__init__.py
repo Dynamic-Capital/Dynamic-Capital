@@ -51,6 +51,7 @@ _EXPORT_MAP = {
         "DynamicHadalpelagicBot",
     ),
     "dynamic_bots.physics": ("DynamicPhysicsBot",),
+    "dynamic_bots.security": ("DynamicSecurityBot",),
     "dynamic_bots.recycling": ("DynamicRecyclingBot",),
     "dynamic_bots.spheres": ("DynamicSpheresBot",),
     "dynamic_bots.superclusters": ("DynamicSuperclusterBot",),

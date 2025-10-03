@@ -15,6 +15,7 @@ from .helpers import (
 )
 from .keepers import DeveloperKeeper, DeveloperKeeperRecord
 from .model import DeveloperModel, DeveloperRoleModel, build_developer_model
+from .security import DynamicSecurityDeveloper, SecurityImprovementPlan
 
 __all__ = [
     "DeveloperAgent",
@@ -25,7 +26,9 @@ __all__ = [
     "DeveloperKeeperRecord",
     "DeveloperModel",
     "DeveloperRoleModel",
+    "DynamicSecurityDeveloper",
     "build_developer_model",
+    "SecurityImprovementPlan",
     "list_developer_agents",
     "crawl_capacity_from_lines",
     "crawl_tasks_from_markdown",
