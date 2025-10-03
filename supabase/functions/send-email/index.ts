@@ -1,95 +1,112 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import React from "npm:react@18.3.1";
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 import { Resend } from "npm:resend@4.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { renderAsync } from "npm:@react-email/components@0.0.22";
+import MagicLinkEmail from "./_templates/magic-link.tsx";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY") as string);
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
-interface EmailRequest {
-  to: string | string[];
-  subject: string;
-  html?: string;
-  text?: string;
-  from?: string;
-  replyTo?: string;
+interface SendEmailUser {
+  email: string;
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+interface SendEmailData {
+  token: string;
+  token_hash: string;
+  redirect_to: string;
+  email_action_type: string;
+  site_url?: string;
+  token_new?: string;
+  token_hash_new?: string;
+}
+
+interface SendEmailPayload {
+  user: SendEmailUser;
+  email_data: SendEmailData;
+}
+
+const resendApiKey = Deno.env.get("RESEND_API_KEY");
+if (!resendApiKey) {
+  throw new Error("Missing RESEND_API_KEY environment variable");
+}
+
+const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET");
+if (!hookSecret) {
+  throw new Error("Missing SEND_EMAIL_HOOK_SECRET environment variable");
+}
+
+const resend = new Resend(resendApiKey);
+const webhook = new Webhook(hookSecret);
+const defaultFromAddress = Deno.env.get("SEND_EMAIL_FROM") ??
+  "welcome <onboarding@resend.dev>";
+const defaultSubject = Deno.env.get("SEND_EMAIL_SUBJECT") ??
+  "Supa Custom MagicLink!";
+
+Deno.serve(async (req) => {
+  if (req.method !== "POST") {
+    return new Response("not allowed", { status: 400 });
   }
 
+  const payload = await req.text();
+  const headers = Object.fromEntries(req.headers.entries());
+
   try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    const { user, email_data }: SendEmailPayload = webhook.verify(
+      payload,
+      headers,
+    ) as SendEmailPayload;
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? email_data.site_url ??
+      "";
+    const tokenHash = email_data.token_hash_new ?? email_data.token_hash;
+    const token = email_data.token_new ?? email_data.token;
+    const redirectTo = email_data.redirect_to ?? "";
+
+    const html = await renderAsync(
+      React.createElement(MagicLinkEmail, {
+        supabase_url: supabaseUrl,
+        token,
+        token_hash: tokenHash,
+        redirect_to: redirectTo,
+        email_action_type: email_data.email_action_type,
+      }),
     );
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("Missing authorization header");
-    }
-
-    const { data: { user }, error: userError } = await supabaseClient.auth
-      .getUser(
-        authHeader.replace("Bearer ", ""),
-      );
-
-    if (userError || !user) {
-      throw new Error("Unauthorized");
-    }
-
-    const { data: profile } = await supabaseClient
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.role !== "admin") {
-      throw new Error("Admin access required");
-    }
-
-    const { to, subject, html, text, from, replyTo }: EmailRequest = await req
-      .json();
-
-    const fromAddress = from || Deno.env.get("COLD_EMAIL_FROM_ADDRESS") ||
-      "support@dynamic.capital";
-    const fromName = Deno.env.get("COLD_EMAIL_FROM_NAME") || "Dynamic Capital";
-
-    console.log(`[send-email] Sending to: ${to}`);
-
-    const emailResponse = await resend.emails.send({
-      from: `${fromName} <${fromAddress}>`,
-      to: Array.isArray(to) ? to : [to],
-      subject,
-      html: html || text,
-      replyTo: replyTo || Deno.env.get("COLD_EMAIL_REPLY_TO"),
+    const { error } = await resend.emails.send({
+      from: defaultFromAddress,
+      to: [user.email],
+      subject: defaultSubject,
+      html,
     });
 
-    console.log("[send-email] Success:", emailResponse);
-
-    return new Response(JSON.stringify(emailResponse), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    });
-  } catch (error: any) {
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
     console.error("[send-email] Error:", error);
+
+    const message = error instanceof Error ? error.message : "Unknown error";
+    const code = typeof (error as { code?: number }).code === "number"
+      ? (error as { code: number }).code
+      : undefined;
+
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: {
+          http_code: code,
+          message,
+        },
+      }),
       {
-        status: error.message === "Unauthorized" ||
-            error.message === "Admin access required"
-          ? 403
-          : 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        status: 401,
+        headers: { "Content-Type": "application/json" },
       },
     );
   }
-};
 
-serve(handler);
+  const responseHeaders = new Headers();
+  responseHeaders.set("Content-Type", "application/json");
+
+  return new Response(JSON.stringify({}), {
+    status: 200,
+    headers: responseHeaders,
+  });
+});

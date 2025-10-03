@@ -1043,7 +1043,10 @@ function handleRecordTradeUpdate(
 }
 
 class SupabaseStub {
-  constructor(private readonly state: StubState) {}
+  constructor(
+    private readonly state: StubState,
+    private readonly role: "anon" | "service" = "anon",
+  ) {}
 
   from(table: string) {
     switch (table) {
@@ -1176,8 +1179,38 @@ class SupabaseStub {
   };
 }
 
-export function createClient() {
-  return new SupabaseStub(stubState) as unknown as { [key: string]: unknown };
+export interface RequestClientOptions {
+  role?: "anon" | "service";
+  requireAuthorization?: boolean;
+  [key: string]: unknown;
+}
+
+interface RequestLike {
+  headers: {
+    get(name: string): string | null | undefined;
+  };
+}
+
+export function createClientForRequest(
+  req: RequestLike,
+  options?: RequestClientOptions,
+) {
+  const role = options?.role ?? "anon";
+  const requireAuthorization = options?.requireAuthorization ?? false;
+
+  const authHeader = req.headers?.get?.("Authorization")?.trim() ?? "";
+
+  if (requireAuthorization && authHeader.length === 0) {
+    throw new Error("Missing Authorization header for createClientForRequest");
+  }
+
+  return createClient(role as "anon" | "service");
+}
+
+export function createClient(role: "anon" | "service" = "anon") {
+  return new SupabaseStub(stubState, role) as unknown as {
+    [key: string]: unknown;
+  };
 }
 
 export type SupabaseClient = ReturnType<typeof createClient>;
