@@ -501,37 +501,34 @@ export const handler = registerHandler(async (req) => {
     );
   }
 
-  let config: DctAppConfig;
+  let config: DctAppConfig | null = null;
   try {
     config = await fetchAppConfig(serviceSupabase);
   } catch (error) {
-    return bad(
-      error instanceof Error
-        ? error.message
-        : "Failed to load DCT configuration",
-      undefined,
-      req,
-    );
+    console.error("Failed to load DCT app config", error);
   }
 
-  const intakeWallet = config.intakeWallet ?? optionalEnv("INTAKE_WALLET");
+  const envIntakeWallet = optionalEnv("INTAKE_WALLET");
+  const envOperationsWallet = optionalEnv("OPERATIONS_TREASURY_WALLET");
+  const envDctMaster = optionalEnv("DCT_JETTON_MASTER");
+
+  const intakeWallet = config?.intakeWallet ?? envIntakeWallet;
   if (!intakeWallet) {
     return bad("Intake wallet unavailable", undefined, req);
   }
 
-  const operationsWallet = config.operationsWallet ??
-    optionalEnv("OPERATIONS_TREASURY_WALLET");
+  const operationsWallet = config?.operationsWallet ?? envOperationsWallet;
   if (!operationsWallet) {
     return bad("Operations wallet unavailable", undefined, req);
   }
 
-  const dctMaster = config.dctMaster ?? optionalEnv("DCT_JETTON_MASTER");
+  const dctMaster = config?.dctMaster ?? envDctMaster;
   if (!dctMaster) {
     return bad("Jetton master unavailable", undefined, req);
   }
 
-  const tonIndexerUrl = optionalEnv("TON_INDEXER_URL") ??
-    config.tonIndexerUrl ?? null;
+  const tonIndexerEnv = optionalEnv("TON_INDEXER_URL");
+  const tonIndexerUrl = tonIndexerEnv ?? config?.tonIndexerUrl ?? null;
 
   const verification = await verifyTonPayment(
     body.tonTxHash,
