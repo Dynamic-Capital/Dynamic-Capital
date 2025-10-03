@@ -53,14 +53,21 @@ export interface OrderResult {
   reason?: string;
 }
 
+interface RateLimitWindowState {
+  startedAt: number;
+  usedSlots: number;
+}
+
 export class BuybackBot {
-  private requestsInWindow = 0;
-  private windowStartedAt = Date.now();
+  private readonly allowlistedVenues: Set<string>;
+  private readonly rateLimitWindows = new Map<string, RateLimitWindowState>();
 
   constructor(
     private readonly config: BuybackBotConfig,
     private readonly logger?: OutcomeLogger,
-  ) {}
+  ) {
+    this.allowlistedVenues = new Set(config.venueAllowlist);
+  }
 
   async fetchBurnTarget(): Promise<number | null> {
     this.logOutcome("debug", "Fetching burn target from treasury inputs");
@@ -81,7 +88,21 @@ export class BuybackBot {
       };
     }
 
-    if (!this.consumeRateLimitSlot()) {
+    if (!this.isAmountValid(request.amount)) {
+      this.logOutcome("warn", "Rejected order: invalid order amount", {
+        venue: request.venue,
+        amount: request.amount,
+      });
+      return {
+        status: "rejected",
+        venue: request.venue,
+        requestedAmount: request.amount,
+        executedAmount: 0,
+        reason: "INVALID_AMOUNT",
+      };
+    }
+
+    if (!this.consumeRateLimitSlot(request.venue)) {
       this.logOutcome("warn", "Rejected order: rate limit exceeded", {
         venue: request.venue,
       });
@@ -121,7 +142,11 @@ export class BuybackBot {
   }
 
   private isVenueAllowed(venue: string): boolean {
-    return this.config.venueAllowlist.includes(venue);
+    return this.allowlistedVenues.has(venue);
+  }
+
+  private isAmountValid(amount: number): boolean {
+    return Number.isFinite(amount) && amount > 0;
   }
 
   private getCappedAmount(venue: string, amount: number): number {
@@ -133,22 +158,27 @@ export class BuybackBot {
     return Math.min(cap, amount);
   }
 
-  private consumeRateLimitSlot(): boolean {
+  private consumeRateLimitSlot(venue: string): boolean {
     if (this.config.rateLimitPerMinute <= 0) {
       return true;
     }
 
     const now = Date.now();
-    if (now - this.windowStartedAt >= 60_000) {
-      this.windowStartedAt = now;
-      this.requestsInWindow = 0;
+    const window = this.rateLimitWindows.get(venue);
+
+    if (!window || now - window.startedAt >= 60_000) {
+      this.rateLimitWindows.set(venue, {
+        startedAt: now,
+        usedSlots: 1,
+      });
+      return true;
     }
 
-    if (this.requestsInWindow >= this.config.rateLimitPerMinute) {
+    if (window.usedSlots >= this.config.rateLimitPerMinute) {
       return false;
     }
 
-    this.requestsInWindow += 1;
+    window.usedSlots += 1;
     return true;
   }
 
