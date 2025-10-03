@@ -18,6 +18,7 @@ LLM copilots) without requiring any additional dependencies.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any, Dict, Iterable, Mapping, MutableMapping, Type
 
 from algorithms.python import TEAM_DEVELOPMENT_PLAYBOOKS
@@ -32,6 +33,8 @@ __all__ = [
     "DynamicLanguagesExpertAgent",
     "UiUxDesignerAgent",
     "DevOpsEngineerAgent",
+    "QualityAssuranceAgent",
+    "GeneralDevelopmentAgent",
     "get_development_playbook",
     "list_development_agents",
     "build_development_team_sync",
@@ -116,6 +119,78 @@ def _serialise_notes(context: Mapping[str, Any]) -> Dict[str, Any]:
     return notes
 
 
+_SUPPLEMENTARY_PLAYBOOKS: Dict[str, TeamRolePlaybook] = {
+    "Quality Assurance": TeamRolePlaybook(
+        name="Quality Assurance",
+        objectives=(
+            "Safeguard product quality with risk-based testing aligned to release goals.",
+            "Maintain fast feedback loops by automating high-value regression suites.",
+            "Provide actionable insights on defects, coverage, and readiness to ship.",
+        ),
+        workflow=(
+            "Review iteration goals, critical user journeys, and recent incidents to refine the test strategy.",
+            "Update automation suites and exploratory charters focusing on high-risk areas and new capabilities.",
+            "Execute smoke and regression suites on every build; file defects with reproducible steps and severity.",
+            "Pair with developers to reproduce and isolate issues, validating fixes within the same cycle.",
+            "Track coverage, defect trends, and flake rates; escalate blocking quality risks immediately.",
+            "Publish release readiness summaries including open defects, test evidence, and sign-off status.",
+        ),
+        outputs=(
+            "Risk-based test plan",
+            "Automated and exploratory test results",
+            "Defect log with remediation status",
+            "Release readiness summary",
+        ),
+        kpis=(
+            "Defect escape rate",
+            "Automation pass rate",
+            "Mean time to validate fixes",
+            "Critical defect closure time",
+        ),
+    ),
+    "General Development": TeamRolePlaybook(
+        name="General Development",
+        objectives=(
+            "Deliver cross-functional iteration work that accelerates product outcomes.",
+            "Support teammates by filling gaps across stack, process, and documentation needs.",
+            "Continuously reduce tech debt while maintaining shipping momentum.",
+        ),
+        workflow=(
+            "Clarify objectives and unblockers across squads; pull the highest impact tasks lacking an owner.",
+            "Pair with specialists to progress stories outside their primary domains and capture key learnings.",
+            "Implement changes with tests, docs, and telemetry ensuring standards remain consistent.",
+            "Proactively tackle tech debt tickets when cycle slack appears, documenting rationale and outcomes.",
+            "Facilitate async status updates highlighting progress, blockers, and support provided to peers.",
+            "Log retrospectives on cross-functional work and propose improvements to tooling or process.",
+        ),
+        outputs=(
+            "Multi-domain implementation notes",
+            "Pull request summaries with linked evidence",
+            "Updated documentation or runbooks",
+            "Tech debt remediation log",
+        ),
+        kpis=(
+            "Cross-team blocker resolution time",
+            "Cycle time for generalist tickets",
+            "Documentation completeness",
+            "Tech debt reduction velocity",
+        ),
+    ),
+}
+
+
+def _build_development_playbooks() -> Mapping[str, TeamRolePlaybook]:
+    """Merge canonical playbooks with local supplements."""
+
+    merged: Dict[str, TeamRolePlaybook] = dict(TEAM_DEVELOPMENT_PLAYBOOKS)
+    for role, playbook in _SUPPLEMENTARY_PLAYBOOKS.items():
+        merged.setdefault(role, playbook)
+    return MappingProxyType(merged)
+
+
+_DEVELOPMENT_PLAYBOOKS = _build_development_playbooks()
+
+
 @dataclass(slots=True)
 class DevelopmentAgentResult:
     """Structured response emitted by a development team agent."""
@@ -172,6 +247,8 @@ class DevelopmentTeamAgent:
     def run(self, context: Mapping[str, Any] | None = None) -> DevelopmentAgentResult:
         """Return the structured plan for this role."""
 
+        if context is not None and not isinstance(context, Mapping):
+            raise TypeError("context must be a mapping when provided")
         mapping: MutableMapping[str, Any] = dict(context or {})
         focus = _extract_focus(mapping)
         notes = _serialise_notes(mapping)
@@ -190,48 +267,66 @@ class FrontEndDeveloperAgent(DevelopmentTeamAgent):
     """Agent for the Front-End Developer playbook."""
 
     def __init__(self) -> None:
-        super().__init__(TEAM_DEVELOPMENT_PLAYBOOKS["Front-End Developer"])
+        super().__init__(get_development_playbook("Front-End Developer"))
 
 
 class BackEndDeveloperAgent(DevelopmentTeamAgent):
     """Agent for the Back-End Developer playbook."""
 
     def __init__(self) -> None:
-        super().__init__(TEAM_DEVELOPMENT_PLAYBOOKS["Back-End Developer"])
+        super().__init__(get_development_playbook("Back-End Developer"))
 
 
 class BlockchainDeveloperAgent(DevelopmentTeamAgent):
     """Agent for the Blockchain Developer playbook."""
 
     def __init__(self) -> None:
-        super().__init__(TEAM_DEVELOPMENT_PLAYBOOKS["Blockchain Developer"])
+        super().__init__(get_development_playbook("Blockchain Developer"))
 
 
 class DynamicLanguagesExpertAgent(DevelopmentTeamAgent):
     """Agent for the Dynamic Languages Expert playbook."""
 
     def __init__(self) -> None:
-        super().__init__(TEAM_DEVELOPMENT_PLAYBOOKS["Dynamic Languages Expert"])
+        super().__init__(get_development_playbook("Dynamic Languages Expert"))
 
 
 class UiUxDesignerAgent(DevelopmentTeamAgent):
     """Agent for the UI/UX Designer playbook."""
 
     def __init__(self) -> None:
-        super().__init__(TEAM_DEVELOPMENT_PLAYBOOKS["UI/UX Designer"])
+        super().__init__(get_development_playbook("UI/UX Designer"))
 
 
 class DevOpsEngineerAgent(DevelopmentTeamAgent):
     """Agent for the DevOps Engineer playbook."""
 
     def __init__(self) -> None:
-        super().__init__(TEAM_DEVELOPMENT_PLAYBOOKS["DevOps Engineer"])
+        super().__init__(get_development_playbook("DevOps Engineer"))
+
+
+class QualityAssuranceAgent(DevelopmentTeamAgent):
+    """Agent for the Quality Assurance playbook."""
+
+    def __init__(self) -> None:
+        super().__init__(get_development_playbook("Quality Assurance"))
+
+
+class GeneralDevelopmentAgent(DevelopmentTeamAgent):
+    """Agent for the General Development playbook."""
+
+    def __init__(self) -> None:
+        super().__init__(get_development_playbook("General Development"))
 
 
 def get_development_playbook(role: str) -> TeamRolePlaybook:
     """Return the playbook for ``role`` from the development catalogue."""
 
-    return TEAM_DEVELOPMENT_PLAYBOOKS[role]
+    try:
+        return _DEVELOPMENT_PLAYBOOKS[role]
+    except KeyError as exc:  # pragma: no cover - defensive guard
+        available = ", ".join(sorted(_DEVELOPMENT_PLAYBOOKS))
+        raise KeyError(f"Unknown development role '{role}'. Available roles: {available}.") from exc
 
 
 def list_development_agents() -> Dict[str, DevelopmentTeamAgent]:
@@ -244,10 +339,12 @@ def list_development_agents() -> Dict[str, DevelopmentTeamAgent]:
         "Dynamic Languages Expert": DynamicLanguagesExpertAgent,
         "UI/UX Designer": UiUxDesignerAgent,
         "DevOps Engineer": DevOpsEngineerAgent,
+        "Quality Assurance": QualityAssuranceAgent,
+        "General Development": GeneralDevelopmentAgent,
     }
 
     agents: Dict[str, DevelopmentTeamAgent] = {}
-    for role, playbook in TEAM_DEVELOPMENT_PLAYBOOKS.items():
+    for role, playbook in _DEVELOPMENT_PLAYBOOKS.items():
         factory = role_factories.get(role)
         if factory is not None:
             agents[role] = factory()
@@ -259,7 +356,7 @@ def list_development_agents() -> Dict[str, DevelopmentTeamAgent]:
 def build_development_team_sync() -> DynamicTeamRoleSyncAlgorithm:
     """Construct a sync algorithm limited to development playbooks."""
 
-    return DynamicTeamRoleSyncAlgorithm(TEAM_DEVELOPMENT_PLAYBOOKS.values())
+    return DynamicTeamRoleSyncAlgorithm(_DEVELOPMENT_PLAYBOOKS.values())
 
 
 def synchronise_development_team(
