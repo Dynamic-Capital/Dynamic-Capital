@@ -403,6 +403,9 @@ function mapAnthropicUsage(
 }
 
 function providerConfigured(definition: ProviderDefinition): boolean {
+  if (definition.requiresConfiguration === false) {
+    return true;
+  }
   if (typeof definition.isConfigured === "function") {
     return Boolean(definition.isConfigured());
   }
