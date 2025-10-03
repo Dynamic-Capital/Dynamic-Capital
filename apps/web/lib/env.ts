@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getEnvVar, optionalEnvVar } from "../utils/env.ts";
+import { DEFAULT_ECONOMIC_CALENDAR_URL } from "@/config/economic-calendar";
 import {
   DEFAULT_SUPABASE_ANON_KEY,
   DEFAULT_SUPABASE_URL,
@@ -113,7 +114,7 @@ function validatePublicEnv(): ValidationResult {
     NEXT_PUBLIC_ECONOMIC_CALENDAR_URL: optionalEnvVar(
       "NEXT_PUBLIC_ECONOMIC_CALENDAR_URL",
       ["ECONOMIC_CALENDAR_URL"],
-    ),
+    ) ?? DEFAULT_ECONOMIC_CALENDAR_URL,
     NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY: optionalEnvVar(
       "NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY",
       ["ECONOMIC_CALENDAR_API_KEY"],

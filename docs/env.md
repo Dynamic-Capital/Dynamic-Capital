@@ -111,7 +111,7 @@ Additional crypto keys:
 
 | Key                                     | Purpose                                               | Required | Example                            | Used in                                                          |
 | --------------------------------------- | ----------------------------------------------------- | -------- | ---------------------------------- | ---------------------------------------------------------------- |
-| `NEXT_PUBLIC_ECONOMIC_CALENDAR_URL`     | REST endpoint the client queries for economic events. | No       | `https://api.example.com/calendar` | `tests/economic-calendar-service.test.ts`, `apps/web/lib/env.ts` |
+| `NEXT_PUBLIC_ECONOMIC_CALENDAR_URL`     | REST endpoint the client queries for economic events. Defaults to the Forex Factory open feed. | No       | `https://nfs.faireconomy.media/ff_calendar_thisweek.json` | `tests/economic-calendar-service.test.ts`, `apps/web/lib/env.ts` |
 | `NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY` | API key forwarded to the calendar provider.           | No       | `public-key`                       | `tests/economic-calendar-service.test.ts`, `apps/web/lib/env.ts` |
 
 ## Treasury Buyback Bot
