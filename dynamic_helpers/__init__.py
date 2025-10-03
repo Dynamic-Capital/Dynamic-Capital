@@ -34,6 +34,7 @@ _HELPER_EXPORTS = {
         "DynamicAbyssopelagicHelper",
         "DynamicHadalpelagicHelper",
     ),
+    "dynamic_helpers.atom": ("DynamicAtomHelper",),
     "dynamic_helpers.nft_engine": ("DynamicNFTHelper",),
     "dynamic_helpers.physics": ("DynamicPhysicsHelper",),
     "dynamic_helpers.dhivehi_language": ("DynamicDhivehiLanguageHelper",),

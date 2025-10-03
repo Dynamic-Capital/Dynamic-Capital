@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any
 from ._lazy import LazyNamespace
 
 __all__ = [
+    "AtomAgentInsight",
     "Agent",
     "AgentResult",
     "BloodAgent",
@@ -28,6 +29,7 @@ __all__ = [
     "DynamicChatAgent",
     "DynamicArchitectAgent",
     "DynamicArchitectAgentResult",
+    "DynamicAtomAgent",
     "DynamicEngineerAgent",
     "DynamicEngineerAgentResult",
     "DynamicOceanLayerAgent",
@@ -105,11 +107,13 @@ _LAZY = LazyNamespace(
     "dynamic.intelligence.ai_apps",
     __all__,
     overrides={
+        "AtomAgentInsight": "dynamic_agents.atom",
         "run_dynamic_agent_cycle": "algorithms.python.dynamic_ai_sync",
         "DynamicEngineerAgent": "dynamic_engineer.agent",
         "DynamicEngineerAgentResult": "dynamic_engineer.agent",
         "DynamicArchitectAgent": "dynamic_architect.agent",
         "DynamicArchitectAgentResult": "dynamic_architect.agent",
+        "DynamicAtomAgent": "dynamic_agents.atom",
         "DynamicRecyclingAgent": "dynamic_agents.recycling",
         "DynamicNFTAgent": "dynamic_agents.nft_engine",
         "NFTAgentInsight": "dynamic_agents.nft_engine",
@@ -163,6 +167,7 @@ _LAZY = LazyNamespace(
 )
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
+    from dynamic_agents.atom import AtomAgentInsight, DynamicAtomAgent
     from algorithms.python.dynamic_ai_sync import run_dynamic_agent_cycle
     from dynamic.intelligence.ai_apps import (
         Agent,
