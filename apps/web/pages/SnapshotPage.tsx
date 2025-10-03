@@ -1,6 +1,6 @@
 import { QuadrantChart } from "@/components/trading/QuadrantChart";
 import { Card } from "@/components/ui/card";
-import { Play, Pause } from "lucide-react";
+import { Pause, Play } from "lucide-react";
 import { useState } from "react";
 
 export default function SnapshotPage() {
@@ -11,14 +11,18 @@ export default function SnapshotPage() {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Market Snapshot</h1>
-          
+
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Thursday Oct 2 17:56</span>
+            <span className="text-sm text-muted-foreground">
+              Thursday Oct 2 17:56
+            </span>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               className="p-2 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
             >
-              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+              {isPlaying
+                ? <Pause className="w-5 h-5" />
+                : <Play className="w-5 h-5" />}
             </button>
           </div>
         </div>

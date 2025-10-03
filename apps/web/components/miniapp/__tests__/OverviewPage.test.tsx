@@ -1,5 +1,12 @@
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi, type MockedFunction } from "vitest";
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type MockedFunction,
+  vi,
+} from "vitest";
 
 vi.mock("@/services/miniapp/portfolioOverview", () => ({
   fetchMiniappPortfolioOverview: vi.fn(),

@@ -10,10 +10,10 @@ Brain remains aligned with execution, memory, and governance surfaces.
 
 | Capability             | What it does                                                                                                                              | Key implementation source                                                                           |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Multi-lobe fusion      | Normalises directional, momentum, sentiment, and treasury lobes into a bounded signal with rationale + confidence payloads.               | `dynamic.intelligence.ai_apps/fusion.py`【F:dynamic.intelligence.ai_apps/fusion.py†L13-L167】                                           |
-| Regime-aware weighting | Adjusts each lobe’s influence based on volatility, session, and risk-off signals before mapping to BUY/SELL/NEUTRAL actions.              | `dynamic.intelligence.ai_apps/fusion.py`【F:dynamic.intelligence.ai_apps/fusion.py†L169-L214】                                          |
-| Lorentzian calibration | Rebuilds Lorentzian lobes from serialized models, enforcing sane sensitivity thresholds for new market regimes.                           | `dynamic.intelligence.ai_apps/training.py`【F:dynamic.intelligence.ai_apps/training.py†L14-L48】                                        |
-| Persona agents         | Packages research, execution, and risk personas with consistent payloads so orchestration can route requests through a reusable chain.    | `dynamic.intelligence.ai_apps/agents.py`【F:dynamic.intelligence.ai_apps/agents.py†L1-L382】                                            |
+| Multi-lobe fusion      | Normalises directional, momentum, sentiment, and treasury lobes into a bounded signal with rationale + confidence payloads.               | `dynamic.intelligence.ai_apps/fusion.py`【F:dynamic.intelligence.ai_apps/fusion.py†L13-L167】       |
+| Regime-aware weighting | Adjusts each lobe’s influence based on volatility, session, and risk-off signals before mapping to BUY/SELL/NEUTRAL actions.              | `dynamic.intelligence.ai_apps/fusion.py`【F:dynamic.intelligence.ai_apps/fusion.py†L169-L214】      |
+| Lorentzian calibration | Rebuilds Lorentzian lobes from serialized models, enforcing sane sensitivity thresholds for new market regimes.                           | `dynamic.intelligence.ai_apps/training.py`【F:dynamic.intelligence.ai_apps/training.py†L14-L48】    |
+| Persona agents         | Packages research, execution, and risk personas with consistent payloads so orchestration can route requests through a reusable chain.    | `dynamic.intelligence.ai_apps/agents.py`【F:dynamic.intelligence.ai_apps/agents.py†L1-L382】        |
 | Automation feedback    | Routes telemetry, governance hooks, and integration payloads through the broader ecosystem so retraining and compliance stay in lockstep. | `docs/dynamic-capital-ecosystem-anatomy.md`【F:docs/dynamic-capital-ecosystem-anatomy.md†L16-L288】 |
 
 ## 2. Signal Lifecycle
@@ -38,8 +38,8 @@ Brain remains aligned with execution, memory, and governance surfaces.
 
 ## 3. Lobe Responsibilities
 
-| Lobe                    | Signal focus                                                               | Implementation notes                                                                                                                                    |
-| ----------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lobe                    | Signal focus                                                               | Implementation notes                                                                                                                                                      |
+| ----------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Lorentzian Distance** | Detects outsized price deviations relative to a reference trajectory.      | Produces a contrarian score when deviation exceeds calibrated sensitivity, surfacing rationale text for auditability.【F:dynamic.intelligence.ai_apps/fusion.py†L54-L77】 |
 | **Trend Momentum**      | Blends directional bias with measured momentum intensity.                  | Maintains neutral stance until thresholds are hit, preventing premature flips during sideways regimes.【F:dynamic.intelligence.ai_apps/fusion.py†L83-L105】               |
 | **Sentiment**           | Aggregates qualitative feeds and keyword bias.                             | Enforces a floor on confidence and weights lexical tone to stabilise noisy social inputs.【F:dynamic.intelligence.ai_apps/fusion.py†L107-L142】                           |
@@ -88,7 +88,8 @@ Use the checklist below when deploying updates or reviewing production health:
   through Hands, Heart, Voice, and Memory
   layers.【F:docs/dynamic-capital-ecosystem-anatomy.md†L16-L288】
 - Start new lobes from the `SignalLobe` protocol, keeping score, confidence, and
-  rationale values bounded for consistency.【F:dynamic.intelligence.ai_apps/fusion.py†L24-L167】
+  rationale values bounded for
+  consistency.【F:dynamic.intelligence.ai_apps/fusion.py†L24-L167】
 - Capture evaluation metrics and experiment metadata so the training module can
   automatically recalibrate sensitivity thresholds over
   time.【F:dynamic.intelligence.ai_apps/training.py†L14-L48】
@@ -104,9 +105,9 @@ the automation stack scales across strategies and market conditions.
 Dynamic AI now exposes a persona chain that mirrors the roadmap’s research →
 execution → risk flow. The `ResearchAgent`, `ExecutionAgent`, and `RiskAgent`
 share a common result contract so orchestration can serialise outcomes without
-bespoke glue.【F:dynamic.intelligence.ai_apps/agents.py†L22-L365】 The sync helper
-`run_dynamic_agent_cycle` wires the personas together, expecting the following
-context keys when executed manually or via `AlgorithmSyncAdapter`:
+bespoke glue.【F:dynamic.intelligence.ai_apps/agents.py†L22-L365】 The sync
+helper `run_dynamic_agent_cycle` wires the personas together, expecting the
+following context keys when executed manually or via `AlgorithmSyncAdapter`:
 
 1. `research_payload` – optional research inputs
    (technical/fundamental/sentiment/macro) consumed by the analysis persona.
@@ -128,8 +129,8 @@ Cold starts are now optimised through cached persona instances. Call
 `get_dynamic_start_agents()` to materialise the shared research/execution/risk
 chain, override factories with `configure_dynamic_start_agents()`, and invoke
 `reset_dynamic_start_agents()` when you need to swap or reset
-personas.【F:dynamic.intelligence.ai_apps/agents.py†L694-L808】 The sync helper also honours an
-optional `dynamic_start_agents` (alias `start_agents`) mapping inside the
-context, so orchestration can pass pre-warmed persona objects without incurring
-new allocations on every
+personas.【F:dynamic.intelligence.ai_apps/agents.py†L694-L808】 The sync helper
+also honours an optional `dynamic_start_agents` (alias `start_agents`) mapping
+inside the context, so orchestration can pass pre-warmed persona objects without
+incurring new allocations on every
 cycle.【F:algorithms/python/dynamic.intelligence.ai_apps_sync.py†L202-L237】

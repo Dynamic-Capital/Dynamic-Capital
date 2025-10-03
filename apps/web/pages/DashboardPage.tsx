@@ -1,7 +1,7 @@
 import { WalletCard } from "@/components/trading/WalletCard";
 import { SignalsWidget } from "@/components/trading/SignalsWidget";
 import { Card } from "@/components/ui/card";
-import { walletData, poolTrading } from "@/lib/mock-data";
+import { poolTrading, walletData } from "@/lib/mock-data";
 import { ArrowUpRight } from "lucide-react";
 
 export default function DashboardPage() {
@@ -14,7 +14,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-2">
             <WalletCard />
           </div>
-          
+
           <div>
             <SignalsWidget />
           </div>
@@ -29,11 +29,15 @@ export default function DashboardPage() {
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-muted-foreground">Wallet</p>
-                <p className="text-xl font-bold text-success">{walletData.wallet}</p>
+                <p className="text-xl font-bold text-success">
+                  {walletData.wallet}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Trading</p>
-                <p className="text-xl font-bold text-success">{walletData.trading}</p>
+                <p className="text-xl font-bold text-success">
+                  {walletData.trading}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Staking</p>
@@ -76,7 +80,9 @@ export default function DashboardPage() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Success Rate</span>
-                <span className="text-lg font-bold">{poolTrading.successRate}</span>
+                <span className="text-lg font-bold">
+                  {poolTrading.successRate}
+                </span>
               </div>
             </div>
             <div className="flex justify-between items-center pt-4 border-t border-error-foreground/20">

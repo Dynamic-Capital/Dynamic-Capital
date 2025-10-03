@@ -9,9 +9,14 @@ export function WalletCard() {
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-sm text-muted-foreground mb-1">Balance</h3>
-            <p className="text-3xl font-bold text-success">{walletData.balance}</p>
+            <p className="text-3xl font-bold text-success">
+              {walletData.balance}
+            </p>
           </div>
-          <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+          <Badge
+            variant="outline"
+            className="bg-success/10 text-success border-success/20"
+          >
             Live
           </Badge>
         </div>
@@ -19,7 +24,9 @@ export function WalletCard() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <h4 className="text-sm font-medium mb-1">Profit</h4>
-            <p className="text-xl font-bold text-success">{walletData.profit.amount}</p>
+            <p className="text-xl font-bold text-success">
+              {walletData.profit.amount}
+            </p>
             <div className="flex gap-2 text-xs text-muted-foreground mt-1">
               <span>Long {walletData.profit.long}</span>
               <span>Short {walletData.profit.short}</span>
@@ -28,7 +35,9 @@ export function WalletCard() {
 
           <div>
             <h4 className="text-sm font-medium mb-1">Loss</h4>
-            <p className="text-xl font-bold text-error">{walletData.loss.amount}</p>
+            <p className="text-xl font-bold text-error">
+              {walletData.loss.amount}
+            </p>
             <div className="flex gap-2 text-xs text-muted-foreground mt-1">
               <span>Long {walletData.loss.long}</span>
               <span>Short {walletData.loss.short}</span>

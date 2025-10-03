@@ -9,6 +9,8 @@ from .registry import (
     CrawlerSpec,
     DynamicCrawlerRegistry,
     PlanFile,
+    SCRAPEGRAPH_GIT_REQUIREMENT,
+    SCRAPEGRAPH_REPOSITORY,
     register_default_crawlers,
 )
 
@@ -21,5 +23,7 @@ __all__ = [
     "CrawlerSpec",
     "DynamicCrawlerRegistry",
     "PlanFile",
+    "SCRAPEGRAPH_GIT_REQUIREMENT",
+    "SCRAPEGRAPH_REPOSITORY",
     "register_default_crawlers",
 ]

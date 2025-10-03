@@ -18,23 +18,23 @@ documenting which assets were consulted.
 
 ## 1. Orientation & Repo Maps
 
-| Ref  | Document                                                                       | Summary                                                                                                                    |
-| ---- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| 1.1  | [FLOW_OVERVIEW.md](./FLOW_OVERVIEW.md)                                         | End-to-end map of how the marketing site, Telegram bot, Supabase functions, and Mini App connect.                          |
-| 1.2  | [agent.md](./agent.md)                                                         | Behavioral contract for the Dynamic Capital agent across Telegram commands and the Mini App.                               |
-| 1.3  | [FEATURES.md](./FEATURES.md)                                                   | Feature catalog outlining customer-facing capabilities and planned enhancements.                                           |
-| 1.4  | [ROADMAP.md](./ROADMAP.md)                                                     | Timeline of in-flight and upcoming initiatives with milestone guidance.                                                    |
-| 1.5  | [REPO_SUMMARY.md](./REPO_SUMMARY.md)                                           | Generated snapshot of top-level directories, edge functions, and environment keys.                                         |
-| 1.6  | [REPO_MAP_OPTIMIZATION.md](./REPO_MAP_OPTIMIZATION.md)                         | Deep dive on code surface responsibilities plus optimization tracker.                                                      |
-| 1.7  | [REPO_FILE_ORGANIZER.md](./REPO_FILE_ORGANIZER.md)                             | Categorized listing of top-level files/folders and their roles.                                                            |
-| 1.8  | [REPO_INVENTORY.md](./REPO_INVENTORY.md)                                       | Narrative walkthrough of major directories, Supabase assets, and trading scaffolding.                                      |
-| 1.9  | [SETUP_SUMMARY.md](./SETUP_SUMMARY.md)                                         | Generated recap of setup goals, migration highlights, and CI guardrails.                                                   |
-| 1.10 | [INVENTORY.csv](./INVENTORY.csv)                                               | CSV export that tracks documentation counts, line totals, and repo metrics.                                                |
-| 1.11 | [CHANGELOG.md](./CHANGELOG.md)                                                 | Chronological release notes maintained by the release automation.                                                          |
-| 1.12 | [dynamic-capital-ecosystem-anatomy.md](./dynamic-capital-ecosystem-anatomy.md) | Biological metaphor guide detailing how every subsystem, feedback loop, and TradingView bridge maps to automation pillars. |
-| 1.13 | [dynamic-training-model-architecture.md](./dynamic-training-model-architecture.md) | DAI, DAGI, and DAGS training mesh outline covering cores, capability domains, governance pillars, and phased rollout. |
-| 1.14 | [dynamic-capital-code-of-conduct.md](./dynamic-capital-code-of-conduct.md)     | Community behavior expectations, reporting paths, and enforcement process.                                                 |
-| 1.15 | [dynamic-capital-milestones.md](./dynamic-capital-milestones.md)               | Stage-by-stage milestone ladder aligning infrastructure, treasury, governance, and community outcomes.                     |
+| Ref  | Document                                                                           | Summary                                                                                                                    |
+| ---- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 1.1  | [FLOW_OVERVIEW.md](./FLOW_OVERVIEW.md)                                             | End-to-end map of how the marketing site, Telegram bot, Supabase functions, and Mini App connect.                          |
+| 1.2  | [agent.md](./agent.md)                                                             | Behavioral contract for the Dynamic Capital agent across Telegram commands and the Mini App.                               |
+| 1.3  | [FEATURES.md](./FEATURES.md)                                                       | Feature catalog outlining customer-facing capabilities and planned enhancements.                                           |
+| 1.4  | [ROADMAP.md](./ROADMAP.md)                                                         | Timeline of in-flight and upcoming initiatives with milestone guidance.                                                    |
+| 1.5  | [REPO_SUMMARY.md](./REPO_SUMMARY.md)                                               | Generated snapshot of top-level directories, edge functions, and environment keys.                                         |
+| 1.6  | [REPO_MAP_OPTIMIZATION.md](./REPO_MAP_OPTIMIZATION.md)                             | Deep dive on code surface responsibilities plus optimization tracker.                                                      |
+| 1.7  | [REPO_FILE_ORGANIZER.md](./REPO_FILE_ORGANIZER.md)                                 | Categorized listing of top-level files/folders and their roles.                                                            |
+| 1.8  | [REPO_INVENTORY.md](./REPO_INVENTORY.md)                                           | Narrative walkthrough of major directories, Supabase assets, and trading scaffolding.                                      |
+| 1.9  | [SETUP_SUMMARY.md](./SETUP_SUMMARY.md)                                             | Generated recap of setup goals, migration highlights, and CI guardrails.                                                   |
+| 1.10 | [INVENTORY.csv](./INVENTORY.csv)                                                   | CSV export that tracks documentation counts, line totals, and repo metrics.                                                |
+| 1.11 | [CHANGELOG.md](./CHANGELOG.md)                                                     | Chronological release notes maintained by the release automation.                                                          |
+| 1.12 | [dynamic-capital-ecosystem-anatomy.md](./dynamic-capital-ecosystem-anatomy.md)     | Biological metaphor guide detailing how every subsystem, feedback loop, and TradingView bridge maps to automation pillars. |
+| 1.13 | [dynamic-training-model-architecture.md](./dynamic-training-model-architecture.md) | DAI, DAGI, and DAGS training mesh outline covering cores, capability domains, governance pillars, and phased rollout.      |
+| 1.14 | [dynamic-capital-code-of-conduct.md](./dynamic-capital-code-of-conduct.md)         | Community behavior expectations, reporting paths, and enforcement process.                                                 |
+| 1.15 | [dynamic-capital-milestones.md](./dynamic-capital-milestones.md)                   | Stage-by-stage milestone ladder aligning infrastructure, treasury, governance, and community outcomes.                     |
 
 ## 2. Development Workflow & Standards
 

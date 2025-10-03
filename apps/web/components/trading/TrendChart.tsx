@@ -1,10 +1,19 @@
 import { Card } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { trendData, currencies } from "@/lib/mock-data";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { currencies, trendData } from "@/lib/mock-data";
 
 const currencyColors = {
   AUD: "#3B82F6",
-  CAD: "#8B5CF6", 
+  CAD: "#8B5CF6",
   CHF: "#10B981",
   EUR: "#EC4899",
   GBP: "#14B8A6",
@@ -17,15 +26,17 @@ export function TrendChart() {
   return (
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4">Currency Trends</h3>
-      
+
       <div className="flex flex-wrap gap-2 mb-4">
         {currencies.map((currency) => (
           <div
             key={currency.code}
             className="px-3 py-1.5 rounded-full border text-sm font-medium"
             style={{
-              borderColor: currencyColors[currency.code as keyof typeof currencyColors],
-              color: currencyColors[currency.code as keyof typeof currencyColors],
+              borderColor:
+                currencyColors[currency.code as keyof typeof currencyColors],
+              color:
+                currencyColors[currency.code as keyof typeof currencyColors],
             }}
           >
             {currency.code}

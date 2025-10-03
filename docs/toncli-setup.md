@@ -8,9 +8,9 @@ or local workstations) before running any TON contract tooling.
 ## Prerequisites
 
 - Python 3.12 or newer available on the `PATH`.
-- Access to the TON toolchain binaries (`func`, `fift`, and `lite-client`). These
-  must expose a `-V` flag that prints the standard "build information" string.
-  Package managers maintained by the TON community or reproducible build
+- Access to the TON toolchain binaries (`func`, `fift`, and `lite-client`).
+  These must expose a `-V` flag that prints the standard "build information"
+  string. Package managers maintained by the TON community or reproducible build
   artifacts published by Dynamic Capital are both acceptable sources.
 
 ## Installation steps
@@ -33,9 +33,9 @@ or local workstations) before running any TON contract tooling.
    pip install -r dns/requirements-toncli.txt
    ```
 
-2. **Provide stub binaries (optional for CI smoke tests).** In environments where
-   the real TON binaries are unavailable, create lightweight wrappers that emit
-   valid version strings so `toncli` can complete its first-run checks:
+2. **Provide stub binaries (optional for CI smoke tests).** In environments
+   where the real TON binaries are unavailable, create lightweight wrappers that
+   emit valid version strings so `toncli` can complete its first-run checks:
 
    ```bash
    cat <<'SH' | sudo tee /usr/local/bin/func >/dev/null
@@ -74,8 +74,10 @@ or local workstations) before running any TON contract tooling.
    ```
 
    If you see import errors about `bitstring.BitString` or `pkg_resources`,
-   reinstall the dependencies with `pip install 'bitstring<4' setuptools
-   toncli` to pull in the compatible versions.
+   reinstall the dependencies with
+   `pip install 'bitstring<4' setuptools
+   toncli` to pull in the compatible
+   versions.
 
 5. **Generate the TON Site ADNL (optional).** When onboarding a fresh
    environment, derive the TON Site ADNL and Ed25519 key pair with:
@@ -85,9 +87,9 @@ or local workstations) before running any TON contract tooling.
    ```
 
    Store the printed JSON securely and update
-   [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) as described in
-   [`dns/toncli-adnl-setup.md`](../dns/toncli-adnl-setup.md) before publishing
-   DNS updates.
+   [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) as described
+   in [`dns/toncli-adnl-setup.md`](../dns/toncli-adnl-setup.md) before
+   publishing DNS updates.
 
 ## Configuration reference
 

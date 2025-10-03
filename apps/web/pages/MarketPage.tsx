@@ -8,7 +8,7 @@ export default function MarketPage() {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Market Analysis</h1>
-          
+
           <Tabs defaultValue="currency" className="w-auto">
             <TabsList>
               <TabsTrigger value="stock">Stock</TabsTrigger>

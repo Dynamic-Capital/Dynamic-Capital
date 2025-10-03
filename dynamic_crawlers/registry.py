@@ -17,8 +17,14 @@ __all__ = [
     "CrawlerSpec",
     "DynamicCrawlerRegistry",
     "PlanFile",
+    "SCRAPEGRAPH_GIT_REQUIREMENT",
+    "SCRAPEGRAPH_REPOSITORY",
     "register_default_crawlers",
 ]
+
+
+SCRAPEGRAPH_REPOSITORY = "https://github.com/ScrapeGraphAI/Scrapegraph-ai"
+SCRAPEGRAPH_GIT_REQUIREMENT = f"scrapegraphai @ git+{SCRAPEGRAPH_REPOSITORY}"
 
 
 # ---------------------------------------------------------------------------
@@ -724,19 +730,33 @@ def _scrapegraphai_requirement_line(job: CrawlJob) -> str:
         if cleaned_requirement:
             return _ensure_trailing_newline(cleaned_requirement)
 
+    repo_requirement = _scrapegraphai_repo_requirement(metadata)
+
     git_ref = metadata.get("scrapegraphai_ref")
     if isinstance(git_ref, str):
         cleaned_ref = git_ref.strip()
         if cleaned_ref:
-            requirement = (
-                "scrapegraphai @ "
-                f"git+https://github.com/ScrapeGraphAI/Scrapegraph-ai@{cleaned_ref}"
-            )
+            requirement = f"{repo_requirement}@{cleaned_ref}"
             return _ensure_trailing_newline(requirement)
 
-    return _ensure_trailing_newline(
-        "scrapegraphai @ git+https://github.com/ScrapeGraphAI/Scrapegraph-ai"
-    )
+    return _ensure_trailing_newline(repo_requirement)
+
+
+def _scrapegraphai_repo_requirement(metadata: Mapping[str, object]) -> str:
+    """Return the base requirement string for ScrapeGraphAI using repo overrides when supplied."""
+
+    repo = metadata.get("scrapegraphai_repo")
+    if isinstance(repo, str):
+        cleaned_repo = repo.strip()
+        if cleaned_repo:
+            normalised_repo = (
+                cleaned_repo[4:]
+                if cleaned_repo.startswith("git+")
+                else cleaned_repo
+            )
+            return f"scrapegraphai @ git+{normalised_repo}"
+
+    return SCRAPEGRAPH_GIT_REQUIREMENT
 
 
 def _ensure_trailing_newline(value: str) -> str:

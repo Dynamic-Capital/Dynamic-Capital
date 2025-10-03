@@ -14,6 +14,7 @@ from dynamic_crawlers import (
     CrawlJob,
     CrawlerConfig,
     DynamicCrawlerRegistry,
+    SCRAPEGRAPH_GIT_REQUIREMENT,
     register_default_crawlers,
 )
 
@@ -77,7 +78,7 @@ def test_scrapegraphai_plan_serialises_schema(tmp_path: Path) -> None:
     )
     requirements_file = plan.files[1]
     assert requirements_file.path.endswith("requirements.txt")
-    assert "git+https://github.com/ScrapeGraphAI/Scrapegraph-ai" in requirements_file.content
+    assert requirements_file.content.strip() == SCRAPEGRAPH_GIT_REQUIREMENT
 
 
 def test_scrapegraphai_plan_allows_requirement_overrides(tmp_path: Path) -> None:
@@ -97,7 +98,9 @@ def test_scrapegraphai_plan_allows_requirement_overrides(tmp_path: Path) -> None
         name="Custom Requirement",
         urls=["https://example.com"],
         destination=str(tmp_path / "records.json"),
-        metadata={"scrapegraphai_requirement": "scrapegraphai @ git+https://example.com/fork.git"},
+        metadata={
+            "scrapegraphai_requirement": "scrapegraphai @ git+https://example.com/fork.git"
+        },
     )
     overridden_plan = registry.build_plan("ScrapeGraphAI", overridden_job)
 
@@ -105,6 +108,37 @@ def test_scrapegraphai_plan_allows_requirement_overrides(tmp_path: Path) -> None
     assert (
         custom_requirements_file.content
         == "scrapegraphai @ git+https://example.com/fork.git\n"
+    )
+
+    repo_override_job = CrawlJob(
+        name="Custom Repo",
+        urls=["https://example.com"],
+        destination=str(tmp_path / "records.json"),
+        metadata={"scrapegraphai_repo": "https://example.com/custom.git"},
+    )
+    repo_plan = registry.build_plan("ScrapeGraphAI", repo_override_job)
+
+    repo_requirements = repo_plan.files[1]
+    assert (
+        repo_requirements.content
+        == "scrapegraphai @ git+https://example.com/custom.git\n"
+    )
+
+    prefixed_repo_job = CrawlJob(
+        name="Prefixed Repo",
+        urls=["https://example.com"],
+        destination=str(tmp_path / "records.json"),
+        metadata={
+            "scrapegraphai_repo": "git+https://example.com/prefixed.git",
+            "scrapegraphai_ref": "feature-branch",
+        },
+    )
+    prefixed_plan = registry.build_plan("ScrapeGraphAI", prefixed_repo_job)
+
+    prefixed_requirements = prefixed_plan.files[1]
+    assert (
+        prefixed_requirements.content
+        == "scrapegraphai @ git+https://example.com/prefixed.git@feature-branch\n"
     )
 
 

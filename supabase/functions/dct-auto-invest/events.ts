@@ -3,7 +3,7 @@
 async function enqueue(
   type: string,
   payload: unknown,
-  _opts?: { maxAttempts?: number; backoff?: string }
+  _opts?: { maxAttempts?: number; backoff?: string },
 ): Promise<void> {
   console.log(`[Event] ${type}`, JSON.stringify(payload));
   // TODO: Implement proper event queue when Deno-compatible queue is available

@@ -1,9 +1,9 @@
 # Eu8_tRb65JdBrLL39T1GVwQBaieBW24rkUU17Wcuk-C_QA Share
 
 This folder hosts the external **datasets** mirrored from
-`OneDrive\\DynamicAI_D\\Bdatasets` that the trading agent reviews. The notes below
-capture the identifiers needed for Microsoft Graph workflows and repository
-scripts that sync the folder metadata.
+`OneDrive\\DynamicAI_D\\Bdatasets` that the trading agent reviews. The notes
+below capture the identifiers needed for Microsoft Graph workflows and
+repository scripts that sync the folder metadata.
 
 ## Share details
 
@@ -73,8 +73,8 @@ so the repository can track changes to the external share.
 
 The `dynamic_trading_knowledge` subfolder contains the PDF knowledge base that
 feeds the trading assistant. After mirroring the files into the repository, run
-the bundled helper to materialise plain text, table CSVs, and a page-level
-JSONL corpus ready for RAG ingestion.
+the bundled helper to materialise plain text, table CSVs, and a page-level JSONL
+corpus ready for RAG ingestion.
 
 ```bash
 python tools/dynamic_trading_corpus.py \
@@ -86,7 +86,7 @@ python tools/dynamic_trading_corpus.py \
 - `tools/dynamic_trading_corpus.py` wraps the shared PDF batch extractor, keeps
   `--structured` enabled for table capture, and writes
   `processed/dynamic_trading_summary.json` with run metadata.
-- Use `--no-skip-existing` when you need to refresh the artefacts after
-  updating OCR or extraction settings.
+- Use `--no-skip-existing` when you need to refresh the artefacts after updating
+  OCR or extraction settings.
 - Promote the resulting JSONL to Supabase (or your preferred object store) once
   QA is complete so downstream training jobs can consume a stable snapshot.

@@ -6,7 +6,8 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY") as string);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface EmailRequest {
@@ -26,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     const authHeader = req.headers.get("Authorization");
@@ -34,9 +35,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing authorization header");
     }
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
+    const { data: { user }, error: userError } = await supabaseClient.auth
+      .getUser(
+        authHeader.replace("Bearer ", ""),
+      );
 
     if (userError || !user) {
       throw new Error("Unauthorized");
@@ -52,9 +54,11 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Admin access required");
     }
 
-    const { to, subject, html, text, from, replyTo }: EmailRequest = await req.json();
+    const { to, subject, html, text, from, replyTo }: EmailRequest = await req
+      .json();
 
-    const fromAddress = from || Deno.env.get("COLD_EMAIL_FROM_ADDRESS") || "support@dynamic.capital";
+    const fromAddress = from || Deno.env.get("COLD_EMAIL_FROM_ADDRESS") ||
+      "support@dynamic.capital";
     const fromName = Deno.env.get("COLD_EMAIL_FROM_NAME") || "Dynamic Capital";
 
     console.log(`[send-email] Sending to: ${to}`);
@@ -78,9 +82,12 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ error: error.message }),
       {
-        status: error.message === "Unauthorized" || error.message === "Admin access required" ? 403 : 500,
+        status: error.message === "Unauthorized" ||
+            error.message === "Admin access required"
+          ? 403
+          : 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      },
     );
   }
 };

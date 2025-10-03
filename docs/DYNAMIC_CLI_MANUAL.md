@@ -68,10 +68,10 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 
 ### Invocation Patterns
 
-| Usage Form                                | Description                                                      | Synonyms              |
-| ----------------------------------------- | ---------------------------------------------------------------- | --------------------- |
+| Usage Form                                 | Description                                                      | Synonyms              |
+| ------------------------------------------ | ---------------------------------------------------------------- | --------------------- |
 | `python -m dynamic.intelligence.agi.build` | Execute the enhanced Dynamic CLI module via the Python loader.   | run, launch, initiate |
-| `dynamic-framework`                       | If installed via an entry point script, invokes the same runner. | command, executable   |
+| `dynamic-framework`                        | If installed via an entry point script, invokes the same runner. | command, executable   |
 
 ### Core Flags
 
@@ -169,8 +169,8 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 - Streams the Dynamic AGI training dataset derived from the current report.
 - Mirrors the structure returned by `build_fine_tune_dataset`, embedding the
   report payload alongside fine-tune examples and a dataset summary.
-- Combine with `--dataset PATH` to persist the JSON for ingestion by
-  the `DynamicAGIFineTuner` utility or orchestration pipelines.
+- Combine with `--dataset PATH` to persist the JSON for ingestion by the
+  `DynamicAGIFineTuner` utility or orchestration pipelines.
 - Examples are ordered by node key so successive runs remain deterministic when
   the scenario input is unchanged.
 
@@ -242,8 +242,7 @@ can iterate on scenarios without a terminal.
 
 The underlying API route (`POST /api/dynamic-cli`) executes
 `python -m dynamic.intelligence.agi.build`, streams scenario JSON over STDIN,
-and returns the
-serialised output—or CLI error—as a JSON response.
+and returns the serialised output—or CLI error—as a JSON response.
 
 > **Access control:** The web workbench is reserved for admin operators. The
 > browser includes an `x-admin-token` header (or `x-telegram-init-data`
