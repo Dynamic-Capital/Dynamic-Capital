@@ -441,6 +441,23 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
         notes=("Backed by vector store with encryption at rest",),
     ),
     ModuleRegistration(
+        name="dynamic_knowledge_base",
+        domain=ModuleDomain.AI_COGNITION,
+        responsibilities=(
+            "Capture research briefs and governance updates into the knowledge graph",
+            "Link personas, datasets, and runbooks via graph relations",
+            "Expose retrieval and explainability views for downstream agents",
+        ),
+        success_metrics=(
+            "New knowledge entries published daily",
+            "Explainability coverage above 90%",
+            "Edge freshness maintained under 48 hours",
+        ),
+        notes=(
+            "Backed by DynamicKnowledgeEngine graph orchestration",
+        ),
+    ),
+    ModuleRegistration(
         name="dynamic_datasets",
         domain=ModuleDomain.AI_COGNITION,
         responsibilities=(

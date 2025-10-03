@@ -107,3 +107,17 @@ def test_adapter_and_dataset_modules_are_registered() -> None:
     assert datasets.domain is ModuleDomain.AI_COGNITION
     assert any("dataset" in responsibility for responsibility in datasets.responsibilities)
     assert any("DynamicFineTuneDataset" in note for note in datasets.notes)
+
+
+def test_knowledge_base_module_is_registered() -> None:
+    infrastructure = build_default_infrastructure()
+
+    knowledge_base = infrastructure.get_module("dynamic_knowledge_base")
+    assert knowledge_base.domain is ModuleDomain.AI_COGNITION
+    assert any(
+        "knowledge graph" in responsibility.lower()
+        for responsibility in knowledge_base.responsibilities
+    )
+    assert any(
+        "DynamicKnowledgeEngine" in note for note in knowledge_base.notes
+    )
