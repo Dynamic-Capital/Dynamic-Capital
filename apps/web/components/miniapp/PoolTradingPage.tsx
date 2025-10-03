@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { type ReactNode, useEffect } from "react";
 import {
   ArrowUpRight,
   CandlestickChart,
@@ -10,10 +10,37 @@ import {
   Users,
 } from "lucide-react";
 
+import { cn } from "@/utils";
 import { haptic, hideMainButton, setMainButton } from "@/lib/telegram";
 import { track } from "@/lib/metrics";
 
-const POOL_METRICS = [
+type PoolMetric = {
+  label: string;
+  value: string;
+  helper: string;
+};
+
+type ActivePool = {
+  name: string;
+  focus: string;
+  nav: string;
+  status: string;
+  guardrail: string;
+};
+
+type CycleSummary = {
+  cycle: string;
+  roi: string;
+  payout: string;
+  reinvestment: string;
+};
+
+type OperationsStep = {
+  step: string;
+  detail: string;
+};
+
+const POOL_METRICS: readonly PoolMetric[] = [
   {
     label: "Capital deployed",
     value: "$42.5M",
@@ -34,9 +61,9 @@ const POOL_METRICS = [
     value: "7 days",
     helper: "16% reinvestment policy automatically applied",
   },
-] as const;
+];
 
-const ACTIVE_POOLS = [
+const ACTIVE_POOLS: readonly ActivePool[] = [
   {
     name: "Atlas Multi-Asset",
     focus: "BTC · ETH · Macro futures",
@@ -58,9 +85,9 @@ const ACTIVE_POOLS = [
     status: "Live",
     guardrail: "VaR 1.2% daily · Mentor-reviewed updates",
   },
-] as const;
+];
 
-const CYCLE_HISTORY = [
+const CYCLE_HISTORY: readonly CycleSummary[] = [
   {
     cycle: "Mar 2025",
     roi: "+6.9%",
@@ -85,7 +112,7 @@ const CYCLE_HISTORY = [
     payout: "$690K",
     reinvestment: "$172K",
   },
-] as const;
+];
 
 const RISK_CONTROLS = [
   "Per-pool circuit breakers pause automation the moment policy thresholds trigger.",
@@ -93,7 +120,7 @@ const RISK_CONTROLS = [
   "All investor traffic routes through KYC/T+S monitoring with audit trails stored in Supabase.",
 ] as const;
 
-const OPERATIONS_PLAYBOOK = [
+const OPERATIONS_PLAYBOOK: readonly OperationsStep[] = [
   {
     step: "Intake",
     detail:
@@ -109,7 +136,7 @@ const OPERATIONS_PLAYBOOK = [
     detail:
       "Monthly settlement splits payouts (64%), reinvestment (16%), and performance fees (20%) with receipts stored for audit.",
   },
-] as const;
+];
 
 export default function PoolTradingPage() {
   useEffect(() => {
@@ -117,322 +144,172 @@ export default function PoolTradingPage() {
       haptic("medium");
       void track("pool_allocation_request", { surface: "miniapp" });
     });
+
     return () => {
       hideMainButton();
     };
   }, []);
 
   return (
-    <div className="grid gap-4">
-      <section className="card" style={{ display: "grid", gap: 16 }}>
-        <header style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 16,
-              display: "grid",
-              placeItems: "center",
-              background: "rgba(48, 194, 242, 0.12)",
-              color: "var(--tg-accent)",
-            }}
-          >
-            <CandlestickChart size={20} />
-          </div>
-          <div>
-            <h1 style={{ margin: 0 }}>Dynamic Pool Trading</h1>
-            <p className="muted" style={{ margin: 0 }}>
-              Managed pools with institutional controls, monthly settlements,
-              and live guardrails.
-            </p>
-          </div>
-        </header>
+    <div className="flex flex-col gap-4">
+      <SectionCard>
+        <SectionHeader
+          icon={<CandlestickChart size={20} />}
+          tone="sky"
+          title="Dynamic Pool Trading"
+          description="Managed pools with institutional controls, monthly settlements, and live guardrails."
+        />
 
-        <div
-          style={{
-            display: "grid",
-            gap: 12,
-            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-          }}
-        >
+        <div className="grid gap-3 sm:grid-cols-2">
           {POOL_METRICS.map((metric) => (
-            <div
+            <article
               key={metric.label}
-              style={{
-                padding: "12px 14px",
-                borderRadius: 14,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                display: "grid",
-                gap: 6,
-              }}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
-              <span className="muted" style={{ fontSize: 12 }}>
+              <p className="text-xs font-medium text-white/60">
                 {metric.label}
-              </span>
-              <strong style={{ fontSize: 18 }}>{metric.value}</strong>
-              <span className="muted" style={{ fontSize: 12 }}>
-                {metric.helper}
-              </span>
-            </div>
+              </p>
+              <p className="mt-1 text-lg font-semibold text-white">
+                {metric.value}
+              </p>
+              <p className="mt-2 text-xs text-white/60">{metric.helper}</p>
+            </article>
           ))}
         </div>
-      </section>
+      </SectionCard>
 
-      <section className="card" style={{ display: "grid", gap: 16 }}>
-        <header style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 16,
-              display: "grid",
-              placeItems: "center",
-              background: "rgba(34, 197, 94, 0.12)",
-              color: "rgba(74, 222, 128, 1)",
-            }}
-          >
-            <Users size={20} />
-          </div>
-          <div>
-            <h2 style={{ margin: 0 }}>Active pools</h2>
-            <p className="muted" style={{ margin: 0 }}>
-              Track capital, focus, and guardrails before joining an allocation.
-            </p>
-          </div>
-        </header>
+      <SectionCard>
+        <SectionHeader
+          icon={<Users size={20} />}
+          tone="emerald"
+          title="Active pools"
+          description="Track capital, focus, and guardrails before joining an allocation."
+        />
 
-        <div style={{ display: "grid", gap: 12 }}>
+        <div className="grid gap-3">
           {ACTIVE_POOLS.map((pool) => (
-            <div
+            <article
               key={pool.name}
-              className="card"
-              style={{
-                display: "grid",
-                gap: 8,
-                padding: "14px 16px",
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
+              className="card grid gap-3 rounded-2xl border border-white/12 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-4"
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                }}
-              >
-                <div style={{ display: "grid", gap: 4 }}>
-                  <strong style={{ fontSize: 16 }}>{pool.name}</strong>
-                  <span className="muted" style={{ fontSize: 12 }}>
-                    {pool.focus}
-                  </span>
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <p className="text-base font-semibold text-white">
+                    {pool.name}
+                  </p>
+                  <p className="text-xs text-white/60">{pool.focus}</p>
                 </div>
-                <span
-                  className="muted"
-                  style={{
-                    fontSize: 12,
-                    padding: "4px 10px",
-                    borderRadius: 999,
-                    border: "1px solid rgba(255,255,255,0.12)",
-                  }}
-                >
+                <span className="inline-flex items-center rounded-full border border-white/15 px-3 py-1 text-xs text-white/70">
                   {pool.status}
                 </span>
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  fontSize: 13,
-                }}
-              >
-                <span>Net asset value</span>
-                <strong>{pool.nav}</strong>
+
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/70">Net asset value</span>
+                <span className="font-semibold text-white">{pool.nav}</span>
               </div>
-              <p className="muted" style={{ margin: 0, fontSize: 12 }}>
-                {pool.guardrail}
-              </p>
+
+              <p className="text-xs text-white/60">{pool.guardrail}</p>
+
               <button
-                className="btn"
-                style={{ justifyContent: "space-between" }}
+                className="btn justify-between bg-white/10 text-white"
                 onClick={() => {
                   haptic("light");
-                  void track("pool_view_brief", { pool: pool.name });
+                  void track("pool_view_brief", {
+                    pool: pool.name,
+                    surface: "miniapp",
+                  });
                 }}
               >
                 <span>View strategy brief</span>
                 <ArrowUpRight size={18} />
               </button>
-            </div>
+            </article>
           ))}
         </div>
-      </section>
+      </SectionCard>
 
-      <section className="card" style={{ display: "grid", gap: 16 }}>
-        <header style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 16,
-              display: "grid",
-              placeItems: "center",
-              background: "rgba(234, 179, 8, 0.12)",
-              color: "rgba(250, 204, 21, 1)",
-            }}
-          >
-            <Clock size={20} />
-          </div>
-          <div>
-            <h2 style={{ margin: 0 }}>Cycle history</h2>
-            <p className="muted" style={{ margin: 0 }}>
-              Monthly settlements with payouts and automatic reinvestment share.
-            </p>
-          </div>
-        </header>
+      <SectionCard>
+        <SectionHeader
+          icon={<Clock size={20} />}
+          tone="amber"
+          title="Cycle history"
+          description="Monthly settlements with payouts and automatic reinvestment share."
+        />
 
-        <div style={{ display: "grid", gap: 10 }}>
+        <div className="grid gap-3">
           {CYCLE_HISTORY.map((cycle) => (
-            <div
+            <article
               key={cycle.cycle}
-              style={{
-                display: "grid",
-                gap: 6,
-                padding: "12px 14px",
-                borderRadius: 12,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <strong>{cycle.cycle}</strong>
-                <span className="muted" style={{ fontSize: 12 }}>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-white">
+                  {cycle.cycle}
+                </p>
+                <span className="text-xs text-white/60">
                   Net return {cycle.roi}
                 </span>
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                }}
-              >
-                <span>Payout</span>
-                <strong>{cycle.payout}</strong>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                }}
-              >
-                <span>Reinvestment</span>
-                <strong>{cycle.reinvestment}</strong>
-              </div>
-            </div>
+              <dl className="mt-3 space-y-2 text-sm text-white/70">
+                <div className="flex items-center justify-between">
+                  <dt>Payout</dt>
+                  <dd className="font-semibold text-white">{cycle.payout}</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt>Reinvestment</dt>
+                  <dd className="font-semibold text-white">
+                    {cycle.reinvestment}
+                  </dd>
+                </div>
+              </dl>
+            </article>
           ))}
         </div>
-      </section>
+      </SectionCard>
 
-      <section className="card" style={{ display: "grid", gap: 16 }}>
-        <header style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 16,
-              display: "grid",
-              placeItems: "center",
-              background: "rgba(59, 130, 246, 0.12)",
-              color: "rgba(96, 165, 250, 1)",
-            }}
-          >
-            <ShieldCheck size={20} />
-          </div>
-          <div>
-            <h2 style={{ margin: 0 }}>Risk guardrails</h2>
-            <p className="muted" style={{ margin: 0 }}>
-              Enforcement policies keep allocations inside agreed parameters.
-            </p>
-          </div>
-        </header>
+      <SectionCard>
+        <SectionHeader
+          icon={<ShieldCheck size={20} />}
+          tone="blue"
+          title="Risk guardrails"
+          description="Enforcement policies keep allocations inside agreed parameters."
+        />
 
-        <ul style={{ display: "grid", gap: 10, padding: 0, margin: 0 }}>
+        <ul className="grid gap-3">
           {RISK_CONTROLS.map((item) => (
             <li
               key={item}
-              style={{
-                listStyle: "none",
-                fontSize: 13,
-                padding: "10px 12px",
-                borderRadius: 12,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/70 backdrop-blur-sm"
             >
               {item}
             </li>
           ))}
         </ul>
-      </section>
+      </SectionCard>
 
-      <section className="card" style={{ display: "grid", gap: 16 }}>
-        <header style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 16,
-              display: "grid",
-              placeItems: "center",
-              background: "rgba(147, 112, 219, 0.12)",
-              color: "rgba(167, 139, 250, 1)",
-            }}
-          >
-            <FileText size={20} />
-          </div>
-          <div>
-            <h2 style={{ margin: 0 }}>Operations playbook</h2>
-            <p className="muted" style={{ margin: 0 }}>
-              Every step is mirrored in the Mini App with receipts and audit
-              logs.
-            </p>
-          </div>
-        </header>
+      <SectionCard>
+        <SectionHeader
+          icon={<FileText size={20} />}
+          tone="violet"
+          title="Operations playbook"
+          description="Every step is mirrored in the Mini App with receipts and audit logs."
+        />
 
-        <div style={{ display: "grid", gap: 12 }}>
+        <div className="grid gap-3">
           {OPERATIONS_PLAYBOOK.map((item) => (
-            <div
+            <article
               key={item.step}
-              style={{
-                display: "grid",
-                gap: 4,
-                padding: "12px 14px",
-                borderRadius: 12,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
-              <strong>{item.step}</strong>
-              <span className="muted" style={{ fontSize: 12 }}>
-                {item.detail}
-              </span>
-            </div>
+              <p className="text-sm font-semibold text-white">{item.step}</p>
+              <p className="mt-1 text-xs text-white/60">{item.detail}</p>
+            </article>
           ))}
         </div>
 
         <button
-          className="btn"
+          className="btn gap-2 bg-white text-slate-950"
           onClick={() => {
             haptic("medium");
             void track("pool_download_due_diligence", { surface: "miniapp" });
@@ -441,7 +318,61 @@ export default function PoolTradingPage() {
           <ArrowUpRight size={18} />
           Request due diligence pack
         </button>
-      </section>
+      </SectionCard>
     </div>
+  );
+}
+
+type Tone = "sky" | "emerald" | "amber" | "blue" | "violet";
+
+const TONE_STYLES: Record<Tone, string> = {
+  sky: "bg-sky-500/15 text-sky-200",
+  emerald: "bg-emerald-500/15 text-emerald-200",
+  amber: "bg-amber-400/15 text-amber-200",
+  blue: "bg-blue-500/15 text-blue-200",
+  violet: "bg-violet-500/20 text-violet-200",
+};
+
+function SectionCard(
+  { children, className }: { children: ReactNode; className?: string },
+) {
+  return (
+    <section
+      className={cn(
+        "card grid gap-4 rounded-3xl border border-white/12 bg-gradient-to-b from-white/10 via-white/5 to-transparent p-5",
+        className,
+      )}
+    >
+      {children}
+    </section>
+  );
+}
+
+function SectionHeader({
+  icon,
+  tone,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  tone: Tone;
+  title: string;
+  description: string;
+}) {
+  return (
+    <header className="flex items-start gap-3">
+      <span
+        className={cn(
+          "grid h-10 w-10 place-items-center rounded-2xl border border-white/10",
+          TONE_STYLES[tone],
+        )}
+      >
+        {icon}
+      </span>
+      <div className="space-y-1">
+        <h2 className="text-base font-semibold text-white">{title}</h2>
+        <p className="text-xs text-white/60">{description}</p>
+      </div>
+    </header>
   );
 }
