@@ -7,12 +7,12 @@ sanitized but preserve the structure required for Tonstarter audits.
 ## jetton-master-overview.txt
 
 ```
-URL: https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6
+URL: https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 Block: 13458923000002 (2025-05-10T14:03:29Z)
 Symbol: DCT
 Decimals: 9
 Total Supply: 100,000,000 DCT
-Owner: EQD1zAJPYZMY•••••••••••••••••••••••
+Owner: EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq
 Jetton Wallets: 142
 Recent Operations:
   - 2025-05-09: burn 12,450 DCT (EQBNSubscriptBurn••••••••••••••••••••)
@@ -22,7 +22,7 @@ Recent Operations:
 ## jetton-wallet-treasury.txt
 
 ```
-URL: https://tonviewer.com/jetton/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6/EQD1zAJPYZMY•••••••••••••••••••••••
+URL: https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq
 Balance: 28,400,000 DCT
 Transactions:
   - 2025-05-10: Transfer 250,000 DCT to EQBSTONLiquidity••••••••••••••••••
