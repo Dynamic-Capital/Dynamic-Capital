@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useCustomLLMChat } from "@/hooks/useCustomLLMChat";
+import { useCustomLLMChat } from "../../hooks/useCustomLLMChat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
