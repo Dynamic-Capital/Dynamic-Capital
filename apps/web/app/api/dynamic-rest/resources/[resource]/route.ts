@@ -7,14 +7,26 @@ import {
   buildDynamicRestTradingDeskResponse,
   DYNAMIC_REST_CACHE_CONTROL_HEADER,
   DYNAMIC_REST_CACHE_TAG,
-  DYNAMIC_REST_CACHE_TTL_SECONDS,
   type DynamicRestResourceEnvelope,
   type DynamicRestResources,
 } from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 const ROUTE_BASE = "/api/dynamic-rest/resources" as const;
-export const revalidate = DYNAMIC_REST_CACHE_TTL_SECONDS;
+
+// Keep this fallback in sync with DEFAULT_DYNAMIC_REST_CACHE_TTL_SECONDS in
+// `@/services/dynamic-rest`.
+const FALLBACK_REVALIDATE_SECONDS = 300;
+const rawRevalidateSeconds = process.env.CACHE_TTL_SECONDS;
+const parsedRevalidateSeconds = rawRevalidateSeconds === undefined
+  ? undefined
+  : Number.parseInt(rawRevalidateSeconds, 10);
+
+export const revalidate = parsedRevalidateSeconds !== undefined &&
+    Number.isFinite(parsedRevalidateSeconds) &&
+    parsedRevalidateSeconds >= 0
+  ? parsedRevalidateSeconds
+  : FALLBACK_REVALIDATE_SECONDS;
 
 type ResourceSlug = "instruments" | "trading-desk" | "bond-yields";
 
@@ -115,7 +127,7 @@ export const POST = methodNotAllowed;
 export const PUT = methodNotAllowed;
 export const PATCH = methodNotAllowed;
 export const DELETE = methodNotAllowed;
-export const HEAD = methodNotAllowed;
+export const HEAD = (req: Request) => methodNotAllowed(req);
 
 export function OPTIONS(req: Request) {
   const headers = corsHeaders(req, "GET");
