@@ -38,7 +38,7 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const host = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
 
-  if (TON_GATEWAY_HOSTS.has(host)) {
+  if (TON_GATEWAY_HOSTS.has(host) && !pathname.startsWith("/ton-site")) {
     const rewritten = req.nextUrl.clone();
     const suffix = pathname === "/" ? "" : pathname;
     rewritten.pathname = `/ton-site${suffix}`;
