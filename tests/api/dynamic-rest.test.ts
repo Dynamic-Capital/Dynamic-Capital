@@ -119,8 +119,19 @@ async function run() {
   );
 
   const openSource = body.resources.openSource as OpenSourceResource;
-  assert.equal(openSource.totals.overall, 12);
-  assert.equal(openSource.totals.helpers, openSource.categories.helpers.length);
+  assert.equal(
+    openSource.totals.overall,
+    openSource.totals.helpers +
+      openSource.totals.languageModels +
+      openSource.totals.adapters +
+      openSource.totals.toolkits,
+    "overall total should equal the sum of category totals",
+  );
+  assert.equal(
+    openSource.totals.helpers,
+    openSource.categories.helpers.length,
+    "helpers total should track helper catalog entries",
+  );
   assert.ok(
     openSource.categories.languageModels.some((entry) =>
       entry.name.includes("Mistral")
@@ -130,6 +141,21 @@ async function run() {
   assert.ok(
     openSource.categories.adapters.every((entry) => entry.license.length > 0),
     "adapter entries should include license metadata",
+  );
+  assert.equal(
+    openSource.totals.languageModels,
+    openSource.categories.languageModels.length,
+    "language model total should track catalog entries",
+  );
+  assert.equal(
+    openSource.totals.adapters,
+    openSource.categories.adapters.length,
+    "adapter total should match adapter catalog entries",
+  );
+  assert.equal(
+    openSource.totals.toolkits,
+    openSource.categories.toolkits.length,
+    "toolkit total should match toolkit catalog entries",
   );
 
   const { GET: getResource } = await import(
