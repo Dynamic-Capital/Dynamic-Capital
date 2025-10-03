@@ -1,5 +1,5 @@
 import { registerHandler } from "../_shared/serve.ts";
-import { corsHeaders, json, mna, oops } from "../_shared/http.ts";
+import { corsHeaders, json, methodNotAllowed, oops } from "../_shared/http.ts";
 import { createLogger } from "../_shared/logger.ts";
 import { requireAuthUser } from "../_shared/auth.ts";
 
@@ -18,7 +18,7 @@ export const handler = registerHandler(async (req) => {
   }
 
   if (req.method !== "POST") {
-    return mna();
+    return methodNotAllowed(req);
   }
 
   const auth = await requireAuthUser(req, { logger });
