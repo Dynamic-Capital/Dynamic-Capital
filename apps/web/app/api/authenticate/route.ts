@@ -61,11 +61,25 @@ export async function POST(req: NextRequest) {
   });
 }
 
-export const GET = methodNotAllowed;
-export const PUT = methodNotAllowed;
-export const PATCH = methodNotAllowed;
-export const DELETE = methodNotAllowed;
-export const HEAD = methodNotAllowed;
+export function GET(req: NextRequest) {
+  return methodNotAllowed(req);
+}
+
+export function PUT(req: NextRequest) {
+  return methodNotAllowed(req);
+}
+
+export function PATCH(req: NextRequest) {
+  return methodNotAllowed(req);
+}
+
+export function DELETE(req: NextRequest) {
+  return methodNotAllowed(req);
+}
+
+export function HEAD(req: NextRequest) {
+  return methodNotAllowed(req);
+}
 export function OPTIONS(req: NextRequest) {
   return new Response(null, { status: 204, headers: corsHeaders(req, "POST") });
 }
