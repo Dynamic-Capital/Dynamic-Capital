@@ -62,6 +62,10 @@ _KEEPER_EXPORTS = {
         "DynamicRecyclingKeeper",
         "RecyclingKeeperSnapshot",
     ),
+    "dynamic_keepers.bookkeeping": (
+        "GoogleDriveBookkeeper",
+        "IndexedDocument",
+    ),
     "dynamic_keepers.dhivehi_language": ("DynamicDhivehiLanguageKeeper",),
     "dynamic_keepers.business": ("DynamicBusinessKeeper",),
     "dynamic_keepers.ocean": (

@@ -1,0 +1,184 @@
+"""Index Google Drive PDF metadata with optional OCR support."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+from dynamic_corpus_extraction.engine import DynamicCorpusExtractionEngine
+from dynamic_corpus_extraction.google_drive import build_google_drive_pdf_loader
+from dynamic_keepers.bookkeeping import GoogleDriveBookkeeper
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Scrape PDF metadata from Google Drive, optionally run OCR to extract "
+            "text, and organise the results into a dynamic database snapshot."
+        )
+    )
+    source = parser.add_mutually_exclusive_group(required=False)
+    source.add_argument(
+        "--share-link",
+        help="Google Drive share link pointing to a folder or file.",
+    )
+    source.add_argument(
+        "--folder-id",
+        help="Explicit folder identifier to traverse.",
+    )
+    parser.add_argument(
+        "--file-id",
+        action="append",
+        dest="file_ids",
+        default=None,
+        help="Individual file identifiers to fetch alongside any folder traversal.",
+    )
+    parser.add_argument("--api-key", help="Google API key for Drive access.")
+    parser.add_argument("--access-token", help="OAuth access token for Drive.")
+    parser.add_argument(
+        "--enable-ocr",
+        action="store_true",
+        help="Enable OCR fallback when PDFs do not contain embedded text.",
+    )
+    parser.add_argument(
+        "--ocr-language",
+        action="append",
+        dest="ocr_languages",
+        default=None,
+        help="Language hint(s) for Tesseract OCR (may be supplied multiple times).",
+    )
+    parser.add_argument(
+        "--ocr-dpi",
+        type=int,
+        default=300,
+        help="Rasterisation DPI used when OCR is enabled (default: 300).",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Maximum number of documents to index during this run.",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="Override the batch size used when paging Drive results.",
+    )
+    parser.add_argument(
+        "--max-file-size",
+        type=int,
+        default=50_000_000,
+        help="Maximum allowed file size in bytes (default: 50MB).",
+    )
+    parser.add_argument(
+        "--table",
+        default="google_drive_pdfs",
+        help="Database table name used for indexed records.",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        default="data/google_drive_database_snapshot.json",
+        help="Location where the resulting snapshot JSON will be stored.",
+    )
+    return parser.parse_args()
+
+
+def _ensure_source(args: argparse.Namespace) -> None:
+    if not any((args.share_link, args.folder_id, args.file_ids)):
+        raise SystemExit(
+            "At least one --share-link, --folder-id, or --file-id value must be provided."
+        )
+
+
+def _serialise_snapshot(keeper: GoogleDriveBookkeeper) -> dict[str, object]:
+    snapshot = keeper.snapshot()
+    events = keeper.recent_events(limit=50)
+    return {
+        "table": snapshot.table,
+        "record_count": snapshot.record_count,
+        "mean_confidence": snapshot.mean_confidence,
+        "mean_relevance": snapshot.mean_relevance,
+        "mean_freshness": snapshot.mean_freshness,
+        "tag_catalog": list(snapshot.tag_catalog),
+        "updated_at": snapshot.updated_at.isoformat(),
+        "records": [
+            {
+                "key": record.key,
+                "canonical_key": record.canonical_key,
+                "payload": record.payload,
+                "confidence": record.confidence,
+                "relevance": record.relevance,
+                "freshness": record.freshness,
+                "weight": record.weight,
+                "timestamp": record.timestamp.isoformat(),
+                "tags": list(record.tags),
+                "sources": list(record.sources),
+            }
+            for record in snapshot.records
+        ],
+        "recent_events": [
+            {
+                "table": event.table,
+                "key": event.key,
+                "action": event.action,
+                "confidence_shift": event.confidence_shift,
+                "relevance_shift": event.relevance_shift,
+                "timestamp": event.timestamp.isoformat(),
+            }
+            for event in events
+        ],
+    }
+
+
+def _run() -> None:
+    args = _parse_args()
+    _ensure_source(args)
+
+    loader = build_google_drive_pdf_loader(
+        share_link=args.share_link,
+        folder_id=args.folder_id,
+        file_ids=args.file_ids,
+        api_key=args.api_key,
+        access_token=args.access_token,
+        enable_ocr=args.enable_ocr,
+        ocr_languages=args.ocr_languages,
+        ocr_dpi=args.ocr_dpi,
+        max_file_size=args.max_file_size,
+        batch_size=args.batch_size,
+    )
+
+    engine = DynamicCorpusExtractionEngine()
+    engine.register_source("google_drive", loader)
+    summary = engine.extract(limit=args.limit)
+
+    keeper = GoogleDriveBookkeeper(table=args.table)
+    extra_tags = ("ocr",) if args.enable_ocr else ()
+    indexed_records = keeper.index_documents(summary.documents, extra_tags=extra_tags)
+
+    output = {
+        "summary": {
+            "documents": len(summary.documents),
+            "duplicate_count": summary.duplicate_count,
+            "source_statistics": dict(summary.source_statistics),
+            "elapsed_seconds": summary.elapsed_seconds,
+            "ocr_enabled": args.enable_ocr,
+        },
+        "snapshot": _serialise_snapshot(keeper),
+        "indexed_records": len(indexed_records),
+    }
+
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as handle:
+        json.dump(output, handle, indent=2, ensure_ascii=False)
+
+    print(
+        f"Indexed {len(indexed_records)} document(s) into '{args.table}'. "
+        f"Snapshot written to {output_path}"
+    )
+
+
+if __name__ == "__main__":
+    _run()
