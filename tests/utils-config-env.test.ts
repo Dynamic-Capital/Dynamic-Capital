@@ -20,6 +20,21 @@ test("utils/config falls back to defaults when Supabase env vars are missing", a
   else delete process.env.SUPABASE_ANON_KEY;
 });
 
+test("known feature flags default to enabled", async () => {
+  const prevUrl = process.env.SUPABASE_URL;
+  const prevKey = process.env.SUPABASE_ANON_KEY;
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_ANON_KEY;
+  const { configClient } = await freshImport(
+    new URL("../apps/web/utils/config.ts", import.meta.url),
+  );
+  equal(await configClient.getFlag("broadcasts_enabled"), true);
+  if (prevUrl !== undefined) process.env.SUPABASE_URL = prevUrl;
+  else delete process.env.SUPABASE_URL;
+  if (prevKey !== undefined) process.env.SUPABASE_ANON_KEY = prevKey;
+  else delete process.env.SUPABASE_ANON_KEY;
+});
+
 test("utils/config rejects null-like env values", async () => {
   const prevUrl = process.env.SUPABASE_URL;
   const prevKey = process.env.SUPABASE_ANON_KEY;
