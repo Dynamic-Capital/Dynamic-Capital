@@ -12,7 +12,11 @@ if "dynamic.trading.algo.dynamic_metadata" not in sys.modules:
     stub.MetadataAttribute = type("MetadataAttribute", (), {})
     sys.modules["dynamic.trading.algo.dynamic_metadata"] = stub
 
-from dynamic.intelligence.agi.fine_tune import DynamicAGIFineTuner
+from dynamic.intelligence.agi.fine_tune import (
+    DynamicAGIFineTuner,
+    DynamicFineTuneDataset,
+    FineTuneExample,
+)
 from dynamic.intelligence.agi.self_improvement import ImprovementSignal, LearningSnapshot
 from dynamic_benchmark.gradebook import KnowledgeBaseMetrics
 from dynamic_fine_tune_engine import (
@@ -152,6 +156,21 @@ def test_capacity_evicts_oldest_records() -> None:
 
     assert len(recent) == 2
     assert {record.source for record in recent} == {"product", "platform"}
+
+
+def test_dataset_tail_returns_latest_records() -> None:
+    dataset = DynamicFineTuneDataset(capacity=2)
+    example_one = FineTuneExample(prompt="p1", completion="c1")
+    example_two = FineTuneExample(prompt="p2", completion="c2")
+    example_three = FineTuneExample(prompt="p3", completion="c3")
+
+    dataset.add(example_one)
+    dataset.add(example_two)
+    dataset.add(example_three)
+
+    assert dataset.tail(2) == (example_two, example_three)
+    assert dataset.tail(5) == (example_two, example_three)
+    assert dataset.tail(0) == ()
 
 
 def test_builder_and_helper_coordinate_with_model() -> None:
@@ -369,4 +388,38 @@ def test_grade_informed_fine_tune_prioritises_low_grades() -> None:
     assert "grade-remediation" in dag_record["tags"]
     assert dag_record["metadata"]["grade_severity_label"] == "high"
     assert report["domain_reports"]["DAGS"]["quality_floor"] > report["domain_reports"]["DAI"]["quality_floor"]
+
+
+def test_fine_tune_from_benchmark_generates_plan() -> None:
+    model = DynamicFineTuneModel()
+    agent = DynamicFineTuneAgent(model=model)
+    trainer = FineTuneTrainer(agent=agent)
+
+    benchmark_payload = {
+        "domains": {
+            "DAI": {
+                "coverage": {"present": 58, "required": 64},
+                "accuracy": {"passing": 92, "sampled": 100},
+                "governance": {"hours_since_last_probe": 18, "failed_probes": 1},
+            },
+            "DAGI": {
+                "coverage": {"present": 52, "required": 60},
+                "accuracy": {"passing": 85, "sampled": 96},
+                "governance": {"hours_since_last_probe": 26, "failed_probes": 1},
+            },
+            "DAGS": {
+                "coverage": {"present": 49, "required": 58},
+                "accuracy": {"passing": 80, "sampled": 92},
+                "governance": {"hours_since_last_probe": 30, "failed_probes": 2},
+            },
+        }
+    }
+
+    result = trainer.fine_tune_from_benchmark(benchmark_payload, batch_size=8)
+
+    assert result["ingested"] >= len(benchmark_payload["domains"]) * 2
+    plan = result["benchmark_plan"]
+    assert set(plan["plans"]) == {"DAI", "DAGI", "DAGS"}
+    assert plan["plans"]["DAI"]["snapshots"]["count"] >= 1
+    assert isinstance(plan["fine_tune_result"]["converged"], bool)
 
