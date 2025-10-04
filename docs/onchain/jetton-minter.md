@@ -49,6 +49,10 @@ balances so auditors can independently replay the queries.
   and records the initiator, target supply, and mainnet transaction hash inside
   `jetton_minter_runs` for auditability (see
   [`dynamic-capital-ton/supabase/functions/start-jetton-minter/index.ts`](../../dynamic-capital-ton/supabase/functions/start-jetton-minter/index.ts)).
+  A local dry-run harness is available through
+  `scripts/supabase/run-start-jetton-minter.ts`, which mirrors the deployed
+  handler and persists state to `supabase/.tmp/jetton-minter-state.json` for
+  iterative rehearsals without touching production services.
 
 ## Checklist Outcome
 
