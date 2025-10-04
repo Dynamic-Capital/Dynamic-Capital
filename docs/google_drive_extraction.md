@@ -7,6 +7,29 @@ This note captures the current options for extracting PDFs from a shared Google 
 - Google Drive API credentials (API key or OAuth access token) for the `scripts/index_google_drive_pdfs.py` pipeline **or** the [`gdown`](https://github.com/wkentaro/gdown) utility if you plan to download the files first.
 - Python dependencies: `PyPDF2` for text extraction and, when OCR is desired, `pdf2image`, `pytesseract`, and `Pillow`.
 
+## Multi-drive corpus extraction
+
+Use the `scripts/extract_google_drive_corpus.py` helper when you need to
+combine several shared folders or files into a single corpus run. The
+utility registers one extraction source per share link, requests help from
+all available agent domains for traceability, and exports both the
+documents and run metadata.
+
+```bash
+python scripts/extract_google_drive_corpus.py \
+  --share-link "https://drive.google.com/drive/folders/<folder-a>" \
+  --share-link "https://drive.google.com/drive/folders/<folder-b>" \
+  --api-key "$GOOGLE_API_KEY" \
+  --pages-per-document 99 \
+  --documents-jsonl data/google_drive_documents.jsonl \
+  --output data/google_drive_corpus_summary.json
+```
+
+Provide `--share-links-file` to load additional URLs from a newline
+delimited file. Use `--skip-agent-help` when you do not need the agent
+domain trace and `--agent-domain` to request a specific subset instead of
+the default "all domains" sweep.
+
 ## End-to-end extraction with batching
 Run the indexing script with the shared link, credentials, and JSONL export enabled. The `--pages-per-document` flag controls the batching window and defaults to 99 pages.
 

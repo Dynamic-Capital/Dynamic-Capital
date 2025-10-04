@@ -1,250 +1,344 @@
-"""Utility to extract PDF text from a shared Google Drive folder."""
+"""Utility to extract corpus documents from multiple Google Drive share links."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import logging
+import os
+import pkgutil
 import re
-import sys
-import tempfile
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Sequence
-from urllib.parse import unquote
+from typing import Iterable, Mapping, MutableMapping, Sequence
 
-import gdown  # type: ignore[import]
-import requests
-from bs4 import BeautifulSoup
+from dynamic_corpus_extraction.engine import (
+    CorpusExtractionSummary,
+    DynamicCorpusExtractionEngine,
+)
+from dynamic_corpus_extraction.google_drive import (
+    build_google_drive_pdf_loader,
+    parse_drive_share_link,
+)
 
-from dynamic_corpus_extraction.google_drive import parse_drive_share_link
-
-
-@dataclass(frozen=True)
-class DriveFolderEntry:
-    """Metadata for a file discovered in a shared Google Drive folder."""
-
-    file_id: str
-    name: str
-    href: str
-    modified_label: str | None
-    mime_hint: str | None
-    is_folder: bool
+LOGGER = logging.getLogger("extract_google_drive_corpus")
 
 
-_FOLDER_VIEW_URL = "https://drive.google.com/embeddedfolderview?id={folder_id}#list"
-_FILE_ID_PATTERN = re.compile(r"/file/d/([A-Za-z0-9_-]+)")
-_FOLDER_ID_PATTERN = re.compile(r"/folders/([A-Za-z0-9_-]+)")
-_MIME_HINT_PATTERN = re.compile(r"/type/([^/?]+)")
+def _configure_logging(*, verbose: bool) -> None:
+    level = logging.INFO if verbose else logging.WARNING
+    logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
 
-def iter_shared_folder_entries(folder_id: str) -> Iterator[DriveFolderEntry]:
-    """Yield entries for a shared folder by scraping the embedded view page."""
-
-    response = requests.get(_FOLDER_VIEW_URL.format(folder_id=folder_id), timeout=60)
-    response.raise_for_status()
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    for entry in soup.select("div.flip-entry"):
-        anchor = entry.find("a", href=True)
-        if not anchor:
-            continue
-        href = anchor["href"]
-        folder_match = _FOLDER_ID_PATTERN.search(href)
-        file_match = _FILE_ID_PATTERN.search(href)
-        is_folder = False
-        identifier: str | None = None
-        if folder_match:
-            identifier = folder_match.group(1)
-            is_folder = True
-        elif file_match:
-            identifier = file_match.group(1)
-        if identifier is None:
-            continue
-        title_element = entry.select_one("div.flip-entry-title")
-        name = title_element.get_text(strip=True) if title_element else identifier
-        modified_element = entry.select_one("div.flip-entry-last-modified")
-        modified_label = modified_element.get_text(strip=True) if modified_element else None
-        mime_hint: str | None = None
-        icon = entry.select_one("div.flip-entry-list-icon img")
-        if icon and icon.has_attr("src"):
-            icon_src = icon["src"]
-            mime_match = _MIME_HINT_PATTERN.search(icon_src)
-            if mime_match:
-                mime_hint = unquote(mime_match.group(1))
-        yield DriveFolderEntry(
-            file_id=identifier,
-            name=name,
-            href=href,
-            modified_label=modified_label,
-            mime_hint=mime_hint,
-            is_folder=is_folder,
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Extract corpus documents from Google Drive share links using the dynamic "
+            "corpus extraction engine."
         )
+    )
+    parser.add_argument(
+        "--share-link",
+        dest="share_links",
+        action="append",
+        default=None,
+        help=(
+            "Google Drive share link (folder or file). Provide multiple times to "
+            "combine several drives into a single corpus run."
+        ),
+    )
+    parser.add_argument(
+        "--share-links-file",
+        help=(
+            "Optional path to a newline-delimited file of Google Drive share links. "
+            "These are appended to any --share-link values provided."
+        ),
+    )
+    parser.add_argument("--api-key", help="Google API key for Drive access.")
+    parser.add_argument("--access-token", help="OAuth access token for Drive API calls.")
+    parser.add_argument(
+        "--enable-ocr",
+        action="store_true",
+        help="Enable OCR fallback when PDFs do not contain embedded text.",
+    )
+    parser.add_argument(
+        "--ocr-language",
+        dest="ocr_languages",
+        action="append",
+        default=None,
+        help="Language hint(s) for Tesseract OCR (may be provided multiple times).",
+    )
+    parser.add_argument(
+        "--ocr-dpi",
+        type=int,
+        default=300,
+        help="Rasterisation DPI used when OCR is enabled (default: 300).",
+    )
+    parser.add_argument(
+        "--include-docx",
+        action="store_true",
+        help="Include DOCX files alongside PDFs when traversing the share link.",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="Override the batch size used when paging Drive results.",
+    )
+    parser.add_argument(
+        "--pages-per-document",
+        type=int,
+        default=99,
+        help=(
+            "Maximum number of PDF pages to include in each extracted document. "
+            "Set to 0 to disable batching (default: 99)."
+        ),
+    )
+    parser.add_argument(
+        "--max-file-size",
+        type=int,
+        default=50_000_000,
+        help="Maximum allowed file size in bytes (default: 50MB).",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Optional limit on the number of documents to extract across all sources.",
+    )
+    parser.add_argument(
+        "--metadata",
+        dest="metadata_pairs",
+        action="append",
+        default=None,
+        help="Additional key=value metadata pairs to attach to the extraction run.",
+    )
+    parser.add_argument(
+        "--documents-jsonl",
+        help="Optional path to export the extracted documents as JSONL.",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        default="data/google_drive_corpus_summary.json",
+        help="Location where the extraction summary JSON will be written.",
+    )
+    parser.add_argument(
+        "--agent-domain",
+        dest="agent_domains",
+        action="append",
+        default=None,
+        help=(
+            "Agent domain(s) to request help from prior to extraction. Defaults to "
+            "all dynamic agent modules."
+        ),
+    )
+    parser.add_argument(
+        "--skip-agent-help",
+        action="store_true",
+        help="Skip requesting help from agent domains before extraction.",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose logging output.",
+    )
+    return parser.parse_args()
 
 
-def iter_folder_files(folder_id: str, *, seen: set[str] | None = None) -> Iterator[DriveFolderEntry]:
-    """Recursively yield file entries for ``folder_id``."""
-
-    visited = seen if seen is not None else set()
-    if folder_id in visited:
-        return
-    visited.add(folder_id)
-    for entry in iter_shared_folder_entries(folder_id):
-        if entry.is_folder:
-            yield from iter_folder_files(entry.file_id, seen=visited)
-        else:
-            yield entry
-
-
-def extract_pdf_pages(path: Path) -> list[dict[str, object]]:
-    """Return a list of page payloads extracted from ``path``."""
-
-    from PyPDF2 import PdfReader  # type: ignore[import]
-
-    reader = PdfReader(path)
-    pages: list[dict[str, object]] = []
-    for index, page in enumerate(reader.pages, start=1):
-        try:
-            text = page.extract_text() or ""
-        except Exception as error:  # pragma: no cover - defensive guard
-            raise RuntimeError(f"Failed to extract text from page {index} of '{path.name}'") from error
-        cleaned = text.strip()
-        pages.append({
-            "page": index,
-            "text": cleaned,
-        })
-    return pages
-
-
-def download_file(file_id: str, destination: Path) -> Path:
-    """Download a Google Drive file to ``destination`` using gdown."""
-
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    output = gdown.download(id=file_id, output=str(destination), quiet=True)
-    if not output:
-        raise RuntimeError(f"Failed to download Google Drive file '{file_id}'")
-    return destination
-
-
-def build_identifier(file_id: str, page: int | None = None) -> str:
-    base = f"google-drive-{file_id}"
-    if page is not None:
-        return f"{base}-p{page:04d}"
-    return base
-
-
-def normalise_tags(tags: Sequence[str] | None) -> list[str]:
-    if not tags:
+def _load_links_from_file(path: str | None) -> list[str]:
+    if not path:
         return []
-    unique: list[str] = []
+    file_path = Path(path)
+    if not file_path.exists():
+        raise SystemExit(f"Share links file '{path}' does not exist")
+    links: list[str] = []
+    for line in file_path.read_text(encoding="utf-8").splitlines():
+        candidate = line.strip()
+        if candidate:
+            links.append(candidate)
+    return links
+
+
+def _normalise_share_links(links: Iterable[str]) -> list[str]:
     seen: set[str] = set()
-    for tag in tags:
-        cleaned = tag.strip().lower()
-        if cleaned and cleaned not in seen:
-            unique.append(cleaned)
-            seen.add(cleaned)
-    return unique
+    cleaned: list[str] = []
+    for link in links:
+        candidate = (link or "").strip()
+        if not candidate or candidate in seen:
+            continue
+        seen.add(candidate)
+        cleaned.append(candidate)
+    return cleaned
 
 
-def write_jsonl(entries: Iterator[dict[str, object]], output_path: Path) -> int:
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    count = 0
-    with output_path.open("w", encoding="utf-8") as handle:
-        for payload in entries:
-            json.dump(payload, handle, ensure_ascii=False)
-            handle.write("\n")
-            count += 1
-    return count
+def _normalise_credential(value: str | None) -> str | None:
+    if value is None:
+        return None
+    trimmed = value.strip()
+    return trimmed or None
 
 
-def run_extraction(
+def _resolve_credentials(args: argparse.Namespace) -> tuple[str | None, str | None]:
+    api_key = _normalise_credential(args.api_key)
+    access_token = _normalise_credential(args.access_token)
+    if api_key is None:
+        api_key = _normalise_credential(os.getenv("GOOGLE_API_KEY"))
+    if access_token is None:
+        access_token = _normalise_credential(os.getenv("GOOGLE_ACCESS_TOKEN"))
+    if api_key is None and access_token is None:
+        raise SystemExit(
+            "Google Drive credentials are required. Provide --api-key/--access-token "
+            "arguments or set GOOGLE_API_KEY/GOOGLE_ACCESS_TOKEN environment variables."
+        )
+    return api_key, access_token
+
+
+def _parse_metadata(pairs: Sequence[str] | None) -> MutableMapping[str, object]:
+    metadata: dict[str, object] = {}
+    for entry in pairs or ():
+        if "=" not in entry:
+            raise SystemExit(f"Metadata entry '{entry}' must be in key=value format")
+        key, value = entry.split("=", 1)
+        key = key.strip()
+        if not key:
+            raise SystemExit("Metadata keys must not be empty")
+        metadata[key] = value.strip()
+    return metadata
+
+
+def discover_agent_domains() -> tuple[str, ...]:
+    import dynamic_agents
+
+    domains: list[str] = []
+    for module in pkgutil.iter_modules(dynamic_agents.__path__):
+        name = module.name
+        if not name or name.startswith("_"):
+            continue
+        label = re.sub(r"[_\s]+", " ", name).strip().title()
+        if label:
+            domains.append(label)
+    return tuple(sorted(set(domains)))
+
+
+def call_help_for_agents(domains: Sequence[str]) -> None:
+    for domain in domains:
+        label = domain.strip()
+        if not label:
+            continue
+        LOGGER.info("Requesting help from %s agent domain", label)
+
+
+def _make_source_name(index: int, target_type: str, identifier: str) -> str:
+    base = f"google_drive_{target_type}_{identifier}".lower()
+    slug = re.sub(r"[^a-z0-9]+", "_", base).strip("_")
+    if not slug:
+        slug = f"google_drive_source_{index}"
+    return slug
+
+
+def _register_drive_source(
+    engine: DynamicCorpusExtractionEngine,
     *,
     share_link: str,
-    output_path: Path,
-    limit: int | None,
-    skip: int,
-    tags: Sequence[str] | None,
-) -> int:
-    """Extract PDF text from a shared folder into ``output_path``."""
-
+    api_key: str | None,
+    access_token: str | None,
+    enable_ocr: bool,
+    ocr_languages: Sequence[str] | None,
+    ocr_dpi: int,
+    include_docx: bool,
+    batch_size: int | None,
+    pages_per_document: int,
+    max_file_size: int | None,
+) -> Mapping[str, object]:
     target_type, identifier = parse_drive_share_link(share_link)
-    if target_type != "folder":
-        raise ValueError("Share link must reference a Google Drive folder")
-
-    selected_tags = normalise_tags(tags)
-
-    def iter_documents() -> Iterator[dict[str, object]]:
-        skipped = 0
-        emitted = 0
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_root = Path(temp_dir)
-            for entry in iter_folder_files(identifier):
-                if skip and skipped < skip:
-                    skipped += 1
-                    continue
-                if limit is not None and emitted >= limit:
-                    break
-                suffix = Path(entry.name).suffix.lower()
-                if suffix not in {".pdf"}:
-                    continue
-                temp_path = temp_root / f"{entry.file_id}.pdf"
-                download_file(entry.file_id, temp_path)
-                try:
-                    page_payloads = extract_pdf_pages(temp_path)
-                except Exception as error:
-                    print(
-                        f"Skipping '{entry.name}' ({entry.file_id}): {error}",
-                        file=sys.stderr,
-                    )
-                    continue
-                for payload in page_payloads:
-                    if limit is not None and emitted >= limit:
-                        break
-                    page_number = int(payload["page"])
-                    text = str(payload.get("text") or "").strip()
-                    if not text:
-                        continue
-                    emitted += 1
-                    document_metadata = {
-                        "file_id": entry.file_id,
-                        "file_name": entry.name,
-                        "modified_label": entry.modified_label,
-                        "page": page_number,
-                    }
-                    yield {
-                        "identifier": build_identifier(entry.file_id, page=page_number),
-                        "content": text,
-                        "source": identifier,
-                        "metadata": document_metadata,
-                        "tags": selected_tags,
-                    }
-                temp_path.unlink(missing_ok=True)
-
-    return write_jsonl(iter_documents(), output_path)
-
-
-def parse_args(argv: Sequence[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("share_link", help="Google Drive folder share link")
-    parser.add_argument("output", help="Path to the JSONL file to create")
-    parser.add_argument("--limit", type=int, default=None, help="Maximum number of page documents to export")
-    parser.add_argument("--skip", type=int, default=0, help="Number of files to skip from the start")
-    parser.add_argument("--tags", nargs="*", default=["google_drive", "pdf"], help="Tags to attach to each document")
-    return parser.parse_args(argv)
-
-
-def main(argv: Sequence[str] | None = None) -> int:
-    args = parse_args(argv or sys.argv[1:])
-    output_path = Path(args.output)
-    count = run_extraction(
-        share_link=args.share_link,
-        output_path=output_path,
-        limit=args.limit,
-        skip=args.skip,
-        tags=args.tags,
+    source_name = _make_source_name(len(engine.list_sources()) + 1, target_type, identifier)
+    tags = ("google_drive", target_type)
+    loader = build_google_drive_pdf_loader(
+        share_link=share_link,
+        api_key=api_key,
+        access_token=access_token,
+        enable_ocr=enable_ocr,
+        ocr_languages=ocr_languages,
+        ocr_dpi=ocr_dpi,
+        include_docx=include_docx,
+        batch_size=batch_size,
+        page_batch_size=pages_per_document,
+        max_file_size=max_file_size,
     )
-    print(f"Exported {count} documents to {output_path}")
-    return 0
+    metadata = {
+        "share_link": share_link,
+        "target_type": target_type,
+        "identifier": identifier,
+    }
+    engine.register_source(source_name, loader, tags=tags, metadata=metadata)
+    return metadata
+
+
+def _run_extraction(args: argparse.Namespace) -> None:
+    links_from_args = args.share_links or []
+    links_from_file = _load_links_from_file(args.share_links_file)
+    share_links = _normalise_share_links([*links_from_args, *links_from_file])
+    if not share_links:
+        raise SystemExit("At least one Google Drive share link must be provided")
+
+    api_key, access_token = _resolve_credentials(args)
+
+    engine = DynamicCorpusExtractionEngine()
+    for link in share_links:
+        metadata = _register_drive_source(
+            engine,
+            share_link=link,
+            api_key=api_key,
+            access_token=access_token,
+            enable_ocr=args.enable_ocr,
+            ocr_languages=args.ocr_languages,
+            ocr_dpi=args.ocr_dpi,
+            include_docx=args.include_docx,
+            batch_size=args.batch_size,
+            pages_per_document=args.pages_per_document,
+            max_file_size=args.max_file_size,
+        )
+        LOGGER.info("Registered Google Drive source %s", metadata["identifier"])
+
+    run_metadata = _parse_metadata(args.metadata_pairs)
+    run_metadata.setdefault("share_links", tuple(share_links))
+    run_metadata.setdefault("share_link_count", len(share_links))
+
+    summary = engine.extract(limit=args.limit, metadata=run_metadata)
+    _display_summary(summary)
+
+    if args.documents_jsonl:
+        output_path = Path(args.documents_jsonl)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        document_count = summary.export_jsonl(output_path)
+        LOGGER.info("Exported %s documents to %s", document_count, output_path)
+
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(summary.as_dict(), indent=2), encoding="utf-8")
+        LOGGER.info("Wrote extraction summary to %s", output_path)
+
+
+def _display_summary(summary: CorpusExtractionSummary) -> None:
+    print("Extraction complete")
+    print(f"Documents extracted: {len(summary.documents)}")
+    print("Source breakdown:")
+    for source, count in sorted(summary.source_statistics.items()):
+        print(f"  - {source}: {count}")
+    print(f"Duplicates skipped: {summary.duplicate_count}")
+    print(f"Elapsed seconds: {summary.elapsed_seconds:.2f}")
+
+
+def main() -> None:
+    args = _parse_args()
+    _configure_logging(verbose=args.verbose)
+
+    if not args.skip_agent_help:
+        domains = args.agent_domains or discover_agent_domains()
+        call_help_for_agents(domains)
+
+    _run_extraction(args)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
