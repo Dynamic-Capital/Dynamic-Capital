@@ -80,15 +80,22 @@ def test_quantum_engine_synthesize_frame_with_environment() -> None:
     assert pytest.approx(frame.mean_entanglement, rel=1e-6) == 0.5166666667
     assert pytest.approx(frame.mean_flux, abs=1e-9) == 0.0
     assert pytest.approx(frame.mean_phase_variance, rel=1e-6) == 0.25
-    assert frame.anomalies == ()
+    assert frame.anomalies == ("coherence-trend-shift", "equilibrium-shortfall")
     assert frame.stability_outlook < 0.7
     assert frame.recommended_actions == (
-        "maintain equilibrium protocols",
+        "deploy adaptive damping kernels",
+        "boost equilibrium field strength",
         "deploy adaptive shielding",
         "slow measurement cadence",
         "increase vacuum integrity",
         "engage cryogenic buffer",
     )
+    assert pytest.approx(frame.ewma_coherence, rel=1e-6) == 0.548
+    assert pytest.approx(frame.ewma_entanglement, rel=1e-6) == 0.448
+    assert pytest.approx(frame.ewma_flux, rel=1e-6) == 0.12125
+    assert pytest.approx(frame.ewma_phase_variance, rel=1e-6) == 0.27975
+    assert frame.equilibrium_gap > 0.1
+    assert frame.drift_score > 0.12
 
 
 def test_quantum_engine_estimate_decoherence_projection() -> None:
