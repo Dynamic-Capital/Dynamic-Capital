@@ -1,0 +1,40 @@
+{
+  "domain": "DeepseekV3",
+  "patched_at": "2025-10-05T08:45:00Z",
+  "assets": [
+    {
+      "path": "content/knowledge-base/deepseekv3/market-liquidity-scenarios.md",
+      "status": "restored",
+      "notes": "Scenario catalogue rebuilt with liquidity escalation coverage."
+    },
+    {
+      "path": "content/knowledge-base/deepseekv3/liquidity-ingest-journal.md",
+      "status": "updated",
+      "notes": "Journal now tracks ingestion checkpoints and Supabase sync metadata."
+    },
+    {
+      "path": "content/knowledge-base/deepseekv3/telemetry-refresh-runbook.md",
+      "status": "new",
+      "notes": "Runbook codifies telemetry refresh cadence and validation gates."
+    },
+    {
+      "path": "dynamic_data_training/liquidity/imbalance-manifest.csv",
+      "status": "relinked",
+      "notes": "Manifest synced to knowledge_base_liquidity bucket with latest checksum."
+    },
+    {
+      "path": "dynamic_data_training/liquidity/depth-replay.md",
+      "status": "validated",
+      "notes": "Replay documentation refreshed to describe audit procedure."
+    }
+  ],
+  "follow_up_validation": {
+    "scheduled_for": "2025-10-12T14:00:00Z",
+    "owner": "liquidity-insights@dynamic.capital",
+    "scope": [
+      "Re-run knowledge base benchmark with refreshed manifest",
+      "Confirm telemetry freshness below 18 hours",
+      "Sample 20 DeepseekV3 responses for catalogue alignment"
+    ]
+  }
+}

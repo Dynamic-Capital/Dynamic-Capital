@@ -15,6 +15,7 @@ from .model import (
     _normalise_key,
     _utcnow,
 )
+from .system import classify_proficiency
 
 __all__ = [
     "DynamicGradingEngine",
@@ -25,7 +26,9 @@ __all__ = [
 ]
 
 
-def _coerce_mapping(payload: Mapping[str, object] | None) -> Mapping[str, object] | None:
+def _coerce_mapping(
+    payload: Mapping[str, object] | None,
+) -> Mapping[str, object] | None:
     if payload is None:
         return None
     if not isinstance(payload, Mapping):  # pragma: no cover - defensive guard
@@ -105,7 +108,9 @@ class DynamicGradingEngine:
         return tuple(state.signals)
 
     # ------------------------------------------------------------------- registry
-    def register(self, criterion: GradingCriterion | Mapping[str, object]) -> GradingCriterion:
+    def register(
+        self, criterion: GradingCriterion | Mapping[str, object]
+    ) -> GradingCriterion:
         if isinstance(criterion, Mapping):
             resolved = GradingCriterion(**dict(criterion))
         elif isinstance(criterion, GradingCriterion):
@@ -126,7 +131,9 @@ class DynamicGradingEngine:
             )
         return resolved
 
-    def register_many(self, criteria: Iterable[GradingCriterion | Mapping[str, object]]) -> None:
+    def register_many(
+        self, criteria: Iterable[GradingCriterion | Mapping[str, object]]
+    ) -> None:
         for criterion in criteria:
             self.register(criterion)
 
@@ -222,6 +229,8 @@ class DynamicGradingEngine:
                 "Rubric weighting remains balanced."
             )
 
+        classification = classify_proficiency(overall_mastery, coverage=mean_coverage)
+
         return GradingReport(
             objective=objective,
             generated_at=_utcnow(),
@@ -232,10 +241,15 @@ class DynamicGradingEngine:
             recommended_weights=dict(recommended_weights),
             alerts=_unique(alerts),
             metadata=_coerce_mapping(metadata),
+            proficiency_level=classification.level,
+            proficiency_label=classification.label,
+            proficiency_narrative=classification.narrative,
         )
 
     # ------------------------------------------------------------------- internals
-    def _coerce_signal(self, signal: GradingSignal | Mapping[str, object]) -> GradingSignal:
+    def _coerce_signal(
+        self, signal: GradingSignal | Mapping[str, object]
+    ) -> GradingSignal:
         if isinstance(signal, GradingSignal):
             return signal
         if isinstance(signal, Mapping):
@@ -253,6 +267,7 @@ class DynamicGradingEngine:
         criterion = state.criterion
         if not state.signals:
             summary = f"No mastery signals captured for {criterion.title}."
+            classification = classify_proficiency(0.0, coverage=0.0)
             return GradingSnapshot(
                 key=criterion.key,
                 title=criterion.title,
@@ -264,6 +279,9 @@ class DynamicGradingEngine:
                 summary=summary,
                 adjustments=("Capture mastery signals to enable dynamic weighting.",),
                 warnings=(f"{criterion.title}: insufficient mastery coverage.",),
+                proficiency_level=classification.level,
+                proficiency_label=classification.label,
+                proficiency_narrative=classification.narrative,
             )
 
         if not state.is_sorted:
@@ -276,7 +294,10 @@ class DynamicGradingEngine:
         total_samples = sum(max(signal.sample_size, 1) for signal in ordered_signals)
         total_weight = float(total_samples) or 1.0
         weighted_average = (
-            sum(signal.mastery * max(signal.sample_size, 1) for signal in ordered_signals)
+            sum(
+                signal.mastery * max(signal.sample_size, 1)
+                for signal in ordered_signals
+            )
             / total_weight
         )
 
@@ -318,7 +339,9 @@ class DynamicGradingEngine:
             adjustments.append(f"Maintain baseline weight at {baseline_weight:.2f}.")
 
         if coverage < 0.25:
-            warnings.append(f"{criterion.title}: mastery coverage is limited ({coverage:.2f}).")
+            warnings.append(
+                f"{criterion.title}: mastery coverage is limited ({coverage:.2f})."
+            )
 
         if mastery >= target + tolerance:
             status = "exceeding"
@@ -334,15 +357,15 @@ class DynamicGradingEngine:
             )
         elif coverage < 0.25:
             status = "insufficient_coverage"
-            summary = (
-                f"{criterion.title} lacks sufficient coverage ({coverage:.2f}); collect additional assessments."
-            )
+            summary = f"{criterion.title} lacks sufficient coverage ({coverage:.2f}); collect additional assessments."
         else:
             status = "needs_support"
             summary = (
                 f"{criterion.title} trails mastery targets ({mastery:.2f} < {target:.2f}); "
                 f"proposed weight {recommended:.2f}."
             )
+
+        classification = classify_proficiency(mastery, coverage=coverage)
 
         return GradingSnapshot(
             key=criterion.key,
@@ -355,4 +378,7 @@ class DynamicGradingEngine:
             summary=summary,
             adjustments=_unique(adjustments),
             warnings=_unique(warnings),
+            proficiency_level=classification.level,
+            proficiency_label=classification.label,
+            proficiency_narrative=classification.narrative,
         )
