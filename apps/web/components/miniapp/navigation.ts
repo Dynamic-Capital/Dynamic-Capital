@@ -102,7 +102,7 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     description: "Mentor chat, office hours, and skill tracks.",
     Icon: GraduationCap,
     analyticsEvent: "nav_dynamic_learn",
-    showInBottomNav: false,
+    showInBottomNav: true,
   },
   {
     id: "dynamic-access",
