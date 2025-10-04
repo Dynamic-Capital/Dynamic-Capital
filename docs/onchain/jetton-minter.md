@@ -40,6 +40,9 @@ balances so auditors can independently replay the queries.
 - `closeGenesis` was executed after minting the 100M genesis allocation,
   permanently disabling unrestricted minting as described in
   [`dynamic-capital-ton/contracts/README.md`](../../dynamic-capital-ton/contracts/README.md).
+  For redeployments, follow the runbook in
+  [`docs/onchain/close-genesis.md`](./close-genesis.md) to craft and submit the
+  management message once the genesis supply is minted.
 - Holder-initiated burns remain active; the Supabase `process-subscription`
   function routes burn tranches through `burnDCT` and logs the resulting
   transaction hashes for finance review (see
