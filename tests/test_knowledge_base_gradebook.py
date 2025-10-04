@@ -26,6 +26,8 @@ def test_grade_a_band() -> None:
     assert grade.letter == "A"
     assert "telemetry" in grade.rationale
     assert "spot-audits" in grade.remediation
+    assert grade.proficiency_level == "contribution"
+    assert grade.proficiency_label == "Contribution Level"
 
 
 def test_grade_catches_lower_band() -> None:
@@ -42,6 +44,7 @@ def test_grade_catches_lower_band() -> None:
 
     assert grade.band == "C range"
     assert "incident review" in grade.remediation
+    assert grade.proficiency_label == "Application Level"
 
 
 def test_grade_falls_through_to_d() -> None:
@@ -56,6 +59,8 @@ def test_grade_falls_through_to_d() -> None:
 
     assert grade.letter == "D"
     assert "freeze dependent automations" in grade.remediation
+    assert grade.proficiency_level == "observation"
+    assert "Coverage breadth is still developing" in grade.proficiency_narrative
 
 
 def test_summarise_orders_domains() -> None:
@@ -105,7 +110,9 @@ def test_grade_comprehensively_accepts_weights() -> None:
     comprehensive = grade_comprehensively(domains, weights={"DAI": 2, "DAGI": 1})
 
     expected_coverage = (0.99 * 2 + 0.8) / 3
-    assert comprehensive.metrics.coverage_ratio == pytest.approx(expected_coverage, rel=1e-6)
+    assert comprehensive.metrics.coverage_ratio == pytest.approx(
+        expected_coverage, rel=1e-6
+    )
     assert comprehensive.metrics.failed_health_checks in {0, 1}
 
 

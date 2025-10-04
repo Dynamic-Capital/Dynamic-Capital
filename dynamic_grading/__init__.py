@@ -7,6 +7,7 @@ from .engine import (
     GradingSignal,
     GradingSnapshot,
 )
+from .system import ProficiencyClassification, classify_proficiency
 
 __all__ = [
     "DynamicGradingEngine",
@@ -14,4 +15,6 @@ __all__ = [
     "GradingSignal",
     "GradingSnapshot",
     "GradingReport",
+    "classify_proficiency",
+    "ProficiencyClassification",
 ]
