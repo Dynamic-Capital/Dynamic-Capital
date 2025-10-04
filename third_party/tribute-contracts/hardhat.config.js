@@ -1,4 +1,9 @@
 require("dotenv").config();
+
+if (typeof process.env.HARDHAT_DISABLE_NODE_VERSION_CHECK === "undefined") {
+  process.env.HARDHAT_DISABLE_NODE_VERSION_CHECK = "true";
+}
+
 require("ts-node").register({
   files: true,
 });
@@ -15,6 +20,84 @@ if (!process.env.TEST === "true") {
 require("./tasks/deploy");
 require("./tasks/tributeERC721Tasks");
 require("./signers");
+
+const rpcUrl = process.env.ETH_NODE_URL?.trim();
+const localAccounts = {
+  mnemonic:
+    process.env.WALLET_MNEMONIC ||
+    "myth like bonus scare over problem client lizard pioneer submit female collect",
+  count: 10,
+};
+const remoteAccounts = {
+  mnemonic: process.env.WALLET_MNEMONIC || "",
+  count: 10,
+};
+const signerId = process.env.SIGNER || undefined;
+
+const buildRpcNetwork = (overrides = {}) => ({
+  url: rpcUrl,
+  accounts: remoteAccounts,
+  signerId,
+  skipDryRun: true,
+  ...overrides,
+});
+
+const rpcNetworks = rpcUrl
+  ? {
+      goerli: buildRpcNetwork({
+        network_id: 5,
+        chainId: 5,
+      }),
+      sepolia: buildRpcNetwork({
+        network_id: 11155111,
+        chainId: 11155111,
+      }),
+      harmonytest: buildRpcNetwork({
+        network_id: 1666700000,
+        chainId: 1666700000,
+        gas: 2100000,
+        gasPrice: 10000000000,
+      }),
+      polygontest: buildRpcNetwork({
+        network_id: 80001,
+        chainId: 80001,
+        gas: 2100000,
+        gasPrice: 10000000000,
+      }),
+      avalanchetest: buildRpcNetwork({
+        network_id: 43113,
+        chainId: 43113,
+        gas: 2100000,
+        gasPrice: 25000000000,
+      }),
+      mainnet: buildRpcNetwork({
+        network_id: 1,
+        chainId: 1,
+      }),
+      gnosis: buildRpcNetwork({
+        network_id: 100,
+        chainId: 100,
+        allowUnlimitedContractSize: true,
+      }),
+      harmony: buildRpcNetwork({
+        network_id: 1666600000,
+        chainId: 1666600000,
+      }),
+      polygon: buildRpcNetwork({
+        network_id: 137,
+        chainId: 137,
+        gasMultiplier: parseFloat(process.env.GAS_PRICE_MULTIPLIER) || 1,
+        increaseFactor: parseInt(process.env.GAS_INCREASE_FACTOR) || 135,
+        maxRetries: parseInt(process.env.TX_MAX_RETRIES) || 5,
+        txTimeoutMs: parseInt(process.env.TX_TIMEOUT_MS) || 5 * 60 * 1000,
+        timeout: parseInt(process.env.TX_TIMEOUT_MS) || 5 * 60 * 1000,
+      }),
+      avalanche: buildRpcNetwork({
+        network_id: 43114,
+        chainId: 43114,
+      }),
+    }
+  : {};
 
 module.exports = {
   // Supported Networks
@@ -38,57 +121,8 @@ module.exports = {
       chainId: 1337,
       accounts: {
         count: 10,
-        mnemonic: process.env.WALLET_MNEMONIC ||
-          "myth like bonus scare over problem client lizard pioneer submit female collect",
+        mnemonic: localAccounts.mnemonic,
       },
-    },
-    goerli: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 5,
-      chainId: 5,
-      skipDryRun: true,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
-    },
-    sepolia: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 11155111,
-      chainId: 11155111,
-      skipDryRun: true,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
-    },
-    harmonytest: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 1666700000,
-      chainId: 1666700000,
-      skipDryRun: true,
-      gas: 2100000,
-      gasPrice: 10000000000,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
-    },
-    polygontest: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 80001,
-      chainId: 80001,
-      skipDryRun: true,
-      gas: 2100000,
-      gasPrice: 10000000000,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
     },
     coverage: {
       url: "http://127.0.0.1:8555",
@@ -98,82 +132,7 @@ module.exports = {
       gasPrice: 10000000000,
       initialBaseFeePerGas: 0,
     },
-    avalanchetest: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 43113,
-      chainId: 43113,
-      skipDryRun: true,
-      gas: 2100000,
-      gasPrice: 25000000000,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
-    },
-
-    // Main Networks
-    mainnet: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 1,
-      chainId: 1,
-      skipDryRun: true,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
-    },
-    gnosis: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 100,
-      chainId: 100,
-      skipDryRun: true,
-      allowUnlimitedContractSize: true,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
-    },
-    harmony: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 1666600000,
-      chainId: 1666600000,
-      skipDryRun: true,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
-    },
-    polygon: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 137,
-      chainId: 137,
-      skipDryRun: true,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
-      gasMultiplier: parseFloat(process.env.GAS_PRICE_MULTIPLIER) || 1,
-      increaseFactor: parseInt(process.env.GAS_INCREASE_FACTOR) || 135, // base 100 (35% increase by default)
-      maxRetries: parseInt(process.env.TX_MAX_RETRIES) || 5, // 5 maximum retries for a tx
-      txTimeoutMs: parseInt(process.env.TX_TIMEOUT_MS) || 5 * 60 * 1000, // 5 minutes in milliseconds (timeout for each tx send to the network)
-      timeout: parseInt(process.env.TX_TIMEOUT_MS) || 5 * 60 * 1000, // in milliseconds (timeout for the http request needs to match the txTimeout)
-    },
-    avalanche: {
-      url: process.env.ETH_NODE_URL,
-      network_id: 43114,
-      chainId: 43114,
-      skipDryRun: true,
-      accounts: {
-        mnemonic: process.env.WALLET_MNEMONIC || "",
-        count: 10,
-      },
-      signerId: process.env.SIGNER || undefined,
-    },
+    ...rpcNetworks,
   },
 
   // External Signers configs
