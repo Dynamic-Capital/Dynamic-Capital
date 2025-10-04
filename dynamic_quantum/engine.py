@@ -143,16 +143,33 @@ class QuantumResonanceFrame:
     stability_outlook: float
     anomalies: tuple[str, ...]
     recommended_actions: tuple[str, ...]
+    ewma_coherence: float = 0.0
+    ewma_entanglement: float = 0.0
+    ewma_flux: float = 0.0
+    ewma_phase_variance: float = 0.0
+    equilibrium_gap: float = 0.0
+    drift_score: float = 0.0
 
 
 class DynamicQuantumEngine:
     """Synthesises quantum pulses into actionable resonance guidance."""
 
-    def __init__(self, *, window: int = 180, equilibrium_target: float = 0.72) -> None:
+    def __init__(
+        self,
+        *,
+        window: int = 180,
+        equilibrium_target: float = 0.72,
+        decay: float | None = 0.85,
+    ) -> None:
         if window <= 0:
             raise ValueError("window must be positive")
         self._window = window
         self._equilibrium_target = _clamp(float(equilibrium_target))
+        if decay is not None:
+            decay = float(decay)
+            if not 0.0 < decay < 1.0:
+                raise ValueError("decay must be within (0, 1) when provided")
+        self._decay_factor = decay
         self._pulses: Deque[QuantumPulse] = deque()
         self._totals: Dict[str, float] = {
             "coherence": 0.0,
@@ -160,6 +177,13 @@ class DynamicQuantumEngine:
             "flux": 0.0,
             "phase_variance": 0.0,
         }
+        self._ewma_totals: Dict[str, float] = {
+            "coherence": 0.0,
+            "entanglement": 0.0,
+            "flux": 0.0,
+            "phase_variance": 0.0,
+        }
+        self._ewma_ready = False
 
     @property
     def window(self) -> int:
@@ -168,6 +192,10 @@ class DynamicQuantumEngine:
     @property
     def pulses(self) -> tuple[QuantumPulse, ...]:
         return tuple(self._pulses)
+
+    @property
+    def decay(self) -> float | None:
+        return self._decay_factor
 
     def register_pulse(self, pulse: QuantumPulse | Mapping[str, object]) -> QuantumPulse:
         if isinstance(pulse, Mapping):
@@ -180,6 +208,16 @@ class DynamicQuantumEngine:
         self._pulses.append(pulse)
         self._update_totals(pulse, sign=1.0)
         return pulse
+
+    def register_pulses(
+        self, pulses: Sequence[QuantumPulse | Mapping[str, object]]
+    ) -> tuple[QuantumPulse, ...]:
+        """Register a batch of pulses efficiently."""
+
+        registered: MutableSequence[QuantumPulse] = []
+        for pulse in pulses:
+            registered.append(self.register_pulse(pulse))
+        return tuple(registered)
 
     def clear(self) -> None:
         self._pulses.clear()
@@ -194,12 +232,31 @@ class DynamicQuantumEngine:
         mean_flux = self._totals["flux"] / count
         mean_phase_variance = self._totals["phase_variance"] / count
 
+        ewma_coherence = self._ewma_totals["coherence"]
+        ewma_entanglement = self._ewma_totals["entanglement"]
+        ewma_flux = self._ewma_totals["flux"]
+        ewma_phase_variance = self._ewma_totals["phase_variance"]
+
+        if self._decay_factor is None or not self._pulses:
+            ewma_coherence = mean_coherence
+            ewma_entanglement = mean_entanglement
+            ewma_flux = mean_flux
+            ewma_phase_variance = mean_phase_variance
+
         stability_outlook = _clamp(
-            0.5 * mean_coherence
-            + 0.3 * mean_entanglement
-            + 0.2 * (1.0 - mean_phase_variance)
-            - 0.1 * abs(mean_flux)
+            0.32 * mean_coherence
+            + 0.28 * ewma_coherence
+            + 0.2 * mean_entanglement
+            + 0.08 * ewma_entanglement
+            + 0.12 * (1.0 - mean_phase_variance)
+            + 0.08 * (1.0 - ewma_phase_variance)
+            - 0.08 * abs(mean_flux)
+            - 0.04 * abs(ewma_flux)
         )
+
+        equilibrium_reference = 0.5 * (mean_coherence + ewma_coherence)
+        equilibrium_gap = self._equilibrium_target - equilibrium_reference
+        drift_score = abs(mean_coherence - ewma_coherence) + 0.5 * abs(mean_flux - ewma_flux)
 
         anomalies: MutableSequence[str] = []
         if mean_coherence < 0.45:
@@ -210,6 +267,10 @@ class DynamicQuantumEngine:
             anomalies.append("flux-instability")
         if mean_phase_variance > 0.65:
             anomalies.append("phase-volatility")
+        if drift_score > 0.12:
+            anomalies.append("coherence-trend-shift")
+        if equilibrium_gap > 0.08:
+            anomalies.append("equilibrium-shortfall")
 
         recommendations: MutableSequence[str] = []
         if not anomalies:
@@ -222,6 +283,10 @@ class DynamicQuantumEngine:
             recommendations.append("counter rotating flux vectors")
         if "phase-volatility" in anomalies:
             recommendations.append("rephase interferometers")
+        if "coherence-trend-shift" in anomalies:
+            recommendations.append("deploy adaptive damping kernels")
+        if "equilibrium-shortfall" in anomalies:
+            recommendations.append("boost equilibrium field strength")
 
         if environment is not None:
             if environment.is_noisy:
@@ -245,6 +310,12 @@ class DynamicQuantumEngine:
             stability_outlook=stability_outlook,
             anomalies=tuple(anomalies),
             recommended_actions=unique_recommendations,
+            ewma_coherence=ewma_coherence,
+            ewma_entanglement=ewma_entanglement,
+            ewma_flux=ewma_flux,
+            ewma_phase_variance=ewma_phase_variance,
+            equilibrium_gap=equilibrium_gap,
+            drift_score=drift_score,
         )
 
     def estimate_decoherence(self, time_steps: int, environment: QuantumEnvironment) -> float:
@@ -275,9 +346,28 @@ class DynamicQuantumEngine:
     def _reset_totals(self) -> None:
         for key in self._totals:
             self._totals[key] = 0.0
+            self._ewma_totals[key] = 0.0
+        self._ewma_ready = False
 
     def _update_totals(self, pulse: QuantumPulse, *, sign: float) -> None:
         self._totals["coherence"] += sign * pulse.coherence
         self._totals["entanglement"] += sign * pulse.entanglement
         self._totals["flux"] += sign * pulse.flux
         self._totals["phase_variance"] += sign * pulse.phase_variance
+        self._update_ewma(pulse, sign=sign)
+
+    def _update_ewma(self, pulse: QuantumPulse, *, sign: float) -> None:
+        if self._decay_factor is None or sign <= 0.0:
+            return
+        decay = self._decay_factor
+        if not self._ewma_ready:
+            self._ewma_totals["coherence"] = pulse.coherence
+            self._ewma_totals["entanglement"] = pulse.entanglement
+            self._ewma_totals["flux"] = pulse.flux
+            self._ewma_totals["phase_variance"] = pulse.phase_variance
+            self._ewma_ready = True
+            return
+        self._ewma_totals["coherence"] = decay * self._ewma_totals["coherence"] + (1.0 - decay) * pulse.coherence
+        self._ewma_totals["entanglement"] = decay * self._ewma_totals["entanglement"] + (1.0 - decay) * pulse.entanglement
+        self._ewma_totals["flux"] = decay * self._ewma_totals["flux"] + (1.0 - decay) * pulse.flux
+        self._ewma_totals["phase_variance"] = decay * self._ewma_totals["phase_variance"] + (1.0 - decay) * pulse.phase_variance

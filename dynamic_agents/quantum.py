@@ -137,6 +137,12 @@ class QuantumAgentInsight:
                 "stability_outlook": self.frame.stability_outlook,
                 "anomalies": list(self.frame.anomalies),
                 "recommended_actions": list(self.frame.recommended_actions),
+                "ewma_coherence": self.frame.ewma_coherence,
+                "ewma_entanglement": self.frame.ewma_entanglement,
+                "ewma_flux": self.frame.ewma_flux,
+                "ewma_phase_variance": self.frame.ewma_phase_variance,
+                "equilibrium_gap": self.frame.equilibrium_gap,
+                "drift_score": self.frame.drift_score,
             },
         }
         if self.environment is not None:
@@ -188,10 +194,7 @@ class DynamicQuantumAgent:
         return self._engine.register_pulse(pulse)
 
     def register_pulses(self, pulses: Sequence[QuantumPulse | Mapping[str, object]]) -> Tuple[QuantumPulse, ...]:
-        registered: list[QuantumPulse] = []
-        for pulse in pulses:
-            registered.append(self.register_pulse(pulse))
-        return tuple(registered)
+        return self._engine.register_pulses(pulses)
 
     def clear(self) -> None:
         self._engine.clear()

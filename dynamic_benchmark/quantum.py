@@ -121,8 +121,7 @@ def load_quantum_benchmark(
         pulses = tuple(_load_pulse(pulse) for pulse in pulses_payload)
 
         engine = DynamicQuantumEngine(window=max(len(pulses), 1))
-        for pulse in pulses:
-            engine.register_pulse(pulse)
+        engine.register_pulses(pulses)
 
         environment = _load_environment(domain_payload.get("environment"))
         frame = engine.synthesize_frame(environment=environment)
