@@ -1,72 +1,93 @@
 # Supabase Performance Insights
 
-## Overview
-This report summarizes the most expensive queries captured in the provided telemetry snapshot. Metrics include total execution time, per-call latency, row throughput, and cache behavior. The goal is to highlight remediation opportunities that lower overall resource consumption.
+## Executive Overview
+The telemetry snapshot reveals that a handful of query families account for the overwhelming majority of database time. The leading offenders are poll-heavy realtime subscriptions, high-churn HTTP queue maintenance, and catalog-introspection workloads triggered by administrative tooling. Left unmitigated, these patterns inflate CPU consumption, crowd out mission-critical traffic, and mask emerging regressions.
+
+**Top-level takeaways**
+
+- **Realtime polling dominates runtime:** `realtime.list_changes` alone burns ~83% of measured execution time because of >600k invocations despite sub-5 ms latencies.
+- **Background queue churn is excessive:** Maintenance deletes on `net.http_request_queue` and `_http_response` execute >5.2 M times each, hinting at undersized batches and backlog oscillation.
+- **Catalog scrapes are unbounded:** Introspection CTEs and function exports scan most schemas with high per-call latency, tying up system catalogs and cache.
+- **Webhook and storage calls show tail latency risk:** High P95 requests point to downstream services or missing indexes.
+
+The following sections quantify each query family, articulate risk, and propose actionable mitigations with owners, effort, and expected impact.
 
 ## High-Impact Query Families
 
+| Rank | Query / Area | Role(s) | Total Calls | Total Time | Avg Latency | Primary Risk |
+| ---- | ------------- | ------- | ----------- | ---------- | ----------- | ------------ |
+| 1 | `realtime.list_changes` | `supabase_admin` | 615,747 | 2,790,328.96 ms | 4.53 ms | CPU starvation & websocket saturation |
+| 2 | Queue maintenance (`net.http_request_queue`, `net._http_response`) | `supabase_admin` | 5,252,039 each | 76,167.90 ms / 70,106.36 ms | 0.014 ms | Autovacuum churn & table bloat |
+| 3 | Metadata introspection bundle | `supabase_read_only_user`, `authenticator`, `postgres` | 1231 / 216 / 112+ | 27,258–50,693 ms | 40–240 ms | Dashboard slowness & catalog lock contention |
+| 4 | Function catalog exports (`pg_proc` joins) | `supabase_admin`, `postgres` | 85 / 50 | 9,282 ms / 8,548 ms | 109–171 ms | Elevated shared buffers pressure |
+| 5 | Storage search & webhook dispatch | `service_role`, `postgres` | 172 / 61 | 5,390 ms / 4,774 ms | 31 ms / 78 ms | Tail latency & external dependency stalls |
+
 ### 1. `realtime.list_changes`
-- **Role:** `supabase_admin`
-- **Total calls:** 615,747
-- **Total time:** 2,790,328.96 ms (~46.5 minutes)
-- **Average latency:** 4.53 ms
-- **Rows read:** 4
-- **Observations:** Despite very low row retrieval, this function dominates runtime because of extreme call volume.
-- **Recommendations:**
-  - Batch changefeed consumers to reduce call frequency.
-  - Introduce server-side caching for unchanged channels.
-  - Validate polling configuration to ensure clients respect exponential backoff during idle periods.
+- **Signal:** ~46.5 minutes total runtime with negligible row materialization.
+- **Hypothesis:** Clients are aggressively polling rather than streaming, or multiplexed channels are underutilized.
+- **Mitigations (Owners: Platform Realtime Squad, Effort: Medium, Impact: High):**
+  - Deploy channel-level backoff policies and enforce a minimum poll interval via Realtime configuration.
+  - Batch acknowledgements or diff retrieval so consumers request multiple changes per call.
+  - Cache changefeed snapshots for idle channels on the server to serve fast-follower reads without hitting Postgres.
+  - Instrument per-project poll frequency and set alerts when client/device cohorts exceed thresholds.
 
 ### 2. Queue maintenance (`net.http_request_queue` / `net._http_response`)
-- **Roles:** `supabase_admin`
-- **Total calls:** 5,252,039 for each maintenance query
-- **Total time:** 76,167.90 ms and 70,106.36 ms respectively
-- **Average latency:** 0.014–0.013 ms per call
-- **Rows touched:** 61 across both queries
-- **Observations:** Ultra-high frequency vacuum-style maintenance indicates the queue is heavily cycled.
-- **Recommendations:**
-  - Increase batch size limits to drain multiple entries per invocation.
-  - Schedule asynchronous workers to process backlog instead of synchronous deletions.
-  - Ensure autovacuum thresholds accommodate the write pattern to avoid table bloat.
+- **Signal:** >10.5 M combined DELETE operations with minimal rows touched per call.
+- **Hypothesis:** Workers are draining items synchronously with a micro-batch size of 1–2, causing constant churn.
+- **Mitigations (Owners: Messaging Infrastructure, Effort: Low, Impact: High):**
+  - Increase dequeue limits (e.g., 50–100 rows) and batch archival operations in a single transaction.
+  - Move archival to a dedicated cron job or Supabase Function that processes aged responses asynchronously.
+  - Tune autovacuum thresholds (`autovacuum_vacuum_scale_factor`, `analyze_scale_factor`) specifically for the queue tables to prevent bloat.
+  - Create covering indexes on `(created)` / `(id)` if not present to accelerate range deletes.
 
 ### 3. Metadata introspection pack
-- **Roles:** `supabase_read_only_user`, `authenticator`, `postgres`
-- **Total calls:** 1231 (`metadata` CTE), 216 (`pg_timezone_names`), 112/506/84 (table+column listings)
-- **Total time:** 50,693 ms to 27,258 ms per query group
-- **Observations:** Admin dashboards trigger broad catalog scans with long execution times (>40 ms).
-- **Recommendations:**
-  - Cache metadata payloads in application state and only refresh when schema migrations occur.
-  - Restrict API consumers from issuing redundant catalog crawls by introducing rate limits or stronger RBAC policies.
-  - Prefilter schemas/tables using allowlists to shorten result sets.
+- **Signal:** Catalog crawls spend 40–240 ms per call, repeating across roles (dashboard, API, CLI).
+- **Hypothesis:** UI components fetch full schema metadata on each load without caching.
+- **Mitigations (Owners: Developer Experience Team, Effort: Medium, Impact: Medium):**
+  - Materialize metadata snapshots in Redis or Edge Functions and invalidate on migration events.
+  - Gate expensive endpoints behind rate limits tied to service accounts to curb brute-force crawling.
+  - Add schema allowlists to queries (`WHERE table_schema = ANY($allowed)`) before shipping to clients.
+  - Provide offline documentation bundles to reduce reliance on live catalog scans during development.
 
 ### 4. Function catalog exports (`pg_proc` joins)
-- **Roles:** `supabase_admin`, `postgres`
-- **Total calls:** 85 and 50, respectively
-- **Total time:** 9,282 ms and 8,548 ms
-- **Average latency:** 109–171 ms per call
-- **Observations:** Wide CTE expansions with JSON aggregation place heavy load on `pg_proc`.
-- **Recommendations:**
-  - Materialize a daily function manifest table with triggers on `pg_proc` for incremental updates.
-  - Limit exposed schemas to reduce the cardinality of JSON arrays.
+- **Signal:** JSON aggregation CTEs generate multi-hundred line payloads with 100–170 ms latency.
+- **Hypothesis:** Full function exports run on-demand for every dashboard visit instead of incremental syncs.
+- **Mitigations (Owners: Platform Tooling, Effort: Medium, Impact: Medium):**
+  - Snapshot function metadata nightly into a dedicated table and expose via a lightweight view/API.
+  - Add triggers on `pg_proc` and `pg_trigger` to append change events into a queue for incremental refresh.
+  - Filter to explicitly supported schemas to shrink joins (`WHERE pn.nspname = ANY($limited_schemas)`).
 
 ### 5. Storage search and webhook traffic
-- **Roles:** `service_role`, `postgres`
-- **Queries:** `storage.search`, `net.http_post`
-- **Total time:** 5,390 ms and 4,774 ms
-- **Observations:** High P95 (118 ms) suggests underlying storage filters or external HTTP targets may be the bottleneck.
-- **Recommendations:**
-  - Profile storage filter predicates and add indexes for common `prefix`/`bucket_id` combinations.
-  - Queue outbound webhooks through a job runner with retries instead of synchronous execution inside transactions.
+- **Signal:** `storage.search` P95 = 118 ms; `net.http_post` averages 78 ms with external dependencies.
+- **Hypothesis:** Lack of selective indexes and synchronous webhook handling inside user transactions.
+- **Mitigations (Owners: Storage Squad & Integrations, Effort: Medium, Impact: Medium):**
+  - Add composite indexes on `(bucket_id, name_prefix)` or `(bucket_id, last_accessed)` depending on filter usage.
+  - Route outbound webhooks to a durable job queue (Supabase Queue, Temporal, or custom worker) to decouple from transaction latency.
+  - Capture downstream HTTP response codes/latencies in logs to identify flaky destinations.
 
-## Systemic Actions
-- Implement telemetry alerts that flag functions when call counts spike beyond historical baselines.
-- Review Supabase Realtime configuration to minimize needless polling and adopt WebSocket keepalive optimizations.
-- Apply caching and memoization for metadata-heavy routes, potentially via Edge Functions or CDN-backed APIs.
-- Audit role permissions to ensure service roles are reserved for trusted backends; tighten per-query RBAC where feasible.
+## Cross-Cutting Action Plan
 
-## Next Steps
-1. Convene the platform team to validate batching and caching strategies for realtime consumers within the next sprint.
-2. Create a Supabase performance dashboard tracking total time contribution per query family week over week.
-3. Schedule autovacuum and job-runner tuning session focused on the HTTP queue tables.
+| Priority | Initiative | Description | Owner | Effort | Impact | Target Date |
+| -------- | ---------- | ----------- | ----- | ------ | ------ | ----------- |
+| P0 | Realtime Polling Guardrails | Enforce minimum poll interval, instrument poll metrics, deploy caching | Platform Realtime Squad | M | H | +2 weeks |
+| P0 | HTTP Queue Batch Drains | Increase batch size, add cron processor, retune autovacuum | Messaging Infrastructure | L | H | +2 weeks |
+| P1 | Metadata Snapshot Service | Cache catalog responses & invalidate on migration events | Developer Experience | M | M | +4 weeks |
+| P1 | Function Manifest Materialization | Nightly snapshot & incremental trigger pipeline | Platform Tooling | M | M | +5 weeks |
+| P2 | Storage & Webhook Hardening | Add indexes, async webhooks, latency logging | Storage Squad & Integrations | M | M | +6 weeks |
 
-By executing the remediation plan above, the team can reclaim significant database capacity while delivering faster response times to downstream services.
+## Instrumentation & Monitoring Enhancements
+
+1. **Adopt per-query SLIs:** Track call volume, total runtime contribution, and failure rates via Supabase Logs and ship metrics to Prometheus/Grafana.
+2. **Establish anomaly alerts:** Trigger PagerDuty incidents when query families deviate ±20% from trailing 7-day baselines.
+3. **Correlate with application traces:** Emit OpenTelemetry spans for queue workers, realtime subscribers, and webhook flows to tie database load with application contexts.
+4. **Monthly performance reviews:** Include the dashboard in the ops review to ensure regression detection.
+
+## Next Steps & Accountability
+
+1. **Kickoff remediation workstream (Week 0):** Align engineering squads on priorities, confirm owners, and book weekly syncs.
+2. **Deploy realtime and queue fixes (Week 2):** Validate reduced call volume in telemetry and compare CPU utilization week-over-week.
+3. **Deliver caching layers (Week 4):** Ship metadata snapshot service and function manifest pipeline; add smoke tests to CI.
+4. **Review storage/webhook metrics (Week 6):** Ensure new indexes reduce `storage.search` P95 by >40% and asynchronous webhooks eliminate DB transaction stalls.
+5. **Retro & iterate (Week 8):** Document wins, outstanding risks, and feed insights into capacity planning.
+
+Executing the roadmap above should reclaim significant database headroom, stabilize admin tooling latency, and provide durable observability to guard against future regressions.
