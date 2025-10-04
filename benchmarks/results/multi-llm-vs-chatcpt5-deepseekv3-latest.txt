@@ -1,0 +1,26 @@
+Knowledge Base Benchmark Results
+
+Config: benchmarks/multi-llm-vs-chatcpt5-deepseekv3.json
+
+Domain   Grade  Band         Rationale
+--------------------------------------------------------------------------------
+ChatCPT5 B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+DeepseekV3 B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+DynamicMultiLLM A      A / A-       Catalogue is effectively complete with fresh telemetry and near-perfect sample accuracy.
+
+Remediation Guidance:
+- ChatCPT5: Patch missing assets, document fixes, and schedule follow-up validation.
+- DeepseekV3: Patch missing assets, document fixes, and schedule follow-up validation.
+- DynamicMultiLLM: Continue spot-audits and archive exemplars for future training cycles.
+
+Comprehensive Grade:
+Overall B (B range) — Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Weighted Metrics:
+  Coverage: 93.4% | Accuracy: 93.5% | Staleness: 16.3h | Failed checks: 0
+
+Fine-tuning cycles summary:
+- Baseline composite average: 0.8558
+- Cycle 1 average score: 0.9062 (ChatCPT5 0.9033, DeepseekV3 0.8521, DynamicMultiLLM 0.9632)
+- Cycle 2 average score: 0.9108 (ChatCPT5 0.9033, DeepseekV3 0.8659, DynamicMultiLLM 0.9632)
+
+Benchmark run timestamp: 2025-10-04T03:36:18Z
