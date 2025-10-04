@@ -16,7 +16,7 @@ const CACHE_KEY = "dynamic-api-response";
 export const revalidate = DYNAMIC_API_CACHE_TTL_SECONDS;
 
 const getDynamicApiResponse = unstable_cache(
-  () => Promise.resolve(buildDynamicApiResponse()),
+  async () => buildDynamicApiResponse(),
   [CACHE_KEY],
   {
     revalidate,

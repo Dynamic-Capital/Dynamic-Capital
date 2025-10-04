@@ -245,6 +245,17 @@ const STATIC_ALERTS = [
   },
 ] as const satisfies readonly DynamicApiAlert[];
 
+const STATUS_ALERT_STATUSES: ReadonlySet<string> = new Set([
+  "degraded",
+  "outage",
+  "offline",
+]);
+const CRITICAL_ALERT_SEVERITIES: ReadonlySet<string> = new Set([
+  "critical",
+  "high",
+]);
+const OPERATIONAL_STATUS = "operational";
+
 function cloneEndpoint(definition: EndpointDefinition): DynamicApiEndpoint {
   const { endpoint, schema, monitor } = definition;
 
@@ -258,18 +269,25 @@ function cloneEndpoint(definition: EndpointDefinition): DynamicApiEndpoint {
   } satisfies DynamicApiEndpoint;
 }
 
+function normalizeForComparison(value: string): string {
+  return value.trim().toLowerCase();
+}
+
 function isCriticalSeverity(severity: string): boolean {
-  const normalized = severity.trim().toLowerCase();
-  return normalized === "critical" || normalized === "high";
+  return CRITICAL_ALERT_SEVERITIES.has(normalizeForComparison(severity));
 }
 
 function detectRisks(
   endpoints: DynamicApiEndpoint[],
   alerts: DynamicApiAlert[],
-): DynamicApiRisk[] {
+): {
+  risks: DynamicApiRisk[];
+  endpointsUnderWatch: number;
+  criticalAlertCount: number;
+} {
   const risks: DynamicApiRisk[] = [];
-
-  const statusAlerts = new Set(["degraded", "outage", "offline"]);
+  let endpointsUnderWatch = 0;
+  let criticalAlertCount = 0;
 
   for (const endpoint of endpoints) {
     if (!endpoint.schema) {
@@ -289,8 +307,12 @@ function detectRisks(
       });
     }
 
-    const status = endpoint.status.trim().toLowerCase();
-    if (statusAlerts.has(status)) {
+    const normalizedStatus = normalizeForComparison(endpoint.status);
+    if (normalizedStatus !== OPERATIONAL_STATUS) {
+      endpointsUnderWatch += 1;
+    }
+
+    if (STATUS_ALERT_STATUSES.has(normalizedStatus)) {
       risks.push({
         endpoint: endpoint.name,
         issue: "status_alert",
@@ -334,6 +356,7 @@ function detectRisks(
 
   for (const alert of alerts) {
     if (isCriticalSeverity(alert.severity)) {
+      criticalAlertCount += 1;
       risks.push({
         endpoint: alert.endpoint,
         issue: "critical_alert",
@@ -342,33 +365,35 @@ function detectRisks(
     }
   }
 
-  return risks;
+  return { risks, endpointsUnderWatch, criticalAlertCount };
 }
 
-function summarise(
-  endpoints: DynamicApiEndpoint[],
-  alerts: DynamicApiAlert[],
-  risks: DynamicApiRisk[],
-): string {
+interface SummaryComposition {
+  totalEndpoints: number;
+  endpointsUnderWatch: number;
+  criticalAlertCount: number;
+  riskCount: number;
+}
+
+function summarise({
+  totalEndpoints,
+  endpointsUnderWatch,
+  criticalAlertCount,
+  riskCount,
+}: SummaryComposition): string {
   const parts: string[] = [];
-  parts.push(`${endpoints.length} endpoints`);
+  parts.push(`${totalEndpoints} endpoints`);
 
-  const underWatch =
-    endpoints.filter((endpoint) =>
-      endpoint.status.trim().toLowerCase() !== "operational"
-    ).length;
-  if (underWatch > 0) {
-    parts.push(`${underWatch} under watch`);
+  if (endpointsUnderWatch > 0) {
+    parts.push(`${endpointsUnderWatch} under watch`);
   }
 
-  const criticalAlerts =
-    alerts.filter((alert) => isCriticalSeverity(alert.severity)).length;
-  if (criticalAlerts > 0) {
-    parts.push(`${criticalAlerts} critical alerts`);
+  if (criticalAlertCount > 0) {
+    parts.push(`${criticalAlertCount} critical alerts`);
   }
 
-  if (risks.length > 0) {
-    parts.push(`${risks.length} risk signals`);
+  if (riskCount > 0) {
+    parts.push(`${riskCount} risk signals`);
   }
 
   return parts.join(", ");
@@ -387,8 +412,16 @@ export function buildDynamicApiResponse(
     });
 
   const alerts = STATIC_ALERTS.map((alert) => ({ ...alert }));
-  const risks = detectRisks(endpoints, alerts);
-  const summary = summarise(endpoints, alerts, risks);
+  const { risks, endpointsUnderWatch, criticalAlertCount } = detectRisks(
+    endpoints,
+    alerts,
+  );
+  const summary = summarise({
+    totalEndpoints: endpoints.length,
+    endpointsUnderWatch,
+    criticalAlertCount,
+    riskCount: risks.length,
+  });
 
   return {
     status: "ok",
