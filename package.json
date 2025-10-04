@@ -29,6 +29,7 @@
     "lint": "node scripts/npm-safe.mjs -w apps/web run lint",
     "format": "deno fmt apps supabase scripts db docs",
     "typecheck": "node scripts/npm-safe.mjs -w apps/web run typecheck",
+    "review": "python -m pytest algorithms/python/tests/test_review_and_optimize.py",
     "debug": "NODE_OPTIONS='--inspect' node scripts/npm-safe.mjs run dev",
     "preview": "node scripts/npm-safe.mjs run dev",
     "upload-assets": "node scripts/upload-assets.js",

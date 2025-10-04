@@ -92,6 +92,23 @@ def test_optimize_trading_stack_produces_plan():
     assert restored_plan.pipeline_state["type"] == pipeline_state["type"]
 
 
+def test_optimize_trading_stack_reuses_pipeline_when_fingerprint_matches():
+    snapshots = _build_snapshots()
+    search_space = {"neighbors": [1], "label_lookahead": [2]}
+
+    baseline = optimize_trading_stack(snapshots, search_space)
+
+    follow_up = optimize_trading_stack(
+        snapshots,
+        search_space,
+        previous_plan=baseline,
+    )
+
+    assert follow_up.reused_pipeline is True
+    assert follow_up.fingerprint == baseline.fingerprint
+    assert follow_up.pipeline_state == baseline.pipeline_state
+
+
 def test_optimize_trading_stack_requires_snapshots():
     with pytest.raises(ValueError):
         optimize_trading_stack([], {"neighbors": [1]})

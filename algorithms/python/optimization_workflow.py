@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import statistics
 from dataclasses import dataclass, replace
+from datetime import datetime
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from .backtesting import BacktestResult
@@ -29,6 +30,16 @@ try:  # pragma: no cover - optional dependency used for typing only
     from .grok_advisor import TradeAdvisor
 except Exception:  # pragma: no cover - typing helper when grok advisor deps missing
     TradeAdvisor = object  # type: ignore[misc, assignment]
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotFingerprint:
+    """Lightweight fingerprint used to detect snapshot reuse."""
+
+    count: int
+    start: Optional[datetime]
+    end: Optional[datetime]
+    symbols: tuple[str, ...]
 
 
 @dataclass(slots=True)
@@ -58,6 +69,8 @@ class OptimizationPlan:
     trade_logic: TradeLogic
     realtime_executor: Optional[RealtimeExecutor]
     insights: OptimizationInsights
+    fingerprint: SnapshotFingerprint
+    reused_pipeline: bool
 
 
 @dataclass(slots=True)
@@ -68,8 +81,15 @@ class ReviewOptimizationRun:
     optimization: OptimizationPlan
 
 
-def _prepare_pipeline(snapshots: Sequence[MarketSnapshot]) -> FeaturePipeline:
+def _prepare_pipeline(
+    snapshots: Sequence[MarketSnapshot],
+    *,
+    state: Optional[Dict[str, object]] = None,
+) -> FeaturePipeline:
     pipeline = FeaturePipeline()
+    if state is not None:
+        pipeline.load_state_dict(copy.deepcopy(state))
+        return pipeline
     feature_rows = (snapshot.feature_vector() for snapshot in snapshots)
     pipeline.fit(feature_rows)
     return pipeline
@@ -167,6 +187,23 @@ def _calibrate_risk_parameters(
     return calibrated
 
 
+def _fingerprint_snapshots(
+    snapshots: Sequence[MarketSnapshot],
+) -> SnapshotFingerprint:
+    if not snapshots:
+        return SnapshotFingerprint(count=0, start=None, end=None, symbols=())
+
+    start = snapshots[0].timestamp if snapshots[0].timestamp else None
+    end = snapshots[-1].timestamp if snapshots[-1].timestamp else None
+    symbols = tuple(sorted({snapshot.symbol for snapshot in snapshots if snapshot.symbol}))
+    return SnapshotFingerprint(
+        count=len(snapshots),
+        start=start,
+        end=end,
+        symbols=symbols,
+    )
+
+
 def optimize_trading_stack(
     snapshots: Sequence[MarketSnapshot],
     search_space: Mapping[str, Iterable],
@@ -179,6 +216,7 @@ def optimize_trading_stack(
     state_store: Optional[StateStore] = None,
     health_monitor: Optional[HealthMonitor] = None,
     advisor: "TradeAdvisor" | None = None,
+    previous_plan: Optional["OptimizationPlan"] = None,
 ) -> OptimizationPlan:
     """Execute the optimisation tasks recommended by the trading playbook."""
 
@@ -186,14 +224,31 @@ def optimize_trading_stack(
     if not snapshot_list:
         raise ValueError("snapshots must be a non-empty sequence")
 
-    pipeline = _prepare_pipeline(snapshot_list)
-    pipeline_state = pipeline.state_dict()
-    insights = _aggregate_insights(snapshot_list)
+    fingerprint = _fingerprint_snapshots(snapshot_list)
+    reuse_pipeline = previous_plan is not None and previous_plan.fingerprint == fingerprint
 
-    base = base_config or TradeConfig()
+    if reuse_pipeline:
+        cached_state = previous_plan.pipeline_state
+        pipeline = _prepare_pipeline(snapshot_list, state=cached_state)
+        pipeline_state = copy.deepcopy(cached_state)
+        insights = replace(previous_plan.insights)
+    else:
+        pipeline = _prepare_pipeline(snapshot_list)
+        pipeline_state = pipeline.state_dict()
+        insights = _aggregate_insights(snapshot_list)
+
+    if base_config is not None:
+        base = replace(base_config)
+    elif previous_plan is not None:
+        base = replace(previous_plan.best_config)
+    else:
+        base = TradeConfig()
     tuned_config = _tune_trade_config(base, insights)
 
-    risk_params = _calibrate_risk_parameters(snapshot_list, risk_parameters)
+    effective_risk_params = risk_parameters
+    if effective_risk_params is None and previous_plan is not None:
+        effective_risk_params = previous_plan.risk_manager.params
+    risk_params = _calibrate_risk_parameters(snapshot_list, effective_risk_params)
 
     search = HyperparameterSearch(
         snapshot_list,
@@ -231,6 +286,8 @@ def optimize_trading_stack(
         trade_logic=trade_logic,
         realtime_executor=realtime_executor,
         insights=insights,
+        fingerprint=fingerprint,
+        reused_pipeline=reuse_pipeline,
     )
 
 
@@ -248,6 +305,7 @@ def run_review_and_optimize(
     state_store: Optional[StateStore] = None,
     health_monitor: Optional[HealthMonitor] = None,
     advisor: "TradeAdvisor" | None = None,
+    previous_run: Optional[ReviewOptimizationRun] = None,
 ) -> ReviewOptimizationRun:
     """Run a review synthesis followed by an optimisation cycle."""
 
@@ -270,12 +328,14 @@ def run_review_and_optimize(
         state_store=state_store,
         health_monitor=health_monitor,
         advisor=advisor,
+        previous_plan=previous_run.optimization if previous_run else None,
     )
 
     return ReviewOptimizationRun(review=review_report, optimization=optimization_plan)
 
 
 __all__ = [
+    "SnapshotFingerprint",
     "OptimizationInsights",
     "OptimizationPlan",
     "ReviewOptimizationRun",
