@@ -22,7 +22,9 @@ import {
   type DynamicCliRequestOptions,
   type DynamicCliResponsePayload,
   type DynamicCliScenario,
+  type DynamicCliScenarioDiagnostics,
   runDynamicCli,
+  validateDynamicCliScenario,
 } from "@/services/dynamic-cli";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
@@ -78,6 +80,24 @@ export function DynamicCliWorkbench() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const scenarioDiagnostics: DynamicCliScenarioDiagnostics = useMemo(() => {
+    try {
+      const parsed = JSON.parse(scenarioText);
+      return validateDynamicCliScenario(parsed);
+    } catch {
+      return {
+        valid: false,
+        errors: ["Scenario JSON must be valid."],
+        warnings: [],
+        summary: {
+          nodeCount: 0,
+          pulseCount: 0,
+          mostRecentPulse: null,
+        },
+      };
+    }
+  }, [scenarioText]);
+
   useEffect(() => {
     if (format === "fine-tune") {
       setExportDataset(true);
@@ -117,25 +137,14 @@ export function DynamicCliWorkbench() {
   const handleSubmit = useCallback(async () => {
     setError(null);
 
-    let scenario: unknown;
-    try {
-      scenario = JSON.parse(scenarioText);
-    } catch {
-      setError("Scenario JSON must be valid.");
+    if (!scenarioDiagnostics.valid || !scenarioDiagnostics.scenario) {
+      setError(
+        scenarioDiagnostics.errors[0] ?? "Scenario JSON must be valid.",
+      );
       return;
     }
 
-    if (!scenario || typeof scenario !== "object" || Array.isArray(scenario)) {
-      setError("Scenario payload must be a JSON object.");
-      return;
-    }
-
-    if (!("nodes" in scenario) || !("pulses" in scenario)) {
-      setError("Scenario must include nodes and pulses arrays.");
-      return;
-    }
-
-    const typedScenario = scenario as DynamicCliScenario;
+    const typedScenario = scenarioDiagnostics.scenario as DynamicCliScenario;
 
     setIsSubmitting(true);
     try {
@@ -171,7 +180,7 @@ export function DynamicCliWorkbench() {
     indent,
     resolvedDatasetPreference,
     fineTuneTags,
-    scenarioText,
+    scenarioDiagnostics,
     getAdminAuth,
   ]);
 
@@ -303,6 +312,56 @@ export function DynamicCliWorkbench() {
               The schema matches the CLI manual: history, decay, nodes, and
               pulses. Use the default blueprint as a starting point.
             </Text>
+            <Column gap="8" aria-live="polite">
+              <Text
+                as="span"
+                variant="label-default-xs"
+                className="uppercase tracking-wide"
+              >
+                Scenario diagnostics
+              </Text>
+              <Row gap="8" wrap data-testid="dynamic-cli-scenario-summary">
+                <Tag size="s" background="neutral-alpha-weak">
+                  Nodes: {scenarioDiagnostics.summary.nodeCount}
+                </Tag>
+                <Tag size="s" background="neutral-alpha-weak">
+                  Pulses: {scenarioDiagnostics.summary.pulseCount}
+                </Tag>
+                {scenarioDiagnostics.summary.mostRecentPulse
+                  ? (
+                    <Tag size="s" background="neutral-alpha-weak">
+                      Latest pulse: {scenarioDiagnostics.summary.mostRecentPulse}
+                    </Tag>
+                  )
+                  : null}
+              </Row>
+              {scenarioDiagnostics.warnings.length > 0 && (
+                <Column gap="4" data-testid="dynamic-cli-scenario-warnings">
+                  {scenarioDiagnostics.warnings.map((warning) => (
+                    <Text
+                      key={warning}
+                      variant="body-default-xs"
+                      className="text-warning"
+                    >
+                      Warning: {warning}
+                    </Text>
+                  ))}
+                </Column>
+              )}
+              {scenarioDiagnostics.errors.length > 0 && (
+                <Column gap="4" data-testid="dynamic-cli-scenario-errors">
+                  {scenarioDiagnostics.errors.map((diagnosticError) => (
+                    <Text
+                      key={diagnosticError}
+                      variant="body-default-xs"
+                      onBackground="danger-strong"
+                    >
+                      {diagnosticError}
+                    </Text>
+                  ))}
+                </Column>
+              )}
+            </Column>
           </Column>
 
           <Column gap="16">
