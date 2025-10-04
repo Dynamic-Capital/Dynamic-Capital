@@ -5,20 +5,30 @@ from __future__ import annotations
 import ast
 from importlib import import_module
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterable, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, Tuple, cast
 
 _PACKAGE_ROOT = Path(__file__).resolve().parent
-_MODULES = {
-    "logic": "dynamic.trading.logic",
-    "algo": "dynamic.trading.algo",
-    "live_sync": "dynamic.trading.live_sync",
-}
 
 
-def _module_source_path(key: str) -> Path:
-    if key == "live_sync":
-        return _PACKAGE_ROOT / "live_sync.py"
-    return _PACKAGE_ROOT / key / "__init__.py"
+def _discover_module_sources(root: Path) -> Dict[str, Tuple[str, Path]]:
+    """Map public submodules to their fully qualified names and source paths."""
+
+    module_sources: Dict[str, Tuple[str, Path]] = {}
+    package_name = __name__
+    for entry in sorted(root.iterdir(), key=lambda path: path.name):
+        if entry.name.startswith("_") or entry.name in {"__pycache__"}:
+            continue
+        if entry.is_dir():
+            init_path = entry / "__init__.py"
+            if init_path.exists():
+                module_sources[entry.name] = (f"{package_name}.{entry.name}", init_path)
+        elif entry.suffix == ".py" and entry.stem != "__init__":
+            module_sources[entry.stem] = (f"{package_name}.{entry.stem}", entry)
+    return module_sources
+
+
+_MODULE_SOURCES = _discover_module_sources(_PACKAGE_ROOT)
+_MODULES = {name: module for name, (module, _) in _MODULE_SOURCES.items()}
 
 
 def _load_export_names(path: Path) -> Tuple[str, ...]:
@@ -39,7 +49,7 @@ def _load_export_names(path: Path) -> Tuple[str, ...]:
 
 
 _EXPORTS: Dict[str, Tuple[str, ...]] = {
-    key: _load_export_names(_module_source_path(key)) for key in _MODULES
+    key: _load_export_names(path) for key, (_, path) in _MODULE_SOURCES.items()
 }
 _SYMBOL_TO_MODULE = {
     symbol: _MODULES[key]
@@ -48,13 +58,18 @@ _SYMBOL_TO_MODULE = {
 }
 
 if TYPE_CHECKING:  # pragma: no cover - static typing hook
-    from . import algo, live_sync, logic  # noqa: F401 (re-exported modules)
+    from types import ModuleType
+
+    for _alias, _module_name in _MODULES.items():
+        globals()[_alias] = cast(ModuleType, import_module(_module_name))
 
 __all__ = list(_MODULES)
+_seen = set(__all__)
 for _symbols in _EXPORTS.values():
     for _symbol in _symbols:
-        if _symbol not in __all__:
+        if _symbol not in _seen:
             __all__.append(_symbol)
+            _seen.add(_symbol)
 
 
 def __getattr__(name: str):
