@@ -22,6 +22,7 @@ import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { SiteFooter } from "@/components/navigation/SiteFooter";
 import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
 import { SkipToContent } from "@/components/navigation/SkipToContent";
+import { HideOnMiniApp } from "@/components/navigation/HideOnMiniApp";
 import { dynamicBranding, dynamicUI } from "@/resources";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
@@ -297,7 +298,9 @@ export default async function RootLayout(
               />
             </RevealFx>
             <SkipToContent />
-            <SiteHeader />
+            <HideOnMiniApp>
+              <SiteHeader />
+            </HideOnMiniApp>
             <Flex
               zIndex={0}
               fillWidth
@@ -316,8 +319,12 @@ export default async function RootLayout(
                 <RouteGuard>{children}</RouteGuard>
               </Flex>
             </Flex>
-            <SiteFooter />
-            <MobileBottomNav />
+            <HideOnMiniApp>
+              <SiteFooter />
+            </HideOnMiniApp>
+            <HideOnMiniApp>
+              <MobileBottomNav />
+            </HideOnMiniApp>
           </Column>
         </Providers>
       </body>
