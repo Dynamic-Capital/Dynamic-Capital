@@ -38,6 +38,10 @@ Telegram bot and optional Mini App.
    ```bash
    deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
    deno test -A
+   # Supabase edge-function suites rely only on std/esm modules; disable npm to
+   # prevent Deno from downloading the entire web-app dependency tree (which can
+   # intermittently 502 behind the corporate proxy).
+   $(bash scripts/deno_bin.sh) test --no-npm -A supabase/functions/_tests/ton-allocator-webhook.test.ts
    ```
 
 7. **Deploy**

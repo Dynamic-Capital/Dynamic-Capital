@@ -26,6 +26,11 @@ or local workstations) before running any TON contract tooling.
    The command installs `toncli` alongside a compatible `bitstring` release and
    ensures `pkg_resources` is available for the CLI's version command.
 
+   Depending on your Python environment, the `toncli` executable may land in a
+   toolchain-specific directory (for example `~/.pyenv/versions/<ver>/bin`). Add
+   that directory to your `PATH` or symlink the binary into `/usr/local/bin`
+   before continuing so subsequent commands can invoke `toncli` directly.
+
    To run the DNS payload helper included in this repository, install the
    supplementary Python dependency bundle as well:
 
