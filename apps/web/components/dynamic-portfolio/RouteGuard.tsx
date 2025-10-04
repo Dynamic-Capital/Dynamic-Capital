@@ -17,6 +17,12 @@ interface RouteGuardProps {
   children: React.ReactNode;
 }
 
+type CheckAuthResponse = {
+  ok: boolean;
+  authenticated?: boolean;
+  passwordRequired?: boolean;
+};
+
 const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
   const pathname = usePathname();
 
@@ -51,22 +57,46 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     const performChecks = async () => {
       setLoading(true);
       setIsAllowed(false);
-      setIsPasswordRequired(false);
       setIsAuthenticated(false);
+      setError(undefined);
 
       const routeEnabled = Boolean(
         normalizedPathname && isRouteEnabled(normalizedPathname),
       );
       setIsAllowed(routeEnabled);
 
-      if (protectedRoutes[normalizedPathname as keyof typeof protectedRoutes]) {
-        setIsPasswordRequired(true);
+      const routeIsProtected = Boolean(
+        protectedRoutes[normalizedPathname as keyof typeof protectedRoutes],
+      );
 
-        const response = await fetch("/api/check-auth");
-        if (response.ok) {
-          setIsAuthenticated(true);
+      let requiresPassword = routeIsProtected;
+
+      if (routeIsProtected) {
+        try {
+          const response = await fetch("/api/check-auth");
+
+          if (response.ok) {
+            let payload: CheckAuthResponse | undefined;
+            try {
+              payload = (await response.json()) as CheckAuthResponse;
+            } catch {
+              payload = undefined;
+            }
+
+            if (payload?.authenticated) {
+              setIsAuthenticated(true);
+            }
+
+            if (payload?.passwordRequired === false) {
+              requiresPassword = false;
+            }
+          }
+        } catch {
+          // Ignore network failures and fall back to requiring a password.
         }
       }
+
+      setIsPasswordRequired(routeIsProtected && requiresPassword);
 
       setLoading(false);
     };

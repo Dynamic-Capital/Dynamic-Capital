@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
 
     if (!secret) {
       return jsonResponse(
-        { ok: false, error: "Route guard password is not configured" },
-        { status: 500 },
+        { ok: true, passwordRequired: false },
+        {},
         req,
       );
     }
@@ -51,7 +51,11 @@ export async function POST(req: NextRequest) {
       }, req);
     }
 
-    const response = jsonResponse({ ok: true }, {}, req);
+    const response = jsonResponse(
+      { ok: true, passwordRequired: true },
+      {},
+      req,
+    );
     response.headers.append(
       "set-cookie",
       buildRouteGuardCookie(cookieToken(secret)),
