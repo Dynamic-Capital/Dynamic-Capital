@@ -15,10 +15,16 @@ from urllib.request import Request, build_opener
 from .engine import CorpusExtractionContext, ExtractionLoader
 
 __all__ = [
+    "CorruptedPdfError",
     "GoogleDriveClient",
     "build_google_drive_pdf_loader",
     "parse_drive_share_link",
 ]
+
+
+class CorruptedPdfError(RuntimeError):
+    """Raised when a PDF payload cannot be parsed due to corruption."""
+
 
 _PDF_MIME_TYPE = "application/pdf"
 _DOCX_MIME_TYPES = (
@@ -52,10 +58,16 @@ def _load_pypdf() -> "PyPDF2":  # type: ignore[name-defined]
 
 def _default_pdf_text_extractor(payload: bytes, *, file_name: str) -> str:
     PyPDF2 = _load_pypdf()
-    reader = PyPDF2.PdfReader(io.BytesIO(payload))
+    try:
+        reader = PyPDF2.PdfReader(io.BytesIO(payload))
+    except Exception as error:  # pragma: no cover - corruption guard
+        raise CorruptedPdfError(f"Failed to read PDF '{file_name}'") from error
     text_parts: list[str] = []
     for page in reader.pages:
-        extracted = page.extract_text() or ""
+        try:
+            extracted = page.extract_text() or ""
+        except Exception as error:  # pragma: no cover - corruption guard
+            raise CorruptedPdfError(f"Failed to extract text from PDF '{file_name}'") from error
         if extracted:
             text_parts.append(extracted)
     text = "\n".join(part.strip() for part in text_parts if part.strip())
@@ -111,13 +123,16 @@ def _extract_pdf_page_texts(
     """Return per-page text for a PDF, optionally filling gaps with OCR."""
 
     PyPDF2 = _load_pypdf()
-    reader = PyPDF2.PdfReader(io.BytesIO(payload))
+    try:
+        reader = PyPDF2.PdfReader(io.BytesIO(payload))
+    except Exception as error:  # pragma: no cover - corruption guard
+        raise CorruptedPdfError(f"Failed to read PDF '{file_name}'") from error
     page_texts: list[str] = []
     for page_index, page in enumerate(reader.pages, start=1):
         try:
             extracted = page.extract_text() or ""
         except Exception as error:  # pragma: no cover - defensive guard
-            raise RuntimeError(
+            raise CorruptedPdfError(
                 f"Failed to extract text from page {page_index} of PDF '{file_name}'"
             ) from error
         page_texts.append(extracted.strip())
@@ -181,6 +196,30 @@ def _normalise_ocr_languages(languages: Sequence[str] | str | None) -> str | Non
     if not unique:
         return None
     return "+".join(unique)
+
+
+def _build_pdf_checkpoint(
+    *,
+    file_id: str,
+    page_end: int | None = None,
+    total_pages: int | None = None,
+    completed: bool | None = None,
+) -> Mapping[str, object]:
+    """Return a serialisable checkpoint payload for a PDF extraction run."""
+
+    finalised = completed
+    if finalised is None and total_pages is not None and page_end is not None:
+        finalised = page_end >= total_pages
+    checkpoint: dict[str, object] = {
+        "file_id": file_id,
+        "mime_type": _PDF_MIME_TYPE,
+    }
+    if page_end is not None:
+        checkpoint["last_page"] = page_end
+    if total_pages is not None:
+        checkpoint["total_pages"] = total_pages
+    checkpoint["completed"] = bool(finalised) if finalised is not None else False
+    return checkpoint
 
 
 def _load_pdf_ocr_toolchain() -> tuple[object, object]:
@@ -505,6 +544,8 @@ def build_google_drive_pdf_loader(
         text_result: object | None = None
         try:
             text_result = base_extractor(payload, metadata)
+        except CorruptedPdfError:
+            raise
         except Exception as base_error:
             if not enable_ocr:
                 raise
@@ -654,23 +695,26 @@ def build_google_drive_pdf_loader(
             tags_for_document = _resolve_tags(effective_mime)
 
             if page_chunk_size is not None and effective_mime == _PDF_MIME_TYPE:
-                if pdf_text_extractor is None:
-                    page_texts = _extract_pdf_page_texts(
-                        payload,
-                        file_name=str(metadata.get("name", "unknown")),
-                        enable_ocr=enable_ocr,
-                        languages=languages,
-                        dpi=dpi,
-                    )
-                else:
-                    result = base_extractor(payload, metadata)
-                    if isinstance(result, (list, tuple)):
-                        page_texts = [str(part).strip() for part in result]
-                    else:
-                        raise RuntimeError(
-                            "Custom pdf_text_extractor must return a sequence of page texts "
-                            "when page_batch_size is provided"
+                try:
+                    if pdf_text_extractor is None:
+                        page_texts = _extract_pdf_page_texts(
+                            payload,
+                            file_name=str(metadata.get("name", "unknown")),
+                            enable_ocr=enable_ocr,
+                            languages=languages,
+                            dpi=dpi,
                         )
+                    else:
+                        result = base_extractor(payload, metadata)
+                        if isinstance(result, (list, tuple)):
+                            page_texts = [str(part).strip() for part in result]
+                        else:
+                            raise RuntimeError(
+                                "Custom pdf_text_extractor must return a sequence of page texts "
+                                "when page_batch_size is provided"
+                            )
+                except CorruptedPdfError:
+                    return
 
                 total_pages = len(page_texts)
                 if total_pages == 0:
@@ -701,6 +745,11 @@ def build_google_drive_pdf_loader(
                         total_batches=total_batches,
                         pages_per_batch=page_chunk_size,
                     )
+                    chunk_metadata["checkpoint"] = _build_pdf_checkpoint(
+                        file_id=file_id,
+                        page_end=end_index,
+                        total_pages=total_pages,
+                    )
                     yield {
                         "identifier": (
                             f"google-drive-{file_id}-p{start_index + 1:04d}-p{end_index:04d}"
@@ -723,12 +772,23 @@ def build_google_drive_pdf_loader(
                     if docx_extractor is None:
                         return
                     text = docx_extractor(payload, metadata)
+                    metadata_payload = dict(document_metadata)
                 else:
-                    text = _full_text_extractor(payload, metadata)
+                    try:
+                        text = _full_text_extractor(payload, metadata)
+                    except CorruptedPdfError:
+                        return
+                    metadata_payload = {
+                        **document_metadata,
+                        "checkpoint": _build_pdf_checkpoint(
+                            file_id=file_id,
+                            completed=True,
+                        ),
+                    }
                 yield {
                     "identifier": f"google-drive-{file_id}",
                     "content": text,
-                    "metadata": document_metadata,
+                    "metadata": metadata_payload,
                     "tags": tags_for_document,
                 }
                 if remaining is not None:
