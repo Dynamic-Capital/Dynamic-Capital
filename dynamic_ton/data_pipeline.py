@@ -229,17 +229,32 @@ class TonDataCollector:
         payload = await self._request(
             f"{base}/jetton/{jetton}/holders", params={"limit": 50}
         )
-        holders = payload.get("holders", [])
-        balances = [float(holder.get("balance", 0.0)) for holder in holders]
+        holders = payload.get("holders")
+        if holders is None:
+            holders = payload.get("addresses", [])
+
+        def _coerce_balance(entry: Mapping[str, Any]) -> float:
+            value = entry.get("balance", 0)
+            try:
+                return float(value)
+            except (TypeError, ValueError):  # pragma: no cover - defensive guard
+                return 0.0
+
+        balances = sorted(
+            (_coerce_balance(holder) for holder in holders), reverse=True
+        )
         total = sum(balances) or 1.0
         top_10_share = sum(balances[:10]) / total
         top_50_share = sum(balances[:50]) / total
-        metrics = payload.get("statistics", {})
+        metrics = payload.get("statistics") or {}
+        unique_holders = metrics.get("unique_holders")
+        if unique_holders is None:
+            unique_holders = payload.get("total", len(balances))
         return TonWalletDistribution(
             jetton=jetton,
             top_10_share=top_10_share,
             top_50_share=top_50_share,
-            unique_wallets=int(metrics.get("unique_holders", len(balances))),
+            unique_wallets=int(unique_holders or len(balances)),
             whale_transactions_24h=int(metrics.get("whale_transactions_24h", 0)),
         )
 
