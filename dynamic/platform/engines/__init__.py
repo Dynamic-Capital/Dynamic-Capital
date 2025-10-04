@@ -92,7 +92,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
     "dynamic_analytical_thinking": ("DynamicAnalyticalThinking",),
     "dynamic_arrow": ("DynamicArrow",),
     "dynamic_bots": ("DynamicTelegramBot",),
-    "dynamic_branch": ("DynamicBranchPlanner",),
+    "dynamic_branch": (
+        "BranchDefinition",
+        "BranchStatus",
+        "DynamicBranchPlanner",
+        "PromotionPlan",
+    ),
     "dynamic_bridge": (
         "BridgeEndpoint",
         "BridgeHealthReport",
@@ -171,7 +176,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
         "StageInstruction",
         "FeatureRecipe",
     ),
-    "dynamic_effect": ("DynamicEffectEngine",),
+    "dynamic_effect": (
+        "EffectImpulse",
+        "EffectContext",
+        "EffectFrame",
+        "DynamicEffectEngine",
+    ),
     "dynamic_evaluation": (
         "DynamicEvaluationEngine",
         "EvaluationContext",
@@ -189,6 +199,22 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
     "dynamic_emoticon": ("DynamicEmoticon",),
     "dynamic_framework": ("DynamicFrameworkEngine",),
     "dynamic_heal": ("DynamicHealEngine",),
+    "dynamic_hierarchy": (
+        "DynamicHierarchy",
+        "HierarchyNode",
+        "HierarchySnapshot",
+        "HierarchyBlueprint",
+        "HierarchyEngine",
+        "HierarchyAgent",
+        "HierarchyBuilder",
+        "HierarchyHelperBot",
+        "HIERARCHY_MODEL",
+        "HierarchyCharacteristic",
+        "HierarchyExample",
+        "HierarchyModel",
+        "OrganizationalHierarchy",
+        "organizational_hierarchy_catalogue",
+    ),
     "dynamic_iceberg": (
         "DynamicIcebergEngine",
         "IcebergEnvironment",
@@ -259,6 +285,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
         "MethodSignal",
         "MethodContext",
         "MethodBlueprint",
+    ),
+    "dynamic_mantra": (
+        "DynamicMantra",
+        "MantraContext",
+        "MantraSeed",
+        "MantraSequence",
     ),
     "dynamic_metacognition": ("DynamicMetacognition",),
     "dynamic_mentorship": ("DynamicMentorshipEngine",),
@@ -357,6 +389,13 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
         "RecipeStep",
         "RecipeSuggestion",
         "ShoppingItem",
+    ),
+    "dynamic_routine": (
+        "DynamicRoutineEngine",
+        "RoutineActivity",
+        "RoutineBlock",
+        "RoutineContext",
+        "RoutinePlan",
     ),
     "dynamic_script": ("DynamicScriptEngine",),
     "dynamic_sense": (
@@ -602,6 +641,10 @@ _EXPORTED_ALIASES = {
 __all__ = sorted(_EXPORTED_ALIASES | {"enable_all_dynamic_engines"})
 
 
+_ENABLED_ALIASES: Dict[str, object] = {}
+_TOTAL_EXPORTS = len(_EXPORTED_ALIASES)
+
+
 def enable_all_dynamic_engines(*, strict: bool = False) -> Dict[str, object]:
     """Eagerly load every exported engine symbol into the shim namespace.
 
@@ -621,7 +664,10 @@ def enable_all_dynamic_engines(*, strict: bool = False) -> Dict[str, object]:
         of what is currently available.
     """
 
-    loaded: Dict[str, object] = {}
+    if len(_ENABLED_ALIASES) == _TOTAL_EXPORTS:
+        return dict(_ENABLED_ALIASES)
+
+    loaded: Dict[str, object] = dict(_ENABLED_ALIASES)
     failures: Dict[str, Exception] = {}
 
     for module_name, specs in _ENGINE_EXPORTS.items():
@@ -630,16 +676,24 @@ def enable_all_dynamic_engines(*, strict: bool = False) -> Dict[str, object]:
             if alias in loaded:
                 continue
             if alias in globals():
-                loaded[alias] = globals()[alias]
+                value = globals()[alias]
+                loaded[alias] = value
+                _ENABLED_ALIASES[alias] = value
                 continue
             try:
-                loaded[alias] = _load_symbol(module_name, spec)
+                value = _load_symbol(module_name, spec)
             except Exception as exc:  # pragma: no cover - defensive import guard
                 failures[alias] = exc
                 if strict:
                     raise RuntimeError(
                         f"Failed to enable engine '{alias}' from {module_name}"
                     ) from exc
+            else:
+                loaded[alias] = value
+                _ENABLED_ALIASES[alias] = value
+
+        if len(loaded) == _TOTAL_EXPORTS:
+            break
 
     if failures:
         details = ", ".join(
@@ -651,7 +705,7 @@ def enable_all_dynamic_engines(*, strict: bool = False) -> Dict[str, object]:
             stacklevel=2,
         )
 
-    return loaded
+    return dict(loaded)
 
 def _load_symbol(module_name: str, spec: SymbolExport) -> object:
     alias = _export_alias(spec)
