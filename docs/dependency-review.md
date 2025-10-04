@@ -37,7 +37,7 @@ Use the tables below to triage upgrades by impact and required effort.
 | `@supabase/supabase-js`       | 2.57.2 → 2.58.0     | Addressed type changes in shared Supabase helpers. |
 | `@tailwindcss/typography`     | 0.5.15 → 0.5.19     | Applied across `apps/web`.                         |
 | `@tanstack/react-query`       | 5.56.2 → 5.90.2     | No new deprecation warnings in local QA.           |
-| `dotenv`                      | 16.6.1 → 17.2.3     | Keeps CLI alignment with Node 20.                  |
+| `dotenv`                      | 17.2.3 → 16.4.5     | Matches Stagehand peer range for LangChain update. |
 | `@types/node`                 | 22.5.5 → 22.18.7    | Synced with the supported runtime API surface.     |
 | `@types/react`                | 19.1.12 → 19.1.16   | Captures the latest JSX type refinements.          |
 | `drizzle-kit`                 | 0.31.4 → 0.31.5     | CLI patches applied; migrations validated locally. |
