@@ -3,6 +3,11 @@ import { bad, corsHeaders, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { createClient } from "../_shared/client.ts";
 import { need } from "../_shared/env.ts";
 import { normalizeAllocatorInvestorKey } from "../_shared/private-pool.ts";
+import {
+  decimalToScaledBigInt,
+  extractJettonMintSummary,
+  type TonEventPayload,
+} from "./tonapi.ts";
 
 interface AllocatorEvent {
   depositId: string;
@@ -25,6 +30,7 @@ interface WebhookBody {
   event?: AllocatorEvent;
   proof?: ProofPayload;
   observedAt?: string;
+  tonEvent?: TonEventPayload | null;
 }
 
 type SupabaseServiceClient = ReturnType<typeof createClient>;
@@ -94,6 +100,10 @@ function normalizeEvent(event: AllocatorEvent): Required<AllocatorEvent> {
   };
 }
 
+function normalizeTonHash(hash: string): string {
+  return hash.replace(/^0x/i, "").toLowerCase();
+}
+
 export const handler = registerHandler(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders(req) });
@@ -134,6 +144,28 @@ export const handler = registerHandler(async (req) => {
       undefined,
       req,
     );
+  }
+
+  const tonEventSummary = extractJettonMintSummary(parsed.tonEvent);
+  if (tonEventSummary) {
+    try {
+      const expectedRaw = decimalToScaledBigInt(
+        normalized.dctAmount,
+        tonEventSummary.decimals,
+      );
+      if (expectedRaw !== tonEventSummary.amountRaw) {
+        return bad("TON event mint mismatch", undefined, req);
+      }
+    } catch {
+      return bad("Invalid TON event mint data", undefined, req);
+    }
+    const expectedHash = normalizeTonHash(normalized.tonTxHash);
+    const matchesTxHash = tonEventSummary.txHashes.some((hash) =>
+      normalizeTonHash(hash) === expectedHash
+    );
+    if (!matchesTxHash) {
+      return bad("TON event transaction mismatch", undefined, req);
+    }
   }
 
   const supabase = getSupabaseServiceClient();
