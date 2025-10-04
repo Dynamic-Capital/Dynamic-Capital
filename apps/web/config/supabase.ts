@@ -46,6 +46,7 @@ export const SUPABASE_CONFIG = {
     MINIAPP_HEALTH: "miniapp-health",
     THEME_GET: "theme-get",
     THEME_SAVE: "theme-save",
+    START_MINTING: "start-minting",
     CONTENT_BATCH: "content-batch",
     ANALYTICS_DATA: "analytics-data",
     LANDING_HERO_METRICS: "landing-hero-metrics",
