@@ -206,7 +206,10 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
     "dynamic_engineer": (
         "DynamicEngineer",
         "DynamicEngineerEngine",
+        "EngineeringBlueprint",
+        "EngineeringTask",
         "DynamicEngineerAgent",
+        "DynamicEngineerAgentResult",
         "DynamicEngineerBot",
     ),
     "dynamic.platform.engines.usage": (
