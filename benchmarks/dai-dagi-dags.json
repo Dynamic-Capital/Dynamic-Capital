@@ -1,19 +1,19 @@
 {
   "domains": {
     "DAI": {
-      "coverage": { "present": 59, "required": 60 },
-      "accuracy": { "passing": 95, "sampled": 98 },
-      "governance": { "hours_since_last_probe": 12, "failed_probes": 0 }
+      "coverage": { "present": 60, "required": 60 },
+      "accuracy": { "passing": 97, "sampled": 100 },
+      "governance": { "hours_since_last_probe": 6, "failed_probes": 0 }
     },
     "DAGI": {
-      "coverage": { "present": 52, "required": 54 },
-      "accuracy": { "passing": 85, "sampled": 90 },
-      "governance": { "hours_since_last_probe": 18, "failed_probes": 0 }
+      "coverage": { "present": 55, "required": 56 },
+      "accuracy": { "passing": 90, "sampled": 96 },
+      "governance": { "hours_since_last_probe": 9, "failed_probes": 0 }
     },
     "DAGS": {
-      "coverage": { "present": 49, "required": 52 },
-      "accuracy": { "passing": 82, "sampled": 88 },
-      "governance": { "hours_since_last_probe": 22, "failed_probes": 0 }
+      "coverage": { "present": 53, "required": 55 },
+      "accuracy": { "passing": 88, "sampled": 92 },
+      "governance": { "hours_since_last_probe": 8, "failed_probes": 0 }
     }
   }
 }
