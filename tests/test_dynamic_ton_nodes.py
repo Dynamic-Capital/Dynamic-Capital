@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Iterable
+
 from dynamic_ton.nodes import DEFAULT_TON_NODE_CONFIGS, build_ton_node_registry
 
 
@@ -41,3 +43,19 @@ def test_registry_includes_defaults_and_custom_nodes() -> None:
 def test_registry_can_skip_defaults() -> None:
     registry = build_ton_node_registry(include_defaults=False)
     assert registry.snapshot() == ()
+
+
+def test_registry_accepts_iterators_without_materialising() -> None:
+    def generator() -> Iterable[dict[str, object]]:
+        yield {
+            "node_id": "ton-once-off",  # back-to-back generators should not be consumed eagerly
+            "type": "processing",
+            "interval_sec": 60,
+            "outputs": ("ton_once_output",),
+        }
+
+    registry = build_ton_node_registry(generator(), include_defaults=False)
+    snapshot = registry.snapshot()
+
+    assert len(snapshot) == 1
+    assert snapshot[0].node_id == "ton-once-off"

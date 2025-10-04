@@ -18,6 +18,7 @@ framework used across the repository.
 
 from __future__ import annotations
 
+from itertools import chain
 from typing import Iterable, Mapping
 
 from dynamic.trading.algo.dynamic_nodes import DynamicNode, DynamicNodeRegistry
@@ -112,12 +113,21 @@ def build_ton_node_registry(
 ) -> DynamicNodeRegistry:
     """Create a :class:`DynamicNodeRegistry` seeded with TON-centric nodes."""
 
-    seed: list[DynamicNode | TonNodeConfig] = []
+    default_nodes: Iterable[DynamicNode | TonNodeConfig]
     if include_defaults:
-        seed.extend(DEFAULT_TON_NODE_CONFIGS)
-    if additional_nodes:
-        seed.extend(additional_nodes)
-    return DynamicNodeRegistry(seed or None)
+        default_nodes = DEFAULT_TON_NODE_CONFIGS
+    else:
+        default_nodes = ()
+
+    if additional_nodes is None:
+        nodes = default_nodes
+    else:
+        nodes = chain(default_nodes, additional_nodes)
+
+    if not include_defaults and additional_nodes is None:
+        return DynamicNodeRegistry()
+
+    return DynamicNodeRegistry(nodes)
 
 
 __all__ = [
