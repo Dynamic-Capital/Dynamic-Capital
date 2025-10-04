@@ -1,0 +1,19 @@
+{
+  "domains": {
+    "DynamicMultiLLM": {
+      "coverage": { "present": 128, "required": 134 },
+      "accuracy": { "passing": 192, "sampled": 200 },
+      "governance": { "hours_since_last_probe": 4, "failed_probes": 0 }
+    },
+    "DynamicTradingLogic": {
+      "coverage": { "present": 119, "required": 134 },
+      "accuracy": { "passing": 173, "sampled": 190 },
+      "governance": { "hours_since_last_probe": 9, "failed_probes": 1 }
+    },
+    "DynamicTradingAlgo": {
+      "coverage": { "present": 112, "required": 134 },
+      "accuracy": { "passing": 166, "sampled": 195 },
+      "governance": { "hours_since_last_probe": 18, "failed_probes": 1 }
+    }
+  }
+}

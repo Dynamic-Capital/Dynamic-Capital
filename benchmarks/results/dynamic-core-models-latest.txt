@@ -1,0 +1,108 @@
+Knowledge Base Benchmark Results
+
+Config: benchmarks/dynamic-core-models.json
+
+Domain   Grade  Band         Rationale
+--------------------------------------------------------------------------------
+Core10Validation B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core11Integration B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core1DataProcessing A      A / A-       Catalogue is effectively complete with fresh telemetry and near-perfect sample accuracy.
+Core2PatternRecognition B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core3PredictiveModeling B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core4RiskAssessment B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core5Optimization C      C range      Multiple datasets missing or stale; repeated governance warnings demand focused recovery.
+Core6AdaptiveLearning C      C range      Multiple datasets missing or stale; repeated governance warnings demand focused recovery.
+Core7DecisionLogic C      C range      Multiple datasets missing or stale; repeated governance warnings demand focused recovery.
+Core8MemoryManagement C      C range      Multiple datasets missing or stale; repeated governance warnings demand focused recovery.
+Core9ContextAnalysis B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+
+Remediation Guidance:
+- Core10Validation: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core11Integration: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core1DataProcessing: Continue spot-audits and archive exemplars for future training cycles.
+- Core2PatternRecognition: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core3PredictiveModeling: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core4RiskAssessment: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core5Optimization: Launch incident review, rebuild missing mirrors, and assign owners for corrective work.
+- Core6AdaptiveLearning: Launch incident review, rebuild missing mirrors, and assign owners for corrective work.
+- Core7DecisionLogic: Launch incident review, rebuild missing mirrors, and assign owners for corrective work.
+- Core8MemoryManagement: Launch incident review, rebuild missing mirrors, and assign owners for corrective work.
+- Core9ContextAnalysis: Patch missing assets, document fixes, and schedule follow-up validation.
+
+Comprehensive Grade:
+Overall B (B range) — Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Weighted Metrics:
+  Coverage: 89.8% | Accuracy: 88.9% | Staleness: 13.2h | Failed checks: 0
+
+Baseline composite average: 0.8838
+
+Fine-tuning cycles:
+Cycle 1: average score 0.9073
+  Core10Validation 0.9199 → B (B range)
+  Core11Integration 0.9130 → B (B range)
+  Core1DataProcessing 0.9596 → A (A / A-)
+  Core2PatternRecognition 0.9491 → B (B range)
+  Core3PredictiveModeling 0.9361 → B (B range)
+  Core4RiskAssessment 0.8995 → B (B range)
+  Core5Optimization 0.8838 → C (C range)
+  Core6AdaptiveLearning 0.8741 → C (C range)
+  Core7DecisionLogic 0.8698 → C (C range)
+  Core8MemoryManagement 0.8832 → B (B range)
+  Core9ContextAnalysis 0.8919 → B (B range)
+Cycle 2: average score 0.9107
+  Core10Validation 0.9199 → B (B range)
+  Core11Integration 0.9130 → B (B range)
+  Core1DataProcessing 0.9596 → A (A / A-)
+  Core2PatternRecognition 0.9491 → B (B range)
+  Core3PredictiveModeling 0.9361 → B (B range)
+  Core4RiskAssessment 0.8995 → B (B range)
+  Core5Optimization 0.8838 → C (C range)
+  Core6AdaptiveLearning 0.8875 → B (B range)
+  Core7DecisionLogic 0.8823 → B (B range)
+  Core8MemoryManagement 0.8947 → B (B range)
+  Core9ContextAnalysis 0.8919 → B (B range)
+Cycle 3: average score 0.9114
+  Core10Validation 0.9199 → B (B range)
+  Core11Integration 0.9130 → B (B range)
+  Core1DataProcessing 0.9596 → A (A / A-)
+  Core2PatternRecognition 0.9491 → B (B range)
+  Core3PredictiveModeling 0.9361 → B (B range)
+  Core4RiskAssessment 0.8995 → B (B range)
+  Core5Optimization 0.8838 → C (C range)
+  Core6AdaptiveLearning 0.8875 → B (B range)
+  Core7DecisionLogic 0.8904 → B (B range)
+  Core8MemoryManagement 0.8947 → B (B range)
+  Core9ContextAnalysis 0.8919 → B (B range)
+Post Fine-Tuning Benchmark Results
+
+Domain   Grade  Band         Rationale
+--------------------------------------------------------------------------------
+Core10Validation B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core11Integration B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core1DataProcessing A      A / A-       Catalogue is effectively complete with fresh telemetry and near-perfect sample accuracy.
+Core2PatternRecognition B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core3PredictiveModeling B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core4RiskAssessment B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core5Optimization C      C range      Multiple datasets missing or stale; repeated governance warnings demand focused recovery.
+Core6AdaptiveLearning B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core7DecisionLogic B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core8MemoryManagement B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Core9ContextAnalysis B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+
+Remediation Guidance:
+- Core10Validation: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core11Integration: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core1DataProcessing: Continue spot-audits and archive exemplars for future training cycles.
+- Core2PatternRecognition: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core3PredictiveModeling: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core4RiskAssessment: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core5Optimization: Launch incident review, rebuild missing mirrors, and assign owners for corrective work.
+- Core6AdaptiveLearning: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core7DecisionLogic: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core8MemoryManagement: Patch missing assets, document fixes, and schedule follow-up validation.
+- Core9ContextAnalysis: Patch missing assets, document fixes, and schedule follow-up validation.
+
+Comprehensive Grade:
+Overall B (B range) — Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Weighted Metrics:
+  Coverage: 91.8% | Accuracy: 91.1% | Staleness: 13.2h | Failed checks: 0

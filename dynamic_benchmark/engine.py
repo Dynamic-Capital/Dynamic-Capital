@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from statistics import fmean, mean
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
+from dynamic_grading.system import classify_proficiency
+
 __all__ = [
     "BenchmarkMetric",
     "BenchmarkScenario",
@@ -44,7 +46,9 @@ def _normalise_optional_text(value: str | None) -> str | None:
     return cleaned or None
 
 
-def _coerce_mapping(mapping: Mapping[str, object] | None) -> Mapping[str, object] | None:
+def _coerce_mapping(
+    mapping: Mapping[str, object] | None,
+) -> Mapping[str, object] | None:
     if mapping is None:
         return None
     if not isinstance(mapping, Mapping):  # pragma: no cover - defensive guard
@@ -162,6 +166,9 @@ class MetricAssessment:
     status: str
     weight: float
     narrative: str
+    proficiency_level: str
+    proficiency_label: str
+    proficiency_narrative: str
 
     def as_dict(self) -> MutableMapping[str, object]:
         return {
@@ -173,6 +180,9 @@ class MetricAssessment:
             "status": self.status,
             "weight": self.weight,
             "narrative": self.narrative,
+            "proficiency_level": self.proficiency_level,
+            "proficiency_label": self.proficiency_label,
+            "proficiency_narrative": self.proficiency_narrative,
         }
 
 
@@ -188,6 +198,9 @@ class BenchmarkReport:
     metric_assessments: tuple[MetricAssessment, ...]
     recommendations: tuple[str, ...]
     inputs: Mapping[str, object] | None = None
+    proficiency_level: str | None = None
+    proficiency_label: str | None = None
+    proficiency_narrative: str | None = None
 
     def as_dict(self) -> MutableMapping[str, object]:
         return {
@@ -196,9 +209,14 @@ class BenchmarkReport:
             "timestamp": self.timestamp.isoformat(),
             "overall_score": self.overall_score,
             "status": self.status,
-            "metric_assessments": [assessment.as_dict() for assessment in self.metric_assessments],
+            "metric_assessments": [
+                assessment.as_dict() for assessment in self.metric_assessments
+            ],
             "recommendations": list(self.recommendations),
             "inputs": dict(self.inputs) if self.inputs is not None else None,
+            "proficiency_level": self.proficiency_level,
+            "proficiency_label": self.proficiency_label,
+            "proficiency_narrative": self.proficiency_narrative,
         }
 
 
@@ -244,6 +262,7 @@ class DynamicBenchmark:
         overall_score = self._aggregate_score(metric_assessments)
         status = self._classify_status(overall_score)
         recommendations = self._recommendations(metric_assessments, status)
+        classification = classify_proficiency(overall_score)
         return BenchmarkReport(
             scenario=self.scenario.name,
             run_id=run.run_id,
@@ -253,6 +272,9 @@ class DynamicBenchmark:
             metric_assessments=metric_assessments,
             recommendations=recommendations,
             inputs=run.inputs,
+            proficiency_level=classification.level,
+            proficiency_label=classification.label,
+            proficiency_narrative=classification.narrative,
         )
 
     # ------------------------------------------------------------------
@@ -268,6 +290,7 @@ class DynamicBenchmark:
                 )
             score, delta, status = self._score_metric(metric, value)
             narrative = self._metric_narrative(metric, value, delta, status)
+            classification = classify_proficiency(score)
             assessments.append(
                 MetricAssessment(
                     name=metric.name,
@@ -278,11 +301,16 @@ class DynamicBenchmark:
                     status=status,
                     weight=metric.weight,
                     narrative=narrative,
+                    proficiency_level=classification.level,
+                    proficiency_label=classification.label,
+                    proficiency_narrative=classification.narrative,
                 )
             )
         return tuple(assessments)
 
-    def _score_metric(self, metric: BenchmarkMetric, value: float) -> tuple[float, float, str]:
+    def _score_metric(
+        self, metric: BenchmarkMetric, value: float
+    ) -> tuple[float, float, str]:
         target = metric.target
         if target == 0:
             baseline_ratio = 1.0 if value == 0 else 2.0
@@ -332,7 +360,9 @@ class DynamicBenchmark:
         total_weight = sum(assessment.weight for assessment in assessments)
         if total_weight <= 0:
             return 0.0
-        weighted = sum(assessment.score * assessment.weight for assessment in assessments)
+        weighted = sum(
+            assessment.score * assessment.weight for assessment in assessments
+        )
         return _clamp(weighted / total_weight)
 
     def _classify_status(self, overall_score: float) -> str:
@@ -376,7 +406,9 @@ class DynamicBenchmark:
             )
         return "Track outperforming metrics for durability across future cycles."
 
-    def _historical_normalised_scores(self, metric_names: Iterable[str]) -> Iterable[float]:
+    def _historical_normalised_scores(
+        self, metric_names: Iterable[str]
+    ) -> Iterable[float]:
         for run in self._history:
             for name in metric_names:
                 value = run.metrics.get(name)

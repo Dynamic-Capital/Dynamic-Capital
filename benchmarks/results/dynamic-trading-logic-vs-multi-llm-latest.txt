@@ -1,0 +1,69 @@
+Knowledge Base Benchmark Results
+
+Config: benchmarks/dynamic-trading-logic-vs-multi-llm.json
+
+Domain   Grade  Band         Rationale
+--------------------------------------------------------------------------------
+DynamicMultiLLM A      A / A-       Catalogue is effectively complete with fresh telemetry and near-perfect sample accuracy.
+DynamicTradingAlgo C      C range      Multiple datasets missing or stale; repeated governance warnings demand focused recovery.
+DynamicTradingLogic B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+
+Remediation Guidance:
+- DynamicMultiLLM: Continue spot-audits and archive exemplars for future training cycles.
+- DynamicTradingAlgo: Launch incident review, rebuild missing mirrors, and assign owners for corrective work.
+- DynamicTradingLogic: Patch missing assets, document fixes, and schedule follow-up validation.
+
+Comprehensive Grade:
+Overall B (B range) — Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Weighted Metrics:
+  Coverage: 89.3% | Accuracy: 90.7% | Staleness: 10.3h | Failed checks: 1
+
+Baseline composite average: 0.8725
+
+Fine-tuning cycles:
+Cycle 1: average score 0.9443
+  DynamicMultiLLM 0.9743 → A (A / A-)
+  DynamicTradingAlgo 0.9145 → B (B range)
+  DynamicTradingLogic 0.9441 → B (B range)
+Cycle 2: average score 0.9593
+  DynamicMultiLLM 0.9789 → AA+ (AA+ / AA)
+  DynamicTradingAlgo 0.9421 → A (A / A-)
+  DynamicTradingLogic 0.9569 → A (A / A-)
+Cycle 3: average score 0.9668
+  DynamicMultiLLM 0.9813 → AA+ (AA+ / AA)
+  DynamicTradingAlgo 0.9559 → A (A / A-)
+  DynamicTradingLogic 0.9633 → A (A / A-)
+Cycle 4: average score 0.9706
+  DynamicMultiLLM 0.9824 → AA+ (AA+ / AA)
+  DynamicTradingAlgo 0.9628 → AA+ (AA+ / AA)
+  DynamicTradingLogic 0.9665 → AA+ (AA+ / AA)
+Cycle 5: average score 0.9725
+  DynamicMultiLLM 0.9830 → AA+ (AA+ / AA)
+  DynamicTradingAlgo 0.9663 → AA+ (AA+ / AA)
+  DynamicTradingLogic 0.9681 → AA+ (AA+ / AA)
+Cycle 6: average score 0.9734
+  DynamicMultiLLM 0.9833 → AA+ (AA+ / AA)
+  DynamicTradingAlgo 0.9680 → AA+ (AA+ / AA)
+  DynamicTradingLogic 0.9689 → AA+ (AA+ / AA)
+Cycle 7: average score 0.9744
+  DynamicMultiLLM 0.9836 → AAA (S / AAA)
+  DynamicTradingAlgo 0.9697 → AAA (S / AAA)
+  DynamicTradingLogic 0.9697 → AAA (S / AAA)
+
+Post Fine-Tuning Benchmark Results
+
+Domain   Grade  Band         Rationale
+--------------------------------------------------------------------------------
+DynamicMultiLLM AAA    S / AAA      Knowledge base leadership – catalogue depth, precision, and telemetry refreshes deliver elite, industry benchmark execution.
+DynamicTradingAlgo AAA    S / AAA      Knowledge base leadership – catalogue depth, precision, and telemetry refreshes deliver elite, industry benchmark execution.
+DynamicTradingLogic AAA    S / AAA      Knowledge base leadership – catalogue depth, precision, and telemetry refreshes deliver elite, industry benchmark execution.
+
+Remediation Guidance:
+- DynamicMultiLLM: Codify elite practices, expand mentorship rotations, and capture reinforcement datasets to preserve institutional mastery.
+- DynamicTradingAlgo: Codify elite practices, expand mentorship rotations, and capture reinforcement datasets to preserve institutional mastery.
+- DynamicTradingLogic: Codify elite practices, expand mentorship rotations, and capture reinforcement datasets to preserve institutional mastery.
+
+Comprehensive Grade:
+Overall AAA (S / AAA) — Knowledge base leadership – catalogue depth, precision, and telemetry refreshes deliver elite, industry benchmark execution.
+Weighted Metrics:
+  Coverage: 99.5% | Accuracy: 99.5% | Staleness: 6.7h | Failed checks: 0

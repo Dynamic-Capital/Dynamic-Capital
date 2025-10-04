@@ -56,19 +56,31 @@ def test_evaluate_produces_weighted_scores_and_narratives() -> None:
     assert metrics["Latency"].status == "exceeds"
     assert metrics["Availability"].status == "meets"
     assert "Latency outperforms" in metrics["Latency"].narrative
-    assert report.recommendations == ("Track outperforming metrics for durability across future cycles.",)
+    assert report.recommendations == (
+        "Track outperforming metrics for durability across future cycles.",
+    )
+    assert report.proficiency_label == "Contribution Level"
+    assert metrics["Latency"].proficiency_level == "contribution"
     payload = report.as_dict()
     assert payload["scenario"] == scenario.name
     assert payload["overall_score"] == pytest.approx(report.overall_score)
     assert payload["status"] == report.status
     assert payload["metric_assessments"][0]["name"] in {"Latency", "Availability"}
+    assert payload["proficiency_label"] == report.proficiency_label
+    assert all(
+        "proficiency_label" in metric for metric in payload["metric_assessments"]
+    )
 
 
 def test_record_appends_runs_to_history_and_preserves_inputs() -> None:
     scenario = _scenario()
     history = [
-        BenchmarkRun(run_id="historical-1", metrics={"Latency": 110, "Availability": 0.97}),
-        BenchmarkRun(run_id="historical-2", metrics={"Latency": 102, "Availability": 0.99}),
+        BenchmarkRun(
+            run_id="historical-1", metrics={"Latency": 110, "Availability": 0.97}
+        ),
+        BenchmarkRun(
+            run_id="historical-2", metrics={"Latency": 102, "Availability": 0.99}
+        ),
     ]
     engine = DynamicBenchmark(scenario, history=history, history_limit=3)
     run = BenchmarkRun(
@@ -82,6 +94,7 @@ def test_record_appends_runs_to_history_and_preserves_inputs() -> None:
     assert engine.history[-1].run_id == "week-02"
     assert len(engine.history) == 3
     assert report.inputs == {"notes": "post-maintenance"}
+    assert report.proficiency_level in {"contribution", "innovation"}
     assert any("historical average sits" in rec for rec in report.recommendations)
 
 
@@ -111,6 +124,7 @@ def test_lagging_metrics_trigger_recovery_recommendation() -> None:
     assert metrics["Latency"].status == "lags"
     assert metrics["Latency"].delta == pytest.approx(-20.0)
     assert metrics["Latency"].narrative.startswith("Latency trails the benchmark")
+    assert report.proficiency_label in {"Application Level", "Innovation Level"}
     assert isinstance(report.timestamp.isoformat(), str)
 
 
@@ -128,6 +142,9 @@ def test_report_serialisation_matches_dataclass_payload() -> None:
         metric_assessments=report.metric_assessments,
         recommendations=report.recommendations,
         inputs=report.inputs,
+        proficiency_level=report.proficiency_level,
+        proficiency_label=report.proficiency_label,
+        proficiency_narrative=report.proficiency_narrative,
     )
 
     assert snapshot.as_dict() == report.as_dict()

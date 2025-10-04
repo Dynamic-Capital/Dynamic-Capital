@@ -1,0 +1,59 @@
+{
+  "domains": {
+    "Core1DataProcessing": {
+      "coverage": { "present": 58, "required": 60 },
+      "accuracy": { "passing": 191, "sampled": 200 },
+      "governance": { "hours_since_last_probe": 6, "failed_probes": 0 }
+    },
+    "Core2PatternRecognition": {
+      "coverage": { "present": 57, "required": 60 },
+      "accuracy": { "passing": 184, "sampled": 195 },
+      "governance": { "hours_since_last_probe": 7, "failed_probes": 0 }
+    },
+    "Core3PredictiveModeling": {
+      "coverage": { "present": 55, "required": 58 },
+      "accuracy": { "passing": 175, "sampled": 190 },
+      "governance": { "hours_since_last_probe": 9, "failed_probes": 0 }
+    },
+    "Core4RiskAssessment": {
+      "coverage": { "present": 49, "required": 55 },
+      "accuracy": { "passing": 160, "sampled": 185 },
+      "governance": { "hours_since_last_probe": 15, "failed_probes": 1 }
+    },
+    "Core5Optimization": {
+      "coverage": { "present": 46, "required": 54 },
+      "accuracy": { "passing": 158, "sampled": 180 },
+      "governance": { "hours_since_last_probe": 14, "failed_probes": 0 }
+    },
+    "Core6AdaptiveLearning": {
+      "coverage": { "present": 42, "required": 50 },
+      "accuracy": { "passing": 140, "sampled": 170 },
+      "governance": { "hours_since_last_probe": 18, "failed_probes": 1 }
+    },
+    "Core7DecisionLogic": {
+      "coverage": { "present": 41, "required": 49 },
+      "accuracy": { "passing": 145, "sampled": 172 },
+      "governance": { "hours_since_last_probe": 20, "failed_probes": 1 }
+    },
+    "Core8MemoryManagement": {
+      "coverage": { "present": 44, "required": 52 },
+      "accuracy": { "passing": 150, "sampled": 176 },
+      "governance": { "hours_since_last_probe": 17, "failed_probes": 0 }
+    },
+    "Core9ContextAnalysis": {
+      "coverage": { "present": 48, "required": 53 },
+      "accuracy": { "passing": 168, "sampled": 190 },
+      "governance": { "hours_since_last_probe": 16, "failed_probes": 0 }
+    },
+    "Core10Validation": {
+      "coverage": { "present": 52, "required": 56 },
+      "accuracy": { "passing": 178, "sampled": 194 },
+      "governance": { "hours_since_last_probe": 12, "failed_probes": 0 }
+    },
+    "Core11Integration": {
+      "coverage": { "present": 50, "required": 55 },
+      "accuracy": { "passing": 172, "sampled": 192 },
+      "governance": { "hours_since_last_probe": 11, "failed_probes": 0 }
+    }
+  }
+}

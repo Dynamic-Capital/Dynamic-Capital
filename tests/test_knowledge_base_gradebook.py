@@ -4,11 +4,14 @@ import pytest
 
 from dynamic_benchmark.gradebook import (
     ComprehensiveGrade,
+    GradeThresholds,
     KnowledgeBaseGrade,
     KnowledgeBaseMetrics,
     grade_many,
     grade_comprehensively,
     grade_knowledge_base,
+    grade_ranking,
+    grade_thresholds_for,
     summarise,
 )
 
@@ -26,6 +29,24 @@ def test_grade_a_band() -> None:
     assert grade.letter == "A"
     assert "telemetry" in grade.rationale
     assert "spot-audits" in grade.remediation
+    assert grade.proficiency_level == "contribution"
+    assert grade.proficiency_label == "Contribution Level"
+
+
+def test_grade_recognises_elite_band() -> None:
+    metrics = KnowledgeBaseMetrics(
+        coverage_ratio=0.998,
+        accuracy_ratio=0.997,
+        telemetry_staleness_hours=6,
+        failed_health_checks=0,
+    )
+
+    grade = grade_knowledge_base(metrics)
+
+    assert grade.letter == "AAA"
+    assert grade.band.startswith("S /")
+    assert "elite" in grade.rationale.lower()
+    assert "mentorship" in grade.remediation.lower()
 
 
 def test_grade_catches_lower_band() -> None:
@@ -42,6 +63,19 @@ def test_grade_catches_lower_band() -> None:
 
     assert grade.band == "C range"
     assert "incident review" in grade.remediation
+    assert grade.proficiency_label == "Application Level"
+
+
+def test_grade_threshold_lookup_and_ranking() -> None:
+    thresholds = grade_thresholds_for("AA+")
+
+    assert isinstance(thresholds, GradeThresholds)
+    assert thresholds.coverage_ratio >= 0.98
+    assert thresholds.failed_health_checks == 0
+
+    ranking = grade_ranking()
+    assert ranking[:2] == ("AAA", "AA+")
+    assert ranking[-1] == "D"
 
 
 def test_grade_falls_through_to_d() -> None:
@@ -56,6 +90,8 @@ def test_grade_falls_through_to_d() -> None:
 
     assert grade.letter == "D"
     assert "freeze dependent automations" in grade.remediation
+    assert grade.proficiency_level == "observation"
+    assert "Coverage breadth is still developing" in grade.proficiency_narrative
 
 
 def test_summarise_orders_domains() -> None:
@@ -105,7 +141,9 @@ def test_grade_comprehensively_accepts_weights() -> None:
     comprehensive = grade_comprehensively(domains, weights={"DAI": 2, "DAGI": 1})
 
     expected_coverage = (0.99 * 2 + 0.8) / 3
-    assert comprehensive.metrics.coverage_ratio == pytest.approx(expected_coverage, rel=1e-6)
+    assert comprehensive.metrics.coverage_ratio == pytest.approx(
+        expected_coverage, rel=1e-6
+    )
     assert comprehensive.metrics.failed_health_checks in {0, 1}
 
 

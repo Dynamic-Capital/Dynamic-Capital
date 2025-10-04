@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from math import fsum
 from typing import Mapping
 
+from dynamic_grading.system import classify_proficiency
+
 __all__ = [
     "KnowledgeBaseMetrics",
     "KnowledgeBaseGrade",
@@ -14,6 +16,9 @@ __all__ = [
     "summarise",
     "ComprehensiveGrade",
     "grade_comprehensively",
+    "GradeThresholds",
+    "grade_thresholds_for",
+    "grade_ranking",
 ]
 
 
@@ -30,6 +35,18 @@ def _coerce_positive(numerator: float, denominator: float) -> float:
     if denominator <= 0:
         raise ValueError("denominator must be positive")
     return numerator / denominator
+
+
+def _clamp_unit(value: float) -> float:
+    return max(0.0, min(1.0, value))
+
+
+def _composite_score(metrics: "KnowledgeBaseMetrics") -> float:
+    coverage = _clamp_unit(metrics.coverage_ratio)
+    accuracy = _clamp_unit(metrics.accuracy_ratio)
+    freshness = _clamp_unit(1.0 - metrics.telemetry_staleness_hours / 72.0)
+    governance = _clamp_unit(1.0 - metrics.failed_health_checks / 4.0)
+    return (coverage + accuracy + freshness + governance) / 4.0
 
 
 @dataclass(slots=True)
@@ -79,6 +96,11 @@ class KnowledgeBaseMetrics:
             "failed_health_checks": self.failed_health_checks,
         }
 
+    def composite_score(self) -> float:
+        """Return the composite proficiency score for the metrics."""
+
+        return _composite_score(self)
+
 
 @dataclass(slots=True)
 class KnowledgeBaseGrade:
@@ -88,6 +110,9 @@ class KnowledgeBaseGrade:
     band: str
     rationale: str
     remediation: str
+    proficiency_level: str
+    proficiency_label: str
+    proficiency_narrative: str
 
     def as_dict(self) -> Mapping[str, str]:
         return {
@@ -95,6 +120,9 @@ class KnowledgeBaseGrade:
             "band": self.band,
             "rationale": self.rationale,
             "remediation": self.remediation,
+            "proficiency_level": self.proficiency_level,
+            "proficiency_label": self.proficiency_label,
+            "proficiency_narrative": self.proficiency_narrative,
         }
 
 
@@ -110,8 +138,20 @@ class ComprehensiveGrade:
         return {
             "grade": self.grade.as_dict(),
             "metrics": self.metrics.as_dict(),
-            "domain_grades": {name: grade.as_dict() for name, grade in self.domain_grades.items()},
+            "domain_grades": {
+                name: grade.as_dict() for name, grade in self.domain_grades.items()
+            },
         }
+
+
+@dataclass(frozen=True, slots=True)
+class GradeThresholds:
+    """Metric thresholds required to achieve a grade band."""
+
+    coverage_ratio: float
+    accuracy_ratio: float
+    telemetry_staleness_hours: float
+    failed_health_checks: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -127,6 +167,38 @@ class _GradeRule:
 
 
 _RULES: tuple[_GradeRule, ...] = (
+    _GradeRule(
+        band="S / AAA",
+        letter="AAA",
+        coverage_min=0.995,
+        accuracy_min=0.995,
+        staleness_max=8.0,
+        failed_checks_max=0,
+        rationale=(
+            "Knowledge base leadership – catalogue depth, precision, and telemetry "
+            "refreshes deliver elite, industry benchmark execution."
+        ),
+        remediation=(
+            "Codify elite practices, expand mentorship rotations, and capture "
+            "reinforcement datasets to preserve institutional mastery."
+        ),
+    ),
+    _GradeRule(
+        band="AA+ / AA",
+        letter="AA+",
+        coverage_min=0.985,
+        accuracy_min=0.985,
+        staleness_max=12.0,
+        failed_checks_max=0,
+        rationale=(
+            "Premier coverage with precision telemetry; only incremental refinements "
+            "separate the estate from elite stewardship."
+        ),
+        remediation=(
+            "Drive continuous tuning, publish exemplars, and sponsor cross-domain "
+            "audits to sustain momentum toward AAA stature."
+        ),
+    ),
     _GradeRule(
         band="A / A-",
         letter="A",
@@ -159,13 +231,36 @@ _RULES: tuple[_GradeRule, ...] = (
     ),
 )
 
-_DEFAULT_REMEDIATION = (
-    "Escalate to domain leads, freeze dependent automations, and rebuild the knowledge base slice before release."
-)
+_DEFAULT_REMEDIATION = "Escalate to domain leads, freeze dependent automations, and rebuild the knowledge base slice before release."
+
+
+def grade_ranking() -> tuple[str, ...]:
+    """Return grade letters ordered from highest to lowest."""
+
+    return tuple(rule.letter for rule in _RULES) + ("D",)
+
+
+def grade_thresholds_for(letter: str) -> GradeThresholds:
+    """Lookup the metric thresholds associated with a grade letter."""
+
+    for rule in _RULES:
+        if rule.letter == letter:
+            return GradeThresholds(
+                coverage_ratio=rule.coverage_min,
+                accuracy_ratio=rule.accuracy_min,
+                telemetry_staleness_hours=rule.staleness_max,
+                failed_health_checks=rule.failed_checks_max,
+            )
+    raise KeyError(f"Unknown grade letter: {letter}")
 
 
 def grade_knowledge_base(metrics: KnowledgeBaseMetrics) -> KnowledgeBaseGrade:
     """Classify metrics into a grade band following the rubric."""
+
+    classification = classify_proficiency(
+        _composite_score(metrics),
+        coverage=_clamp_unit(metrics.coverage_ratio),
+    )
 
     for rule in _RULES:
         if (
@@ -179,19 +274,30 @@ def grade_knowledge_base(metrics: KnowledgeBaseMetrics) -> KnowledgeBaseGrade:
                 band=rule.band,
                 rationale=rule.rationale,
                 remediation=rule.remediation,
+                proficiency_level=classification.level,
+                proficiency_label=classification.label,
+                proficiency_narrative=classification.narrative,
             )
     return KnowledgeBaseGrade(
         letter="D",
         band="D or lower",
         rationale="Coverage, accuracy, or governance signals fall below minimum service expectations.",
         remediation=_DEFAULT_REMEDIATION,
+        proficiency_level=classification.level,
+        proficiency_label=classification.label,
+        proficiency_narrative=classification.narrative,
     )
 
 
-def grade_many(domain_metrics: Mapping[str, KnowledgeBaseMetrics]) -> Mapping[str, KnowledgeBaseGrade]:
+def grade_many(
+    domain_metrics: Mapping[str, KnowledgeBaseMetrics],
+) -> Mapping[str, KnowledgeBaseGrade]:
     """Grade multiple knowledge bases at once."""
 
-    return {domain: grade_knowledge_base(metrics) for domain, metrics in domain_metrics.items()}
+    return {
+        domain: grade_knowledge_base(metrics)
+        for domain, metrics in domain_metrics.items()
+    }
 
 
 def summarise(
@@ -229,13 +335,13 @@ def _normalise_weights(
         normalised[domain] = weight
 
     if unknown:
-        raise KeyError(f"weights provided for unknown domains: {', '.join(sorted(unknown))}")
+        raise KeyError(
+            f"weights provided for unknown domains: {', '.join(sorted(unknown))}"
+        )
 
     missing = expected - normalised.keys()
     if missing:
-        raise KeyError(
-            f"missing weight for domain(s): {', '.join(sorted(missing))}"
-        )
+        raise KeyError(f"missing weight for domain(s): {', '.join(sorted(missing))}")
 
     return normalised
 
@@ -289,7 +395,9 @@ def grade_comprehensively(
         if precomputed_grades is not None
         else grade_many(domain_metrics)
     )
-    ordered_domain_grades = dict(sorted(domain_grades.items(), key=lambda item: item[0]))
+    ordered_domain_grades = dict(
+        sorted(domain_grades.items(), key=lambda item: item[0])
+    )
     aggregate_grade = grade_knowledge_base(aggregate_metrics)
 
     return ComprehensiveGrade(
