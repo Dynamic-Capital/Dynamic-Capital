@@ -41,6 +41,12 @@ from .knowledge_base import (
     resolve_domain_snapshots,
     __all__ as _knowledge_base_all,
 )
+from .qa import (
+    QASession,
+    QAExchange,
+    build_domain_qa_session,
+    __all__ as _qa_all,
+)
 from .tuning_primitives import (
     DEFAULT_ACCURACY_TARGET,
     DEFAULT_COVERAGE_TARGET,
@@ -83,5 +89,6 @@ __all__ = [
     *_training_models_all,
     *_benchmarking_all,
     *_knowledge_base_all,
+    *_qa_all,
     *_tuning_primitives_all,
 ]

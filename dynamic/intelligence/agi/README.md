@@ -14,6 +14,8 @@ Contents overview:
   enrichment plans with curated datasets.
 - `knowledge_base.py`: Canonical knowledge payloads that seed DAI, DAGI, and
   DAGS fine-tuning snapshots.
+- `qa.py`: Builds domain-focused Q&A sessions that synthesise knowledge and
+  oversight guidance for operators.
 - Auxiliary helpers for fine-tuning, local experimentation, and rollout.
 
 Document new AGI routines here so downstream operations understand required
@@ -34,3 +36,15 @@ plans. The helper returns:
 `FineTuneTrainer.fine_tune_from_benchmark` wraps these primitives so pipeline
 runners can benchmark DAI, DAGI, and DAGS, ingest the missing knowledge, and
 harvest batches without manually wiring datasets.
+
+## Operational Q&A sessions
+
+`qa.build_domain_qa_session` translates the curated knowledge base into a
+structured transcript with three anchors:
+
+1. Capabilities and current performance metrics.
+2. Negative and positive improvement signals to prioritise.
+3. Human oversight, awareness, and metacognition guidance.
+
+Use these sessions to brief operators ahead of fine-tune or deployment cycles
+so the qualitative context travels with the quantitative benchmarks.
