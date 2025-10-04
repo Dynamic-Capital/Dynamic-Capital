@@ -76,6 +76,7 @@
     "Use a low TTL (e.g., 60\u2013300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
     "After activation, emit a `custom_domain_activated` event into Supabase `tx_logs` referencing the DNS bundle hash so auditors can verify the Web3 linkage.",
     "Desktop browsers without a TON resolver will show `DNS_PROBE_FINISHED_NXDOMAIN`; direct them to https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton (or the ton.site backup) or install a TON DNS wallet extension to regain access.",
-    "Treat https://dynamiccapital.ton as the canonical production surface; keep the DigitalOcean, Lovable, and Vercel hosts warm as failover origins and document rollovers in Supabase `tx_logs`."
+    "Treat https://dynamiccapital.ton as the canonical production surface; keep the DigitalOcean, Lovable, and Vercel hosts warm as failover origins and document rollovers in Supabase `tx_logs`.",
+    "2025-09-30: Auction fill-up executed (event 96ac854938b992f71f33827dac42a7aa9e302539fc55347e006f6eee74dc0d89) adding 0.024137527 TON to the resolver after fees; schedule the next renewal reminder for August 2026."
   ]
 }
