@@ -13,13 +13,14 @@ from __future__ import annotations
 from collections import Counter, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Callable, Deque, Iterable, Mapping, MutableMapping, Sequence
+from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
 __all__ = [
     "ThinkingSignal",
     "ThinkingContext",
     "ThinkingFrame",
     "DynamicThinkingEngine",
+    "ThinkingKnowledgeBrief",
 ]
 
 
@@ -68,6 +69,40 @@ def _coerce_mapping(mapping: Mapping[str, object] | None) -> Mapping[str, object
     if not isinstance(mapping, Mapping):  # pragma: no cover - defensive guard
         raise TypeError("metadata must be a mapping")
     return dict(mapping)
+
+
+def _dedupe_preserve_order(values: Iterable[str]) -> tuple[str, ...]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for value in values:
+        text = value.strip()
+        if text and text not in seen:
+            seen.add(text)
+            ordered.append(text)
+    return tuple(ordered)
+
+
+def _extract_references(metadata: Mapping[str, object] | None) -> tuple[str, ...]:
+    if not metadata:
+        return ()
+    references: list[str] = []
+    for key in ("references", "reference", "links", "resources"):
+        value = metadata.get(key)
+        if value is None:
+            continue
+        if isinstance(value, str):
+            references.append(value)
+            continue
+        if isinstance(value, Mapping):
+            # Allow nested mapping values such as {"url": "..."}
+            for nested in value.values():
+                if isinstance(nested, str):
+                    references.append(nested)
+        elif isinstance(value, Iterable):
+            for item in value:
+                if isinstance(item, str):
+                    references.append(item)
+    return _dedupe_preserve_order(references)
 
 
 @dataclass(slots=True)
@@ -155,6 +190,31 @@ class ThinkingFrame:
         }
 
 
+@dataclass(slots=True)
+class ThinkingKnowledgeBrief:
+    """Knowledge sharing artefact derived from recent thinking signals."""
+
+    focus_tags: tuple[str, ...]
+    knowledge_highlights: tuple[str, ...]
+    learning_actions: tuple[str, ...]
+    collaboration_alerts: tuple[str, ...]
+    reference_links: tuple[str, ...]
+
+
+@dataclass(slots=True)
+class _SignalAggregate:
+    total_weight: float = 0.0
+    clarity_sum: float = 0.0
+    risk_sum: float = 0.0
+    idea_sum: float = 0.0
+    theme_weights: Counter[str] = field(default_factory=Counter)
+    tag_weights: Counter[str] = field(default_factory=Counter)
+    highlight_candidates: list[tuple[float, str]] = field(default_factory=list)
+    learning_actions: list[str] = field(default_factory=list)
+    collaboration_alerts: list[str] = field(default_factory=list)
+    reference_links: list[str] = field(default_factory=list)
+
+
 class DynamicThinkingEngine:
     """Aggregate thinking signals and produce a structured frame."""
 
@@ -191,15 +251,16 @@ class DynamicThinkingEngine:
         if not self._signals:
             raise RuntimeError("no thinking signals captured")
 
-        total_weight = sum(signal.weight for signal in self._signals)
+        aggregate = self._aggregate_signals()
+        total_weight = aggregate.total_weight
         if total_weight <= 0:
             raise RuntimeError("thinking signals have zero weight")
 
-        clarity = self._weighted_metric(lambda s: s.confidence * (1.0 - s.risk))
-        risk_pressure = self._weighted_metric(lambda s: s.risk)
-        idea_velocity = self._weighted_metric(lambda s: (s.novelty + s.confidence) / 2.0)
+        clarity = _clamp(aggregate.clarity_sum / total_weight)
+        risk_pressure = _clamp(aggregate.risk_sum / total_weight)
+        idea_velocity = _clamp(aggregate.idea_sum / total_weight)
 
-        themes = self._dominant_themes()
+        themes = self._dominant_themes(aggregate.theme_weights)
         bias_alerts = self._bias_alerts(clarity, risk_pressure, idea_velocity)
         recommended_models = self._recommend_models(context, clarity, risk_pressure, idea_velocity)
         synthesis = self._synthesise(context, clarity, risk_pressure, idea_velocity, themes)
@@ -216,19 +277,17 @@ class DynamicThinkingEngine:
             action_steps=action_steps,
         )
 
-    def _weighted_metric(self, selector: Callable[[ThinkingSignal], float]) -> float:
-        total_weight = sum(signal.weight for signal in self._signals)
-        if total_weight <= 0:
-            return 0.0
-        aggregate = sum(selector(signal) * signal.weight for signal in self._signals)
-        return _clamp(aggregate / total_weight)
-
-    def _dominant_themes(self) -> tuple[str, ...]:
-        weighted: Counter[str] = Counter()
-        for signal in self._signals:
-            if signal.weight <= 0:
-                continue
-            weighted[signal.theme] += signal.weight
+    def _dominant_themes(
+        self, theme_weights: Mapping[str, float] | None = None
+    ) -> tuple[str, ...]:
+        if theme_weights is None:
+            weighted: Counter[str] = Counter()
+            for signal in self._signals:
+                if signal.weight <= 0:
+                    continue
+                weighted[signal.theme] += signal.weight
+        else:
+            weighted = Counter(theme_weights)
         if not weighted:
             return ()
         sorted_themes = sorted(
@@ -236,6 +295,105 @@ class DynamicThinkingEngine:
             key=lambda item: (-item[1], item[0]),
         )
         return tuple(theme for theme, _ in sorted_themes[:3])
+
+    def build_learning_brief(self, *, top_tags: int = 5) -> ThinkingKnowledgeBrief:
+        if top_tags <= 0:
+            raise ValueError("top_tags must be positive")
+        if not self._signals:
+            raise RuntimeError("no thinking signals captured")
+
+        aggregate = self._aggregate_signals()
+        if aggregate.total_weight <= 0:
+            raise RuntimeError("thinking signals have zero weight")
+
+        focus_tags = self._select_focus_tags(aggregate.tag_weights, limit=top_tags)
+        highlights = self._select_highlights(aggregate.highlight_candidates)
+        learning_actions = _dedupe_preserve_order(aggregate.learning_actions)
+        collaboration_alerts = _dedupe_preserve_order(aggregate.collaboration_alerts)
+        reference_links = _dedupe_preserve_order(aggregate.reference_links)
+
+        return ThinkingKnowledgeBrief(
+            focus_tags=focus_tags,
+            knowledge_highlights=highlights,
+            learning_actions=learning_actions,
+            collaboration_alerts=collaboration_alerts,
+            reference_links=reference_links,
+        )
+
+    def _aggregate_signals(self) -> _SignalAggregate:
+        aggregate = _SignalAggregate()
+        for signal in self._signals:
+            weight = max(signal.weight, 0.0)
+            if weight <= 0:
+                continue
+
+            clarity_component = signal.confidence * (1.0 - signal.risk)
+            aggregate.total_weight += weight
+            aggregate.clarity_sum += clarity_component * weight
+            aggregate.risk_sum += signal.risk * weight
+            aggregate.idea_sum += ((signal.novelty + signal.confidence) / 2.0) * weight
+            aggregate.theme_weights[signal.theme] += weight
+            for tag in signal.tags:
+                aggregate.tag_weights[tag] += weight
+
+            novelty_score = (signal.novelty * 0.7 + (1.0 - signal.confidence) * 0.3) * weight
+            highlight = f"{signal.theme}: {signal.content}"
+            aggregate.highlight_candidates.append((novelty_score, highlight))
+
+            if signal.novelty >= 0.6 and signal.confidence <= 0.55:
+                aggregate.learning_actions.append(
+                    (
+                        f"Review {signal.theme} insight: \"{signal.content}\" "
+                        f"(confidence {int(round(signal.confidence * 100))}%)."
+                    )
+                )
+
+            if signal.risk >= 0.6:
+                aggregate.collaboration_alerts.append(
+                    (
+                        f"Pair with risk partner on {signal.theme} "
+                        f"(risk {int(round(signal.risk * 100))}%)."
+                    )
+                )
+
+            aggregate.reference_links.extend(_extract_references(signal.metadata))
+
+        return aggregate
+
+    def _select_focus_tags(
+        self, weights: Mapping[str, float], *, limit: int
+    ) -> tuple[str, ...]:
+        if not weights:
+            return ()
+        sorted_tags = sorted(
+            weights.items(),
+            key=lambda item: (-item[1], item[0]),
+        )
+        return tuple(tag for tag, _ in sorted_tags[:limit])
+
+    def _select_highlights(
+        self,
+        candidates: Sequence[tuple[float, str]],
+        *,
+        limit: int = 3,
+    ) -> tuple[str, ...]:
+        if not candidates:
+            return ()
+        ordered = sorted(
+            candidates,
+            key=lambda item: (-item[0], item[1]),
+        )
+        highlights: list[str] = []
+        seen: set[str] = set()
+        for _, text in ordered:
+            cleaned = text.strip()
+            if not cleaned or cleaned in seen:
+                continue
+            seen.add(cleaned)
+            highlights.append(cleaned)
+            if len(highlights) >= limit:
+                break
+        return tuple(highlights)
 
     def _bias_alerts(
         self,
