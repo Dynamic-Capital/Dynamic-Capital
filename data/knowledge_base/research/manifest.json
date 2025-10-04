@@ -123,6 +123,34 @@
       "notes": "Normalized markdown export of the Beat The Market Maker ForexFactory attachment for pattern taxonomy work."
     },
     {
+      "slug": "public_google_drive_corpus_v1",
+      "source": {
+        "google_drive_folders": [
+          "https://drive.google.com/drive/folders/1IX6IU758PHpK09cDeXiAe-CQo6mnN-T2?usp=sharing",
+          "https://drive.google.com/drive/folders/1F2A1RO8W5DDa8yWIKBMos_k32DQD4jpB?usp=sharing"
+        ],
+        "notes": "Consolidated from the task-provided public Google Drive shares using scripts/extract_public_google_drive_pdfs.py and scripts/knowledge_base/build_public_google_drive_dataset.py."
+      },
+      "processed_path": "data/knowledge_base/research/processed/public_google_drive_corpus.jsonl",
+      "sample_path": "data/knowledge_base/research/processed/public_google_drive_corpus_sample.jsonl",
+      "summary_path": "data/knowledge_base/research/processed/public_google_drive_corpus_summary.json",
+      "rows": 10,
+      "languages": {
+        "ar": 1,
+        "en": 9
+      },
+      "tags": {
+        "google_drive_public": 10,
+        "trading": 5,
+        "forex": 5,
+        "education": 5,
+        "governance": 5,
+        "policy": 5,
+        "maldives": 5
+      },
+      "notes": "Forex trading manuals and Maldivian governance acts mirrored from the two public Google Drive folders for inclusion in the Dynamic knowledge base."
+    },
+    {
       "slug": "newspaper_archive_collection",
       "source": {
         "internet_archive_identifier": "newspaperarchive",

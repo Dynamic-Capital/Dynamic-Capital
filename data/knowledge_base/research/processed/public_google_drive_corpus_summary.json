@@ -1,0 +1,59 @@
+{
+  "source": "public_google_drive",
+  "document_count": 10,
+  "languages": {
+    "ar": 1,
+    "en": 9
+  },
+  "categories": {
+    "forex_trading": 5,
+    "maldives_governance": 5
+  },
+  "tags": {
+    "google_drive_public": 10,
+    "google_drive": 10,
+    "pdf": 10,
+    "public_share": 10,
+    "trading": 5,
+    "forex": 5,
+    "education": 5,
+    "forex_trading": 5,
+    "governance": 5,
+    "policy": 5,
+    "maldives": 5,
+    "maldives_governance": 5
+  },
+  "share_links": {
+    "https://drive.google.com/drive/folders/1IX6IU758PHpK09cDeXiAe-CQo6mnN-T2?usp=sharing": 5,
+    "https://drive.google.com/drive/folders/1F2A1RO8W5DDa8yWIKBMos_k32DQD4jpB?usp=sharing": 5
+  },
+  "bundles": [
+    {
+      "label": "drive1_forex_library",
+      "documents_path": "data/corpus/google_drive_public/drive1_documents.jsonl",
+      "share_link": "https://drive.google.com/drive/folders/1IX6IU758PHpK09cDeXiAe-CQo6mnN-T2?usp=sharing",
+      "category": "forex_trading",
+      "tags": [
+        "trading",
+        "forex",
+        "education"
+      ],
+      "document_count": 5
+    },
+    {
+      "label": "drive2_governance_digest",
+      "documents_path": "data/corpus/google_drive_public/drive2_documents.jsonl",
+      "share_link": "https://drive.google.com/drive/folders/1F2A1RO8W5DDa8yWIKBMos_k32DQD4jpB?usp=sharing",
+      "category": "maldives_governance",
+      "tags": [
+        "governance",
+        "policy",
+        "maldives"
+      ],
+      "document_count": 5
+    }
+  ],
+  "sample_path": "data/knowledge_base/research/processed/public_google_drive_corpus_sample.jsonl",
+  "sample_size": 4,
+  "output_path": "data/knowledge_base/research/processed/public_google_drive_corpus.jsonl"
+}

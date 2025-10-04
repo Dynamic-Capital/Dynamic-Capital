@@ -1,0 +1,31 @@
+{
+  "source": "public_google_drive",
+  "output_path": "data/knowledge_base/research/processed/public_google_drive_corpus.jsonl",
+  "sample_path": "data/knowledge_base/research/processed/public_google_drive_corpus_sample.jsonl",
+  "summary_path": "data/knowledge_base/research/processed/public_google_drive_corpus_summary.json",
+  "sample_size": 4,
+  "bundles": [
+    {
+      "label": "drive1_forex_library",
+      "documents": "data/corpus/google_drive_public/drive1_documents.jsonl",
+      "share_link": "https://drive.google.com/drive/folders/1IX6IU758PHpK09cDeXiAe-CQo6mnN-T2?usp=sharing",
+      "category": "forex_trading",
+      "tags": ["trading", "forex", "education"],
+      "extra_metadata": {
+        "jurisdiction": "global",
+        "notes": "Forex trading playbooks mirrored from the first public Google Drive share."
+      }
+    },
+    {
+      "label": "drive2_governance_digest",
+      "documents": "data/corpus/google_drive_public/drive2_documents.jsonl",
+      "share_link": "https://drive.google.com/drive/folders/1F2A1RO8W5DDa8yWIKBMos_k32DQD4jpB?usp=sharing",
+      "category": "maldives_governance",
+      "tags": ["governance", "policy", "maldives"],
+      "extra_metadata": {
+        "jurisdiction": "Maldives",
+        "notes": "Legislative and anti-corruption PDFs mirrored from the second public Google Drive share."
+      }
+    }
+  ]
+}
