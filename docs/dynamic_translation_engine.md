@@ -72,4 +72,6 @@ results = engine.translate_batch(
   batch and streaming paths before invoking the fallback model.
 - Refer to the [rollout plan](dynamic_translation_rollout_plan.md) for
   stakeholder communication checkpoints and the feedback intake workflow that
-  governs future engine enhancements.
+  governs future engine enhancements. A living snapshot of open feedback and
+  mitigation owners lives in the
+  [LOC-STREAM tracker log](dynamic_translation_loc_stream_snapshot.md).

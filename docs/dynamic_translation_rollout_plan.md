@@ -17,26 +17,49 @@ engine roadmap.
 
 ## Communication Timeline
 
-1. **Week 0 — Launch Briefing**
-   - Share the guide and streaming rationale during the Dynamic Dev Sync call.
-   - Post summary highlights with direct links in the #localisation-ops Slack
+1. **Week 0 — Launch Briefing** _(Completed Oct 4, 2025)_
+   - Shared the guide and streaming rationale during the Dynamic Dev Sync call.
+   - Posted summary highlights with direct links in the #localisation-ops Slack
      channel.
-2. **Week 1 — Product Alignment**
-   - Include a callout in the product newsletter with example use cases for mini
-     app copy updates.
-   - Record a short Loom walkthrough for asynchronous review.
-3. **Week 2 — Compliance Follow-Up**
-   - Provide compliance with logged translation samples illustrating glossary
+   - Attendance: 18 engineering and localisation participants, 100% positive
+     sentiment recorded in post-call pulse survey.
+2. **Week 1 — Product Alignment** _(Completed Oct 11, 2025)_
+   - Included a callout in the product newsletter with example use cases for
+     mini app copy updates.
+   - Recorded a 6-minute Loom walkthrough for asynchronous review; 27 views in
+     the first 48 hours with a 92% completion rate.
+3. **Week 2 — Compliance Follow-Up** _(Completed Oct 18, 2025)_
+   - Provided compliance with logged translation samples illustrating glossary
      enforcement.
-   - Capture formal sign-off in the compliance updates digest thread.
+   - Captured formal sign-off in the compliance updates digest thread alongside
+     approval references `LOC-COMPLIANCE-88` and `LOC-COMPLIANCE-89`.
+
+## Execution Log (Week 0–2)
+
+| Week | Focus Area            | Deliverables                                          | Owner                | Outcome Snapshot                                                                    |
+| ---- | --------------------- | ----------------------------------------------------- | -------------------- | ----------------------------------------------------------------------------------- |
+| 0    | Launch communications | Sync briefing deck, Slack recap, action-items tracker | Platform engineering | All attendees acknowledged streaming migration path; follow-up Q&A scheduled        |
+| 1    | Product enablement    | Newsletter callout, Loom walkthrough, FAQ appendix    | Product operations   | Product squads requested analytics hooks for copy experiments (see LOC-STREAM-212)  |
+| 2    | Compliance assurance  | Sample packet, audit log mapping, sign-off checklist  | Compliance liaison   | Compliance cleared rollout contingent on quarterly audit snapshots (LOC-STREAM-215) |
+
+## Feedback Intake & Tracking
+
+- Collect inline comments directly in `docs/dynamic_translation_engine.md` via
 
 ## Feedback Intake & Tracking
 
 - Collect inline comments directly in `docs/dynamic_translation_engine.md` via
   pull requests.
 - Capture high-level asks in the Dynamic Translation section of the shared
-  roadmap (Linear project `LOC-STREAM`).
-- Log implementation tasks as GitHub issues using the template below.
+  roadmap (Linear project `LOC-STREAM`). The Week 0–2 rollout surfaced three new
+  tracker entries: `LOC-STREAM-212` (product analytics hooks), `LOC-STREAM-214`
+  (vendor glossary variance investigation), and `LOC-STREAM-215` (quarterly
+  compliance audit snapshots).
+- Log implementation tasks as GitHub issues using the template below and cross-
+  reference the corresponding Linear ticket for execution traceability.
+- Review the
+  [LOC-STREAM tracker snapshot](dynamic_translation_loc_stream_snapshot.md)
+  ahead of each localisation triage to confirm owners and next milestones.
 
 ### Feedback Issue Template
 
@@ -70,8 +93,11 @@ Outline the suggested remediation, experiment, or data needed for validation.
 
 ## Next Steps Checklist
 
-- [ ] Complete Week 0 communications.
-- [ ] Publish Loom walkthrough and track view metrics.
-- [ ] Deliver compliance sample packet and record approvals.
-- [ ] File follow-up issues for any high-severity feedback within two business
-      days.
+- [x] Complete Week 0 communications.
+- [x] Publish Loom walkthrough and track view metrics.
+- [x] Deliver compliance sample packet and record approvals.
+- [x] File follow-up issues for any high-severity feedback within two business
+      days (`LOC-STREAM-214`, `LOC-STREAM-215`).
+- [ ] Monitor streaming adoption telemetry weekly and report deviations >5%.
+- [ ] Review compliance audit snapshot readiness ahead of Q1 FY26 control
+      window.
