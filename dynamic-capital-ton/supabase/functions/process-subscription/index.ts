@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   calculateDctAmount,
   calculateTonAmount,
@@ -44,8 +43,23 @@ if (!botToken || !announceChatId) {
 }
 if (!appUrl) throw new Error("Missing APP_URL env");
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-type SupabaseClient = typeof supabase;
+type SupabaseClient = Awaited<ReturnType<typeof createSupabaseClient>>;
+
+let supabaseClientPromise: Promise<SupabaseClient> | null = null;
+
+async function createSupabaseClient() {
+  const { createClient } = await import(
+    "https://esm.sh/@supabase/supabase-js@2"
+  );
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
+
+async function getSupabaseClient(): Promise<SupabaseClient> {
+  if (!supabaseClientPromise) {
+    supabaseClientPromise = createSupabaseClient();
+  }
+  return supabaseClientPromise;
+}
 
 type VerifyTonPaymentResult =
   | { ok: true; amountTON: number; payerAddress?: string }
@@ -68,6 +82,171 @@ function parseNumber(value: unknown): number | null {
   if (typeof value === "string" && value.trim() !== "") {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function normalizeHash(value: string): string {
+  return value.trim().toLowerCase().replace(/^0x/, "");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function selectTransaction(
+  payload: unknown,
+  txHash: string,
+): Record<string, unknown> | null {
+  const normalized = normalizeHash(txHash);
+
+  if (Array.isArray(payload)) {
+    const match = payload.find((item) => {
+      return isRecord(item) && typeof item.hash === "string" &&
+        normalizeHash(item.hash) === normalized;
+    });
+    if (match && isRecord(match)) return match;
+    if (payload.length === 1 && isRecord(payload[0])) {
+      return payload[0];
+    }
+    return null;
+  }
+
+  if (!isRecord(payload)) return null;
+
+  if (typeof payload.hash === "string") {
+    if (!normalized || normalizeHash(payload.hash) === normalized) {
+      return payload;
+    }
+  }
+
+  const transactions = (payload as Record<string, unknown>).transactions;
+  if (Array.isArray(transactions)) {
+    const match = transactions.find((item) => {
+      return isRecord(item) && typeof item.hash === "string" &&
+        normalizeHash(item.hash) === normalized;
+    });
+    if (match && isRecord(match)) return match;
+    if (transactions.length === 1 && isRecord(transactions[0])) {
+      return transactions[0];
+    }
+  }
+
+  const nestedKeys = ["transaction", "result", "data"] as const;
+  for (const key of nestedKeys) {
+    if (key in payload) {
+      const nested = selectTransaction(
+        (payload as Record<string, unknown>)[key],
+        txHash,
+      );
+      if (nested) return nested;
+    }
+  }
+
+  return null;
+}
+
+function unwrapAddress(candidate: unknown): string | undefined {
+  if (typeof candidate === "string" && candidate.trim() !== "") {
+    return candidate;
+  }
+
+  if (!isRecord(candidate)) return undefined;
+
+  if (
+    typeof candidate.address === "string" && candidate.address.trim() !== ""
+  ) {
+    return candidate.address;
+  }
+
+  const nestedKeys = [
+    "account",
+    "destination",
+    "source",
+    "wallet",
+    "owner",
+    "addr",
+  ] as const;
+
+  for (const key of nestedKeys) {
+    if (key in candidate) {
+      const nested = unwrapAddress(candidate[key]);
+      if (nested) return nested;
+    }
+  }
+
+  return undefined;
+}
+
+function pickAddress(...candidates: Array<unknown>): string | undefined {
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      for (const item of candidate) {
+        const addr = unwrapAddress(item);
+        if (addr) return addr;
+      }
+      continue;
+    }
+
+    const addr = unwrapAddress(candidate);
+    if (addr) return addr;
+  }
+
+  return undefined;
+}
+
+function extractNumericValue(candidate: unknown): number | null {
+  if (typeof candidate === "bigint") {
+    return Number(candidate);
+  }
+
+  const direct = parseNumber(candidate);
+  if (direct !== null) return direct;
+
+  if (!isRecord(candidate)) return null;
+
+  const nestedKeys = [
+    "value",
+    "amount",
+    "coins",
+    "credit",
+    "nanoton",
+    "ton",
+  ] as const;
+  for (const key of nestedKeys) {
+    if (key in candidate) {
+      const nested = extractNumericValue(candidate[key]);
+      if (nested !== null) return nested;
+    }
+  }
+
+  return null;
+}
+
+const NANO_IN_TON = 1_000_000_000;
+
+type TonAmountScale = "ton" | "nanoton";
+
+function normalizeTonAmount(
+  value: unknown,
+  scale: TonAmountScale,
+): number | null {
+  const numeric = extractNumericValue(value);
+  if (numeric === null) return null;
+
+  const resolved = scale === "nanoton" ? numeric / NANO_IN_TON : numeric;
+
+  return Number.isFinite(resolved) && resolved > 0 ? resolved : null;
+}
+
+function pickTonAmount(
+  candidates: Array<{ value: unknown; scale: TonAmountScale }>,
+): number | null {
+  for (const candidate of candidates) {
+    const amount = normalizeTonAmount(candidate.value, candidate.scale);
+    if (amount !== null) {
+      return amount;
+    }
   }
   return null;
 }
@@ -156,28 +335,51 @@ export async function verifyTonPayment(
   }
 
   const payload = await response.json();
-  const destination: string | undefined = payload.destination ??
-    payload.account?.address ??
-    payload.in_msg?.destination ??
-    payload.out_msg?.destination;
+  const transaction = selectTransaction(payload, txHash);
+  if (!transaction) {
+    return { ok: false, error: "Indexer response missing transaction" };
+  }
+
+  const account = transaction["account"] as Record<string, unknown> | undefined;
+  const inMsg = transaction["in_msg"] as Record<string, unknown> | undefined;
+  const outMsg = transaction["out_msg"] as Record<string, unknown> | undefined;
+  const outMsgs = transaction["out_msgs"] as unknown;
+
+  const destination = pickAddress(
+    transaction["destination"],
+    account,
+    account?.["address"],
+    inMsg?.["destination"],
+    outMsg?.["destination"],
+    outMsgs,
+  );
 
   if (!destination) {
     return { ok: false, error: "Indexer response missing destination" };
   }
 
-  if (
-    normalizeAddress(String(destination)) !==
-      normalizeAddress(expectedWallet)
-  ) {
+  const expectedNormalized = normalizeAddress(expectedWallet);
+  if (normalizeAddress(destination) !== expectedNormalized) {
     return { ok: false, error: "Funds not received by intake wallet" };
   }
 
-  const amountCandidate = payload.amountTon ?? payload.amount ??
-    payload.value ?? payload.coins ?? payload.in_msg?.value ?? 0;
-  const amountNumeric = Number(amountCandidate);
-  const amountTon = amountNumeric > 1_000_000
-    ? amountNumeric / 1_000_000_000
-    : amountNumeric;
+  const creditPhase = transaction["credit_phase"] as
+    | Record<string, unknown>
+    | undefined;
+
+  const amountTon = pickTonAmount([
+    { value: transaction["amountTon"], scale: "ton" },
+    { value: transaction["amount"], scale: "nanoton" },
+    { value: transaction["value"], scale: "nanoton" },
+    { value: transaction["coins"], scale: "nanoton" },
+    { value: inMsg?.["value"], scale: "nanoton" },
+    { value: inMsg?.["amount"], scale: "nanoton" },
+    { value: creditPhase?.["credit"], scale: "nanoton" },
+  ]);
+
+  if (amountTon === null) {
+    return { ok: false, error: "Indexer response missing amount" };
+  }
 
   if (!Number.isFinite(amountTon) || amountTon <= 0) {
     return { ok: false, error: "Indexer response missing amount" };
@@ -187,12 +389,12 @@ export async function verifyTonPayment(
     return { ok: false, error: "TON amount less than expected" };
   }
 
-  const payerCandidate = payload.source ?? payload.account?.address ??
-    payload.in_msg?.source ?? payload.out_msg?.source ?? payload.sender;
-
-  const payerAddress = typeof payerCandidate === "string"
-    ? payerCandidate
-    : undefined;
+  const payerAddress = pickAddress(
+    transaction["source"],
+    inMsg?.["source"],
+    outMsg?.["source"],
+    transaction["sender"],
+  );
 
   return { ok: true, amountTON: amountTon, payerAddress };
 }
@@ -251,20 +453,20 @@ function getStakeMeta(plan: Plan) {
 }
 
 interface Dependencies {
-  supabase: SupabaseClient;
-  fetch: typeof fetch;
+  supabase?: SupabaseClient;
+  fetch?: typeof fetch;
 }
 
-const defaultDeps: Dependencies = {
-  supabase,
-  fetch: globalThis.fetch.bind(globalThis),
-};
+const defaultFetch = globalThis.fetch.bind(globalThis);
 
 export async function handler(
   req: Request,
-  deps: Dependencies = defaultDeps,
+  deps: Dependencies = {},
 ): Promise<Response> {
   try {
+    const supabase = deps.supabase ?? (await getSupabaseClient());
+    const fetchImpl = deps.fetch ?? defaultFetch;
+
     const { telegram_id, plan, tx_hash } =
       (await req.json()) as ProcessSubscriptionBody;
 
@@ -272,7 +474,7 @@ export async function handler(
       return new Response("Missing fields", { status: 400 });
     }
 
-    const { data: cfg, error: cfgError } = await deps.supabase
+    const { data: cfg, error: cfgError } = await supabase
       .from("app_config")
       .select("*")
       .eq("id", 1)
@@ -303,12 +505,8 @@ export async function handler(
       "Burn split",
     );
 
-    const tonRate = await fetchTonUsdRate(deps.fetch);
-    const planPricing = await fetchPlanPricing(
-      deps.supabase,
-      plan,
-      tonRate.rate,
-    );
+    const tonRate = await fetchTonUsdRate(fetchImpl);
+    const planPricing = await fetchPlanPricing(supabase, plan, tonRate.rate);
 
     if (planPricing.currency !== "USD" && planPricing.currency !== "USDT") {
       throw new Error(`Unsupported currency ${planPricing.currency}`);
@@ -335,7 +533,7 @@ export async function handler(
       tx_hash,
       config.ops_treasury,
       expectedTonAmount,
-      deps.fetch,
+      fetchImpl,
     );
 
     if (!verify.ok) {
@@ -345,7 +543,7 @@ export async function handler(
       return new Response(verify.error, { status });
     }
 
-    const { data: userRow, error: userError } = await deps.supabase
+    const { data: userRow, error: userError } = await supabase
       .from("users")
       .select("id")
       .eq("telegram_id", telegram_id)
@@ -357,7 +555,7 @@ export async function handler(
 
     const user = userRow as { id: string };
 
-    const { data: walletRow, error: walletError } = await deps.supabase
+    const { data: walletRow, error: walletError } = await supabase
       .from("wallets")
       .select("address")
       .eq("user_id", user.id)
@@ -410,7 +608,7 @@ export async function handler(
 
     await burnDCT(config.dct_master, dctForBurn);
 
-    const { data: subscription, error: subError } = await deps.supabase
+    const { data: subscription, error: subError } = await supabase
       .from("subscriptions")
       .insert({
         user_id: user.id,
@@ -435,7 +633,7 @@ export async function handler(
     const lockUntil = new Date();
     lockUntil.setMonth(lockUntil.getMonth() + lockMonths);
 
-    const { error: stakeError } = await deps.supabase.from("stakes").insert({
+    const { error: stakeError } = await supabase.from("stakes").insert({
       user_id: user.id,
       dct_amount: dctForUser,
       lock_until: lockUntil.toISOString(),
@@ -446,7 +644,7 @@ export async function handler(
       throw new Error(stakeError.message);
     }
 
-    const insertLogs = await deps.supabase.from("tx_logs").insert([
+    const insertLogs = await supabase.from("tx_logs").insert([
       {
         kind: "ops_transfer",
         ref_id: subscriptionId,
@@ -478,7 +676,7 @@ export async function handler(
     }
 
     await notifyUser(
-      deps.fetch,
+      fetchImpl,
       `✅ *Subscription processed*\n\n• Plan: *${plan}*\n• Paid: *${
         tonPaid.toFixed(3)
       } TON* (~$${planPricing.displayPrice.toFixed(2)})\n• Auto-invest: *${

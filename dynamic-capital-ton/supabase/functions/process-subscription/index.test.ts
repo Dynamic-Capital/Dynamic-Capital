@@ -1,3 +1,7 @@
+// Run with `$(bash scripts/deno_bin.sh) test --no-npm -A dynamic-capital-ton/supabase/functions/process-subscription/index.test.ts`
+// to prevent Deno from attempting to resolve npm dependencies while exercising the edge
+// function logic locally.
+
 function assert(
   condition: unknown,
   message = "Assertion failed",
@@ -32,6 +36,21 @@ function assertEquals<T>(actual: T, expected: T, message?: string): void {
       serialize(actual)
     }`;
     throw new Error(message ? `${message}: ${suffix}` : suffix);
+  }
+}
+
+function assertAlmostEquals(
+  actual: number,
+  expected: number,
+  epsilon = 1e-9,
+): void {
+  if (!Number.isFinite(actual) || !Number.isFinite(expected)) {
+    throw new Error("assertAlmostEquals received non-finite value");
+  }
+  if (Math.abs(actual - expected) > epsilon) {
+    throw new Error(
+      `Expected ${expected} ± ${epsilon}, received ${actual}`,
+    );
   }
 }
 
@@ -218,6 +237,36 @@ function createSupabaseStub(
   return { client, state };
 }
 
+interface TonIndexerTxOptions {
+  hash: string;
+  destination: string;
+  source: string;
+  amount: number | string;
+  overrides?: Record<string, unknown>;
+}
+
+function tonIndexerTransaction(options: TonIndexerTxOptions) {
+  const { hash, destination, source, amount, overrides } = options;
+  return {
+    hash,
+    account: { address: destination },
+    in_msg: {
+      value: amount,
+      source: { address: source },
+      destination: { address: destination },
+    },
+    out_msgs: [],
+    credit_phase: { credit: amount },
+    ...(overrides ?? {}),
+  };
+}
+
+function tonIndexerResponse(
+  transactions: Array<Record<string, unknown>>,
+) {
+  return { transactions };
+}
+
 Deno.test("returns 503 when TON pricing is unavailable", async () => {
   const originalOverride = Deno.env.get("TON_USD_OVERRIDE");
   try {
@@ -343,10 +392,16 @@ Deno.test("rejects subscription when TON transfer goes to different wallet", asy
     if (url.includes("/transactions/")) {
       return Promise.resolve(
         new Response(
-          JSON.stringify({
-            destination: "EQWRONG",
-            amount: 120_000_000_000,
-          }),
+          JSON.stringify(
+            tonIndexerResponse([
+              tonIndexerTransaction({
+                hash: "deadbeef",
+                destination: "EQWRONG",
+                source: "EQLINKED",
+                amount: 120_000_000_000,
+              }),
+            ]),
+          ),
           { status: 200 },
         ),
       );
@@ -388,6 +443,95 @@ Deno.test("verifyTonPayment fails closed when indexer URL is missing", async () 
     if (original) {
       Deno.env.set("TON_INDEXER_URL", original);
     }
+  }
+});
+
+Deno.test("verifyTonPayment converts nanotons for sub-ton transfers", async () => {
+  const fetchStub: typeof fetch = (input) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url.includes("/transactions/")) {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify(
+            tonIndexerResponse([
+              tonIndexerTransaction({
+                hash: "SMALLPAY",
+                destination: "EQOPS",
+                source: "EQPAYER",
+                amount: 500_000,
+              }),
+            ]),
+          ),
+          { status: 200 },
+        ),
+      );
+    }
+
+    throw new Error(`Unexpected fetch call: ${url}`);
+  };
+
+  const result = await verifyTonPayment(
+    "0xsmallpay",
+    "EQOPS",
+    0.0005,
+    fetchStub,
+  );
+
+  assertEquals(result.ok, true);
+  if (result.ok) {
+    assertAlmostEquals(result.amountTON, 0.0005, 1e-12);
+    assertEquals(result.payerAddress, "EQPAYER");
+  }
+});
+
+Deno.test("verifyTonPayment respects explicit ton amounts", async () => {
+  const fetchStub: typeof fetch = (input) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url.includes("/transactions/")) {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            transactions: [
+              {
+                hash: "EXPLICITT",
+                account: { address: "EQOPS" },
+                amountTon: 2.5,
+                in_msg: {
+                  source: { address: "EQDIRECT" },
+                  destination: { address: "EQOPS" },
+                },
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      );
+    }
+
+    throw new Error(`Unexpected fetch call: ${url}`);
+  };
+
+  const result = await verifyTonPayment(
+    "0xexplicitt",
+    "EQOPS",
+    2.5,
+    fetchStub,
+  );
+
+  assertEquals(result.ok, true);
+  if (result.ok) {
+    assertEquals(result.amountTON, 2.5);
+    assertEquals(result.payerAddress, "EQDIRECT");
   }
 });
 
@@ -436,11 +580,16 @@ Deno.test("rejects subscription when payer wallet mismatches linked wallet", asy
     if (url.includes("/transactions/")) {
       return Promise.resolve(
         new Response(
-          JSON.stringify({
-            destination: "EQOPS",
-            amount: 120_000_000_000,
-            source: "EQATTACKER",
-          }),
+          JSON.stringify(
+            tonIndexerResponse([
+              tonIndexerTransaction({
+                hash: "FEEDBEEF",
+                destination: "EQOPS",
+                source: "EQATTACKER",
+                amount: 120_000_000_000,
+              }),
+            ]),
+          ),
           { status: 200 },
         ),
       );
@@ -510,11 +659,22 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
     if (url.includes("/transactions/")) {
       return Promise.resolve(
         new Response(
-          JSON.stringify({
-            destination: "EQOPS",
-            amount: 120_000_000_000,
-            source: "EQLINKED",
-          }),
+          JSON.stringify(
+            tonIndexerResponse([
+              tonIndexerTransaction({
+                hash: "DEADBEEF",
+                destination: "EQWRONG",
+                source: "EQATTACKER",
+                amount: 900_000_000,
+              }),
+              tonIndexerTransaction({
+                hash: "ABC123",
+                destination: "EQOPS",
+                source: "EQLINKED",
+                amount: "1200000000",
+              }),
+            ]),
+          ),
           { status: 200 },
         ),
       );
@@ -543,6 +703,6 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
 
   const payload = await response.json();
   assertEquals(payload.ok, true);
-  assertEquals(payload.ton_paid > 0, true);
+  assertEquals(Math.abs(payload.ton_paid - 1.2) < 1e-6, true);
   assertEquals(notifications.length, 1);
 });
