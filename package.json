@@ -70,6 +70,7 @@
     "migrate:gen": "supabase migration new",
     "migrate:apply": "supabase migration up",
     "supabase:functions:deploy": "supabase functions deploy --project-ref $SUPABASE_PROJECT_REF --password $SUPABASE_DB_PASSWORD",
+    "supabase:run:start-jetton-minter": "tsx scripts/supabase/run-start-jetton-minter.ts",
     "screenshot:install": "npx playwright install --with-deps",
     "screenshot:preview": "npx playwright show-report",
     "tunnel:functions": "node scripts/ngrok-http.mjs",

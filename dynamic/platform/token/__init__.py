@@ -15,6 +15,15 @@ from .image import (
 )
 from .nft import DynamicNFTMinter, MintedDynamicNFT, NFTImageGenerator
 from .treasury import DynamicTreasuryAlgo, TreasuryEvent
+from .verification import (
+    TelegramVerificationResult,
+    TokenVerificationReport,
+    TonContractSignature,
+    sign_ton_contract,
+    verify_contract_signature,
+    verify_dynamic_capital_token,
+    verify_telegram_init_data,
+)
 
 __all__ = [
     "DCTCommitteeSignals",
@@ -31,4 +40,11 @@ __all__ = [
     "NanoBananaImageGenerator",
     "create_nanobanana_generator_from_env",
     "committee_signals_from_optimisation",
+    "TelegramVerificationResult",
+    "TokenVerificationReport",
+    "TonContractSignature",
+    "sign_ton_contract",
+    "verify_contract_signature",
+    "verify_dynamic_capital_token",
+    "verify_telegram_init_data",
 ]
