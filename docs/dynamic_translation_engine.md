@@ -70,3 +70,6 @@ results = engine.translate_batch(
 - Translation memory entries can be appended through
   `engine.add_memory_entries(...)`; these entries are considered by both the
   batch and streaming paths before invoking the fallback model.
+- Refer to the [rollout plan](dynamic_translation_rollout_plan.md) for
+  stakeholder communication checkpoints and the feedback intake workflow that
+  governs future engine enhancements.
