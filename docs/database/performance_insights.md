@@ -91,6 +91,15 @@ The following sections quantify each query family, articulate risk, and propose 
 | P2 | Storage & Webhook Hardening | Add indexes, async webhooks, latency logging | Storage Squad & Integrations | M | M | +6 weeks |
 | P2 | DB Parameter Hardening | Apply Supabase config tunings (shared buffers, IO concurrency, WAL segment sizing) | DBA Guild | M | H | +6 weeks |
 
+## Implementation Progress
+
+| Initiative | Status | Delivery Notes |
+| ---------- | ------ | -------------- |
+| Realtime telemetry guardrails | ✅ | Added `monitoring.refresh_query_family_rollups` to snapshot `pg_stat_statements`, exposed via the `performance-scorecard` Edge Function, and scheduled a 5-minute pg_cron refresh job. |
+| HTTP queue batch drains | ✅ | Introduced `net.dequeue_http_request_batch` with `SKIP LOCKED` semantics, scheduled recurring archives through `net.archive_http_response_batch`, and backstopped with creation-time indexes. |
+| Metadata/Function caching | ⏳ | Pending follow-up: requires Redis materialization layer and trigger wiring. |
+| Storage & webhook hardening | ⏳ | Awaiting confirmation of access patterns before designing composite indexes. |
+
 ## Validation & Guardrails
 
 1. **Telemetry scorecard:** Track weekly `total_time` deltas per query family and flag regressions >10%.
