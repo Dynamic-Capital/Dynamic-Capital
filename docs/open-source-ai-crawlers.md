@@ -15,6 +15,7 @@ configurability, and integration requirements.
 | ------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------- |
 | Crawl4AI      | Python              | High-throughput crawling engine with concurrency controls and hook-based customization                                | Markdown (primary), JSON | Engineering teams building large-scale, automated ingestion loops                       |
 | ScrapeGraphAI | Python              | Prompt-driven pipeline assembly that combines LLM reasoning with graph execution                                      | HTML, JSON, Markdown     | Developers comfortable with natural-language specifications who want flexible workflows |
+| Scrapy        | Python              | Mature spider framework with scheduling, middleware, and pipeline hooks for precise extraction                        | JSON, CSV, custom feeds  | Backend teams needing production-grade spiders with fine-grained control                |
 | Firecrawl     | Python              | Cleans and normalizes modern websites while defending against anti-bot measures; integrates with LangChain/LlamaIndex | Markdown, JSON           | AI platform teams feeding RAG or fine-tuning corpora with minimal preprocessing         |
 | Crawlee       | TypeScript & Python | Battle-tested crawling toolkit with proxy rotation, link discovery, and Playwright/BeautifulSoup adapters             | User-defined             | Full-stack teams needing browser automation and resilient scheduling                    |
 | LLM Scraper   | TypeScript          | Schema-first extraction orchestrated by LLMs on top of Playwright sessions                                            | JSON (schema-aligned)    | Teams that require precise, typed payloads from complex pages                           |
@@ -26,7 +27,7 @@ configurability, and integration requirements.
   the rest of the workspace dependencies.
 - **Python libraries:** Execute
   `python -m pip install --upgrade --disable-pip-version-check -r dynamic_crawlers/requirements-github.txt`
-  to install Crawl4AI and ScrapeGraphAI from source.
+  to install Crawl4AI, ScrapeGraphAI, and Scrapy from source.
 
 ## Framework Profiles
 
@@ -56,6 +57,19 @@ configurability, and integration requirements.
   and let the system synthesize the extraction plan.
 - **Install:**
   `pip install --upgrade "scrapegraphai @ git+https://github.com/ScrapeGraphAI/Scrapegraph-ai"`
+
+### Scrapy
+
+- **Core Focus:** Highly extensible crawling framework with first-class support
+  for spider orchestration, item pipelines, and middleware customisation.
+- **Key Features:** Provides declarative selectors, auto-throttling, caching,
+  and pluggable pipelines for cleaning or persisting extracted data.
+- **Data Output:** Emits Python objects that can be serialised into JSON, CSV,
+  XML, or custom feeds through pipelines.
+- **Best For:** Backend or data engineering teams that need a stable,
+  production-ready crawler with fine-grained control over every stage of the
+  scraping lifecycle.
+- **Install:** `pip install --upgrade scrapy`
 
 ### Firecrawl
 
