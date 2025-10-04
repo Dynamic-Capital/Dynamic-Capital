@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from datetime import date, datetime
+from operator import attrgetter
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, List, Optional, Sequence, Tuple
 
@@ -208,7 +209,9 @@ class MarketDataIngestionJob:
             self.mechanical_calculator = mechanical_calculator
 
     def run(self, bars: Iterable[RawBar], instrument: InstrumentMeta) -> List[MarketSnapshot]:
-        rows = sorted(list(bars), key=lambda bar: bar.timestamp)
+        rows: List[RawBar] = sorted(bars, key=attrgetter("timestamp"))
+        if not rows:
+            return []
         closes = [row.close for row in rows]
         highs = [row.high for row in rows]
         lows = [row.low for row in rows]
@@ -251,8 +254,14 @@ class MarketDataIngestionJob:
                 daily_high = bar.high
                 daily_low = bar.low
             else:
-                daily_high = max(daily_high or bar.high, bar.high)
-                daily_low = min(daily_low or bar.low, bar.low)
+                if daily_high is None:
+                    daily_high = bar.high
+                else:
+                    daily_high = max(daily_high, bar.high)
+                if daily_low is None:
+                    daily_low = bar.low
+                else:
+                    daily_low = min(daily_low, bar.low)
 
             if week_key != current_week:
                 if current_week is not None:
@@ -262,8 +271,14 @@ class MarketDataIngestionJob:
                 weekly_high = bar.high
                 weekly_low = bar.low
             else:
-                weekly_high = max(weekly_high or bar.high, bar.high)
-                weekly_low = min(weekly_low or bar.low, bar.low)
+                if weekly_high is None:
+                    weekly_high = bar.high
+                else:
+                    weekly_high = max(weekly_high, bar.high)
+                if weekly_low is None:
+                    weekly_low = bar.low
+                else:
+                    weekly_low = min(weekly_low, bar.low)
 
             rsi_fast = rsi_fast_values[idx]
             rsi_slow = rsi_slow_values[idx]
