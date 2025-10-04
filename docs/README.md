@@ -76,6 +76,7 @@ documenting which assets were consulted.
 | 4.8  | [postgres-upgrade.md](./postgres-upgrade.md)                               | Steps to upgrade PostgreSQL safely to the latest patched release.                      |
 | 4.9  | [ton-web3-guidelines.md](./ton-web3-guidelines.md)                         | TON DNS, storage, and site operations playbook linking contracts and Supabase assets.  |
 | 4.10 | [on-chain-flows.md](./on-chain-flows.md)                                   | Mermaid diagram and contract references for the subscription → swap → burn automation. |
+| 4.11 | [ton-dns-renewal-log.md](./ton-dns-renewal-log.md)                         | Renewal ledger for `.ton` domains with event-level breakdowns.                         |
 
 ## 5. Telegram & Mini App Delivery
 
