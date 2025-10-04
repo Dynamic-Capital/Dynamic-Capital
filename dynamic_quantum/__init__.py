@@ -14,6 +14,14 @@ from .collapse_cycle import (
     DomainSnapshot,
     LindbladChannel,
 )
+from .hedge_model import (
+    ActiveHedge,
+    ExposureSnapshot,
+    HedgeCandidate,
+    HedgeDirective,
+    QuantumHedgeConfig,
+    QuantumHedgeModel,
+)
 from .training import (
     EngineTrainingAdapter,
     expectation_value_cost,
@@ -62,6 +70,12 @@ __all__ = [
     "QuantumEnvironment",
     "QuantumPulse",
     "QuantumResonanceFrame",
+    "ActiveHedge",
+    "ExposureSnapshot",
+    "HedgeCandidate",
+    "HedgeDirective",
+    "QuantumHedgeConfig",
+    "QuantumHedgeModel",
     "ConsciousCollapseEngine",
     "DomainConfig",
     "DomainSnapshot",
