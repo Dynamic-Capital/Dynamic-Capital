@@ -81,6 +81,7 @@ type PlanOption = {
     tonAmount: number | null;
     dctAmount: number | null;
     updatedAt: string | null;
+    snapshot: Record<string, unknown> | null;
   };
 };
 
@@ -97,6 +98,7 @@ type RawPlan = {
   last_priced_at?: string | null;
   ton_amount?: number | string | null;
   dct_amount?: number | string | null;
+  performance_snapshot?: Record<string, unknown> | null;
 };
 
 type ActivityItem = LiveTimelineEntry;
@@ -244,6 +246,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       tonAmount: 120,
       dctAmount: null,
       updatedAt: null,
+      snapshot: null,
     },
   },
   {
@@ -264,6 +267,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       tonAmount: 220,
       dctAmount: null,
       updatedAt: null,
+      snapshot: null,
     },
   },
   {
@@ -284,6 +288,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       tonAmount: 420,
       dctAmount: null,
       updatedAt: null,
+      snapshot: null,
     },
   },
   {
@@ -304,6 +309,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       tonAmount: 650,
       dctAmount: null,
       updatedAt: null,
+      snapshot: null,
     },
   },
 ];
@@ -392,6 +398,82 @@ function coerceNumber(value: unknown): number | null {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+}
+
+function extractSnapshotNumber(
+  snapshot: Record<string, unknown> | null | undefined,
+  key: string,
+): number | string | null {
+  if (!snapshot) return null;
+  const value = snapshot[key];
+  return typeof value === "number" || typeof value === "string"
+    ? value
+    : null;
+}
+
+function extractSnapshotString(
+  snapshot: Record<string, unknown> | null | undefined,
+  key: string,
+): string | null {
+  if (!snapshot) return null;
+  const value = snapshot[key];
+  return typeof value === "string" && value.trim().length > 0
+    ? value
+    : null;
+}
+
+type NormalizedPlanSnapshot = {
+  computedAt: string | null;
+  basePrice: number | null;
+  dynamicPrice: number | null;
+  displayPrice: number | null;
+  tonAmount: number | null;
+  dctAmount: number | null;
+  tonRate: number | null;
+  deltaPercent: number | null;
+  adjustments: Array<{ key: string; value: number }>;
+};
+
+function normalisePlanSnapshot(
+  raw: unknown,
+): NormalizedPlanSnapshot | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+
+  const record = raw as Record<string, unknown>;
+  const tonRateSource = record.tonRate ?? record.ton_rate;
+
+  let tonRate: number | null = null;
+  if (typeof tonRateSource === "number" || typeof tonRateSource === "string") {
+    tonRate = coerceNumber(tonRateSource) ?? null;
+  } else if (tonRateSource && typeof tonRateSource === "object") {
+    tonRate = coerceNumber((tonRateSource as Record<string, unknown>).rate) ??
+      null;
+  }
+
+  const adjustments = record.adjustments &&
+      typeof record.adjustments === "object" &&
+      !Array.isArray(record.adjustments)
+    ? Object.entries(record.adjustments as Record<string, unknown>)
+      .map(([key, value]) => ({ key, value: coerceNumber(value) }))
+      .filter((item): item is { key: string; value: number } =>
+        typeof item.value === "number"
+      )
+      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+    : [];
+
+  return {
+    computedAt: extractSnapshotString(record, "computed_at"),
+    basePrice: coerceNumber(record.base_price),
+    dynamicPrice: coerceNumber(record.dynamic_price),
+    displayPrice: coerceNumber(record.display_price),
+    tonAmount: coerceNumber(record.ton_amount),
+    dctAmount: coerceNumber(record.dct_amount),
+    tonRate,
+    deltaPercent: coerceNumber(record.delta_pct),
+    adjustments,
+  };
 }
 
 const currencyFormatterCache = new Map<string, Intl.NumberFormat>();
@@ -492,8 +574,13 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
       )
       : fallback.highlights;
 
-    const tonAmount = coerceNumber(raw.ton_amount);
-    const dctAmount = coerceNumber(raw.dct_amount);
+    const snapshot = raw.performance_snapshot ?? null;
+    const tonAmount = coerceNumber(raw.ton_amount) ??
+      coerceNumber(extractSnapshotNumber(snapshot, "ton_amount")) ??
+      fallback.meta.tonAmount ?? null;
+    const dctAmount = coerceNumber(raw.dct_amount) ??
+      coerceNumber(extractSnapshotNumber(snapshot, "dct_amount"));
+    const computedAt = extractSnapshotString(snapshot, "computed_at");
     const cadence = isLifetime
       ? "Lifetime access"
       : duration >= 12 && duration % 12 === 0
@@ -514,12 +601,31 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
         amount,
         tonAmount,
         dctAmount,
-        updatedAt: raw.last_priced_at ?? fallback.meta.updatedAt,
+        updatedAt: raw.last_priced_at ?? computedAt ?? fallback.meta.updatedAt,
+        snapshot,
       },
     });
   }
 
   return nextOptions.length > 0 ? nextOptions : [...FALLBACK_PLAN_OPTIONS];
+}
+
+function formatPercent(value: number | null, fractionDigits = 2): string | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+  const abs = Math.abs(value);
+  const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+  return `${sign}${abs.toFixed(fractionDigits)}%`;
+}
+
+function formatAdjustmentLabel(key: string): string {
+  if (!key) {
+    return "Adjustment";
+  }
+  return key
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function arePlanOptionsEqual(a: PlanOption[], b: PlanOption[]): boolean {
@@ -557,12 +663,15 @@ function arePlanOptionsEqual(a: PlanOption[], b: PlanOption[]): boolean {
 
     const currentMeta = current.meta;
     const nextMeta = option.meta;
+    const snapshotsMatch = JSON.stringify(currentMeta.snapshot ?? null) ===
+      JSON.stringify(nextMeta.snapshot ?? null);
     if (
       currentMeta.currency !== nextMeta.currency ||
       currentMeta.amount !== nextMeta.amount ||
       currentMeta.tonAmount !== nextMeta.tonAmount ||
       currentMeta.dctAmount !== nextMeta.dctAmount ||
-      currentMeta.updatedAt !== nextMeta.updatedAt
+      currentMeta.updatedAt !== nextMeta.updatedAt ||
+      !snapshotsMatch
     ) {
       return false;
     }
@@ -969,6 +1078,10 @@ function HomeInner() {
     const updatedAt = selectedPlan?.meta.updatedAt;
     return updatedAt ? formatRelativeTime(updatedAt) : null;
   }, [selectedPlan?.meta.updatedAt]);
+  const planSnapshot = useMemo(
+    () => normalisePlanSnapshot(selectedPlan?.meta.snapshot ?? null),
+    [selectedPlan?.meta.snapshot],
+  );
   const wallet = tonConnectUI?.account;
   const walletAddress = wallet?.address;
 
@@ -1770,6 +1883,13 @@ function HomeInner() {
             </aside>
           )}
 
+          {planSnapshot && (
+            <PlanSnapshotCard
+              snapshot={planSnapshot}
+              currency={selectedPlan.meta.currency}
+            />
+          )}
+
           <div className="plan-actions">
             <button
               className="button button-primary"
@@ -2334,6 +2454,133 @@ function IntelListSkeleton({ count = 3 }: { count?: number }) {
         />
       ))}
     </div>
+  );
+}
+
+function SnapshotMetric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "positive" | "negative";
+}) {
+  return (
+    <div className="plan-snapshot__metric">
+      <span className="plan-snapshot__metric-label">{label}</span>
+      <span
+        className={`plan-snapshot__metric-value${
+          tone ? ` plan-snapshot__metric-value--${tone}` : ""
+        }`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function PlanSnapshotCard({
+  snapshot,
+  currency,
+}: {
+  snapshot: NormalizedPlanSnapshot;
+  currency: string;
+}) {
+  const baseLabel = snapshot.basePrice !== null
+    ? formatCurrencyAmount(
+      currency,
+      snapshot.basePrice,
+      snapshot.basePrice % 1 === 0 ? 0 : 2,
+    )
+    : null;
+  const dynamicLabel = snapshot.dynamicPrice !== null
+    ? formatCurrencyAmount(
+      currency,
+      snapshot.dynamicPrice,
+      snapshot.dynamicPrice % 1 === 0 ? 0 : 2,
+    )
+    : null;
+  const displayLabel = snapshot.displayPrice !== null
+    ? formatCurrencyAmount(
+      currency,
+      snapshot.displayPrice,
+      snapshot.displayPrice % 1 === 0 ? 0 : 2,
+    )
+    : null;
+  const tonRateLabel = snapshot.tonRate !== null
+    ? formatCurrencyAmount(
+      "USD",
+      snapshot.tonRate,
+      snapshot.tonRate % 1 === 0 ? 0 : 2,
+    )
+    : null;
+  const deltaLabel = formatPercent(snapshot.deltaPercent);
+  const computedLabel = snapshot.computedAt
+    ? formatRelativeTime(snapshot.computedAt)
+    : null;
+  const adjustments = snapshot.adjustments.slice(0, 4);
+
+  return (
+    <section className="plan-snapshot" aria-label="Live pricing snapshot">
+      <div className="plan-snapshot__header">
+        <h3 className="plan-snapshot__title">Live pricing snapshot</h3>
+        {computedLabel && (
+          <span className="plan-snapshot__timestamp">Updated {computedLabel}</span>
+        )}
+      </div>
+      <div className="plan-snapshot__grid">
+        {displayLabel && (
+          <SnapshotMetric label="Display price" value={displayLabel} />
+        )}
+        {dynamicLabel && (
+          <SnapshotMetric label="Dynamic price" value={dynamicLabel} />
+        )}
+        {baseLabel && <SnapshotMetric label="Baseline" value={baseLabel} />}
+        {deltaLabel && (
+          <SnapshotMetric
+            label="Δ vs previous"
+            value={deltaLabel}
+            tone={snapshot.deltaPercent && snapshot.deltaPercent < 0
+              ? "negative"
+              : "positive"}
+          />
+        )}
+        {tonRateLabel && (
+          <SnapshotMetric
+            label="TON/USD feed"
+            value={`${tonRateLabel} / TON`}
+          />
+        )}
+      </div>
+      {adjustments.length > 0 && (
+        <div className="plan-snapshot__adjustments">
+          <span className="plan-snapshot__adjustments-label">
+            Adjustment mix
+          </span>
+          <ul className="plan-snapshot__adjustments-list">
+            {adjustments.map((item) => {
+              const percentLabel = formatPercent(item.value * 100, 1);
+              const tone = item.value < 0 ? "negative" : "positive";
+              return (
+                <li key={item.key} className="plan-snapshot__adjustment">
+                  <span className="plan-snapshot__adjustment-name">
+                    {formatAdjustmentLabel(item.key)}
+                  </span>
+                  {percentLabel && (
+                    <span
+                      className={`plan-snapshot__adjustment-value plan-snapshot__adjustment-value--${tone}`}
+                    >
+                      {percentLabel}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+    </section>
   );
 }
 

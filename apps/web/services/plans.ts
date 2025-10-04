@@ -48,6 +48,17 @@ function coerceNumber(value: number | string | null | undefined) {
   return null;
 }
 
+function extractSnapshotNumber(
+  snapshot: Record<string, unknown> | null | undefined,
+  key: string,
+): number | string | null {
+  if (!snapshot) {
+    return null;
+  }
+  const value = snapshot[key];
+  return typeof value === "number" || typeof value === "string" ? value : null;
+}
+
 function normalizePlan(plan: RawPlan | null | undefined): Plan | null {
   if (!plan || typeof plan.id !== "string" || plan.id.trim() === "") {
     return null;
@@ -74,6 +85,12 @@ function normalizePlan(plan: RawPlan | null | undefined): Plan | null {
     )
     : [];
 
+  const snapshot = plan.performance_snapshot ?? null;
+  const tonAmount = coerceNumber(plan.ton_amount) ??
+    coerceNumber(extractSnapshotNumber(snapshot, "ton_amount"));
+  const dctAmount = coerceNumber(plan.dct_amount) ??
+    coerceNumber(extractSnapshotNumber(snapshot, "dct_amount")) ?? displayPrice;
+
   return {
     id: plan.id,
     name: plan.name,
@@ -90,16 +107,16 @@ function normalizePlan(plan: RawPlan | null | undefined): Plan | null {
     pricing_formula: plan.pricing_formula ?? null,
     last_priced_at: plan.last_priced_at ?? null,
     performance_snapshot: plan.performance_snapshot ?? null,
-    ton_amount: coerceNumber(plan.ton_amount),
-    dct_amount: coerceNumber(plan.dct_amount) ?? displayPrice,
+    ton_amount: tonAmount,
+    dct_amount: dctAmount,
     pricing: {
       basePrice,
       displayPrice,
       dynamicPrice,
       lastPricedAt: plan.last_priced_at ?? null,
       formula: plan.pricing_formula ?? null,
-      tonAmount: coerceNumber(plan.ton_amount),
-      dctAmount: coerceNumber(plan.dct_amount) ?? displayPrice,
+      tonAmount,
+      dctAmount,
       performanceSnapshot: plan.performance_snapshot ?? null,
     },
   };
