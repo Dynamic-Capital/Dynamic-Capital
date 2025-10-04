@@ -24,6 +24,7 @@
     "dev:lovable": "node lovable-dev.js",
     "codex:post-pull": "node scripts/codex-workflow.js post-pull",
     "codex:dev": "node scripts/codex-workflow.js dev",
+    "codex:hybrid": "node scripts/codex-workflow.js hybrid",
     "codex:build": "node scripts/codex-workflow.js build",
     "codex:verify": "node scripts/codex-workflow.js verify",
     "lint": "node scripts/npm-safe.mjs -w apps/web run lint",

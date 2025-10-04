@@ -148,6 +148,37 @@ const tasksByMode = {
       optional: false,
     }),
   ],
+  hybrid: () => [
+    command("Install npm dependencies", "npm install", {
+      skip: skipInstall,
+      optional: false,
+      shared: sharedInstallOptions(),
+    }),
+    command("Sync local environment (npm run sync-env)", "npm run sync-env", {
+      skip: skipSync,
+      optional: true,
+    }),
+    command(
+      "Check required environment variables",
+      "npx tsx scripts/check-env.ts",
+      {
+        skip: skipEnvCheck,
+        optional: false,
+      },
+    ),
+    command("Run Next.js build", "npm run build", {
+      skip: skipBuild,
+      optional: optionalBuild,
+    }),
+    runVerify && !skipVerify
+      ? command("Run repository verification suite", "npm run verify", {
+        optional: false,
+      })
+      : null,
+    command("Start Dynamic development server", "node lovable-dev.js", {
+      optional: false,
+    }),
+  ],
   build: () => [
     command(
       "Check required environment variables",
@@ -306,6 +337,7 @@ function printUsage() {
     "Modes:",
     "  post-pull (default)  Prepare the repo after pulling from Codex CLI.",
     "  dev                  Sync env and start Dynamic dev server.",
+    "  hybrid               Combine post-pull prep with the Dynamic dev server.",
     "  build                Run env checks and Next.js build.",
     "  verify               Run the verification suite.",
     "",
