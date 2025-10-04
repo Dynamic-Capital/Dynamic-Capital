@@ -21,6 +21,10 @@ __all__ = [
 ]
 
 _PDF_MIME_TYPE = "application/pdf"
+_DOCX_MIME_TYPES = (
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/msword",
+)
 _DEFAULT_FIELDS = "nextPageToken, files(id, name, mimeType, modifiedTime, size, md5Checksum, webViewLink, parents)"
 
 
@@ -57,6 +61,42 @@ def _default_pdf_text_extractor(payload: bytes, *, file_name: str) -> str:
     text = "\n".join(part.strip() for part in text_parts if part.strip())
     if not text:
         raise RuntimeError(f"No extractable text found in PDF '{file_name}'")
+    return text
+
+
+def _load_python_docx() -> "docx":  # type: ignore[name-defined]
+    try:
+        import docx  # type: ignore[import]
+    except ModuleNotFoundError as exc:  # pragma: no cover - import guard
+        raise RuntimeError(
+            "python-docx is required for DOCX text extraction. Install it with `pip install python-docx`."
+        ) from exc
+    return docx
+
+
+def _default_docx_text_extractor(payload: bytes, *, file_name: str) -> str:
+    package = _load_python_docx()
+    try:
+        document = package.Document(io.BytesIO(payload))
+    except Exception as error:  # pragma: no cover - defensive guard
+        raise RuntimeError(f"Failed to read DOCX '{file_name}'") from error
+
+    text_parts: list[str] = []
+    for paragraph in document.paragraphs:
+        text = paragraph.text.strip()
+        if text:
+            text_parts.append(text)
+
+    for table in document.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                cell_text = cell.text.strip()
+                if cell_text:
+                    text_parts.append(cell_text)
+
+    text = "\n".join(text_parts).strip()
+    if not text:
+        raise RuntimeError(f"No extractable text found in DOCX '{file_name}'")
     return text
 
 
@@ -380,6 +420,8 @@ def build_google_drive_pdf_loader(
     enable_ocr: bool = False,
     ocr_languages: Sequence[str] | str | None = ("eng",),
     ocr_dpi: int = 300,
+    include_docx: bool = False,
+    docx_text_extractor: Callable[[bytes, Mapping[str, object]], str] | None = None,
 ) -> ExtractionLoader:
     """Create a loader that streams Google Drive PDFs as corpus documents.
 
@@ -422,6 +464,15 @@ def build_google_drive_pdf_loader(
             file_name=str(metadata.get("name", "unknown")),
         )
     )
+
+    docx_extractor = None
+    if include_docx:
+        docx_extractor = docx_text_extractor or (
+            lambda payload, metadata: _default_docx_text_extractor(
+                payload,
+                file_name=str(metadata.get("name", "unknown")),
+            )
+        )
 
     languages = _normalise_ocr_languages(ocr_languages) if enable_ocr else None
     dpi = max(int(ocr_dpi or 0), 72)
@@ -481,6 +532,24 @@ def build_google_drive_pdf_loader(
         default_tags = default_tags + ("ocr",)
     configured_batch_size = _coerce_positive_int(batch_size) or 10
 
+    if include_docx:
+        allowed_mime_types: tuple[str, ...] = (_PDF_MIME_TYPE,) + _DOCX_MIME_TYPES
+    else:
+        allowed_mime_types = (_PDF_MIME_TYPE,)
+    allowed_mime_type_set = set(allowed_mime_types)
+
+    def _resolve_tags(mime_type: str) -> tuple[str, ...]:
+        if mime_type == _PDF_MIME_TYPE:
+            if "pdf" in default_tags or not default_tags:
+                return default_tags
+            return default_tags + ("pdf",)
+        if mime_type in _DOCX_MIME_TYPES:
+            doc_tags = tuple("docx" if tag == "pdf" else tag for tag in default_tags)
+            if "docx" not in doc_tags:
+                doc_tags = doc_tags + ("docx",)
+            return doc_tags
+        return default_tags
+
     def loader(context: CorpusExtractionContext) -> Iterable[Mapping[str, object]]:
         remaining = context.limit
         client = factory()
@@ -518,7 +587,7 @@ def build_google_drive_pdf_loader(
                 return
             seen_ids.add(file_id)
             mime_type = str(metadata.get("mimeType") or "")
-            if mime_type and mime_type != _PDF_MIME_TYPE:
+            if mime_type and mime_type not in allowed_mime_type_set:
                 return
             size_value = _coerce_size(metadata.get("size"))
             if max_file_size is not None and size_value is not None and size_value > max_file_size:
@@ -526,10 +595,18 @@ def build_google_drive_pdf_loader(
             payload = client.download_file(file_id)
             if max_file_size is not None and len(payload) > max_file_size:
                 return
+            if mime_type:
+                effective_mime = mime_type
+            else:
+                name = str(metadata.get("name") or "")
+                if include_docx and name.lower().endswith(".docx"):
+                    effective_mime = _DOCX_MIME_TYPES[0]
+                else:
+                    effective_mime = _PDF_MIME_TYPE
             document_metadata: dict[str, object] = {
                 "file_id": file_id,
                 "file_name": metadata.get("name"),
-                "mime_type": mime_type or _PDF_MIME_TYPE,
+                "mime_type": effective_mime,
             }
             if resolved_folder:
                 document_metadata["source_folder_id"] = resolved_folder
@@ -544,7 +621,9 @@ def build_google_drive_pdf_loader(
             if size_value is not None:
                 document_metadata["size"] = size_value
 
-            if page_chunk_size is not None:
+            tags_for_document = _resolve_tags(effective_mime)
+
+            if page_chunk_size is not None and effective_mime == _PDF_MIME_TYPE:
                 if pdf_text_extractor is None:
                     page_texts = _extract_pdf_page_texts(
                         payload,
@@ -598,7 +677,7 @@ def build_google_drive_pdf_loader(
                         ),
                         "content": content,
                         "metadata": chunk_metadata,
-                        "tags": default_tags,
+                        "tags": tags_for_document,
                     }
                     produced = True
                     if remaining is not None:
@@ -610,12 +689,17 @@ def build_google_drive_pdf_loader(
                         f"No extractable text found in PDF '{metadata.get('name', 'unknown')}'"
                     )
             else:
-                text = _full_text_extractor(payload, metadata)
+                if effective_mime in _DOCX_MIME_TYPES:
+                    if docx_extractor is None:
+                        return
+                    text = docx_extractor(payload, metadata)
+                else:
+                    text = _full_text_extractor(payload, metadata)
                 yield {
                     "identifier": f"google-drive-{file_id}",
                     "content": text,
                     "metadata": document_metadata,
-                    "tags": default_tags,
+                    "tags": tags_for_document,
                 }
                 if remaining is not None:
                     remaining -= 1
@@ -624,7 +708,7 @@ def build_google_drive_pdf_loader(
             for batch in _batched(
                 client.iter_files(
                     folder_id=resolved_folder,
-                    mime_types=(_PDF_MIME_TYPE,),
+                    mime_types=allowed_mime_types,
                     page_size=effective_batch_size,
                 )
             ):

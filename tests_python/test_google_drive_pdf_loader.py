@@ -118,6 +118,40 @@ def test_loader_streams_folder_documents():
     assert document["metadata"]["web_view_link"].startswith("https://drive.google.com")
 
 
+def test_loader_streams_docx_documents():
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "docx-1",
+                "name": "Report.docx",
+                "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            }
+        ],
+        file_payloads={"docx-1": b"docx"},
+    )
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        include_docx=True,
+        docx_text_extractor=lambda payload, metadata: "docx-text",
+    )
+
+    context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
+    documents = list(loader(context))
+
+    assert [doc["identifier"] for doc in documents] == ["google-drive-docx-1"]
+    document = documents[0]
+    assert document["content"] == "docx-text"
+    assert document["tags"] == ("google_drive", "docx")
+    assert document["metadata"]["mime_type"] == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    assert client.iter_calls[0][1] == (
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/msword",
+    )
+
+
 def test_loader_respects_limits_and_size_filters():
     client = FakeDriveClient(
         folder_entries=[
