@@ -45,7 +45,9 @@ def _normalise_text(value: str) -> str:
     return cleaned
 
 
-def _coerce_metadata(metadata: Mapping[str, object] | None) -> Mapping[str, object] | None:
+def _coerce_metadata(
+    metadata: Mapping[str, object] | None,
+) -> Mapping[str, object] | None:
     if metadata is None:
         return None
     if not isinstance(metadata, Mapping):  # pragma: no cover - defensive programming
@@ -120,6 +122,9 @@ class GradingSnapshot:
     summary: str
     adjustments: tuple[str, ...]
     warnings: tuple[str, ...]
+    proficiency_level: str
+    proficiency_label: str
+    proficiency_narrative: str
 
 
 @dataclass(slots=True)
@@ -135,6 +140,9 @@ class GradingReport:
     recommended_weights: Mapping[str, float]
     alerts: tuple[str, ...]
     metadata: Mapping[str, object] | None = None
+    proficiency_level: str | None = None
+    proficiency_label: str | None = None
+    proficiency_narrative: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-serialisable representation of the report."""
@@ -157,10 +165,16 @@ class GradingReport:
                     "summary": snapshot.summary,
                     "adjustments": list(snapshot.adjustments),
                     "warnings": list(snapshot.warnings),
+                    "proficiency_level": snapshot.proficiency_level,
+                    "proficiency_label": snapshot.proficiency_label,
+                    "proficiency_narrative": snapshot.proficiency_narrative,
                 }
                 for snapshot in self.snapshots
             ],
             "recommended_weights": dict(self.recommended_weights),
             "alerts": list(self.alerts),
             "metadata": dict(self.metadata) if self.metadata else None,
+            "proficiency_level": self.proficiency_level,
+            "proficiency_label": self.proficiency_label,
+            "proficiency_narrative": self.proficiency_narrative,
         }
