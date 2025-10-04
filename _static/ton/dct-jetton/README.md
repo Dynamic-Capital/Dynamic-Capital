@@ -1,44 +1,42 @@
-# DCT Jetton Explorer Archive
+# DCT Jetton On-chain Snapshot
 
-Redacted text transcripts captured on 2025-05-10 to document the production
-explorer state for the Dynamic Capital Token jetton. Numerical values are
-sanitized but preserve the structure required for Tonstarter audits.
+_Last updated: 4 October 2025 (automated scan via `scripts/ton/dct-snapshot.ts`)._
 
-## jetton-master-overview.txt
+## Jetton master status
 
-```
-URL: https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6
-Block: 13458923000002 (2025-05-10T14:03:29Z)
-Symbol: DCT
-Decimals: 9
-Total Supply: 100,000,000 DCT
-Owner: EQD1zAJPYZMY•••••••••••••••••••••••
-Jetton Wallets: 142
-Recent Operations:
-  - 2025-05-09: burn 12,450 DCT (EQBNSubscriptBurn••••••••••••••••••••)
-  - 2025-05-08: transfer 50,000 DCT to EQBMentorRewards••••••••••••••••••
-```
+- **Master address:** `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`
+- **Token:** Dynamic Capital Token (DCT), 9 decimals, mintable
+- **Total minted supply:** `500` DCT (`500000000000` nanoDCT)
+- **Reported holders:** `1` wallet (100% of minted supply)
 
-## jetton-wallet-treasury.txt
+## Holder distribution (tonapi.io)
 
-```
-URL: https://tonviewer.com/jetton/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6/EQD1zAJPYZMY•••••••••••••••••••••••
-Balance: 28,400,000 DCT
-Transactions:
-  - 2025-05-10: Transfer 250,000 DCT to EQBSTONLiquidity••••••••••••••••••
-  - 2025-05-09: Burn 12,450 DCT via EQBNSubscriptBurn••••••••••••••••••••
-  - 2025-05-07: Transfer 180,000 DCT to EQBMentorRewards••••••••••••••••••
-```
+| Rank | Owner (friendly) | Jetton wallet | Balance |
+| ---- | ---------------- | ------------- | ------- |
+| 1 | `dynamiccapital.ton` (`0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38`) | `0:26cdc2a0ddec9b50dcec4f896526b8e80deec5c02e759d246124430008276789` | `500` DCT |
 
-## stonfi-dct-ton-pool.txt
+_No other holders were returned by the Tonapi jetton holder endpoint._
 
-```
-URL: https://ston.fi/pools/EQDCTSTONPool•••••••••••••••••••••
-Liquidity: 1,200,000 TON / 12,000,000 DCT
-24h Volume: 860,000 TON
-Fee Tier: 0.25%
-Pool Share: Treasury 78%, Market Makers 22%
+## Treasury/admin wallet (`dynamiccapital.ton`)
+
+- **TON balance:** `40.856076572` TON (nanotons: `40856076572`)
+- **DCT balance:** `500` DCT held in jetton wallet `0:26cdc2a0ddec9b50dcec4f896526b8e80deec5c02e759d246124430008276789`
+- **Domain resolver:** `dynamiccapital.ton` → owner `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38`, expires `2026-10-02T11:22:24Z`
+
+## DEX liquidity checks (automated)
+
+| Venue  | HTTP status | Result |
+| ------ | ----------- | ------ |
+| STON.fi | `404` | Jetton not listed |
+| DeDust | `404` | Jetton not listed |
+
+## Reproduction
+
+```bash
+npx tsx scripts/ton/dct-snapshot.ts
+npx tsx scripts/ton/query-ton-domain.ts dynamiccapital.ton
 ```
 
-These transcripts are immutable snapshots to satisfy the Tonstarter audit
-request for explorer evidence without distributing raw screenshots.
+The helper script reads `dynamic-capital-ton/config.yaml`, queries Tonapi for the
+jetton supply/holder set, and verifies whether the jetton appears on STON.fi or
+DeDust. Output is captured in CI logs for audit purposes.
