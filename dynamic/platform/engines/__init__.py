@@ -132,6 +132,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
         "generate_training_report",
         "generate_training_summary",
     ),
+    "dynamic_data_sharing": (
+        "SharePolicy",
+        "ShareRecord",
+        "SharePackage",
+        "DynamicDataSharingEngine",
+    ),
     "dynamic_demand": (
         "DynamicDemandEngine",
         "DemandProjection",
