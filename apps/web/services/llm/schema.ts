@@ -15,6 +15,9 @@ const providerIdSchema = z.enum([
   "openai",
   "anthropic",
   "groq",
+  "llama-cpp",
+  "vllm",
+  "text-generation-inference",
 ]) satisfies z.ZodType<ProviderId>;
 
 export const chatMessageSchema = z.object({

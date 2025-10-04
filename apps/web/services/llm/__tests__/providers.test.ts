@@ -13,14 +13,17 @@ function getProvider(id: ProviderSummary["id"]): ProviderSummary {
 }
 
 describe("LLM provider availability", () => {
-  it("marks dynamic providers as configured even without env keys", () => {
-    const dynamicIds: ProviderId[] = [
+  it("marks Dynamic and open-source providers as ready without env keys", () => {
+    const alwaysOnIds: ProviderId[] = [
       "dynamic-ai",
       "dynamic-agi",
       "dynamic-ags",
+      "llama-cpp",
+      "vllm",
+      "text-generation-inference",
     ];
 
-    for (const id of dynamicIds) {
+    for (const id of alwaysOnIds) {
       const provider = getProvider(id);
       expect(provider.configured).toBe(true);
     }
