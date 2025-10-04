@@ -24,11 +24,29 @@ const parsedRevalidateSeconds = rawRevalidateSeconds === undefined
   ? undefined
   : Number.parseInt(rawRevalidateSeconds, 10);
 
-export const revalidate = parsedRevalidateSeconds !== undefined &&
-    Number.isFinite(parsedRevalidateSeconds) &&
-    parsedRevalidateSeconds >= 0
-  ? parsedRevalidateSeconds
-  : FALLBACK_REVALIDATE_SECONDS;
+function resolveRevalidateSeconds(
+  value: number | undefined,
+): number {
+  if (value === undefined) {
+    return FALLBACK_REVALIDATE_SECONDS;
+  }
+
+  if (!Number.isFinite(value)) {
+    return FALLBACK_REVALIDATE_SECONDS;
+  }
+
+  if (value < 0) {
+    return FALLBACK_REVALIDATE_SECONDS;
+  }
+
+  return value;
+}
+
+const resolvedRevalidateSeconds = resolveRevalidateSeconds(
+  parsedRevalidateSeconds,
+);
+
+export const revalidate = resolvedRevalidateSeconds;
 
 const RESOURCE_ENDPOINTS = DYNAMIC_REST_ENDPOINTS.resources;
 
@@ -55,7 +73,7 @@ function createCachedResource<Payload extends ResourcePayload>(
     () => Promise.resolve(builder()),
     [cacheKey],
     {
-      revalidate,
+      revalidate: resolvedRevalidateSeconds,
       tags: [DYNAMIC_REST_CACHE_TAG],
     },
   );
@@ -127,11 +145,10 @@ function resolveResource(
   return null;
 }
 
-export async function GET(
-  req: Request,
-  context: { params: { resource?: string } },
-) {
-  const definition = resolveResource(context.params?.resource);
+type RouteContext = { params: { resource: string } };
+
+export async function GET(req: Request, context: RouteContext) {
+  const definition = resolveResource(context.params.resource);
 
   if (!definition) {
     return jsonResponse(
