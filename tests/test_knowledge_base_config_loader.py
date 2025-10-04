@@ -48,4 +48,8 @@ def test_multi_llm_config_prioritises_dynamic_stack() -> None:
     grades = grade_many(metrics)
     assert grades["DynamicMultiLLM"].letter == "A"
     assert grades["ChatCPT5"].band == "B range"
-    assert grades["DeepseekV3"].band == "C range"
+    assert grades["DeepseekV3"].band == "B range"
+
+    deepseek = metrics["DeepseekV3"]
+    assert deepseek.coverage_ratio == pytest.approx(115 / 130)
+    assert deepseek.accuracy_ratio == pytest.approx(132 / 150)

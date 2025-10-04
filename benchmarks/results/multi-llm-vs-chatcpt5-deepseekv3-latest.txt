@@ -10,17 +10,38 @@ DynamicMultiLLM A      A / A-       Catalogue is effectively complete with fresh
 
 Remediation Guidance:
 - ChatCPT5: Patch missing assets, document fixes, and schedule follow-up validation.
-- DeepseekV3: Patch missing assets, document fixes, and schedule follow-up validation.
+- DeepseekV3: Monitor the 2025-10-12 validation window and confirm telemetry freshness stays below 18 hours.
 - DynamicMultiLLM: Continue spot-audits and archive exemplars for future training cycles.
 
 Comprehensive Grade:
 Overall B (B range) — Minor catalogue gaps or sample corrections required; governance signals remain timely.
 Weighted Metrics:
-  Coverage: 93.4% | Accuracy: 93.5% | Staleness: 16.3h | Failed checks: 0
+  Coverage: 92.5% | Accuracy: 92.3% | Staleness: 15.3h | Failed checks: 1
 
-Fine-tuning cycles summary:
-- Baseline composite average: 0.8558
-- Cycle 1 average score: 0.9062 (ChatCPT5 0.9033, DeepseekV3 0.8521, DynamicMultiLLM 0.9632)
-- Cycle 2 average score: 0.9108 (ChatCPT5 0.9033, DeepseekV3 0.8659, DynamicMultiLLM 0.9632)
+Baseline composite average: 0.8671
 
-Benchmark run timestamp: 2025-10-04T03:36:18Z
+Fine-tuning cycles:
+Cycle 1: average score 0.9144
+  ChatCPT5 0.9033 → B (B range)
+  DeepseekV3 0.8766 → B (B range)
+  DynamicMultiLLM 0.9632 → A (A / A-)
+
+Post Fine-Tuning Benchmark Results
+
+Domain   Grade  Band         Rationale
+--------------------------------------------------------------------------------
+ChatCPT5 B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+DeepseekV3 B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+DynamicMultiLLM A      A / A-       Catalogue is effectively complete with fresh telemetry and near-perfect sample accuracy.
+
+Remediation Guidance:
+- ChatCPT5: Patch missing assets, document fixes, and schedule follow-up validation.
+- DeepseekV3: Validate the restocked datasets remain in sync during the 2025-10-12 follow-up window.
+- DynamicMultiLLM: Continue spot-audits and archive exemplars for future training cycles.
+
+Comprehensive Grade:
+Overall B (B range) — Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Weighted Metrics:
+  Coverage: 93.7% | Accuracy: 93.3% | Staleness: 15.3h | Failed checks: 0
+
+Benchmark run timestamp: 2025-10-05T09:02:41Z
