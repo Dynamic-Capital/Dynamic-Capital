@@ -1769,9 +1769,24 @@ export async function handleAutoGeneratePromo(
   _userId: string,
 ): Promise<void> {
   try {
+    const promoSecret = optionalEnv("PROMO_AUTOGEN_SECRET");
+    if (!promoSecret) {
+      console.error(
+        "PROMO_AUTOGEN_SECRET is not configured; cannot trigger promo-auto-generate.",
+      );
+      await sendMessage(
+        chatId,
+        "❌ Promo generator is not configured. Please contact an administrator.",
+      );
+      return;
+    }
+
     const { data, error } = await supabaseAdmin.functions.invoke(
       "promo-auto-generate",
-      { body: { force: false } },
+      {
+        body: { force: false },
+        headers: { "x-api-key": promoSecret },
+      },
     );
 
     if (error) {

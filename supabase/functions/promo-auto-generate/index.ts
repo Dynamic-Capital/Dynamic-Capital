@@ -31,18 +31,29 @@ interface PromoTrigger {
   durationDays: number;
 }
 
-function authorize(req: Request): boolean {
+type AuthorizationResult =
+  | { ok: true }
+  | { ok: false; reason: "missing-secret" | "invalid-secret" };
+
+function authorize(req: Request): AuthorizationResult {
   const secret = optionalEnv("PROMO_AUTOGEN_SECRET");
-  if (!secret) return true;
+  if (!secret) {
+    return { ok: false, reason: "missing-secret" };
+  }
+
   const header = req.headers.get("authorization");
+  if (header?.startsWith("Bearer ")) {
+    if (header.slice("Bearer ".length).trim() === secret) {
+      return { ok: true };
+    }
+  }
+
   const apiKey = req.headers.get("x-api-key");
-  if (header && header.startsWith("Bearer ")) {
-    return header.slice("Bearer ".length).trim() === secret;
+  if (apiKey?.trim() === secret) {
+    return { ok: true };
   }
-  if (apiKey) {
-    return apiKey.trim() === secret;
-  }
-  return false;
+
+  return { ok: false, reason: "invalid-secret" };
 }
 
 function parseNumber(value: unknown): number | null {
@@ -123,7 +134,14 @@ export const handler = registerHandler(async (req) => {
     return methodNotAllowed(req);
   }
 
-  if (!authorize(req)) {
+  const auth = authorize(req);
+  if (!auth.ok) {
+    if (auth.reason === "missing-secret") {
+      console.error(
+        "promo-auto-generate: PROMO_AUTOGEN_SECRET is not configured; refusing request.",
+      );
+      return unauth("Promo generator secret is not configured", req);
+    }
     return unauth("Invalid promo generator secret", req);
   }
 
