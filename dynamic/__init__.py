@@ -12,6 +12,7 @@ __all__ = [
     "governance",
     "intelligence",
     "models",
+    "proof",
     "platform",
     "tools",
     "trading",
