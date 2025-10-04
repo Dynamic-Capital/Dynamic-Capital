@@ -13,11 +13,12 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   return withApiMetrics(req, "/api/authenticate", async () => {
     const secret = process.env.ROUTE_GUARD_PASSWORD;
+    const noStoreHeaders = { "cache-control": "no-store" } as const;
 
     if (!secret) {
       return jsonResponse(
-        { ok: false, error: "Route guard password is not configured" },
-        { status: 500 },
+        { ok: true, passwordRequired: false },
+        { headers: noStoreHeaders },
         req,
       );
     }
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest) {
     } catch {
       return jsonResponse({ ok: false, error: "Invalid JSON body" }, {
         status: 400,
+        headers: noStoreHeaders,
       }, req);
     }
 
@@ -42,16 +44,22 @@ export async function POST(req: NextRequest) {
     if (!password) {
       return jsonResponse({ ok: false, error: "Password is required" }, {
         status: 400,
+        headers: noStoreHeaders,
       }, req);
     }
 
     if (!passwordsMatch(password, secret)) {
       return jsonResponse({ ok: false, error: "Invalid password" }, {
         status: 401,
+        headers: noStoreHeaders,
       }, req);
     }
 
-    const response = jsonResponse({ ok: true }, {}, req);
+    const response = jsonResponse(
+      { ok: true, passwordRequired: true },
+      { headers: noStoreHeaders },
+      req,
+    );
     response.headers.append(
       "set-cookie",
       buildRouteGuardCookie(cookieToken(secret)),
