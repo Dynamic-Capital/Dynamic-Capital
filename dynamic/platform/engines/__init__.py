@@ -13,6 +13,7 @@ import ast
 from importlib import import_module
 from pathlib import Path
 from typing import Dict, Iterable, Iterator, Tuple
+import warnings
 
 SymbolExport = str | tuple[str, str]
 
@@ -573,6 +574,7 @@ def _discover_engine_exports() -> Dict[str, Tuple[str, ...]]:
 
 _ENGINE_EXPORTS.update(_discover_engine_exports())
 
+
 def _export_alias(spec: SymbolExport) -> str:
     return spec[0] if isinstance(spec, tuple) else spec
 
@@ -581,14 +583,66 @@ def _export_symbol(spec: SymbolExport) -> str:
     return spec[1] if isinstance(spec, tuple) else spec
 
 
-__all__ = sorted(
-    {
-        _export_alias(spec)
-        for specs in _ENGINE_EXPORTS.values()
-        for spec in specs
-    }
-)
+_EXPORTED_ALIASES = {
+    _export_alias(spec)
+    for specs in _ENGINE_EXPORTS.values()
+    for spec in specs
+}
 
+
+__all__ = sorted(_EXPORTED_ALIASES | {"enable_all_dynamic_engines"})
+
+
+def enable_all_dynamic_engines(*, strict: bool = False) -> Dict[str, object]:
+    """Eagerly load every exported engine symbol into the shim namespace.
+
+    Parameters
+    ----------
+    strict:
+        When ``True`` the shim stops at the first import failure and raises a
+        ``RuntimeError``.  When ``False`` (the default) import errors are
+        collected so the remaining engines still initialise and a
+        ``RuntimeWarning`` summarises any failures.
+
+    Returns
+    -------
+    Dict[str, object]
+        Mapping of engine alias names to the loaded objects.  Already-imported
+        engines are included in the mapping so callers receive a complete view
+        of what is currently available.
+    """
+
+    loaded: Dict[str, object] = {}
+    failures: Dict[str, Exception] = {}
+
+    for module_name, specs in _ENGINE_EXPORTS.items():
+        for spec in specs:
+            alias = _export_alias(spec)
+            if alias in loaded:
+                continue
+            if alias in globals():
+                loaded[alias] = globals()[alias]
+                continue
+            try:
+                loaded[alias] = _load_symbol(module_name, spec)
+            except Exception as exc:  # pragma: no cover - defensive import guard
+                failures[alias] = exc
+                if strict:
+                    raise RuntimeError(
+                        f"Failed to enable engine '{alias}' from {module_name}"
+                    ) from exc
+
+    if failures:
+        details = ", ".join(
+            f"{name} ({type(error).__name__})" for name, error in failures.items()
+        )
+        warnings.warn(
+            f"Failed to enable {len(failures)} engine(s): {details}",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+
+    return loaded
 
 def _load_symbol(module_name: str, spec: SymbolExport) -> object:
     alias = _export_alias(spec)
