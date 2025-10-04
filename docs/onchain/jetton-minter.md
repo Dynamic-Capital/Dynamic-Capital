@@ -54,6 +54,27 @@ balances so auditors can independently replay the queries.
   handler and persists state to `supabase/.tmp/jetton-minter-state.json` for
   iterative rehearsals without touching production services.
 
+## Holder Discovery
+
+Operations can now query addresses that simultaneously hold a theme collection
+NFT and the DCT jetton through the Supabase RPC function
+`get_collection_jetton_holders`. The helper wraps the on-chain indexer tables
+(`blockchain.accounts`, `getmethods.get_nft_data`, and
+`getmethods.get_wallet_data`) so analysts do not have to stitch the joins by
+hand. Example request:
+
+```sql
+select *
+from public.get_collection_jetton_holders(
+  'EQDvRFMYLdxmvY3Tk-cfWMLqDnXF_EclO2Fp4wwj33WhlNFT',
+  'EQCcLAW537KnRg_aSPrnQJoyYjOZkzqYp6FVmRUvN1crSazV'
+);
+```
+
+The function returns the `human_readable` TON addresses matching both
+constraints, making it straightforward to export holder snapshots for snapshot
+votes or allowlist reviews.
+
 ## Checklist Outcome
 
 | Check                      | Result | Evidence                                                                                        |
