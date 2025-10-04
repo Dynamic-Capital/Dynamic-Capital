@@ -454,10 +454,17 @@ function buildOpenSourceEnablementMessage(
 ): string {
   const header = `🧩 ${info.name} open-source adapter (demo)`;
   const summaryLine = info.summary;
+  const promptWindow = Math.max(
+    1,
+    Math.min(OPEN_SOURCE_PROMPT_WINDOW, info.contextWindow),
+  );
   const promptLine = promptSummary
-    ? `Prompt focus: ${truncate(promptSummary, OPEN_SOURCE_PROMPT_WINDOW)}`
+    ? `Prompt focus: ${truncate(promptSummary, promptWindow)}`
     : "Prompt focus: awaiting a user prompt.";
-  const languageLine = language ? `Requested language hint: ${language}` : null;
+  const normalizedLanguage = language?.trim();
+  const languageLine = normalizedLanguage
+    ? `Requested language hint: ${normalizedLanguage}`
+    : null;
   const enablement = formatEnablementSteps(info.enablementSteps);
   const enablementBlock = `Enable locally:\n${enablement}`;
   const closingNote =
@@ -478,16 +485,24 @@ function normalizeMessages(messages: ChatMessage[]): {
   system?: string;
   conversation: ChatMessage[];
 } {
-  const systemMessages = messages.filter((message) =>
-    message.role === "system"
-  );
-  const system = systemMessages.length > 0
-    ? systemMessages.map((message) => message.content.trim()).filter(Boolean)
-      .join("\n\n")
-    : undefined;
+  const conversation: ChatMessage[] = [];
+  const systemSegments: string[] = [];
 
-  const conversation = messages.filter((message) => message.role !== "system");
-  return { system, conversation };
+  for (const message of messages) {
+    if (message.role === "system") {
+      const trimmed = message.content.trim();
+      if (trimmed.length > 0) {
+        systemSegments.push(trimmed);
+      }
+      continue;
+    }
+    conversation.push(message);
+  }
+
+  return {
+    system: systemSegments.length > 0 ? systemSegments.join("\n\n") : undefined,
+    conversation,
+  };
 }
 
 function buildOpenAIMessages(
@@ -611,10 +626,12 @@ export async function executeChat(request: ChatRequest): Promise<ChatResult> {
     request.maxTokens ?? definition.maxOutputTokens,
   );
 
+  const languageHint = request.language?.trim();
   const result = await definition.invoke({
     messages: request.messages,
     temperature: request.temperature,
     maxTokens: boundedMaxTokens,
+    language: languageHint ? languageHint : undefined,
   });
 
   return {
