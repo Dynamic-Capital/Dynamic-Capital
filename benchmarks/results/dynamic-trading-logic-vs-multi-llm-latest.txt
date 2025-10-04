@@ -1,0 +1,44 @@
+Knowledge Base Benchmark Results
+
+Config: benchmarks/dynamic-trading-logic-vs-multi-llm.json
+
+Domain   Grade  Band         Rationale
+--------------------------------------------------------------------------------
+DynamicMultiLLM A      A / A-       Catalogue is effectively complete with fresh telemetry and near-perfect sample accuracy.
+DynamicTradingAlgo C      C range      Multiple datasets missing or stale; repeated governance warnings demand focused recovery.
+DynamicTradingLogic B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+
+Remediation Guidance:
+- DynamicMultiLLM: Continue spot-audits and archive exemplars for future training cycles.
+- DynamicTradingAlgo: Launch incident review, rebuild missing mirrors, and assign owners for corrective work.
+- DynamicTradingLogic: Patch missing assets, document fixes, and schedule follow-up validation.
+
+Comprehensive Grade:
+Overall B (B range) — Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Weighted Metrics:
+  Coverage: 89.3% | Accuracy: 90.7% | Staleness: 10.3h | Failed checks: 1
+
+Baseline composite average: 0.8725
+
+Fine-tuning cycles:
+Cycle 1: average score 0.9234
+  DynamicMultiLLM 0.9649 → A (A / A-)
+  DynamicTradingAlgo 0.8779 → C (C range)
+  DynamicTradingLogic 0.9273 → B (B range)
+Post Fine-Tuning Benchmark Results
+
+Domain   Grade  Band         Rationale
+--------------------------------------------------------------------------------
+DynamicMultiLLM A      A / A-       Catalogue is effectively complete with fresh telemetry and near-perfect sample accuracy.
+DynamicTradingAlgo C      C range      Multiple datasets missing or stale; repeated governance warnings demand focused recovery.
+DynamicTradingLogic B      B range      Minor catalogue gaps or sample corrections required; governance signals remain timely.
+
+Remediation Guidance:
+- DynamicMultiLLM: Continue spot-audits and archive exemplars for future training cycles.
+- DynamicTradingAlgo: Launch incident review, rebuild missing mirrors, and assign owners for corrective work.
+- DynamicTradingLogic: Patch missing assets, document fixes, and schedule follow-up validation.
+
+Comprehensive Grade:
+Overall B (B range) — Minor catalogue gaps or sample corrections required; governance signals remain timely.
+Weighted Metrics:
+  Coverage: 91.4% | Accuracy: 92.3% | Staleness: 10.3h | Failed checks: 0

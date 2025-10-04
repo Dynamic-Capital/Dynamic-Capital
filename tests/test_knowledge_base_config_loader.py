@@ -82,3 +82,31 @@ def test_dynamic_core_models_surface_core_health_distribution() -> None:
     assert core6.coverage_ratio == pytest.approx(42 / 50)
     assert core6.accuracy_ratio == pytest.approx(140 / 170)
     assert core6.failed_health_checks == 1
+
+
+def test_dynamic_trading_logic_vs_multi_llm_highlights_risk_tail() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    config_path = repo_root / "benchmarks" / "dynamic-trading-logic-vs-multi-llm.json"
+
+    metrics = load_knowledge_base_config(config_path)
+    composites = {name: metric.composite_score() for name, metric in metrics.items()}
+
+    assert set(metrics) == {
+        "DynamicMultiLLM",
+        "DynamicTradingLogic",
+        "DynamicTradingAlgo",
+    }
+    assert max(composites, key=composites.get) == "DynamicMultiLLM"
+    assert min(composites, key=composites.get) == "DynamicTradingAlgo"
+    assert composites["DynamicTradingLogic"] > composites["DynamicTradingAlgo"]
+
+    grades = grade_many(metrics)
+    assert grades["DynamicMultiLLM"].letter == "A"
+    assert grades["DynamicTradingLogic"].letter == "B"
+    assert grades["DynamicTradingAlgo"].band == "C range"
+
+    trading_algo = metrics["DynamicTradingAlgo"]
+    assert trading_algo.coverage_ratio == pytest.approx(112 / 134)
+    assert trading_algo.accuracy_ratio == pytest.approx(166 / 195)
+    assert trading_algo.telemetry_staleness_hours == pytest.approx(18.0)
+    assert trading_algo.failed_health_checks == 1
