@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Mapping, Sequence
 
 from dynamic_orderflow.engine import OrderFlowImbalance
+from .fields import TradingDiscipline, get_trading_discipline
 
 __all__ = [
     "TradeIntent",
@@ -215,6 +216,8 @@ class MarketNarrative:
     style: str
     insights: Sequence[str] = field(default_factory=tuple)
     tags: Sequence[str] = field(default_factory=tuple)
+    discipline: TradingDiscipline | None = None
+    discipline_subjects: Sequence[str] = field(default_factory=tuple)
 
     def __post_init__(self) -> None:
         self.headline = _normalise_text(self.headline)
@@ -226,6 +229,22 @@ class MarketNarrative:
         self.risk_mitigation = _normalise_tuple(self.risk_mitigation)
         self.insights = _normalise_tuple(self.insights)
         self.tags = _normalise_tuple(self.tags)
+        if self.discipline is not None and not isinstance(self.discipline, TradingDiscipline):
+            raise TypeError("discipline must be a TradingDiscipline instance or None")
+        self.discipline_subjects = _normalise_tuple(self.discipline_subjects)
+        if self.discipline_subjects and self.discipline is None:
+            raise ValueError("discipline_subjects cannot be set without a discipline")
+        if self.discipline and self.discipline_subjects:
+            allowed = {subject.casefold() for subject in self.discipline.subjects}
+            invalid = [
+                subject for subject in self.discipline_subjects if subject.casefold() not in allowed
+            ]
+            if invalid:
+                raise ValueError(
+                    "discipline_subjects must be members of the provided discipline"
+                )
+        if self.discipline and not self.discipline_subjects:
+            self.discipline_subjects = self.discipline.subjects
 
     def to_markdown(self) -> str:
         """Render the narrative as a markdown deck for distribution."""
@@ -261,6 +280,11 @@ class MarketNarrative:
 
         if self.tags:
             lines.extend(["", "## Tags", ", ".join(self.tags)])
+
+        if self.discipline:
+            lines.extend(["", "## Discipline Context", f"- Field: {self.discipline.name}"])
+            if self.discipline_subjects:
+                lines.append("- Subjects: " + ", ".join(self.discipline_subjects))
 
         return "\n".join(lines) + "\n"
 
@@ -406,6 +430,7 @@ class DynamicTradingLanguageModel:
         context_insights: tuple[str, ...],
         sentiment_text: str | None,
         order_flow_signal: OrderFlowSignal | None,
+        discipline_summary: str | None,
     ) -> str:
         thesis_parts: list[str] = []
         thesis_parts.append(
@@ -448,6 +473,9 @@ class DynamicTradingLanguageModel:
                 if commentary and commentary[-1] not in ".!?":
                     commentary += "."
                 thesis_parts.append(commentary)
+
+        if discipline_summary:
+            thesis_parts.append(discipline_summary)
 
         return " ".join(thesis_parts)
 
@@ -529,6 +557,8 @@ class DynamicTradingLanguageModel:
         intent: TradeIntent,
         environment: DeskEnvironment | None,
         order_flow_signal: OrderFlowSignal | None,
+        discipline: TradingDiscipline | None,
+        discipline_subjects: Sequence[str],
     ) -> tuple[str, ...]:
         tags = {
             intent.instrument.upper(),
@@ -543,7 +573,49 @@ class DynamicTradingLanguageModel:
             tags.add(f"FLOW_{order_flow_signal.dominant_side.upper()}")
             if order_flow_signal.intensity >= 0.65:
                 tags.add("FLOW_STRONG")
+        if discipline:
+            tags.add(discipline.name.upper())
+            tags.update(subject.upper() for subject in discipline_subjects)
         return tuple(sorted(tags))
+
+    def _resolve_discipline_context(
+        self,
+        discipline: TradingDiscipline | str | None,
+        focus_subjects: Sequence[str] | None,
+    ) -> tuple[TradingDiscipline | None, tuple[str, ...]]:
+        if discipline is None:
+            if focus_subjects:
+                raise ValueError("discipline focus subjects require a discipline")
+            return None, ()
+
+        resolved = (
+            discipline if isinstance(discipline, TradingDiscipline) else get_trading_discipline(discipline)
+        )
+
+        if not focus_subjects:
+            return resolved, resolved.subjects
+
+        allowed: dict[str, str] = {subject.casefold(): subject for subject in resolved.subjects}
+        selected: list[str] = []
+        seen: set[str] = set()
+        for subject in focus_subjects:
+            cleaned = " ".join(str(subject).split())
+            if not cleaned:
+                continue
+            key = cleaned.casefold()
+            if key not in allowed:
+                raise ValueError(
+                    f"Unknown subject '{subject}' for trading discipline {resolved.name}"
+                )
+            canonical = allowed[key]
+            if canonical not in seen:
+                seen.add(canonical)
+                selected.append(canonical)
+
+        if not selected:
+            return resolved, resolved.subjects
+
+        return resolved, tuple(selected)
 
     def generate_narrative(
         self,
@@ -553,12 +625,17 @@ class DynamicTradingLanguageModel:
         insights: Sequence[str] | None = None,
         sentiment: str | None = None,
         order_flow: OrderFlowSignal | OrderFlowImbalance | Mapping[str, float] | None = None,
+        discipline: TradingDiscipline | str | None = None,
+        discipline_focus: Sequence[str] | None = None,
     ) -> MarketNarrative:
         """Translate a structured intent into a trading narrative."""
 
         context_insights = _normalise_tuple(insights)
         sentiment_text = _normalise_optional_text(sentiment)
         order_flow_signal = self._coerce_orderflow(order_flow)
+        discipline_context, discipline_subjects = self._resolve_discipline_context(
+            discipline, discipline_focus
+        )
 
         confidence, execution_guidance, order_flow_risk = self._score_confidence(
             intent, environment, order_flow_signal
@@ -568,12 +645,23 @@ class DynamicTradingLanguageModel:
         timeframe_text = intent.timeframe.lower()
         headline = f"{direction_phrase} {intent.instrument} setup — {timeframe_text} focus"
 
+        discipline_summary = None
+        if discipline_context:
+            if discipline_subjects:
+                subjects = ", ".join(discipline_subjects)
+                discipline_summary = (
+                    f"Discipline focus: {discipline_context.name} emphasising {subjects}."
+                )
+            else:
+                discipline_summary = f"Discipline focus: {discipline_context.name}."
+
         thesis = self._compose_thesis(
             intent,
             environment,
             context_insights,
             sentiment_text,
             order_flow_signal,
+            discipline_summary,
         )
 
         key_levels = self._compose_key_levels(intent, order_flow_signal)
@@ -582,7 +670,9 @@ class DynamicTradingLanguageModel:
 
         call_to_action = self._compose_call_to_action(intent, timeframe_text, execution_guidance)
 
-        tags = self._compose_tags(intent, environment, order_flow_signal)
+        tags = self._compose_tags(
+            intent, environment, order_flow_signal, discipline_context, discipline_subjects
+        )
 
         narrative = MarketNarrative(
             headline=headline,
@@ -594,5 +684,7 @@ class DynamicTradingLanguageModel:
             style=environment.communication_style if environment else self._tone,
             insights=context_insights,
             tags=tags,
+            discipline=discipline_context,
+            discipline_subjects=discipline_subjects,
         )
         return narrative
