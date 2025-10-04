@@ -126,6 +126,28 @@ $$;
 
 comment on function monitoring.get_query_family_scorecard() is 'Return the latest query family metrics with deltas against the prior snapshot.';
 
+create or replace function public.monitoring_get_query_family_scorecard()
+returns table (
+  query_family text,
+  recorded_at timestamptz,
+  calls bigint,
+  total_time_ms numeric,
+  mean_time_ms numeric,
+  rows_returned bigint,
+  calls_delta numeric,
+  total_time_delta numeric
+)
+language sql
+security definer
+set search_path = monitoring, public
+as $$
+  select * from monitoring.get_query_family_scorecard();
+$$;
+
+comment on function public.monitoring_get_query_family_scorecard() is 'Expose the monitoring scorecard for PostgREST RPC consumers.';
+
+grant execute on function public.monitoring_get_query_family_scorecard() to anon, authenticated, service_role;
+
 -- upsert cron job for refresh (idempotent)
 insert into cron.job (schedule, command, database, username, jobname)
 values (

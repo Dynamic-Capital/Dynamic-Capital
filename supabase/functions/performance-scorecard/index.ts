@@ -41,7 +41,9 @@ function toNumber(value: NumericLike, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function classifySeverity(score: QueryFamilyScore): ScorecardFamily["severity"] {
+function classifySeverity(
+  score: QueryFamilyScore,
+): ScorecardFamily["severity"] {
   const totalTime = toNumber(score.total_time_ms);
   const delta = toNumber(score.total_time_delta);
 
