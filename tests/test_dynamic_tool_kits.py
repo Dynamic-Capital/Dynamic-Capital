@@ -88,6 +88,26 @@ def test_dynamic_ultimate_reality_toolkit_exports_engine() -> None:
     )
 
 
+def test_dynamic_creative_thinking_toolkit_exports_engine() -> None:
+    toolkits = dynamic_tool_kits.available_toolkits()
+
+    assert "dynamic_creative_thinking" in toolkits
+    exports = set(toolkits["dynamic_creative_thinking"])
+    expected = {
+        "CreativeContext",
+        "CreativeFrame",
+        "CreativeSignal",
+        "DynamicCreativeThinking",
+    }
+    assert expected.issubset(exports)
+    assert (
+        dynamic_tool_kits.resolve_toolkit_symbol(
+            "DynamicCreativeThinking", module_name="dynamic_creative_thinking"
+        )
+        is dynamic_tool_kits.DynamicCreativeThinking
+    )
+
+
 def test_available_toolkits_include_module_dunder_all_exports() -> None:
     toolkits = dynamic_tool_kits.available_toolkits()
 
