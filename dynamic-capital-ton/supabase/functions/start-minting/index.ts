@@ -13,11 +13,14 @@ type StartMintRequest = {
   priority?: number;
   defaultPriority?: number;
   default_priority?: number;
+  network?: string;
+  net?: string;
 };
 
 type ThemeMintRow = {
   id: string;
   mint_index: number;
+  network: MintNetwork;
   name: string;
   status: string;
   initiator: string | null;
@@ -40,9 +43,46 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 type SupabaseClient = typeof supabase;
 
+type MintNetwork = "mainnet" | "testnet";
+
+const ALLOWED_NETWORKS: readonly MintNetwork[] = ["mainnet", "testnet"];
+
 const RESPONSE_HEADERS = {
   "Content-Type": "application/json",
 } as const;
+
+function normaliseNetwork(value: string | undefined | null): MintNetwork | null {
+  if (!value) return null;
+  const normalised = value.trim().toLowerCase();
+  if (normalised === "mainnet" || normalised === "testnet") {
+    return normalised;
+  }
+  return null;
+}
+
+const configuredNetwork = (() => {
+  const envNetwork = normaliseNetwork(Deno.env.get("THEME_MINT_NETWORK"));
+  if (envNetwork) {
+    return envNetwork;
+  }
+  // Default to testnet to avoid accidentally mutating mainnet without opting in.
+  return "testnet" as const;
+})();
+
+function parseNetwork(
+  payload: StartMintRequest,
+  fallback: MintNetwork,
+): MintNetwork | { error: string } {
+  const candidate = payload.network ?? payload.net;
+  if (candidate === undefined) {
+    return fallback;
+  }
+  const normalised = normaliseNetwork(candidate);
+  if (!normalised) {
+    return { error: `network must be one of ${ALLOWED_NETWORKS.join(", ")}` };
+  }
+  return normalised;
+}
 
 function parseMintIndex(payload: StartMintRequest): number | null {
   const candidate = payload.mintIndex ?? payload.mint_index;
@@ -87,6 +127,7 @@ async function logMintStart(
       meta: {
         mint_index: record.mint_index,
         name: record.name,
+        network: record.network,
         initiator: record.initiator,
       },
     });
@@ -121,6 +162,25 @@ serve(async (request: Request): Promise<Response> => {
     );
   }
 
+  const networkResult = parseNetwork(body, configuredNetwork);
+  if (typeof networkResult === "object" && "error" in networkResult) {
+    return new Response(
+      JSON.stringify({ error: networkResult.error }),
+      { status: 400, headers: RESPONSE_HEADERS },
+    );
+  }
+
+  if (networkResult !== configuredNetwork) {
+    return new Response(
+      JSON.stringify({
+        error: `Forbidden for ${networkResult} network; this function is configured for ${configuredNetwork}`,
+      }),
+      { status: 403, headers: RESPONSE_HEADERS },
+    );
+  }
+
+  const network = networkResult;
+
   const planName = normalizeOptionalString(body.planName ?? body.plan_name) ??
     `Theme Mint #${mintIndex}`;
   const initiator = normalizeOptionalString(body.initiator);
@@ -133,8 +193,9 @@ serve(async (request: Request): Promise<Response> => {
   try {
     const { data: existing, error: fetchError } = await supabase
       .from("theme_pass_mints")
-      .select("id, mint_index, name, status, initiator, note, content_uri, priority, started_at, completed_at, updated_at")
+      .select("id, mint_index, network, name, status, initiator, note, content_uri, priority, started_at, completed_at, updated_at")
       .eq("mint_index", mintIndex)
+      .eq("network", network)
       .maybeSingle<ThemeMintRow>();
 
     if (fetchError) {
@@ -166,13 +227,14 @@ serve(async (request: Request): Promise<Response> => {
 
     if (!hasMeaningfulChange && existing) {
       return new Response(
-        JSON.stringify({ ok: true, mint: existing }),
+        JSON.stringify({ ok: true, mint: existing, network }),
         { status: 200, headers: RESPONSE_HEADERS },
       );
     }
 
     const upsertPayload = {
       mint_index: mintIndex,
+      network,
       name: planName,
       status: "in_progress",
       initiator: nextInitiator,
@@ -186,7 +248,7 @@ serve(async (request: Request): Promise<Response> => {
 
     const { data, error: upsertError } = await supabase
       .from("theme_pass_mints")
-      .upsert(upsertPayload, { onConflict: "mint_index" })
+      .upsert(upsertPayload, { onConflict: "mint_index,network" })
       .select()
       .single<ThemeMintRow>();
 
@@ -199,7 +261,7 @@ serve(async (request: Request): Promise<Response> => {
     }
 
     return new Response(
-      JSON.stringify({ ok: true, mint: data }),
+      JSON.stringify({ ok: true, mint: data, network }),
       { status: 200, headers: RESPONSE_HEADERS },
     );
   } catch (error) {

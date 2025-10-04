@@ -44,6 +44,41 @@ balances so auditors can independently replay the queries.
   function routes burn tranches through `burnDCT` and logs the resulting
   transaction hashes for finance review (see
   [`dynamic-capital-ton/supabase/functions/process-subscription/index.ts`](../../dynamic-capital-ton/supabase/functions/process-subscription/index.ts)).
+- Operations can stage controlled mint events via the `start-jetton-minter`
+  Supabase function, which enforces the configured `JETTON_MINTER_NETWORK` guard
+  and records the initiator, target supply, and mainnet transaction hash inside
+  `jetton_minter_runs` for auditability (see
+  [`dynamic-capital-ton/supabase/functions/start-jetton-minter/index.ts`](../../dynamic-capital-ton/supabase/functions/start-jetton-minter/index.ts)).
+  A local dry-run harness is available through
+  `scripts/supabase/run-start-jetton-minter.ts`, which mirrors the deployed
+  handler and persists state to `supabase/.tmp/jetton-minter-state.json` for
+  iterative rehearsals without touching production services. Operators can
+  invoke it with familiar npm tooling:
+
+  ```bash
+  npm run supabase:run:start-jetton-minter -- --network testnet --initiator ops
+  ```
+
+## Holder Discovery
+
+Operations can now query addresses that simultaneously hold a theme collection
+NFT and the DCT jetton through the Supabase RPC function
+`get_collection_jetton_holders`. The helper wraps the on-chain indexer tables
+(`blockchain.accounts`, `getmethods.get_nft_data`, and
+`getmethods.get_wallet_data`) so analysts do not have to stitch the joins by
+hand. Example request:
+
+```sql
+select *
+from public.get_collection_jetton_holders(
+  'EQDvRFMYLdxmvY3Tk-cfWMLqDnXF_EclO2Fp4wwj33WhlNFT',
+  'EQCcLAW537KnRg_aSPrnQJoyYjOZkzqYp6FVmRUvN1crSazV'
+);
+```
+
+The function returns the `human_readable` TON addresses matching both
+constraints, making it straightforward to export holder snapshots for snapshot
+votes or allowlist reviews.
 
 ## Checklist Outcome
 

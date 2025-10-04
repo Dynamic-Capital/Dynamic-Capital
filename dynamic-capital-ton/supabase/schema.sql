@@ -76,10 +76,29 @@ create table if not exists tx_logs (
   created_at timestamptz default now()
 );
 
+-- Jetton minter runs
+create table if not exists jetton_minter_runs (
+  id uuid default gen_random_uuid() primary key,
+  network text not null default 'testnet' check (network in ('mainnet', 'testnet')),
+  status text not null default 'pending',
+  initiator text,
+  note text,
+  tx_hash text,
+  target_supply numeric,
+  started_at timestamptz,
+  completed_at timestamptz,
+  updated_at timestamptz default now(),
+  constraint jetton_minter_runs_network_key unique (network)
+);
+
+create index if not exists jetton_minter_runs_status_idx
+  on jetton_minter_runs(status, network);
+
 -- Theme mint tracking
 create table if not exists theme_pass_mints (
   id uuid default gen_random_uuid() primary key,
-  mint_index int not null unique,
+  mint_index int not null,
+  network text not null default 'testnet' check (network in ('mainnet', 'testnet')),
   name text not null,
   status text not null default 'pending',
   initiator text,
@@ -88,11 +107,51 @@ create table if not exists theme_pass_mints (
   priority int,
   started_at timestamptz,
   completed_at timestamptz,
-  updated_at timestamptz default now()
+  updated_at timestamptz default now(),
+  constraint theme_pass_mints_mint_network_key unique (mint_index, network)
 );
 
 create index if not exists theme_pass_mints_status_idx
-  on theme_pass_mints(status);
+  on theme_pass_mints(status, network);
+
+-- Blockchain analytics helpers
+create or replace function public.get_collection_jetton_holders(
+  collection_address text,
+  jetton_address text
+)
+returns table(human_readable text)
+language sql
+stable
+security definer
+set search_path = public, blockchain, getmethods
+as $$
+  with collection_target as (
+    select id
+    from blockchain.accounts
+    where human_readable = collection_address
+    limit 1
+  ),
+  jetton_target as (
+    select id
+    from blockchain.accounts
+    where human_readable = jetton_address
+    limit 1
+  ),
+  owner_matches as (
+    select distinct nft.owner_account_id
+    from getmethods.get_nft_data nft
+    join getmethods.get_wallet_data jetton
+      on jetton.owner_account_id = nft.owner_account_id
+    join collection_target
+      on nft.collection_account_id = collection_target.id
+    join jetton_target
+      on jetton.jetton_account_id = jetton_target.id
+  )
+  select accounts.human_readable
+  from blockchain.accounts accounts
+  join owner_matches matches
+    on matches.owner_account_id = accounts.id;
+$$;
 
 -- Seed default config
 insert into app_config (id, operations_pct, autoinvest_pct, buyback_burn_pct,
