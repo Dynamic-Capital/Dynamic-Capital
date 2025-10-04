@@ -192,11 +192,16 @@ class DynamicProgrammingEngine:
 
     def __init__(self, problem: DynamicProgrammingProblem):
         self.problem = problem
+        self._value_tables: tuple[Mapping[str, float], ...] | None = None
+        self._value_tables_by_stage: Mapping[int, Mapping[str, float]] | None = None
+        self._policy_table: Mapping[tuple[int, str], Decision | None] | None = None
+        self._action_value_table: Mapping[
+            tuple[int, str], Mapping[str, float]
+        ] | None = None
 
-    def solve(self, start_state: str) -> DynamicProgrammingSolution:
-        cleaned_state = _normalise_key(start_state, kind="state")
-        if cleaned_state not in self.problem.state_index:
-            raise KeyError(f"unknown start state '{cleaned_state}'")
+    def _ensure_cache(self) -> None:
+        if self._value_tables is not None:
+            return
 
         horizon = self.problem.horizon
         states = self.problem.states
@@ -205,7 +210,9 @@ class DynamicProgrammingEngine:
             {state: 0.0 for state in states} for _ in range(horizon + 1)
         ]
         value_table[horizon].update(self.problem.terminal_values)
+
         policy: Dict[tuple[int, str], Decision | None] = {}
+        action_values: Dict[tuple[int, str], Mapping[str, float]] = {}
 
         for stage in range(horizon - 1, -1, -1):
             next_values = value_table[stage + 1]
@@ -215,15 +222,23 @@ class DynamicProgrammingEngine:
                 if not decisions:
                     current[state] = next_values.get(state, 0.0)
                     policy[(stage, state)] = None
+                    action_values[(stage, state)] = MappingProxyType({})
                     continue
+
                 best_value = -math.inf
                 best_decision: Decision | None = None
+                q_values: Dict[str, float] = {}
+
                 for decision in decisions:
                     continuation = next_values.get(decision.next_state, 0.0)
                     candidate = decision.reward + self.problem.discount * continuation
+                    q_values[decision.action] = candidate
                     if candidate > best_value:
                         best_value = candidate
                         best_decision = decision
+
+                action_values[(stage, state)] = MappingProxyType(dict(q_values))
+
                 if best_decision is None:
                     current[state] = next_values.get(state, 0.0)
                     policy[(stage, state)] = None
@@ -231,11 +246,33 @@ class DynamicProgrammingEngine:
                     current[state] = best_value
                     policy[(stage, state)] = best_decision
 
+        stage_tables: list[Mapping[str, float]] = [
+            MappingProxyType(dict(values)) for values in value_table
+        ]
+
+        self._value_tables = tuple(stage_tables)
+        self._value_tables_by_stage = MappingProxyType(
+            {stage: stage_tables[stage] for stage in range(len(stage_tables))}
+        )
+        self._policy_table = MappingProxyType(dict(policy))
+        self._action_value_table = MappingProxyType(dict(action_values))
+
+    def solve(self, start_state: str) -> DynamicProgrammingSolution:
+        cleaned_state = _normalise_key(start_state, kind="state")
+        if cleaned_state not in self.problem.state_index:
+            raise KeyError(f"unknown start state '{cleaned_state}'")
+
+        self._ensure_cache()
+        assert self._value_tables is not None
+        assert self._policy_table is not None
+        assert self._value_tables_by_stage is not None
+
+        horizon = self.problem.horizon
         steps: list[PolicyStep] = []
         state = cleaned_state
         for stage in range(horizon):
-            value = value_table[stage].get(state, 0.0)
-            decision = policy.get((stage, state))
+            value = self._value_tables[stage].get(state, 0.0)
+            decision = self._policy_table.get((stage, state))
             action = decision.action if decision else None
             steps.append(PolicyStep(stage=stage, state=state, value=value, action=action))
             if decision:
@@ -244,20 +281,16 @@ class DynamicProgrammingEngine:
             PolicyStep(
                 stage=horizon,
                 state=state,
-                value=value_table[horizon].get(state, 0.0),
+                value=self._value_tables[horizon].get(state, 0.0),
                 action=None,
             )
         )
 
-        frozen_table: Dict[int, Mapping[str, float]] = {
-            stage: MappingProxyType(dict(values)) for stage, values in enumerate(value_table)
-        }
-
         return DynamicProgrammingSolution(
             start_state=cleaned_state,
-            total_value=value_table[0][cleaned_state],
+            total_value=self._value_tables[0][cleaned_state],
             steps=tuple(steps),
-            value_table=MappingProxyType(frozen_table),
+            value_table=self._value_tables_by_stage,
         )
 
     def evaluate_policy(self, steps: Iterable[PolicyStep]) -> float:
@@ -282,3 +315,38 @@ class DynamicProgrammingEngine:
         terminal_state = ordered_steps[-1].state
         terminal_reward = self.problem.terminal_values.get(terminal_state, 0.0)
         return total + discount * terminal_reward
+
+    def action_values(self, stage: int, state: str) -> Mapping[str, float]:
+        stage_index = int(stage)
+        if stage_index < 0 or stage_index >= self.problem.horizon:
+            raise ValueError("stage must be within the problem horizon")
+        cleaned_state = _normalise_key(state, kind="state")
+        if cleaned_state not in self.problem.state_index:
+            raise KeyError(f"unknown state '{cleaned_state}'")
+
+        self._ensure_cache()
+        assert self._action_value_table is not None
+
+        mapping = self._action_value_table.get((stage_index, cleaned_state))
+        if mapping is None:
+            return MappingProxyType({})
+        return mapping
+
+    def state_value(self, stage: int, state: str) -> float:
+        stage_index = int(stage)
+        if stage_index < 0 or stage_index > self.problem.horizon:
+            raise ValueError("stage must be within the problem horizon")
+        cleaned_state = _normalise_key(state, kind="state")
+        if cleaned_state not in self.problem.state_index:
+            raise KeyError(f"unknown state '{cleaned_state}'")
+
+        self._ensure_cache()
+        assert self._value_tables is not None
+
+        return self._value_tables[stage_index].get(cleaned_state, 0.0)
+
+    @property
+    def value_table(self) -> Mapping[int, Mapping[str, float]]:
+        self._ensure_cache()
+        assert self._value_tables_by_stage is not None
+        return self._value_tables_by_stage

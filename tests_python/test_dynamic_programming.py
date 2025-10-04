@@ -98,3 +98,38 @@ def test_problem_rejects_invalid_transition_payload() -> None:
             states=("start", "grow"),
             transitions={(0, "start"): ({"action": "invest", "next_state": "unknown"},)},
         )
+
+
+def test_engine_exposes_dynamic_calculations() -> None:
+    problem = _build_problem()
+    engine = DynamicProgrammingEngine(problem)
+
+    action_values = engine.action_values(0, "start")
+    assert set(action_values) == {"invest", "hold"}
+    assert action_values["invest"] == pytest.approx(11.5075, rel=1e-6)
+    assert action_values["hold"] == pytest.approx(3.85, rel=1e-6)
+
+    with pytest.raises(TypeError):
+        action_values["invest"] = 0.0  # type: ignore[index]
+
+    assert engine.state_value(1, "grow") == pytest.approx(6.85, rel=1e-6)
+    assert engine.state_value(2, "exit") == pytest.approx(3.0, rel=1e-6)
+
+    solution = engine.solve("start")
+    assert engine.value_table[0]["start"] == pytest.approx(solution.total_value, rel=1e-6)
+    assert engine.value_table[1]["grow"] == pytest.approx(6.85, rel=1e-6)
+
+    with pytest.raises(ValueError):
+        engine.action_values(-1, "start")
+
+    with pytest.raises(ValueError):
+        engine.action_values(problem.horizon, "start")
+
+    with pytest.raises(KeyError):
+        engine.action_values(0, "unknown")
+
+    with pytest.raises(ValueError):
+        engine.state_value(problem.horizon + 1, "start")
+
+    with pytest.raises(KeyError):
+        engine.state_value(0, "unknown")
