@@ -93,6 +93,11 @@ class KnowledgeBaseMetrics:
             "failed_health_checks": self.failed_health_checks,
         }
 
+    def composite_score(self) -> float:
+        """Return the composite proficiency score for the metrics."""
+
+        return _composite_score(self)
+
 
 @dataclass(slots=True)
 class KnowledgeBaseGrade:

@@ -17,6 +17,7 @@ from .gradebook import (
     grade_many,
     summarise,
 )
+from .tuning import FineTuneCycle, FineTuneResult, fine_tune_until_average
 from .quantum import QuantumBenchmarkDomain, load_quantum_benchmark
 
 __all__ = [
@@ -33,6 +34,9 @@ __all__ = [
     "grade_comprehensively",
     "grade_many",
     "summarise",
+    "FineTuneCycle",
+    "FineTuneResult",
+    "fine_tune_until_average",
     "QuantumBenchmarkDomain",
     "load_quantum_benchmark",
 ]
