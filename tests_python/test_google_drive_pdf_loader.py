@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Iterable, Iterator, MutableMapping
+from typing import Iterable, Iterator, Mapping, MutableMapping
 
 import pytest
 
@@ -17,11 +17,19 @@ class FakeDriveClient:
     def __init__(
         self,
         *,
-        folder_entries: Iterable[MutableMapping[str, object]] | None = None,
+        folder_entries: Mapping[str, Iterable[MutableMapping[str, object]]] | Iterable[MutableMapping[str, object]] | None = None,
         file_payloads: dict[str, bytes] | None = None,
         file_metadata: dict[str, MutableMapping[str, object]] | None = None,
     ) -> None:
-        self.folder_entries = [dict(entry) for entry in folder_entries or []]
+        if isinstance(folder_entries, Mapping):
+            self.folder_entries_map = {
+                str(key): [dict(entry) for entry in value]
+                for key, value in folder_entries.items()
+            }
+            self.folder_entries = []
+        else:
+            self.folder_entries_map = None
+            self.folder_entries = [dict(entry) for entry in folder_entries or []]
         self.file_payloads = dict(file_payloads or {})
         self.file_metadata = {
             key: dict(value) for key, value in (file_metadata or {}).items()
@@ -39,7 +47,11 @@ class FakeDriveClient:
         fields: str | None = None,
     ) -> Iterator[MutableMapping[str, object]]:
         self.iter_calls.append((folder_id, tuple(mime_types or ()), page_size))
-        for entry in self.folder_entries:
+        if self.folder_entries_map is not None:
+            entries = self.folder_entries_map.get(folder_id, [])
+        else:
+            entries = self.folder_entries
+        for entry in entries:
             yield dict(entry)
 
     def download_file(self, file_id: str) -> bytes:
@@ -149,7 +161,61 @@ def test_loader_streams_docx_documents():
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/msword",
+        "application/vnd.google-apps.folder",
     )
+
+
+def test_loader_traverses_nested_folders():
+    client = FakeDriveClient(
+        folder_entries={
+            "folder": [
+                {
+                    "id": "sub-folder",
+                    "name": "Sub",
+                    "mimeType": "application/vnd.google-apps.folder",
+                },
+                {
+                    "id": "root-doc",
+                    "name": "Root.pdf",
+                    "mimeType": "application/pdf",
+                    "parents": ["folder"],
+                },
+            ],
+            "sub-folder": [
+                {
+                    "id": "nested-doc",
+                    "name": "Nested.pdf",
+                    "mimeType": "application/pdf",
+                    "parents": ["sub-folder"],
+                }
+            ],
+        },
+        file_payloads={
+            "root-doc": b"root",
+            "nested-doc": b"nested",
+        },
+    )
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        pdf_text_extractor=lambda payload, metadata: f"text:{metadata['id']}",
+    )
+
+    context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
+    documents = list(loader(context))
+
+    identifiers = sorted(document["identifier"] for document in documents)
+    assert identifiers == ["google-drive-nested-doc", "google-drive-root-doc"]
+
+    metadata_by_id = {document["metadata"]["file_id"]: document["metadata"] for document in documents}
+    assert metadata_by_id["root-doc"]["parent_folder_id"] == "folder"
+    assert metadata_by_id["nested-doc"]["parent_folder_id"] == "sub-folder"
+    assert metadata_by_id["nested-doc"]["source_folder_id"] == "folder"
+    assert metadata_by_id["nested-doc"]["parents"] == ("sub-folder",)
+
+    assert client.iter_calls[0][0] == "folder"
+    assert client.iter_calls[1][0] == "sub-folder"
 
 
 def test_loader_respects_limits_and_size_filters():
