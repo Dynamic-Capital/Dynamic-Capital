@@ -54,7 +54,7 @@ def _resolve_exports() -> Tuple[Any, Any]:
 
     try:
         module = import_module(_DYNAMIC_METADATA_MODULE)
-    except ModuleNotFoundError as exc:
+    except (ModuleNotFoundError, ImportError) as exc:
         reason = str(exc)
         placeholder = _MissingExport
         return placeholder("DynamicMetadataAlgo", reason), placeholder(
