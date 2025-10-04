@@ -19,6 +19,7 @@ from .gradebook import (
 )
 from .tuning import FineTuneCycle, FineTuneResult, fine_tune_until_average
 from .quantum import QuantumBenchmarkDomain, load_quantum_benchmark
+from .config import load_knowledge_base_config, load_knowledge_base_payload
 
 __all__ = [
     "BenchmarkMetric",
@@ -39,4 +40,6 @@ __all__ = [
     "fine_tune_until_average",
     "QuantumBenchmarkDomain",
     "load_quantum_benchmark",
+    "load_knowledge_base_config",
+    "load_knowledge_base_payload",
 ]

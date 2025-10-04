@@ -1,0 +1,19 @@
+{
+  "domains": {
+    "DynamicMultiLLM": {
+      "coverage": { "present": 117, "required": 120 },
+      "accuracy": { "passing": 148, "sampled": 154 },
+      "governance": { "hours_since_last_probe": 6, "failed_probes": 0 }
+    },
+    "ChatCPT5": {
+      "coverage": { "present": 110, "required": 120 },
+      "accuracy": { "passing": 139, "sampled": 150 },
+      "governance": { "hours_since_last_probe": 18, "failed_probes": 1 }
+    },
+    "DeepseekV3": {
+      "coverage": { "present": 108, "required": 130 },
+      "accuracy": { "passing": 128, "sampled": 150 },
+      "governance": { "hours_since_last_probe": 26, "failed_probes": 1 }
+    }
+  }
+}
