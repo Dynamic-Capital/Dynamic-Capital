@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import statistics
+import struct
 from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
@@ -40,6 +42,7 @@ class SnapshotFingerprint:
     start: Optional[datetime]
     end: Optional[datetime]
     symbols: tuple[str, ...]
+    content_hash: str
 
 
 @dataclass(slots=True)
@@ -191,16 +194,78 @@ def _fingerprint_snapshots(
     snapshots: Sequence[MarketSnapshot],
 ) -> SnapshotFingerprint:
     if not snapshots:
-        return SnapshotFingerprint(count=0, start=None, end=None, symbols=())
+        return SnapshotFingerprint(count=0, start=None, end=None, symbols=(), content_hash="")
 
     start = snapshots[0].timestamp if snapshots[0].timestamp else None
     end = snapshots[-1].timestamp if snapshots[-1].timestamp else None
     symbols = tuple(sorted({snapshot.symbol for snapshot in snapshots if snapshot.symbol}))
+
+    hasher = hashlib.sha256()
+
+    def _update_optional_float(value: Optional[float]) -> None:
+        if value is None:
+            hasher.update(b"\x00")
+        else:
+            hasher.update(b"\x01")
+            hasher.update(struct.pack("!d", float(value)))
+
+    for snapshot in snapshots:
+        symbol = snapshot.symbol or ""
+        hasher.update(symbol.encode("utf-8"))
+        hasher.update(b"\x00")
+
+        timestamp = snapshot.timestamp.isoformat() if snapshot.timestamp else ""
+        hasher.update(timestamp.encode("utf-8"))
+        hasher.update(b"\x00")
+
+        hasher.update(struct.pack("!d", float(snapshot.close)))
+        hasher.update(struct.pack("!d", float(snapshot.pip_size)))
+        hasher.update(struct.pack("!d", float(snapshot.pip_value)))
+
+        feature_vector = snapshot.feature_vector()
+        hasher.update(struct.pack("!I", len(feature_vector)))
+        for value in feature_vector:
+            hasher.update(struct.pack("!d", float(value)))
+
+        for optional_value in (
+            snapshot.open,
+            snapshot.high,
+            snapshot.low,
+            snapshot.daily_high,
+            snapshot.daily_low,
+            snapshot.previous_daily_high,
+            snapshot.previous_daily_low,
+            snapshot.weekly_high,
+            snapshot.weekly_low,
+            snapshot.previous_week_high,
+            snapshot.previous_week_low,
+            snapshot.seasonal_bias,
+            snapshot.seasonal_confidence,
+            snapshot.mechanical_velocity,
+            snapshot.mechanical_acceleration,
+            snapshot.mechanical_jerk,
+            snapshot.mechanical_energy,
+            snapshot.mechanical_stress_ratio,
+        ):
+            _update_optional_float(optional_value)
+
+        if snapshot.correlation_scores:
+            hasher.update(b"\x01")
+            for key, value in sorted(snapshot.correlation_scores.items()):
+                hasher.update(key.encode("utf-8"))
+                hasher.update(struct.pack("!d", float(value)))
+        else:
+            hasher.update(b"\x00")
+
+        mechanical_state = snapshot.mechanical_state or ""
+        hasher.update(mechanical_state.encode("utf-8"))
+
     return SnapshotFingerprint(
         count=len(snapshots),
         start=start,
         end=end,
         symbols=symbols,
+        content_hash=hasher.hexdigest(),
     )
 
 
