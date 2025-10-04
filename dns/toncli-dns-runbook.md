@@ -156,5 +156,5 @@ Additionally, wallets such as Tonkeeper can resolve
   record so downstream automation can reproduce the update.
 
 Document every DNS update (transaction hash, BOC hash, and payload
-source) in the operations log to keep the Web3 ↔ Web2 provenance trail
-intact.
+source) in the operations log ([`ton-dns-operations-log.md`](./ton-dns-operations-log.md))
+to keep the Web3 ↔ Web2 provenance trail intact.
