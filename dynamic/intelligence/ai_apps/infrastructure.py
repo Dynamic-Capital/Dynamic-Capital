@@ -542,6 +542,51 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
         ),
     ),
     ModuleRegistration(
+        name="dynamic_stake",
+        domain=ModuleDomain.FINANCE_MARKETS,
+        responsibilities=(
+            "Operate staking pools with dynamic reward distribution",
+            "Surface stake concentration and liquidity telemetry",
+            "Coordinate slashing and withdrawal guardrails",
+        ),
+        success_metrics=(
+            "Reward cycles posted within configured cadence",
+            "Stake concentration alerts resolved within one business day",
+            "Withdrawal requests settled inside 24 hours",
+        ),
+        notes=("Backed by DynamicStakePool for balance and reward tracking",),
+    ),
+    ModuleRegistration(
+        name="dynamic_proof_of_stake",
+        domain=ModuleDomain.FINANCE_MARKETS,
+        responsibilities=(
+            "Model validator incentives and stake-weighted selection",
+            "Publish slashing and reward policy updates",
+            "Stress test network security against stake churn",
+        ),
+        success_metrics=(
+            "Validator selection simulations refreshed each day",
+            "Slashing policy changes broadcast with audit trail",
+            "Stake churn risk maintained within tolerance band",
+        ),
+        notes=("Leverages DynamicProofOfStake consensus primitives",),
+    ),
+    ModuleRegistration(
+        name="dynamic_proof_of_work",
+        domain=ModuleDomain.TECHNOLOGY_INFRASTRUCTURE,
+        responsibilities=(
+            "Track hash power, difficulty, and energy telemetry",
+            "Detect anomalous mining pools and double-spend attempts",
+            "Coordinate difficulty retargeting workflows",
+        ),
+        success_metrics=(
+            "Difficulty adjustments computed every epoch",
+            "Hash rate anomalies triaged within 5 minutes",
+            "No unresolved double-spend investigations",
+        ),
+        notes=("Powered by DynamicProofOfWork verification toolkit",),
+    ),
+    ModuleRegistration(
         name="dynamic_teaching",
         domain=ModuleDomain.HUMAN_CREATIVE,
         responsibilities=(
@@ -571,6 +616,81 @@ DEFAULT_MODULE_REGISTRATIONS: Tuple[ModuleRegistration, ...] = (
         notes=(
             "Derived from TEAM_DEVELOPMENT_PLAYBOOKS to accelerate new contributors",
         ),
+    ),
+    ModuleRegistration(
+        name="dynamic_proof_of_authority",
+        domain=ModuleDomain.SECURITY_GOVERNANCE,
+        responsibilities=(
+            "Govern authority sets and signer credential rotations",
+            "Publish block attestations and consensus transcripts",
+            "Alert on double-signs and misbehaving validators",
+        ),
+        success_metrics=(
+            "Authority rotations executed with zero downtime",
+            "Consensus finality achieved within target slots",
+            "Double-sign incidents resolved inside 30 minutes",
+        ),
+        notes=("Runs on DynamicProofOfAuthority slot scheduling engine",),
+    ),
+    ModuleRegistration(
+        name="dynamic_proof_of_burn",
+        domain=ModuleDomain.SECURITY_GOVERNANCE,
+        responsibilities=(
+            "Ingest burn proofs and verify destruction events",
+            "Reconcile burn windows with supply analytics",
+            "Expose attestations for treasury and compliance teams",
+        ),
+        success_metrics=(
+            "Burn proofs verified within 5 minutes of submission",
+            "Supply dashboards reflect burns within reporting cycle",
+            "Compliance attestations generated for every burn window",
+        ),
+        notes=("Built on DynamicProofOfBurn event ledger",),
+    ),
+    ModuleRegistration(
+        name="dynamic_proof_of_history",
+        domain=ModuleDomain.SECURITY_GOVERNANCE,
+        responsibilities=(
+            "Maintain verifiable event sequencing ledgers",
+            "Issue time-stamped proofs to downstream services",
+            "Audit historical forks and reconcile divergences",
+        ),
+        success_metrics=(
+            "Historical proofs generated every block interval",
+            "Timestamp verification latency under 2 seconds",
+            "Fork audits completed within designated SLA",
+        ),
+        notes=("Backed by DynamicProofOfHistory verifiable delay engine",),
+    ),
+    ModuleRegistration(
+        name="dynamic_proof_of_reputation",
+        domain=ModuleDomain.SECURITY_GOVERNANCE,
+        responsibilities=(
+            "Aggregate validator behavior into rolling reputation scores",
+            "Distribute penalties and incentives based on reputation",
+            "Surface governance insights for policy adjustments",
+        ),
+        success_metrics=(
+            "Reputation indices recalculated hourly",
+            "Policy updates informed by reputation analytics each sprint",
+            "No unresolved validator escalations beyond SLA",
+        ),
+        notes=("Utilises DynamicProofOfReputation scoring heuristics",),
+    ),
+    ModuleRegistration(
+        name="dynamic_proof_of_space",
+        domain=ModuleDomain.SECURITY_GOVERNANCE,
+        responsibilities=(
+            "Validate storage commitments across operators",
+            "Monitor capacity pledges and challenge responses",
+            "Coordinate seal proofs with redundancy policies",
+        ),
+        success_metrics=(
+            "Capacity challenges resolved within 15 minutes",
+            "Storage pledge coverage kept above redundancy threshold",
+            "Challenge failures remediated before next epoch",
+        ),
+        notes=("Powered by DynamicProofOfSpace commitment verifier",),
     ),
     ModuleRegistration(
         name="dynamic_validator",

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from typing import Mapping, MutableMapping, Sequence, Tuple
 
@@ -26,6 +26,7 @@ from .treasury import DynamicTreasuryAlgo, TreasuryEvent
 __all__ = [
     "DCTCommitteeSignals",
     "DCTEngineReport",
+    "DCTResidualPolicy",
     "DynamicCapitalTokenEngine",
     "committee_signals_from_optimisation",
 ]
@@ -134,6 +135,16 @@ class DCTEngineReport:
         return payload
 
 
+@dataclass(frozen=True, slots=True)
+class DCTResidualPolicy:
+    """Strategy for reconciling allocation totals with planned emissions."""
+
+    tolerance: float = 1e-6
+    redistribute_positive: bool = True
+    redistribute_negative: bool = True
+    buffer_label: str = "Treasury Buffer"
+
+
 class DynamicCapitalTokenEngine:
     """High-level orchestrator for DCT pricing, emissions, and allocations."""
 
@@ -145,12 +156,14 @@ class DynamicCapitalTokenEngine:
         allocation_rules: Sequence[DCTAllocationRule] | None = None,
         treasury_algo: DynamicTreasuryAlgo | None = None,
         treasury_starting_balance: float | None = None,
+        residual_policy: DCTResidualPolicy | None = None,
     ) -> None:
         self._price_calculator = price_calculator or DCTPriceCalculator()
         self._production_planner = production_planner or DCTProductionPlanner()
         rules_tuple: Tuple[DCTAllocationRule, ...] = tuple(allocation_rules or ())
         self._allocation_rules = rules_tuple
         self._base_allocation_engine = DCTAllocationEngine(rules_tuple)
+        self._residual_policy = residual_policy or DCTResidualPolicy()
         if treasury_algo is not None and treasury_starting_balance is not None:
             raise ValueError(
                 "Provide either `treasury_algo` or `treasury_starting_balance`, not both"
@@ -203,6 +216,9 @@ class DynamicCapitalTokenEngine:
 
         allocation_engine = signals.apply_to_allocation_engine(allocation_engine)
         allocations = tuple(allocation_engine.distribute(effective_plan.final_mint))
+        allocations, reconciliation_notes = self._reconcile_allocations(
+            allocations, effective_plan.final_mint
+        )
 
         balance_before = float(self._treasury.treasury_balance)
         treasury_event: TreasuryEvent | None = None
@@ -219,13 +235,7 @@ class DynamicCapitalTokenEngine:
         allocation_total = sum(
             allocation.adjusted_allocation for allocation in allocations
         )
-        residual = effective_plan.final_mint - allocation_total
-        if residual > 1e-6:
-            notes.append(f"{residual:.2f} DCT remains unallocated")
-        elif residual < -1e-6:
-            notes.append(
-                f"Allocations exceed supply by {abs(residual):.2f} DCT"
-            )
+        notes.extend(reconciliation_notes)
 
         return DCTEngineReport(
             snapshot=snapshot,
@@ -240,6 +250,155 @@ class DynamicCapitalTokenEngine:
             signals=signals,
             notes=tuple(notes),
         )
+
+    def _reconcile_allocations(
+        self,
+        allocations: Tuple[DCTAllocationResult, ...],
+        target_total: float,
+    ) -> Tuple[Tuple[DCTAllocationResult, ...], Tuple[str, ...]]:
+        policy = self._residual_policy
+        tolerance = max(0.0, policy.tolerance)
+        target_total = max(0.0, float(target_total))
+
+        total = sum(result.adjusted_allocation for result in allocations)
+        residual = target_total - total
+        if abs(residual) <= tolerance:
+            return allocations, ()
+
+        if residual > 0 and policy.redistribute_positive:
+            updated = self._redistribute_residual(allocations, residual, target_total)
+            note = f"Redistributed {residual:.2f} DCT residual across allocations"
+            return updated, (note,)
+
+        if residual < 0 and policy.redistribute_negative:
+            overshoot = abs(residual)
+            updated = self._trim_overshoot(allocations, overshoot, target_total)
+            note = f"Scaled allocations down by {overshoot:.2f} DCT to respect supply"
+            return updated, (note,)
+
+        if residual > 0:
+            buffer = DCTAllocationResult(
+                label=policy.buffer_label,
+                weight=0.0,
+                base_allocation=residual,
+                multiplier=1.0,
+                adjusted_allocation=residual,
+                member_count=None,
+                per_member=None,
+            )
+            note = f"Directed {residual:.2f} DCT residual to {policy.buffer_label}"
+            return allocations + (buffer,), (note,)
+
+        overshoot = abs(residual)
+        note = f"Allocations exceed supply by {overshoot:.2f} DCT"
+        return allocations, (note,)
+
+    def _redistribute_residual(
+        self,
+        allocations: Tuple[DCTAllocationResult, ...],
+        residual: float,
+        target_total: float,
+    ) -> Tuple[DCTAllocationResult, ...]:
+        weights = [max(result.weight, 0.0) for result in allocations]
+        weight_total = sum(weights)
+        if weight_total <= 0:
+            return allocations
+
+        updated = []
+        for result, weight in zip(allocations, weights):
+            if weight <= 0:
+                updated.append(result)
+                continue
+            share = weight / weight_total
+            delta = residual * share
+            new_base = result.base_allocation + delta
+            new_adjusted = result.adjusted_allocation + delta
+            per_member = (
+                new_adjusted / result.member_count
+                if result.member_count and result.member_count > 0
+                else None
+            )
+            updated.append(
+                replace(
+                    result,
+                    base_allocation=new_base,
+                    adjusted_allocation=new_adjusted,
+                    per_member=per_member,
+                )
+            )
+
+        return self._apply_terminal_correction(tuple(updated), target_total)
+
+    def _trim_overshoot(
+        self,
+        allocations: Tuple[DCTAllocationResult, ...],
+        overshoot: float,
+        target_total: float,
+    ) -> Tuple[DCTAllocationResult, ...]:
+        positive_allocations = [
+            result for result in allocations if result.adjusted_allocation > 0
+        ]
+        total_positive = sum(result.adjusted_allocation for result in positive_allocations)
+        if total_positive <= 0:
+            return allocations
+
+        updated = []
+        for result in allocations:
+            if result.adjusted_allocation <= 0:
+                updated.append(result)
+                continue
+            share = result.adjusted_allocation / total_positive
+            delta = overshoot * share
+            new_adjusted = max(0.0, result.adjusted_allocation - delta)
+            new_base = max(0.0, result.base_allocation - delta)
+            per_member = (
+                new_adjusted / result.member_count
+                if result.member_count and result.member_count > 0 and new_adjusted > 0
+                else None
+            )
+            updated.append(
+                replace(
+                    result,
+                    base_allocation=new_base,
+                    adjusted_allocation=new_adjusted,
+                    per_member=per_member,
+                )
+            )
+
+        return self._apply_terminal_correction(tuple(updated), target_total)
+
+    def _apply_terminal_correction(
+        self,
+        allocations: Tuple[DCTAllocationResult, ...],
+        target_total: float,
+    ) -> Tuple[DCTAllocationResult, ...]:
+        tolerance = self._residual_policy.tolerance
+        total = sum(result.adjusted_allocation for result in allocations)
+        correction = target_total - total
+        if abs(correction) <= tolerance:
+            return allocations
+
+        for index in range(len(allocations) - 1, -1, -1):
+            result = allocations[index]
+            new_adjusted = max(0.0, result.adjusted_allocation + correction)
+            new_base = max(0.0, result.base_allocation + correction)
+            if new_adjusted < 0:
+                continue
+            per_member = (
+                new_adjusted / result.member_count
+                if result.member_count and result.member_count > 0 and new_adjusted > 0
+                else None
+            )
+            updated = list(allocations)
+            updated[index] = replace(
+                result,
+                base_allocation=new_base,
+                adjusted_allocation=new_adjusted,
+                per_member=per_member,
+            )
+            return tuple(updated)
+
+        return allocations
 
 
 def committee_signals_from_optimisation(
