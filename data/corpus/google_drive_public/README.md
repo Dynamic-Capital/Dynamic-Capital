@@ -10,6 +10,10 @@ number of processed files and elapsed time.
 - `drive1_documents.jsonl` – Extracted text for five PDFs from the first
   Google Drive share.
 - `drive1_summary.json` – Summary statistics for the drive 1 extraction run.
+- `drive1_refresh_documents.jsonl` – Updated snapshot with three freshly
+  extracted PDFs from the first share (no limit overlap with the original
+  sample).
+- `drive1_refresh_summary.json` – Summary for the refreshed extraction run.
 - `drive2_documents.jsonl` – Extracted text for five PDFs from the second
   Google Drive share.
 - `drive2_summary.json` – Summary statistics for the drive 2 extraction run.
