@@ -204,6 +204,24 @@ def _fingerprint_snapshots(
     )
 
 
+def _normalize_search_space(search_space: Mapping[str, Iterable]) -> Dict[str, Tuple[object, ...]]:
+    if not search_space:
+        raise ValueError("search_space must contain at least one hyperparameter")
+
+    normalized: Dict[str, Tuple[object, ...]] = {}
+    for key, values in search_space.items():
+        if values is None:
+            raise ValueError(f"search_space[{key!r}] cannot be None")
+
+        materialized = tuple(values)
+        if not materialized:
+            raise ValueError(f"search_space[{key!r}] must provide at least one value")
+
+        normalized[key] = materialized
+
+    return normalized
+
+
 def optimize_trading_stack(
     snapshots: Sequence[MarketSnapshot],
     search_space: Mapping[str, Iterable],
@@ -225,12 +243,17 @@ def optimize_trading_stack(
         raise ValueError("snapshots must be a non-empty sequence")
 
     fingerprint = _fingerprint_snapshots(snapshot_list)
+    normalized_space = _normalize_search_space(search_space)
     reuse_pipeline = previous_plan is not None and previous_plan.fingerprint == fingerprint
 
     if reuse_pipeline:
         cached_state = previous_plan.pipeline_state
-        pipeline = _prepare_pipeline(snapshot_list, state=cached_state)
-        pipeline_state = copy.deepcopy(cached_state)
+        if cached_state:
+            pipeline = _prepare_pipeline(snapshot_list, state=cached_state)
+            pipeline_state = copy.deepcopy(cached_state)
+        else:
+            pipeline = _prepare_pipeline(snapshot_list)
+            pipeline_state = pipeline.state_dict()
         insights = replace(previous_plan.insights)
     else:
         pipeline = _prepare_pipeline(snapshot_list)
@@ -252,7 +275,7 @@ def optimize_trading_stack(
 
     search = HyperparameterSearch(
         snapshot_list,
-        dict(search_space),
+        normalized_space,
         base_config=tuned_config,
         scoring=scoring,
         initial_equity=initial_equity,
