@@ -1,3 +1,5 @@
+import importlib
+
 import dynamic.platform.engines as engines
 
 
@@ -20,3 +22,25 @@ def test_enable_all_dynamic_engines_populates_namespace(recwarn) -> None:
     assert set(second) == exported_names
     for name in exported_names:
         assert second[name] is getattr(engines, name)
+
+
+def test_enable_all_dynamic_engines_covers_requested_modules() -> None:
+    modules = [
+        "dynamic_branch",
+        "dynamic_bridge",
+        "dynamic_cycle",
+        "dynamic_effect",
+        "dynamic_hierarchy",
+        "dynamic_mantra",
+        "dynamic_method",
+        "dynamic_playbook",
+        "dynamic_routine",
+    ]
+
+    loaded = engines.enable_all_dynamic_engines()
+
+    for module_name in modules:
+        module = importlib.import_module(module_name)
+        for symbol in getattr(module, "__all__", ()):  # defensive: only check declared
+            assert symbol in loaded, f"{symbol} from {module_name} was not enabled"
+            assert getattr(engines, symbol) is getattr(module, symbol)
