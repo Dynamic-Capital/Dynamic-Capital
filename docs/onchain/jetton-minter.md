@@ -44,6 +44,11 @@ balances so auditors can independently replay the queries.
   function routes burn tranches through `burnDCT` and logs the resulting
   transaction hashes for finance review (see
   [`dynamic-capital-ton/supabase/functions/process-subscription/index.ts`](../../dynamic-capital-ton/supabase/functions/process-subscription/index.ts)).
+- Operations can stage controlled mint events via the `start-jetton-minter`
+  Supabase function, which enforces the configured `JETTON_MINTER_NETWORK` guard
+  and records the initiator, target supply, and mainnet transaction hash inside
+  `jetton_minter_runs` for auditability (see
+  [`dynamic-capital-ton/supabase/functions/start-jetton-minter/index.ts`](../../dynamic-capital-ton/supabase/functions/start-jetton-minter/index.ts)).
 
 ## Checklist Outcome
 
