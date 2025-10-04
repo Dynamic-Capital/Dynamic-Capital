@@ -9,11 +9,16 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   return withApiMetrics(req, "/api/check-auth", async () => {
     const secret = process.env.ROUTE_GUARD_PASSWORD;
+    const noStoreHeaders = { "cache-control": "no-store" } as const;
 
     if (!secret) {
       return jsonResponse(
-        { ok: false, error: "Route guard password is not configured" },
-        { status: 500 },
+        {
+          ok: true,
+          authenticated: true,
+          passwordRequired: false,
+        },
+        { headers: noStoreHeaders },
         req,
       );
     }
@@ -23,13 +28,17 @@ export async function GET(req: Request) {
 
     if (!token || !tokenMatchesSecret(token, secret)) {
       return jsonResponse(
-        { ok: false, authenticated: false },
-        { status: 401 },
+        { ok: false, authenticated: false, passwordRequired: true },
+        { status: 401, headers: noStoreHeaders },
         req,
       );
     }
 
-    return jsonResponse({ ok: true, authenticated: true }, {}, req);
+    return jsonResponse(
+      { ok: true, authenticated: true, passwordRequired: true },
+      { headers: noStoreHeaders },
+      req,
+    );
   });
 }
 

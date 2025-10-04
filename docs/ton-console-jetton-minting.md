@@ -56,6 +56,48 @@ governance constraints codified in the Tact sources.
 - **Audit trail:** Record the Ton Console transaction hash in the operations
   ledger and notify finance so downstream burns or allocations stay reconciled.
 
+## Closing minting access
+
+Once the planned emissions land on-chain, immediately revoke the ability to mint
+more supply until the next scheduled governance window. There are two paths: the
+Ton Console UI for operators and the signed webhook for automated runs.
+
+### Ton Console UI
+
+1. Sign in to [Ton Console](https://tonconsole.com/) with the operator account
+   that manages Dynamic Capital’s workspace (project ID `3672406698`).
+2. Navigate to **Tokens → Jetton Minter**, open the DCT jetton card, and locate
+   the **Mint settings** menu in the upper-right corner of the supply module.
+3. Choose **Close minting**. Ton Console will prompt for confirmation and send a
+   management message to the jetton master to flip the `mintable` flag off.
+4. Refresh the card and confirm the banner now reads “Minting closed”. This
+   status propagates to all project operators and prevents further emissions
+   until re-enabled by the admin wallet.
+
+### Automation webhook
+
+Operations can also close minting through the Ton Console webhook interface. The
+secret token provided by the console (store it as
+`TONCONSOLE_WEBHOOK_TOKEN=<webhook token from Ton Console>`) must never be
+committed to source control.
+
+Run the helper script from the repo root:
+
+```bash
+TONCONSOLE_PROJECT_ID=3672406698 \
+TONCONSOLE_WEBHOOK_TOKEN="$TONCONSOLE_WEBHOOK_TOKEN" \
+npx tsx scripts/ton/close-minting.ts
+```
+
+The script calls `https://tonconsole.com/api/webhook/<token>` with a
+`close_minting` action payload. Pass `--dry-run` first to inspect the JSON
+before executing in production; the preview masks the secret token so it can be
+safely pasted in runbooks. Successful responses log the JSON body returned by
+Ton Console, while any non-2xx status aborts with a descriptive error so the
+operator can retry manually. Use `--timeout <seconds>` and `--retries <count>`
+to tune the built-in watchdog (defaults: 15 seconds and two retries) when
+running in CI/CD pipelines or unreliable networks.
+
 ## Troubleshooting
 
 | Symptom                                    | Resolution                                                                                                                                                           |
