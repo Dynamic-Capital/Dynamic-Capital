@@ -77,11 +77,11 @@ def test_engine_orchestrates_pricing_production_and_treasury() -> None:
     assert report.effective_plan.final_mint == pytest.approx(24211.764706, rel=1e-6)
     assert len(report.allocations) == 2
     assert report.allocations[0].adjusted_allocation == pytest.approx(
-        14527.058824, rel=1e-6
+        13968.325791, rel=1e-6
     )
-    assert report.allocations[0].per_member == pytest.approx(48.423529, rel=1e-6)
+    assert report.allocations[0].per_member == pytest.approx(46.561085, rel=1e-6)
     assert report.allocations[1].adjusted_allocation == pytest.approx(
-        10653.176471, rel=1e-6
+        10243.438914, rel=1e-6
     )
     assert report.treasury_event is not None
     assert report.treasury_event.burned == pytest.approx(50.0)
@@ -91,13 +91,16 @@ def test_engine_orchestrates_pricing_production_and_treasury() -> None:
     assert report.treasury_balance_before == pytest.approx(50_000.0)
     assert report.treasury_balance_after == pytest.approx(50_125.0)
     assert "Boost staking rewards" in report.notes
-    assert any("Allocations exceed supply" in note for note in report.notes)
+    assert any("Scaled allocations down" in note for note in report.notes)
+    assert report.allocation_total == pytest.approx(
+        report.effective_plan.final_mint, rel=1e-6
+    )
 
     payload = report.to_dict()
     assert payload["price"] == pytest.approx(report.price_breakdown.final_price)
     assert payload["treasury_event"]["burned"] == pytest.approx(50.0)
     assert payload["treasury_balance_after"] == pytest.approx(50_125.0)
-    assert payload["notes"][-1].startswith("Allocations exceed supply")
+    assert payload["notes"][-1].startswith("Scaled allocations down")
 
 
 def test_committee_signals_helper_converts_llm_results() -> None:
