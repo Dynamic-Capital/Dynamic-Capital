@@ -22,6 +22,7 @@ import { AdminLogs } from "./AdminLogs";
 import { AdminBans } from "./AdminBans";
 import { BroadcastManager } from "./BroadcastManager";
 import { BotDiagnostics } from "./BotDiagnostics";
+import { MintingManager } from "./MintingManager";
 import { callEdgeFunction } from "@/config/supabase";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 import { DynamicButton, DynamicContainer } from "@/components/dynamic-ui";
@@ -441,7 +442,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
             </header>
 
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid grid-cols-2 gap-2 rounded-2xl border border-border/40 bg-card/60 p-2 md:grid-cols-6">
+              <TabsList className="grid grid-cols-2 gap-2 rounded-2xl border border-border/40 bg-card/60 p-2 md:grid-cols-7">
                 <TabsTrigger
                   value="overview"
                   className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -471,6 +472,12 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                   className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
                   Broadcast
+                </TabsTrigger>
+                <TabsTrigger
+                  value="minting"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Minting
                 </TabsTrigger>
                 <TabsTrigger
                   value="bot"
@@ -625,6 +632,13 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                 className="rounded-3xl border border-border/40 bg-card/70 p-6 shadow-sm"
               >
                 <BroadcastManager />
+              </TabsContent>
+
+              <TabsContent
+                value="minting"
+                className="rounded-3xl border border-border/40 bg-card/70 p-6 shadow-sm"
+              >
+                <MintingManager />
               </TabsContent>
 
               <TabsContent
