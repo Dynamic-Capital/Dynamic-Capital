@@ -15,6 +15,7 @@ from .model import (
     OrderFlowSignal,
     TradeIntent,
 )
+from .reporting import NarrativeDeck
 
 __all__ = [
     "DeskEnvironment",
@@ -26,4 +27,5 @@ __all__ = [
     "DYNAMIC_TRADING_FIELDS",
     "get_trading_discipline",
     "list_trading_discipline_names",
+    "NarrativeDeck",
 ]

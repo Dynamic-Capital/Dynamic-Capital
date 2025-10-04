@@ -197,3 +197,23 @@ def test_market_narrative_markdown_rendering() -> None:
     assert "- Confidence: 72%" in markdown
     assert "## Desk Insights" in markdown
     assert "ETHUSD, INTRADAY" in markdown
+
+
+def test_market_narrative_markdown_renders_discipline_section() -> None:
+    discipline = get_trading_discipline("Dynamic Trading Natural Sciences")
+    narrative = MarketNarrative(
+        headline="Bullish energy complex rotation",
+        thesis="Dynamic desk highlights rotation opportunities across the energy complex.",
+        key_levels=("Entry: 82.5000",),
+        risk_mitigation=("Respect crude downside gap",),
+        call_to_action="Align exposure with sector rotation and monitor dispersion.",
+        confidence=0.61,
+        style="institutional",
+        discipline=discipline,
+    )
+
+    markdown = narrative.to_markdown()
+
+    assert "## Discipline Context" in markdown
+    assert "Dynamic Trading Natural Sciences" in markdown
+    assert "Dynamic Physics" in markdown
