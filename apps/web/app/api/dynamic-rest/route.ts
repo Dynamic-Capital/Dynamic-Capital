@@ -5,6 +5,7 @@ import {
   buildDynamicRestResponse,
   DYNAMIC_REST_CACHE_CONTROL_HEADER,
   DYNAMIC_REST_CACHE_TAG,
+  DYNAMIC_REST_CACHE_TTL_SECONDS,
   DYNAMIC_REST_ENDPOINTS,
 } from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
@@ -13,19 +14,7 @@ const ROUTE_ENDPOINT = DYNAMIC_REST_ENDPOINTS.root;
 const ROUTE_NAME = ROUTE_ENDPOINT.path;
 const CACHE_KEY = "dynamic-rest-response";
 
-// Keep this fallback in sync with DEFAULT_DYNAMIC_REST_CACHE_TTL_SECONDS in
-// `@/services/dynamic-rest`.
-const FALLBACK_REVALIDATE_SECONDS = 300;
-const rawRevalidateSeconds = process.env.CACHE_TTL_SECONDS;
-const parsedRevalidateSeconds = rawRevalidateSeconds === undefined
-  ? undefined
-  : Number.parseInt(rawRevalidateSeconds, 10);
-
-export const revalidate = parsedRevalidateSeconds !== undefined &&
-    Number.isFinite(parsedRevalidateSeconds) &&
-    parsedRevalidateSeconds >= 0
-  ? parsedRevalidateSeconds
-  : FALLBACK_REVALIDATE_SECONDS;
+export const revalidate = DYNAMIC_REST_CACHE_TTL_SECONDS;
 
 const getDynamicRestResponse = unstable_cache(
   () => buildDynamicRestResponse(),
