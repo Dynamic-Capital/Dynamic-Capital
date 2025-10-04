@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Iterable, List, Mapping, Optional, Sequence
 
 from dynamic.intelligence.agi.fine_tune import DynamicAGIFineTuner, FineTuneExample
@@ -15,21 +16,22 @@ from dynamic_benchmark.gradebook import (
 )
 
 from .agent import DynamicFineTuneAgent
+from dynamic.intelligence.agi.tuning_primitives import (
+    DEFAULT_ACCURACY_TARGET,
+    DEFAULT_COVERAGE_TARGET,
+    DEFAULT_FAILED_CHECKS_TARGET,
+    DEFAULT_STALENESS_TARGET,
+    compute_deficits,
+    focus_metric,
+    priority_multiplier_from_severity,
+    quality_floor_from_severity,
+    severity_from_grade,
+    severity_label,
+)
+
+from dynamic.intelligence.agi.benchmarking import prepare_benchmark_plan_from_source
 
 __all__ = ["FineTuneTrainer"]
-
-
-_GRADE_SEVERITY = {
-    "A": 0.0,
-    "B": 0.35,
-    "C": 0.65,
-    "D": 0.85,
-}
-
-_TARGET_COVERAGE = 0.95
-_TARGET_ACCURACY = 0.95
-_TARGET_STALENESS_HOURS = 24.0
-_TARGET_FAILED_CHECKS = 0
 
 
 def _clamp(value: float, *, lower: float = 0.0, upper: float = 1.0) -> float:
@@ -107,55 +109,6 @@ def _quality_from_metadata(metadata: Mapping[str, object]) -> float:
 def _priority_from_metadata(metadata: Mapping[str, object]) -> float:
     signals = _extract_signals(metadata)
     return _signal_priority(signals)
-
-
-def _severity_from_grade(letter: str) -> float:
-    return _GRADE_SEVERITY.get(letter.upper(), 0.5)
-
-
-def _severity_label(severity: float) -> str:
-    if severity >= 0.7:
-        return "high"
-    if severity >= 0.4:
-        return "medium"
-    return "low"
-
-
-def _quality_floor_from_severity(minimum_quality: float, severity: float) -> float:
-    baseline = max(minimum_quality, 0.55 + (severity * 0.4))
-    return _clamp(baseline)
-
-
-def _priority_multiplier_from_severity(severity: float) -> float:
-    return 1.0 + (severity * 0.75)
-
-
-def _compute_deficits(metrics: KnowledgeBaseMetrics) -> Mapping[str, float]:
-    coverage_gap = max(0.0, _TARGET_COVERAGE - metrics.coverage_ratio)
-    accuracy_gap = max(0.0, _TARGET_ACCURACY - metrics.accuracy_ratio)
-    staleness_gap = max(0.0, metrics.telemetry_staleness_hours - _TARGET_STALENESS_HOURS)
-    governance_gap = max(0.0, float(metrics.failed_health_checks - _TARGET_FAILED_CHECKS))
-    return {
-        "coverage_gap_ratio": _clamp(coverage_gap / _TARGET_COVERAGE),
-        "accuracy_gap_ratio": _clamp(accuracy_gap / _TARGET_ACCURACY),
-        "staleness_gap_ratio": _clamp(
-            staleness_gap / max(_TARGET_STALENESS_HOURS, 1.0)
-        ),
-        "governance_gap_ratio": _clamp(governance_gap / 3.0),
-    }
-
-
-def _focus_metric(deficits: Mapping[str, float]) -> str:
-    if not deficits:
-        return "coverage"
-    key, _ = max(deficits.items(), key=lambda item: item[1])
-    if key.startswith("coverage"):
-        return "coverage"
-    if key.startswith("accuracy"):
-        return "accuracy"
-    if key.startswith("staleness"):
-        return "staleness"
-    return "governance"
 
 
 def _collect_new_examples(
@@ -304,14 +257,20 @@ class FineTuneTrainer:
 
         for domain, grade in domain_grades.items():
             snapshots = normalised_snapshots.get(domain, ())
-            severity = _severity_from_grade(grade.letter)
-            severity_label = _severity_label(severity)
-            quality_floor = _quality_floor_from_severity(minimum_quality, severity)
+            severity = severity_from_grade(grade.letter)
+            severity_label_text = severity_label(severity)
+            quality_floor = quality_floor_from_severity(minimum_quality, severity)
             quality_floors.append(quality_floor)
-            priority_multiplier = _priority_multiplier_from_severity(severity)
+            priority_multiplier = priority_multiplier_from_severity(severity)
             metrics = domain_metrics[domain]
-            deficits = _compute_deficits(metrics)
-            focus = _focus_metric(deficits)
+            deficits = compute_deficits(
+                metrics,
+                coverage_target=DEFAULT_COVERAGE_TARGET,
+                accuracy_target=DEFAULT_ACCURACY_TARGET,
+                staleness_target=DEFAULT_STALENESS_TARGET,
+                failed_checks_target=DEFAULT_FAILED_CHECKS_TARGET,
+            )
+            focus = focus_metric(deficits)
 
             metadata_overrides = {
                 "domain": domain,
@@ -320,7 +279,7 @@ class FineTuneTrainer:
                 "grade_rationale": grade.rationale,
                 "grade_remediation": grade.remediation,
                 "grade_severity": severity,
-                "grade_severity_label": severity_label,
+                "grade_severity_label": severity_label_text,
                 "focus_metric": focus,
                 "deficits": deficits,
                 "metrics": metrics.as_dict(),
@@ -332,7 +291,7 @@ class FineTuneTrainer:
                 f"domain:{domain.lower()}",
                 f"grade:{grade.letter.lower()}",
                 f"focus:{focus}",
-                f"severity:{severity_label}",
+                f"severity:{severity_label_text}",
             )
 
             new_examples = _collect_new_examples(self.tuner, snapshots)
@@ -353,7 +312,7 @@ class FineTuneTrainer:
             domain_reports[domain] = {
                 "grade": grade.as_dict(),
                 "severity": severity,
-                "severity_label": severity_label,
+                "severity_label": severity_label_text,
                 "focus": focus,
                 "deficits": deficits,
                 "quality_floor": quality_floor,
@@ -380,3 +339,62 @@ class FineTuneTrainer:
             "domain_reports": domain_reports,
             "comprehensive_grade": comprehensive_grade,
         }
+
+    def fine_tune_from_benchmark(
+        self,
+        benchmark: Mapping[str, object] | str | Path,
+        *,
+        knowledge_base: Mapping[str, Sequence[Mapping[str, object]]] | None = None,
+        batch_size: int = 32,
+        minimum_quality: float = 0.6,
+        remove: bool = False,
+        notes: Optional[str] = None,
+        coverage_target: float | None = None,
+        accuracy_target: float | None = None,
+        staleness_target: float | None = None,
+        failed_checks_target: int | None = None,
+        learning_rate: float = 0.35,
+        max_cycles: int = 12,
+    ) -> Mapping[str, object]:
+        """Benchmark domains, prepare enrichment data, and fine-tune."""
+
+        coverage_goal = (
+            DEFAULT_COVERAGE_TARGET if coverage_target is None else float(coverage_target)
+        )
+        accuracy_goal = (
+            DEFAULT_ACCURACY_TARGET if accuracy_target is None else float(accuracy_target)
+        )
+        staleness_goal = (
+            DEFAULT_STALENESS_TARGET if staleness_target is None else float(staleness_target)
+        )
+        failed_goal = (
+            DEFAULT_FAILED_CHECKS_TARGET if failed_checks_target is None else int(failed_checks_target)
+        )
+
+        preparation = prepare_benchmark_plan_from_source(
+            benchmark,
+            knowledge_base=knowledge_base,
+            minimum_quality=minimum_quality,
+            coverage_target=coverage_goal,
+            accuracy_target=accuracy_goal,
+            staleness_target=staleness_goal,
+            failed_checks_target=failed_goal,
+            learning_rate=learning_rate,
+            max_cycles=max_cycles,
+        )
+
+        domain_snapshots = {
+            domain: plan.snapshots for domain, plan in preparation.domain_plans.items()
+        }
+        final_notes = notes or "benchmark remediation cycle"
+
+        result = self.fine_tune_for_grades(
+            domain_snapshots,
+            preparation.metrics,
+            batch_size=batch_size,
+            minimum_quality=minimum_quality,
+            remove=remove,
+            notes=final_notes,
+        )
+        result["benchmark_plan"] = preparation.as_dict()
+        return result

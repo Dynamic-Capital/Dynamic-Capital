@@ -370,3 +370,37 @@ def test_grade_informed_fine_tune_prioritises_low_grades() -> None:
     assert dag_record["metadata"]["grade_severity_label"] == "high"
     assert report["domain_reports"]["DAGS"]["quality_floor"] > report["domain_reports"]["DAI"]["quality_floor"]
 
+
+def test_fine_tune_from_benchmark_generates_plan() -> None:
+    model = DynamicFineTuneModel()
+    agent = DynamicFineTuneAgent(model=model)
+    trainer = FineTuneTrainer(agent=agent)
+
+    benchmark_payload = {
+        "domains": {
+            "DAI": {
+                "coverage": {"present": 58, "required": 64},
+                "accuracy": {"passing": 92, "sampled": 100},
+                "governance": {"hours_since_last_probe": 18, "failed_probes": 1},
+            },
+            "DAGI": {
+                "coverage": {"present": 52, "required": 60},
+                "accuracy": {"passing": 85, "sampled": 96},
+                "governance": {"hours_since_last_probe": 26, "failed_probes": 1},
+            },
+            "DAGS": {
+                "coverage": {"present": 49, "required": 58},
+                "accuracy": {"passing": 80, "sampled": 92},
+                "governance": {"hours_since_last_probe": 30, "failed_probes": 2},
+            },
+        }
+    }
+
+    result = trainer.fine_tune_from_benchmark(benchmark_payload, batch_size=8)
+
+    assert result["ingested"] >= len(benchmark_payload["domains"]) * 2
+    plan = result["benchmark_plan"]
+    assert set(plan["plans"]) == {"DAI", "DAGI", "DAGS"}
+    assert plan["plans"]["DAI"]["snapshots"]["count"] >= 1
+    assert isinstance(plan["fine_tune_result"]["converged"], bool)
+

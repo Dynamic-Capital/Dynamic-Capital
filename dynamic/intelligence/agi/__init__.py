@@ -26,6 +26,35 @@ from .training_models import (
     DynamicAGITrainingModelGenerator,
     __all__ as _training_models_all,
 )
+from .benchmarking import (
+    BenchmarkDomainPlan,
+    BenchmarkPreparation,
+    load_benchmark_metrics,
+    prepare_benchmark_plan,
+    prepare_benchmark_plan_from_source,
+    __all__ as _benchmarking_all,
+)
+from .knowledge_base import (
+    DEFAULT_DOMAIN_KNOWLEDGE,
+    DEFAULT_DOMAIN_KNOWLEDGE_PAYLOADS,
+    build_snapshots_from_payloads,
+    resolve_domain_snapshots,
+    __all__ as _knowledge_base_all,
+)
+from .tuning_primitives import (
+    DEFAULT_ACCURACY_TARGET,
+    DEFAULT_COVERAGE_TARGET,
+    DEFAULT_FAILED_CHECKS_TARGET,
+    DEFAULT_STALENESS_TARGET,
+    clamp,
+    compute_deficits,
+    focus_metric,
+    priority_multiplier_from_severity,
+    quality_floor_from_severity,
+    severity_from_grade,
+    severity_label,
+    __all__ as _tuning_primitives_all,
+)
 from .model import (
     AGIDiagnostics,
     AGIOutput,
@@ -52,4 +81,7 @@ __all__ = [
     *_fine_tune_all,
     *_local_machine_all,
     *_training_models_all,
+    *_benchmarking_all,
+    *_knowledge_base_all,
+    *_tuning_primitives_all,
 ]
