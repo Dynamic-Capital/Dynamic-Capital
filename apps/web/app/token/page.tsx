@@ -145,6 +145,7 @@ export default function TokenPage() {
           <TonkeeperDeepLinkButtons
             address={tokenContent.treasuryWalletAddress}
             memo="Dynamic Capital Treasury"
+            jettonAddress={tokenDescriptor.address}
             className="w-full"
           />
           <Text

@@ -52,7 +52,7 @@ export const serverSchema = z.object({
   SENTRY_DSN: z.string().optional(),
   LOG_LEVEL: z.string().optional(),
   SITE_URL: z.string().url().optional(),
-  ROUTE_GUARD_PASSWORD: z.string().min(1),
+  ROUTE_GUARD_PASSWORD: z.string().min(1).optional(),
   CACHE_TTL_SECONDS: z.string().optional(),
 });
 
@@ -173,7 +173,7 @@ function validateServerEnv(): ValidationResult {
     SENTRY_DSN: optionalEnvVar("SENTRY_DSN", ["NEXT_PUBLIC_SENTRY_DSN"]),
     LOG_LEVEL: optionalEnvVar("LOG_LEVEL"),
     SITE_URL: optionalEnvVar("SITE_URL", ["NEXT_PUBLIC_SITE_URL"]),
-    ROUTE_GUARD_PASSWORD: getEnvVar("ROUTE_GUARD_PASSWORD"),
+    ROUTE_GUARD_PASSWORD: optionalEnvVar("ROUTE_GUARD_PASSWORD"),
     CACHE_TTL_SECONDS: optionalEnvVar("CACHE_TTL_SECONDS"),
   } satisfies Record<string, string | undefined>;
 
@@ -225,6 +225,7 @@ export function checkRuntimeEnv(mode: Mode = "throw"): ValidationResult {
   const toleratedServerMissing = new Set<keyof typeof serverSchema.shape>([
     "SUPABASE_SERVICE_ROLE_KEY",
     "SUPABASE_SERVICE_ROLE",
+    "ROUTE_GUARD_PASSWORD",
   ]);
   const toleratedPublicMissing = new Set<keyof typeof publicSchema.shape>([
     "NEXT_PUBLIC_SUPABASE_URL",

@@ -12,8 +12,12 @@ export async function GET(req: Request) {
 
     if (!secret) {
       return jsonResponse(
-        { ok: false, error: "Route guard password is not configured" },
-        { status: 500 },
+        {
+          ok: true,
+          authenticated: true,
+          passwordRequired: false,
+        },
+        {},
         req,
       );
     }
@@ -23,13 +27,17 @@ export async function GET(req: Request) {
 
     if (!token || !tokenMatchesSecret(token, secret)) {
       return jsonResponse(
-        { ok: false, authenticated: false },
+        { ok: false, authenticated: false, passwordRequired: true },
         { status: 401 },
         req,
       );
     }
 
-    return jsonResponse({ ok: true, authenticated: true }, {}, req);
+    return jsonResponse(
+      { ok: true, authenticated: true, passwordRequired: true },
+      {},
+      req,
+    );
   });
 }
 
