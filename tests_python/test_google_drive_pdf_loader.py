@@ -214,6 +214,77 @@ def test_loader_fetches_explicit_files():
     assert documents[0]["metadata"]["source_file_ids"] == ("file-1",)
 
 
+def test_loader_skips_configured_file_ids():
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "skip-me",
+                "name": "Skip.pdf",
+                "mimeType": "application/pdf",
+            },
+            {
+                "id": "keep-me",
+                "name": "Keep.pdf",
+                "mimeType": "application/pdf",
+            },
+        ],
+        file_payloads={
+            "skip-me": b"ignored",
+            "keep-me": b"payload",
+        },
+    )
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        pdf_text_extractor=lambda payload, metadata: f"text:{metadata['id']}",
+        skip_file_ids=("skip-me",),
+    )
+
+    context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
+    documents = list(loader(context))
+
+    assert [doc["identifier"] for doc in documents] == ["google-drive-keep-me"]
+    assert client.download_calls == ["keep-me"]
+
+
+def test_loader_skips_metadata_file_ids():
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "meta-skip",
+                "name": "MetaSkip.pdf",
+                "mimeType": "application/pdf",
+            },
+            {
+                "id": "meta-keep",
+                "name": "MetaKeep.pdf",
+                "mimeType": "application/pdf",
+            },
+        ],
+        file_payloads={
+            "meta-skip": b"ignored",
+            "meta-keep": b"payload",
+        },
+    )
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        pdf_text_extractor=lambda payload, metadata: f"text:{metadata['id']}",
+    )
+
+    context = CorpusExtractionContext(
+        source="google_drive",
+        limit=None,
+        metadata={"skip_file_ids": ("meta-skip",)},
+    )
+    documents = list(loader(context))
+
+    assert [doc["identifier"] for doc in documents] == ["google-drive-meta-keep"]
+    assert client.download_calls == ["meta-keep"]
+
+
 def test_loader_uses_ocr_fallback(monkeypatch):
     client = FakeDriveClient(
         folder_entries=[
