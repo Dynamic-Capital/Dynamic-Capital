@@ -80,7 +80,7 @@
     "@aws-sdk/client-s3": "^3.899.0",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
-    "@langchain/community": "^0.2.31",
+    "@langchain/community": "^0.3.57",
     "@langchain/openai": "^0.2.10",
     "@radix-ui/react-tabs": "^1.1.13",
     "@supabase/auth-helpers-react": "^0.5.0",
@@ -102,8 +102,8 @@
     "lovable-tagger": "^1.1.10",
     "lucide-react": "^0.544.0",
     "mime-types": "^3.0.1",
-    "next-auth": "^4.24.7",
-    "openai": "^6.0.1",
+    "next-auth": "^4.24.11",
+    "openai": "^4.67.3",
     "pdf-parse": "^1.1.1",
     "posthog-js": "^1.268.8",
     "prismjs": "^1.30.0",
@@ -113,7 +113,7 @@
   "devDependencies": {
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
-    "dotenv": "^17.2.3",
+    "dotenv": "^16.4.5",
     "firecrawl": "^1.21.1",
     "globals": "^16.4.0",
     "ngrok": "^5.0.0-beta.2",
@@ -128,10 +128,10 @@
   "overrides": {
     "esbuild": "^0.25.10",
     "@esbuild-kit/core-utils": {
-      "esbuild": "npm:esbuild@0.25.10"
+      "esbuild": "0.25.10"
     },
     "@esbuild-kit/core-utils@3.3.2": {
-      "esbuild": "npm:esbuild@0.25.10"
+      "esbuild": "0.25.10"
     },
     "@esbuild-kit/esm-loader": {
       "esbuild": "npm:esbuild@0.25.10"
@@ -139,6 +139,19 @@
     "@esbuild-kit/esm-loader@2.6.5": {
       "esbuild": "npm:esbuild@0.25.10"
     },
+    "drizzle-kit": {
+      "esbuild": "npm:esbuild@0.25.10",
+      "@esbuild-kit/core-utils": {
+        "esbuild": "npm:esbuild@0.25.10"
+      },
+      "esbuild-register": {
+        "esbuild": "npm:esbuild@0.25.10"
+      }
+    },
+    "esbuild-register": {
+      "esbuild": "npm:esbuild@0.25.10"
+    },
+    "@auth/core": "^0.36.0",
     "elliptic": "^6.6.1",
     "svelte": "^4.2.19",
     "ws": "^8.18.3",
