@@ -118,3 +118,51 @@ def test_run_review_and_optimize_requires_observations():
             {"neighbors": [1]},
             base_config=TradeConfig(),
         )
+
+
+def test_run_review_and_optimize_reuses_previous_cycle_plan():
+    observations = [
+        ReviewInput(
+            area="Operations",
+            headline="Improve alert routing",
+            impact=0.65,
+            urgency=0.6,
+            sentiment=0.55,
+            confidence=0.58,
+        ),
+        ReviewInput(
+            area="Growth",
+            headline="Launch referral sprint",
+            impact=0.7,
+            urgency=0.62,
+            sentiment=0.61,
+            confidence=0.66,
+        ),
+    ]
+
+    snapshots = _build_snapshots()
+    review_context = ReviewContext(
+        mission="Expand Dynamic flywheel",
+        cadence="Weekly",
+        attention_minutes=45,
+    )
+
+    initial_run = run_review_and_optimize(
+        observations,
+        review_context,
+        snapshots,
+        {"neighbors": [1, 2], "label_lookahead": [2]},
+        base_config=TradeConfig(min_confidence=0.0),
+    )
+
+    follow_up = run_review_and_optimize(
+        observations,
+        review_context,
+        snapshots,
+        {"neighbors": [1, 2], "label_lookahead": [2]},
+        base_config=TradeConfig(min_confidence=0.0),
+        previous_run=initial_run,
+    )
+
+    assert follow_up.optimization.reused_pipeline is True
+    assert follow_up.optimization.fingerprint == initial_run.optimization.fingerprint

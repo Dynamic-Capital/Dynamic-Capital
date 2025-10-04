@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import statistics
+import struct
 from dataclasses import dataclass, replace
+from datetime import datetime
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from .backtesting import BacktestResult
@@ -29,6 +32,17 @@ try:  # pragma: no cover - optional dependency used for typing only
     from .grok_advisor import TradeAdvisor
 except Exception:  # pragma: no cover - typing helper when grok advisor deps missing
     TradeAdvisor = object  # type: ignore[misc, assignment]
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotFingerprint:
+    """Lightweight fingerprint used to detect snapshot reuse."""
+
+    count: int
+    start: Optional[datetime]
+    end: Optional[datetime]
+    symbols: tuple[str, ...]
+    content_hash: str
 
 
 @dataclass(slots=True)
@@ -58,6 +72,8 @@ class OptimizationPlan:
     trade_logic: TradeLogic
     realtime_executor: Optional[RealtimeExecutor]
     insights: OptimizationInsights
+    fingerprint: SnapshotFingerprint
+    reused_pipeline: bool
 
 
 @dataclass(slots=True)
@@ -68,8 +84,15 @@ class ReviewOptimizationRun:
     optimization: OptimizationPlan
 
 
-def _prepare_pipeline(snapshots: Sequence[MarketSnapshot]) -> FeaturePipeline:
+def _prepare_pipeline(
+    snapshots: Sequence[MarketSnapshot],
+    *,
+    state: Optional[Dict[str, object]] = None,
+) -> FeaturePipeline:
     pipeline = FeaturePipeline()
+    if state is not None:
+        pipeline.load_state_dict(copy.deepcopy(state))
+        return pipeline
     feature_rows = (snapshot.feature_vector() for snapshot in snapshots)
     pipeline.fit(feature_rows)
     return pipeline
@@ -167,6 +190,103 @@ def _calibrate_risk_parameters(
     return calibrated
 
 
+def _fingerprint_snapshots(
+    snapshots: Sequence[MarketSnapshot],
+) -> SnapshotFingerprint:
+    if not snapshots:
+        return SnapshotFingerprint(count=0, start=None, end=None, symbols=(), content_hash="")
+
+    start = snapshots[0].timestamp if snapshots[0].timestamp else None
+    end = snapshots[-1].timestamp if snapshots[-1].timestamp else None
+    symbols = tuple(sorted({snapshot.symbol for snapshot in snapshots if snapshot.symbol}))
+
+    hasher = hashlib.sha256()
+
+    def _update_optional_float(value: Optional[float]) -> None:
+        if value is None:
+            hasher.update(b"\x00")
+        else:
+            hasher.update(b"\x01")
+            hasher.update(struct.pack("!d", float(value)))
+
+    for snapshot in snapshots:
+        symbol = snapshot.symbol or ""
+        hasher.update(symbol.encode("utf-8"))
+        hasher.update(b"\x00")
+
+        timestamp = snapshot.timestamp.isoformat() if snapshot.timestamp else ""
+        hasher.update(timestamp.encode("utf-8"))
+        hasher.update(b"\x00")
+
+        hasher.update(struct.pack("!d", float(snapshot.close)))
+        hasher.update(struct.pack("!d", float(snapshot.pip_size)))
+        hasher.update(struct.pack("!d", float(snapshot.pip_value)))
+
+        feature_vector = snapshot.feature_vector()
+        hasher.update(struct.pack("!I", len(feature_vector)))
+        for value in feature_vector:
+            hasher.update(struct.pack("!d", float(value)))
+
+        for optional_value in (
+            snapshot.open,
+            snapshot.high,
+            snapshot.low,
+            snapshot.daily_high,
+            snapshot.daily_low,
+            snapshot.previous_daily_high,
+            snapshot.previous_daily_low,
+            snapshot.weekly_high,
+            snapshot.weekly_low,
+            snapshot.previous_week_high,
+            snapshot.previous_week_low,
+            snapshot.seasonal_bias,
+            snapshot.seasonal_confidence,
+            snapshot.mechanical_velocity,
+            snapshot.mechanical_acceleration,
+            snapshot.mechanical_jerk,
+            snapshot.mechanical_energy,
+            snapshot.mechanical_stress_ratio,
+        ):
+            _update_optional_float(optional_value)
+
+        if snapshot.correlation_scores:
+            hasher.update(b"\x01")
+            for key, value in sorted(snapshot.correlation_scores.items()):
+                hasher.update(key.encode("utf-8"))
+                hasher.update(struct.pack("!d", float(value)))
+        else:
+            hasher.update(b"\x00")
+
+        mechanical_state = snapshot.mechanical_state or ""
+        hasher.update(mechanical_state.encode("utf-8"))
+
+    return SnapshotFingerprint(
+        count=len(snapshots),
+        start=start,
+        end=end,
+        symbols=symbols,
+        content_hash=hasher.hexdigest(),
+    )
+
+
+def _normalize_search_space(search_space: Mapping[str, Iterable]) -> Dict[str, Tuple[object, ...]]:
+    if not search_space:
+        raise ValueError("search_space must contain at least one hyperparameter")
+
+    normalized: Dict[str, Tuple[object, ...]] = {}
+    for key, values in search_space.items():
+        if values is None:
+            raise ValueError(f"search_space[{key!r}] cannot be None")
+
+        materialized = tuple(values)
+        if not materialized:
+            raise ValueError(f"search_space[{key!r}] must provide at least one value")
+
+        normalized[key] = materialized
+
+    return normalized
+
+
 def optimize_trading_stack(
     snapshots: Sequence[MarketSnapshot],
     search_space: Mapping[str, Iterable],
@@ -179,6 +299,7 @@ def optimize_trading_stack(
     state_store: Optional[StateStore] = None,
     health_monitor: Optional[HealthMonitor] = None,
     advisor: "TradeAdvisor" | None = None,
+    previous_plan: Optional["OptimizationPlan"] = None,
 ) -> OptimizationPlan:
     """Execute the optimisation tasks recommended by the trading playbook."""
 
@@ -186,18 +307,40 @@ def optimize_trading_stack(
     if not snapshot_list:
         raise ValueError("snapshots must be a non-empty sequence")
 
-    pipeline = _prepare_pipeline(snapshot_list)
-    pipeline_state = pipeline.state_dict()
-    insights = _aggregate_insights(snapshot_list)
+    fingerprint = _fingerprint_snapshots(snapshot_list)
+    normalized_space = _normalize_search_space(search_space)
+    reuse_pipeline = previous_plan is not None and previous_plan.fingerprint == fingerprint
 
-    base = base_config or TradeConfig()
+    if reuse_pipeline:
+        cached_state = previous_plan.pipeline_state
+        if cached_state:
+            pipeline = _prepare_pipeline(snapshot_list, state=cached_state)
+            pipeline_state = copy.deepcopy(cached_state)
+        else:
+            pipeline = _prepare_pipeline(snapshot_list)
+            pipeline_state = pipeline.state_dict()
+        insights = replace(previous_plan.insights)
+    else:
+        pipeline = _prepare_pipeline(snapshot_list)
+        pipeline_state = pipeline.state_dict()
+        insights = _aggregate_insights(snapshot_list)
+
+    if base_config is not None:
+        base = replace(base_config)
+    elif previous_plan is not None:
+        base = replace(previous_plan.best_config)
+    else:
+        base = TradeConfig()
     tuned_config = _tune_trade_config(base, insights)
 
-    risk_params = _calibrate_risk_parameters(snapshot_list, risk_parameters)
+    effective_risk_params = risk_parameters
+    if effective_risk_params is None and previous_plan is not None:
+        effective_risk_params = previous_plan.risk_manager.params
+    risk_params = _calibrate_risk_parameters(snapshot_list, effective_risk_params)
 
     search = HyperparameterSearch(
         snapshot_list,
-        dict(search_space),
+        normalized_space,
         base_config=tuned_config,
         scoring=scoring,
         initial_equity=initial_equity,
@@ -231,6 +374,8 @@ def optimize_trading_stack(
         trade_logic=trade_logic,
         realtime_executor=realtime_executor,
         insights=insights,
+        fingerprint=fingerprint,
+        reused_pipeline=reuse_pipeline,
     )
 
 
@@ -248,6 +393,7 @@ def run_review_and_optimize(
     state_store: Optional[StateStore] = None,
     health_monitor: Optional[HealthMonitor] = None,
     advisor: "TradeAdvisor" | None = None,
+    previous_run: Optional[ReviewOptimizationRun] = None,
 ) -> ReviewOptimizationRun:
     """Run a review synthesis followed by an optimisation cycle."""
 
@@ -270,12 +416,14 @@ def run_review_and_optimize(
         state_store=state_store,
         health_monitor=health_monitor,
         advisor=advisor,
+        previous_plan=previous_run.optimization if previous_run else None,
     )
 
     return ReviewOptimizationRun(review=review_report, optimization=optimization_plan)
 
 
 __all__ = [
+    "SnapshotFingerprint",
     "OptimizationInsights",
     "OptimizationPlan",
     "ReviewOptimizationRun",
