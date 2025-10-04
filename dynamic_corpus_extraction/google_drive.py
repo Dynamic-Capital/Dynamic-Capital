@@ -404,6 +404,27 @@ def _coerce_positive_int(value: object) -> int | None:
     return candidate
 
 
+def _normalise_identifier_set(values: Sequence[object] | object | None) -> set[str]:
+    """Return a set of cleaned identifiers from ``values``."""
+
+    if values is None:
+        return set()
+    if isinstance(values, str):
+        cleaned = values.strip()
+        return {cleaned} if cleaned else set()
+    try:
+        iterator = iter(values)  # type: ignore[arg-type]
+    except TypeError:
+        single = str(values).strip()
+        return {single} if single else set()
+    cleaned: set[str] = set()
+    for entry in iterator:
+        text = str(entry).strip()
+        if text:
+            cleaned.add(text)
+    return cleaned
+
+
 def build_google_drive_pdf_loader(
     *,
     share_link: str | None = None,
@@ -422,6 +443,7 @@ def build_google_drive_pdf_loader(
     ocr_dpi: int = 300,
     include_docx: bool = False,
     docx_text_extractor: Callable[[bytes, Mapping[str, object]], str] | None = None,
+    skip_file_ids: Sequence[str] | None = None,
 ) -> ExtractionLoader:
     """Create a loader that streams Google Drive PDFs as corpus documents.
 
@@ -429,7 +451,8 @@ def build_google_drive_pdf_loader(
     pages and running them through Tesseract OCR whenever text extraction
     yields empty results.  This allows the pipeline to capture scanned
     documents while still preferring the faster embedded text path when
-    available.
+    available. Set ``skip_file_ids`` to ignore previously processed Drive
+    files when resuming an extraction run.
     """
 
     resolved_folder: str | None = folder_id.strip() if folder_id else None
@@ -438,6 +461,7 @@ def build_google_drive_pdf_loader(
         for file_id in file_ids or []
         if file_id and file_id.strip()
     ]
+    configured_skip_file_ids = _normalise_identifier_set(skip_file_ids)
 
     if share_link:
         target_type, identifier = parse_drive_share_link(share_link)
@@ -564,6 +588,12 @@ def build_google_drive_pdf_loader(
         )
         if effective_batch_size > 1000:
             effective_batch_size = 1000
+        skip_file_id_set = set(configured_skip_file_ids)
+        try:
+            metadata_skip_ids = context.metadata.get("skip_file_ids")
+        except AttributeError:  # pragma: no cover - custom mappings without get
+            metadata_skip_ids = None
+        skip_file_id_set.update(_normalise_identifier_set(metadata_skip_ids))
 
         def _batched(iterator: Iterable[MutableMapping[str, object]]) -> Iterator[list[MutableMapping[str, object]]]:
             batch: list[MutableMapping[str, object]] = []
@@ -583,7 +613,7 @@ def build_google_drive_pdf_loader(
             if _should_stop():
                 return
             file_id = str(metadata.get("id") or "").strip()
-            if not file_id or file_id in seen_ids:
+            if not file_id or file_id in skip_file_id_set or file_id in seen_ids:
                 return
             seen_ids.add(file_id)
             mime_type = str(metadata.get("mimeType") or "")

@@ -116,6 +116,17 @@ def _parse_args() -> argparse.Namespace:
         help="Optional path to export the extracted documents as JSONL.",
     )
     parser.add_argument(
+        "--continue-from",
+        dest="continue_from",
+        action="append",
+        default=None,
+        help=(
+            "Path to an existing documents JSONL export whose file IDs should be "
+            "skipped during this run. Provide multiple times to merge several "
+            "previous exports."
+        ),
+    )
+    parser.add_argument(
         "--output",
         "-o",
         default="data/google_drive_corpus_summary.json",
@@ -205,6 +216,47 @@ def _parse_metadata(pairs: Sequence[str] | None) -> MutableMapping[str, object]:
     return metadata
 
 
+def _load_processed_file_ids(paths: Sequence[str] | None) -> set[str]:
+    file_ids: set[str] = set()
+    for path in paths or ():
+        file_path = Path(path)
+        if not file_path.exists():
+            raise SystemExit(f"Continue-from documents file '{path}' does not exist")
+        loaded = 0
+        with file_path.open("r", encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                try:
+                    payload = json.loads(stripped)
+                except json.JSONDecodeError as error:
+                    LOGGER.warning(
+                        "Skipping malformed JSON at %s line %s: %s",
+                        file_path,
+                        line_number,
+                        error,
+                    )
+                    continue
+                metadata = payload.get("metadata")
+                if not isinstance(metadata, Mapping):
+                    continue
+                file_id = metadata.get("file_id")
+                if not file_id:
+                    continue
+                cleaned = str(file_id).strip()
+                if cleaned:
+                    if cleaned not in file_ids:
+                        loaded += 1
+                    file_ids.add(cleaned)
+        LOGGER.info(
+            "Loaded %s previously processed file ID(s) from %s",
+            loaded,
+            file_path,
+        )
+    return file_ids
+
+
 def discover_agent_domains() -> tuple[str, ...]:
     import dynamic_agents
 
@@ -248,6 +300,7 @@ def _register_drive_source(
     batch_size: int | None,
     pages_per_document: int,
     max_file_size: int | None,
+    skip_file_ids: Sequence[str],
 ) -> Mapping[str, object]:
     target_type, identifier = parse_drive_share_link(share_link)
     source_name = _make_source_name(len(engine.list_sources()) + 1, target_type, identifier)
@@ -263,6 +316,7 @@ def _register_drive_source(
         batch_size=batch_size,
         page_batch_size=pages_per_document,
         max_file_size=max_file_size,
+        skip_file_ids=skip_file_ids,
     )
     metadata = {
         "share_link": share_link,
@@ -282,6 +336,13 @@ def _run_extraction(args: argparse.Namespace) -> None:
 
     api_key, access_token = _resolve_credentials(args)
 
+    skip_file_ids = _load_processed_file_ids(args.continue_from)
+    if skip_file_ids:
+        LOGGER.info(
+            "Skipping %s previously processed Google Drive file(s)",
+            len(skip_file_ids),
+        )
+
     engine = DynamicCorpusExtractionEngine()
     for link in share_links:
         metadata = _register_drive_source(
@@ -296,12 +357,15 @@ def _run_extraction(args: argparse.Namespace) -> None:
             batch_size=args.batch_size,
             pages_per_document=args.pages_per_document,
             max_file_size=args.max_file_size,
+            skip_file_ids=tuple(skip_file_ids),
         )
         LOGGER.info("Registered Google Drive source %s", metadata["identifier"])
 
     run_metadata = _parse_metadata(args.metadata_pairs)
     run_metadata.setdefault("share_links", tuple(share_links))
     run_metadata.setdefault("share_link_count", len(share_links))
+    if skip_file_ids:
+        run_metadata.setdefault("skip_file_ids", tuple(sorted(skip_file_ids)))
 
     summary = engine.extract(limit=args.limit, metadata=run_metadata)
     _display_summary(summary)
