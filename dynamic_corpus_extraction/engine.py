@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -68,6 +69,32 @@ class CorpusExtractionSummary:
             "source_statistics": dict(self.source_statistics),
             "duplicate_count": self.duplicate_count,
             "elapsed_seconds": self.elapsed_seconds,
+            "contexts": self.group_by_context(),
+        }
+
+    def group_by_context(self) -> MutableMapping[str, MutableMapping[str, object]]:
+        """Organise extracted documents by contextual domain.
+
+        The organisation strategy prioritises metadata fields such as
+        ``context``/``category`` and falls back to semantic matches on tags.
+        Each group aggregates the exported document payloads alongside the
+        unique tag surface for discoverability.
+        """
+
+        grouped: dict[str, dict[str, object]] = {}
+        for document in self.documents:
+            payload = document.as_payload()
+            for context in _extract_document_contexts(document):
+                bucket = grouped.setdefault(context, {"documents": [], "tags": set()})
+                bucket["documents"].append(payload)
+                bucket["tags"].update(payload["tags"])
+                bucket["tags"].update(_extract_metadata_tags(document.metadata))
+        return {
+            name: {
+                "documents": bucket["documents"],
+                "tags": sorted(bucket["tags"]),
+            }
+            for name, bucket in grouped.items()
         }
 
     def export_jsonl(self, path: str | Path, *, ensure_ascii: bool = False) -> int:
@@ -337,3 +364,114 @@ def _normalise_metadata(metadata: object) -> MutableMapping[str, object]:
     if isinstance(metadata, Mapping):
         return dict(metadata)
     raise TypeError("metadata must be a mapping if provided")
+
+
+_CONTEXT_KEYWORDS: Mapping[str, tuple[str, ...]] = {
+    "context": ("context", "general"),
+    "business": ("business", "biz", "corporate", "commerce", "enterprise"),
+    "accounting": ("accounting", "bookkeeping", "ledger"),
+    "psychology": ("psychology", "psychological", "cognitive", "behavioral"),
+    "trading": ("trading", "trade", "market"),
+    "finance": ("finance", "financial", "invest", "investment", "capital"),
+}
+
+_METADATA_CONTEXT_KEYS: tuple[str, ...] = (
+    "context",
+    "contexts",
+    "category",
+    "categories",
+    "domain",
+    "domains",
+    "topic",
+    "topics",
+    "industry",
+    "industries",
+)
+
+
+def _extract_document_contexts(document: CorpusDocument) -> tuple[str, ...]:
+    contexts: list[str] = []
+    seen: set[str] = set()
+
+    def register(values: object) -> None:
+        for label in _iter_context_labels(values):
+            if label not in seen:
+                seen.add(label)
+                contexts.append(label)
+
+    for key in _METADATA_CONTEXT_KEYS:
+        if key in document.metadata:
+            register(document.metadata[key])
+    register(document.tags)
+
+    if not contexts:
+        return ("context",)
+    return tuple(contexts)
+
+
+def _iter_context_labels(values: object) -> Iterable[str]:
+    if values is None:
+        return ()
+    if isinstance(values, str):
+        return tuple(label for label in _split_context_string(values) if label)
+    if isinstance(values, Mapping):
+        labels: list[str] = []
+        for entry in values.values():
+            labels.extend(_iter_context_labels(entry))
+        return tuple(labels)
+    if isinstance(values, Sequence) and not isinstance(values, (bytes, bytearray)):
+        labels: list[str] = []
+        for entry in values:
+            labels.extend(_iter_context_labels(entry))
+        return tuple(labels)
+    return tuple(label for label in _split_context_string(str(values)) if label)
+
+
+def _split_context_string(value: str) -> Iterable[str]:
+    parts = [segment for segment in re.split(r"[;,/|\n]+", value) if segment.strip()]
+    for segment in parts or [value]:
+        normalised = _normalise_context_label(segment)
+        if normalised:
+            yield normalised
+
+
+def _normalise_context_label(value: str) -> str | None:
+    candidate = value.strip().lower()
+    if not candidate:
+        return None
+    for canonical, keywords in _CONTEXT_KEYWORDS.items():
+        if any(keyword in candidate for keyword in keywords):
+            return canonical
+    return candidate
+
+
+_METADATA_TAG_KEYS: tuple[str, ...] = ("tags", "labels", "keywords")
+
+
+def _extract_metadata_tags(metadata: Mapping[str, object]) -> Iterable[str]:
+    collected: list[str] = []
+    for key in _METADATA_TAG_KEYS:
+        if key not in metadata:
+            continue
+        value = metadata[key]
+        if isinstance(value, str):
+            candidate = value.strip().lower()
+            if candidate:
+                collected.append(candidate)
+            continue
+        if isinstance(value, Mapping):
+            for entry in value.values():
+                collected.extend(_extract_metadata_tags({key: entry}))
+            continue
+        if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
+            for entry in value:
+                if isinstance(entry, str):
+                    candidate = entry.strip().lower()
+                    if candidate:
+                        collected.append(candidate)
+                elif entry:
+                    collected.append(str(entry).strip().lower())
+            continue
+        if value:
+            collected.append(str(value).strip().lower())
+    return tuple(dict.fromkeys(filter(None, collected)))

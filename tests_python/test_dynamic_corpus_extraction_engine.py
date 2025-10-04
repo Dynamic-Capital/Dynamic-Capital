@@ -131,3 +131,49 @@ def test_configurable_deduplication_fields() -> None:
 def test_invalid_deduplicate_field_configuration() -> None:
     with pytest.raises(ValueError):
         DynamicCorpusExtractionEngine(deduplicate_fields=("identifier", "unknown"))
+
+
+def test_summary_groups_documents_by_context_and_tags() -> None:
+    engine = DynamicCorpusExtractionEngine()
+
+    def loader(context):
+        yield {
+            "identifier": "biz-1",
+            "content": "Business insight",
+            "metadata": {
+                "context": "Business Strategy",
+                "tags": ["Enterprise", "Capital"],
+            },
+            "tags": ["Business", "Finance"],
+        }
+        yield {
+            "identifier": "psy-1",
+            "content": "Cognitive patterns",
+            "metadata": {
+                "category": ["Psychology", "Behavioral Science"],
+                "keywords": ["Cognitive"],
+            },
+            "tags": ["Psychology"],
+        }
+        yield {
+            "identifier": "misc-1",
+            "content": "General reference",
+        }
+
+    engine.register_source("alpha", loader)
+
+    summary = engine.extract()
+
+    grouped = summary.group_by_context()
+
+    assert set(grouped) == {"business", "finance", "psychology", "context"}
+    assert [doc["identifier"] for doc in grouped["business"]["documents"]] == ["biz-1"]
+    assert grouped["business"]["tags"] == ["business", "capital", "enterprise", "finance"]
+    assert [doc["identifier"] for doc in grouped["finance"]["documents"]] == ["biz-1"]
+    assert grouped["finance"]["tags"] == ["business", "capital", "enterprise", "finance"]
+    assert grouped["psychology"]["tags"] == ["cognitive", "psychology"]
+    assert [doc["identifier"] for doc in grouped["context"]["documents"]] == ["misc-1"]
+
+    summary_payload = summary.as_dict()
+    assert "contexts" in summary_payload
+    assert summary_payload["contexts"]["business"]["documents"][0]["identifier"] == "biz-1"
