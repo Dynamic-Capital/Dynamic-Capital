@@ -6,6 +6,7 @@ from dynamic_trading_language import (
     MarketNarrative,
     OrderFlowSignal,
     TradeIntent,
+    get_trading_discipline,
 )
 
 
@@ -144,6 +145,34 @@ def test_strong_flow_tagging() -> None:
 
     assert "FLOW_STRONG" in narrative.tags
     assert narrative.confidence > 0.4
+
+
+def test_discipline_context_in_narrative() -> None:
+    model = DynamicTradingLanguageModel()
+    intent = TradeIntent(
+        instrument="AAPL",
+        direction="long",
+        conviction=0.58,
+        timeframe="Swing",
+        catalysts=("AI product refresh",),
+    )
+
+    narrative = model.generate_narrative(
+        intent,
+        discipline="Dynamic Trading Applied Sciences",
+        discipline_focus=("Dynamic Engineering", "Dynamic Computer Science (Applied)"),
+    )
+
+    assert narrative.discipline is not None
+    assert narrative.discipline is get_trading_discipline("Dynamic Trading Applied Sciences")
+    assert narrative.discipline_subjects == (
+        "Dynamic Engineering",
+        "Dynamic Computer Science (Applied)",
+    )
+    assert "Dynamic Trading Applied Sciences" in narrative.thesis
+    assert "Dynamic Engineering" in narrative.thesis
+    assert "DYNAMIC TRADING APPLIED SCIENCES" in narrative.tags
+    assert "DYNAMIC ENGINEERING" in narrative.tags
 
 
 def test_market_narrative_markdown_rendering() -> None:
