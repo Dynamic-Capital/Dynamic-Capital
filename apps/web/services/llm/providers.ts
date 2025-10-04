@@ -33,7 +33,7 @@ type ProviderInvokeInput = Omit<ChatRequest, "providerId">;
 
 const ANTHROPIC_VERSION = "2023-06-01";
 
-const providerDefinitions: ProviderDefinition[] = [
+const coreProviderDefinitions: ProviderDefinition[] = [
   {
     id: "dynamic-ai",
     name: "Dynamic AI",
@@ -266,6 +266,110 @@ const providerDefinitions: ProviderDefinition[] = [
   },
 ];
 
+type OpenSourceProviderId =
+  | "llama-cpp"
+  | "vllm"
+  | "text-generation-inference";
+
+interface OpenSourceProviderInfo {
+  id: OpenSourceProviderId;
+  name: string;
+  description: string;
+  summary: string;
+  defaultModel: string;
+  contextWindow: number;
+  maxOutputTokens: number;
+  enablementSteps: readonly string[];
+}
+
+const OPEN_SOURCE_PROVIDERS = [
+  {
+    id: "llama-cpp",
+    name: "llama.cpp",
+    description: "Run GGUF models locally with CPU or GPU acceleration.",
+    summary:
+      "Self-host llama.cpp to keep experimentation offline while benchmarking prompts before production hand-off.",
+    defaultModel: "llama-3.1-8b-instruct",
+    contextWindow: 8_192,
+    maxOutputTokens: 1_024,
+    enablementSteps: [
+      "Build llama.cpp and download a GGUF checkpoint (for example `./main -m models/llama-3.1-8b-instruct.Q4_K_M.gguf`).",
+      "Launch the HTTP server: `./server -m models/llama-3.1-8b-instruct.Q4_K_M.gguf --host 0.0.0.0 --port 8080 --ctx-size 8192`.",
+      "Point the Multi-LLM Studio integration at the running endpoint or adapt this handler to stream completions from it.",
+    ],
+  },
+  {
+    id: "vllm",
+    name: "vLLM",
+    description:
+      "Open-source, OpenAI-compatible server optimised for high-throughput inference.",
+    summary:
+      "Deploy vLLM when you need production-grade batching, paged attention, and an OpenAI-compatible API surface.",
+    defaultModel: "meta-llama/Meta-Llama-3-8B-Instruct",
+    contextWindow: 32_768,
+    maxOutputTokens: 2_048,
+    enablementSteps: [
+      "Install vLLM (`pip install vllm`) and download your preferred weights.",
+      "Start the server: `python -m vllm.entrypoints.openai.api_server --model meta-llama/Meta-Llama-3-8B-Instruct --port 8000`.",
+      "Update the studio configuration to call the vLLM endpoint or replace this stub with direct client logic.",
+    ],
+  },
+  {
+    id: "text-generation-inference",
+    name: "Text Generation Inference",
+    description:
+      "Hugging Face's containerised inference stack with tensor parallelism.",
+    summary:
+      "Use Text Generation Inference (TGI) for container-native deployments that expose a robust REST/gRPC API.",
+    defaultModel: "meta-llama/Meta-Llama-3-8B-Instruct",
+    contextWindow: 16_384,
+    maxOutputTokens: 2_048,
+    enablementSteps: [
+      "Run the official container: `docker run -it --rm -p 8080:80 ghcr.io/huggingface/text-generation-inference:latest --model-id meta-llama/Meta-Llama-3-8B-Instruct`.",
+      "Verify the health endpoint (`curl http://localhost:8080/health`) before wiring it into workflows.",
+      "Swap this demo handler for a call to your TGI deployment to stream live completions.",
+    ],
+  },
+] as const satisfies readonly OpenSourceProviderInfo[];
+
+function createOpenSourceProviderDefinition(
+  info: OpenSourceProviderInfo,
+): ProviderDefinition {
+  return {
+    id: info.id,
+    name: info.name,
+    description: info.description,
+    defaultModel: info.defaultModel,
+    contextWindow: info.contextWindow,
+    maxOutputTokens: info.maxOutputTokens,
+    requiresConfiguration: false,
+    async invoke(
+      { messages, language },
+    ): Promise<Omit<ChatResult, "provider">> {
+      const promptSummary = summarizeLatestUserPrompt(messages);
+      const content = buildOpenSourceEnablementMessage(
+        info,
+        promptSummary,
+        language,
+      );
+      return {
+        message: { role: "assistant", content },
+        rawResponse: {
+          demo: true,
+          provider: info.id,
+          promptSummary,
+          enablementSteps: info.enablementSteps,
+        },
+      } satisfies Omit<ChatResult, "provider">;
+    },
+  } satisfies ProviderDefinition;
+}
+
+const providerDefinitions: ProviderDefinition[] = [
+  ...coreProviderDefinitions,
+  ...OPEN_SOURCE_PROVIDERS.map(createOpenSourceProviderDefinition),
+];
+
 interface AnthropicMessageRequest {
   model: string;
   max_tokens: number;
@@ -308,6 +412,66 @@ interface OpenAIChatResponse {
     completion_tokens?: number;
     total_tokens?: number;
   };
+}
+
+const OPEN_SOURCE_PROMPT_WINDOW = 320;
+
+function summarizeLatestUserPrompt(
+  messages: ChatMessage[],
+): string | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message.role !== "user") {
+      continue;
+    }
+    const trimmed = message.content.trim();
+    if (trimmed.length === 0) {
+      continue;
+    }
+    return trimmed;
+  }
+  return null;
+}
+
+function truncate(value: string, maxLength: number): string {
+  if (value.length <= maxLength) {
+    return value;
+  }
+  const sliceEnd = Math.max(0, maxLength - 1);
+  return `${value.slice(0, sliceEnd).trimEnd()}…`;
+}
+
+function formatEnablementSteps(steps: readonly string[]): string {
+  return steps
+    .map((step, index) => `${index + 1}. ${step}`)
+    .join("\n");
+}
+
+function buildOpenSourceEnablementMessage(
+  info: OpenSourceProviderInfo,
+  promptSummary: string | null,
+  language?: string,
+): string {
+  const header = `🧩 ${info.name} open-source adapter (demo)`;
+  const summaryLine = info.summary;
+  const promptLine = promptSummary
+    ? `Prompt focus: ${truncate(promptSummary, OPEN_SOURCE_PROMPT_WINDOW)}`
+    : "Prompt focus: awaiting a user prompt.";
+  const languageLine = language ? `Requested language hint: ${language}` : null;
+  const enablement = formatEnablementSteps(info.enablementSteps);
+  const enablementBlock = `Enable locally:\n${enablement}`;
+  const closingNote =
+    "After your runtime is online, update the Multi-LLM Studio integration to forward requests directly to the service so this demo response is replaced with live completions.";
+
+  return [
+    header,
+    summaryLine,
+    [promptLine, languageLine].filter(Boolean).join("\n"),
+    enablementBlock,
+    closingNote,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 function normalizeMessages(messages: ChatMessage[]): {

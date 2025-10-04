@@ -27,7 +27,10 @@ export type ProviderId =
   | "dynamic-ags"
   | "openai"
   | "anthropic"
-  | "groq";
+  | "groq"
+  | "llama-cpp"
+  | "vllm"
+  | "text-generation-inference";
 
 export interface ChatRequest {
   providerId: ProviderId;
