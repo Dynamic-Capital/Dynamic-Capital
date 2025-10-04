@@ -116,12 +116,10 @@ def _collect_new_examples(
 ) -> tuple[FineTuneExample, ...]:
     if not snapshots:
         return ()
-    before_count = len(tuner.dataset.snapshot())
-    tuner.ingest_snapshots(snapshots)
-    dataset_snapshot = tuner.dataset.snapshot()
-    if before_count >= len(dataset_snapshot):
+    added = tuner.ingest_snapshots(snapshots)
+    if added <= 0:
         return ()
-    return tuple(dataset_snapshot[before_count:])
+    return tuner.dataset.tail(added)
 
 
 def _payload_from_example(

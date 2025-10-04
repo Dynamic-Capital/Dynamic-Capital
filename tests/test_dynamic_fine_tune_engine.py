@@ -12,7 +12,11 @@ if "dynamic.trading.algo.dynamic_metadata" not in sys.modules:
     stub.MetadataAttribute = type("MetadataAttribute", (), {})
     sys.modules["dynamic.trading.algo.dynamic_metadata"] = stub
 
-from dynamic.intelligence.agi.fine_tune import DynamicAGIFineTuner
+from dynamic.intelligence.agi.fine_tune import (
+    DynamicAGIFineTuner,
+    DynamicFineTuneDataset,
+    FineTuneExample,
+)
 from dynamic.intelligence.agi.self_improvement import ImprovementSignal, LearningSnapshot
 from dynamic_benchmark.gradebook import KnowledgeBaseMetrics
 from dynamic_fine_tune_engine import (
@@ -152,6 +156,21 @@ def test_capacity_evicts_oldest_records() -> None:
 
     assert len(recent) == 2
     assert {record.source for record in recent} == {"product", "platform"}
+
+
+def test_dataset_tail_returns_latest_records() -> None:
+    dataset = DynamicFineTuneDataset(capacity=2)
+    example_one = FineTuneExample(prompt="p1", completion="c1")
+    example_two = FineTuneExample(prompt="p2", completion="c2")
+    example_three = FineTuneExample(prompt="p3", completion="c3")
+
+    dataset.add(example_one)
+    dataset.add(example_two)
+    dataset.add(example_three)
+
+    assert dataset.tail(2) == (example_two, example_three)
+    assert dataset.tail(5) == (example_two, example_three)
+    assert dataset.tail(0) == ()
 
 
 def test_builder_and_helper_coordinate_with_model() -> None:

@@ -193,6 +193,16 @@ class DynamicFineTuneDataset:
     def export(self) -> List[Dict[str, Any]]:
         return [example.to_dict() for example in self._examples]
 
+    def tail(self, count: int) -> Tuple[FineTuneExample, ...]:
+        """Return up to ``count`` most recently ingested examples."""
+
+        if count <= 0 or not self._examples:
+            return ()
+
+        limit = min(count, len(self._examples))
+        start = len(self._examples) - limit
+        return tuple(islice(self._examples, start, None))
+
     def stats(self) -> Dict[str, Any]:
         count = len(self._examples)
         average_characters = (self._total_characters / count) if count else 0.0
