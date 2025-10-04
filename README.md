@@ -229,6 +229,12 @@ Explore the broader platform anatomy and contributor guides:
   CI/CD and runtime topology across GitHub, Vercel, Supabase, DigitalOcean, and
   TON.
 - [Dynamic AI overview](docs/dynamic-ai-overview.md)
+- [Dynamic translation engine guide](docs/dynamic_translation_engine.md) — batch
+  vs streaming helpers, glossary integration, and operational tips.
+- [Dynamic translation rollout plan](docs/dynamic_translation_rollout_plan.md)
+  — communication playbook and feedback loop for localisation stakeholders.
+- [LOC-STREAM tracker snapshot](docs/dynamic_translation_loc_stream_snapshot.md)
+  — rollout execution log and open remediation owners.
 - [Dynamic Trading ALGO vs LOGIC](docs/dynamic-trading-algo-vs-logic.md)
 - [Model intelligence & infrastructure reference](docs/model-intelligence-infrastructure-reference.md)
 - [Protocol layering framework](docs/dynamic_protocol_layers.md)

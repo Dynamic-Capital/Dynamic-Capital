@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Iterable
+
 import pytest
 
 from dynamic_translation.engine import (
@@ -118,3 +120,84 @@ def test_engine_uses_fallback_translator_when_memory_misses() -> None:
     assert result.applied_memory is None
     assert result.translated_text.startswith("[en->fr]")
     assert recorder.calls == [("Launch the treasury dashboard", "en", "fr")]
+
+
+def test_engine_translate_batch_processes_all_requests() -> None:
+    recorder = _Recorder()
+    engine = DynamicTranslationEngine(
+        supported_languages=("en", "fr"),
+        translator=recorder,
+        memory=TranslationMemory((_memory_entry(),)),
+    )
+
+    requests = (
+        TranslationRequest(
+            text="Launch the Dynamic Capital playbook.",
+            source_language="en",
+            target_language="fr",
+        ),
+        TranslationRequest(
+            text="Launch the treasury dashboard",
+            source_language="en",
+            target_language="fr",
+        ),
+    )
+
+    results = engine.translate_batch(requests)
+
+    assert isinstance(results, tuple)
+    assert len(results) == 2
+    assert results[0].applied_memory is not None
+    assert results[1].applied_memory is None
+    assert recorder.calls == [
+        ("Launch the Dynamic Capital playbook.", "en", "fr"),
+        ("Launch the treasury dashboard", "en", "fr"),
+    ]
+
+
+def test_engine_translate_stream_is_lazy() -> None:
+    recorder = _Recorder()
+    engine = DynamicTranslationEngine(
+        supported_languages=("en", "fr"),
+        translator=recorder,
+        memory=TranslationMemory((_memory_entry(),)),
+    )
+
+    generated = 0
+
+    def request_iter() -> Iterable[TranslationRequest]:
+        nonlocal generated
+
+        for text in (
+            "Launch the Dynamic Capital playbook.",
+            "Launch the treasury dashboard",
+        ):
+            generated += 1
+            yield TranslationRequest(
+                text=text,
+                source_language="en",
+                target_language="fr",
+            )
+
+    stream = engine.translate_stream(request_iter())
+
+    assert recorder.calls == []
+    assert generated == 0
+
+    first = next(stream)
+
+    assert first.applied_memory is not None
+    assert recorder.calls == [("Launch the Dynamic Capital playbook.", "en", "fr")]
+    assert generated == 1
+
+    second = next(stream)
+
+    assert second.applied_memory is None
+    assert recorder.calls == [
+        ("Launch the Dynamic Capital playbook.", "en", "fr"),
+        ("Launch the treasury dashboard", "en", "fr"),
+    ]
+    assert generated == 2
+
+    with pytest.raises(StopIteration):
+        next(stream)

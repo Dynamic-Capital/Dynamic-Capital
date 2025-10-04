@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, Iterable, Sequence
+from typing import Callable, Iterable, Iterator, Sequence
 
 from .model import (
     DynamicTranslationModel,
@@ -92,6 +92,21 @@ class DynamicTranslationEngine:
         """Clear cached translator outputs on the model."""
 
         self.model.clear_cache()
+
+    def translate_stream(
+        self, requests: Iterable[TranslationRequest]
+    ) -> Iterator[TranslationResult]:
+        """Yield translations lazily for each request in ``requests``."""
+
+        for request in requests:
+            yield self.translate(request)
+
+    def translate_batch(
+        self, requests: Iterable[TranslationRequest]
+    ) -> tuple[TranslationResult, ...]:
+        """Translate an iterable of ``requests`` and return the aggregated results."""
+
+        return tuple(self.translate_stream(requests))
 
     def _clone_model(self) -> DynamicTranslationModel:
         return DynamicTranslationModel(
