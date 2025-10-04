@@ -8,6 +8,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from dynamic_corpus_extraction import CorpusExtractionContext  # noqa: E402
 from dynamic_corpus_extraction.google_drive import (  # noqa: E402
+    CorruptedPdfError,
     build_google_drive_pdf_loader,
     parse_drive_share_link,
 )
@@ -116,6 +117,11 @@ def test_loader_streams_folder_documents():
     assert document["metadata"]["source_folder_id"] == "folder"
     assert document["metadata"]["md5_checksum"] == "hash-1"
     assert document["metadata"]["web_view_link"].startswith("https://drive.google.com")
+    assert document["metadata"]["checkpoint"] == {
+        "file_id": "doc-1",
+        "mime_type": "application/pdf",
+        "completed": True,
+    }
 
 
 def test_loader_streams_docx_documents():
@@ -145,6 +151,7 @@ def test_loader_streams_docx_documents():
     assert document["content"] == "docx-text"
     assert document["tags"] == ("google_drive", "docx")
     assert document["metadata"]["mime_type"] == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    assert "checkpoint" not in document["metadata"]
     assert client.iter_calls[0][1] == (
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -184,6 +191,11 @@ def test_loader_respects_limits_and_size_filters():
     assert len(documents) == 1
     assert documents[0]["identifier"] == "google-drive-ok"
     assert client.download_calls == ["ok"]
+    assert documents[0]["metadata"]["checkpoint"] == {
+        "file_id": "ok",
+        "mime_type": "application/pdf",
+        "completed": True,
+    }
 
 
 def test_loader_fetches_explicit_files():
@@ -212,6 +224,11 @@ def test_loader_fetches_explicit_files():
     assert client.metadata_calls == [("file-1", "id, name, mimeType, modifiedTime, size, md5Checksum, webViewLink")]
     assert client.download_calls == ["file-1"]
     assert documents[0]["metadata"]["source_file_ids"] == ("file-1",)
+    assert documents[0]["metadata"]["checkpoint"] == {
+        "file_id": "file-1",
+        "mime_type": "application/pdf",
+        "completed": True,
+    }
 
 
 def test_loader_skips_configured_file_ids():
@@ -246,6 +263,11 @@ def test_loader_skips_configured_file_ids():
 
     assert [doc["identifier"] for doc in documents] == ["google-drive-keep-me"]
     assert client.download_calls == ["keep-me"]
+    assert documents[0]["metadata"]["checkpoint"] == {
+        "file_id": "keep-me",
+        "mime_type": "application/pdf",
+        "completed": True,
+    }
 
 
 def test_loader_skips_metadata_file_ids():
@@ -283,6 +305,11 @@ def test_loader_skips_metadata_file_ids():
 
     assert [doc["identifier"] for doc in documents] == ["google-drive-meta-keep"]
     assert client.download_calls == ["meta-keep"]
+    assert documents[0]["metadata"]["checkpoint"] == {
+        "file_id": "meta-keep",
+        "mime_type": "application/pdf",
+        "completed": True,
+    }
 
 
 def test_loader_uses_ocr_fallback(monkeypatch):
@@ -325,6 +352,11 @@ def test_loader_uses_ocr_fallback(monkeypatch):
 
     assert documents[0]["content"] == "ocr-text"
     assert client.download_calls == ["ocr"]
+    assert documents[0]["metadata"]["checkpoint"] == {
+        "file_id": "ocr",
+        "mime_type": "application/pdf",
+        "completed": True,
+    }
 
 
 def test_loader_batches_pages_when_configured():
@@ -367,11 +399,25 @@ def test_loader_batches_pages_when_configured():
     assert first_metadata["total_batches"] == 3
     assert first_metadata["pages_per_batch"] == 2
     assert documents[0]["content"] == "Page 1\n\nPage 2"
+    assert first_metadata["checkpoint"] == {
+        "file_id": "batched",
+        "mime_type": "application/pdf",
+        "last_page": 2,
+        "total_pages": 5,
+        "completed": False,
+    }
 
     last_metadata = documents[-1]["metadata"]
     assert last_metadata["page_start"] == 5
     assert last_metadata["page_end"] == 5
     assert last_metadata["page_count"] == 1
+    assert last_metadata["checkpoint"] == {
+        "file_id": "batched",
+        "mime_type": "application/pdf",
+        "last_page": 5,
+        "total_pages": 5,
+        "completed": True,
+    }
 
     limited_context = CorpusExtractionContext(source="google_drive", limit=2, metadata={})
     limited_documents = list(loader(limited_context))
@@ -415,6 +461,20 @@ def test_loader_batches_pages_with_default_extractor(monkeypatch):
     assert documents[0]["metadata"]["page_count"] == 2
     assert documents[1]["content"] == "Gamma"
     assert documents[1]["metadata"]["total_pages"] == 3
+    assert documents[0]["metadata"]["checkpoint"] == {
+        "file_id": "default",
+        "mime_type": "application/pdf",
+        "last_page": 2,
+        "total_pages": 3,
+        "completed": False,
+    }
+    assert documents[1]["metadata"]["checkpoint"] == {
+        "file_id": "default",
+        "mime_type": "application/pdf",
+        "last_page": 3,
+        "total_pages": 3,
+        "completed": True,
+    }
 
 
 def test_loader_requires_sequence_for_page_batching():
@@ -439,3 +499,31 @@ def test_loader_requires_sequence_for_page_batching():
     context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
     with pytest.raises(RuntimeError, match="sequence of page texts"):
         list(loader(context))
+
+
+def test_loader_skips_corrupted_pdfs():
+    client = FakeDriveClient(
+        folder_entries=[
+            {
+                "id": "broken",
+                "name": "Broken.pdf",
+                "mimeType": "application/pdf",
+            }
+        ],
+        file_payloads={"broken": b"payload"},
+    )
+
+    def corrupted_extractor(payload: bytes, metadata: MutableMapping[str, object]) -> str:
+        raise CorruptedPdfError("unable to parse")
+
+    loader = build_google_drive_pdf_loader(
+        folder_id="folder",
+        client_factory=lambda: client,
+        pdf_text_extractor=corrupted_extractor,
+    )
+
+    context = CorpusExtractionContext(source="google_drive", limit=None, metadata={})
+    documents = list(loader(context))
+
+    assert documents == []
+    assert client.download_calls == ["broken"]
