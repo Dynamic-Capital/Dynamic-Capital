@@ -1,0 +1,37 @@
+# TON DNS Operations Log
+
+This log captures on-chain changes to the `dynamiccapital.ton` resolver and NFT
+ownership. Amounts are reported in TON (1 TON = 1,000,000,000 nanotons). Use
+this file alongside [`toncli-dns-runbook.md`](./toncli-dns-runbook.md) when
+preparing governance packets or multisig memos.
+
+## 2025-09-30 – dynamiccapital.ton auction settlement
+
+- **Control message** — `TONAPI gas proxy` (`EQDzP1oeMJI2wh_UErnVIuJKam7zdFwB9-x9cxvA-ETDNHCs`)
+  executed a `highload_wallet_signed_v2` call that staged the auction payment for
+  the Dynamic Capital operations wallet. The transaction (hash
+  `96ac854938b992f71f33827dac42a7aa9e302539fc55347e006f6eee74dc0d89`, lt
+  `62087400000001`) primed the workflow with 0.06614679 TON of gas funding.
+- **Owner wallet dispatch** — The operations wallet `dynamiccapital.ton`
+  (`EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`) signed
+  `wallet_signed_internal_v5_r1` (hash `d829586188e485a86cdb87e158cba478be555e3dfe2d1420ededbbdfd7f1f1b8`,
+  lt `62087400000003`). It forwarded 0.063213057 TON to the domain NFT contract
+  with query `1759260783`, designating the same wallet as the new owner.
+- **Domain NFT execution** — `dynamiccapital.ton`'s NFT contract
+  (`EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo`) accepted the transfer
+  (hash `99a714393bb56d833165654ff181c85bfd8c968909883263bb698d5bd224ab85`, lt
+  `62087400000005`) and triggered the settlement pipeline:
+  - Sent an `auction_fill_up` to the `.ton DNS` collection (`EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz`,
+    hash `dc7f1caa7f2ea9b56e046a53cc5fefb6d05c355180fdc955fd15bf61a95c7228`, lt
+    `62087400000007`) paying 0.024698749 TON to finalise the auction.
+  - Issued an `nft_ownership_assigned` callback to the owner wallet (hash
+    `5138a51a870cae0cada7f468866457d67d87878aeab50e9542045c91d6781644`, lt
+    `62087400000008`). The 1 nanotons payload was too small to cover execution,
+    so the v5 wallet skipped compute (`cskip_no_gas`) while retaining ownership.
+  - Returned 0.062282914 TON of excess funds to the Tonkeeper battery reserve
+    (`EQDfvVvoSX_cDJ_L38Z2hkhA3fitZCPW1WV9mw6CcNbIrH-Q`, hash
+    `1c82a54ec8f75a1abbf56f3896b21b04c0f3047fddffba1edb8dd19da75651ac`, lt
+    `62087400000009`).
+
+Document follow-on DNS payloads, TON Storage uploads, and resolver rotations in
+chronological order beneath this entry.
