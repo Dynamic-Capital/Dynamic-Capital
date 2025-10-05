@@ -44,25 +44,188 @@ const defaultGatewayBases = [
   "https://ton.site",
 ];
 
-const rawGatewayList = process.env.TON_SITE_GATEWAYS ?? "";
-const configuredGatewayBases = rawGatewayList
-  .split(",")
-  .map((entry) => entry.trim())
-  .filter(Boolean);
+interface CliOptions {
+  timeoutMs: number;
+  concurrency: number;
+  domain: string;
+  additionalGateways: string[];
+  showHelp: boolean;
+}
 
-const gatewayBases = configuredGatewayBases.length > 0
-  ? configuredGatewayBases
-  : defaultGatewayBases;
+function parseGatewayList(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(/[\s,;]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
 
-function buildCandidateUrls(): string[] {
-  const urls = new Set<string>([TON_SITE_GATEWAY_URL, TON_SITE_GATEWAY_ORIGIN]);
+function parsePositiveInteger(value: string | undefined, fallback: number): number {
+  if (!value) return fallback;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function normalizeDomain(input: string | undefined): string {
+  if (!input) return TON_SITE_DOMAIN;
+  const trimmed = input.trim();
+  if (!trimmed) return TON_SITE_DOMAIN;
+  const sanitized = trimmed.replace(/^\/+|\/+$/g, "");
+  const looksLikeUrl = /:\/\//.test(sanitized);
+  if (looksLikeUrl) {
+    try {
+      const url = new URL(sanitized);
+      const pathSegments = url.pathname.split("/").map((segment) => segment.trim()).filter(Boolean);
+      return pathSegments[pathSegments.length - 1] ?? url.hostname ?? TON_SITE_DOMAIN;
+    } catch {
+      // fall through to plain handling
+    }
+  }
+  const pieces = sanitized.split("/").map((segment) => segment.trim()).filter(Boolean);
+  if (pieces.length === 0) {
+    return TON_SITE_DOMAIN;
+  }
+  return pieces[pieces.length - 1];
+}
+
+function parseArgs(argv: string[]): CliOptions {
+  let timeoutMs = DEFAULT_TIMEOUT_MS;
+  let concurrency = DEFAULT_CONCURRENCY;
+  let domain = TON_SITE_DOMAIN;
+  const additionalGateways: string[] = [];
+  let showHelp = false;
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === "--") {
+      break;
+    }
+    if (token === "--help" || token === "-h") {
+      showHelp = true;
+      break;
+    }
+
+    if (token.startsWith("--timeout=")) {
+      const value = token.split("=", 2)[1];
+      timeoutMs = parsePositiveInteger(value, timeoutMs);
+      continue;
+    }
+    if (token === "--timeout") {
+      timeoutMs = parsePositiveInteger(argv[index + 1], timeoutMs);
+      index += 1;
+      continue;
+    }
+
+    if (token.startsWith("--concurrency=")) {
+      const value = token.split("=", 2)[1];
+      concurrency = parsePositiveInteger(value, concurrency);
+      continue;
+    }
+    if (token === "--concurrency") {
+      concurrency = parsePositiveInteger(argv[index + 1], concurrency);
+      index += 1;
+      continue;
+    }
+
+    if (token.startsWith("--domain=")) {
+      const value = token.split("=", 2)[1];
+      domain = normalizeDomain(value ?? domain);
+      continue;
+    }
+    if (token === "--domain") {
+      const value = argv[index + 1];
+      domain = normalizeDomain(value ?? domain);
+      index += 1;
+      continue;
+    }
+
+    if (token.startsWith("--gateways=")) {
+      const value = token.split("=", 2)[1];
+      additionalGateways.push(...parseGatewayList(value));
+      continue;
+    }
+    if (token === "--gateways") {
+      additionalGateways.push(...parseGatewayList(argv[index + 1]));
+      index += 1;
+      continue;
+    }
+    if (token.startsWith("--gateway=")) {
+      const value = token.split("=", 2)[1];
+      if (value) {
+        additionalGateways.push(value.trim());
+      }
+      continue;
+    }
+    if (token === "--gateway") {
+      const value = argv[index + 1];
+      if (value) {
+        additionalGateways.push(value.trim());
+      }
+      index += 1;
+      continue;
+    }
+
+    console.warn(`Ignoring unrecognised argument: ${token}`);
+  }
+
+  domain = normalizeDomain(domain);
+
+  return {
+    timeoutMs,
+    concurrency,
+    domain,
+    additionalGateways,
+    showHelp,
+  };
+}
+
+function uniqueGateways(values: string[]): string[] {
+  const seen = new Set<string>();
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+    seen.add(trimmed.replace(/\s+/g, ""));
+  }
+  return Array.from(seen);
+}
+
+const rawGatewayList = process.env.TON_SITE_GATEWAYS;
+const configuredGatewayBases = parseGatewayList(rawGatewayList);
+
+function resolveGatewayCandidate(base: string, domain: string): string | undefined {
+  const trimmed = base.trim();
+  if (!trimmed) return undefined;
+  let normalized = trimmed.replace(/\s+/g, "");
+  try {
+    const url = new URL(normalized);
+    normalized = url.toString();
+  } catch {
+    if (!/^https?:\/\//i.test(normalized)) {
+      return undefined;
+    }
+  }
+  normalized = normalized.replace(/\/+$/, "");
+  if (!normalized) return undefined;
+  if (normalized.endsWith(`/${domain}`)) {
+    return normalized;
+  }
+  return `${normalized}/${domain}`;
+}
+
+function buildCandidateUrls(domain: string, gatewayBases: string[]): string[] {
+  const urls = new Set<string>();
+  const primaryCandidate = resolveGatewayCandidate(TON_SITE_GATEWAY_BASE, domain);
+  if (primaryCandidate) {
+    urls.add(primaryCandidate);
+  }
+  if (domain === TON_SITE_DOMAIN) {
+    urls.add(TON_SITE_GATEWAY_URL);
+    urls.add(TON_SITE_GATEWAY_ORIGIN);
+  }
   for (const base of gatewayBases) {
-    const normalized = base.replace(/\/+$/, "");
-    if (!normalized) continue;
-    if (normalized.endsWith(`/${TON_SITE_DOMAIN}`)) {
-      urls.add(normalized);
-    } else {
-      urls.add(`${normalized}/${TON_SITE_DOMAIN}`);
+    const candidate = resolveGatewayCandidate(base, domain);
+    if (candidate) {
+      urls.add(candidate);
     }
   }
   return Array.from(urls);
@@ -70,12 +233,6 @@ function buildCandidateUrls(): string[] {
 
 function sanitizePreview(value: string): string {
   return value.replace(/\s+/g, " ").trim().slice(0, SUMMARY_PREVIEW_CHAR_LIMIT);
-}
-
-function parsePositiveInteger(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 async function readPreview(
@@ -213,49 +370,70 @@ function logResult(result: ProbeResult) {
   }
 }
 
-function printSummary(results: ProbeResult[]) {
+function printSummary(results: ProbeResult[], domain: string) {
   const successful = results.filter((entry) => entry.ok);
   if (successful.length > 0) {
     const best = successful.reduce((a, b) => (a.durationMs <= b.durationMs ? a : b));
     console.log(
-      `\nTON Site is reachable via ${best.url} (status ${best.status}, ${formatDuration(best.durationMs)}).`,
+      `\n${domain} is reachable via ${best.url} (status ${best.status}, ${formatDuration(best.durationMs)}).`,
     );
   } else {
-    console.error("\nUnable to reach the TON Site through any configured gateway.");
+    console.error(`\nUnable to reach ${domain} through any configured gateway.`);
     process.exitCode = 1;
   }
 }
 
+function printHelp() {
+  console.log(`Usage: ton:site-status [options]
+
+Checks availability of the configured TON Site gateway candidates.
+
+Options:
+  --timeout <ms>        Request timeout per gateway (default: ${DEFAULT_TIMEOUT_MS}ms)
+  --concurrency <n>     Number of concurrent probes (default: ${DEFAULT_CONCURRENCY})
+  --domain <name>       Override the TON Site domain to probe (default: ${TON_SITE_DOMAIN})
+  --gateway <url>       Add a gateway base URL (can be repeated)
+  --gateways <list>     Comma- or whitespace-separated list of gateway base URLs
+  --help                Show this message
+`);
+}
+
 async function main() {
   const args = process.argv.slice(2);
-  const timeoutArg = args.find((arg) => arg.startsWith("--timeout="));
-  const concurrencyArg = args.find((arg) => arg.startsWith("--concurrency="));
+  const options = parseArgs(args);
+  if (options.showHelp) {
+    printHelp();
+    return;
+  }
 
-  const timeout = parsePositiveInteger(
-    timeoutArg?.split("=", 2)[1],
-    DEFAULT_TIMEOUT_MS,
-  );
-  const concurrency = parsePositiveInteger(
-    concurrencyArg?.split("=", 2)[1],
-    DEFAULT_CONCURRENCY,
-  );
+  const gatewayBases = configuredGatewayBases.length > 0
+    ? configuredGatewayBases
+    : defaultGatewayBases;
+  const allGateways = uniqueGateways([
+    ...gatewayBases,
+    ...options.additionalGateways,
+  ]);
 
-  console.log(`Checking TON Site status for ${TON_SITE_DOMAIN}...`);
-  const candidates = buildCandidateUrls();
+  console.log(`Checking TON Site status for ${options.domain}...`);
+  const candidates = buildCandidateUrls(options.domain, allGateways);
   if (candidates.length === 0) {
     console.warn("No gateway candidates configured; nothing to probe.");
     return;
   }
   console.log(
-    `Probing ${candidates.length} gateway candidate(s) with concurrency=${concurrency}.\n`,
+    `Probing ${candidates.length} gateway candidate(s) with concurrency=${options.concurrency}.\n`,
   );
 
-  const results = await probeWithConcurrency(candidates, timeout, concurrency);
+  const results = await probeWithConcurrency(
+    candidates,
+    options.timeoutMs,
+    options.concurrency,
+  );
   for (const result of results) {
     logResult(result);
   }
 
-  printSummary(results);
+  printSummary(results, options.domain);
 }
 
 async function probeWithConcurrency(
