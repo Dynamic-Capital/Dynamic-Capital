@@ -21,7 +21,16 @@ Tonstarter production review.
 
 ### Address verification
 
-Confirm the governance addresses on mainnet before deploying updates:
+Confirm the governance addresses on mainnet before deploying updates. The
+`ton:mainnet-status` CLI wraps the toncenter checks and prints a summary for the
+treasury, jetton master, and router:
+
+```sh
+npm run ton:mainnet-status
+```
+
+For ad-hoc verification or CI scripts, the raw toncenter queries remain
+available below:
 
 ```sh
 curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38" \
