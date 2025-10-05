@@ -79,6 +79,11 @@ from .self_improvement import (
     LearningSnapshot,
     __all__ as _self_improvement_all,
 )
+from .telemetry import (
+    AGIImprovementRepository,
+    ImprovementTelemetryWriter,
+    __all__ as _telemetry_all,
+)
 
 __all__ = [
     *_build_all,
@@ -91,4 +96,5 @@ __all__ = [
     *_knowledge_base_all,
     *_qa_all,
     *_tuning_primitives_all,
+    *_telemetry_all,
 ]

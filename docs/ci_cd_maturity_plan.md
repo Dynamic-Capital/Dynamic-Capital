@@ -154,7 +154,9 @@ value.
 - **Dynamic Module Verification Harness**: Wire
   `scripts/verify/dynamic_modules.sh` into the verification suite so pull
   requests exercise Dynamic AI/AGI/AGS, translation, technical analysis, and DCT
-  token contracts before promotion.
+  token contracts before promotion. The harness now auto-discovers
+  `tests/dynamic_*` directories and `tests/test_dynamic_*.py` cases, keeping new
+  module suites inside the loop without manual updates.
 
 ### Integration Backlog
 

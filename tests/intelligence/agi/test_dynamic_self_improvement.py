@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import math
+from datetime import datetime, timezone
+from typing import Any, Dict, List
 
 import pytest
 
@@ -9,6 +11,7 @@ from dynamic.intelligence.ai_apps.core import AISignal, PreparedMarketContext
 from dynamic.intelligence.ai_apps.risk import PositionSizing
 from dynamic_metacognition import DynamicMetacognition, MetaSignal, ReflectionContext
 from dynamic_self_awareness import AwarenessContext, DynamicSelfAwareness, SelfAwarenessSignal
+from dynamic.intelligence.agi.telemetry import AGIImprovementRepository
 
 
 class _StubFusion:
@@ -47,6 +50,24 @@ class _StubRiskManager:
 
     def sizing(self, context, *, confidence, volatility):  # type: ignore[override]
         return PositionSizing(notional=1.0, leverage=1.0, notes="stub sizing")
+
+
+class _MemoryWriter:
+    def __init__(self) -> None:
+        self.rows: List[Dict[str, Any]] = []
+
+    def upsert(self, rows):  # type: ignore[override]
+        serialised: List[Dict[str, Any]] = []
+        for row in rows:
+            payload: Dict[str, Any] = {}
+            for key, value in row.items():
+                if isinstance(value, datetime):
+                    payload[key] = value.isoformat()
+                else:
+                    payload[key] = value
+            serialised.append(payload)
+        self.rows.extend(serialised)
+        return len(serialised)
 
 
 def _prepared_context() -> PreparedMarketContext:
@@ -185,4 +206,42 @@ def test_record_session_filters_non_finite_metrics() -> None:
     assert plan.metrics["valid"] == pytest.approx(1.25)
     assert all(key == "valid" for key in plan.metrics)
     assert all(math.isfinite(value) for value in plan.metrics.values())
+
+
+def test_model_persists_improvement_history_and_reload() -> None:
+    context = _prepared_context()
+    manager = DynamicSelfImprovement(history=3)
+    writer = _MemoryWriter()
+    repository = AGIImprovementRepository(
+        writer=writer,
+        clock=lambda: datetime(2025, 9, 21, tzinfo=timezone.utc),
+    )
+    model = DynamicAGIModel(
+        fusion=_StubFusion(context),
+        analysis=_StubAnalysis(),
+        risk_manager=_StubRiskManager(),
+        self_improvement=manager,
+        improvement_repository=repository,
+    )
+
+    result = model.evaluate(
+        market_data={"price": 99.5},
+        performance={"pnl": -1.2},
+    )
+
+    assert result.improvement is not None
+    assert writer.rows
+    record = writer.rows[-1]
+    assert record["model_version"] == result.version
+    assert "model_version_info" in record
+    assert record["plan_generated_at"] == "2025-09-21T00:00:00+00:00"
+    assert record["snapshot"]["performance"]["pnl"] == pytest.approx(-1.2)
+    assert record["improvement_plan"]["metrics"]["pnl"] == pytest.approx(-1.2)
+
+    restored = DynamicSelfImprovement.from_dict(
+        AGIImprovementRepository.history_payload([record])
+    )
+    assert restored.snapshot_count == 1
+    replay_plan = restored.generate_plan()
+    assert replay_plan.metrics["pnl"] == pytest.approx(-1.2)
 

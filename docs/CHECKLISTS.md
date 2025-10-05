@@ -19,6 +19,20 @@ Each key maps to a sequence defined in
 the tables below, resolves the referenced tasks, and runs the associated
 commands.
 
+## CODEOWNERS alignment
+
+The checklist domains now map directly to CODEOWNERS so review requests reach
+the accountable squads automatically.
+
+| Path                               | CODEOWNERS entry                   | Checklist coverage                                                                                                                                                   |
+| ---------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/apps/web/**`                     | `@dynamic-capital/web-experience`  | [`Dynamic UI Development`](./dynamic-ui-development-checklist.md)                                                                                                    |
+| `/supabase/functions/**`           | `@dynamic-capital/supabase-ops`    | [`Setup Follow-Ups`](./dynamic-capital-checklist.md#setup-follow-ups), [`Dynamic Capital Ecosystem Deployment`](./dynamic-capital-ecosystem-deployment-checklist.md) |
+| `/dynamic/intelligence/ai_apps/**` | `@dynamic-capital/dai-core`        | [`Dynamic AI (DAI) Validation`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai)                                                                           |
+| `/dynamic/intelligence/agi/**`     | `@dynamic-capital/agi-core`        | [`Dynamic AGI (DAGI) Oversight`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-agi-dagi)                                                                        |
+| `/tests/intelligence/**`           | `@dynamic-capital/intelligence-qa` | Dynamic AI/AGI regression and oversight suites                                                                                                                       |
+| `/scripts/verify/**`               | `@dynamic-capital/quality-ops`     | Automation that orchestrates the verification harness                                                                                                                |
+
 ## Prioritized checklist roadmap
 
 Follow the numbered order below when coordinating large efforts. Each entry
