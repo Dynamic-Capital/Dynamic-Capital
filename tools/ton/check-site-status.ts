@@ -49,6 +49,7 @@ interface CliOptions {
   concurrency: number;
   domain: string;
   additionalGateways: string[];
+  additionalDirectCandidates: string[];
   showHelp: boolean;
 }
 
@@ -93,6 +94,7 @@ function parseArgs(argv: string[]): CliOptions {
   let concurrency = DEFAULT_CONCURRENCY;
   let domain = TON_SITE_DOMAIN;
   const additionalGateways: string[] = [];
+  const additionalDirectCandidates: string[] = [];
   let showHelp = false;
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -165,6 +167,59 @@ function parseArgs(argv: string[]): CliOptions {
       continue;
     }
 
+    if (token.startsWith("--reverse-proxies=")) {
+      const value = token.split("=", 2)[1];
+      additionalDirectCandidates.push(...parseGatewayList(value));
+      continue;
+    }
+    if (token === "--reverse-proxies") {
+      additionalDirectCandidates.push(...parseGatewayList(argv[index + 1]));
+      index += 1;
+      continue;
+    }
+    if (token.startsWith("--reverse-proxy=")) {
+      const value = token.split("=", 2)[1];
+      if (value) {
+        additionalDirectCandidates.push(value.trim());
+      }
+      continue;
+    }
+    if (token === "--reverse-proxy") {
+      const value = argv[index + 1];
+      if (value) {
+        additionalDirectCandidates.push(value.trim());
+      }
+      index += 1;
+      continue;
+    }
+
+    if (token.startsWith("--candidate=")) {
+      const value = token.split("=", 2)[1];
+      if (value) {
+        additionalDirectCandidates.push(value.trim());
+      }
+      continue;
+    }
+    if (token === "--candidate") {
+      const value = argv[index + 1];
+      if (value) {
+        additionalDirectCandidates.push(value.trim());
+      }
+      index += 1;
+      continue;
+    }
+
+    if (token.startsWith("--candidates=")) {
+      const value = token.split("=", 2)[1];
+      additionalDirectCandidates.push(...parseGatewayList(value));
+      continue;
+    }
+    if (token === "--candidates") {
+      additionalDirectCandidates.push(...parseGatewayList(argv[index + 1]));
+      index += 1;
+      continue;
+    }
+
     console.warn(`Ignoring unrecognised argument: ${token}`);
   }
 
@@ -175,6 +230,7 @@ function parseArgs(argv: string[]): CliOptions {
     concurrency,
     domain,
     additionalGateways,
+    additionalDirectCandidates,
     showHelp,
   };
 }
@@ -191,11 +247,30 @@ function uniqueGateways(values: string[]): string[] {
 
 const rawGatewayList = process.env.TON_SITE_GATEWAYS;
 const configuredGatewayBases = parseGatewayList(rawGatewayList);
+const rawDirectCandidates = process.env.TON_SITE_DIRECT_CANDIDATES;
+const configuredDirectCandidates = parseGatewayList(rawDirectCandidates);
+
+const DOMAIN_PLACEHOLDER_PATTERN = /%(?:DOMAIN|domain)%|\{\{?\s*DOMAIN\s*\}?\}|:\s*domain\b/gi;
+
+function substituteDomainPlaceholder(value: string, domain: string): string | undefined {
+  DOMAIN_PLACEHOLDER_PATTERN.lastIndex = 0;
+  if (!DOMAIN_PLACEHOLDER_PATTERN.test(value)) {
+    return undefined;
+  }
+  DOMAIN_PLACEHOLDER_PATTERN.lastIndex = 0;
+  return value.replace(DOMAIN_PLACEHOLDER_PATTERN, domain);
+}
 
 function resolveGatewayCandidate(base: string, domain: string): string | undefined {
   const trimmed = base.trim();
   if (!trimmed) return undefined;
   let normalized = trimmed.replace(/\s+/g, "");
+
+  const substituted = substituteDomainPlaceholder(normalized, domain);
+  if (substituted) {
+    normalized = substituted;
+  }
+
   try {
     const url = new URL(normalized);
     normalized = url.toString();
@@ -206,13 +281,20 @@ function resolveGatewayCandidate(base: string, domain: string): string | undefin
   }
   normalized = normalized.replace(/\/+$/, "");
   if (!normalized) return undefined;
+  if (substituted) {
+    return normalized;
+  }
   if (normalized.endsWith(`/${domain}`)) {
     return normalized;
   }
   return `${normalized}/${domain}`;
 }
 
-function buildCandidateUrls(domain: string, gatewayBases: string[]): string[] {
+function buildCandidateUrls(
+  domain: string,
+  gatewayBases: string[],
+  directCandidates: string[],
+): string[] {
   const urls = new Set<string>();
   const primaryCandidate = resolveGatewayCandidate(TON_SITE_GATEWAY_BASE, domain);
   if (primaryCandidate) {
@@ -228,7 +310,30 @@ function buildCandidateUrls(domain: string, gatewayBases: string[]): string[] {
       urls.add(candidate);
     }
   }
+  for (const direct of directCandidates) {
+    const candidate = normalizeDirectCandidate(direct, domain);
+    if (candidate) {
+      urls.add(candidate);
+    }
+  }
   return Array.from(urls);
+}
+
+function normalizeDirectCandidate(value: string, domain: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  let normalized = trimmed.replace(/\s+/g, "");
+  const substituted = substituteDomainPlaceholder(normalized, domain);
+  if (substituted) {
+    normalized = substituted;
+  }
+  try {
+    const url = new URL(normalized);
+    url.hash = "";
+    return url.toString().replace(/\/+$/, "");
+  } catch {
+    return undefined;
+  }
 }
 
 function sanitizePreview(value: string): string {
@@ -394,6 +499,11 @@ Options:
   --domain <name>       Override the TON Site domain to probe (default: ${TON_SITE_DOMAIN})
   --gateway <url>       Add a gateway base URL (can be repeated)
   --gateways <list>     Comma- or whitespace-separated list of gateway base URLs
+  --reverse-proxy <url> Add a fully-qualified reverse proxy candidate URL (can be repeated)
+  --reverse-proxies <list>
+                        Comma- or whitespace-separated list of reverse proxy URLs
+  --candidate <url>     Alias for --reverse-proxy
+  --candidates <list>   Alias for --reverse-proxies
   --help                Show this message
 `);
 }
@@ -406,16 +516,33 @@ async function main() {
     return;
   }
 
+  const defaultDirectCandidates = [
+    "https://dynamic-capital.ondigitalocean.app/ton-site",
+    "https://dynamic-capital.vercel.app/ton-site",
+    "https://dynamic-capital.lovable.app/ton-site",
+  ];
+
   const gatewayBases = configuredGatewayBases.length > 0
     ? configuredGatewayBases
     : defaultGatewayBases;
+  const directCandidates = configuredDirectCandidates.length > 0
+    ? configuredDirectCandidates
+    : defaultDirectCandidates;
   const allGateways = uniqueGateways([
     ...gatewayBases,
     ...options.additionalGateways,
   ]);
+  const allDirectCandidates = uniqueGateways([
+    ...directCandidates,
+    ...options.additionalDirectCandidates,
+  ]);
 
   console.log(`Checking TON Site status for ${options.domain}...`);
-  const candidates = buildCandidateUrls(options.domain, allGateways);
+  const candidates = buildCandidateUrls(
+    options.domain,
+    allGateways,
+    allDirectCandidates,
+  );
   if (candidates.length === 0) {
     console.warn("No gateway candidates configured; nothing to probe.");
     return;
