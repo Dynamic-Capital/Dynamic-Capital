@@ -1,7 +1,9 @@
 """Helpers for integrating the DCT market maker into Dynamic Trading stacks."""
 from __future__ import annotations
 
-from dataclasses import fields, replace
+import math
+from dataclasses import fields
+from decimal import Decimal
 from typing import Any, Mapping, MutableMapping
 
 from algorithms.python.dct_market_maker import (
@@ -33,21 +35,52 @@ _REQUIRED_FIELDS = (
     "offchain_depth",
     "recent_volume",
 )
+def _normalise_value(field_name: str, value: Any) -> float:
+    """Best-effort conversion to ``float`` with guard rails."""
+
+    if isinstance(value, bool) or value is None:
+        raise TypeError(f"{field_name} must be a real number, received {value!r}")
+
+    if isinstance(value, Decimal):
+        coerced = float(value)
+    else:
+        try:
+            coerced = float(value)
+        except (TypeError, ValueError) as exc:
+            raise TypeError(f"{field_name} must be numeric, received {value!r}") from exc
+
+    if not math.isfinite(coerced):
+        raise ValueError(f"{field_name} must be finite, received {value!r}")
+
+    return coerced
+
+
+def _as_mapping(data: Mapping[str, Any] | DCTMarketMakerInputs | None) -> Mapping[str, Any]:
+    if data is None:
+        return {}
+    if isinstance(data, DCTMarketMakerInputs):
+        return {field.name: getattr(data, field.name) for field in fields(DCTMarketMakerInputs)}
+    if isinstance(data, Mapping):
+        return data
+    raise TypeError(
+        "data must be a mapping or DCTMarketMakerInputs instance, "
+        f"received {type(data).__name__}",
+    )
 
 
 def coerce_market_inputs(
-    data: Mapping[str, Any] | None = None,
+    data: Mapping[str, Any] | DCTMarketMakerInputs | None = None,
     **overrides: Any,
 ) -> DCTMarketMakerInputs:
     """Return :class:`DCTMarketMakerInputs` from *data* and ``overrides``."""
 
-    payload: MutableMapping[str, Any] = {}
-    if data:
-        for field in fields(DCTMarketMakerInputs):
-            if field.name in data:
-                payload[field.name] = data[field.name]
+    source = dict(_as_mapping(data))
+    source.update(overrides)
 
-    payload.update(overrides)
+    payload: MutableMapping[str, float] = {}
+    for field in fields(DCTMarketMakerInputs):
+        if field.name in source:
+            payload[field.name] = _normalise_value(field.name, source[field.name])
 
     missing = [name for name in _REQUIRED_FIELDS if name not in payload]
     if missing:
@@ -70,8 +103,8 @@ class DCTMarketMakerService:
     ) -> DCTMarketMakerInputs:
         """Normalise raw telemetry into :class:`DCTMarketMakerInputs`."""
 
-        if isinstance(data, DCTMarketMakerInputs):
-            return replace(data, **overrides) if overrides else data
+        if isinstance(data, DCTMarketMakerInputs) and not overrides:
+            return data
         return coerce_market_inputs(data, **overrides)
 
     def quote(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from decimal import Decimal
 
 import pytest
 
@@ -48,6 +49,30 @@ def test_coerce_market_inputs_requires_core_fields() -> None:
         coerce_market_inputs(incomplete)
 
 
+def test_coerce_market_inputs_converts_supported_numeric_types() -> None:
+    payload = {
+        "mid_price": "1.05",
+        "inventory": Decimal("5000"),
+        "target_inventory": 5000,
+        "inventory_limit": 10_000,
+        "volatility": "0.18",
+        "ton_reference_price": Decimal("1.02"),
+        "onchain_depth": "18000",
+        "offchain_depth": 12_000,
+        "recent_volume": Decimal("3500"),
+    }
+
+    inputs = coerce_market_inputs(payload)
+
+    assert inputs.mid_price == pytest.approx(1.05)
+    assert inputs.inventory == pytest.approx(5_000.0)
+
+
+def test_coerce_market_inputs_rejects_non_finite_numbers() -> None:
+    with pytest.raises(ValueError):
+        coerce_market_inputs(_sample_state(volatility=float("nan")))
+
+
 def test_service_quote_matches_underlying_model() -> None:
     mapping = _sample_state()
     service = DCTMarketMakerService()
@@ -76,6 +101,17 @@ def test_service_quote_allows_overrides() -> None:
     quote = service.quote(mapping, buy_pressure=0.9, sell_pressure=0.1)
     assert isinstance(quote, DCTMarketMakerQuote)
     assert quote.ask_size > quote.bid_size
+
+
+def test_service_build_inputs_accepts_dataclass_overrides() -> None:
+    service = DCTMarketMakerService()
+    base = coerce_market_inputs(_sample_state())
+
+    result = service.build_inputs(base, volatility="0.25")
+
+    assert isinstance(result, DCTMarketMakerInputs)
+    assert result is not base
+    assert result.volatility == pytest.approx(0.25)
 
 
 def test_service_note_summary_returns_bullets() -> None:
