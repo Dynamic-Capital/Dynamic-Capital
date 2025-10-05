@@ -8,6 +8,7 @@ import io
 import json
 import re
 from typing import Callable, Iterable, Iterator, Mapping, MutableMapping, Sequence
+from uuid import uuid4
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from urllib.request import Request, build_opener
@@ -266,8 +267,8 @@ class GoogleDriveClient:
         self._opener = opener
 
     # ----------------------------------------------------------------- utilities
-    def _build_headers(self, accept: str) -> Mapping[str, str]:
-        headers = {"Accept": accept}
+    def _build_headers(self, accept: str) -> MutableMapping[str, str]:
+        headers: MutableMapping[str, str] = {"Accept": accept}
         if self._access_token:
             headers["Authorization"] = f"Bearer {self._access_token}"
         return headers
@@ -278,15 +279,26 @@ class GoogleDriveClient:
             combined.setdefault("key", self._api_key)
         return combined
 
-    def _request_bytes(
+    def _request(
         self,
+        method: str,
         path: str,
         *,
         params: Mapping[str, str] | None = None,
+        data: bytes | None = None,
         accept: str = "application/json",
+        headers: Mapping[str, str] | None = None,
     ) -> bytes:
         url = f"{self._base_url}/{path.lstrip('/') }"
-        request = Request(_append_query(url, self._prepare_params(params)), headers=self._build_headers(accept))
+        request_headers = self._build_headers(accept)
+        if headers:
+            request_headers.update(headers)
+        request = Request(
+            _append_query(url, self._prepare_params(params)),
+            data=data,
+            headers=request_headers,
+            method=method,
+        )
         try:
             with self._opener.open(request) as response:
                 return response.read()
@@ -296,6 +308,15 @@ class GoogleDriveClient:
             ) from error
         except URLError as error:  # pragma: no cover - network failure surface
             raise RuntimeError(f"Google Drive request to {url} failed: {error.reason}") from error
+
+    def _request_bytes(
+        self,
+        path: str,
+        *,
+        params: Mapping[str, str] | None = None,
+        accept: str = "application/json",
+    ) -> bytes:
+        return self._request("GET", path, params=params, accept=accept)
 
     def _request_json(
         self,
@@ -354,6 +375,52 @@ class GoogleDriveClient:
             params={"alt": "media", "supportsAllDrives": "true"},
             accept="application/pdf, */*;q=0.8",
         )
+
+    def upload_file(
+        self,
+        *,
+        metadata: Mapping[str, object],
+        media: bytes,
+        media_mime_type: str,
+    ) -> MutableMapping[str, object]:
+        if not isinstance(metadata, Mapping):
+            raise TypeError("metadata must be a mapping")
+        if not isinstance(media, (bytes, bytearray)):
+            raise TypeError("media must be bytes-like")
+        payload_metadata = dict(metadata)
+        payload_metadata.setdefault("mimeType", media_mime_type)
+        parents = payload_metadata.get("parents")
+        if not parents:
+            raise ValueError("metadata must include at least one parent folder via 'parents'")
+        if isinstance(parents, str):
+            payload_metadata["parents"] = [parents]
+        else:
+            try:
+                payload_metadata["parents"] = [str(parent) for parent in parents]
+            except TypeError as error:  # pragma: no cover - mapping not iterable
+                raise TypeError("metadata 'parents' must be a string or iterable of strings") from error
+        boundary = f"===============dynamicdrive{uuid4().hex}=="
+        body_parts = [
+            f"--{boundary}\r\n",
+            "Content-Type: application/json; charset=UTF-8\r\n\r\n",
+            json.dumps(payload_metadata, separators=(",", ":")),
+            "\r\n",
+            f"--{boundary}\r\n",
+            f"Content-Type: {media_mime_type}\r\n\r\n",
+        ]
+        body = "".join(body_parts).encode("utf-8") + bytes(media) + f"\r\n--{boundary}--\r\n".encode("utf-8")
+        response = self._request(
+            "POST",
+            "upload/drive/v3/files",
+            params={"uploadType": "multipart", "supportsAllDrives": "true"},
+            data=body,
+            accept="application/json",
+            headers={"Content-Type": f"multipart/related; boundary={boundary}"},
+        )
+        try:
+            return json.loads(response.decode("utf-8"))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("Failed to decode Google Drive upload response") from error
 
 
 _FOLDER_PATTERN = re.compile(r"/folders/([A-Za-z0-9_-]+)")

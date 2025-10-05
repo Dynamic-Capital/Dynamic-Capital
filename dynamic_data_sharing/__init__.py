@@ -22,6 +22,7 @@ __all__ = [
     "ShareRecord",
     "SharePackage",
     "DynamicDataSharingEngine",
+    "GoogleDriveShareRepository",
 ]
 
 
@@ -111,6 +112,20 @@ class SharePolicy:
             "include_sources": self.include_sources,
         }
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, object]) -> "SharePolicy":
+        if not isinstance(payload, Mapping):
+            raise TypeError("payload must be a mapping")
+        return cls(
+            max_records=payload.get("max_records", 128),
+            min_confidence=payload.get("min_confidence", 0.5),
+            min_relevance=payload.get("min_relevance", 0.4),
+            allowed_tags=payload.get("allowed_tags"),
+            redact_keys=payload.get("redact_keys"),
+            anonymise_keys=payload.get("anonymise_keys", True),
+            include_sources=payload.get("include_sources", False),
+        )
+
 
 @dataclass(slots=True)
 class ShareRecord:
@@ -137,6 +152,31 @@ class ShareRecord:
             "timestamp": self.timestamp.isoformat(),
             "sources": list(self.sources),
         }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, object]) -> "ShareRecord":
+        if not isinstance(payload, Mapping):
+            raise TypeError("payload must be a mapping")
+        timestamp_raw = payload.get("timestamp")
+        timestamp: datetime
+        if isinstance(timestamp_raw, datetime):
+            timestamp = timestamp_raw
+        elif isinstance(timestamp_raw, str):
+            try:
+                timestamp = datetime.fromisoformat(timestamp_raw)
+            except ValueError as error:
+                raise ValueError("Invalid timestamp in share record payload") from error
+        else:
+            raise ValueError("Share record payload requires a timestamp")
+        sources = payload.get("sources")
+        tags = payload.get("tags")
+        return cls(
+            key=str(payload.get("key", "")),
+            payload=dict(payload.get("payload", {})),
+            tags=tuple(tags or ()),
+            timestamp=timestamp,
+            sources=tuple(sources or ()),
+        )
 
 
 @dataclass(slots=True)
@@ -182,6 +222,50 @@ class SharePackage:
             "metadata": dict(self.metadata),
             "records": [record.to_dict() for record in self.records],
         }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, object]) -> "SharePackage":
+        if not isinstance(payload, Mapping):
+            raise TypeError("payload must be a mapping")
+        table = payload.get("table")
+        if not isinstance(table, str) or not table.strip():
+            raise ValueError("Share package payload requires a table name")
+        generated_raw = payload.get("generated_at")
+        if isinstance(generated_raw, datetime):
+            generated_at = generated_raw
+        elif isinstance(generated_raw, str):
+            try:
+                generated_at = datetime.fromisoformat(generated_raw)
+            except ValueError as error:
+                raise ValueError("Invalid generated_at in share package payload") from error
+        else:
+            raise ValueError("Share package payload requires a generated_at timestamp")
+        policy_payload = payload.get("policy")
+        if not isinstance(policy_payload, Mapping):
+            raise ValueError("Share package payload requires a policy mapping")
+        records_payload = payload.get("records")
+        if records_payload is None:
+            records_iterable: Iterable[Mapping[str, object]] = ()
+        elif isinstance(records_payload, Iterable):
+            records_iterable = records_payload  # type: ignore[assignment]
+        else:
+            raise ValueError("Share package 'records' must be iterable")
+        metadata_payload = payload.get("metadata") or {}
+        if not isinstance(metadata_payload, Mapping):
+            raise ValueError("Share package metadata must be a mapping")
+        normalised_records: list[Mapping[str, object]] = []
+        for record_payload in records_iterable:
+            if not isinstance(record_payload, Mapping):
+                raise ValueError("Each share package record must be a mapping")
+            normalised_records.append(record_payload)
+        records = [ShareRecord.from_dict(record) for record in normalised_records]
+        return cls(
+            table=table,
+            generated_at=generated_at,
+            policy=SharePolicy.from_dict(policy_payload),
+            records=tuple(records),
+            metadata=dict(metadata_payload),
+        )
 
 
 def _sanitise_payload(
@@ -300,4 +384,7 @@ class DynamicDataSharingEngine:
 
         package = self.prepare_share(table, policy=policy, note=note)
         return package.to_dict()
+
+
+from .google_drive import GoogleDriveShareRepository  # noqa: E402  (circular-safe import)
 
