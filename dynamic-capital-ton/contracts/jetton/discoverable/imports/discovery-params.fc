@@ -1,0 +1,6 @@
+;; Placeholder module for TON Discovery metadata integration.
+;; Discovery-compliant front-ends may reference these constants when
+;; generating off-chain manifests. They are not currently used directly
+;; by the contract logic but are provided for completeness.
+
+const int discovery::protocol_version = 1;

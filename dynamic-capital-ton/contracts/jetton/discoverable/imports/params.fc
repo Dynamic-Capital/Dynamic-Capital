@@ -1,0 +1,13 @@
+int workchain() inline {
+    slice self_addr = my_address();
+    int tag = self_addr.preload_uint(2);
+    if (tag == 2) { ;; addr_std
+        (int wc, _) = parse_std_addr(self_addr);
+        return wc;
+    }
+    if (tag == 3) { ;; addr_var - treat as basechain for compatibility
+        (int wc, _) = parse_std_addr(self_addr);
+        return wc;
+    }
+    return 0;
+}

@@ -1,8 +1,9 @@
 # Dynamic Capital Token (DCT) Jetton
 
 This directory contains the Tact implementation of the Dynamic Capital Token
-(DCT) jetton master and wallet contracts. The contracts are based on the
-standard jetton template with the following extensions:
+(DCT) jetton master and wallet contracts alongside a FunC reference
+implementation that is compatible with TON Discovery scanners. The contracts
+are based on the standard jetton template with the following extensions:
 
 - **Hard-cap supply** — minting is only allowed while `genesisClosed == false`,
   and the total supply can never exceed 100,000,000 DCT (with 9 decimals).
@@ -30,6 +31,22 @@ Refer to `config.yaml` for the default deployment parameters. The pool allocator
 (`../pool_allocator.tact`) expects the timelocked router and treasury addresses
 exposed by the master contract, so deploy it alongside the jetton and reuse the
 same multisig administrator when configuring the vault.
+
+### Discovery-compliant FunC master contract
+
+The `jetton/discoverable` folder ships a drop-in FunC master contract (`master.fc`)
+that mirrors the governance logic from the Tact version while exposing the
+Discovery wallet lookup interface. Compile it with the bundled imports:
+
+```
+func -o build/discoverable-master.fif \
+  jetton/discoverable/master.fc
+```
+
+The helper modules under `jetton/discoverable/imports` wrap the shared standard
+library, opcodes, and wallet utilities already present in this repository. Use
+the same wallet code and content cells when migrating between the Tact and
+FunC variants to keep balances and metadata consistent.
 
 ## Theme collection deployment
 

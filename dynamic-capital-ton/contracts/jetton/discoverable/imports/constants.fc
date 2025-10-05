@@ -1,0 +1,5 @@
+const int PROVIDE_ADDRESS_GAS_CONSUMPTION = 20000000; ;; 0.02 TON ensures response delivery
+
+int const::provide_address_gas_consumption() inline {
+    return PROVIDE_ADDRESS_GAS_CONSUMPTION;
+}
