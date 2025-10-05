@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import type { NextRequest } from "next/server";
 
 import { withApiMetrics } from "@/observability/server-metrics.ts";
 import {
@@ -118,8 +119,8 @@ function resolveResource(
 
 type RouteContext = { params: { resource: string } };
 
-export async function GET(req: Request, context: RouteContext) {
-  const definition = resolveResource(context.params.resource);
+export async function GET(req: NextRequest, { params }: RouteContext) {
+  const definition = resolveResource(params.resource);
 
   if (!definition) {
     return jsonResponse(
@@ -155,7 +156,7 @@ export const POST = methodNotAllowed;
 export const PUT = methodNotAllowed;
 export const PATCH = methodNotAllowed;
 export const DELETE = methodNotAllowed;
-export const HEAD = (req: Request) => methodNotAllowed(req);
+export const HEAD = (req: NextRequest) => methodNotAllowed(req);
 
 export function OPTIONS(req: Request) {
   const headers = corsHeaders(req, "GET");
