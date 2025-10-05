@@ -2,13 +2,50 @@
 
 ## Executive Summary
 
-| Area                                     | Status         | Evidence                                                                                                                                                                                                                                                                                                                                                                                     | Follow-up                                                                                                                                                      |
-| ---------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Protocol design & tokenomics             | ✅ Ready       | Whitepaper enumerates the intelligence/execution/liquidity layers and hard-cap supply policy for DCT.【F:docs/dynamic-capital-ton-whitepaper.md†L6-L73】                                                                                                                                                                                                                                     | Keep emissions dashboard work in scope for post-launch monitoring updates.【F:docs/dct-ton-audit.md†L94-L120】                                                 |
-| Treasury configuration & guardrails      | ✅ Ready       | Config locks 100 M max supply, enforces 60/30/10 routing with bounds, and encodes staking multipliers plus theme pass governance data.【F:dynamic-capital-ton/config.yaml†L1-L51】                                                                                                                                                                                                           | Verify staged Supabase settings mirror the on-chain addresses during final release QA.【F:docs/dct-ton-audit.md†L105-L116】                                    |
-| Allocator contract & regression coverage | ✅ Ready       | Tact allocator validates TIP-3 transfers, timelocks admin ops, forwards declared TON, and emits structured events with matching Deno regression tests.【F:dynamic-capital-ton/contracts/pool_allocator.tact†L32-L218】【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】                                                                                                    | Update implementation checklist to mark parsing/forwarding/test tasks complete for audit traceability.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L47-L99】 |
-| Off-chain onboarding flows               | ✅ Ready       | Supabase wallet linking enforces ownership, subscription handling processes payments with pricing guards, and the Mini App runbook documents Telegram setup for ops teams.【F:dynamic-capital-ton/supabase/functions/link-wallet/index.ts†L1-L118】【F:dynamic-capital-ton/supabase/functions/process-subscription/index.ts†L1-L158】【F:dynamic-capital-ton/apps/miniapp/README.md†L1-L52】 | Capture routine test output (wallet link + subscription suites) with release notes per audit guidance.【F:docs/dct-ton-audit.md†L15-L113】                     |
-| Operational runbooks                     | ✅ Ready       | Go-Live Validation Playbook and Go Live Checklist now document completed webhook, bank, duplicate safeguard, crypto, and admin validations with evidence pointers for operations handover.【F:docs/go-live-validation-playbook.md†L1-L185】【F:docs/GO_LIVE_CHECKLIST.md†L17-L45】                                                          | Keep transcripts and API logs from each dry run attached to release notes so the checklist stays audit-ready.【F:docs/GO_LIVE_CHECKLIST.md†L17-L45】         |
+| Area                                     | Status   | Evidence                                                             | Follow-up                                                        |
+| ---------------------------------------- | -------- | -------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Protocol design & tokenomics             | ✅ Ready | Multi-layer scope and hard-cap locked.[^proto-evidence]              | Keep emissions dashboard post-launch.[^proto-followup]           |
+| Treasury configuration & guardrails      | ✅ Ready | Config enforces cap, routing, and staking rules.[^treasury-evidence] | Match Supabase settings to on-chain refs.[^treasury-followup]    |
+| Allocator contract & regression coverage | ✅ Ready | Allocator guarded and regression-tested.[^allocator-evidence]        | Close outstanding checklist tasks.[^allocator-followup]          |
+| Off-chain onboarding flows               | ✅ Ready | Onboarding flows production-ready.[^offchain-evidence]               | Archive wallet + subscription test logs.[^offchain-followup]     |
+| Operational runbooks                     | ✅ Ready | Go-live dry runs captured for ops.[^runbook-evidence]                | Store transcripts and API logs with releases.[^runbook-followup] |
+
+[^proto-evidence]: Whitepaper codifies the intelligence/execution/liquidity
+    layers and the DCT hard-cap
+    policy.【F:docs/dynamic-capital-ton-whitepaper.md†L6-L73】
+
+[^proto-followup]: Audit notes keep the emissions dashboard in scope for
+    post-launch monitoring updates.【F:docs/dct-ton-audit.md†L94-L120】
+
+[^treasury-evidence]: Configuration locks the 100 M cap, routes 60/30/10 flows,
+    and encodes staking multipliers plus theme governance
+    data.【F:dynamic-capital-ton/config.yaml†L1-L51】
+
+[^treasury-followup]: Release QA should confirm Supabase settings match the
+    production addresses.【F:docs/dct-ton-audit.md†L105-L116】
+
+[^allocator-evidence]: Tact allocator validates TIP-3 transfers, timelocks admin
+    actions, forwards declared TON, and emits events covered by Deno regression
+    tests.【F:dynamic-capital-ton/contracts/pool_allocator.tact†L32-L218】【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】
+
+[^allocator-followup]: Implementation checklist still needs the parsing,
+    forwarding, and regression items marked
+    complete.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L47-L99】
+
+[^offchain-evidence]: Supabase wallet linking, subscription processing, and the
+    Mini App runbook document deterministic onboarding paths for
+    operators.【F:dynamic-capital-ton/supabase/functions/link-wallet/index.ts†L1-L118】【F:dynamic-capital-ton/supabase/functions/process-subscription/index.ts†L1-L158】【F:dynamic-capital-ton/apps/miniapp/README.md†L1-L52】
+
+[^offchain-followup]: Attach wallet link and subscription suite outputs to
+    release notes per audit guidance.【F:docs/dct-ton-audit.md†L15-L113】
+
+[^runbook-evidence]: Go-Live Validation Playbook and Go Live Checklist include
+    completed webhook, banking, duplicate, crypto, and admin checks for
+    handover.【F:docs/go-live-validation-playbook.md†L1-L185】【F:docs/GO_LIVE_CHECKLIST.md†L17-L45】
+
+[^runbook-followup]: File dry-run transcripts and API logs with each release
+    package to keep the checklist
+    audit-ready.【F:docs/GO_LIVE_CHECKLIST.md†L17-L45】
 
 ## Protocol & Product Snapshot
 
@@ -48,7 +85,8 @@
   environments.【F:docs/go-live-validation-playbook.md†L1-L185】
 - The Go Live Checklist now shows every validation checked off—webhook,
   happy-path and near-miss banking, duplicate safeguards, crypto confirmations,
-  and admin responses—so operations inherits a green runbook package.【F:docs/GO_LIVE_CHECKLIST.md†L17-L45】
+  and admin responses—so ops inherit a green runbook
+  package.【F:docs/GO_LIVE_CHECKLIST.md†L17-L45】
 
 ## Outstanding Actions
 
@@ -63,7 +101,8 @@
 3. **Archive the completed dry-run evidence.** File the webhook transcripts,
    bank review outputs, duplicate receipt rejection, crypto confirmation logs,
    and admin command exports alongside the latest release notes so auditors can
-   trace the checklist items without re-running them.【F:docs/GO_LIVE_CHECKLIST.md†L17-L45】【F:docs/go-live-validation-playbook.md†L1-L185】
+   trace each checklist item without
+   reruns.【F:docs/GO_LIVE_CHECKLIST.md†L17-L45】【F:docs/go-live-validation-playbook.md†L1-L185】
 
 ## Next Steps
 
