@@ -28,6 +28,7 @@ class CorruptedPdfError(RuntimeError):
 
 
 _PDF_MIME_TYPE = "application/pdf"
+_FOLDER_MIME_TYPE = "application/vnd.google-apps.folder"
 _DOCX_MIME_TYPES = (
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/msword",
@@ -669,6 +670,7 @@ def build_google_drive_pdf_loader(
     else:
         allowed_mime_types = (_PDF_MIME_TYPE,)
     allowed_mime_type_set = set(allowed_mime_types)
+    drive_mime_types = allowed_mime_types + (_FOLDER_MIME_TYPE,)
 
     def _resolve_tags(mime_type: str) -> tuple[str, ...]:
         if mime_type == _PDF_MIME_TYPE:
@@ -716,7 +718,30 @@ def build_google_drive_pdf_loader(
         def _should_stop() -> bool:
             return remaining is not None and remaining <= 0
 
-        def _yield_document(metadata: MutableMapping[str, object]) -> Iterator[Mapping[str, object]]:
+        visited_folders: set[str] = set()
+
+        def _process_folder(folder_id: str) -> Iterator[Mapping[str, object]]:
+            if not folder_id or folder_id in visited_folders:
+                return
+            visited_folders.add(folder_id)
+            iterator = client.iter_files(
+                folder_id=folder_id,
+                mime_types=drive_mime_types,
+                page_size=effective_batch_size,
+            )
+            for batch in _batched(iterator):
+                if _should_stop():
+                    break
+                for entry in batch:
+                    if _should_stop():
+                        break
+                    yield from _yield_document(entry, parent_folder_id=folder_id)
+
+        def _yield_document(
+            metadata: MutableMapping[str, object],
+            *,
+            parent_folder_id: str | None,
+        ) -> Iterator[Mapping[str, object]]:
             nonlocal remaining
             if _should_stop():
                 return
@@ -725,6 +750,10 @@ def build_google_drive_pdf_loader(
                 return
             seen_ids.add(file_id)
             mime_type = str(metadata.get("mimeType") or "")
+            if mime_type == _FOLDER_MIME_TYPE:
+                if file_id:
+                    yield from _process_folder(file_id)
+                return
             if mime_type and mime_type not in allowed_mime_type_set:
                 return
             size_value = _coerce_size(metadata.get("size"))
@@ -746,6 +775,8 @@ def build_google_drive_pdf_loader(
                 "file_name": metadata.get("name"),
                 "mime_type": effective_mime,
             }
+            if parent_folder_id:
+                document_metadata["parent_folder_id"] = parent_folder_id
             if resolved_folder:
                 document_metadata["source_folder_id"] = resolved_folder
             if resolved_files:
@@ -758,6 +789,19 @@ def build_google_drive_pdf_loader(
                 document_metadata["web_view_link"] = metadata["webViewLink"]
             if size_value is not None:
                 document_metadata["size"] = size_value
+            parents_field = metadata.get("parents")
+            if isinstance(parents_field, str):
+                parent_value = parents_field.strip()
+                if parent_value:
+                    document_metadata["parents"] = (parent_value,)
+            elif isinstance(parents_field, Sequence):
+                parent_ids = tuple(
+                    str(candidate).strip()
+                    for candidate in parents_field
+                    if str(candidate).strip()
+                )
+                if parent_ids:
+                    document_metadata["parents"] = parent_ids
 
             tags_for_document = _resolve_tags(effective_mime)
 
@@ -862,19 +906,7 @@ def build_google_drive_pdf_loader(
                     remaining -= 1
 
         if resolved_folder:
-            for batch in _batched(
-                client.iter_files(
-                    folder_id=resolved_folder,
-                    mime_types=allowed_mime_types,
-                    page_size=effective_batch_size,
-                )
-            ):
-                if _should_stop():
-                    break
-                for entry in batch:
-                    if _should_stop():
-                        break
-                    yield from _yield_document(entry)
+            yield from _process_folder(resolved_folder)
 
         if not _should_stop() and resolved_files:
             metadata_batch: list[MutableMapping[str, object]] = []
@@ -892,13 +924,13 @@ def build_google_drive_pdf_loader(
                     for entry in metadata_batch:
                         if _should_stop():
                             break
-                        yield from _yield_document(entry)
+                        yield from _yield_document(entry, parent_folder_id=None)
                     metadata_batch.clear()
             if metadata_batch and not _should_stop():
                 for entry in metadata_batch:
                     if _should_stop():
                         break
-                    yield from _yield_document(entry)
+                    yield from _yield_document(entry, parent_folder_id=None)
 
     return loader
 
