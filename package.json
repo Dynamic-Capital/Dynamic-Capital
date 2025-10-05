@@ -114,19 +114,20 @@
     "undici": "^6.22.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
     "dotenv": "^16.4.5",
     "firecrawl": "^1.21.1",
     "globals": "^16.4.0",
     "ngrok": "^5.0.0-beta.2",
+    "pg-mem": "^3.0.5",
     "png-to-ico": "^2.1.8",
     "sharp": "^0.33.5",
     "supabase": "^2.47.2",
     "tsx": "^4.20.6",
     "vitest": "^2.1.4",
-    "yaml": "^2.8.1",
-    "@testing-library/jest-dom": "^6.6.3"
+    "yaml": "^2.8.1"
   },
   "overrides": {
     "esbuild": "^0.25.10",
