@@ -6,23 +6,36 @@ token:
   maxSupply: 100000000
 
 splits:
-  operationsPct: 60
-  autoInvestPct: 30
-  buybackBurnPct: 10
+  operationsPct: 48
+  autoInvestPct: 32
+  buybackBurnPct: 20
   bounds:
-    operationsPct: [40, 75]
-    autoInvestPct: [15, 45]
-    buybackBurnPct: [5, 20]
+    operationsPct: [38, 58]
+    autoInvestPct: [25, 40]
+    buybackBurnPct: [15, 30]
+  dynamicAdjustments:
+    revenueSurgeTon: 180000
+    revenueSurgeBoostBps: 250
+    intelligenceMomentumThreshold: 1.15
+    intelligenceBurnBoostBps: 200
+    floorBuybackBudgetTon: 15000
+    maxAdjustmentPerEpochBps: 300
 
 locks:
   bronzeMonths: 3
   silverMonths: 6
   goldMonths: 12
-  multipliers: [1.2, 1.5, 2.0]
+  platinumMonths: 18
+  multipliers: [1.2, 1.5, 2.0, 2.5]
+  loyaltyBonusBps: 75
 
 emissions:
   epochDays: 7
   epochCap: 240000
+  targetAnnualInflationPct: 4.5
+  decayRateBps: 150
+  floorEmission: 60000
+  surgeMultiplier: 1.5
 
 governance:
   # Tonstarter treasury multisig (mainnet).

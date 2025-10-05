@@ -71,21 +71,22 @@ interface StakeConfig {
 }
 
 const DEFAULT_SPLITS: SplitConfig = {
-  operationsPct: 60,
-  autoInvestPct: 30,
-  buybackBurnPct: 10,
+  operationsPct: 48,
+  autoInvestPct: 32,
+  buybackBurnPct: 20,
 };
 
 const SPLIT_BOUNDS: Record<keyof SplitConfig, SplitBounds> = {
-  operationsPct: { min: 40, max: 75 },
-  autoInvestPct: { min: 15, max: 45 },
-  buybackBurnPct: { min: 5, max: 20 },
+  operationsPct: { min: 38, max: 58 },
+  autoInvestPct: { min: 25, max: 40 },
+  buybackBurnPct: { min: 15, max: 30 },
 };
 
 const LOCK_CONFIG: Record<string, StakeConfig> = {
   "vip_bronze": { months: 3, multiplier: 1.2 },
   "vip_silver": { months: 6, multiplier: 1.5 },
   "vip_gold": { months: 12, multiplier: 2.0 },
+  "vip_platinum": { months: 18, multiplier: 2.5 },
   "mentorship": { months: 6, multiplier: 1.35 },
 };
 

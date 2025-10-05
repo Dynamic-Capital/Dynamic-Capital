@@ -34,7 +34,10 @@ gains.
 ## 2. Revenue-Driven Buyback Algorithm
 
 Protocol revenues are recycled into DCT to reinforce price support and reward
-productive contributors.
+productive contributors. The treasury budget is pre-configured at a 48/32/20
+split between operating liquidity, compounding auto-invest flows, and direct
+buyback-and-burn, with governance-locked bounds that keep proposals within a
+38–58% operating band, 25–40% reinvestment band, and 15–30% burn band.
 
 - **Formula**: $BB = \phi \cdot R$
 - **Variables**:
@@ -48,6 +51,9 @@ productive contributors.
   3. Automated market operations acquire DCT from designated DEX pools.
   4. Purchased tokens are redistributed to staking vaults, mentorship rewards,
      or AGI training bounties as configured.
+  5. Dynamic adjustments boost buyback budgets by up to 300 bps per epoch when
+     revenue surges beyond 180,000 TON or when intelligence delta momentum
+     exceeds the 1.15 threshold.
 
 ## 3. Market Maker Coordination Algorithm
 
@@ -88,6 +94,23 @@ A unified oracle layer translates live DCT valuations into service access costs.
 | Mentorship Success | Unlocks staking rewards and increases aggregated intelligence scores  |
 | Trading Accuracy   | Improves $\Delta I$ inputs and refines market making heuristics       |
 | User Engagement    | Scales revenue $R$, driving higher buyback volumes and token velocity |
+
+## Treasury & Staking Configuration
+
+- **Liquidity Split Guardrails**: Default treasury routing applies 48% to
+  operations, 32% to auto-invest vaults, and 20% to buyback-and-burn activity.
+  Governance-defined bounds enforce gradual rebalancing and block extreme swings
+  outside the 38–58% / 25–40% / 15–30% envelopes.
+- **Adaptive Budget Boosts**: Revenue surges above 180,000 TON or sustained
+  intelligence momentum ($\Delta I > 1.15$) increment buyback budgets by up to
+  300 bps while protecting a 15,000 TON floor so downside phases continue to be
+  supported.
+- **Staking Tiers**: Bronze, Silver, Gold, and newly added Platinum locks (3, 6,
+  12, and 18 months) deliver 1.2x, 1.5x, 2.0x, and 2.5x multipliers respectively
+  with an additional 75 bps loyalty kicker for restaked positions.
+- **Emission Controls**: Weekly epochs remain capped at 240,000 DCT with a 4.5%
+  annualized inflation target, 150 bps decay factor, and a 60,000 DCT floor to
+  keep contributor rewards predictable even during contraction cycles.
 
 ## Governance Considerations
 
