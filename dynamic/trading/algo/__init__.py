@@ -11,6 +11,13 @@ from .trading_core import (
     InstrumentProfile,
     normalise_symbol,
 )
+from .dct_market_maker import (
+    DCTMarketMakerInputs,
+    DCTMarketMakerModel,
+    DCTMarketMakerQuote,
+    DCTMarketMakerService,
+    coerce_market_inputs,
+)
 from .market_flow import DynamicMarketFlow, MarketFlowSnapshot, MarketFlowTrade
 from .middleware import (
     DynamicMiddlewareAlgo,
@@ -121,6 +128,11 @@ __all__ = [
     "DynamicTradingAlgo",
     "InstrumentProfile",
     "normalise_symbol",
+    "DCTMarketMakerInputs",
+    "DCTMarketMakerQuote",
+    "DCTMarketMakerModel",
+    "DCTMarketMakerService",
+    "coerce_market_inputs",
     "DynamicMarketFlow",
     "MarketFlowSnapshot",
     "MarketFlowTrade",

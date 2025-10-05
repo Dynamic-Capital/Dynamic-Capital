@@ -9,6 +9,37 @@
 - Offer explicit hooks for treasury incentives, buyback/burn automation, and
   hedge execution.
 
+## SDK Access
+
+Trading services can pull the inventory-aware quoting logic directly via the
+`dynamic.trading.algo` namespace:
+
+```python
+from dynamic.trading.algo import DCTMarketMakerService, coerce_market_inputs
+
+service = DCTMarketMakerService()
+
+inputs = coerce_market_inputs(
+    {
+        "mid_price": 1.05,
+        "inventory": 4_750.0,
+        "target_inventory": 5_000.0,
+        "inventory_limit": 10_000.0,
+        "volatility": 0.22,
+        "ton_reference_price": 1.01,
+        "onchain_depth": 15_000.0,
+        "offchain_depth": 11_000.0,
+        "recent_volume": 2_900.0,
+    }
+)
+
+quote = service.quote(inputs)
+print(service.note_summary(quote))
+```
+
+The helper normalises telemetry before routing it into the underlying
+`DCTMarketMakerModel`, keeping desks from duplicating validation logic.
+
 ## System Overview
 
 | Block                  | Responsibilities                                                                                                        | Key Interfaces                                                  |
