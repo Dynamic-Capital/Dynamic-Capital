@@ -2,11 +2,21 @@
 import { optionalEnvVar } from "../apps/web/utils/env.ts";
 import { celebrate, info, success, warn } from "./utils/friendly-logger.js";
 
+const DEFAULT_DYNAMIC_API_CACHE_TTL_SECONDS = "120";
+const DEFAULT_DYNAMIC_REST_CACHE_TTL_SECONDS = "300";
+
 const SUPABASE_URL = optionalEnvVar("SUPABASE_URL");
 const SUPABASE_ANON_KEY = optionalEnvVar("SUPABASE_ANON_KEY");
 const SITE_URL = optionalEnvVar("SITE_URL");
 const NEXT_PUBLIC_SITE_URL = optionalEnvVar("NEXT_PUBLIC_SITE_URL");
 const MINIAPP_ORIGIN = optionalEnvVar("MINIAPP_ORIGIN");
+const CACHE_TTL_SECONDS = optionalEnvVar("CACHE_TTL_SECONDS");
+const DYNAMIC_API_CACHE_TTL_SECONDS = optionalEnvVar(
+  "DYNAMIC_API_CACHE_TTL_SECONDS",
+);
+const DIRECT_DYNAMIC_REST_CACHE_TTL_SECONDS = optionalEnvVar(
+  "DYNAMIC_REST_CACHE_TTL_SECONDS",
+);
 
 const placeholders: string[] = [];
 
@@ -39,6 +49,27 @@ const resolvedMiniappOrigin = MINIAPP_ORIGIN ?? canonicalSiteUrl;
 
 if (!MINIAPP_ORIGIN) {
   assignPlaceholder("MINIAPP_ORIGIN", resolvedMiniappOrigin);
+}
+
+const resolvedDynamicApiCacheTtl = DYNAMIC_API_CACHE_TTL_SECONDS ??
+  DEFAULT_DYNAMIC_API_CACHE_TTL_SECONDS;
+
+if (DYNAMIC_API_CACHE_TTL_SECONDS === undefined) {
+  assignPlaceholder(
+    "DYNAMIC_API_CACHE_TTL_SECONDS",
+    resolvedDynamicApiCacheTtl,
+  );
+}
+
+const resolvedDynamicRestCacheTtl = DIRECT_DYNAMIC_REST_CACHE_TTL_SECONDS ??
+  CACHE_TTL_SECONDS ??
+  DEFAULT_DYNAMIC_REST_CACHE_TTL_SECONDS;
+
+if (DIRECT_DYNAMIC_REST_CACHE_TTL_SECONDS === undefined) {
+  assignPlaceholder(
+    "DYNAMIC_REST_CACHE_TTL_SECONDS",
+    resolvedDynamicRestCacheTtl,
+  );
 }
 
 if (placeholders.length > 0) {

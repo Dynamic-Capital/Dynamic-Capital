@@ -54,6 +54,14 @@ export const serverSchema = z.object({
   SITE_URL: z.string().url().optional(),
   ROUTE_GUARD_PASSWORD: z.string().min(1).optional(),
   CACHE_TTL_SECONDS: z.string().optional(),
+  DYNAMIC_API_CACHE_TTL_SECONDS: z
+    .string()
+    .regex(/^\d+$/)
+    .optional(),
+  DYNAMIC_REST_CACHE_TTL_SECONDS: z
+    .string()
+    .regex(/^\d+$/)
+    .optional(),
 });
 
 export const envDefinition = {
@@ -175,6 +183,13 @@ function validateServerEnv(): ValidationResult {
     SITE_URL: optionalEnvVar("SITE_URL", ["NEXT_PUBLIC_SITE_URL"]),
     ROUTE_GUARD_PASSWORD: optionalEnvVar("ROUTE_GUARD_PASSWORD"),
     CACHE_TTL_SECONDS: optionalEnvVar("CACHE_TTL_SECONDS"),
+    DYNAMIC_API_CACHE_TTL_SECONDS: optionalEnvVar(
+      "DYNAMIC_API_CACHE_TTL_SECONDS",
+    ),
+    DYNAMIC_REST_CACHE_TTL_SECONDS: optionalEnvVar(
+      "DYNAMIC_REST_CACHE_TTL_SECONDS",
+      ["CACHE_TTL_SECONDS"],
+    ),
   } satisfies Record<string, string | undefined>;
 
   const result = serverSchema.safeParse(raw);
