@@ -45,7 +45,7 @@ function resolveDynamicRestCacheTtl(rawValue: string | undefined): number {
 }
 
 export const DYNAMIC_REST_CACHE_TTL_SECONDS = resolveDynamicRestCacheTtl(
-  optionalEnvVar("CACHE_TTL_SECONDS"),
+  optionalEnvVar("DYNAMIC_REST_CACHE_TTL_SECONDS", ["CACHE_TTL_SECONDS"]),
 );
 
 export const DYNAMIC_REST_CACHE_CONTROL_HEADER =
@@ -440,11 +440,11 @@ export async function buildDynamicRestResponse(
     marketAdvisories,
     dexScreener,
   ] = await Promise.all([
-    Promise.resolve(summariseInstruments()),
-    Promise.resolve(summariseTradingDesk()),
-    Promise.resolve(summariseBondYields()),
-    Promise.resolve(summariseOpenSource()),
-    Promise.resolve(summariseMarketAdvisories(now)),
+    summariseInstruments(),
+    summariseTradingDesk(),
+    summariseBondYields(),
+    summariseOpenSource(),
+    summariseMarketAdvisories(now),
     buildDexScreenerResource(),
   ]);
 
