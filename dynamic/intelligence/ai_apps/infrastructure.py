@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+
 from enum import Enum
+
+from pathlib import Path
 from typing import Dict, Iterable, Mapping, MutableMapping, Sequence, Tuple
 
 
@@ -742,6 +745,244 @@ def build_default_infrastructure() -> DynamicInfrastructure:
     return infrastructure
 
 
+_KEYWORD_DOMAIN_RULES: Tuple[Tuple[ModuleDomain, Tuple[str, ...]], ...] = (
+    (
+        ModuleDomain.FINANCE_MARKETS,
+        (
+            "alpha",
+            "asset",
+            "finance",
+            "hedge",
+            "liquidity",
+            "market",
+            "portfolio",
+            "quant",
+            "stake",
+            "token",
+            "trade",
+            "trading",
+            "treasury",
+            "wallet",
+        ),
+    ),
+    (
+        ModuleDomain.SECURITY_GOVERNANCE,
+        (
+            "authority",
+            "compliance",
+            "governance",
+            "kyc",
+            "policy",
+            "proof",
+            "risk",
+            "security",
+            "validator",
+            "watcher",
+        ),
+    ),
+    (
+        ModuleDomain.BUSINESS_OPERATIONS,
+        (
+            "account",
+            "business",
+            "cadence",
+            "demand",
+            "ops",
+            "operation",
+            "process",
+            "schedule",
+            "supply",
+            "task",
+            "workflow",
+        ),
+    ),
+    (
+        ModuleDomain.HUMAN_CREATIVE,
+        (
+            "artist",
+            "creative",
+            "culture",
+            "persona",
+            "playbook",
+            "teaching",
+            "mentor",
+            "development_team",
+        ),
+    ),
+    (
+        ModuleDomain.AI_COGNITION,
+        (
+            "agent",
+            "ai",
+            "brain",
+            "cognition",
+            "conscious",
+            "learning",
+            "memory",
+            "mind",
+            "model",
+            "quantum",
+            "thinking",
+        ),
+    ),
+)
+
+
+def _humanise_module_name(name: str) -> str:
+    tokens = [token for token in name.split("_") if token]
+    return " ".join(token.capitalize() for token in tokens)
+
+
+def discover_dynamic_module_names(repo_root: str | Path | None = None) -> Tuple[str, ...]:
+    """Return all repository directories starting with ``dynamic_``.
+
+    The helper prefers explicit ``repo_root`` overrides but falls back to the
+    repository root inferred from this file's location.  Only directories that
+    expose an ``__init__.py`` file are returned so the results are importable as
+    packages.
+    """
+
+    file_path = Path(__file__).resolve()
+    inferred_root = file_path.parents[3]
+    root_path = Path(repo_root) if repo_root is not None else inferred_root
+
+    modules: list[str] = []
+    for entry in sorted(root_path.iterdir(), key=lambda path: path.name):
+        if not entry.is_dir():
+            continue
+        if not entry.name.startswith("dynamic_"):
+            continue
+        init_file = entry / "__init__.py"
+        if not init_file.exists():
+            continue
+        modules.append(entry.name)
+    return tuple(modules)
+
+
+def guess_module_domain(name: str) -> ModuleDomain:
+    """Best-effort domain inference for a dynamic module name."""
+
+    lowered = name.lower()
+    tokens = set(lowered.split("_"))
+    for domain, keywords in _KEYWORD_DOMAIN_RULES:
+        for keyword in keywords:
+            if keyword in lowered or keyword in tokens:
+                return domain
+    return ModuleDomain.TECHNOLOGY_INFRASTRUCTURE
+
+
+def _build_auto_registration(name: str, domain: ModuleDomain) -> ModuleRegistration:
+    """Construct a :class:`ModuleRegistration` stub for ``name``."""
+
+    friendly = _humanise_module_name(name)
+    prefix = friendly.replace("Dynamic ", "").strip() or friendly
+
+    if domain is ModuleDomain.FINANCE_MARKETS:
+        responsibilities = (
+            f"Govern {friendly} execution guardrails across trading cycles",
+            f"Publish telemetry so finance teams can evaluate {prefix} health",
+            f"Coordinate with risk agents when {prefix} deviates from policy",
+        )
+        success_metrics = (
+            f"{friendly} telemetry refreshed each session",
+            f"Risk escalations for {prefix} resolved within trading SLA",
+            f"Portfolio alignment for {prefix} maintained inside guardrails",
+        )
+    elif domain is ModuleDomain.SECURITY_GOVERNANCE:
+        responsibilities = (
+            f"Enforce governance controls for {friendly}",
+            f"Surface anomalies and compliance drift tied to {prefix}",
+            f"Maintain incident response runbooks for {prefix}",
+        )
+        success_metrics = (
+            f"Security alerts for {prefix} triaged within target window",
+            f"Audit evidence for {prefix} stored with provenance",
+            f"Governance reviews of {prefix} logged every sprint",
+        )
+    elif domain is ModuleDomain.BUSINESS_OPERATIONS:
+        responsibilities = (
+            f"Coordinate cadences that depend on {friendly}",
+            f"Track workflow dependencies around {prefix}",
+            f"Report enablement status for {prefix} stakeholders",
+        )
+        success_metrics = (
+            f"Operational reviews for {prefix} completed on schedule",
+            f"Blocked work related to {prefix} resolved within SLA",
+            f"Stakeholder updates for {prefix} shared each reporting cycle",
+        )
+    elif domain is ModuleDomain.HUMAN_CREATIVE:
+        responsibilities = (
+            f"Deliver learning and creative assets for {friendly}",
+            f"Curate narratives that clarify the value of {prefix}",
+            f"Facilitate rituals that sustain {prefix} adoption",
+        )
+        success_metrics = (
+            f"Learner satisfaction for {prefix} initiatives above target",
+            f"Knowledge base entries for {prefix} refreshed monthly",
+            f"Creative outputs linked to {prefix} shipped each sprint",
+        )
+    elif domain is ModuleDomain.AI_COGNITION:
+        responsibilities = (
+            f"Advance cognitive capabilities delivered by {friendly}",
+            f"Align {prefix} behaviours with governance policies",
+            f"Document model upgrades and memory refreshes for {prefix}",
+        )
+        success_metrics = (
+            f"Evaluation suites for {prefix} pass with agreed thresholds",
+            f"Memory refresh cadence for {prefix} honoured every cycle",
+            f"Alignment reviews for {prefix} logged with owners",
+        )
+    else:
+        responsibilities = (
+            f"Operate the {friendly} stack with resilient infrastructure",
+            f"Keep observability and automation healthy for {prefix}",
+            f"Coordinate deployments and rollbacks impacting {prefix}",
+        )
+        success_metrics = (
+            f"Operational metrics for {prefix} remain within tolerance",
+            f"Instrumentation for {prefix} covers critical pathways",
+            f"Incidents touching {prefix} resolved within platform SLA",
+        )
+
+    notes = (
+        "Auto-generated registration to ensure comprehensive module coverage.",
+        "Refine responsibilities and metrics with the owning team.",
+    )
+
+    return ModuleRegistration(
+        name=name,
+        domain=domain,
+        responsibilities=responsibilities,
+        success_metrics=success_metrics,
+        notes=notes,
+    )
+
+
+def build_comprehensive_infrastructure(
+    repo_root: str | Path | None = None,
+) -> DynamicInfrastructure:
+    """Return an infrastructure instance registering every dynamic module."""
+
+    infrastructure = build_default_infrastructure()
+    registered = {module.name for module in infrastructure.list_modules()}
+
+    for module_name in discover_dynamic_module_names(repo_root):
+        if module_name in registered:
+            continue
+        domain = guess_module_domain(module_name)
+        registration = _build_auto_registration(module_name, domain)
+        infrastructure.register_module(
+            registration.name,
+            registration.domain,
+            responsibilities=registration.responsibilities,
+            success_metrics=registration.success_metrics,
+            notes=registration.notes,
+        )
+        registered.add(module_name)
+
+    return infrastructure
+
+
 __all__ = [
     "Role",
     "RoleSpec",
@@ -756,6 +997,9 @@ __all__ = [
     "ModuleRegistration",
     "MEMORY_MODULE_REGISTRATIONS",
     "DEFAULT_MODULE_REGISTRATIONS",
+    "discover_dynamic_module_names",
+    "guess_module_domain",
     "build_default_infrastructure",
+    "build_comprehensive_infrastructure",
 ]
 
