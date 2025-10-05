@@ -3,6 +3,7 @@ import { z } from "zod";
 import jettonMetadata from "../../../dynamic-capital-ton/contracts/jetton/metadata.json" assert {
   type: "json",
 };
+import { TON_MAINNET_OPERATIONS_TREASURY } from "../../../shared/ton/mainnet-addresses";
 import type { IconName } from "./icons";
 
 const TON_URL_SCHEME_PATTERN = /^ton:\/\//i;
@@ -121,7 +122,7 @@ const tokenMetadata = jettonMetadataSchema.parse(jettonMetadata);
 const TGE_CIRCULATING_SUPPLY = 13_000_000;
 const TGE_MARKET_CAP_USD = 13_000_000;
 const OPERATIONS_TREASURY_WALLET = tonAddressSchema.parse(
-  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
+  TON_MAINNET_OPERATIONS_TREASURY,
 );
 const OPERATIONS_TREASURY_EXPLORER_URL =
   `https://tonviewer.com/${OPERATIONS_TREASURY_WALLET}`;
