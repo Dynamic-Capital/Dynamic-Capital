@@ -47,10 +47,21 @@ accounts remain in their expected lifecycle phases:
 | ----------------- | -------------------------------------------------- | ----------------- | --------------------- |
 | Treasury multisig | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | `"active"`        | `22755768333`         |
 | Jetton master     | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | `"uninitialized"` | `0`                   |
-| STON.fi router    | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | `"active"`        | `3225088047338`       |
+| STON.fi router    | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | `"active"`        | `3225088046992`       |
 
 The `curl` queries above were executed without an API key and matched the status
-expectations documented in this runbook.
+expectations documented in this runbook. Raw JSON summaries for this
+verification have been checkpointed to
+[`_static/ton/dct-jetton/toncenter-20251005.json`](../../_static/ton/dct-jetton/toncenter-20251005.json)
+so auditors can diff future snapshots against the 2025-10-05 baseline:
+
+```json
+{
+  "treasuryMultisig": { "balance": "22755768333", "state": "active" },
+  "jettonMaster": { "balance": "0", "state": "uninitialized" },
+  "stonfiRouter": { "balance": "3225088046992", "state": "active" }
+}
+```
 
 ## Explorer Snapshots
 

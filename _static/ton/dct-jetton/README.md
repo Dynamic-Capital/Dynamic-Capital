@@ -42,3 +42,11 @@ Pool Share: Treasury 78%, Market Makers 22%
 
 These transcripts are immutable snapshots to satisfy the Tonstarter audit
 request for explorer evidence without distributing raw screenshots.
+
+## toncenter-20251005.json
+
+Machine-readable log of the toncenter governance address confirmations captured
+on 2025-10-05. Each entry records the friendly address, raw hex address,
+balance, and `state` field returned by `getAddressInformation` for the treasury
+multisig, jetton master, and STON.fi router. Diff new outputs against this file
+when re-verifying the deployment to spot unexpected state changes.
