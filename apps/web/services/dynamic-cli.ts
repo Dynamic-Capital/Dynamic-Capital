@@ -53,6 +53,20 @@ export interface DynamicCliRequestOptions {
   adminInitData?: string;
 }
 
+export interface DynamicCliScenarioSummary {
+  nodeCount: number;
+  pulseCount: number;
+  mostRecentPulse: string | null;
+}
+
+export interface DynamicCliScenarioDiagnostics {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  scenario?: DynamicCliScenario;
+  summary: DynamicCliScenarioSummary;
+}
+
 export const DEFAULT_DYNAMIC_CLI_SCENARIO: DynamicCliScenario = {
   history: 12,
   decay: 0.1,
@@ -151,6 +165,212 @@ export const DEFAULT_DYNAMIC_CLI_SCENARIO: DynamicCliScenario = {
     },
   ],
 };
+
+const NUMERIC_PULSE_FIELDS: Array<keyof DynamicCliPulse> = [
+  "maturity",
+  "confidence",
+  "enablement",
+  "resilience",
+  "momentum",
+];
+
+export function validateDynamicCliScenario(
+  input: unknown,
+): DynamicCliScenarioDiagnostics {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const summary: DynamicCliScenarioSummary = {
+    nodeCount: 0,
+    pulseCount: 0,
+    mostRecentPulse: null,
+  };
+
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    errors.push(
+      "Scenario payload must be a JSON object with nodes and pulses.",
+    );
+    return { valid: false, errors, warnings, summary };
+  }
+
+  const scenario = input as DynamicCliScenario;
+  const nodesInput = (scenario as { nodes?: unknown }).nodes;
+  const pulsesInput = (scenario as { pulses?: unknown }).pulses;
+
+  if (!Array.isArray(nodesInput)) {
+    errors.push("Scenario must include a nodes array.");
+  } else {
+    summary.nodeCount = nodesInput.length;
+    const seenNodeKeys = new Set<string>();
+
+    nodesInput.forEach((node, index) => {
+      if (!node || typeof node !== "object" || Array.isArray(node)) {
+        errors.push(`Node at position ${index + 1} must be an object.`);
+        return;
+      }
+
+      const nodeRecord = node as Record<string, unknown>;
+      const nodeKey = nodeRecord.key;
+
+      if (typeof nodeKey !== "string" || !nodeKey.trim()) {
+        errors.push(`Node at position ${index + 1} requires a string key.`);
+        return;
+      }
+
+      if (seenNodeKeys.has(nodeKey)) {
+        errors.push(`Node key "${nodeKey}" appears multiple times.`);
+      } else {
+        seenNodeKeys.add(nodeKey);
+      }
+
+      const numericNodeFields: Array<keyof DynamicCliNode> = [
+        "weight",
+        "minimum_maturity",
+        "target_maturity",
+      ];
+      numericNodeFields.forEach((field) => {
+        const value = nodeRecord[field];
+        if (value !== undefined && typeof value !== "number") {
+          warnings.push(`Node "${nodeKey}" ${field} should be a number.`);
+        }
+      });
+
+      if (
+        "practices" in nodeRecord &&
+        nodeRecord.practices !== undefined &&
+        !Array.isArray(nodeRecord.practices)
+      ) {
+        warnings.push(`Node "${nodeKey}" practices should be an array.`);
+      }
+
+      if (
+        "dependencies" in nodeRecord &&
+        nodeRecord.dependencies !== undefined &&
+        !Array.isArray(nodeRecord.dependencies)
+      ) {
+        warnings.push(`Node "${nodeKey}" dependencies should be an array.`);
+      }
+    });
+
+    if (seenNodeKeys.size === 0) {
+      warnings.push("Scenario includes no nodes.");
+    }
+  }
+
+  if (!Array.isArray(pulsesInput)) {
+    errors.push("Scenario must include a pulses array.");
+  } else {
+    summary.pulseCount = pulsesInput.length;
+    const validNodeKeys = new Set(
+      Array.isArray(nodesInput)
+        ? (nodesInput
+          .map((node) =>
+            node && typeof node === "object" && !Array.isArray(node)
+              ? (node as Record<string, unknown>).key
+              : undefined
+          )
+          .filter(
+            (key): key is string =>
+              typeof key === "string" && key.trim().length > 0,
+          ))
+        : [],
+    );
+
+    let latestPulseTimestamp = Number.NEGATIVE_INFINITY;
+
+    pulsesInput.forEach((pulse, index) => {
+      if (!pulse || typeof pulse !== "object" || Array.isArray(pulse)) {
+        errors.push(`Pulse at position ${index + 1} must be an object.`);
+        return;
+      }
+
+      const pulseRecord = pulse as Record<string, unknown>;
+      const nodeKey = pulseRecord.node;
+
+      if (typeof nodeKey !== "string" || !nodeKey.trim()) {
+        errors.push(`Pulse at position ${index + 1} requires a node key.`);
+        return;
+      }
+
+      if (!validNodeKeys.has(nodeKey)) {
+        errors.push(`Pulse ${index + 1} references unknown node "${nodeKey}".`);
+      }
+
+      NUMERIC_PULSE_FIELDS.forEach((field) => {
+        const value = pulseRecord[field];
+        if (value === undefined) {
+          return;
+        }
+        if (typeof value !== "number" || Number.isNaN(value)) {
+          errors.push(`Pulse "${nodeKey}" ${field} must be a number.`);
+          return;
+        }
+        if (field === "maturity" && (value < 0 || value > 1)) {
+          warnings.push(
+            `Pulse "${nodeKey}" maturity should be between 0 and 1.`,
+          );
+        }
+      });
+
+      const timestamp = pulseRecord.timestamp;
+      if (typeof timestamp !== "string" && typeof timestamp !== "number") {
+        errors.push(`Pulse "${nodeKey}" timestamp must be a string or number.`);
+      } else {
+        const parsedTimestamp = new Date(timestamp).getTime();
+        if (Number.isNaN(parsedTimestamp)) {
+          warnings.push(`Pulse "${nodeKey}" timestamp could not be parsed.`);
+        } else if (parsedTimestamp > latestPulseTimestamp) {
+          latestPulseTimestamp = parsedTimestamp;
+          summary.mostRecentPulse = new Date(parsedTimestamp).toISOString();
+        }
+      }
+
+      if (
+        "tags" in pulseRecord &&
+        pulseRecord.tags !== undefined &&
+        !Array.isArray(pulseRecord.tags)
+      ) {
+        warnings.push(`Pulse "${nodeKey}" tags should be an array.`);
+      }
+
+      if (
+        "metadata" in pulseRecord &&
+        pulseRecord.metadata !== undefined &&
+        (typeof pulseRecord.metadata !== "object" ||
+          pulseRecord.metadata === null ||
+          Array.isArray(pulseRecord.metadata))
+      ) {
+        warnings.push(`Pulse "${nodeKey}" metadata should be an object.`);
+      }
+    });
+
+    if (summary.pulseCount === 0) {
+      warnings.push("Scenario includes no pulses.");
+    }
+  }
+
+  if (
+    "history" in scenario && scenario.history !== undefined &&
+    typeof scenario.history !== "number"
+  ) {
+    warnings.push("Scenario history should be a number representing months.");
+  }
+
+  if (
+    "decay" in scenario && scenario.decay !== undefined &&
+    typeof scenario.decay !== "number"
+  ) {
+    warnings.push("Scenario decay should be a numeric value.");
+  }
+
+  const valid = errors.length === 0;
+  return {
+    valid,
+    errors,
+    warnings,
+    scenario: valid ? scenario : undefined,
+    summary,
+  };
+}
 
 export async function runDynamicCli(
   payload: DynamicCliRequestPayload,

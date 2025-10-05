@@ -139,6 +139,19 @@ describe("DynamicCliWorkbench", () => {
     expect(report).toHaveTextContent("CLI report");
   });
 
+  it("displays diagnostics for the default scenario", () => {
+    render(<DynamicCliWorkbench />);
+
+    const diagnosticsSummary = screen.getByTestId(
+      "dynamic-cli-scenario-summary",
+    );
+    expect(diagnosticsSummary).toHaveTextContent(/nodes: 3/i);
+    expect(diagnosticsSummary).toHaveTextContent(/pulses: 6/i);
+    expect(diagnosticsSummary).toHaveTextContent(
+      /latest pulse: 2024-04-01t09:00:00.000z/i,
+    );
+  });
+
   it("surfaces errors from the API", async () => {
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ error: "Invalid Dynamic CLI payload." }), {
@@ -167,6 +180,54 @@ describe("DynamicCliWorkbench", () => {
       screen.getByRole("heading", { name: /admin session required/i }),
     ).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("validates the scenario JSON before submitting", async () => {
+    render(<DynamicCliWorkbench />);
+
+    const scenarioInput = screen.getByLabelText(/scenario json/i);
+    fireEvent.change(scenarioInput, { target: { value: "{ invalid" } });
+
+    const [runButton] = screen.getAllByRole("button", {
+      name: /run dynamic cli/i,
+    });
+    fireEvent.click(runButton);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/scenario json must be valid/i);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    expect(
+      screen.getByTestId("dynamic-cli-scenario-errors"),
+    ).toHaveTextContent(/scenario json must be valid/i);
+  });
+
+  it("highlights scenario warnings for out-of-range maturity", () => {
+    render(<DynamicCliWorkbench />);
+
+    const scenarioInput = screen.getByLabelText(/scenario json/i);
+    const warningScenario = {
+      history: 12,
+      decay: 0.1,
+      nodes: [
+        { key: "alpha", title: "Alpha" },
+      ],
+      pulses: [
+        {
+          node: "alpha",
+          maturity: 1.2,
+          timestamp: "2024-01-01T00:00:00Z",
+        },
+      ],
+    };
+
+    fireEvent.change(scenarioInput, {
+      target: { value: JSON.stringify(warningScenario, null, 2) },
+    });
+
+    expect(
+      screen.getByTestId("dynamic-cli-scenario-warnings"),
+    ).toHaveTextContent(/maturity should be between 0 and 1/i);
   });
 
   it("downloads the dataset when the fine-tune format is selected", async () => {
