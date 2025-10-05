@@ -13,13 +13,11 @@ import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 const ROUTE_ENDPOINT = DYNAMIC_API_ENDPOINT;
 const CACHE_KEY = "dynamic-api-response";
 
-export const revalidate = DYNAMIC_API_CACHE_TTL_SECONDS;
-
 const getDynamicApiResponse = unstable_cache(
   async () => buildDynamicApiResponse(),
   [CACHE_KEY],
   {
-    revalidate,
+    revalidate: DYNAMIC_API_CACHE_TTL_SECONDS,
     tags: [DYNAMIC_API_CACHE_TAG],
   },
 );

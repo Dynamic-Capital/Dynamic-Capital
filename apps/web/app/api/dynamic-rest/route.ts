@@ -14,13 +14,11 @@ const ROUTE_ENDPOINT = DYNAMIC_REST_ENDPOINTS.root;
 const ROUTE_NAME = ROUTE_ENDPOINT.path;
 const CACHE_KEY = "dynamic-rest-response";
 
-export const revalidate = DYNAMIC_REST_CACHE_TTL_SECONDS;
-
 const getDynamicRestResponse = unstable_cache(
   () => buildDynamicRestResponse(),
   [CACHE_KEY],
   {
-    revalidate,
+    revalidate: DYNAMIC_REST_CACHE_TTL_SECONDS,
     tags: [DYNAMIC_REST_CACHE_TAG],
   },
 );
