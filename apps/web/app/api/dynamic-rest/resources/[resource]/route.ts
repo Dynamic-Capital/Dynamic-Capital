@@ -42,7 +42,7 @@ function createCachedResource<Payload extends ResourcePayload>(
   builder: () => Payload | Promise<Payload>,
 ): () => Promise<Payload> {
   return unstable_cache(
-    () => Promise.resolve(builder()),
+    async () => builder(),
     [cacheKey],
     {
       revalidate,

@@ -440,11 +440,11 @@ export async function buildDynamicRestResponse(
     marketAdvisories,
     dexScreener,
   ] = await Promise.all([
-    Promise.resolve(summariseInstruments()),
-    Promise.resolve(summariseTradingDesk()),
-    Promise.resolve(summariseBondYields()),
-    Promise.resolve(summariseOpenSource()),
-    Promise.resolve(summariseMarketAdvisories(now)),
+    summariseInstruments(),
+    summariseTradingDesk(),
+    summariseBondYields(),
+    summariseOpenSource(),
+    summariseMarketAdvisories(now),
     buildDexScreenerResource(),
   ]);
 
