@@ -38,7 +38,8 @@ matches the deployed jetton.
 1. **Complete the Tonkeeper asset sheet.** Submit the Google Form linked from
    `https://tonkeeper.com/asset-listing` (or the latest support URL). Include
    the canonical metadata above, upload the project logo, and paste the jetton
-   master address without formatting.
+   master address without formatting. Capture the confirmation screen (or
+   automated email) so you can prove the form was accepted.
 2. **Attach verification artifacts.** Tonkeeper typically accepts a PDF or drive
    folder containing:
    - Jetton metadata JSON exported directly from
@@ -46,14 +47,26 @@ matches the deployed jetton.
    - Screenshots of Tonviewer showing the jetton master page, supply figures,
      and transaction hash for the genesis mint.
    - Governance documentation snippets proving the multisig / timelock controls.
+     Store the artifact bundle in the compliance evidence drive and link it in
+     the tracker (see template below).
 3. **File a support ticket.** After submitting the form, open a ticket via
    `support@tonkeeper.com` (or the designated channel) linking to the form
-   submission and attaching the evidence bundle. Record the ticket ID in the
-   compliance tracker so the team can reference it during audits.
-4. **Confirm listing propagation.** Tonkeeper’s asset registry caches responses.
+   submission and attaching the evidence bundle. Record the ticket ID, the date
+   submitted, and the assigned agent (if provided) in the compliance tracker so
+   the team can reference it during audits.
+4. **Confirm Tonkeeper acknowledgment.** If you do not receive an
+   acknowledgement within two business days, reply to the ticket and ping the
+   Tonkeeper support Telegram to ensure the request is queued. Note the
+   follow-up date in the tracker and escalate to the partnerships lead after the
+   second nudge.
+5. **Confirm listing propagation.** Tonkeeper’s asset registry caches responses.
    Once support confirms approval, wait for the next registry refresh and then
    reload the wallet. The Unverified banner should disappear when the registry
    publishes the entry.
+6. **Close the submission loop.** Archive before/after wallet screenshots in the
+   evidence bundle, update the tracker entry with the approval date, and notify
+   the compliance mailing list so downstream reviewers know the asset is fully
+   verified.
 
 ## Follow-up checks
 
@@ -65,6 +78,20 @@ matches the deployed jetton.
 - If Tonkeeper requests additional information (legal entity certificate, audit
   results, etc.), add those artifacts to this playbook and source control for
   repeatability.
+
+## Compliance tracker template
+
+Record every outreach attempt and approval milestone so reviewers can audit the
+submission path end to end.
+
+| Field                    | Example value                                   | Notes                                                          |
+| ------------------------ | ----------------------------------------------- | -------------------------------------------------------------- |
+| Submission date          | `2024-02-12`                                    | Date the Tonkeeper asset sheet was submitted.                  |
+| Submitted by             | `compliance@dynamic.capital`                    | Single owner accountable for the request.                      |
+| Ticket ID / URL          | `TK-4821`                                       | Link to the help-desk ticket or Telegram thread.               |
+| Evidence bundle location | `compliance/tonkeeper/dct-verification-2024Q1/` | Folder containing metadata JSON, screenshots, PDFs.            |
+| Current status           | `Awaiting Tonkeeper acknowledgement`            | Use statuses: Submitted → Acknowledged → Approved → Published. |
+| Next follow-up           | `2024-02-16 (email)`                            | Date/channel for the next touchpoint.                          |
 
 ## Quick reference data
 
