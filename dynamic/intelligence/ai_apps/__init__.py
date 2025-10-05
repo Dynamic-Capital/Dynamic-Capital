@@ -59,6 +59,11 @@ from .dolphin_adapter import (
 )
 from .ollama_adapter import OllamaAdapter, OllamaConfig, OllamaPromptTemplate
 from .kimi_k2_adapter import KimiK2Adapter, KimiK2Config, KimiK2PromptTemplate
+from .activation import (
+    ActivationReport,
+    ModuleActivationPlan,
+    activate_dynamic_stack,
+)
 from .analysis import AnalysisComponent, DynamicAnalysis
 from .consciousness_suite import (
     AwarenessContexts,
@@ -79,7 +84,10 @@ from .infrastructure import (
     ROLE_PALETTE,
     Role,
     RoleSpec,
+    build_comprehensive_infrastructure,
     build_default_infrastructure,
+    discover_dynamic_module_names,
+    guess_module_domain,
 )
 from .phase3 import (
     AgentProfile,
@@ -130,6 +138,9 @@ from .hedge import (
 )
 
 __all__ = [
+    "ActivationReport",
+    "ModuleActivationPlan",
+    "activate_dynamic_stack",
     "Agent",
     "AgentResult",
     "BloodAgent",
@@ -172,6 +183,8 @@ __all__ = [
     "LinkRecommendation",
     "RelationHint",
     "DEFAULT_MODULE_REGISTRATIONS",
+    "discover_dynamic_module_names",
+    "guess_module_domain",
     "get_default_execution_agent",
     "get_default_research_agent",
     "get_default_risk_agent",
@@ -249,4 +262,5 @@ __all__ = [
     "PhaseThreePlan",
     "build_phase_three_plan",
     "build_default_infrastructure",
+    "build_comprehensive_infrastructure",
 ]

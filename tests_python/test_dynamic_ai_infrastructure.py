@@ -9,7 +9,10 @@ from dynamic.intelligence.ai_apps.infrastructure import (
     DynamicInfrastructure,
     ModuleDomain,
     Role,
+    build_comprehensive_infrastructure,
     build_default_infrastructure,
+    discover_dynamic_module_names,
+    guess_module_domain,
 )
 
 
@@ -120,3 +123,29 @@ def test_adapter_and_dataset_modules_are_registered() -> None:
     assert datasets.domain is ModuleDomain.AI_COGNITION
     assert any("dataset" in responsibility for responsibility in datasets.responsibilities)
     assert any("DynamicFineTuneDataset" in note for note in datasets.notes)
+
+
+def test_discover_dynamic_module_names_covers_repository_packages() -> None:
+    discovered = discover_dynamic_module_names()
+
+    assert "dynamic_accounting" in discovered
+    assert "dynamic_wallet" in discovered
+    assert all(name.startswith("dynamic_") for name in discovered)
+
+
+def test_guess_module_domain_matches_keywords() -> None:
+    assert guess_module_domain("dynamic_wallet") is ModuleDomain.FINANCE_MARKETS
+    assert guess_module_domain("dynamic_security_engine") is ModuleDomain.SECURITY_GOVERNANCE
+    assert guess_module_domain("dynamic_creative_thinking") is ModuleDomain.HUMAN_CREATIVE
+    assert guess_module_domain("dynamic_cognition") is ModuleDomain.AI_COGNITION
+    assert guess_module_domain("dynamic_task_manager") is ModuleDomain.BUSINESS_OPERATIONS
+    assert guess_module_domain("dynamic_cache") is ModuleDomain.TECHNOLOGY_INFRASTRUCTURE
+
+
+def test_comprehensive_infrastructure_registers_additional_modules() -> None:
+    infrastructure = build_comprehensive_infrastructure()
+    module = infrastructure.get_module("dynamic_accounting")
+
+    assert module.domain is ModuleDomain.BUSINESS_OPERATIONS
+    assert any("Auto-generated" in note for note in module.notes)
+    assert module.success_metrics
