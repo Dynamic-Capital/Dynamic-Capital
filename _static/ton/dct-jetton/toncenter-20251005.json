@@ -1,0 +1,28 @@
+{
+  "capturedAt": "2025-10-05T07:21:00Z",
+  "responses": {
+    "treasuryMultisig": {
+      "friendlyAddress": "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
+      "rawAddress": "0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38",
+      "balance": "22755768333",
+      "state": "active"
+    },
+    "jettonMaster": {
+      "friendlyAddress": "EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6",
+      "rawAddress": "0:0730d08326610af3212dd486da24fd71976fb0776d5fd46a6dff9ed9d6e08f3f",
+      "balance": "0",
+      "state": "uninitialized"
+    },
+    "stonfiRouter": {
+      "friendlyAddress": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
+      "rawAddress": "0:779dcc815138d9500e449c5291e7f12738c23d575b5310000f6a253bd607384e",
+      "balance": "3225088046992",
+      "state": "active"
+    }
+  },
+  "toncenterEndpoint": "https://toncenter.com/api/v2/getAddressInformation",
+  "queryParameters": {
+    "method": "GET",
+    "format": "https://toncenter.com/api/v2/getAddressInformation?address=<RAW_HEX>"
+  }
+}
