@@ -5,6 +5,14 @@ token:
   address: "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7"
   maxSupply: 100000000
 
+contracts:
+  # Tonstarter governance multisig exercises admin controls on-chain.
+  admin: "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD"
+  # Treasury receives transfer taxes and allocator forwards.
+  treasury: "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD"
+  # Primary STON.fi router for DCT↔TON liquidity.
+  dexRouter: "EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3"
+
 splits:
   operationsPct: 48
   autoInvestPct: 32
