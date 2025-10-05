@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
+from typing import Iterable, Mapping, MutableMapping, Sequence
 
 import pytest
 
 from dynamic_data_sharing import (
     DynamicDataSharingEngine,
+    GoogleDriveShareRepository,
     SharePackage,
     SharePolicy,
 )
@@ -150,4 +153,109 @@ def test_prepare_share_can_include_sources_and_keep_keys() -> None:
 def test_share_policy_requires_positive_max_records() -> None:
     with pytest.raises(ValueError):
         SharePolicy(max_records=0)
+
+
+def test_share_package_round_trip_from_dict() -> None:
+    engine = DynamicDataSharingEngine()
+    engine.register_table("knowledge", description="Knowledge base", tags=("public",))
+    engine.ingest(
+        "knowledge",
+        _record(
+            "alpha",
+            confidence=0.95,
+            relevance=0.8,
+            tags=("public",),
+            payload={"title": "Alpha"},
+        ),
+    )
+    policy = SharePolicy(min_confidence=0.8, min_relevance=0.7, allowed_tags=("public",))
+    package = engine.prepare_share("knowledge", policy=policy)
+    payload = package.to_dict()
+
+    reconstructed = SharePackage.from_dict(payload)
+
+    assert reconstructed.to_dict() == payload
+
+
+class _DummyDriveClient:
+    def __init__(self) -> None:
+        self.upload_calls: list[tuple[MutableMapping[str, object], bytes, str]] = []
+        self._files: list[MutableMapping[str, object]] = []
+        self._media: dict[str, bytes] = {}
+
+    def upload_file(
+        self,
+        *,
+        metadata: Mapping[str, object],
+        media: bytes,
+        media_mime_type: str,
+    ) -> MutableMapping[str, object]:
+        entry = dict(metadata)
+        file_id = entry.get("id") or f"id{len(self._files) + 1}"
+        entry["id"] = file_id
+        self.upload_calls.append((entry, bytes(media), media_mime_type))
+        self._files.append(entry)
+        self._media[file_id] = bytes(media)
+        return entry
+
+    def iter_files(
+        self,
+        *,
+        folder_id: str,
+        mime_types: Sequence[str] | None = None,
+        page_size: int = 200,
+        fields: str = "",
+    ) -> Iterable[MutableMapping[str, object]]:
+        yield from (dict(entry) for entry in self._files)
+
+    def download_file(self, file_id: str) -> bytes:
+        return self._media[file_id]
+
+
+def test_google_drive_share_repository_upload_and_iterate() -> None:
+    client = _DummyDriveClient()
+    repo = GoogleDriveShareRepository(client=client, folder_id="folder123")
+
+    engine = DynamicDataSharingEngine()
+    engine.register_table("signals", description="Signals", tags=("alpha",))
+    engine.ingest(
+        "signals",
+        _record(
+            "gamma",
+            confidence=0.9,
+            relevance=0.9,
+            tags=("alpha",),
+            payload={"score": 0.78},
+        ),
+    )
+    policy = SharePolicy(min_confidence=0.8, min_relevance=0.8, allowed_tags=("alpha",))
+    package = engine.prepare_share("signals", policy=policy)
+
+    metadata = repo.upload_package(package, file_name="snapshot.json")
+
+    assert metadata["name"] == "snapshot.json"
+    assert client.upload_calls
+
+    uploaded_metadata, uploaded_media, uploaded_type = client.upload_calls[0]
+    assert uploaded_metadata["parents"] == ["folder123"]
+    assert uploaded_type == "application/json"
+
+    stored_payload = json.loads(uploaded_media.decode("utf-8"))
+    assert stored_payload["table"] == "signals"
+
+    packages = list(repo.iter_packages())
+    assert len(packages) == 1
+    iter_metadata, iter_package = packages[0]
+    assert iter_metadata["id"] == metadata["id"]
+    assert iter_package.to_dict() == SharePackage.from_dict(stored_payload).to_dict()
+
+
+def test_google_drive_share_repository_accepts_share_link() -> None:
+    client = _DummyDriveClient()
+    repo = GoogleDriveShareRepository(
+        client=client,
+        share_link="https://drive.google.com/drive/folders/abc123",
+    )
+
+    assert repo.folder_id == "abc123"
 
