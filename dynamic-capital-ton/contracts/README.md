@@ -48,6 +48,14 @@ library, opcodes, and wallet utilities already present in this repository. Use
 the same wallet code and content cells when migrating between the Tact and
 FunC variants to keep balances and metadata consistent.
 
+### Signing the discoverable contract
+
+Production deployments should be signed before broadcasting. Follow the
+[`SIGNING.md`](./SIGNING.md) checklist to export the compiled master contract,
+produce a state-init BoC, and create an offline signing request that can be
+authorized with the Dynamic Capital Signer application or another compatible
+tool.
+
 ## Theme collection deployment
 
 The Theme Pass collection (`theme/theme_collection.tact`) is a TIP-4 compliant
