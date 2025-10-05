@@ -10,7 +10,7 @@ Tonstarter production review.
 | --------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Jetton master address | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | [tonviewer](https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) · [tonscan](https://tonscan.org/address/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) |
 | Treasury multisig     | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) · [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
-| DEX router            | `EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3` | [tonviewer](https://tonviewer.com/EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3) · [tonscan](https://tonscan.org/address/EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3) |
+| DEX router            | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | [tonviewer](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) · [tonscan](https://tonscan.org/address/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) |
 | Symbol / Decimals     | `DCT`, `9`                                         | [`dynamic-capital-ton/contracts/jetton/metadata.json`](../../dynamic-capital-ton/contracts/jetton/metadata.json)                                                              |
 | Max supply            | `100,000,000 DCT`                                  | [`dynamic-capital-ton/config.yaml`](../../dynamic-capital-ton/config.yaml)                                                                                                    |
 
@@ -18,6 +18,25 @@ Tonstarter production review.
 > `dynamic-capital-ton/supabase/schema.sql`) now ship with the Tonstarter
 > treasury multisig and STON.fi router listed above. Rotate the entries if the
 > governance wallet or liquidity endpoint changes before redeploying.
+
+### Address verification
+
+Confirm the governance addresses on mainnet before deploying updates:
+
+```sh
+curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38" \
+  | jq '{balance: .result.balance, state: .result.state}'
+
+curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:0730d08326610af3212dd486da24fd71976fb0776d5fd46a6dff9ed9d6e08f3f" \
+  | jq '{balance: .result.balance, state: .result.state}'
+
+curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:779dcc815138d9500e449c5291e7f12738c23d575b5310000f6a253bd607384e" \
+  | jq '{balance: .result.balance, state: .result.state}'
+```
+
+Expect the treasury multisig and router queries to return `"state": "active"`.
+The jetton master reports `"state": "uninitialized"` until its state-init is
+published; investigate any other status before rotating configuration values.
 
 ## Explorer Snapshots
 

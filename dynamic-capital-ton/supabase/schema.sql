@@ -102,7 +102,7 @@ values (1, 60, 30, 10, 40, 75, 15, 45, 5, 20,
         -- Tonstarter mainnet addresses.
         'EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD',
         'EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6',
-        'EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3')
+        'EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt')
 on conflict (id) do update set
   operations_pct = excluded.operations_pct,
   autoinvest_pct = excluded.autoinvest_pct,
