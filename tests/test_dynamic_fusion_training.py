@@ -28,7 +28,7 @@ if "requests" not in sys.modules:
 
 if "dynamic.intelligence.ai_apps" not in sys.modules:
     package_stub = types.ModuleType("dynamic.intelligence.ai_apps")
-    package_stub.__path__ = [str(Path("dynamic.intelligence.ai_apps"))]
+    package_stub.__path__ = [str(Path("dynamic/intelligence/ai_apps"))]
     sys.modules["dynamic.intelligence.ai_apps"] = package_stub
 
 

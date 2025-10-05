@@ -16,7 +16,9 @@ normalize_path() {
     realpath "$target"
     return
   fi
-  (cd "$(dirname "$target")" >/dev/null 2>&1 && pwd)/"$(basename "$target")"
+  local dir
+  dir="$(cd "$(dirname "$target")" >/dev/null 2>&1 && pwd)"
+  printf '%s/%s\n' "$dir" "$(basename "$target")"
 }
 
 track_path() {
@@ -32,10 +34,11 @@ is_tracked() {
 }
 
 title_case() {
-  python - <<'PY'
+  local text="${1-}"
+  python - "$text" <<'PY'
 import sys
 
-text = sys.argv[1]
+text = sys.argv[1] if len(sys.argv) > 1 else ""
 words = [word for word in text.split() if word]
 print(" ".join(word.capitalize() for word in words))
 PY

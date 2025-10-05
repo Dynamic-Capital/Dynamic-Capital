@@ -7,7 +7,7 @@ sanitized but preserve the structure required for Tonstarter audits.
 ## jetton-master-overview.txt
 
 ```
-URL: https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6
+URL: https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 Block: 13458923000002 (2025-05-10T14:03:29Z)
 Symbol: DCT
 Decimals: 9
@@ -22,7 +22,7 @@ Recent Operations:
 ## jetton-wallet-treasury.txt
 
 ```
-URL: https://tonviewer.com/jetton/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6/EQD1zAJPYZMY•••••••••••••••••••••••
+URL: https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y/EQAmzcKg3eyb•••••••••••••••••••••••
 Balance: 28,400,000 DCT
 Transactions:
   - 2025-05-10: Transfer 250,000 DCT to EQBSTONLiquidity••••••••••••••••••
@@ -48,5 +48,6 @@ request for explorer evidence without distributing raw screenshots.
 Machine-readable log of the toncenter governance address confirmations captured
 on 2025-10-05. Each entry records the friendly address, raw hex address,
 balance, and `state` field returned by `getAddressInformation` for the treasury
-multisig, jetton master, and STON.fi router. Diff new outputs against this file
-when re-verifying the deployment to spot unexpected state changes.
+multisig, jetton master, treasury jetton wallet, and STON.fi router. Diff new
+outputs against this file when re-verifying the deployment to spot unexpected
+state changes.

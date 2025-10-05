@@ -6,13 +6,14 @@ Tonstarter production review.
 
 ## Contract Coordinates
 
-| Item                  | Value                                              | Reference                                                                                                                                                                     |
-| --------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Jetton master address | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | [tonviewer](https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) · [tonscan](https://tonscan.org/address/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) |
-| Treasury multisig     | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) · [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
-| DEX router            | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | [tonviewer](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) · [tonscan](https://tonscan.org/address/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) |
-| Symbol / Decimals     | `DCT`, `9`                                         | [`dynamic-capital-ton/contracts/jetton/metadata.json`](../../dynamic-capital-ton/contracts/jetton/metadata.json)                                                              |
-| Max supply            | `100,000,000 DCT`                                  | [`dynamic-capital-ton/config.yaml`](../../dynamic-capital-ton/config.yaml)                                                                                                    |
+| Item                   | Value                                              | Reference                                                                                                                                                                     |
+| ---------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Jetton master address  | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | [tonviewer](https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [tonscan](https://tonscan.org/address/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
+| Treasury multisig      | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) · [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
+| Treasury jetton wallet | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` | [tonviewer](https://tonviewer.com/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq) · [tonscan](https://tonscan.org/address/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq) |
+| DEX router             | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | [tonviewer](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) · [tonscan](https://tonscan.org/address/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) |
+| Symbol / Decimals      | `DCT`, `9`                                         | [`dynamic-capital-ton/contracts/jetton/metadata.json`](../../dynamic-capital-ton/contracts/jetton/metadata.json)                                                              |
+| Max supply             | `100,000,000 DCT`                                  | [`dynamic-capital-ton/config.yaml`](../../dynamic-capital-ton/config.yaml)                                                                                                    |
 
 > **Note:** The deployment templates (`dynamic-capital-ton/config.yaml`,
 > `dynamic-capital-ton/supabase/schema.sql`) now ship with the Tonstarter
@@ -21,33 +22,46 @@ Tonstarter production review.
 
 ### Address verification
 
-Confirm the governance addresses on mainnet before deploying updates:
+Confirm the governance addresses on mainnet before deploying updates. The
+`ton:mainnet-status` CLI wraps the toncenter checks and prints a summary for the
+treasury, jetton master, treasury jetton wallet, and router:
+
+```sh
+npm run ton:mainnet-status
+```
+
+For ad-hoc verification or CI scripts, the raw toncenter queries remain
+available below:
 
 ```sh
 curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38" \
   | jq '{balance: .result.balance, state: .result.state}'
 
-curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:0730d08326610af3212dd486da24fd71976fb0776d5fd46a6dff9ed9d6e08f3f" \
+curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7" \
+  | jq '{balance: .result.balance, state: .result.state}'
+
+curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:26cdc2a0ddec9b50dcec4f896526b8e80deec5c02e759d246124430008276789" \
   | jq '{balance: .result.balance, state: .result.state}'
 
 curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:779dcc815138d9500e449c5291e7f12738c23d575b5310000f6a253bd607384e" \
   | jq '{balance: .result.balance, state: .result.state}'
 ```
 
-Expect the treasury multisig and router queries to return `"state": "active"`.
-The jetton master reports `"state": "uninitialized"` until its state-init is
-published; investigate any other status before rotating configuration values.
+Expect the treasury multisig, jetton master, treasury jetton wallet, and router
+queries to return `"state": "active"`. Investigate any other status before
+rotating configuration values.
 
 #### 2025-10-05 toncenter confirmation
 
 Latest mainnet responses captured on 2025-10-05 UTC verify the governance
 accounts remain in their expected lifecycle phases:
 
-| Account           | Friendly address                                   | State             | Raw balance (nanoton) |
-| ----------------- | -------------------------------------------------- | ----------------- | --------------------- |
-| Treasury multisig | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | `"active"`        | `22755768333`         |
-| Jetton master     | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | `"uninitialized"` | `0`                   |
-| STON.fi router    | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | `"active"`        | `3225088046992`       |
+| Account             | Friendly address                                   | State      | Raw balance (nanoton) |
+| ------------------- | -------------------------------------------------- | ---------- | --------------------- |
+| Treasury multisig   | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | `"active"` | `22755768333`         |
+| Jetton master       | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | `"active"` | `74313081`            |
+| DCT treasury wallet | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` | `"active"` | `28931229`            |
+| STON.fi router      | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | `"active"` | `3225088046992`       |
 
 The `curl` queries above were executed without an API key and matched the status
 expectations documented in this runbook. Raw JSON summaries for this
@@ -58,7 +72,8 @@ so auditors can diff future snapshots against the 2025-10-05 baseline:
 ```json
 {
   "treasuryMultisig": { "balance": "22755768333", "state": "active" },
-  "jettonMaster": { "balance": "0", "state": "uninitialized" },
+  "jettonMaster": { "balance": "74313081", "state": "active" },
+  "jettonTreasuryWallet": { "balance": "28931229", "state": "active" },
   "stonfiRouter": { "balance": "3225088046992", "state": "active" }
 }
 ```

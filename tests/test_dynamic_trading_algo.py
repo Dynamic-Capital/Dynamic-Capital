@@ -209,20 +209,22 @@ def test_execute_trade_normalises_symbol_and_uses_connector() -> None:
 
 def test_execute_trade_uses_instrument_profile_for_paper(monkeypatch: pytest.MonkeyPatch) -> None:
     algo = DynamicTradingAlgo(connector=None)
-    values = iter([10.0, 0.5])
+    gauss_value = 7.5
+    random_values = iter([0.8, 0.4])
 
-    def fake_uniform(_a: float, _b: float) -> float:
-        return next(values)
-
-    monkeypatch.setattr("dynamic.trading.algo.trading_core.random.uniform", fake_uniform)
+    monkeypatch.setattr("dynamic.trading.algo.trading_core.random.gauss", lambda *_args: gauss_value)
+    monkeypatch.setattr(
+        "dynamic.trading.algo.trading_core.random.random",
+        lambda: next(random_values),
+    )
     monkeypatch.setattr("dynamic.trading.algo.trading_core.random.randint", lambda _a, _b: 12345)
 
     result = algo.execute_trade({"action": "sell"}, lot=0.001, symbol="xrp/usdt")
 
     assert result.symbol == "XRPUSD"
     assert result.lot == pytest.approx(1.0)
-    assert result.profit == pytest.approx(-16.5)
-    assert result.price == pytest.approx(0.61, rel=0, abs=1e-9)
+    assert result.profit == pytest.approx(-16.48, rel=0, abs=1e-9)
+    assert result.price == pytest.approx(0.6095, rel=0, abs=1e-9)
     assert result.ticket == 12345
 
 
