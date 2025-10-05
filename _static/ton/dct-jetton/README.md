@@ -7,7 +7,7 @@ sanitized but preserve the structure required for Tonstarter audits.
 ## jetton-master-overview.txt
 
 ```
-URL: https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6
+URL: https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9
 Block: 13458923000002 (2025-05-10T14:03:29Z)
 Symbol: DCT
 Decimals: 9
@@ -22,7 +22,7 @@ Recent Operations:
 ## jetton-wallet-treasury.txt
 
 ```
-URL: https://tonviewer.com/jetton/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6/EQD1zAJPYZMY•••••••••••••••••••••••
+URL: https://tonviewer.com/jetton/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9/EQD1zAJPYZMY•••••••••••••••••••••••
 Balance: 28,400,000 DCT
 Transactions:
   - 2025-05-10: Transfer 250,000 DCT to EQBSTONLiquidity••••••••••••••••••

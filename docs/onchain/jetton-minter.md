@@ -8,7 +8,7 @@ Tonstarter production review.
 
 | Item                  | Value                                              | Reference                                                                                                                                                                     |
 | --------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Jetton master address | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | [tonviewer](https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) · [tonscan](https://tonscan.org/address/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) |
+| Jetton master address | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9` | [tonviewer](https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9) · [tonscan](https://tonscan.org/address/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9) |
 | Treasury multisig     | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) · [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
 | DEX router            | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | [tonviewer](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) · [tonscan](https://tonscan.org/address/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) |
 | Symbol / Decimals     | `DCT`, `9`                                         | [`dynamic-capital-ton/contracts/jetton/metadata.json`](../../dynamic-capital-ton/contracts/jetton/metadata.json)                                                              |
@@ -21,7 +21,16 @@ Tonstarter production review.
 
 ### Address verification
 
-Confirm the governance addresses on mainnet before deploying updates:
+Confirm the governance addresses on mainnet before deploying updates. The
+`ton:mainnet-status` CLI wraps the toncenter checks and prints a summary for the
+treasury, jetton master, and router:
+
+```sh
+npm run ton:mainnet-status
+```
+
+For ad-hoc verification or CI scripts, the raw toncenter queries remain
+available below:
 
 ```sh
 curl -s "https://toncenter.com/api/v2/getAddressInformation?address=0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38" \
@@ -46,7 +55,7 @@ accounts remain in their expected lifecycle phases:
 | Account           | Friendly address                                   | State             | Raw balance (nanoton) |
 | ----------------- | -------------------------------------------------- | ----------------- | --------------------- |
 | Treasury multisig | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | `"active"`        | `22755768333`         |
-| Jetton master     | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | `"uninitialized"` | `0`                   |
+| Jetton master     | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9` | `"uninitialized"` | `0`                   |
 | STON.fi router    | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | `"active"`        | `3225088046992`       |
 
 The `curl` queries above were executed without an API key and matched the status

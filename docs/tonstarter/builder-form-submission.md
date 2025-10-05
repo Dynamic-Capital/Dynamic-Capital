@@ -10,7 +10,7 @@ Submission recorded after completing the collateral package described in
 | Contact Email   | ops@dynamic.capital                                                                                            |
 | Submission Date | 2025-05-10 18:42 UTC                                                                                           |
 | Attachments     | Pitch deck (PDF), Tokenomics tables (CSV), Vesting attestation (PDF), Liquidity SOP (PDF)                      |
-| Linked Assets   | <https://dynamic.capital/tonstarter>, <https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6> |
+| Linked Assets   | <https://dynamic.capital/tonstarter>, <https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9> |
 
 ## Confirmation Transcript (Redacted)
 

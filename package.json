@@ -75,7 +75,8 @@
     "screenshot:preview": "npx playwright show-report",
     "tunnel:functions": "node scripts/ngrok-http.mjs",
     "ton:generate-adnl": "tsx tools/ton/generate-adnl.ts",
-    "ton:site-status": "tsx tools/ton/check-site-status.ts"
+    "ton:site-status": "tsx tools/ton/check-site-status.ts",
+    "ton:mainnet-status": "tsx tools/ton/check-mainnet-status.ts"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.10.0",

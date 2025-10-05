@@ -19,7 +19,7 @@ message from the admin wallet.
 Use the helper script to build the opcode payload required by the contract:
 
 ```bash
-npx tsx scripts/ton/close-genesis.ts --deeplink EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6
+npx tsx scripts/ton/close-genesis.ts --deeplink EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9
 ```
 
 The command prints the `closeGenesis` message body in both base64 and hex, and
