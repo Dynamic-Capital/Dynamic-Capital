@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2025-10-05T07:21:00Z",
+  "capturedAt": "2025-10-05T08:03:10Z",
   "responses": {
     "treasuryMultisig": {
       "friendlyAddress": "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
@@ -8,10 +8,16 @@
       "state": "active"
     },
     "jettonMaster": {
-      "friendlyAddress": "EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9",
-      "rawAddress": "0:0730d08326610af3212dd486da24fd71976fb0776d5fd46a6dff9ed9d6e08f3f",
-      "balance": "0",
-      "state": "uninitialized"
+      "friendlyAddress": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+      "rawAddress": "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+      "balance": "74313081",
+      "state": "active"
+    },
+    "jettonTreasuryWallet": {
+      "friendlyAddress": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
+      "rawAddress": "0:26cdc2a0ddec9b50dcec4f896526b8e80deec5c02e759d246124430008276789",
+      "balance": "28931229",
+      "state": "active"
     },
     "stonfiRouter": {
       "friendlyAddress": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",

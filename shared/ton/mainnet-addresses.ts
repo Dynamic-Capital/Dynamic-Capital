@@ -12,7 +12,10 @@ export const TON_MAINNET_INTAKE_WALLET =
   "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
 
 export const TON_MAINNET_JETTON_MASTER =
-  "EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPP2d9";
+  "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
+
+export const TON_MAINNET_DCT_TREASURY_WALLET =
+  "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
 
 export const TON_MAINNET_STONFI_ROUTER =
   "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
@@ -38,6 +41,13 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     friendlyAddress: TON_MAINNET_JETTON_MASTER,
     description:
       "Jetton master contract recorded in Supabase and Tonstarter attestations.",
+  },
+  {
+    key: "dctTreasuryWallet",
+    label: "DCT jetton treasury wallet",
+    friendlyAddress: TON_MAINNET_DCT_TREASURY_WALLET,
+    description:
+      "Primary treasury wallet holding circulating DCT for emissions and burns.",
   },
   {
     key: "stonfiRouter",
