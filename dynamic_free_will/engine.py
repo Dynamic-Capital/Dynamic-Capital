@@ -8,7 +8,6 @@ import re
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from statistics import fmean
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
 __all__ = [
@@ -548,11 +547,22 @@ class DynamicFreeWill:
         impulses = list(self._impulses)
 
         if impulses:
-            weighted_drive = sum(imp.drive * imp.weight for imp in impulses)
-            total_weight = sum(imp.weight for imp in impulses) or 1.0
-            drive = weighted_drive / total_weight
-            curiosity = fmean(imp.curiosity for imp in impulses)
-            ethical_alignment = fmean(imp.ethical_confidence for imp in impulses)
+            drive_weight_sum = 0.0
+            weight_sum = 0.0
+            curiosity_sum = 0.0
+            ethical_sum = 0.0
+
+            for impulse in impulses:
+                weight_sum += impulse.weight
+                drive_weight_sum += impulse.drive * impulse.weight
+                curiosity_sum += impulse.curiosity
+                ethical_sum += impulse.ethical_confidence
+
+            total_weight = weight_sum if weight_sum else 1.0
+            count = len(impulses)
+            drive = drive_weight_sum / total_weight
+            curiosity = curiosity_sum / count
+            ethical_alignment = ethical_sum / count
         else:
             drive = 0.5
             curiosity = context.learning_agility
