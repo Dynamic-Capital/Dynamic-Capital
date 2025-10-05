@@ -152,11 +152,14 @@ def _generate_code(
     rng: random.Random,
     discount_pct: float,
     token_pool: Sequence[str] = ("VIP", "GROK", "XAI"),
+    unique_hint: int | str | None = None,
 ) -> str:
     # Encode a short checksum so promo codes stay deterministic yet unique per
     # tier.  The checksum uses a low collision 3 digit space derived from the
-    # tier name and discount.
-    checksum = int((sum(map(ord, name)) * (discount_pct + 1)) % 997)
+    # tier name and discount.  Including ``unique_hint`` allows callers to
+    # guarantee tier-specific uniqueness when names and discounts repeat.
+    checksum_source = name if unique_hint is None else f"{name}:{unique_hint}"
+    checksum = int((sum(map(ord, checksum_source)) * (discount_pct + 1)) % 997)
     suffix = f"{checksum:03d}"
     token = rng.choice(tuple(token_pool))
     return f"{token}-{name[:3].upper()}-{suffix}"
@@ -297,6 +300,7 @@ def generate_mentorship_packages(
             rng=rng,
             discount_pct=discount,
             token_pool=("MNT", "COH", "GDL"),
+            unique_hint=tier_index,
         )
 
         packages.append(
@@ -354,6 +358,7 @@ def generate_promo_incentives(
             rng=rng,
             discount_pct=discount,
             token_pool=("PRM", "BND", "VIP"),
+            unique_hint=tier_index,
         )
 
         offers.append(
@@ -509,7 +514,12 @@ def generate_vip_packages(
             loyalty_score=loyalty_score,
             churn_risk=churn_risk,
         )
-        promo_code = _generate_code(name, rng=rng, discount_pct=discount)
+        promo_code = _generate_code(
+            name,
+            rng=rng,
+            discount_pct=discount,
+            unique_hint=tier_index,
+        )
         perks = _pick_perks(rng, tier_index=tier_index)
 
         packages.append(

@@ -116,6 +116,20 @@ def test_generate_promo_incentives_balances_inputs() -> None:
     assert len({offer.promo_code for offer in offers}) == len(offers)
 
 
+def test_generate_promo_incentives_codes_remain_unique_across_tiers() -> None:
+    offers = generate_promo_incentives(
+        base_price=1000.0,
+        urgency_index=0.0,
+        loyalty_score=0.5,
+        inventory_pressure=0.2,
+        count=8,
+        seed=1,
+    )
+
+    codes = [offer.promo_code for offer in offers]
+    assert len(codes) == len(set(codes))
+
+
 def test_build_pricing_blueprint_compiles_sections() -> None:
     blueprint = build_pricing_blueprint(
         vip_config={
