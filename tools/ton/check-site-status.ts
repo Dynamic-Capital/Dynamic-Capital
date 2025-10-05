@@ -1,6 +1,13 @@
 #!/usr/bin/env tsx
+import { createRequire } from "node:module";
 import { performance } from "node:perf_hooks";
 import type { Response } from "undici";
+
+const require = createRequire(import.meta.url);
+const dns: typeof import("node:dns") = require("node:dns");
+const dnsPromises: typeof import("node:dns/promises") = require(
+  "node:dns/promises",
+);
 
 import {
   TON_SITE_DOMAIN,
@@ -50,6 +57,7 @@ interface CliOptions {
   domain: string;
   additionalGateways: string[];
   additionalDirectCandidates: string[];
+  hostOverrideEntries: string[];
   showHelp: boolean;
 }
 
@@ -103,6 +111,7 @@ function parseArgs(argv: string[]): CliOptions {
   let domain = TON_SITE_DOMAIN;
   const additionalGateways: string[] = [];
   const additionalDirectCandidates: string[] = [];
+  const hostOverrideEntries: string[] = [];
   let showHelp = false;
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -228,6 +237,33 @@ function parseArgs(argv: string[]): CliOptions {
       continue;
     }
 
+    if (token.startsWith("--resolve=")) {
+      const value = token.slice("--resolve=".length);
+      if (value) {
+        hostOverrideEntries.push(value.trim());
+      }
+      continue;
+    }
+    if (token === "--resolve") {
+      const value = argv[index + 1];
+      if (value) {
+        hostOverrideEntries.push(value.trim());
+      }
+      index += 1;
+      continue;
+    }
+
+    if (token.startsWith("--resolves=")) {
+      const value = token.slice("--resolves=".length);
+      hostOverrideEntries.push(...parseHostOverrideEntries(value));
+      continue;
+    }
+    if (token === "--resolves") {
+      hostOverrideEntries.push(...parseHostOverrideEntries(argv[index + 1]));
+      index += 1;
+      continue;
+    }
+
     console.warn(`Ignoring unrecognised argument: ${token}`);
   }
 
@@ -239,6 +275,7 @@ function parseArgs(argv: string[]): CliOptions {
     domain,
     additionalGateways,
     additionalDirectCandidates,
+    hostOverrideEntries,
     showHelp,
   };
 }
@@ -257,6 +294,166 @@ const rawGatewayList = process.env.TON_SITE_GATEWAYS;
 const configuredGatewayBases = parseGatewayList(rawGatewayList);
 const rawDirectCandidates = process.env.TON_SITE_DIRECT_CANDIDATES;
 const configuredDirectCandidates = parseGatewayList(rawDirectCandidates);
+const rawHostOverrides = process.env.TON_SITE_HOST_OVERRIDES;
+const configuredHostOverrideEntries = parseHostOverrideEntries(
+  rawHostOverrides,
+);
+
+interface HostOverride {
+  address: string;
+  family?: 4 | 6;
+}
+
+function parseHostOverrideEntries(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(/[\s,;]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function parseHostOverrideSpec(
+  value: string,
+): [string, HostOverride] | undefined {
+  const [hostPart, targetPart] = value.split("=", 2);
+  if (!hostPart || !targetPart) {
+    console.warn(`Ignoring malformed host override: ${value}`);
+    return undefined;
+  }
+
+  const host = hostPart.trim().toLowerCase();
+  if (!host) {
+    console.warn(`Ignoring host override with empty host: ${value}`);
+    return undefined;
+  }
+
+  const [addressPart, familyPart] = targetPart.split("|", 2);
+  const address = addressPart.trim();
+  if (!address) {
+    console.warn(`Ignoring host override with empty address: ${value}`);
+    return undefined;
+  }
+
+  let family: 4 | 6 | undefined;
+  if (familyPart) {
+    const parsed = Number.parseInt(familyPart.trim(), 10);
+    if (parsed === 4 || parsed === 6) {
+      family = parsed;
+    } else {
+      console.warn(
+        `Ignoring unsupported address family in host override (${familyPart}); defaulting for ${host}.`,
+      );
+    }
+  }
+
+  if (!family) {
+    family = address.includes(":") ? 6 : 4;
+  }
+
+  return [host, { address, family }];
+}
+
+function buildHostOverrideMap(entries: string[]): Map<string, HostOverride> {
+  const overrides = new Map<string, HostOverride>();
+  for (const entry of entries) {
+    const parsed = parseHostOverrideSpec(entry);
+    if (!parsed) continue;
+    const [host, override] = parsed;
+    overrides.set(host, override);
+  }
+  return overrides;
+}
+
+type LookupOptions = Parameters<typeof dns.lookup>[1];
+type LookupCallback = Parameters<typeof dns.lookup>[2];
+
+function applyHostOverrides(overrides: Map<string, HostOverride>): () => void {
+  if (overrides.size === 0) {
+    return () => {};
+  }
+
+  const normalized = new Map<string, HostOverride>();
+  for (const [host, override] of overrides.entries()) {
+    normalized.set(host.toLowerCase(), override);
+  }
+
+  const originalLookup = dns.lookup;
+  const originalPromisesLookup = dnsPromises.lookup.bind(dnsPromises);
+
+  function resolveOverride(hostname: string) {
+    return normalized.get(hostname.toLowerCase());
+  }
+
+  function handleLookup(
+    hostname: string,
+    options: LookupOptions | undefined,
+    callback: LookupCallback,
+  ): boolean {
+    const override = resolveOverride(hostname);
+    if (!override) return false;
+    const wantsAll = Boolean(
+      options && typeof options === "object" &&
+        (options as { all?: boolean }).all,
+    );
+    const family = override.family ?? (override.address.includes(":") ? 6 : 4);
+    queueMicrotask(() => {
+      if (wantsAll) {
+        callback(null, [{ address: override.address, family }]);
+      } else {
+        callback(null, override.address, family);
+      }
+    });
+    return true;
+  }
+
+  dns.lookup = function patchedLookup(
+    hostname: string,
+    options?: LookupOptions | LookupCallback,
+    callback?: LookupCallback,
+  ): any {
+    if (typeof options === "function") {
+      return patchedLookup.call(this, hostname, undefined, options);
+    }
+    if (!callback) {
+      throw new Error("lookup callback is required");
+    }
+    if (
+      handleLookup(hostname, options as LookupOptions | undefined, callback)
+    ) {
+      return undefined;
+    }
+    return originalLookup.call(
+      dns,
+      hostname,
+      options as LookupOptions,
+      callback,
+    );
+  } as typeof dns.lookup;
+
+  dnsPromises.lookup = async function patchedPromisesLookup(
+    hostname: string,
+    options?: LookupOptions,
+  ) {
+    const override = resolveOverride(hostname);
+    if (!override) {
+      return await originalPromisesLookup(hostname, options as any);
+    }
+    const wantsAll = Boolean(
+      options && typeof options === "object" &&
+        (options as { all?: boolean }).all,
+    );
+    const family = override.family ?? (override.address.includes(":") ? 6 : 4);
+    if (wantsAll) {
+      return [{ address: override.address, family }];
+    }
+    return { address: override.address, family };
+  };
+
+  return () => {
+    dns.lookup = originalLookup;
+    dnsPromises.lookup = originalPromisesLookup;
+  };
+}
 
 const DOMAIN_PLACEHOLDER_PATTERN =
   /%(?:DOMAIN|domain)%|\{\{?\s*DOMAIN\s*\}?\}|:\s*domain\b/gi;
@@ -522,7 +719,10 @@ async function readPreview(
   };
 }
 
-async function probe(url: string, timeoutMs: number): Promise<ProbeResult> {
+async function probe(
+  url: string,
+  timeoutMs: number,
+): Promise<ProbeResult> {
   const start = performance.now();
   try {
     const controller = new AbortController();
@@ -651,6 +851,8 @@ Options:
                         Comma- or whitespace-separated list of reverse proxy URLs
   --candidate <url>     Alias for --reverse-proxy
   --candidates <list>   Alias for --reverse-proxies
+  --resolve host=ip     Override DNS resolution for a host (can be repeated)
+  --resolves <list>     Comma- or whitespace-separated list of host=ip overrides
   --help                Show this message
 `);
 }
@@ -675,6 +877,10 @@ async function main() {
   const directCandidates = configuredDirectCandidates.length > 0
     ? configuredDirectCandidates
     : defaultDirectCandidates;
+  const hostOverrides = buildHostOverrideMap([
+    ...configuredHostOverrideEntries,
+    ...options.hostOverrideEntries,
+  ]);
   const allGateways = uniqueGateways([
     ...gatewayBases,
     ...options.additionalGateways,
@@ -685,6 +891,16 @@ async function main() {
   ]);
 
   console.log(`Checking TON Site status for ${options.domain}...`);
+  if (hostOverrides.size > 0) {
+    const overridesList = Array.from(hostOverrides.entries()).map((
+      [host, override],
+    ) =>
+      `${host}→${override.address}${
+        override.family ? `/${override.family}` : ""
+      }`
+    );
+    console.log(`Applying host override(s): ${overridesList.join(", ")}`);
+  }
   const candidates = buildCandidateUrls(
     options.domain,
     allGateways,
@@ -698,16 +914,21 @@ async function main() {
     `Probing ${candidates.length} gateway candidate(s) with concurrency=${options.concurrency}.\n`,
   );
 
-  const results = await probeWithConcurrency(
-    candidates,
-    options.timeoutMs,
-    options.concurrency,
-  );
-  for (const result of results) {
-    logResult(result);
-  }
+  const restoreLookup = applyHostOverrides(hostOverrides);
+  try {
+    const results = await probeWithConcurrency(
+      candidates,
+      options.timeoutMs,
+      options.concurrency,
+    );
+    for (const result of results) {
+      logResult(result);
+    }
 
-  printSummary(results, options.domain);
+    printSummary(results, options.domain);
+  } finally {
+    restoreLookup();
+  }
 }
 
 async function probeWithConcurrency(
