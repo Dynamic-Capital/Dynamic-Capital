@@ -1,10 +1,10 @@
 {
   "name": "Dynamic Capital Token",
   "symbol": "DCT",
-  "description": "Dynamic Capital Token (DCT) powers the Dynamic Capital trading desk ecosystem with governance-aligned liquidity, automated buyback-and-burn flows, and staking multipliers coordinated through the Dynamic Capital Mini App.",
+  "description": "Dynamic Capital is a Web3-native financial ecosystem built on the TON blockchain, designed to empower traders, investors, and learners through automation, mentorship, and transparent revenue-sharing.\n\n🔹 Core Asset: DCT Token\n• Utility: VIP mentorship, staking, governance, fund pool access, NFT memberships\n• Tokenomics: 100M supply, deflationary tax (50% burn, 30% treasury, 20% liquidity)\n\n🔹 Treasury & Rewards\n• Revenue-backed public wallet fuelling staking incentives, buybacks, and ecosystem growth\n\n🔹 Market Path\n• Price rollout: $0.02 (Private) → $0.05 (IDO) → $0.10 (Listing) → Target $1–$5 mid-term\n\n🔹 Governance & Security\n• DAO voting with a 48-hour guarded window for treasury actions and expansions\n• Audited smart contracts, monthly revenue reporting, and a public treasury address.\n\nDynamic Capital Foundation ensures ethical growth, transparency, and community ownership.",
   "decimals": 9,
   "address": "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
-  "image": "https://drive.google.com/uc?export=view&id=1Hg-EGhkM58NOeALgDKqT3PaK3oyd32fA",
+  "image": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCTMark.png",
   "external_url": "https://dynamic.capital",
   "sameAs": [
     "https://dynamic.capital/token",
@@ -20,8 +20,12 @@
       "value": 9
     },
     {
+      "trait_type": "Deflationary tax",
+      "value": "50% burn / 30% treasury / 20% liquidity"
+    },
+    {
       "trait_type": "Governance",
-      "value": "48h guarded window"
+      "value": "DAO voting with 48h guarded window"
     }
   ],
   "version": "1.0",
