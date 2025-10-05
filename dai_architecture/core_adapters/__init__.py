@@ -12,24 +12,7 @@ from .core8_qwen3 import Qwen3Adapter
 from .core9_minimax_m1 import MiniMaxM1Adapter
 from .core10_zhipu import ZhipuAdapter
 from .core11_hunyuan import HunyuanAdapter
-
-
-def build_phase1_mesh() -> tuple[BaseCoreAdapter, ...]:
-    """Return the default eleven-core mesh configured for Phase 1."""
-
-    return (
-        ChatCPT2Adapter(),
-        GrokAdapter(),
-        DolphinAdapter(),
-        OllamaAdapter(),
-        KimiK2Adapter(),
-        DeepSeekV3Adapter(),
-        DeepSeekR1Adapter(),
-        Qwen3Adapter(),
-        MiniMaxM1Adapter(),
-        ZhipuAdapter(),
-        HunyuanAdapter(),
-    )
+from .factory import PHASE1_CORE_CLASSES, Phase1CoreClass, Phase1Mesh, build_phase1_mesh
 
 
 __all__ = [
@@ -46,5 +29,8 @@ __all__ = [
     "MiniMaxM1Adapter",
     "ZhipuAdapter",
     "HunyuanAdapter",
+    "Phase1CoreClass",
+    "Phase1Mesh",
+    "PHASE1_CORE_CLASSES",
     "build_phase1_mesh",
 ]
