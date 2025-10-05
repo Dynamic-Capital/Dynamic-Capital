@@ -61,7 +61,10 @@ function parseGatewayList(raw: string | undefined): string[] {
     .filter(Boolean);
 }
 
-function parsePositiveInteger(value: string | undefined, fallback: number): number {
+function parsePositiveInteger(
+  value: string | undefined,
+  fallback: number,
+): number {
   if (!value) return fallback;
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
@@ -76,13 +79,18 @@ function normalizeDomain(input: string | undefined): string {
   if (looksLikeUrl) {
     try {
       const url = new URL(sanitized);
-      const pathSegments = url.pathname.split("/").map((segment) => segment.trim()).filter(Boolean);
-      return pathSegments[pathSegments.length - 1] ?? url.hostname ?? TON_SITE_DOMAIN;
+      const pathSegments = url.pathname.split("/").map((segment) =>
+        segment.trim()
+      ).filter(Boolean);
+      return pathSegments[pathSegments.length - 1] ?? url.hostname ??
+        TON_SITE_DOMAIN;
     } catch {
       // fall through to plain handling
     }
   }
-  const pieces = sanitized.split("/").map((segment) => segment.trim()).filter(Boolean);
+  const pieces = sanitized.split("/").map((segment) => segment.trim()).filter(
+    Boolean,
+  );
   if (pieces.length === 0) {
     return TON_SITE_DOMAIN;
   }
@@ -250,9 +258,13 @@ const configuredGatewayBases = parseGatewayList(rawGatewayList);
 const rawDirectCandidates = process.env.TON_SITE_DIRECT_CANDIDATES;
 const configuredDirectCandidates = parseGatewayList(rawDirectCandidates);
 
-const DOMAIN_PLACEHOLDER_PATTERN = /%(?:DOMAIN|domain)%|\{\{?\s*DOMAIN\s*\}?\}|:\s*domain\b/gi;
+const DOMAIN_PLACEHOLDER_PATTERN =
+  /%(?:DOMAIN|domain)%|\{\{?\s*DOMAIN\s*\}?\}|:\s*domain\b/gi;
 
-function substituteDomainPlaceholder(value: string, domain: string): string | undefined {
+function substituteDomainPlaceholder(
+  value: string,
+  domain: string,
+): string | undefined {
   DOMAIN_PLACEHOLDER_PATTERN.lastIndex = 0;
   if (!DOMAIN_PLACEHOLDER_PATTERN.test(value)) {
     return undefined;
@@ -261,7 +273,10 @@ function substituteDomainPlaceholder(value: string, domain: string): string | un
   return value.replace(DOMAIN_PLACEHOLDER_PATTERN, domain);
 }
 
-function resolveGatewayCandidate(base: string, domain: string): string | undefined {
+function resolveGatewayCandidate(
+  base: string,
+  domain: string,
+): string | undefined {
   const trimmed = base.trim();
   if (!trimmed) return undefined;
   let normalized = trimmed.replace(/\s+/g, "");
@@ -296,7 +311,10 @@ function buildCandidateUrls(
   directCandidates: string[],
 ): string[] {
   const urls = new Set<string>();
-  const primaryCandidate = resolveGatewayCandidate(TON_SITE_GATEWAY_BASE, domain);
+  const primaryCandidate = resolveGatewayCandidate(
+    TON_SITE_GATEWAY_BASE,
+    domain,
+  );
   if (primaryCandidate) {
     urls.add(primaryCandidate);
   }
@@ -319,7 +337,10 @@ function buildCandidateUrls(
   return Array.from(urls);
 }
 
-function normalizeDirectCandidate(value: string, domain: string): string | undefined {
+function normalizeDirectCandidate(
+  value: string,
+  domain: string,
+): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) return undefined;
   let normalized = trimmed.replace(/\s+/g, "");
@@ -340,17 +361,98 @@ function sanitizePreview(value: string): string {
   return value.replace(/\s+/g, " ").trim().slice(0, SUMMARY_PREVIEW_CHAR_LIMIT);
 }
 
+type NodeLikeError = Error & {
+  code?: unknown;
+  errno?: unknown;
+  syscall?: unknown;
+  hostname?: unknown;
+  address?: unknown;
+  port?: unknown;
+  cause?: unknown;
+};
+
+function collectErrorDetails(source: unknown, details: Set<string>) {
+  if (!source || typeof source !== "object") {
+    return;
+  }
+
+  const record = source as Record<string, unknown>;
+
+  const code = record.code;
+  if (typeof code === "string" && code) {
+    details.add(code);
+  }
+
+  const errno = record.errno;
+  if (typeof errno === "string" && errno) {
+    details.add(errno);
+  }
+
+  const syscall = record.syscall;
+  if (typeof syscall === "string" && syscall) {
+    details.add(`syscall=${syscall}`);
+  }
+
+  const hostname = record.hostname;
+  if (typeof hostname === "string" && hostname) {
+    details.add(`host=${hostname}`);
+  }
+
+  const address = record.address;
+  if (typeof address === "string" && address) {
+    details.add(`address=${address}`);
+  }
+
+  const port = record.port;
+  if (typeof port === "number" && Number.isFinite(port)) {
+    details.add(`port=${port}`);
+  }
+
+  const message = record.message;
+  if (typeof message === "string" && message) {
+    details.add(message);
+  }
+}
+
+function describeError(error: unknown): string {
+  if (error instanceof Error) {
+    const nodeError = error as NodeLikeError;
+    const details = new Set<string>();
+    collectErrorDetails(nodeError, details);
+    if (nodeError.cause) {
+      if (nodeError.cause instanceof Error) {
+        details.add(nodeError.cause.message);
+        collectErrorDetails(nodeError.cause as NodeLikeError, details);
+      } else {
+        collectErrorDetails(nodeError.cause, details);
+      }
+    }
+
+    const baseMessage = error.message || error.name || "Unknown error";
+    const filtered = Array.from(details)
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0 && entry !== baseMessage);
+
+    if (filtered.length === 0) {
+      return baseMessage;
+    }
+    return `${baseMessage} (${Array.from(new Set(filtered)).join(", ")})`;
+  }
+  return String(error);
+}
+
 async function readPreview(
   response: Response,
-): Promise<{ preview?: string; bytes?: number }>
-{
+): Promise<{ preview?: string; bytes?: number }> {
   const declaredSizeHeader = response.headers.get("content-length");
   const declaredSizeRaw = declaredSizeHeader
     ? Number.parseInt(declaredSizeHeader, 10)
     : undefined;
-  const declaredSize = typeof declaredSizeRaw === "number" && Number.isFinite(declaredSizeRaw) && declaredSizeRaw >= 0
-    ? declaredSizeRaw
-    : undefined;
+  const declaredSize =
+    typeof declaredSizeRaw === "number" && Number.isFinite(declaredSizeRaw) &&
+      declaredSizeRaw >= 0
+      ? declaredSizeRaw
+      : undefined;
 
   const body = response.body;
   if (!body) {
@@ -391,7 +493,10 @@ async function readPreview(
         }
       }
 
-      if (totalRead >= PREVIEW_BYTE_LIMIT || previewText.length >= PREVIEW_CAPTURE_CHAR_LIMIT) {
+      if (
+        totalRead >= PREVIEW_BYTE_LIMIT ||
+        previewText.length >= PREVIEW_CAPTURE_CHAR_LIMIT
+      ) {
         shouldCancel = true;
         break;
       }
@@ -430,6 +535,12 @@ async function probe(url: string, timeoutMs: number): Promise<ProbeResult> {
       const flaggedFailure = GATEWAY_FAILURE_INDICATORS.some((indicator) =>
         lowerPreview.includes(indicator)
       );
+      const statusText = response.statusText?.trim();
+      const httpError = response.ok
+        ? undefined
+        : statusText
+        ? `${response.status} ${statusText}`
+        : `HTTP ${response.status}`;
       const ok = response.ok && !flaggedFailure;
       return {
         url,
@@ -438,7 +549,7 @@ async function probe(url: string, timeoutMs: number): Promise<ProbeResult> {
         bytes,
         durationMs,
         preview,
-        error: flaggedFailure ? "Gateway returned an error page" : undefined,
+        error: flaggedFailure ? "Gateway returned an error page" : httpError,
       };
     } finally {
       clearTimeout(timeout);
@@ -449,7 +560,7 @@ async function probe(url: string, timeoutMs: number): Promise<ProbeResult> {
       url,
       ok: false,
       durationMs,
-      error: error instanceof Error ? error.message : String(error),
+      error: describeError(error),
     };
   }
 }
@@ -463,7 +574,9 @@ function logResult(result: ProbeResult) {
   const sizeLabel = typeof result.bytes === "number"
     ? `, bytes=${result.bytes}`
     : "";
-  const baseMessage = `${statusLabel} ${formatDuration(result.durationMs)}${sizeLabel}`;
+  const baseMessage = `${statusLabel} ${
+    formatDuration(result.durationMs)
+  }${sizeLabel}`;
   if (result.ok) {
     console.log(`✅ ${result.url} → ${baseMessage}`);
   } else {
@@ -478,14 +591,48 @@ function logResult(result: ProbeResult) {
 function printSummary(results: ProbeResult[], domain: string) {
   const successful = results.filter((entry) => entry.ok);
   if (successful.length > 0) {
-    const best = successful.reduce((a, b) => (a.durationMs <= b.durationMs ? a : b));
+    const best = successful.reduce((
+      a,
+      b,
+    ) => (a.durationMs <= b.durationMs ? a : b));
     console.log(
-      `\n${domain} is reachable via ${best.url} (status ${best.status}, ${formatDuration(best.durationMs)}).`,
+      `\n${domain} is reachable via ${best.url} (status ${best.status}, ${
+        formatDuration(best.durationMs)
+      }).`,
     );
   } else {
-    console.error(`\nUnable to reach ${domain} through any configured gateway.`);
+    console.error(
+      `\nUnable to reach ${domain} through any configured gateway.`,
+    );
+    const breakdown = summarizeFailures(results);
+    if (breakdown.length > 0) {
+      console.error("Failure breakdown:");
+      for (const line of breakdown) {
+        console.error(line);
+      }
+    }
     process.exitCode = 1;
   }
+}
+
+function summarizeFailures(results: ProbeResult[]): string[] {
+  const counts = new Map<string, number>();
+  for (const result of results) {
+    if (result.ok) continue;
+    const reason = result.error
+      ? result.error
+      : typeof result.status === "number"
+      ? `HTTP ${result.status}`
+      : "Unknown failure";
+    counts.set(reason, (counts.get(reason) ?? 0) + 1);
+  }
+
+  return Array.from(counts.entries())
+    .sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return a[0].localeCompare(b[0]);
+    })
+    .map(([reason, count]) => `  - ${count}× ${reason}`);
 }
 
 function printHelp() {
