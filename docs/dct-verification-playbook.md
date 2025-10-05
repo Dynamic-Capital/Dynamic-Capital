@@ -50,6 +50,13 @@ evidence.【F:dynamic-capital-ton/contracts/jetton/metadata.json†L1-L28】
    with the deployment checklist to ensure the contract enforces the immutable
    cap and decimals (see `maxSupply()`, `decimals()`, and `name()/symbol()`
    requirements).【F:docs/dct-jetton-starter-kit.md†L15-L22】
+   - _Tonkeeper "Unverified" banner:_ Tonkeeper labels all jettons as unverified
+     unless the project submits its asset sheet and verification dossier. Use
+     the
+     [Tonkeeper asset verification playbook](./dct-tonkeeper-asset-verification.md)
+     to compile the submission packet. During evidence reviews note the
+     submission status and, if the listing is still pending, attach the support
+     ticket ID so compliance can track closure.
 3. **Confirm the mint falls inside genesis allocations.** If the wallet shows a
    100,000,000 DCT receipt, trace the transaction hash from the explorer and
    make sure it is tagged as a genesis mint that matches the allocation table
