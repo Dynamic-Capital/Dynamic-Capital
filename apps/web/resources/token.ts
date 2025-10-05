@@ -5,6 +5,31 @@ import jettonMetadata from "../../../dynamic-capital-ton/contracts/jetton/metada
 };
 import type { IconName } from "./icons";
 
+const TON_URL_SCHEME_PATTERN = /^ton:\/\//i;
+const TON_FRIENDLY_ADDRESS_PATTERN = /^[A-Za-z0-9_-]{48}$/;
+const TON_RAW_ADDRESS_PATTERN = /^[0-3]:[0-9a-fA-F]{64}$/;
+
+const sanitizeTonAddress = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error("TON address cannot be empty.");
+  }
+
+  const normalized = trimmed.replace(TON_URL_SCHEME_PATTERN, "");
+
+  if (TON_FRIENDLY_ADDRESS_PATTERN.test(normalized)) {
+    return normalized;
+  }
+
+  if (TON_RAW_ADDRESS_PATTERN.test(normalized)) {
+    return normalized.toLowerCase();
+  }
+
+  throw new Error(
+    "TON address must be provided in friendly (base64url) or raw hex format.",
+  );
+};
+
 const normalizeTonAddress = (value?: string) => {
   if (!value) {
     return undefined;
@@ -15,7 +40,7 @@ const normalizeTonAddress = (value?: string) => {
     return undefined;
   }
 
-  return trimmed.replace(/^ton:\/\//i, "");
+  return sanitizeTonAddress(trimmed);
 };
 
 const uniqueStrings = (
@@ -49,6 +74,23 @@ const httpsUrlSchema = z
     message: "Only https URLs are supported in token metadata.",
   });
 
+const tonAddressSchema = z
+  .string()
+  .min(1, "TON address is required.")
+  .transform((value, ctx) => {
+    try {
+      return sanitizeTonAddress(value);
+    } catch (error) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: error instanceof Error
+          ? error.message
+          : "Invalid TON address format provided.",
+      });
+      return z.NEVER;
+    }
+  });
+
 const jettonMetadataSchema = z
   .object({
     name: z.string().trim().min(1, "Jetton metadata name is required."),
@@ -58,7 +100,7 @@ const jettonMetadataSchema = z
       .trim()
       .min(1, "Jetton metadata description is required."),
     decimals: z.number().int().nonnegative(),
-    address: z.string().trim().min(1, "Jetton metadata address is required."),
+    address: tonAddressSchema,
     image: httpsUrlSchema.optional(),
     external_url: httpsUrlSchema.optional(),
     sameAs: z.array(httpsUrlSchema).optional(),
@@ -78,8 +120,9 @@ const tokenMetadata = jettonMetadataSchema.parse(jettonMetadata);
 
 const TGE_CIRCULATING_SUPPLY = 13_000_000;
 const TGE_MARKET_CAP_USD = 13_000_000;
-const OPERATIONS_TREASURY_WALLET =
-  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
+const OPERATIONS_TREASURY_WALLET = tonAddressSchema.parse(
+  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
+);
 const OPERATIONS_TREASURY_EXPLORER_URL =
   `https://tonviewer.com/${OPERATIONS_TREASURY_WALLET}`;
 const buildJettonExplorerUrl = (address?: string) => {
@@ -171,6 +214,15 @@ type TokenDescriptor = {
 
 const normalizedTokenAddress = normalizeTonAddress(tokenMetadata.address);
 
+function assertInvariant(
+  condition: unknown,
+  message: string,
+): asserts condition {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
+
 const tokenDescriptor = {
   name: tokenMetadata.name,
   symbol: tokenMetadata.symbol,
@@ -182,6 +234,17 @@ const tokenDescriptor = {
   image: tokenMetadata.image,
 } satisfies TokenDescriptor;
 
+assertInvariant(
+  !tokenDescriptor.address ||
+    tokenDescriptor.address === sanitizeTonAddress(tokenDescriptor.address),
+  "Token descriptor address failed normalization.",
+);
+
+assertInvariant(
+  TGE_CIRCULATING_SUPPLY <= tokenDescriptor.maxSupply,
+  "Circulating supply cannot exceed the maximum supply.",
+);
+
 const tokenPath = "/token" as const;
 const tokenJettonExplorerUrl = buildJettonExplorerUrl(tokenDescriptor.address);
 const tokenTitle = `${tokenDescriptor.name} (${tokenDescriptor.symbol})`;
@@ -189,13 +252,18 @@ const tokenIntro =
   "DCT is the Dynamic Capital governance and utility jetton on TON, unlocking automation boosts, treasury voting, and membership rewards.";
 const tokenOgImage = `/api/og/generate?title=${encodeURIComponent(tokenTitle)}`;
 
-const tokenUtilities = [
+const tokenUtilities = Object.freeze([
   "Amplify automation throughput with boost credits redeemable on-chain.",
   "Stake into the auto-invest vault to share in validated strategy performance.",
   "Shape treasury allocations by voting on proposals during guarded governance windows.",
-] as const;
+]);
 
-const tokenHighlights = [
+assertInvariant(
+  tokenUtilities.length > 0,
+  "Token utilities must contain at least one entry.",
+);
+
+const tokenHighlights = Object.freeze([
   {
     label: "Token profile",
     value: `${tokenDescriptor.symbol} on TON`,
@@ -237,9 +305,9 @@ const tokenHighlights = [
       "Token generation event float allocated to staking, rewards, and liquidity programs.",
     icon: "chartPie",
   },
-] satisfies readonly TokenHighlight[];
+]) satisfies readonly TokenHighlight[];
 
-const tokenSupplySplits = [
+const tokenSupplySplits = Object.freeze([
   {
     label: "Operations",
     value: "60%",
@@ -261,9 +329,9 @@ const tokenSupplySplits = [
       "Stabilises the treasury with scheduled market operations and burns.",
     icon: "repeat",
   },
-] as const satisfies readonly SupplySplit[];
+]) satisfies readonly SupplySplit[];
 
-const tokenLockTiers = [
+const tokenLockTiers = Object.freeze([
   {
     tier: "Bronze",
     duration: "3 months",
@@ -285,9 +353,9 @@ const tokenLockTiers = [
     description:
       "Delivers maximum utility through VIP desk access, mentor escalations, and beta slots.",
   },
-] as const satisfies readonly LockTier[];
+]) satisfies readonly LockTier[];
 
-const tokenDexPools = [
+const tokenDexPools = Object.freeze([
   {
     dex: "STON.fi",
     pair: "DCT/TON",
@@ -302,7 +370,7 @@ const tokenDexPools = [
     description:
       "Secondary routing venue leveraging DeDust's TON-native liquidity network for balanced execution.",
   },
-] as const satisfies readonly DexPool[];
+]) satisfies readonly DexPool[];
 
 const tokenSameAs = uniqueStrings([
   ...(tokenMetadata.sameAs ?? []),
