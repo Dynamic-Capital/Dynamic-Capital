@@ -117,10 +117,19 @@ function resolveResource(
   return null;
 }
 
-type RouteContext = { params: { resource: string } };
+type RouteParams = Record<string, string | string[] | undefined>;
 
-export async function GET(req: NextRequest, { params }: RouteContext) {
-  const definition = resolveResource(params.resource);
+type RouteContext = { params?: Promise<RouteParams> };
+
+function extractResource(params?: RouteParams): string | undefined {
+  const resource = params?.resource;
+  if (!resource) return undefined;
+  return Array.isArray(resource) ? resource[0] : resource;
+}
+
+export async function GET(req: NextRequest, context: RouteContext) {
+  const rawParams = context.params ? await context.params : undefined;
+  const definition = resolveResource(extractResource(rawParams));
 
   if (!definition) {
     return jsonResponse(
