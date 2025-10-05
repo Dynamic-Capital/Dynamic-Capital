@@ -17,7 +17,7 @@ export type TonConnectManifest = {
 const DEFAULT_NETWORK: TonNetwork = "mainnet";
 export const TON_MANIFEST_PATH = "/api/tonconnect/manifest";
 const MANIFEST_ICON_PATH = "/icon-mark.svg";
-const PROD_FALLBACK_ORIGIN = "https://dynamic-capital-qazf2.ondigitalocean.app";
+const PROD_FALLBACK_ORIGIN = "https://dynamic-capital.ondigitalocean.app";
 const PROD_MANIFEST_URL = new URL(
   "/tonconnect-manifest.json",
   PROD_FALLBACK_ORIGIN,
