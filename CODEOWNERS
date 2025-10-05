@@ -7,3 +7,12 @@
 /pages/**           @Dynamic-Capital
 /app/**/team/**     @Dynamic-Capital
 /app/**/about/**    @Dynamic-Capital
+
+# Domain ownership aligned with checklist responsibilities
+/apps/web/**                        @dynamic-capital/web-experience
+/supabase/functions/**              @dynamic-capital/supabase-ops
+/supabase/migrations/**             @dynamic-capital/supabase-ops
+/dynamic/intelligence/ai_apps/**    @dynamic-capital/dai-core
+/dynamic/intelligence/agi/**        @dynamic-capital/agi-core
+/tests/intelligence/**              @dynamic-capital/intelligence-qa
+/scripts/verify/**                  @dynamic-capital/quality-ops

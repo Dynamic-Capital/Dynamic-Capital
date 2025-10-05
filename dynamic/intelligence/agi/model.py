@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from copy import deepcopy
 from dataclasses import asdict, dataclass, field, replace, fields
 from datetime import datetime, timezone
@@ -22,6 +23,7 @@ from dynamic.intelligence.ai_apps import (
 )
 from dynamic.intelligence.ai_apps.core import PreparedMarketContext, ReasoningAdapter
 from dynamic.intelligence.agi.self_improvement import DynamicSelfImprovement
+from dynamic.intelligence.agi.telemetry import AGIImprovementRepository
 from dynamic_metadata import ModelVersion
 from dynamic_version import (
     DynamicVersionEngine,
@@ -66,6 +68,8 @@ MODEL_VERSION_INFO = MODEL_VERSION_PLAN.to_model_version(
 )
 MODEL_VERSION = MODEL_VERSION_INFO.tag
 _DEFAULT_LLAMA_MODEL = "llama3.3"
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "AGIDiagnostics",
@@ -308,6 +312,7 @@ class DynamicAGIModel:
         analysis: Optional[DynamicAnalysis] = None,
         risk_manager: Optional[RiskManager] = None,
         self_improvement: Optional[DynamicSelfImprovement] = None,
+        improvement_repository: Optional[AGIImprovementRepository] = None,
         llm_adapter: ReasoningAdapter | None = None,
         llama_model: str | None = _DEFAULT_LLAMA_MODEL,
         ollama_host: str | None = None,
@@ -363,6 +368,7 @@ class DynamicAGIModel:
         self.analysis = analysis or DynamicAnalysis()
         self.risk_manager = risk_manager or RiskManager()
         self.self_improvement = self_improvement
+        self.improvement_repository = improvement_repository
         self.version = MODEL_VERSION
         self.version_info = _default_version_info()
         self.version_plan: ReleasePlan = MODEL_VERSION_PLAN
@@ -514,7 +520,7 @@ class DynamicAGIModel:
         if self.self_improvement is None:
             return None
 
-        self.self_improvement.record_session(
+        snapshot = self.self_improvement.record_session(
             output=output,
             performance=performance,
             feedback_notes=feedback_notes,
@@ -524,4 +530,14 @@ class DynamicAGIModel:
             plan = self.self_improvement.generate_plan()
         except RuntimeError:
             return None
+        if self.improvement_repository is not None:
+            try:
+                self.improvement_repository.persist(
+                    snapshot=snapshot,
+                    plan=plan,
+                    model_version=output.version,
+                    version_info=output.version_info,
+                )
+            except Exception:  # pragma: no cover - telemetry persistence should not break evaluation
+                logger.exception("Failed to persist self-improvement telemetry")
         return plan.to_dict()

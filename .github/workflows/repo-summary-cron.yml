@@ -1,0 +1,55 @@
+name: Refresh repository summary
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate repository summary
+        run: npm run docs:summary
+
+      - name: Open pull request with refreshed summary
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.PAT_WORKFLOW }}
+          branch: automation/repo-summary-refresh
+          title: 'chore: refresh repository summary'
+          commit-message: 'chore(docs): refresh repo summary'
+          body: |
+            ## Summary
+            - regenerate `docs/REPO_SUMMARY.md` on the scheduled cadence
+
+            ## Testing
+            - npm run docs:summary
+          add-paths: |
+            docs/REPO_SUMMARY.md
+          labels: |
+            automation
+            documentation
