@@ -18,8 +18,6 @@ import {
 } from "@/services/dynamic-rest";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
-export const revalidate = DYNAMIC_REST_CACHE_TTL_SECONDS;
-
 const RESOURCE_ENDPOINTS = DYNAMIC_REST_ENDPOINTS.resources;
 
 type ResourceEndpoint =
@@ -45,7 +43,7 @@ function createCachedResource<Payload extends ResourcePayload>(
     async () => builder(),
     [cacheKey],
     {
-      revalidate,
+      revalidate: DYNAMIC_REST_CACHE_TTL_SECONDS,
       tags: [DYNAMIC_REST_CACHE_TAG],
     },
   );
@@ -117,9 +115,13 @@ function resolveResource(
   return null;
 }
 
-type RouteParams = Record<string, string | string[] | undefined>;
+type RouteParams = {
+  resource?: string | string[];
+};
 
-type RouteContext = { params?: Promise<RouteParams> };
+type RouteContext = {
+  params: RouteParams;
+};
 
 function extractResource(params?: RouteParams): string | undefined {
   const resource = params?.resource;
@@ -127,9 +129,11 @@ function extractResource(params?: RouteParams): string | undefined {
   return Array.isArray(resource) ? resource[0] : resource;
 }
 
-export async function GET(req: NextRequest, context: RouteContext) {
-  const rawParams = context.params ? await context.params : undefined;
-  const definition = resolveResource(extractResource(rawParams));
+export async function GET(
+  req: NextRequest,
+  { params }: RouteContext = { params: {} },
+) {
+  const definition = resolveResource(extractResource(params));
 
   if (!definition) {
     return jsonResponse(
@@ -165,7 +169,7 @@ export const POST = methodNotAllowed;
 export const PUT = methodNotAllowed;
 export const PATCH = methodNotAllowed;
 export const DELETE = methodNotAllowed;
-export const HEAD = (req: NextRequest) => methodNotAllowed(req);
+export const HEAD = (req: Request) => methodNotAllowed(req);
 
 export function OPTIONS(req: Request) {
   const headers = corsHeaders(req, "GET");
