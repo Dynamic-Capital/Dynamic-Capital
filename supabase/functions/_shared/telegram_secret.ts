@@ -40,6 +40,42 @@ interface SupabaseLike {
   };
 }
 
+const SECRET_DECODER = new TextDecoder();
+
+function decodeSecretBytes(
+  value: ArrayBufferView | ArrayBuffer,
+): string | null {
+  try {
+    const view = value instanceof Uint8Array
+      ? value
+      : value instanceof ArrayBuffer
+      ? new Uint8Array(value)
+      : new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    const decoded = SECRET_DECODER.decode(view).trim();
+    return decoded.length > 0 ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeSecretValue(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (value == null) return null;
+  if (value instanceof Uint8Array) {
+    return decodeSecretBytes(value);
+  }
+  if (ArrayBuffer.isView(value)) {
+    return decodeSecretBytes(value);
+  }
+  if (value instanceof ArrayBuffer) {
+    return decodeSecretBytes(value);
+  }
+  return null;
+}
+
 export async function readDbWebhookSecret(
   supa?: SupabaseLike,
 ): Promise<string | null> {
@@ -51,9 +87,11 @@ export async function readDbWebhookSecret(
         .eq("is_active", true)
         .limit(1)
         .maybeSingle();
-      return (data?.setting_value as string) || null;
+      return normalizeSecretValue(data?.setting_value);
     }
-    return await getSetting<string>("TELEGRAM_WEBHOOK_SECRET");
+    return normalizeSecretValue(
+      await getSetting<string | Uint8Array>("TELEGRAM_WEBHOOK_SECRET"),
+    );
   } catch {
     return null;
   }
@@ -62,7 +100,7 @@ export async function expectedSecret(
   supa?: SupabaseLike,
 ): Promise<string | null> {
   return (await readDbWebhookSecret(supa)) ||
-    optionalEnv("TELEGRAM_WEBHOOK_SECRET");
+    normalizeSecretValue(optionalEnv("TELEGRAM_WEBHOOK_SECRET"));
 }
 
 function genHex(n = 24) {
@@ -77,7 +115,9 @@ export async function ensureWebhookSecret(
 ): Promise<string> {
   const existing = await readDbWebhookSecret(supa);
   if (existing) return existing;
-  const secret = envSecret ?? maybe("TELEGRAM_WEBHOOK_SECRET") ?? genHex(24);
+  const secret = normalizeSecretValue(envSecret) ??
+    normalizeSecretValue(maybe("TELEGRAM_WEBHOOK_SECRET")) ??
+    genHex(24);
   const { error } = await supa.from("bot_settings").upsert({
     setting_key: "TELEGRAM_WEBHOOK_SECRET",
     setting_value: secret,
@@ -104,9 +144,11 @@ export async function validateTelegramHeader(
   ) {
     return null;
   }
-  const exp = await expectedSecret();
+  const exp = normalizeSecretValue(await expectedSecret());
   if (!exp) return unauth("missing secret", req);
-  const got = req.headers.get("x-telegram-bot-api-secret-token");
+  const got = normalizeSecretValue(
+    req.headers.get("x-telegram-bot-api-secret-token"),
+  );
   if (!got || !timingSafeEqual(got, exp)) {
     return unauth("bad secret", req);
   }
