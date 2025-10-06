@@ -1,0 +1,9 @@
+# Dependencies required to execute the Python test suite locally.
+# Use the PyTorch CPU wheels to avoid large CUDA downloads during local setup.
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Match the version used in CI tooling and ensure deterministic installs.
+torch==2.4.1+cpu
+
+# Test runner pinned to guarantee consistent behaviour between local and CI runs.
+pytest==8.3.3
