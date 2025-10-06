@@ -105,8 +105,10 @@ export async function validateTelegramHeader(
     return null;
   }
   const exp = await expectedSecret();
-  if (!exp) return unauth("missing secret");
+  if (!exp) return unauth("missing secret", req);
   const got = req.headers.get("x-telegram-bot-api-secret-token");
-  if (!got || !timingSafeEqual(got, exp)) return unauth("bad secret");
+  if (!got || !timingSafeEqual(got, exp)) {
+    return unauth("bad secret", req);
+  }
   return null;
 }

@@ -67,7 +67,8 @@ export type EnvKey =
   | "COLD_EMAIL_FROM_ADDRESS"
   | "COLD_EMAIL_FROM_NAME"
   | "COLD_EMAIL_REPLY_TO"
-  | "COLD_EMAIL_MAX_BATCH";
+  | "COLD_EMAIL_MAX_BATCH"
+  | "ALLOWED_ORIGINS";
 
 /** Test-only env injection type */
 type TestEnv = Partial<Record<EnvKey, string>>;
