@@ -1,4 +1,4 @@
-import { bad, mna, ok, oops } from "../_shared/http.ts";
+import { bad, corsHeaders, jsonResponse, ok, oops } from "../_shared/http.ts";
 import { validateTelegramHeader } from "../_shared/telegram_secret.ts";
 import { createLogger } from "../_shared/logger.ts";
 import { envOrSetting, getContent } from "../_shared/config.ts";
@@ -64,19 +64,64 @@ async function sendMessage(
   }
 }
 
+const ALLOWED_METHODS = "GET,HEAD,POST,OPTIONS";
+
 export async function handler(req: Request): Promise<Response> {
   const logger = getLogger(req);
   try {
     const url = new URL(req.url);
+    const normalizedPath = url.pathname.replace(/\/+$/, "");
+    const isVersionEndpoint = normalizedPath.endsWith(
+      "/telegram-webhook/version",
+    );
+    const isBaseEndpoint = !isVersionEndpoint &&
+      normalizedPath.endsWith("/telegram-webhook");
+
+    if (req.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: new Headers(corsHeaders(req, ALLOWED_METHODS)),
+      });
+    }
+
+    if (req.method === "HEAD" && (isBaseEndpoint || isVersionEndpoint)) {
+      return new Response(null, {
+        status: 200,
+        headers: new Headers({
+          ...corsHeaders(req, ALLOWED_METHODS),
+          "Allow": ALLOWED_METHODS,
+        }),
+      });
+    }
 
     // Health/version probe
-    if (req.method === "GET" && url.pathname.endsWith("/version")) {
-      return ok({ name: "telegram-webhook", ts: new Date().toISOString() });
+    if (req.method === "GET" && isVersionEndpoint) {
+      return ok(
+        { name: "telegram-webhook", ts: new Date().toISOString() },
+        req,
+      );
+    }
+
+    if (req.method === "GET" && isBaseEndpoint) {
+      return ok({
+        name: "telegram-webhook",
+        ts: new Date().toISOString(),
+        hint: "Send POST requests with Telegram updates.",
+      }, req);
     }
 
     // Only accept POST for webhook deliveries
     if (req.method !== "POST") {
-      return mna();
+      return jsonResponse(
+        { ok: false, error: "Method Not Allowed" },
+        {
+          status: 405,
+          headers: {
+            Allow: ALLOWED_METHODS,
+            ...corsHeaders(req, ALLOWED_METHODS),
+          },
+        },
+      );
     }
 
     // Telegram signs webhook requests with X-Telegram-Bot-Api-Secret-Token
