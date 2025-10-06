@@ -501,12 +501,42 @@ const CHECKLISTS = {
   },
 };
 
+const AUTOMATIONS = {
+  governance: {
+    name: "Governance intelligence sweep",
+    description:
+      "Runs Dynamic AI, Dynamic AGI, and trading build checklists before leadership briefings.",
+    checklists: ["dai", "dagi", "build-implementation"],
+    includeOptional: false,
+  },
+  readiness: {
+    name: "Readiness baseline",
+    description:
+      "Aggregates repository health and deployment readiness tasks across critical surfaces.",
+    checklists: [
+      "coding-efficiency",
+      "dynamic-capital",
+      "variables-and-links",
+      "setup-followups",
+    ],
+    includeOptional: false,
+  },
+  full: {
+    name: "Full automation sweep",
+    description:
+      "Expands to every documented checklist using required tasks to generate an audit trail snapshot.",
+    checklists: Object.keys(CHECKLISTS),
+    includeOptional: false,
+  },
+};
+
 const HELP_TEXT =
-  `Usage: npm run checklists -- [options]\n       node scripts/run-checklists.js --[options]\n\nOptions:\n  --checklist, -c <names>   Comma-separated checklist keys to run.\n  --only <task-ids>         Run the specified task IDs (comma-separated) without loading a checklist.\n  --skip <task-ids>         Skip the specified task IDs.\n  --include-optional        Include tasks marked as optional.\n  --continue-on-error       Continue executing tasks even if a required task fails.\n  --dry-run                 Print the resolved tasks without executing commands.\n  --list                    List available checklists and tasks.\n  --help, -h                Show this help message.\n`;
+  `Usage: npm run checklists -- [options]\n       node scripts/run-checklists.js --[options]\n\nOptions:\n  --checklist, -c <names>   Comma-separated checklist keys to run.\n  --automation <name>       Run a predefined automation bundle (see --list for options).\n  --only <task-ids>         Run the specified task IDs (comma-separated) without loading a checklist.\n  --skip <task-ids>         Skip the specified task IDs.\n  --include-optional        Include tasks marked as optional.\n  --continue-on-error       Continue executing tasks even if a required task fails.\n  --dry-run                 Print the resolved tasks without executing commands.\n  --plan-export <file>      Write the planned task manifest to a JSON file.\n  --result-export <file>    Write execution results to a JSON file (respects dry runs).\n  --label <text>            Annotate exports with a human-readable label.\n  --list                    List available checklists, automations, and tasks.\n  --help, -h                Show this help message.\n`;
 
 function parseArgs(argv) {
   const options = {
     checklists: [],
+    automation: null,
     only: [],
     skip: new Set(),
     includeOptional: false,
@@ -514,6 +544,9 @@ function parseArgs(argv) {
     list: false,
     help: false,
     continueOnError: false,
+    planExport: null,
+    resultExport: null,
+    label: null,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -529,6 +562,15 @@ function parseArgs(argv) {
         options.checklists.push(
           ...value.split(",").map((item) => item.trim()).filter(Boolean),
         );
+        break;
+      }
+      case "--automation": {
+        const value = argv[i + 1];
+        if (!value) {
+          throw new Error("Missing value for --automation");
+        }
+        i += 1;
+        options.automation = value.trim();
         break;
       }
       case "--only": {
@@ -548,9 +590,11 @@ function parseArgs(argv) {
           throw new Error("Missing value for --skip");
         }
         i += 1;
-        value.split(",").map((item) => item.trim()).filter(Boolean).forEach((
-          item,
-        ) => options.skip.add(item));
+        value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .forEach((item) => options.skip.add(item));
         break;
       }
       case "--include-optional":
@@ -559,6 +603,33 @@ function parseArgs(argv) {
       case "--dry-run":
         options.dryRun = true;
         break;
+      case "--plan-export": {
+        const value = argv[i + 1];
+        if (!value) {
+          throw new Error("Missing value for --plan-export");
+        }
+        i += 1;
+        options.planExport = value.trim();
+        break;
+      }
+      case "--result-export": {
+        const value = argv[i + 1];
+        if (!value) {
+          throw new Error("Missing value for --result-export");
+        }
+        i += 1;
+        options.resultExport = value.trim();
+        break;
+      }
+      case "--label": {
+        const value = argv[i + 1];
+        if (!value) {
+          throw new Error("Missing value for --label");
+        }
+        i += 1;
+        options.label = value.trim();
+        break;
+      }
       case "--list":
         options.list = true;
         break;
@@ -572,9 +643,8 @@ function parseArgs(argv) {
       default:
         if (arg.startsWith("-")) {
           throw new Error(`Unknown flag: ${arg}`);
-        } else {
-          throw new Error(`Unexpected argument: ${arg}`);
         }
+        throw new Error(`Unexpected argument: ${arg}`);
     }
   }
 
@@ -596,6 +666,17 @@ function listChecklists() {
       const optionalText = task.optional ? " (optional)" : "";
       console.log(`    • ${task.id}${optionalText} — ${task.label}`);
     });
+    console.log("");
+  }
+  console.log("Automation bundles:\n");
+  for (const [key, automation] of Object.entries(AUTOMATIONS)) {
+    console.log(`- ${key}: ${automation.name}`);
+    if (automation.description) {
+      console.log(`    ${automation.description}`);
+    }
+    console.log(
+      `    Includes: ${automation.checklists.map((name) => `\`${name}\``).join(", ")}`,
+    );
     console.log("");
   }
   console.log("Task library:\n");
@@ -770,6 +851,21 @@ async function main() {
     return;
   }
 
+  if (options.automation) {
+    const preset = AUTOMATIONS[options.automation];
+    if (!preset) {
+      console.error(`Unknown automation bundle: ${options.automation}`);
+      listChecklists();
+      process.exit(1);
+    }
+    const merged = new Set(options.checklists);
+    preset.checklists.forEach((name) => merged.add(name));
+    options.checklists = Array.from(merged);
+    if (preset.includeOptional) {
+      options.includeOptional = true;
+    }
+  }
+
   const plannedTasks = [];
   const taskMap = new Map();
 
@@ -825,6 +921,20 @@ async function main() {
 
   if (filteredTasks.length === 0) {
     console.log("No tasks to run after applying filters.");
+    if (options.planExport) {
+      writeJson(options.planExport, buildPlanExport(filteredTasks, options));
+    }
+    if (options.resultExport) {
+      writeJson(options.resultExport, {
+        generatedAt: new Date().toISOString(),
+        label: options.label,
+        automation: options.automation,
+        dryRun: options.dryRun,
+        tasks: [],
+        optionalFailures: [],
+        requiredFailures: [],
+      });
+    }
     return;
   }
 
@@ -848,32 +958,135 @@ async function main() {
 
   if (options.dryRun) {
     console.log("\nDry run enabled. No commands were executed.");
+    if (options.planExport) {
+      writeJson(options.planExport, buildPlanExport(filteredTasks, options));
+    }
+    if (options.resultExport) {
+      writeJson(options.resultExport, {
+        generatedAt: new Date().toISOString(),
+        label: options.label,
+        automation: options.automation,
+        dryRun: true,
+        tasks: filteredTasks.map((task) => ({
+          id: task.id,
+          label: task.label,
+          status: "skipped",
+          optional: task.optional,
+          command: task.command,
+          sources: Array.from(task.sources),
+          docs: Array.from(task.docs),
+          notes: task.notes,
+        })),
+        optionalFailures: [],
+        requiredFailures: [],
+      });
+    }
     return;
+  }
+
+  if (options.planExport) {
+    writeJson(options.planExport, buildPlanExport(filteredTasks, options));
   }
 
   const optionalFailures = [];
   const requiredFailures = [];
+  const executionLog = [];
+  let abortedIndex = null;
 
   for (let index = 0; index < filteredTasks.length; index += 1) {
     const task = filteredTasks[index];
     console.log(`\n[${index + 1}/${filteredTasks.length}] ${task.label}`);
+    const startedAt = new Date();
     try {
       // eslint-disable-next-line no-await-in-loop
       await runCommand(task.command);
       console.log(`✅ Completed ${task.id}`);
+      executionLog.push({
+        id: task.id,
+        label: task.label,
+        status: "success",
+        optional: task.optional,
+        command: task.command,
+        startedAt: startedAt.toISOString(),
+        finishedAt: new Date().toISOString(),
+        sources: Array.from(task.sources),
+        docs: Array.from(task.docs),
+        notes: task.notes,
+      });
     } catch (error) {
       if (task.optional) {
         console.warn(`⚠️  Optional task failed (${task.id}): ${error.message}`);
         optionalFailures.push({ task, error });
+        executionLog.push({
+          id: task.id,
+          label: task.label,
+          status: "optional-failure",
+          optional: task.optional,
+          command: task.command,
+          startedAt: startedAt.toISOString(),
+          finishedAt: new Date().toISOString(),
+          error: error.message,
+          sources: Array.from(task.sources),
+          docs: Array.from(task.docs),
+          notes: task.notes,
+        });
         continue;
       }
 
       console.error(`❌ Required task failed (${task.id}): ${error.message}`);
       requiredFailures.push({ task, error });
+      executionLog.push({
+        id: task.id,
+        label: task.label,
+        status: "failure",
+        optional: task.optional,
+        command: task.command,
+        startedAt: startedAt.toISOString(),
+        finishedAt: new Date().toISOString(),
+        error: error.message,
+        sources: Array.from(task.sources),
+        docs: Array.from(task.docs),
+        notes: task.notes,
+      });
       if (!options.continueOnError) {
-        process.exit(1);
+        abortedIndex = index;
+        break;
       }
     }
+  }
+
+  if (abortedIndex !== null && abortedIndex < filteredTasks.length - 1) {
+    filteredTasks.slice(abortedIndex + 1).forEach((task) => {
+      executionLog.push({
+        id: task.id,
+        label: task.label,
+        status: "skipped",
+        optional: task.optional,
+        command: task.command,
+        skippedReason: "aborted-after-failure",
+        sources: Array.from(task.sources),
+        docs: Array.from(task.docs),
+        notes: task.notes,
+      });
+    });
+  }
+
+  if (options.resultExport) {
+    writeJson(options.resultExport, {
+      generatedAt: new Date().toISOString(),
+      label: options.label,
+      automation: options.automation,
+      dryRun: false,
+      tasks: executionLog,
+      optionalFailures: optionalFailures.map(({ task, error }) => ({
+        id: task.id,
+        message: error.message,
+      })),
+      requiredFailures: requiredFailures.map(({ task, error }) => ({
+        id: task.id,
+        message: error.message,
+      })),
+    });
   }
 
   if (requiredFailures.length > 0) {
@@ -899,3 +1112,33 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
+
+function buildPlanExport(tasks, options) {
+  return {
+    generatedAt: new Date().toISOString(),
+    label: options.label,
+    automation: options.automation,
+    includeOptional: options.includeOptional,
+    checklists: options.checklists,
+    tasks: tasks.map((task) => ({
+      id: task.id,
+      label: task.label,
+      optional: task.optional,
+      command: task.command,
+      sources: Array.from(task.sources),
+      docs: Array.from(task.docs),
+      notes: task.notes,
+    })),
+  };
+}
+
+function writeJson(destination, payload) {
+  const absolutePath = path.resolve(destination);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  fs.writeFileSync(
+    absolutePath,
+    `${JSON.stringify(payload, null, 2)}\n`,
+    "utf-8",
+  );
+  console.log(`\nExported automation log → ${path.relative(PROJECT_ROOT, absolutePath)}`);
+}

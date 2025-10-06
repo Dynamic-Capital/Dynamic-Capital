@@ -34,13 +34,13 @@ def test_dynamic_loop_engine_evaluate_generates_state(engine: DynamicLoopEngine)
     history = engine.history()
 
     assert isinstance(state, LoopState)
-    assert state.stability == pytest.approx(0.71, rel=1e-6)
-    assert state.momentum == pytest.approx(0.7, rel=1e-6)
-    assert state.fatigue == pytest.approx(0.25, rel=1e-6)
+    assert state.stability == pytest.approx(0.57, rel=1e-6)
+    assert state.momentum == pytest.approx(0.7333333333, rel=1e-6)
+    assert state.fatigue == pytest.approx(0.7396226415, rel=1e-6)
     assert state.insights == (
-        "Signal 'delivery' variance 0.30",
-        "Signal 'latency' variance 0.20",
-        "Signal 'quality' variance 0.50",
+        "Signal 'delivery' |Δ| 0.30, trend 0.60",
+        "Signal 'latency' |Δ| 0.20, trend 0.80",
+        "Signal 'quality' |Δ| 0.50, trend 0.25, negatives 2/2",
     )
 
     assert history and history[-1] == state
@@ -53,18 +53,18 @@ def test_dynamic_loop_engine_evaluate_generates_state(engine: DynamicLoopEngine)
 
     recommendations = engine.latest_recommendations()
     assert len(recommendations) == 1
-    sustain = recommendations[0]
-    assert isinstance(sustain, LoopRecommendation)
-    assert sustain.focus == "sustain"
-    assert sustain.tags == ("maintenance",)
-    assert set(sustain.as_dict().keys()) == {"focus", "narrative", "priority", "tags"}
+    recovery = recommendations[0]
+    assert isinstance(recovery, LoopRecommendation)
+    assert recovery.focus == "recovery"
+    assert recovery.tags == ("resilience", "capacity")
+    assert set(recovery.as_dict().keys()) == {"focus", "narrative", "priority", "tags"}
 
 
 def test_dynamic_loop_engine_flags_interventions(engine: DynamicLoopEngine) -> None:
     signals = [
         LoopSignal(metric="Throughput", value=0.9, weight=0.5, trend=0.2),
-        LoopSignal(metric="Errors", value=-0.95, weight=2.0, trend=0.9),
-        LoopSignal(metric="Latency", value=-0.85, weight=1.5, trend=0.8),
+        LoopSignal(metric="Errors", value=-0.95, weight=2.0, trend=0.1),
+        LoopSignal(metric="Latency", value=-0.85, weight=1.5, trend=0.15),
     ]
 
     state = engine.evaluate(signals)
@@ -114,12 +114,12 @@ def test_dynamic_loop_back_to_back_equation(engine: DynamicLoopEngine) -> None:
     assert len(engine.latest_recommendations()) == 2
 
     assert equation.review_score < equation.optimise_score
-    assert equation.score_delta == pytest.approx(0.0598, abs=1e-3)
+    assert equation.score_delta == pytest.approx(0.2091, abs=1e-3)
 
     assert equation.review_terms == (
-        "0.45×stability(0.71)",
-        "0.35×momentum(0.70)",
-        "0.20×resilience(0.75)",
+        "0.45×stability(0.57)",
+        "0.35×momentum(0.73)",
+        "0.20×resilience(0.26)",
     )
     assert equation.optimise_terms == (
         "0.45×stability(0.74)",
@@ -127,9 +127,9 @@ def test_dynamic_loop_back_to_back_equation(engine: DynamicLoopEngine) -> None:
         "0.20×resilience(0.80)",
     )
     assert equation.steps == (
-        "Review stage: stability=0.71, momentum=0.70, fatigue=0.25 -> score=0.7145 (0.45×stability(0.71) + 0.35×momentum(0.70) + 0.20×resilience(0.75))",
+        "Review stage: stability=0.57, momentum=0.73, fatigue=0.74 -> score=0.5652 (0.45×stability(0.57) + 0.35×momentum(0.73) + 0.20×resilience(0.26))",
         "Optimise stage: stability=0.74, momentum=0.80, fatigue=0.20 -> score=0.7743 (0.45×stability(0.74) + 0.35×momentum(0.80) + 0.20×resilience(0.80))",
-        "Delta: optimise minus review = +0.0598 (improved, notable change).",
+        "Delta: optimise minus review = +0.2091 (improved, meaningful shift).",
     )
 
     assert isinstance(equation.timeline, tuple)

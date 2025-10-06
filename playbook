@@ -1,0 +1,367 @@
+#!/usr/bin/env python3
+"""CLI for reviewing Dynamic Capital initiative playbooks and status updates."""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Iterable, Mapping, Sequence
+
+
+def _utc_timestamp() -> str:
+    return datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+
+REPO_ROOT = Path(__file__).resolve().parent
+STATUS_DIR = REPO_ROOT / "docs" / "status-updates"
+
+
+class PlaybookError(Exception):
+    """Base exception for playbook CLI failures."""
+
+
+@dataclass(slots=True)
+class StatusDocument:
+    """Represents a status update Markdown file."""
+
+    path: Path
+    date: datetime | None
+    title: str
+    slug: str
+    tags: tuple[str, ...]
+
+    @property
+    def identifier(self) -> str:
+        """Return a unique identifier for the document."""
+
+        return self.path.stem
+
+    def matches(self, key: str) -> bool:
+        """Return True if the provided key matches the document metadata."""
+
+        lowered = key.lower()
+        if lowered in self.identifier.lower() or lowered in self.slug.lower():
+            return True
+        if lowered in self.title.lower():
+            return True
+        return any(lowered in tag.lower() for tag in self.tags)
+
+    def formatted_tags(self) -> str:
+        if not self.tags:
+            return "—"
+        return ", ".join(tag.replace("-", " ") for tag in self.tags)
+
+
+def _discover_status_documents() -> list[StatusDocument]:
+    if not STATUS_DIR.is_dir():
+        raise PlaybookError(
+            f"Status update directory not found: {STATUS_DIR}"
+        )
+
+    documents: list[StatusDocument] = []
+    for path in sorted(STATUS_DIR.glob("*.md")):
+        title = _extract_title(path)
+        slug, tags = _extract_slug_and_tags(path)
+        documents.append(
+            StatusDocument(
+                path=path,
+                date=_extract_date(path),
+                title=title,
+                slug=slug,
+                tags=tags,
+            )
+        )
+
+    if not documents:
+        raise PlaybookError(
+            "No status update documents were found in docs/status-updates."
+        )
+
+    documents.sort(key=lambda doc: (doc.date or datetime.min, doc.path.name))
+    documents.reverse()
+    return documents
+
+
+def _extract_date(path: Path) -> datetime | None:
+    match = re.match(r"(\d{4}-\d{2}-\d{2})", path.name)
+    if not match:
+        return None
+    try:
+        return datetime.strptime(match.group(1), "%Y-%m-%d")
+    except ValueError:
+        return None
+
+
+def _extract_title(path: Path) -> str:
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    return path.stem
+
+
+def _extract_slug_and_tags(path: Path) -> tuple[str, tuple[str, ...]]:
+    stem = path.stem
+    if "--" not in stem:
+        return stem, ()
+    slug, raw_tags = stem.split("--", 1)
+    tags = tuple(tag.strip() for tag in raw_tags.split("+") if tag.strip())
+    return slug or stem, tags
+
+
+def _select_document(documents: Sequence[StatusDocument], key: str | None) -> StatusDocument:
+    if key is None or key.lower() == "latest":
+        return documents[0]
+
+    exact_matches = [doc for doc in documents if doc.identifier == key]
+    if exact_matches:
+        return exact_matches[0]
+
+    partial_matches = [doc for doc in documents if doc.matches(key)]
+    if partial_matches:
+        return partial_matches[0]
+
+    raise PlaybookError(
+        f"No status document matching '{key}' was found. Use --list to see options."
+    )
+
+
+def _parse_sections(path: Path) -> "OrderedSections":
+    from collections import OrderedDict
+
+    sections: "OrderedSections" = OrderedDict()
+    current: str | None = None
+    buffer: list[str] = []
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("## "):
+            if current is not None:
+                sections[current] = "\n".join(buffer).strip()
+                buffer = []
+            current = line[3:].strip()
+            continue
+        if current is not None:
+            buffer.append(line.rstrip())
+
+    if current is not None:
+        sections[current] = "\n".join(buffer).strip()
+
+    return sections
+
+
+OrderedSections = Mapping[str, str]
+
+
+def _normalise_section_name(name: str, sections: OrderedSections) -> str:
+    lower_map = {key.lower(): key for key in sections}
+    key = name.lower()
+    if key in lower_map:
+        return lower_map[key]
+    raise PlaybookError(f"Section '{name}' not found in the selected document.")
+
+
+def _format_heading(text: str) -> str:
+    return f"{text}\n{'-' * len(text)}"
+
+
+def render_document(
+    document: StatusDocument,
+    *,
+    sections: Iterable[str] | None,
+    show_all: bool,
+) -> str:
+    parsed = _parse_sections(document.path)
+    ordered_keys: list[str]
+
+    if show_all:
+        ordered_keys = list(parsed)
+    else:
+        default_sections: list[str] = []
+        if "Summary" in parsed:
+            default_sections.append("Summary")
+        if sections:
+            for section in sections:
+                resolved = _normalise_section_name(section, parsed)
+                if resolved not in default_sections:
+                    default_sections.append(resolved)
+        if "Follow-Up Actions" in parsed and "Follow-Up Actions" not in default_sections:
+            default_sections.append("Follow-Up Actions")
+        ordered_keys = default_sections
+
+    if not ordered_keys:
+        raise PlaybookError(
+            "No sections selected for rendering. Use --all or --section to choose content."
+        )
+
+    lines: list[str] = []
+    headline = document.title
+    lines.append(headline)
+    lines.append("=" * len(headline))
+    lines.append(
+        f"Source: {document.path.relative_to(REPO_ROOT)}"
+    )
+    if document.date is not None:
+        lines.append(f"Date: {document.date.strftime('%Y-%m-%d')}")
+    if document.tags:
+        lines.append(f"Tags: {', '.join(document.tags)}")
+    lines.append("")
+
+    for name in ordered_keys:
+        content = parsed.get(name, "").strip()
+        if not content:
+            continue
+        lines.append(_format_heading(name))
+        lines.append(content)
+        lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def export_document(
+    document: StatusDocument,
+    output: str,
+    export_dir: Path,
+) -> Path:
+    target_dir = export_dir
+    if not target_dir.is_absolute():
+        target_dir = (REPO_ROOT / target_dir).resolve()
+    target_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = _utc_timestamp()
+    filename = f"{document.identifier}--{timestamp}.md"
+    destination = target_dir / filename
+    destination.write_text(output, encoding="utf-8")
+    return destination
+
+
+def list_documents(documents: Sequence[StatusDocument]) -> str:
+    rows: list[str] = []
+    header = "Available status updates"
+    rows.append(header)
+    rows.append("=" * len(header))
+    rows.append("Identifier | Date | Title | Tags")
+    rows.append("-----------|------|-------|------")
+
+    for doc in documents:
+        date_text = doc.date.strftime("%Y-%m-%d") if doc.date else "—"
+        rows.append(
+            f"{doc.identifier} | {date_text} | {doc.title} | {doc.formatted_tags()}"
+        )
+
+    rows.append("")
+    rows.append("Use 'playbook <identifier>' to display a document.")
+    return "\n".join(rows)
+
+
+def parse_args(argv: Sequence[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Render initiative playbook status updates captured in docs/status-updates."
+        )
+    )
+    parser.add_argument(
+        "identifier",
+        nargs="?",
+        help="Document identifier (defaults to 'latest').",
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List available status documents instead of rendering one.",
+    )
+    parser.add_argument(
+        "--section",
+        action="append",
+        metavar="NAME",
+        help=(
+            "Additional section(s) to render when not using --all. Matches are case-insensitive."
+        ),
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Render every section from the selected document.",
+    )
+    parser.add_argument(
+        "--export-dir",
+        type=Path,
+        help=(
+            "Directory where rendered output should be written. Files are timestamped per document."
+        ),
+    )
+    parser.add_argument(
+        "--automate",
+        action="store_true",
+        help=(
+            "Render every status document (or export them when --export-dir is provided)."
+        ),
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv or sys.argv[1:])
+
+    try:
+        documents = _discover_status_documents()
+    except PlaybookError as error:
+        print(f"Error: {error}", file=sys.stderr)
+        return 1
+
+    export_dir: Path | None = args.export_dir
+
+    if args.list:
+        print(list_documents(documents))
+        return 0
+
+    selected_documents: Sequence[StatusDocument]
+
+    if args.automate:
+        selected_documents = documents
+    else:
+        try:
+            selected_documents = [_select_document(documents, args.identifier)]
+        except PlaybookError as error:
+            print(f"Error: {error}", file=sys.stderr)
+            return 1
+
+    exported: list[tuple[StatusDocument, Path]] = []
+
+    for document in selected_documents:
+        try:
+            output = render_document(
+                document,
+                sections=args.section,
+                show_all=args.all,
+            )
+        except PlaybookError as error:
+            print(f"Error: {error}", file=sys.stderr)
+            return 1
+
+        if export_dir is not None:
+            destination = export_document(document, output, export_dir)
+            exported.append((document, destination))
+        if not export_dir or not args.automate:
+            print(output)
+            if args.automate and export_dir is not None:
+                try:
+                    relative_path = destination.relative_to(REPO_ROOT)
+                except ValueError:
+                    relative_path = destination
+                print(f"Rendered {document.identifier} → {relative_path}")
+
+    if export_dir is not None and exported:
+        print("Automation export summary:\n")
+        for document, destination in exported:
+            try:
+                relative = destination.relative_to(REPO_ROOT)
+            except ValueError:
+                relative = destination
+            print(f"- {document.identifier}: {relative}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
