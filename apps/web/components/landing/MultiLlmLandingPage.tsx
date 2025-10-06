@@ -45,6 +45,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { resolveTonSiteUrl } from "../../../../shared/ton/site";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const HERO_BADGES = [
   { icon: "sparkles" as const, label: "AI-managed strategies" },
@@ -465,9 +466,19 @@ function Section({ anchor, children, className, delay }: SectionProps) {
 }
 
 export function MultiLlmLandingPage() {
-  const scrollToSection = useCallback((anchor: string) => {
+  const { trackButtonClick } = useAnalytics();
+
+  const scrollToSection = useCallback((anchor: string, source?: string) => {
     if (typeof window === "undefined") {
       return;
+    }
+
+    if (anchor) {
+      trackButtonClick(`section_scroll_${anchor}`, {
+        anchor,
+        source: source ?? "inline",
+        timestamp: new Date().toISOString(),
+      });
     }
 
     const element = document.getElementById(anchor);
@@ -476,7 +487,7 @@ export function MultiLlmLandingPage() {
     } else {
       window.location.hash = anchor;
     }
-  }, []);
+  }, [trackButtonClick]);
 
   return (
     <Column
@@ -555,6 +566,11 @@ export function MultiLlmLandingPage() {
               variant="primary"
               data-border="rounded"
               arrowIcon
+              onClick={() =>
+                trackButtonClick("hero_join_telegram", {
+                  href: CTA_LINKS.telegram,
+                  timestamp: new Date().toISOString(),
+                })}
             >
               Join Telegram
             </Button>
@@ -563,6 +579,11 @@ export function MultiLlmLandingPage() {
               href={CTA_LINKS.invest}
               variant="secondary"
               data-border="rounded"
+              onClick={() =>
+                trackButtonClick("hero_invest_now", {
+                  href: CTA_LINKS.invest,
+                  timestamp: new Date().toISOString(),
+                })}
             >
               Invest now
             </Button>
@@ -571,6 +592,11 @@ export function MultiLlmLandingPage() {
               href={CTA_LINKS.learn}
               variant="tertiary"
               data-border="rounded"
+              onClick={() =>
+                trackButtonClick("hero_learn_more", {
+                  href: CTA_LINKS.learn,
+                  timestamp: new Date().toISOString(),
+                })}
             >
               Learn more
             </Button>
@@ -584,7 +610,15 @@ export function MultiLlmLandingPage() {
           >
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="m" variant="tertiary" data-border="rounded">
+                <Button
+                  size="m"
+                  variant="tertiary"
+                  data-border="rounded"
+                  onClick={() =>
+                    trackButtonClick("quick_menu_open", {
+                      timestamp: new Date().toISOString(),
+                    })}
+                >
                   Quick menu
                 </Button>
               </DropdownMenuTrigger>
@@ -599,7 +633,7 @@ export function MultiLlmLandingPage() {
                       onSelect={(event) => {
                         event.preventDefault();
                         if (anchor) {
-                          scrollToSection(anchor);
+                          scrollToSection(anchor, `quick_menu:${section.id}`);
                         }
                       }}
                     >
@@ -613,7 +647,8 @@ export function MultiLlmLandingPage() {
               size="m"
               variant="secondary"
               data-border="rounded"
-              onClick={() => scrollToSection(HOME_NAV_SECTION_IDS.markets)}
+              onClick={() =>
+                scrollToSection(HOME_NAV_SECTION_IDS.markets, "markets_cta")}
             >
               Markets tour
             </Button>
@@ -621,7 +656,8 @@ export function MultiLlmLandingPage() {
               size="m"
               variant="secondary"
               data-border="rounded"
-              onClick={() => scrollToSection(HOME_NAV_SECTION_IDS.api)}
+              onClick={() =>
+                scrollToSection(HOME_NAV_SECTION_IDS.api, "api_cta")}
             >
               Platform APIs
             </Button>

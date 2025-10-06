@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
@@ -18,6 +19,7 @@ import { formatPrice } from "@/utils";
 import { formatPlanDuration } from "@/utils/plan-format";
 import type { Plan } from "@/types/plan";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const ERROR_STATE_GAP: SpacingToken = "8";
 const SECTION_GAP: SpacingToken = "32";
@@ -35,7 +37,8 @@ const GETTING_STARTED_STEPS = [
   },
   {
     title: "Load credits",
-    description: "Top up DCT (Dynamic Capital Tokens) for chat and automations.",
+    description:
+      "Top up DCT (Dynamic Capital Tokens) for chat and automations.",
   },
 ];
 
@@ -54,10 +57,50 @@ export function VipPackagesSection() {
     refresh,
   } = useSubscriptionPlans();
   const router = useRouter();
+  const { trackPlanView, trackButtonClick, trackCheckoutStart } =
+    useAnalytics();
+  const recordedPlansRef = useRef<Set<string>>(new Set());
 
-  const handleCheckout = (planId: string) => {
-    router.push(`/checkout?plan=${encodeURIComponent(planId)}`);
-  };
+  useEffect(() => {
+    if (plans.length === 0) {
+      recordedPlansRef.current.clear();
+      return;
+    }
+
+    plans.forEach((plan) => {
+      if (recordedPlansRef.current.has(plan.id)) {
+        return;
+      }
+
+      trackPlanView(plan.id, plan.name, {
+        price: plan.price,
+        currency: plan.currency,
+        lifetime: plan.is_lifetime,
+      });
+
+      recordedPlansRef.current.add(plan.id);
+    });
+  }, [plans, trackPlanView]);
+
+  const handleCheckout = useCallback((plan: Plan, source: string) => {
+    trackCheckoutStart(plan.id, plan.price, {
+      currency: plan.currency,
+      lifetime: plan.is_lifetime,
+      source,
+    });
+
+    trackButtonClick("plan_checkout_cta", {
+      plan_id: plan.id,
+      plan_name: plan.name,
+      price: plan.price,
+      currency: plan.currency,
+      lifetime: plan.is_lifetime,
+      source,
+      timestamp: new Date().toISOString(),
+    });
+
+    router.push(`/checkout?plan=${encodeURIComponent(plan.id)}`);
+  }, [router, trackButtonClick, trackCheckoutStart]);
 
   return (
     <Column
@@ -114,7 +157,12 @@ export function VipPackagesSection() {
                   size="s"
                   variant="secondary"
                   data-border="rounded"
-                  onClick={() => refresh(true)}
+                  onClick={() => {
+                    trackButtonClick("plans_retry_load", {
+                      timestamp: new Date().toISOString(),
+                    });
+                    void refresh(true);
+                  }}
                 >
                   Retry loading plans
                 </Button>
@@ -144,6 +192,11 @@ export function VipPackagesSection() {
                 data-border="rounded"
                 prefixIcon="rocket"
                 href="/checkout"
+                onClick={() =>
+                  trackButtonClick("plans_empty_checkout", {
+                    timestamp: new Date().toISOString(),
+                    source: "no_data",
+                  })}
               >
                 Go to checkout
               </Button>
@@ -153,6 +206,11 @@ export function VipPackagesSection() {
                 data-border="rounded"
                 arrowIcon
                 href="#pricing"
+                onClick={() =>
+                  trackButtonClick("plans_empty_pricing", {
+                    timestamp: new Date().toISOString(),
+                    source: "no_data",
+                  })}
               >
                 View pricing overview
               </Button>
@@ -236,7 +294,7 @@ export function VipPackagesSection() {
                       size="m"
                       variant="secondary"
                       data-border="rounded"
-                      onClick={() => handleCheckout(plan.id)}
+                      onClick={() => handleCheckout(plan, "plan_card_primary")}
                       prefixIcon="sparkles"
                     >
                       Continue to checkout
@@ -247,6 +305,16 @@ export function VipPackagesSection() {
                       data-border="rounded"
                       href={`/checkout?plan=${encodeURIComponent(plan.id)}`}
                       arrowIcon
+                      onClick={() =>
+                        trackButtonClick("plan_preview_payment", {
+                          plan_id: plan.id,
+                          plan_name: plan.name,
+                          currency: plan.currency,
+                          price: plan.price,
+                          lifetime: plan.is_lifetime,
+                          source: "plan_card_preview",
+                          timestamp: new Date().toISOString(),
+                        })}
                     >
                       Preview payment options
                     </Button>
@@ -262,6 +330,11 @@ export function VipPackagesSection() {
                 data-border="rounded"
                 prefixIcon="rocket"
                 href="/checkout"
+                onClick={() =>
+                  trackButtonClick("plans_footer_checkout", {
+                    timestamp: new Date().toISOString(),
+                    source: "plans_footer",
+                  })}
               >
                 Go to checkout
               </Button>
@@ -271,6 +344,11 @@ export function VipPackagesSection() {
                 data-border="rounded"
                 arrowIcon
                 href="#pricing"
+                onClick={() =>
+                  trackButtonClick("plans_footer_pricing", {
+                    timestamp: new Date().toISOString(),
+                    source: "plans_footer",
+                  })}
               >
                 View pricing overview
               </Button>
