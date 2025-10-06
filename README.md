@@ -922,7 +922,8 @@ success, or error states based on the fetch result.
 - `tests/app/api-demo/page.test.tsx` renders the demo page with a mocked `fetch`
   and verifies that the message appears.
 - Python GPT regression tests live under `tests_python/`. Install the CPU-only
-  PyTorch wheel via `pip install -r tests_python/requirements.txt` and run
+  PyTorch wheel and pinned pytest runner via `pip install -r
+  tests_python/requirements.txt` and run
   `pytest tests_python/test_dynamic_gpt_model.py` to validate the model
   builders.
 

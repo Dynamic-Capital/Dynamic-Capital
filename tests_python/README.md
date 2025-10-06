@@ -5,18 +5,20 @@ Follow the steps below to provision the dependencies and execute the suite.
 
 ## Install Dependencies
 
-Use the pinned requirements file to install PyTorch's CPU wheel and the
-supporting libraries. The `--extra-index-url` entry ensures pip resolves the
-CPU-only distribution without attempting to download CUDA artifacts.
+Use the pinned requirements file to install PyTorch's CPU wheel, the test
+runner, and supporting libraries. The `--extra-index-url` entry ensures pip
+resolves the CPU-only distribution without attempting to download CUDA
+artifacts.
 
 ```bash
 pip install -r tests_python/requirements.txt
 ```
 
-If you prefer to run the command manually, mirror the requirement pin:
+If you prefer to run the commands manually, mirror the requirement pins:
 
 ```bash
 pip install --index-url https://download.pytorch.org/whl/cpu torch==2.4.1+cpu
+pip install pytest==8.3.3
 ```
 
 ## Run the Tests
