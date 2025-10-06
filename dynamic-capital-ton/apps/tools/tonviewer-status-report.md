@@ -1,7 +1,7 @@
 # Tonviewer Status Report
 
 ## Run Context
-- **Run Date (UTC):** 2025-10-06 15:57:05
+- **Run Date (UTC):** 2025-10-06 17:21:46
 - **Execution Command:** `$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/check-tonviewer-status.ts`
 - **Jetton Address:** `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`
 - **Tonviewer Page:** https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7
@@ -27,7 +27,7 @@
 | Reported total supply (raw) | `100000000000000000` |
 | Reported total supply (human, Ð9) | `100,000,000` DCT |
 | Holder count | `1` wallet |
-| Last Tonapi sync observed | 2025-10-06 15:56 UTC |
+| Last Tonapi sync observed | 2025-10-06 17:21 UTC |
 
 ## Outstanding Actions
 
