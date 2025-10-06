@@ -15,6 +15,7 @@ is the best fit for the task at hand.
   - [2025-10-16 — Modular Architecture Checklist Run](#2025-10-16--modular-architecture-checklist-run)
   - [2025-10-16 — Automated Trading Build Checklist Run](#2025-10-16--automated-trading-build-checklist-run)
   - [2025-10-16 — Stage 1 Onboard & Orient Checklist Run](#2025-10-16--stage-1-onboard--orient-checklist-run)
+  - [2025-10-06 — Go-Live Checklist Automation Refresh](#2025-10-06--go-live-checklist-automation-refresh)
   - [2025-10-16 — Knowledge Base Drop Verification](#2025-10-16--knowledge-base-drop-verification)
   - [2025-09-28 — Current Checklist Catalog Verification](#2025-09-28--current-checklist-catalog-verification)
   - [2025-09-28 — Go-Live Checklist Dry Run](#2025-09-28--go-live-checklist-dry-run)
@@ -255,6 +256,28 @@ Source: docs/automated-trading-checklist.md
   Complete: 0
   Pending: 8
 ```
+
+### 2025-10-06 — Go-Live Checklist Automation Refresh
+
+**Command**
+
+```bash
+npm run go-live
+```
+
+**Purpose**
+
+Execute the required go-live automation to confirm the Telegram webhook check
+still completes successfully ahead of the next release candidate.
+
+**Highlights**
+
+- Used the bundled fixture webhook metadata to validate URL, certificate, and
+  error status without production secrets.
+- Automation completed the single required task and produced a fresh evidence
+  snapshot for the release archive.
+- Full transcript captured in `docs/checklist-runs/2025-10-06-go-live.md` for
+  auditor review.
 
 ### 2025-10-16 — Knowledge Base Drop Verification
 

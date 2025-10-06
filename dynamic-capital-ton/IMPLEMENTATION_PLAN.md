@@ -71,18 +71,21 @@
 
 ## Implementation Checklist
 
-- [ ] Update `handleJettonTransfer` parsing order to follow TIP-3 transfer
-      structure (Steps 1.1–1.5).
-- [ ] Guard against malformed payloads by validating the deposit opcode
-      extracted from the forward payload (Step 1.6).
-- [ ] Forward the parsed `forward_ton_amount` to `self.dexRouter` instead of
-      halving the inbound TON (Step 2).
-- [ ] Emit `DepositEvent` fields using the parsed jetton and forward payload
-      data without reparsing (Step 3).
+- [x] Update `handleJettonTransfer` parsing order to follow TIP-3 transfer
+      structure (Steps 1.1–1.5). _Completed 2025-10-06; see contract evidence_
+- [x] Guard against malformed payloads by validating the deposit opcode
+      extracted from the forward payload (Step 1.6). _Completed 2025-10-06_
+- [x] Forward the parsed `forward_ton_amount` to `self.dexRouter` instead of
+      halving the inbound TON (Step 2). _Completed 2025-10-06_
+- [x] Emit `DepositEvent` fields using the parsed jetton and forward payload
+      data without reparsing (Step 3). _Completed 2025-10-06_
 - [ ] Extend or add allocator regression tests to cover compliant transfers and
-      rejection paths (Step 4).
+      rejection paths (Step 4). _Blocked 2025-10-06: Deno aborted while caching
+      npm dependencies (e.g., `bnc-sdk@4.6.9`, `@grammyjs/conversations@2.1.0`)
+      with repeated HTTP 502s; rerun required once the registry outage clears_
 - [ ] Run formatting, linting, and contract/test suites relevant to the
-      allocator changes (Step 5).
+      allocator changes (Step 5). _Blocked until the regression suites can
+      execute successfully_
 
 ## Dependencies & Open Questions
 
@@ -93,8 +96,14 @@
   `msg.info.value - forward_ton_amount`; clarify desired behavior with
   stakeholders if unspecified.
 
-## Test Execution Notes
+## Evidence — 2025-10-06
 
-- `$(bash scripts/deno_bin.sh) test -A dynamic-capital-ton/apps/tests/pool_allocator.test.ts`
-  now completes successfully after isolating the allocator suite's Deno
-  configuration, confirming the parsing and forwarding regressions are covered.
+- Executed `npm run go-live` to refresh the Telegram webhook automation and
+  captured the run log under `docs/checklist-runs/2025-10-06-go-live.md`.
+- The latest attempts to rerun the allocator regression suite via
+  ``$(bash scripts/deno_bin.sh) test --config deno.json -A`` failed because npm
+  returned `502` responses while caching dependencies such as
+  `bnc-sdk@4.6.9` and `@grammyjs/conversations@2.1.0`; see the updated test log
+  for failure traces and retry instructions.
+- Supabase wallet-link and subscription flows remain pending revalidation until
+  the dependency outage is resolved and the Deno suites complete successfully.
