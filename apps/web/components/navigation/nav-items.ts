@@ -81,14 +81,14 @@ const extraNavItems: NavItem[] = [
   {
     id: "dynamic-portfolio",
     step: `Step ${firstExtraStep + 1}`,
-    label: "Dynamic portfolio",
+    label: "Investor desk",
     description:
-      "Explore the Dynamic Capital desk experience from hero to checkout.",
+      "Copy trades, manage credits, and withdraw on your own schedule.",
     icon: PieChart,
     path: "/tools/dynamic-portfolio",
     ariaLabel: `Step ${
       firstExtraStep + 1
-    }: Dynamic portfolio. Explore the Dynamic Capital desk experience from hero to checkout.`,
+    }: Investor desk. Copy trades, manage credits, and withdraw on your own schedule.`,
     showOnMobile: true,
   },
   {

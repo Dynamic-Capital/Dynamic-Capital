@@ -10,21 +10,36 @@ import {
 } from "@/components/dynamic-ui-system";
 
 const METRICS = [
-  { label: "Capital under management", value: "$42M" },
-  { label: "Live exchanges routed", value: "17 venues" },
-  { label: "Drawdown governors", value: "Automated -8% caps" },
+  { label: "Capital guided", value: "$42M" },
+  { label: "Exchanges linked", value: "17" },
+  { label: "Max drawdown", value: "-8%" },
 ];
 
 const FEATURES = [
-  "Automated position sizing that respects mentor-approved risk parameters",
-  "Transparent pool statements with equity curves, trade logs, and allocation notes",
-  "Desk operators on-call to adjust exposure when macro conditions shift",
+  "We size each position so you never over-leverage.",
+  "Daily recaps show what moved and why it mattered.",
+  "Withdraw anytime a window opens—no tickets required.",
 ];
 
 const SAFEGUARDS = [
-  "Per-pool circuit breakers that pause deployment when thresholds trip",
-  "Human overrides with full audit trails for compliance reviews",
-  "Dedicated reporting feeds for allocators and limited partners",
+  "Auto pauses kick in when limits are hit.",
+  "Human checks verify the automation trail.",
+  "Shared dashboards keep performance transparent.",
+];
+
+const INVESTOR_SERVICES = [
+  {
+    icon: "security" as const,
+    copy: "Decentralized withdrawal built into the portal.",
+  },
+  {
+    icon: "copy" as const,
+    copy: "Copy trades into any linked broker or exchange.",
+  },
+  {
+    icon: "refresh" as const,
+    copy: "Recharge DCT (Dynamic Capital Tokens) in one tap.",
+  },
 ];
 
 export function PoolTradingSection() {
@@ -41,11 +56,11 @@ export function PoolTradingSection() {
     >
       <Column gap="12" maxWidth={32}>
         <Heading variant="display-strong-xs">
-          Pool trading with institutional controls
+          Pool trading made easy
         </Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          Allocate into managed pools that blend automation and mentor oversight
-          so capital compounds with discipline.
+          Add capital, follow along, or copy trades into your own platform. The
+          desk stays simple for investors, traders, and learners.
         </Text>
       </Column>
       <Row gap="16" wrap>
@@ -69,7 +84,7 @@ export function PoolTradingSection() {
       </Row>
       <Column gap="24">
         <Column gap="12">
-          <Heading variant="heading-strong-m">What you operate with</Heading>
+          <Heading variant="heading-strong-m">What you get</Heading>
           <Column as="ul" gap="8">
             {FEATURES.map((feature, index) => (
               <Row key={index} gap="8" vertical="center">
@@ -82,15 +97,26 @@ export function PoolTradingSection() {
           </Column>
         </Column>
         <Column gap="12">
-          <Heading variant="heading-strong-m">
-            Risk guardrails always on
-          </Heading>
+          <Heading variant="heading-strong-m">Built-in guardrails</Heading>
           <Column as="ul" gap="8">
             {SAFEGUARDS.map((item, index) => (
               <Row key={index} gap="8" vertical="center">
                 <Icon name="shield" onBackground="brand-medium" />
                 <Text as="li" variant="body-default-m">
                   {item}
+                </Text>
+              </Row>
+            ))}
+          </Column>
+        </Column>
+        <Column gap="12">
+          <Heading variant="heading-strong-m">Investor & copier tools</Heading>
+          <Column as="ul" gap="8">
+            {INVESTOR_SERVICES.map((item) => (
+              <Row key={item.copy} gap="8" vertical="center">
+                <Icon name={item.icon} onBackground="brand-medium" />
+                <Text as="li" variant="body-default-m">
+                  {item.copy}
                 </Text>
               </Row>
             ))}
@@ -106,7 +132,7 @@ export function PoolTradingSection() {
           prefixIcon="coins"
           href="/checkout?plan=vip-lifetime"
         >
-          Start allocation checkout
+          Start checkout
         </Button>
         {about.calendar.display && about.calendar.link
           ? (
@@ -117,7 +143,7 @@ export function PoolTradingSection() {
               prefixIcon="calendar"
               href={about.calendar.link}
             >
-              Schedule a pool strategy call
+              Book a quick call
             </Button>
           )
           : null}
