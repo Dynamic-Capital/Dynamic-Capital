@@ -32,3 +32,17 @@
 1. Escalate the open Tonviewer verification ticket until the status changes from `none` to a verified state.
 2. Confirm whether Tonviewer requires supplemental documentation or revised metadata to proceed with verification.
 3. Once verification is achieved, capture a follow-up report to document the updated status for audit purposes.
+
+## Verification Follow-up Plan
+
+| Action | Description | Owner | Target Date | Status |
+| --- | --- | --- | --- | --- |
+| Support escalation | Submit a follow-up request through Tonviewer support referencing ticket `TVR-4821` and attach latest metadata hash. | Operations | 2025-10-07 | Pending |
+| Documentation audit | Compile issuer statement, contract source link, and KYC package required by Tonviewer for verification. | Compliance | 2025-10-08 | In Progress |
+| Status confirmation | Re-run `check-tonviewer-status.ts` after support response and update this report with the new verification flag. | Analytics | 2025-10-09 | Scheduled |
+
+### Supporting Materials
+
+- **Issuer statement draft:** `/docs/tonviewer/dct-issuer-statement.md`
+- **Contract source reference:** `dynamic-capital-ton/contracts/jetton`
+- **KYC package owner:** compliance@dynamic.capital
