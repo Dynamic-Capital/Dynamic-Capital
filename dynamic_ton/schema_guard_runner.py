@@ -8,7 +8,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 from .data_pipeline import TonDataCollector
 from .schema_guard import (
@@ -69,6 +69,34 @@ async def audit_accounts(
         )
         results.append((account, report))
     return results
+
+
+def render_summary_markdown(payload: Mapping[str, Any]) -> str:
+    """Render the GitHub Actions summary for a schema audit payload."""
+
+    lines: list[str] = ["# TONCenter Schema Audit", ""]
+
+    accounts = payload.get("accounts")
+    if isinstance(accounts, Mapping) and accounts:
+        for account, report in accounts.items():
+            report_mapping = report if isinstance(report, Mapping) else {}
+
+            total_records = report_mapping.get("total_records", 0)
+            lines.append(f"## {account}")
+            lines.append(f"- Records fetched: {total_records}")
+
+            unknown_fields = report_mapping.get("unknown_fields")
+            if isinstance(unknown_fields, Mapping) and unknown_fields:
+                lines.append("- Unknown fields detected:")
+                for field, count in sorted(unknown_fields.items()):
+                    lines.append(f"  - {field}: {count} occurrence(s)")
+            else:
+                lines.append("- Unknown fields detected: none")
+            lines.append("")
+    else:
+        lines.append("_No accounts audited._")
+
+    return "\n".join(lines).strip() + "\n"
 
 
 def _determine_limit(cli_limit: int | None, env_value: str | None) -> int:
