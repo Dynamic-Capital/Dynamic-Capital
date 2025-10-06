@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
+import {
+  applyBrandingEnvDefaults,
+  PRODUCTION_ALLOWED_ORIGINS,
+  PRODUCTION_ORIGIN,
+} from "./utils/branding-env.mjs";
 import { createSanitizedNpmEnv } from "./utils/npm-env.mjs";
 
 const args = process.argv.slice(2);
@@ -7,6 +12,20 @@ const args = process.argv.slice(2);
 if (args.length === 0) {
   console.error("Usage: node scripts/npm-safe.mjs <npm arguments>");
   process.exit(1);
+}
+
+const {
+  defaultedKeys,
+  resolvedOrigin,
+} = applyBrandingEnvDefaults({
+  allowedOrigins: PRODUCTION_ALLOWED_ORIGINS,
+  fallbackOrigin: PRODUCTION_ORIGIN,
+});
+
+if (defaultedKeys.length > 0) {
+  console.warn(
+    `npm-safe · Applied origin defaults (${defaultedKeys.join(", ")}) [${resolvedOrigin}]`,
+  );
 }
 
 const env = createSanitizedNpmEnv();
