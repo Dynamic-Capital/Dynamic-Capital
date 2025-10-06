@@ -2,8 +2,8 @@
 
 This directory contains the Tact implementation of the Dynamic Capital Token
 (DCT) jetton master and wallet contracts alongside a FunC reference
-implementation that is compatible with TON Discovery scanners. The contracts
-are based on the standard jetton template with the following extensions:
+implementation that is compatible with TON Discovery scanners. The contracts are
+based on the standard jetton template with the following extensions:
 
 - **Hard-cap supply** — minting is only allowed while `genesisClosed == false`,
   and the total supply can never exceed 100,000,000 DCT (with 9 decimals).
@@ -34,9 +34,10 @@ same multisig administrator when configuring the vault.
 
 ### Discovery-compliant FunC master contract
 
-The `jetton/discoverable` folder ships a drop-in FunC master contract (`master.fc`)
-that mirrors the governance logic from the Tact version while exposing the
-Discovery wallet lookup interface. Compile it with the bundled imports:
+The `jetton/discoverable` folder ships a drop-in FunC master contract
+(`master.fc`) that mirrors the governance logic from the Tact version while
+exposing the Discovery wallet lookup interface. Compile it with the bundled
+imports:
 
 ```
 func -o build/discoverable-master.fif \
@@ -45,8 +46,8 @@ func -o build/discoverable-master.fif \
 
 The helper modules under `jetton/discoverable/imports` wrap the shared standard
 library, opcodes, and wallet utilities already present in this repository. Use
-the same wallet code and content cells when migrating between the Tact and
-FunC variants to keep balances and metadata consistent.
+the same wallet code and content cells when migrating between the Tact and FunC
+variants to keep balances and metadata consistent.
 
 ### Signing the discoverable contract
 
@@ -55,6 +56,23 @@ Production deployments should be signed before broadcasting. Follow the
 produce a state-init BoC, and create an offline signing request that can be
 authorized with the Dynamic Capital Signer application or another compatible
 tool.
+
+### Tonviewer verification bundle
+
+Tonviewer and Tonkeeper keep flagging the jetton as **Unverified** until the
+team submits a verification package. Generate the canonical archive by running:
+
+```
+$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/generate-tonviewer-bundle.ts
+```
+
+The script collects the FunC discoverable sources, frozen metadata, this README,
+and a machine-readable manifest (metadata checksum + governance summary) into
+`build/tonviewer/dct-tonviewer-verification.zip`. Submit the ZIP through the
+[Tonviewer verification portal](https://tonviewer.com/verification) and track
+the workflow with the
+[`docs/onchain/dct-tonviewer-verification.md`](../../docs/onchain/dct-tonviewer-verification.md)
+runbook so the explorer badge flips to **Verified** across wallets.
 
 ## Theme collection deployment
 
