@@ -14,6 +14,7 @@ import { stat } from "node:fs/promises";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createGzip } from "node:zlib";
+import { pipeline } from "node:stream/promises";
 import process from "node:process";
 import {
   getCacheControl,
@@ -397,17 +398,82 @@ allowedOriginSet.delete("*");
 const rateLimitWindowMs = 60 * 1000; // 1 minute
 const maxRequestsPerWindow = 100;
 const requestCounts = new Map(); // ip -> { count, startTime }
+let nextRateLimitCleanupAt = Date.now() + rateLimitWindowMs;
 
-setInterval(() => {
-  const now = Date.now();
+function cleanupRateLimitRecords(now) {
+  if (requestCounts.size === 0 || now < nextRateLimitCleanupAt) {
+    return;
+  }
+  nextRateLimitCleanupAt = now + rateLimitWindowMs;
   for (const [ip, record] of requestCounts) {
     if (now - record.startTime > rateLimitWindowMs) {
       requestCounts.delete(ip);
     }
   }
-}, rateLimitWindowMs);
+}
 
-async function streamFile(req, res, filePath, status = 200) {
+function recordRequest(ip, now) {
+  cleanupRateLimitRecords(now);
+  const existing = requestCounts.get(ip);
+  if (!existing || now - existing.startTime >= rateLimitWindowMs) {
+    const nextRecord = { count: 1, startTime: now };
+    requestCounts.set(ip, nextRecord);
+    return nextRecord;
+  }
+  existing.count += 1;
+  return existing;
+}
+
+const metadataCacheTtlMs = (() => {
+  const raw = process.env.STATIC_METADATA_CACHE_MS;
+  if (!raw) return 30_000;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 30_000;
+})();
+const metadataCache = new Map();
+let nextMetadataCleanupAt = Date.now() + metadataCacheTtlMs;
+
+function buildMetadataFromStats(info) {
+  const mtimeMs = info.mtime.getTime();
+  return {
+    size: info.size,
+    mtimeMs,
+    lastModified: info.mtime.toUTCString(),
+    etag: `"${info.size}-${mtimeMs}"`,
+    isFile: info.isFile(),
+  };
+}
+
+function cleanupMetadataCache(now) {
+  if (metadataCache.size === 0 || now < nextMetadataCleanupAt) {
+    return;
+  }
+  nextMetadataCleanupAt = now + metadataCacheTtlMs;
+  for (const [path, entry] of metadataCache) {
+    if (now - entry.cachedAt > metadataCacheTtlMs) {
+      metadataCache.delete(path);
+    }
+  }
+}
+
+async function getFileMetadata(filePath) {
+  if (metadataCacheTtlMs <= 0) {
+    const info = await stat(filePath);
+    return buildMetadataFromStats(info);
+  }
+  const cached = metadataCache.get(filePath);
+  const now = Date.now();
+  if (cached && now - cached.cachedAt <= metadataCacheTtlMs) {
+    return cached.value;
+  }
+  const info = await stat(filePath);
+  const value = buildMetadataFromStats(info);
+  metadataCache.set(filePath, { value, cachedAt: now });
+  cleanupMetadataCache(now);
+  return value;
+}
+
+async function streamFile(req, res, filePath, status = 200, metadata) {
   const type = getContentType(filePath);
   const headers = {
     "Content-Type": type,
@@ -416,22 +482,29 @@ async function streamFile(req, res, filePath, status = 200) {
   const method = (req.method || "GET").toUpperCase();
   const isHeadRequest = method === "HEAD";
 
-  let info;
-  try {
-    info = await stat(filePath);
-    headers["Last-Modified"] = info.mtime.toUTCString();
-    const etag = `"${info.size}-${info.mtime.getTime()}"`;
-    headers["ETag"] = etag;
+  let info = metadata;
+  if (!info) {
+    try {
+      info = await getFileMetadata(filePath);
+    } catch {}
+  }
+  if (info) {
+    headers["Last-Modified"] = info.lastModified;
+    headers["ETag"] = info.etag;
+    const ifNoneMatch = req.headers["if-none-match"];
+    const ifModifiedSince = req.headers["if-modified-since"];
+    const modifiedSince =
+      typeof ifModifiedSince === "string" && ifModifiedSince.trim() !== ""
+        ? Date.parse(ifModifiedSince)
+        : Number.NaN;
     if (
-      req.headers["if-none-match"] === etag ||
-      (req.headers["if-modified-since"] &&
-        new Date(req.headers["if-modified-since"]).getTime() >=
-          info.mtime.getTime())
+      ifNoneMatch === info.etag ||
+      (Number.isFinite(modifiedSince) && modifiedSince >= info.mtimeMs)
     ) {
       res.writeHead(304, headers);
       return res.end();
     }
-  } catch {}
+  }
 
   const accept = req.headers["accept-encoding"] || "";
   const shouldGzip = /\bgzip\b/.test(accept);
@@ -446,15 +519,16 @@ async function streamFile(req, res, filePath, status = 200) {
     return res.end();
   }
 
-  const stream = createReadStream(filePath).on("error", () => {
-    res.writeHead(500, { "Content-Type": "text/plain" });
-    res.end("Internal Server Error");
-  });
   res.writeHead(status, headers);
-  if (shouldGzip) {
-    stream.pipe(createGzip()).pipe(res);
-  } else {
-    stream.pipe(res);
+  try {
+    if (shouldGzip) {
+      await pipeline(createReadStream(filePath), createGzip(), res);
+    } else {
+      await pipeline(createReadStream(filePath), res);
+    }
+  } catch (error) {
+    console.error(`Failed to stream ${filePath}:`, error);
+    res.destroy(error);
   }
 }
 
@@ -504,8 +578,11 @@ function containsTraversalAttempt(rawPath) {
 async function respondNotFound(req, res) {
   const notFound = join(staticRoot, "404.html");
   try {
-    await stat(notFound);
-    await streamFile(req, res, notFound, 404);
+    const metadata = await getFileMetadata(notFound);
+    if (!metadata.isFile) {
+      throw new Error("Not a file");
+    }
+    await streamFile(req, res, notFound, 404, metadata);
   } catch {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("404 Not Found");
@@ -547,8 +624,11 @@ async function tryServeSpaFallback(req, res, pathname) {
 
   const fallbackPath = join(staticRoot, "index.html");
   try {
-    await stat(fallbackPath);
-    await streamFile(req, res, fallbackPath);
+    const metadata = await getFileMetadata(fallbackPath);
+    if (!metadata.isFile) {
+      return false;
+    }
+    await streamFile(req, res, fallbackPath, 200, metadata);
     return true;
   } catch {
     return false;
@@ -593,9 +673,9 @@ async function tryServeStatic(req, res, pathname) {
       continue;
     }
     try {
-      const info = await stat(filePath);
-      if (info.isFile()) {
-        await streamFile(req, res, filePath);
+      const metadata = await getFileMetadata(filePath);
+      if (metadata.isFile) {
+        await streamFile(req, res, filePath, 200, metadata);
         return true;
       }
     } catch {}
@@ -606,12 +686,7 @@ async function tryServeStatic(req, res, pathname) {
 async function handler(req, res) {
   const ip = req.socket.remoteAddress || "";
   const now = Date.now();
-  let record = requestCounts.get(ip);
-  if (!record || now - record.startTime > rateLimitWindowMs) {
-    record = { count: 0, startTime: now };
-  }
-  record.count += 1;
-  requestCounts.set(ip, record);
+  const record = recordRequest(ip, now);
   if (record.count > maxRequestsPerWindow) {
     res.writeHead(429, { "Content-Type": "text/plain" });
     return res.end("Too Many Requests");
