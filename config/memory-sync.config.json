@@ -1,0 +1,73 @@
+{
+  "sync": {
+    "horizonMinutes": 3,
+    "maxJitterSeconds": 0.35,
+    "offsetToleranceMs": 200,
+    "targetLatencyMs": 250,
+    "sources": [
+      {
+        "id": "memory-core-1",
+        "displayName": "Memory Core 1",
+        "observedLatencyMs": 220,
+        "observedJitterMs": 120,
+        "observedOffsetMs": 30
+      },
+      {
+        "id": "memory-core-2",
+        "displayName": "Memory Core 2",
+        "observedLatencyMs": 260,
+        "observedJitterMs": 180,
+        "observedOffsetMs": 45
+      },
+      {
+        "id": "memory-core-3",
+        "displayName": "Memory Core 3",
+        "observedLatencyMs": 190,
+        "observedJitterMs": 95,
+        "observedOffsetMs": 20
+      }
+    ]
+  },
+  "export": {
+    "batchSizeGb": 5,
+    "maxParallel": 3,
+    "targets": [
+      {
+        "core": "memory-core-1",
+        "displayName": "Memory Core 1",
+        "provider": "Google Drive",
+        "link": "https://drive.google.com/drive/folders/1IX6IU758PHpK09cDeXiAe-CQo6mnN-T2?usp=sharing",
+        "capacityGb": 20,
+        "usedGb": 12.4,
+        "pendingGb": 4.8,
+        "syncSource": "memory-core-1",
+        "sustainedThroughputMbps": 95,
+        "priority": "high"
+      },
+      {
+        "core": "memory-core-2",
+        "displayName": "Memory Core 2",
+        "provider": "Google Drive",
+        "link": "https://drive.google.com/drive/folders/1erZ2feAOMU7KJDsHDoTgE86hgrtAYFMn?usp=sharing",
+        "capacityGb": 50,
+        "usedGb": 38.1,
+        "pendingGb": 11.3,
+        "syncSource": "memory-core-2",
+        "sustainedThroughputMbps": 125,
+        "priority": "medium"
+      },
+      {
+        "core": "memory-core-3",
+        "displayName": "Memory Core 3",
+        "provider": "OneDrive",
+        "link": "https://1drv.ms/f/c/2ff0428a2f57c7a4/EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg",
+        "capacityGb": 50,
+        "usedGb": 24.7,
+        "pendingGb": 6.4,
+        "syncSource": "memory-core-3",
+        "sustainedThroughputMbps": 110,
+        "priority": "medium"
+      }
+    ]
+  }
+}
