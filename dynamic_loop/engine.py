@@ -274,38 +274,53 @@ class DynamicLoopEngine:
         if not signals:
             raise ValueError("loop signals are required to compute state")
 
-        weighted_sum = sum(signal.value * signal.weight for signal in signals)
         total_weight = sum(signal.weight for signal in signals) or 1.0
-        average_variance = weighted_sum / total_weight
-        stability = _clamp(1.0 - min(abs(average_variance), 1.0))
+        weighted_variance = (
+            sum(abs(signal.value) * signal.weight for signal in signals) / total_weight
+        )
+        stability = _clamp(1.0 - min(weighted_variance, 1.0))
 
-        positive_trends = [signal.trend for signal in signals if signal.value >= 0]
-        negative_trends = [signal.trend for signal in signals if signal.value < 0]
-
-        if positive_trends:
-            momentum = _clamp(fmean(positive_trends))
+        positive_signals = [signal for signal in signals if signal.value >= 0]
+        if positive_signals:
+            strength_denominator = sum(signal.weight for signal in positive_signals) or 1.0
+            momentum = _clamp(
+                sum(signal.trend * signal.weight for signal in positive_signals)
+                / strength_denominator
+            )
         else:
             momentum = self._parameters.default_momentum
 
-        if negative_trends:
-            fatigue = _clamp(fmean(negative_trends))
+        negative_signals = [signal for signal in signals if signal.value < 0]
+        if negative_signals:
+            fatigue_numerator = 0.0
+            fatigue_denominator = 0.0
+            for signal in negative_signals:
+                severity_weight = signal.weight * (1.0 + min(abs(signal.value), 1.0))
+                fatigue_numerator += (1.0 - signal.trend) * severity_weight
+                fatigue_denominator += severity_weight
+            fatigue = _clamp(fatigue_numerator / (fatigue_denominator or 1.0))
         else:
             fatigue = self._parameters.default_fatigue
 
-        metric_groups: dict[str, list[float]] = {}
+        metric_groups: dict[str, list[LoopSignal]] = {}
         for signal in signals:
-            metric_groups.setdefault(signal.metric, []).append(signal.value)
+            metric_groups.setdefault(signal.metric, []).append(signal)
 
-        insights = tuple(
-            f"Signal '{metric}' variance {abs(fmean(values)):.2f}"
-            for metric, values in sorted(metric_groups.items())
-        )
+        insights: list[str] = []
+        for metric, items in sorted(metric_groups.items()):
+            magnitude = fmean(abs(item.value) for item in items)
+            average_trend = fmean(item.trend for item in items)
+            negatives = sum(1 for item in items if item.value < 0)
+            line = f"Signal '{metric}' |Δ| {magnitude:.2f}, trend {average_trend:.2f}"
+            if negatives:
+                line += f", negatives {negatives}/{len(items)}"
+            insights.append(line)
 
         return _LoopMetrics(
             stability=stability,
             momentum=momentum,
             fatigue=fatigue,
-            insights=insights,
+            insights=tuple(insights),
         )
 
     def _compute_state(self, signals: Sequence[LoopSignal]) -> LoopState:
@@ -336,6 +351,7 @@ class DynamicLoopEngine:
 
     def _derive_recommendations(self, state: LoopState) -> list[LoopRecommendation]:
         recommendations: list[LoopRecommendation] = []
+        healthy = True
         if state.stability < self._parameters.stability_floor:
             recommendations.append(
                 LoopRecommendation(
@@ -345,6 +361,7 @@ class DynamicLoopEngine:
                     tags=("stability", "incident"),
                 )
             )
+            healthy = False
         if state.momentum < self._parameters.momentum_floor:
             recommendations.append(
                 LoopRecommendation(
@@ -354,6 +371,7 @@ class DynamicLoopEngine:
                     tags=("experimentation", "loop"),
                 )
             )
+            healthy = False
         if state.fatigue > self._parameters.fatigue_ceiling:
             recommendations.append(
                 LoopRecommendation(
@@ -363,7 +381,21 @@ class DynamicLoopEngine:
                     tags=("resilience", "capacity"),
                 )
             )
-        if not recommendations:
+            healthy = False
+        if healthy:
+            if (
+                state.stability >= 0.85
+                and state.momentum >= 0.8
+                and state.fatigue <= 0.25
+            ):
+                recommendations.append(
+                    LoopRecommendation(
+                        focus="amplify",
+                        narrative="Loop thriving; amplify experiments and share playbook with adjacent teams.",
+                        priority=0.6,
+                        tags=("expansion", "sharing"),
+                    )
+                )
             recommendations.append(
                 LoopRecommendation(
                     focus="sustain",

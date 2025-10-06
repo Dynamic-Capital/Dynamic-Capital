@@ -31,6 +31,12 @@ is the best fit for the task at hand.
 | Need usage guidance before choosing a subcommand.             | `npm run checklists`                                          | Remind yourself of the supported options or share quick guidance with teammates.               | Displays the built-in help banner with usage examples.                                     |
 | Review the latest initiative status snapshot.                 | `./playbook`                                                  | Pull the newest `docs/status-updates` summary ahead of stand-ups or report prep.               | Prints the summary and follow-up actions; add `--section` to include desk-specific detail. |
 
+### Automation exports
+
+- Use `npm run checklists -- --automation governance --plan-export automation/logs/governance-plan.json --result-export automation/logs/governance-run.json`
+  to bundle intelligence and trading loops into a single run with machine-readable artefacts.
+- Run `./playbook --automate --export-dir automation/playbook` before leadership cadences to refresh timestamped Markdown snapshots for every initiative update.
+
 ## Command Playbooks
 
 ### 2025-02-13 — Dynamic AI Validation Checklist Run
