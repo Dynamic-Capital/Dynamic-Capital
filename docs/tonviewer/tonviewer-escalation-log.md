@@ -6,6 +6,7 @@
 | 2025-10-05 | Compliance | Delivered supplemental issuer documentation and proof-of-mint hash. | Email to support@tonviewer.com | Awaiting confirmation that documents were received. |
 | 2025-10-06 | Analytics | Ran `check-tonviewer-status.ts` to confirm status and hash parity. | Script log | Jetton still unverified (`none`). Follow-up required. |
 | 2025-10-06 | Analytics | Re-ran `check-tonviewer-status.ts` at 17:21 UTC to refresh Tonapi snapshot. | Script log | Status unchanged; verification flag `none`. |
+| 2025-10-06 | Analytics | Executed `check-tonviewer-status.ts` at 17:26 UTC; confirmed metadata parity and unverified flag. | Script log | Status unchanged; follow-up escalation still required. |
 
 ## Pending Follow-Ups
 
