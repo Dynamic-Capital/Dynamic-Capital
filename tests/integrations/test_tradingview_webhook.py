@@ -20,6 +20,11 @@ SECRET_HEADER = "X-Tradingview-Secret"
 @pytest.fixture(autouse=True)
 def reset_secret(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     monkeypatch.delenv("TRADINGVIEW_WEBHOOK_SECRET", raising=False)
+    monkeypatch.setenv("METAQUOTES_ID", "F83593E4")
+    monkeypatch.setenv(
+        "TRADINGVIEW_WEBHOOK_URL",
+        "https://www.tradingview.com/u/DynamicCapital-FX/",
+    )
     yield
 
 
@@ -152,6 +157,16 @@ def test_webhook_processes_payload_with_valid_secret(
     logged_payload = stubbed_components.supabase_logger.logged_payloads[-1]
     assert logged_payload["lot"] == pytest.approx(0.25)
     assert data["trade"]["lot"] == pytest.approx(0.25)
+    assert data["metaquotes_id"] == "F83593E4"
+    assert (
+        data["tradingview_webhook"]
+        == "https://www.tradingview.com/u/DynamicCapital-FX/"
+    )
+    assert any("MetaQuotes ID: F83593E4" in msg for msg in stubbed_components.bot.messages)
+    assert any(
+        "https://www.tradingview.com/u/DynamicCapital-FX/" in msg
+        for msg in stubbed_components.bot.messages
+    )
 
 
 @pytest.mark.parametrize("lot_value", [None, "invalid"])

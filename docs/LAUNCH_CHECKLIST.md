@@ -9,7 +9,9 @@
 | TELEGRAM_BOT_TOKEN             | Bot token from BotFather                                                         |
 | TELEGRAM_WEBHOOK_SECRET        | Secret for webhook validation                                                    |
 | TRADING_SIGNALS_WEBHOOK_SECRET | Shared secret that authenticates TradingView → Supabase alert posts              |
+| TRADINGVIEW_WEBHOOK_URL        | Canonical TradingView webhook endpoint surfaced in ops tooling                   |
 | MT5_BRIDGE_WORKER_ID           | Identifier the Supabase listener/EAs use when recording fills and status updates |
+| METAQUOTES_ID                  | MetaQuotes push notification identifier broadcast alongside trade summaries      |
 | MINI_APP_URL                   | Full URL to hosted Mini App (fallback)                                           |
 | MINI_APP_SHORT_NAME            | BotFather short name launching the Mini App                                      |
 | ADMIN_API_SECRET               | Header secret for admin-only endpoints                                           |
