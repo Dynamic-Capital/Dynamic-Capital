@@ -30,6 +30,23 @@ evolves.
 
 - Update the watchlist by editing the multiline `TONCENTER_SCHEMA_ACCOUNTS`
   value inside `.github/workflows/toncenter-schema-audit.yml`.
+- The 2025-10-09 refresh expanded coverage to the following additional
+  production accounts while ownership classification is being confirmed:
+
+  | Account                                            | Status | Coverage note                                      |
+  | -------------------------------------------------- | ------ | -------------------------------------------------- |
+  | `EQDyAmBSxP1-D--D9GBazb0-MNmZ8ecttc_njImeEzt_heIA` | Active | Auxiliary liquidity routing (pending attribution). |
+  | `EQDz0wQL6EEdgbPkFgS7nNmywzr468AvgLyhH7PIMALxPB6G` | Active | Awaiting tonviewer label review before escalation. |
+  | `EQDz5SDaF1B8jGEfthlLjVzkByQPbG-FStBVEHAFmS_3wZ-O` | Active | Monitor settlement and emissions side-flows.       |
+  | `EQD1BCRMqIkSzt3XpWGORH_HvX5lHNbpDDtvzCGdDoArGYQn` | Active | Candidate treasury satellite wallet.               |
+  | `EQD1mjivKNskrad8FQV8UtNAC6ayMB5bgv6rYmhOcSKPLjZc` | Active | Track potential staking or lockbox disbursements.  |
+  | `EQD2dUSfVIJVT77aBEIjXBe_Z1oj9Kwh40TngDmTEol0l68b` | Active | Validate swap routing activity as data surfaces.   |
+  | `EQD5xwKMuP4X39iy7Ta79x9QBB4U0pds25eEfuLS6O5icwgy` | Active | Flag high-volume transfers for confirmation.       |
+  | `EQD6JaMgi4nf1YpdSyYV5SoIvYPhDNqdUGrgZeRJbjMqJxKD` | Active | Temporary watch while ownership tracing completes. |
+  | `EQD6Tv6Kbqp-RYPl_T9Rum_pixdFX71IC83doVRu0fIqv50d` | Active | Trace contract interactions for schema inference.  |
+  | `EQD7y8d1ImET4WqHclpIJVED2WHKCXb4U3riNV6spyWmzuya` | Active | Observe derivative routing or bridging flows.      |
+  | `EQD9flc1cUiQA-gpEx9J9AsVmRp-VbjP4z4eTLZ5fsfvTGFi` | Active | Capture cross-program transfers and log anomalies. |
+  | `EQD-mBBkUdiPEbkdli268DKsQxNMyPNHD7aDMSwliXG57SFy` | Active | Hold until schema deltas stabilise.                |
 - For ad-hoc investigations, run the CLI locally:
   ```bash
   python -m dynamic_ton.schema_guard_runner --account <ACCOUNT> --limit 50 --include-accounts \
@@ -59,33 +76,35 @@ evolves.
 
 The scheduled audit helper was executed locally with the current watchlist to
 validate the JSON export and summary renderer. The `render_summary_markdown`
-helper now emits a **Run overview** section that consolidates the account
-count, fetch limit, total records, and drift status for quick scanning before
-the per-account breakdown.
+helper now emits a **Run overview** section that consolidates the account count,
+fetch limit, total records, and drift status for quick scanning before the
+per-account breakdown.
 
-| Account | Records Fetched | Unknown Fields |
-| --- | ---: | --- |
-| `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` | 4 | None |
-| `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | 5 | None |
-| `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | 5 | None |
+| Account                                            | Records Fetched | Unknown Fields |
+| -------------------------------------------------- | --------------: | -------------- |
+| `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` |               4 | None           |
+| `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` |               5 | None           |
+| `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` |               5 | None           |
 
 The run completed without detecting schema drift, so no watchlist changes are
 required at this time.
 
 ### 2025-10-07
 
-A follow-up audit was executed with `python -m dynamic_ton.schema_guard_runner
+A follow-up audit was executed with
+`python -m dynamic_ton.schema_guard_runner
 --limit 20 --include-accounts --output-json local-schema-report.json
---allow-drift` after exporting the latest DCT watchlist via the
-`TONCENTER_SCHEMA_ACCOUNTS` environment variable. The generated JSON artifact
-contained summaries for all three tracked contracts and the GitHub Actions
-summary renderer produced the expected **Run overview** totals.
+--allow-drift`
+after exporting the latest DCT watchlist via the `TONCENTER_SCHEMA_ACCOUNTS`
+environment variable. The generated JSON artifact contained summaries for all
+three tracked contracts and the GitHub Actions summary renderer produced the
+expected **Run overview** totals.
 
-| Account | Records Fetched | Unknown Fields |
-| --- | ---: | --- |
-| `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` | 4 | None |
-| `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | 20 | None |
-| `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | 8 | None |
+| Account                                            | Records Fetched | Unknown Fields |
+| -------------------------------------------------- | --------------: | -------------- |
+| `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` |               4 | None           |
+| `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` |              20 | None           |
+| `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` |               8 | None           |
 
 The follow-up run completed without drift and confirmed that the summary markup
 remains stable, so no changes to the watchlist are required.
