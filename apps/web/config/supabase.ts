@@ -4,6 +4,7 @@ import {
   SUPABASE_URL,
 } from "@/config/supabase-runtime";
 import { getEnvVar } from "@/utils/env";
+import { TON_SITE_PROXY_FUNCTION_NAME } from "../../../shared/ton/site";
 
 export const SUPABASE_ENV_ERROR = "";
 
@@ -53,8 +54,12 @@ export const SUPABASE_CONFIG = {
     ECONOMIC_CALENDAR: "economic-calendar",
     MINIAPP: "miniapp",
     VERIFY_INITDATA: "verify-initdata",
+    TON_SITE_PROXY: TON_SITE_PROXY_FUNCTION_NAME,
   },
 } as const;
+
+export const TON_SITE_PROXY_BASE_URL =
+  `${SUPABASE_CONFIG.FUNCTIONS_URL}/${TON_SITE_PROXY_FUNCTION_NAME}`;
 
 const DEFAULT_CRYPTO_SUPPORTED_CURRENCIES = [
   "BTC",

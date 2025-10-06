@@ -169,6 +169,13 @@ back when providers degrade. The implementation lives in
   - Run or extend the existing unit tests in `tests/test_dynamic_proxy.py` to
     confirm configuration changes keep acquisition logic healthy before
     deploying.
+- [ ] **Expose the Supabase reverse proxy**
+  - Configure `TON_SITE_PROXY_TARGETS`, `TON_SITE_PROXY_CACHE_SECONDS`, and
+    `TON_SITE_PROXY_TIMEOUT_MS` for `supabase/functions/ton-site-proxy/index.ts`
+    so browsers can fetch TON Site assets through `/ton-site-proxy/*`.
+  - Deploy the function (`supabase functions deploy ton-site-proxy`) and verify
+    `x-ton-proxy-upstream` reports the expected primary gateway while fallbacks
+    succeed during simulated outages.
 - [ ] **Warm-up & health scoring**
   - Set `warmup_requests` to `min(10, expected_qps * 2)` for new endpoints;
     document the rationale directly in the service configuration comments or

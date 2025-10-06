@@ -2,21 +2,27 @@ export const TON_SITE_DOMAIN = "dynamiccapital.ton";
 export const TON_SITE_GATEWAY_BASE =
   "https://ton-gateway.dynamic-capital.ondigitalocean.app";
 
-export const TON_SITE_GATEWAY_ORIGIN = `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMAIN}`;
+export const TON_SITE_GATEWAY_ORIGIN =
+  `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMAIN}`;
 
 /**
  * Canonical URL for the TON Site landing page routed through the public gateway.
  */
 export const TON_SITE_GATEWAY_URL = TON_SITE_GATEWAY_ORIGIN;
 
-/**
- * Resolves a path relative to the TON Site gateway origin, ensuring duplicate
- * slashes are collapsed while preserving query and hash suffixes.
- */
-export function resolveTonSiteUrl(path: string = "/"): string {
+export const TON_SITE_PROXY_FUNCTION_NAME = "ton-site-proxy" as const;
+export const TON_SITE_PROXY_PATH_PREFIX = `/${TON_SITE_PROXY_FUNCTION_NAME}`;
+
+interface TonSitePathParts {
+  pathname: string;
+  search: string;
+  hash: string;
+}
+
+function normaliseTonSitePath(path: string = "/"): TonSitePathParts {
   const trimmed = path.trim();
   if (!trimmed || trimmed === "/") {
-    return TON_SITE_GATEWAY_ORIGIN;
+    return { pathname: "", search: "", hash: "" };
   }
 
   let working = trimmed;
@@ -28,10 +34,10 @@ export function resolveTonSiteUrl(path: string = "/"): string {
     working = working.slice(0, hashIndex);
   }
 
-  let query = "";
+  let search = "";
   const queryIndex = working.indexOf("?");
   if (queryIndex >= 0) {
-    query = working.slice(queryIndex);
+    search = working.slice(queryIndex);
     working = working.slice(0, queryIndex);
   }
 
@@ -39,12 +45,39 @@ export function resolveTonSiteUrl(path: string = "/"): string {
     .split("/")
     .map((segment) => segment.trim())
     .filter(Boolean);
-  const normalizedPath = segments.join("/");
-  const baseUrl = normalizedPath
-    ? `${TON_SITE_GATEWAY_ORIGIN}/${normalizedPath}`
+  const pathname = segments.join("/");
+
+  return { pathname, search, hash };
+}
+
+/**
+ * Resolves a path relative to the TON Site gateway origin, ensuring duplicate
+ * slashes are collapsed while preserving query and hash suffixes.
+ */
+export function resolveTonSiteUrl(path: string = "/"): string {
+  const { pathname, search, hash } = normaliseTonSitePath(path);
+  const baseUrl = pathname
+    ? `${TON_SITE_GATEWAY_ORIGIN}/${pathname}`
     : TON_SITE_GATEWAY_ORIGIN;
 
-  return `${baseUrl}${query}${hash}`;
+  return `${baseUrl}${search}${hash}`;
+}
+
+export function resolveTonSiteProxyPath(path: string = "/"): string {
+  const { pathname, search, hash } = normaliseTonSitePath(path);
+  const basePath = pathname
+    ? `${TON_SITE_PROXY_PATH_PREFIX}/${pathname}`
+    : `${TON_SITE_PROXY_PATH_PREFIX}/`;
+
+  return `${basePath}${search}${hash}`;
+}
+
+export function resolveTonSiteProxyUrl(
+  functionsBaseUrl: string,
+  path: string = "/",
+): string {
+  const trimmedBase = functionsBaseUrl.replace(/\/+$/, "");
+  return `${trimmedBase}${resolveTonSiteProxyPath(path)}`;
 }
 
 export const TON_SITE_ICON_URL = resolveTonSiteUrl("icon.png");
