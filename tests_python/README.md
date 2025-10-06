@@ -17,7 +17,7 @@ pip install -r tests_python/requirements.txt
 If you prefer to run the commands manually, mirror the requirement pins:
 
 ```bash
-pip install --index-url https://download.pytorch.org/whl/cpu torch==2.4.1+cpu
+pip install --index-url https://download.pytorch.org/whl/cpu torch==2.8.0+cpu
 pip install pytest==8.3.3
 ```
 
