@@ -28,45 +28,84 @@ update, and calls out the operational owners.
 ## Masterchain configuration reference
 
 Audits frequently require a quick mapping between masterchain configuration IDs
-and the operational levers they control. The table below consolidates the core
+and the operational levers they control. The tables below consolidate the core
 entries Dynamic Capital tracks when reviewing on-chain governance proposals or
-validator set changes.
+validator set changes. The parameter names match the TL‑B definitions in
+[`crypto/block/block.tlb`](https://github.com/ton-blockchain/ton/blob/master/crypto/block/block.tlb)
+and the narrative explanations provided in the TON community documentation.
 
-| ID | Parameter | Notes |
-| -- | --------- | ----- |
-| 0  | Config address | Canonical smart contract that stores the configuration dictionary. |
-| 1  | Elector address | Contract responsible for validator elections and stake handling. |
-| 2  | System address | Masterchain system contract used for upgrades and governance triggers. |
-| 4  | Root DNS Contract | Points `.ton` DNS lookups at the current root resolver implementation. |
-| 5  | Blackhole address | Burn sink for coins removed from circulation. |
-| 7  | Currencies volume | Declares native and extra currency supply caps. |
-| 8  | Network version | Signals protocol feature gates to validators. |
-| 9  | Mandatory parameters | IDs that must be present in every configuration proposal. |
-| 10 | Critical parameters | IDs that trigger elevated voting thresholds. |
-| 11 | Proposal conditions | Timing and quorum constraints for configuration voting cycles. |
-| 12 | Workchain configuration | Metadata for each active workchain (shards, zerostate hashes, gas). |
-| 13 | Complaints fee | Stake penalty required to file validator complaints. |
-| 14 | Block reward | Base reward schedule distributed per produced block. |
-| 15 | Election data | Parameters for election rounds (timers, stake thresholds). |
-| 16 | Validators count | Target, minimum, and maximum validator counts. |
-| 17 | Staking parameters | Lock-up duration, stake return delay, and slashing multipliers. |
-| 18 | Storage price | Cost schedule for persistent cell storage. |
-| 20 | Gas params | Default workchain gas limits and price strategy. |
-| 21 | Masterchain gas params | Masterchain-specific overrides to the general gas configuration. |
-| 22 | Masterchain block limits | Upper bounds for block size, gas, and logical time on the masterchain. |
-| 23 | Workchain block limits | Equivalent bounds applied to workchains. |
-| 24 | Masterchain message cost | Fees for masterchain inbound/outbound message processing. |
-| 25 | Workchain message cost | Message fee table for workchain transactions. |
-| 28 | Catchain configuration | Catchain consensus tuning (round intervals, allowed misses). |
-| 29 | Consensus configuration | Parameters for the validator consensus protocol. |
-| 31 | Preferential addresses | Whitelisted system accounts that receive protocol privileges. |
-| 32 | Previous round validators | Snapshot of the prior validator set for election reconciliation. |
-| 34 | Current round validators | Active validator list for the present cycle. |
-| 44 | Suspended addresses | Validators temporarily barred from participation. |
-| 45 | Deferred penalties | Bucket used by governance proposals to stage slashing follow-ups. |
-| 71 | ETH Toncoin Bridge | Canonical bridge contract linking TON with Ethereum. |
-| 72 | BSC Toncoin Bridge | Bridge contract for Binance Smart Chain connectivity. |
-| 79 | ETH Bridge | Legacy Ethereum bridge reference retained for audits. |
+To inspect live values, use either Tonviewer (`https://tonviewer.com/config/<id>`) or
+the lite client (`lite-client -C ~/.config/ton/global.config.json -rc 'getconfig <id>'`).
+
+### Governance contracts & economic routing
+
+| ID | Parameter (TL‑B type) | Operational focus |
+| -- | --------------------- | ----------------- |
+| 0  | `config_addr` (`ConfigParam 0`) | Configuration contract that stores the masterchain dictionary validators load. |
+| 1  | `elector_addr` (`ConfigParam 1`) | Elector contract in charge of validator elections, stake locking, and reward payout. |
+| 2  | `minter_addr` (`ConfigParam 2`) | System account that mints Toncoin rewards (falls back to `config_addr` if absent). |
+| 3  | `fee_collector_addr` (`ConfigParam 3`) | Collector for transaction fees that are not routed to the elector. |
+| 4  | `dns_root_addr` (`ConfigParam 4`) | Root DNS resolver anchoring `.ton` domain lookups. |
+| 5  | `BurningConfig` (`ConfigParam 5`) | Ratio of collected fees that are burned (`fee_burn_num` / `fee_burn_denom`). |
+| 6  | `mint_new_price`, `mint_add_price` (`ConfigParam 6`) | Pricing schedule for issuing extra currencies via the minting contract. |
+| 7  | `to_mint` (`ConfigParam 7`) | Circulating volumes declared for each extra currency ID. |
+
+### Validator governance parameters
+
+| ID | Parameter (TL‑B type) | Operational focus |
+| -- | --------------------- | ----------------- |
+| 8  | `GlobalVersion` (`ConfigParam 8`) | Signals supported protocol version and feature flags to validators. |
+| 9  | `mandatory_params` (`ConfigParam 9`) | Hashmap of configuration IDs that must exist in every proposal. |
+| 10 | `critical_params` (`ConfigParam 10`) | IDs that require heightened voting thresholds and multi-round approval. |
+| 11 | `ConfigVotingSetup` (`ConfigParam 11`) | Proposal round counts, quorum thresholds, and storage fees. |
+| 12 | `workchains` (`ConfigParam 12`) | Describes workchain shards, zerostate hashes, VM format, and activation flags. |
+| 13 | `ComplaintPricing` (`ConfigParam 13`) | Stake required to file validator misconduct complaints. |
+| 14 | `BlockCreateFees` (`ConfigParam 14`) | Base block rewards for masterchain and workchain production. |
+| 15 | `ConfigParam 15` | Election timing (`validators_elected_for`, `elections_start_before`, etc.). |
+| 16 | `ConfigParam 16` | Limits on total, masterchain, and minimum validator counts. |
+| 17 | `ConfigParam 17` | Staking thresholds (`min_stake`, `max_stake`, `min_total_stake`, `max_stake_factor`). |
+| 18 | `ConfigParam 18` | Storage price schedule for workchains and the masterchain. |
+
+### Execution costs & block limits
+
+| ID | Parameter (TL‑B type) | Operational focus |
+| -- | --------------------- | ----------------- |
+| 20 | `config_mc_gas_prices` (`ConfigParam 20`) | Gas limits and pricing applied to masterchain transactions. |
+| 21 | `config_gas_prices` (`ConfigParam 21`) | Gas limits and pricing for workchain transactions. |
+| 22 | `config_mc_block_limits` (`ConfigParam 22`) | Masterchain block size, gas, and logical time ceilings. |
+| 23 | `config_block_limits` (`ConfigParam 23`) | Workchain block limits mirroring the masterchain fields. |
+| 24 | `config_mc_fwd_prices` (`ConfigParam 24`) | Message forwarding fees for the masterchain (lump, bit, cell, IHR factors). |
+| 25 | `config_fwd_prices` (`ConfigParam 25`) | Message forwarding fees for workchains. |
+| 28 | `CatchainConfig` (`ConfigParam 28`) | Catchain tuning (validator shuffling, lifetime, per-shard validator counts). |
+| 29 | `ConsensusConfig` (`ConfigParam 29`) | Above-catchain consensus settings (round cadence, timeouts, dependency limits). |
+
+### Validator rosters & network safety nets
+
+| ID | Parameter (TL‑B type) | Operational focus |
+| -- | --------------------- | ----------------- |
+| 31 | `fundamental_smc_addr` (`ConfigParam 31`) | Privileged masterchain contracts exempt from gas/storage fees and allowed to emit tick‑tock traffic. |
+| 32 | `prev_validators` (`ConfigParam 32`) | Previous validator set used for reconciliation and stake release. |
+| 34 | `cur_validators` (`ConfigParam 34`) | Active validator set with weights, ADNL addresses, and validity window. |
+| 36 | `next_validators` (`ConfigParam 36`) | (Completeness) Scheduled validator set once the current elections conclude. |
+| 39 | `ConfigParam 39` | (Completeness) Signed temporary validator keys published for the round. |
+| 40 | `MisbehaviourPunishmentConfig` (`ConfigParam 40`) | Flat/proportional slashing multipliers and grace intervals. |
+| 43 | `SizeLimitsConfig` (`ConfigParam 43`) | Account/message size ceilings, VM depth limits, and library cell caps. |
+| 44 | `SuspendedAddressList` (`ConfigParam 44`) | Accounts barred from initialization until `suspended_until`. |
+| 45 | `PrecompiledContractsConfig` (`ConfigParam 45`) | Registry of precompiled system contracts and their gas usage. |
+
+Rows labelled "(Completeness)" capture adjacent TL‑B entries auditors typically
+review alongside the requested parameters.
+
+### Bridge registries
+
+| ID | Parameter (TL‑B type) | Operational focus |
+| -- | --------------------- | ----------------- |
+| 71 | `OracleBridgeParams` (`ConfigParam 71`) | TON ↔ Ethereum Toncoin bridge contract, oracle multisig, and oracle roster. |
+| 72 | `OracleBridgeParams` (`ConfigParam 72`) | TON ↔ BNB Smart Chain Toncoin bridge metadata. |
+| 73 | `OracleBridgeParams` (`ConfigParam 73`) | TON ↔ Polygon Toncoin bridge metadata. |
+| 79 | `JettonBridgeParams` (`ConfigParam 79`) | Ethereum asset bridge configuration for wrapped jettons on TON. |
+| 81 | `JettonBridgeParams` (`ConfigParam 81`) | BNB Smart Chain asset bridge configuration for wrapped jettons on TON. |
+| 82 | `JettonBridgeParams` (`ConfigParam 82`) | Polygon asset bridge configuration for wrapped jettons on TON. |
 
 ## TON Sites & Services
 
