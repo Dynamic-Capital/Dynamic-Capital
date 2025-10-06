@@ -8,7 +8,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 from .data_pipeline import TonDataCollector
 from .schema_guard import (
@@ -69,6 +69,76 @@ async def audit_accounts(
         )
         results.append((account, report))
     return results
+
+
+def render_summary_markdown(payload: Mapping[str, Any]) -> str:
+    """Render the GitHub Actions summary for a schema audit payload."""
+
+    lines: list[str] = ["# TONCenter Schema Audit", ""]
+
+    accounts_payload = payload.get("accounts")
+    accounts: Mapping[str, Any] | None = None
+    if isinstance(accounts_payload, Mapping) and accounts_payload:
+        accounts = accounts_payload
+
+    total_accounts = payload.get("total_accounts")
+    limit = payload.get("limit")
+    has_drift = payload.get("has_drift")
+
+    inferred_account_count = 0
+    total_records_observed = 0
+    if accounts:
+        for report in accounts.values():
+            if isinstance(report, Mapping):
+                inferred_account_count += 1
+                try:
+                    total_records_observed += int(report.get("total_records", 0))
+                except (TypeError, ValueError):  # pragma: no cover - defensive
+                    continue
+
+    overview_lines: list[str] = []
+    if total_accounts is not None:
+        overview_lines.append(f"- Accounts audited: {total_accounts}")
+    elif inferred_account_count:
+        overview_lines.append(f"- Accounts audited: {inferred_account_count}")
+
+    if limit is not None:
+        overview_lines.append(f"- Per-account fetch limit: {limit}")
+
+    if total_records_observed:
+        overview_lines.append(f"- Total records fetched: {total_records_observed}")
+
+    if has_drift is not None:
+        overview_lines.append(
+            "- Schema drift detected: {}".format("yes" if bool(has_drift) else "no")
+        )
+
+    if overview_lines:
+        lines.append("## Run overview")
+        lines.extend(overview_lines)
+        lines.append("")
+
+    if accounts:
+        for account in sorted(accounts):
+            report = accounts[account]
+            report_mapping = report if isinstance(report, Mapping) else {}
+
+            total_records = report_mapping.get("total_records", 0)
+            lines.append(f"## {account}")
+            lines.append(f"- Records fetched: {total_records}")
+
+            unknown_fields = report_mapping.get("unknown_fields")
+            if isinstance(unknown_fields, Mapping) and unknown_fields:
+                lines.append("- Unknown fields detected:")
+                for field, count in sorted(unknown_fields.items()):
+                    lines.append(f"  - {field}: {count} occurrence(s)")
+            else:
+                lines.append("- Unknown fields detected: none")
+            lines.append("")
+    else:
+        lines.append("_No accounts audited._")
+
+    return "\n".join(lines).strip() + "\n"
 
 
 def _determine_limit(cli_limit: int | None, env_value: str | None) -> int:

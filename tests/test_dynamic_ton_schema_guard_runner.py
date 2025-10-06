@@ -125,3 +125,55 @@ def test_async_main_writes_json_with_records(tmp_path, monkeypatch) -> None:
     payload = json.loads(output_path.read_text())
     account_payload = payload["accounts"]["EQ1"]
     assert account_payload["records"][0]["action_id"] == "1"
+
+
+def test_render_summary_markdown_formats_accounts() -> None:
+    payload = {
+        "accounts": {
+            "EQ1": {
+                "total_records": 5,
+                "unknown_fields": {},
+            },
+            "EQ2": {
+                "total_records": 3,
+                "unknown_fields": {"new_field": 2},
+            },
+        },
+        "has_drift": True,
+        "limit": 25,
+    }
+
+    summary = runner.render_summary_markdown(payload)
+
+    assert summary.startswith("# TONCenter Schema Audit")
+    assert "## Run overview" in summary
+    assert "- Accounts audited: 2" in summary
+    assert "- Per-account fetch limit: 25" in summary
+    assert "- Total records fetched: 8" in summary
+    assert "- Schema drift detected: yes" in summary
+    assert "## EQ1" in summary
+    assert "- Records fetched: 5" in summary
+    assert "- Unknown fields detected: none" in summary
+    assert "  - new_field: 2 occurrence(s)" in summary
+
+
+def test_render_summary_markdown_handles_missing_accounts() -> None:
+    summary = runner.render_summary_markdown({})
+
+    assert "_No accounts audited._" in summary
+
+
+def test_render_summary_markdown_respects_report_totals() -> None:
+    payload = {
+        "accounts": {
+            "EQ1": {"total_records": 1},
+        },
+        "has_drift": False,
+        "limit": 10,
+        "total_accounts": 5,
+    }
+
+    summary = runner.render_summary_markdown(payload)
+
+    assert "- Accounts audited: 5" in summary
+    assert "- Schema drift detected: no" in summary
