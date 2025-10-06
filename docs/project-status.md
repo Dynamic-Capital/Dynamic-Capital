@@ -33,7 +33,8 @@
 
 [^allocator-followup]: Implementation plan reopened the regression test
     checklist items until the npm CDN recovers and new evidence is captured
-    alongside the go-live automation log.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L108】【F:docs/checklist-runs/2025-10-06-go-live.md†L1-L34】【F:docs/test-run-2025-10-06.md†L1-L36】
+    alongside the go-live automation
+    log.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L108】【F:docs/checklist-runs/2025-10-06-go-live.md†L1-L34】【F:docs/test-run-2025-10-06.md†L1-L36】
 
 [^offchain-evidence]: Supabase wallet linking, subscription processing, and the
     Mini App runbook document deterministic onboarding paths for
@@ -73,7 +74,10 @@
 - **Allocator regression tests** remain pending revalidation; repeated npm CDN
   `502` errors (e.g., `bnc-sdk@4.6.9`, `@grammyjs/conversations@2.1.0`) blocked
   the latest Deno reruns, so the suites need to be repeated once the registry
-  outage clears.【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:docs/test-run-2025-10-06.md†L1-L36】
+  outage clears. The shared Mozilla CA bundle (`certs/mozilla-root-ca.pem`) now
+  feeds both Node and Deno tooling so future runs keep full TLS validation in
+  place without `--unsafely-ignore-certificate-errors`
+  flags.【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:docs/test-run-2025-10-06.md†L1-L36】【F:certs/mozilla-root-ca.pem†L1-L3556】【F:scripts/deno_bin.sh†L1-L93】【F:scripts/utils/npm-env.mjs†L1-L98】
 - **Supabase function suites** assert wallet conflict handling and subscription
   path validation, mirroring audit expectations that off-chain services stay
   deterministic.【F:dynamic-capital-ton/supabase/functions/link-wallet/index.test.ts†L1-L133】【F:docs/dct-ton-audit.md†L12-L36】
@@ -108,12 +112,14 @@
 ## Outstanding Actions
 
 1. **Restore regression evidence.** Resolve the npm CDN outage and rerun the
-   allocator plus Supabase Deno suites, then attach the successful transcripts to
-   the implementation plan and release bundle.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L108】【F:docs/test-run-2025-10-06.md†L1-L36】
+   allocator plus Supabase Deno suites with the repo CA bundle so the refreshed
+   transcripts capture hardened TLS validation, then attach the outputs to the
+   implementation plan and release
+   bundle.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L108】【F:docs/test-run-2025-10-06.md†L1-L36】【F:certs/mozilla-root-ca.pem†L1-L3556】
 2. **Record routine quality gates.** Continue attaching allocator and Supabase
    test outputs (plus lint/typecheck logs where relevant) to release notes or CI
-   artifacts once executions succeed so the audit trail
-   remains complete.【F:docs/dct-ton-audit.md†L25-L113】【F:docs/test-run-2025-10-06.md†L1-L34】
+   artifacts once executions succeed so the audit trail remains
+   complete.【F:docs/dct-ton-audit.md†L25-L113】【F:docs/test-run-2025-10-06.md†L1-L34】
 3. **Archive the remaining dry-run evidence.** Retain webhook transcripts, bank
    review outputs, duplicate receipt rejection, crypto confirmation logs, and
    admin command exports alongside the latest release notes so auditors can

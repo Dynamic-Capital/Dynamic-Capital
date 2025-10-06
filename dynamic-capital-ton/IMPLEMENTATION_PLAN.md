@@ -101,8 +101,8 @@
 - Executed `npm run go-live` to refresh the Telegram webhook automation and
   captured the run log under `docs/checklist-runs/2025-10-06-go-live.md`.
 - The latest attempts to rerun the allocator regression suite via
-  ``npx deno test --config deno.json -A --unsafely-ignore-certificate-errors``
--  failed because npm returned `502` responses while caching dependencies such as
+  ``$(bash scripts/deno_bin.sh) test --config deno.json -A`` failed because npm
+  returned `502` responses while caching dependencies such as
   `bnc-sdk@4.6.9` and `@grammyjs/conversations@2.1.0`; see the updated test log
   for failure traces and retry instructions.
 - Supabase wallet-link and subscription flows remain pending revalidation until

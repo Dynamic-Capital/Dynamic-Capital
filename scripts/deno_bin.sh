@@ -45,4 +45,78 @@ if ! command -v deno >/dev/null 2>&1; then
   cmd="${BIN_PATH}"
 fi
 
-echo "env DENO_TLS_CA_STORE=system ${cmd}"
+REPO_ROOT="${REPO_ROOT:-"$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"}"
+CERT_BUNDLE="${REPO_ROOT}/certs/mozilla-root-ca.pem"
+
+normalize_tls_store() {
+  local raw="${1:-}"
+  if [ -z "${raw}" ]; then
+    echo "system,mozilla"
+    return
+  fi
+
+  local IFS=','
+  read -ra parts <<<"${raw}"
+  local seen_system=0
+  local seen_mozilla=0
+  local normalized=()
+
+  for part in "${parts[@]}"; do
+    if [ -z "${part}" ]; then
+      continue
+    fi
+    local already_present=0
+    for existing in "${normalized[@]}"; do
+      if [ "${existing}" = "${part}" ]; then
+        already_present=1
+        break
+      fi
+    done
+    if [ ${already_present} -eq 1 ]; then
+      if [ "${part}" = "system" ]; then
+        seen_system=1
+      elif [ "${part}" = "mozilla" ]; then
+        seen_mozilla=1
+      fi
+      continue
+    fi
+    if [ "${part}" = "system" ]; then
+      seen_system=1
+    elif [ "${part}" = "mozilla" ]; then
+      seen_mozilla=1
+    fi
+    normalized+=("${part}")
+  done
+
+  if [ ${seen_system} -eq 0 ]; then
+    normalized+=("system")
+  fi
+  if [ ${seen_mozilla} -eq 0 ]; then
+    normalized+=("mozilla")
+  fi
+
+  local joined
+  IFS=',' read -r joined <<<"${normalized[*]}"
+  echo "${joined// /,}"
+}
+
+TLS_STORE_VALUE="$(normalize_tls_store "${DENO_TLS_CA_STORE:-}")"
+
+env_parts=("DENO_TLS_CA_STORE=${TLS_STORE_VALUE}")
+
+if [ -f "${CERT_BUNDLE}" ]; then
+  if [ -z "${DENO_CERT:-}" ]; then
+    env_parts+=("DENO_CERT=${CERT_BUNDLE}")
+  fi
+  if [ -z "${EXTRA_CA_CERT:-}" ]; then
+    env_parts+=("EXTRA_CA_CERT=${CERT_BUNDLE}")
+  fi
+  if [ -z "${SSL_CERT_FILE:-}" ]; then
+    env_parts+=("SSL_CERT_FILE=${CERT_BUNDLE}")
+  fi
+  if [ -z "${NODE_EXTRA_CA_CERTS:-}" ]; then
+    env_parts+=("NODE_EXTRA_CA_CERTS=${CERT_BUNDLE}")
+  fi
+fi
+
+echo "env ${env_parts[*]} ${cmd}"
