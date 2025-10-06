@@ -78,6 +78,56 @@
   capture remain required before handing over to operations, even though code
   paths are ready.【F:docs/dct-ton-audit.md†L15-L114】
 
+### Repo Health & Go-Live Readiness
+
+#### Automation Sweeps
+
+1. **`fix_and_check` lint + format sweep** — 🔴 Open
+   - *Blocker:* Missing CI secrets and lingering formatting regressions.
+   - *Start now:* Clean up local formatting, land fixes, inject required secrets, then rerun the sweep to unblock downstream jobs.
+2. **Linkage audit** — 🔴 Open
+   - *Blocker:* Audit module lacks a fresh dependency manifest.
+   - *Start now:* Regenerate the manifest with `npm run linkage:audit`, attach it to the pipeline, and confirm the report stores in CI artifacts.
+3. **Telegram webhook verification** — 🟠 Blocked
+   - *Blocker:* Bot tokens unavailable in CI.
+   - *Start now:* Coordinate with infra to supply the secrets, rerun the verification script, and log the transcript for the go-live bundle.
+4. **Mini App smoke test (optional)** — 🟠 Blocked
+   - *Blocker:* Depends on successful webhook verification.
+   - *Start when unblocked:* After the webhook check passes, schedule the CI smoke test and archive screenshots plus logs alongside the transcript.
+
+#### Workflow & Tooling Follow-ups
+
+1. **Supabase CLI deployment workflow** — 🔴 Open
+   - *Blocker:* Secrets and migration manifest still unsettled.
+   - *Start now:* Finalize the migration manifest, add secrets to CI, and execute a dry run to confirm migrations replay cleanly.
+2. **Pending PR refresh with full CI pass** — 🔴 Open
+   - *Blocker:* Lint/typecheck failures persist until the automation sweep succeeds.
+   - *Start next:* After the sweep stabilizes, rebase the PR, retrigger CI, and capture the passing logs for evidence.
+3. **Auto-merge enablement** — 🟡 Pending
+   - *Blocker:* Requires reliable green CI on the default branch.
+   - *Start after CI is green:* Once tests and linting are stable, flip auto-merge in repo settings and document the change in ops notes.
+4. **Production sanity walkthrough** — 🟠 Blocked
+   - *Blocker:* Awaiting refreshed automation evidence.
+   - *Start when evidence is ready:* Finish CI remediation, then rerun the walkthrough with the current commit and store the annotated checklist.
+
+#### Manual Go-Live Checklist
+
+1. **Webhook health validation** — 🔴 Not started
+   - *Evidence gap:* No transcript archived.
+   - *Start now:* Execute the validation script, capture output, and deposit logs in the release evidence folder.
+2. **Payment flow exercises** — 🔴 Not started
+   - *Evidence gap:* Banking and duplicate-handling logs missing.
+   - *Start next:* Run both happy-path and exception scenarios, saving reviewer notes plus transaction traces.
+3. **Crypto confirmations** — 🔴 Not started
+   - *Evidence gap:* Confirmation logs absent.
+   - *Start after payment checks:* Trigger the TON deposit cycle, export explorer and node evidence, and file it with the release package.
+4. **Admin command verification** — 🔴 Not started
+   - *Evidence gap:* Command outputs not filed.
+   - *Start after crypto confirmation:* Run the admin suite, archive command transcripts, and link them back to the checklist.
+5. **Evidence archival** — 🔴 Not started
+   - *Evidence gap:* Consolidated bundle missing.
+   - *Start last:* After collecting upstream artifacts, bundle them into the release evidence drive and tag with the RC identifier.
+
 ### Runbooks & Operational Readiness
 
 - The Go-Live Validation Playbook walks operators through webhook checks, bank
