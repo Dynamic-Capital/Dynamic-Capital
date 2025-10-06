@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+BIN_DIR="$SCRIPT_DIR/tools/bin"
+PROXY_BIN="$BIN_DIR/tonutils-reverse-proxy"
+mkdir -p "$BIN_DIR"
+
+ensure_binary_with_node() {
+  if ! command -v node >/dev/null 2>&1; then
+    return 1
+  fi
+
+  echo "tonutils-reverse-proxy binary not found at $PROXY_BIN. Attempting automatic installation with Node.js helper..." >&2
+  local args=("$SCRIPT_DIR/scripts/ton/install-tonutils-reverse-proxy.mjs" "--dir" "$BIN_DIR")
+  local requested_version="${TONUTILS_REVERSE_PROXY_VERSION-}"
+  if [[ -n "$requested_version" ]]; then
+    args+=("--version" "$requested_version")
+  fi
+
+  node "${args[@]}"
+}
+
+ensure_binary_with_curl() {
+  if ! command -v curl >/dev/null 2>&1; then
+    return 1
+  fi
+
+  local version
+  version="${TONUTILS_REVERSE_PROXY_VERSION:-latest}"
+  local asset="tonutils-reverse-proxy-linux-amd64"
+  local url
+  if [[ "$version" == latest ]]; then
+    url="https://github.com/tonutils/reverse-proxy/releases/latest/download/${asset}"
+  else
+    url="https://github.com/tonutils/reverse-proxy/releases/download/${version}/${asset}"
+  fi
+
+  echo "tonutils-reverse-proxy binary not found at $PROXY_BIN. Downloading ${version} via curl..." >&2
+  local tmp
+  tmp="$(mktemp "$BIN_DIR/tonutils-reverse-proxy.XXXXXX")"
+  if ! curl -fL "$url" -o "$tmp"; then
+    echo "Error: curl download from $url failed." >&2
+    rm -f "$tmp"
+    return 1
+  fi
+
+  chmod +x "$tmp"
+  mv "$tmp" "$PROXY_BIN"
+}
+
+ensure_binary() {
+  if [[ -x "$PROXY_BIN" ]]; then
+    return 0
+  fi
+
+  mkdir -p "$BIN_DIR"
+
+  if ensure_binary_with_node; then
+    return 0
+  fi
+
+  if ensure_binary_with_curl; then
+    return 0
+  fi
+
+  echo "Error: Failed to install tonutils-reverse-proxy automatically." >&2
+  echo "Ensure either Node.js (>=16) or curl is installed, or manually place the binary at $PROXY_BIN." >&2
+  return 1
+}
+
+if ! ensure_binary; then
+  exit 1
+fi
+
+if [[ ! -x "$PROXY_BIN" ]]; then
+  echo "Error: tonutils-reverse-proxy binary is still missing after installation attempt." >&2
+  echo "Please install it manually and retry." >&2
+  exit 1
+fi
+
+append_domain=true
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help|help)
+      append_domain=false
+      break
+      ;;
+  esac
+done
+
+for arg in "$@"; do
+  case "$arg" in
+    --domain|--domain=*)
+      append_domain=false
+      break
+      ;;
+  esac
+done
+
+if $append_domain; then
+  domain="${TONUTILS_REVERSE_PROXY_DOMAIN:-dynamiccapital.ton}"
+  if [[ -z "$domain" ]]; then
+    echo "Error: TONUTILS_REVERSE_PROXY_DOMAIN is set but empty." >&2
+    exit 1
+  fi
+  set -- "$@" --domain "$domain"
+fi
+
+cd "$SCRIPT_DIR"
+exec "$PROXY_BIN" "$@"
