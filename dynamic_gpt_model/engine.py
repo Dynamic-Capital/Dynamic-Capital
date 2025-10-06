@@ -530,6 +530,8 @@ _DTYPE_ALIAS_MAP = {
     "bf16": "bfloat16",
 }
 
+_TORCH_METADATA_DTYPE_KEYS: tuple[str, ...] = ("torch_dtype", "torch.dtype")
+
 
 def _resolve_torch_dtype(value: "torch.dtype | str | None") -> "torch.dtype | None":
     if value is None:
@@ -570,7 +572,9 @@ def instantiate_torch_model(
     dtype:
         Optional dtype. Accepts concrete :class:`torch.dtype` instances or
         common string aliases such as ``"float16"``, ``"bf16"``, or
-        ``"float32"``.
+        ``"float32"``. When omitted the function attempts to read a string
+        alias from ``config.metadata['torch_dtype']`` or
+        ``config.metadata['torch.dtype']``.
     """
 
     if not _TORCH_AVAILABLE:
@@ -579,7 +583,32 @@ def instantiate_torch_model(
             " package to enable this functionality."
         )
 
-    resolved_dtype = _resolve_torch_dtype(dtype)
+    metadata_dtype: str | None = None
+    metadata_key: str | None = None
+    if dtype is None:
+        for candidate_key in _TORCH_METADATA_DTYPE_KEYS:
+            value = config.metadata.get(candidate_key)
+            if value:
+                metadata_dtype = value
+                metadata_key = candidate_key
+                break
+
+    candidate_dtype: "torch.dtype | str | None"
+    if dtype is not None:
+        candidate_dtype = dtype
+    else:
+        candidate_dtype = metadata_dtype
+
+    try:
+        resolved_dtype = _resolve_torch_dtype(candidate_dtype)
+    except (TypeError, ValueError) as error:
+        if dtype is None and metadata_dtype is not None and metadata_key is not None:
+            raise ValueError(
+                "Invalid torch dtype alias from config metadata key "
+                f"{metadata_key!r}: {metadata_dtype!r}"
+            ) from error
+        raise
+
     model = DynamicGPTModel(config)
     if device is not None or resolved_dtype is not None:
         model = model.to(device=device, dtype=resolved_dtype)

@@ -109,6 +109,40 @@ def test_instantiate_with_string_dtype_alias() -> None:
     assert param.dtype == torch.bfloat16
 
 
+def test_instantiate_with_metadata_dtype_hint() -> None:
+    config = build_gpt_model(
+        depth=1,
+        model_dim=8,
+        num_heads=2,
+        feedforward_ratio=2.0,
+        vocab_size=16,
+        max_position_embeddings=16,
+        metadata={"torch_dtype": "float16"},
+    )
+
+    model = instantiate_torch_model(config)
+    param = next(model.parameters())
+
+    assert param.dtype == torch.float16
+
+
+def test_metadata_dtype_hint_respects_explicit_override() -> None:
+    config = build_gpt_model(
+        depth=1,
+        model_dim=8,
+        num_heads=2,
+        feedforward_ratio=2.0,
+        vocab_size=16,
+        max_position_embeddings=16,
+        metadata={"torch_dtype": "float16"},
+    )
+
+    model = instantiate_torch_model(config, dtype=torch.float64)
+    param = next(model.parameters())
+
+    assert param.dtype == torch.float64
+
+
 def test_instantiate_with_unknown_dtype_alias_raises() -> None:
     config = build_gpt_model(
         depth=1,
@@ -121,3 +155,18 @@ def test_instantiate_with_unknown_dtype_alias_raises() -> None:
 
     with pytest.raises((ValueError, TypeError)):
         instantiate_torch_model(config, dtype="not-a-real-dtype")
+
+
+def test_instantiate_with_invalid_metadata_dtype_hint_raises() -> None:
+    config = build_gpt_model(
+        depth=1,
+        model_dim=8,
+        num_heads=2,
+        feedforward_ratio=2.0,
+        vocab_size=16,
+        max_position_embeddings=16,
+        metadata={"torch_dtype": "nope"},
+    )
+
+    with pytest.raises(ValueError):
+        instantiate_torch_model(config)
