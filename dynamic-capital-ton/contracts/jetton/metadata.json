@@ -8,7 +8,11 @@
   "external_url": "https://dynamic.capital",
   "sameAs": [
     "https://dynamic.capital/token",
-    "https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7"
+    "https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+    "https://app.ston.fi/swap?from=TON&to=DCT",
+    "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
+    "https://dedust.io/swap/TON-DCT",
+    "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm"
   ],
   "attributes": [
     {
