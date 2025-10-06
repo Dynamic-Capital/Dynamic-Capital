@@ -219,7 +219,11 @@ const coreProviderDefinitions: ProviderDefinition[] = [
     defaultModel: "mistralai/Mistral-7B-Instruct-v0.2",
     contextWindow: 8_192,
     maxOutputTokens: 1_024,
-    envKeys: ["HUGGINGFACE_ACCESS_TOKEN", "HUGGINGFACE_API_KEY"],
+    envKeys: ["HUGGINGFACE_ACCESS_TOKEN"],
+    isConfigured: () =>
+      Boolean(
+        optionalEnvVar("HUGGINGFACE_ACCESS_TOKEN", ["HUGGINGFACE_API_KEY"]),
+      ),
     async invoke(
       { messages, temperature = 0.7, maxTokens, language },
     ): Promise<Omit<ChatResult, "provider">> {
