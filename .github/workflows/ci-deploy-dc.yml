@@ -22,8 +22,9 @@ jobs:
           path: |
             ~/.cache/deno
             ~/.deno
-          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
+          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock', 'deno.json') }}
           restore-keys: |
+            ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}-
             ${{ runner.os }}-deno-
       - name: CI (fmt/lint/typecheck/test)
         run: bash scripts/ci.sh

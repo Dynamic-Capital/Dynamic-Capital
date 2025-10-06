@@ -38,18 +38,19 @@ jobs:
           cache-dependency-path: tools/eslint-runner/package-lock.json
 
       - name: Install ESLint dependencies
-        run: npm ci --prefix tools/eslint-runner
+        working-directory: tools/eslint-runner
+        run: npm ci
 
       - name: Run ESLint
         env:
           SARIF_ESLINT_IGNORE_SUPPRESSED: "true"
         run: |
-          export PATH="$GITHUB_WORKSPACE/tools/eslint-runner/node_modules/.bin:$PATH"
-          eslint . \
-            --config .eslintrc.js \
-            --ext .js,.jsx,.ts,.tsx \
-            --format @microsoft/eslint-formatter-sarif \
-            --output-file eslint-results.sarif
+          npm exec --prefix tools/eslint-runner -- \
+            eslint . \
+              --config .eslintrc.js \
+              --ext .js,.jsx,.ts,.tsx \
+              --format @microsoft/eslint-formatter-sarif \
+              --output-file eslint-results.sarif
         continue-on-error: true
 
       - name: Upload analysis results to GitHub
