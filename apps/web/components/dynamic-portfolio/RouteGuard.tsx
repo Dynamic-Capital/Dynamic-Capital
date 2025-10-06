@@ -29,7 +29,42 @@ type AuthenticateResponse = {
   passwordRequired?: boolean;
 };
 
-const normalizePathname = (value: string | null): string => {
+const PREVIEW_PREFIX_PATTERN = /^\/_sites\/([^/]+)(\/.*|$)/;
+
+const isValidPreviewHostname = (value: string): boolean => {
+  if (!value || value.length > 253 || value.endsWith(".")) {
+    return false;
+  }
+
+  const labels = value.split(".");
+
+  return labels.every((label) =>
+    /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/.test(label)
+  );
+};
+
+const normalizePreviewPath = (path: string): string => {
+  const match = path.match(PREVIEW_PREFIX_PATTERN);
+  const hostname = match?.[1];
+  const remainder = match?.[2] ?? "";
+
+  if (!hostname || !isValidPreviewHostname(hostname)) {
+    return path.replace(/\/{2,}/g, "/");
+  }
+
+  if (!remainder) {
+    return "/";
+  }
+
+  const dedupedSlashes = remainder.replace(/\/{2,}/g, "/");
+  const ensuredLeadingSlash = dedupedSlashes.startsWith("/")
+    ? dedupedSlashes
+    : `/${dedupedSlashes}`;
+
+  return ensuredLeadingSlash;
+};
+
+export const normalizeRouteGuardPathname = (value: string | null): string => {
   if (!value) {
     return "/";
   }
@@ -37,8 +72,7 @@ const normalizePathname = (value: string | null): string => {
   let normalized = value;
 
   if (normalized.startsWith("/_sites/")) {
-    const withoutPreviewPrefix = normalized.replace(/^\/_sites\/[\w-]+/, "");
-    normalized = withoutPreviewPrefix || "/";
+    normalized = normalizePreviewPath(normalized);
   }
 
   if (normalized.length > 1 && normalized.endsWith("/")) {
@@ -51,7 +85,7 @@ const normalizePathname = (value: string | null): string => {
 const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
   const pathname = usePathname();
   const normalizedPathname = useMemo(
-    () => normalizePathname(pathname),
+    () => normalizeRouteGuardPathname(pathname),
     [pathname],
   );
   const [isAllowed, setIsAllowed] = useState(false);
