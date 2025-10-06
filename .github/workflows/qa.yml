@@ -8,10 +8,41 @@ on:
 jobs:
   deno-tests:
     runs-on: ubuntu-latest
+    outputs:
+      deno_cache_hit: ${{ steps.deno-cache-telemetry.outputs.cache_hit }}
     steps:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1
         with: { deno-version: v1.x }
+      - name: Cache Deno dependencies
+        id: deno-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/deno
+            ~/.deno
+          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock', 'deno.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}-
+            ${{ runner.os }}-deno-
+      - name: Report Deno cache status
+        if: ${{ always() }}
+        id: deno-cache-telemetry
+        env:
+          CACHE_HIT: ${{ steps.deno-cache.outputs.cache-hit }}
+        run: |
+          cache_hit="${CACHE_HIT:-false}"
+          echo "QA deno cache hit: ${cache_hit}"
+          echo "cache_hit=${cache_hit}" >> "$GITHUB_OUTPUT"
+          summary_file="${GITHUB_STEP_SUMMARY:-}"
+          if [ -n "${summary_file}" ]; then
+            {
+              echo "### QA cache";
+              echo "- Event: \`${GITHUB_EVENT_NAME:-unknown}\`";
+              echo "- Ref: \`${GITHUB_REF_NAME:-unknown}\`";
+              echo "- Deno cache hit: \`${cache_hit}\`";
+            } >> "${summary_file}"
+          fi
       - name: Run unit + integration tests
         env:
           # Optional: enable integration smoke if provided at repo/CI level
@@ -21,15 +52,36 @@ jobs:
 
   edge-secrets-audit:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event.pull_request.merged == false }}
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == false) }}
+    outputs:
+      supabase_cli_version: ${{ steps.supabase-cli-version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - name: Supabase CLI
-        run: npm i -g supabase
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.48.3
+      - name: Verify Supabase CLI version
+        if: ${{ always() }}
+        id: supabase-cli-version
+        run: |
+          version="$(supabase --version)"
+          echo "Supabase CLI ${version}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          summary_file="${GITHUB_STEP_SUMMARY:-}"
+          if [ -n "${summary_file}" ]; then
+            {
+              echo "### Supabase CLI";
+              echo "- Event: \`${GITHUB_EVENT_NAME:-unknown}\`";
+              echo "- Ref: \`${GITHUB_REF_NAME:-unknown}\`";
+              echo "- Version: \`${version}\`";
+            } >> "${summary_file}"
+          fi
       - name: List required edge secrets
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
+          trap 'rm -f secrets.txt' EXIT
           supabase link --project-ref qeejuomcapbdlhnjqjcc
           supabase secrets list | tee secrets.txt
           # Fail if any must-have is missing
