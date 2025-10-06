@@ -26,6 +26,10 @@ __all__ = [
     "audit_project_branches",
     "optimise_project_promotion",
     "audit_and_optimise_project_branches_and_teams",
+    "DEFAULT_RELEASE_PLANNING_ROLES",
+    "build_release_planning_planner",
+    "build_release_planning_dashboard_snapshot",
+    "export_release_planning_dashboard_json",
 ]
 
 
@@ -778,4 +782,12 @@ def export_release_planning_dashboard(
         roles=roles,
     )
     return ReleasePlanningDashboardSnapshot(review=review)
+
+
+from .dashboard_export import (  # noqa: E402  # isort: skip
+    DEFAULT_RELEASE_PLANNING_ROLES,
+    build_release_planning_dashboard_snapshot,
+    build_release_planning_planner,
+    export_release_planning_dashboard_json,
+)
 

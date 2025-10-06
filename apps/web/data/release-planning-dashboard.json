@@ -1,0 +1,614 @@
+{
+  "audit": {
+    "findings": [
+      {
+        "blocked_by": [],
+        "branch": "api/release",
+        "issues": [
+          "Behind trunk by 1 commits",
+          "Required checks failing or incomplete",
+          "Reviews pending approval",
+          "Integration PR not open"
+        ],
+        "recommended_actions": [
+          "Synchronise with trunk to clear the backlog",
+          "Stabilise CI checks to restore readiness",
+          "Secure required code review approvals",
+          "Open integration PR to stage promotion"
+        ],
+        "severity": "warning"
+      },
+      {
+        "blocked_by": [],
+        "branch": "ops/automation",
+        "issues": [
+          "Reviews pending approval",
+          "Integration PR not open"
+        ],
+        "recommended_actions": [
+          "Secure required code review approvals",
+          "Open integration PR to stage promotion"
+        ],
+        "severity": "warning"
+      },
+      {
+        "blocked_by": [
+          "api/release"
+        ],
+        "branch": "web/release",
+        "issues": [
+          "Blocked by dependencies: api/release",
+          "Behind trunk by 2 commits",
+          "Required checks failing or incomplete",
+          "Reviews pending approval",
+          "Integration PR not open"
+        ],
+        "recommended_actions": [
+          "Resolve blockers for web/release: api/release",
+          "Synchronise with trunk to clear the backlog",
+          "Stabilise CI checks to restore readiness",
+          "Secure required code review approvals",
+          "Open integration PR to stage promotion"
+        ],
+        "severity": "warning"
+      }
+    ],
+    "ready": [
+      "core/main"
+    ],
+    "summary": "1 branches ready; 3 requiring attention (1 blocked)"
+  },
+  "blocked_dependencies": [
+    {
+      "blocked_by": [
+        "api/release"
+      ],
+      "branch": "web/release"
+    }
+  ],
+  "counts": {
+    "blocked": 1,
+    "branches": 4,
+    "findings": 3,
+    "pending": 3,
+    "ready": 1,
+    "teams": 4
+  },
+  "focus": [
+    "release readiness",
+    "risk mitigation",
+    "customer commitments"
+  ],
+  "generated_at": "2025-10-06T12:38:51.209972+00:00",
+  "optimisation": {
+    "blocked": [
+      {
+        "blocked_by": [
+          "api/release"
+        ],
+        "branch": "web/release"
+      }
+    ],
+    "pending": [
+      "api/release",
+      "ops/automation",
+      "web/release"
+    ],
+    "promotion_sequence": [
+      "core/main"
+    ],
+    "recommended_actions": [
+      "Promote core/main in the next release window",
+      "Clear blockers for web/release: api/release",
+      "Finalise readiness tasks for api/release",
+      "Finalise readiness tasks for ops/automation"
+    ],
+    "summary": "1 ready for promotion; 3 pending readiness"
+  },
+  "organisation": {
+    "branches": [
+      {
+        "branches": [
+          {
+            "ahead": 3,
+            "behind": 1,
+            "blocked_by": [],
+            "checks_passed": false,
+            "dependencies": [
+              "core/main"
+            ],
+            "description": "Gateway deployment for public API",
+            "environment": "production",
+            "integration_pr_open": false,
+            "last_commit_at": "2024-05-04T09:00:00+00:00",
+            "metadata": {},
+            "name": "api/release",
+            "notes": "Stabilising integration tests",
+            "protected": true,
+            "ready": false,
+            "review_approved": false,
+            "service": "api",
+            "summary": "Behind target by 1 commits. Required checks are failing or incomplete. Reviews pending approval. Open an integration PR before promotion.",
+            "tags": [
+              "api",
+              "external"
+            ]
+          }
+        ],
+        "environment": "production",
+        "service": "api"
+      },
+      {
+        "branches": [
+          {
+            "ahead": 1,
+            "behind": 0,
+            "blocked_by": [],
+            "checks_passed": true,
+            "dependencies": [
+              "core/main"
+            ],
+            "description": "Operational tooling automation",
+            "environment": "staging",
+            "integration_pr_open": false,
+            "last_commit_at": "2024-05-05T07:15:00+00:00",
+            "metadata": {},
+            "name": "ops/automation",
+            "notes": "Requires final approval",
+            "protected": true,
+            "ready": false,
+            "review_approved": false,
+            "service": "ops",
+            "summary": "Reviews pending approval. Open an integration PR before promotion.",
+            "tags": [
+              "automation"
+            ]
+          }
+        ],
+        "environment": "staging",
+        "service": "ops"
+      },
+      {
+        "branches": [
+          {
+            "ahead": 4,
+            "behind": 0,
+            "blocked_by": [],
+            "checks_passed": true,
+            "dependencies": [],
+            "description": "Primary integration trunk",
+            "environment": "production",
+            "integration_pr_open": true,
+            "last_commit_at": "2024-05-03T12:30:00+00:00",
+            "metadata": {},
+            "name": "core/main",
+            "notes": "Ready for production push",
+            "protected": true,
+            "ready": true,
+            "review_approved": true,
+            "service": "platform",
+            "summary": "Branch core/main is ready to promote into production.",
+            "tags": [
+              "core",
+              "critical"
+            ]
+          }
+        ],
+        "environment": "production",
+        "service": "platform"
+      },
+      {
+        "branches": [
+          {
+            "ahead": 2,
+            "behind": 2,
+            "blocked_by": [
+              "api/release"
+            ],
+            "checks_passed": false,
+            "dependencies": [
+              "core/main",
+              "api/release"
+            ],
+            "description": "Customer web experience rollout",
+            "environment": "staging",
+            "integration_pr_open": false,
+            "last_commit_at": "2024-05-02T18:45:00+00:00",
+            "metadata": {},
+            "name": "web/release",
+            "notes": "Waiting on API readiness",
+            "protected": true,
+            "ready": false,
+            "review_approved": false,
+            "service": "web",
+            "summary": "Behind target by 2 commits. Required checks are failing or incomplete. Reviews pending approval. Open an integration PR before promotion. Blocked by dependencies: api/release",
+            "tags": [
+              "web",
+              "customer"
+            ]
+          }
+        ],
+        "environment": "staging",
+        "service": "web"
+      }
+    ],
+    "focus": [
+      "release readiness",
+      "risk mitigation",
+      "customer commitments"
+    ],
+    "personas": [
+      {
+        "persona": "developers",
+        "team_count": 1,
+        "teams": [
+          {
+            "focus": [
+              "release readiness",
+              "risk mitigation",
+              "customer commitments",
+              "OPS-21",
+              "OPS-27"
+            ],
+            "kpis": [
+              "System uptime",
+              "Deployment success rate",
+              "Mean time to recovery",
+              "Infrastructure cost efficiency"
+            ],
+            "notes": {
+              "owner": "Release Management Guild",
+              "release_window": "2024-05-10"
+            },
+            "objectives": [
+              "Ensure resilient infrastructure, rapid incident response, and frictionless releases.",
+              "Automate monitoring, security scanning, and compliance evidence capture.",
+              "Lead operational readiness reviews and cost optimisation initiatives."
+            ],
+            "outputs": [
+              "Deployment runbooks",
+              "Updated pipelines",
+              "Incident postmortems",
+              "Compliance reports"
+            ],
+            "persona": "developers",
+            "role": "DevOps Engineer",
+            "summary": "DevOps Engineer playbook with 6 workflow steps; focus on release readiness, risk mitigation, customer commitments, OPS-21, OPS-27",
+            "workflow": [
+              "Review real-time alerts and incident backlogs daily, prioritising remediation by severity and SLA.",
+              "Audit upcoming releases for infrastructure dependencies and update infrastructure-as-code modules as needed.",
+              "Run security and compliance scans, logging findings with owners and due dates.",
+              "Monitor SLO dashboards during release windows; trigger rollback protocols if error budgets degrade.",
+              "Document release outcomes, update runbooks, and schedule resilience tests when gaps surface.",
+              "Conduct weekly capacity and cost reviews, recommending optimisation actions to leadership."
+            ]
+          }
+        ]
+      },
+      {
+        "persona": "managers",
+        "team_count": 1,
+        "teams": [
+          {
+            "focus": [
+              "release readiness",
+              "risk mitigation",
+              "customer commitments",
+              "OPS-21",
+              "OPS-27"
+            ],
+            "kpis": [
+              "On-time delivery rate",
+              "Blocker resolution time",
+              "Stakeholder satisfaction",
+              "Action item completion rate"
+            ],
+            "notes": {
+              "owner": "Release Management Guild",
+              "release_window": "2024-05-10"
+            },
+            "objectives": [
+              "Coordinate roadmap execution, resource alignment, and risk mitigation across squads.",
+              "Provide transparent status communication and stakeholder updates.",
+              "Continuously improve retrospectives and dependency management."
+            ],
+            "outputs": [
+              "Sprint plan",
+              "Dependency tracker",
+              "Status updates",
+              "Retrospective notes",
+              "Risk register updates"
+            ],
+            "persona": "managers",
+            "role": "Project Manager",
+            "summary": "Project Manager playbook with 6 workflow steps; focus on release readiness, risk mitigation, customer commitments, OPS-21, OPS-27",
+            "workflow": [
+              "Consolidate roadmap and backlog items, ranking initiatives by impact, effort, and strategic alignment.",
+              "Validate resource availability, adjusting scope or negotiating trade-offs when conflicts arise.",
+              "Run kickoff ceremonies that define milestones, owners, and communication cadences.",
+              "Maintain real-time status dashboards; trigger unblock sessions when progress slips beyond 10% of plan.",
+              "Facilitate weekly stakeholder updates summarising wins, blockers, decisions, and next steps.",
+              "Lead retrospectives capturing action items, assign owners with due dates, and track to completion."
+            ]
+          }
+        ]
+      },
+      {
+        "persona": "helpers",
+        "team_count": 1,
+        "teams": [
+          {
+            "focus": [
+              "release readiness",
+              "risk mitigation",
+              "customer commitments",
+              "OPS-21",
+              "OPS-27"
+            ],
+            "kpis": [
+              "First response time",
+              "Resolution time",
+              "Customer satisfaction",
+              "Escalation rate"
+            ],
+            "notes": {
+              "owner": "Release Management Guild",
+              "release_window": "2024-05-10"
+            },
+            "objectives": [
+              "Resolve user issues rapidly while protecting SLAs and satisfaction benchmarks.",
+              "Surface actionable product feedback drawn from ticket and escalation trends.",
+              "Maintain an evolving knowledge base with accurate macros and FAQs."
+            ],
+            "outputs": [
+              "Resolved tickets",
+              "Escalations log",
+              "Weekly trends report",
+              "Updated FAQs"
+            ],
+            "persona": "helpers",
+            "role": "Customer Support Specialist",
+            "summary": "Customer Support Specialist playbook with 6 workflow steps; focus on release readiness, risk mitigation, customer commitments, OPS-21, OPS-27",
+            "workflow": [
+              "Auto-triage incoming tickets by severity and category; claim assignments within SLA windows.",
+              "Respond using macros or tailored replies referencing knowledge base articles and context.",
+              "Escalate P0 and P1 tickets immediately to the DevOps or Product channel and record the timestamp.",
+              "After resolution, confirm with the user, capture satisfaction ratings, and close tickets with feedback tags.",
+              "Review closed tickets weekly to identify FAQ gaps and propose knowledge base updates for approval.",
+              "Publish a weekly trends report summarising top issues, product feedback, and SLA adherence."
+            ]
+          }
+        ]
+      },
+      {
+        "persona": "others",
+        "team_count": 1,
+        "teams": [
+          {
+            "focus": [
+              "release readiness",
+              "risk mitigation",
+              "customer commitments",
+              "OPS-21",
+              "OPS-27"
+            ],
+            "kpis": [
+              "Pipeline velocity",
+              "Customer acquisition cost",
+              "Budget burn versus plan",
+              "Campaign return on investment"
+            ],
+            "notes": {
+              "owner": "Release Management Guild",
+              "release_window": "2024-05-10"
+            },
+            "objectives": [
+              "Align channel squads on revenue, growth, and capital allocation targets.",
+              "Translate leadership directives and pipeline forecasts into actionable priorities.",
+              "Maintain an evolving opportunity and risk register tied to KPI movements."
+            ],
+            "outputs": [
+              "Weekly strategy brief",
+              "Updated OKR status",
+              "Budget allocation log",
+              "Opportunity and risk register"
+            ],
+            "persona": "others",
+            "role": "Marketing Strategist",
+            "summary": "Marketing Strategist playbook with 7 workflow steps; focus on release readiness, risk mitigation, customer commitments, OPS-21, OPS-27",
+            "workflow": [
+              "Pull the latest KPI dashboard and compute week-over-week deltas; flag deviations exceeding \u00b110%.",
+              "Review leadership directives and pipeline forecasts, annotating must-win initiatives and constraints.",
+              "Rank flagged opportunities and risks using impact \u00d7 confidence scoring to focus weekly execution.",
+              "Draft and circulate the strategy brief covering focus areas, channel targets, budget envelopes, and success metrics.",
+              "Chase acknowledgements within 12 hours and escalate overdue confirmations to the VP Growth.",
+              "Refresh KPI deltas mid-cycle; issue course-correction memos when deviations persist beyond tolerance.",
+              "Archive hypothesis \u2192 result \u2192 decision logs and tag the Data Analyst for validation each cycle."
+            ]
+          }
+        ]
+      }
+    ],
+    "summary": "4 branches across 4 groups; 4 teams aligned",
+    "teams": [
+      {
+        "focus": [
+          "release readiness",
+          "risk mitigation",
+          "customer commitments",
+          "OPS-21",
+          "OPS-27"
+        ],
+        "kpis": [
+          "First response time",
+          "Resolution time",
+          "Customer satisfaction",
+          "Escalation rate"
+        ],
+        "notes": {
+          "owner": "Release Management Guild",
+          "release_window": "2024-05-10"
+        },
+        "objectives": [
+          "Resolve user issues rapidly while protecting SLAs and satisfaction benchmarks.",
+          "Surface actionable product feedback drawn from ticket and escalation trends.",
+          "Maintain an evolving knowledge base with accurate macros and FAQs."
+        ],
+        "outputs": [
+          "Resolved tickets",
+          "Escalations log",
+          "Weekly trends report",
+          "Updated FAQs"
+        ],
+        "persona": "helpers",
+        "role": "Customer Support Specialist",
+        "summary": "Customer Support Specialist playbook with 6 workflow steps; focus on release readiness, risk mitigation, customer commitments, OPS-21, OPS-27",
+        "workflow": [
+          "Auto-triage incoming tickets by severity and category; claim assignments within SLA windows.",
+          "Respond using macros or tailored replies referencing knowledge base articles and context.",
+          "Escalate P0 and P1 tickets immediately to the DevOps or Product channel and record the timestamp.",
+          "After resolution, confirm with the user, capture satisfaction ratings, and close tickets with feedback tags.",
+          "Review closed tickets weekly to identify FAQ gaps and propose knowledge base updates for approval.",
+          "Publish a weekly trends report summarising top issues, product feedback, and SLA adherence."
+        ]
+      },
+      {
+        "focus": [
+          "release readiness",
+          "risk mitigation",
+          "customer commitments",
+          "OPS-21",
+          "OPS-27"
+        ],
+        "kpis": [
+          "System uptime",
+          "Deployment success rate",
+          "Mean time to recovery",
+          "Infrastructure cost efficiency"
+        ],
+        "notes": {
+          "owner": "Release Management Guild",
+          "release_window": "2024-05-10"
+        },
+        "objectives": [
+          "Ensure resilient infrastructure, rapid incident response, and frictionless releases.",
+          "Automate monitoring, security scanning, and compliance evidence capture.",
+          "Lead operational readiness reviews and cost optimisation initiatives."
+        ],
+        "outputs": [
+          "Deployment runbooks",
+          "Updated pipelines",
+          "Incident postmortems",
+          "Compliance reports"
+        ],
+        "persona": "developers",
+        "role": "DevOps Engineer",
+        "summary": "DevOps Engineer playbook with 6 workflow steps; focus on release readiness, risk mitigation, customer commitments, OPS-21, OPS-27",
+        "workflow": [
+          "Review real-time alerts and incident backlogs daily, prioritising remediation by severity and SLA.",
+          "Audit upcoming releases for infrastructure dependencies and update infrastructure-as-code modules as needed.",
+          "Run security and compliance scans, logging findings with owners and due dates.",
+          "Monitor SLO dashboards during release windows; trigger rollback protocols if error budgets degrade.",
+          "Document release outcomes, update runbooks, and schedule resilience tests when gaps surface.",
+          "Conduct weekly capacity and cost reviews, recommending optimisation actions to leadership."
+        ]
+      },
+      {
+        "focus": [
+          "release readiness",
+          "risk mitigation",
+          "customer commitments",
+          "OPS-21",
+          "OPS-27"
+        ],
+        "kpis": [
+          "Pipeline velocity",
+          "Customer acquisition cost",
+          "Budget burn versus plan",
+          "Campaign return on investment"
+        ],
+        "notes": {
+          "owner": "Release Management Guild",
+          "release_window": "2024-05-10"
+        },
+        "objectives": [
+          "Align channel squads on revenue, growth, and capital allocation targets.",
+          "Translate leadership directives and pipeline forecasts into actionable priorities.",
+          "Maintain an evolving opportunity and risk register tied to KPI movements."
+        ],
+        "outputs": [
+          "Weekly strategy brief",
+          "Updated OKR status",
+          "Budget allocation log",
+          "Opportunity and risk register"
+        ],
+        "persona": "others",
+        "role": "Marketing Strategist",
+        "summary": "Marketing Strategist playbook with 7 workflow steps; focus on release readiness, risk mitigation, customer commitments, OPS-21, OPS-27",
+        "workflow": [
+          "Pull the latest KPI dashboard and compute week-over-week deltas; flag deviations exceeding \u00b110%.",
+          "Review leadership directives and pipeline forecasts, annotating must-win initiatives and constraints.",
+          "Rank flagged opportunities and risks using impact \u00d7 confidence scoring to focus weekly execution.",
+          "Draft and circulate the strategy brief covering focus areas, channel targets, budget envelopes, and success metrics.",
+          "Chase acknowledgements within 12 hours and escalate overdue confirmations to the VP Growth.",
+          "Refresh KPI deltas mid-cycle; issue course-correction memos when deviations persist beyond tolerance.",
+          "Archive hypothesis \u2192 result \u2192 decision logs and tag the Data Analyst for validation each cycle."
+        ]
+      },
+      {
+        "focus": [
+          "release readiness",
+          "risk mitigation",
+          "customer commitments",
+          "OPS-21",
+          "OPS-27"
+        ],
+        "kpis": [
+          "On-time delivery rate",
+          "Blocker resolution time",
+          "Stakeholder satisfaction",
+          "Action item completion rate"
+        ],
+        "notes": {
+          "owner": "Release Management Guild",
+          "release_window": "2024-05-10"
+        },
+        "objectives": [
+          "Coordinate roadmap execution, resource alignment, and risk mitigation across squads.",
+          "Provide transparent status communication and stakeholder updates.",
+          "Continuously improve retrospectives and dependency management."
+        ],
+        "outputs": [
+          "Sprint plan",
+          "Dependency tracker",
+          "Status updates",
+          "Retrospective notes",
+          "Risk register updates"
+        ],
+        "persona": "managers",
+        "role": "Project Manager",
+        "summary": "Project Manager playbook with 6 workflow steps; focus on release readiness, risk mitigation, customer commitments, OPS-21, OPS-27",
+        "workflow": [
+          "Consolidate roadmap and backlog items, ranking initiatives by impact, effort, and strategic alignment.",
+          "Validate resource availability, adjusting scope or negotiating trade-offs when conflicts arise.",
+          "Run kickoff ceremonies that define milestones, owners, and communication cadences.",
+          "Maintain real-time status dashboards; trigger unblock sessions when progress slips beyond 10% of plan.",
+          "Facilitate weekly stakeholder updates summarising wins, blockers, decisions, and next steps.",
+          "Lead retrospectives capturing action items, assign owners with due dates, and track to completion."
+        ]
+      }
+    ]
+  },
+  "recommended_next_steps": [
+    "Synchronise with trunk to clear the backlog",
+    "Stabilise CI checks to restore readiness",
+    "Secure required code review approvals",
+    "Open integration PR to stage promotion",
+    "Resolve blockers for web/release: api/release",
+    "Promote core/main in the next release window",
+    "Clear blockers for web/release: api/release",
+    "Finalise readiness tasks for api/release",
+    "Finalise readiness tasks for ops/automation"
+  ],
+  "summary": "1 ready, 3 audit findings, 3 pending"
+}
