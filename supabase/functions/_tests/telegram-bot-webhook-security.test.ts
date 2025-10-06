@@ -1,4 +1,5 @@
 import { assertEquals, assertStrictEquals } from "std/testing/asserts.ts";
+import { __setGetSetting, getSetting } from "../_shared/config.ts";
 import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
 Deno.test("rejects requests without secret and preserves CORS", async () => {
@@ -47,6 +48,30 @@ Deno.test("accepts valid secret", async () => {
   clearTestEnv();
 });
 
+Deno.test("accepts secrets with surrounding whitespace in header", async () => {
+  setTestEnv({
+    TELEGRAM_WEBHOOK_SECRET: "s3cr3t",
+    ALLOWED_ORIGINS: "*",
+  });
+
+  const req = new Request("https://example.com/telegram-bot", {
+    method: "POST",
+    headers: {
+      "x-telegram-bot-api-secret-token": "  s3cr3t \n",
+      origin: "https://example.com",
+    },
+    body: JSON.stringify({}),
+  });
+
+  const { validateTelegramHeader } = await import(
+    "../_shared/telegram_secret.ts"
+  );
+  const res = await validateTelegramHeader(req);
+  assertStrictEquals(res, null);
+
+  clearTestEnv();
+});
+
 Deno.test("skips validation for version endpoint", async () => {
   const req = new Request("https://example.com/version", { method: "GET" });
   const { validateTelegramHeader } = await import(
@@ -54,4 +79,30 @@ Deno.test("skips validation for version endpoint", async () => {
   );
   const res = await validateTelegramHeader(req);
   assertStrictEquals(res, null);
+});
+
+Deno.test("accepts normalized bot_settings secrets", async () => {
+  const original = getSetting;
+  const stub =
+    (async (_key: string) =>
+      new TextEncoder().encode("s3cr3t\n")) as unknown as typeof getSetting;
+  __setGetSetting(stub);
+
+  try {
+    setTestEnv({ ALLOWED_ORIGINS: "*" });
+    const req = new Request("https://example.com/telegram-bot", {
+      method: "POST",
+      headers: { "x-telegram-bot-api-secret-token": "s3cr3t" },
+      body: "{}",
+    });
+
+    const { validateTelegramHeader } = await import(
+      "../_shared/telegram_secret.ts"
+    );
+    const res = await validateTelegramHeader(req);
+    assertStrictEquals(res, null);
+  } finally {
+    clearTestEnv();
+    __setGetSetting(original);
+  }
 });
