@@ -28,10 +28,14 @@ jobs:
 
       - name: Run schema guard
         env:
+          # TONCENTER schema guard accounts:
+          # - EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y (DCT jetton master)
+          # - EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq (DCT treasury jetton wallet)
+          # - EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt (STON.fi TON→DCT router)
           TONCENTER_SCHEMA_ACCOUNTS: |
-            EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y # DCT jetton master
-            EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq # DCT treasury jetton wallet
-            EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt # STON.fi TON→DCT router
+            EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+            EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq
+            EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt
           TONCENTER_API_KEY: ${{ secrets.TONCENTER_API_KEY }}
         run: |
           python -m dynamic_ton.schema_guard_runner \
