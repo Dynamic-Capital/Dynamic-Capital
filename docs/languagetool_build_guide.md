@@ -45,7 +45,13 @@ If either command reports an older version, install the correct toolchain and up
    ```
    Adjust the heap parameter (`-Xmx`) upward on CI hosts with abundant RAM. For ephemeral runners, cache dependencies (`~/.m2/repository`) between jobs to reduce repeat downloads.
 
-3. **Compile Modules**
+3. **Prime Maven Cache (optional but recommended)**
+   ```bash
+   mvn dependency:go-offline
+   ```
+   Run once per build host (or cache key) to prefetch dependencies. This reduces risk of partial downloads during the full build, especially on air-gapped networks with mirrored artifact repositories.
+
+4. **Compile Modules**
 
    | Objective                      | Command                                      | Notes |
    |--------------------------------|----------------------------------------------|-------|
@@ -58,6 +64,22 @@ If either command reports an older version, install the correct toolchain and up
 - `languagetool-core`: Core grammar engine and shared resources.
 - `languagetool-server`: HTTP API service (fat JAR output).
 - `languagetool-standalone`: Desktop UI plus server distribution with bundled language data.
+
+## Artifact Verification
+
+After the build completes, confirm the expected artifacts exist before planning deployments:
+
+| Module                    | Artifact Path                                                                 | Validation Step |
+|---------------------------|-------------------------------------------------------------------------------|-----------------|
+| `languagetool-server`     | `languagetool-server/target/languagetool-server.jar`                          | `jar tf` to ensure dependencies bundled |
+| `languagetool-standalone` | `languagetool-standalone/target/LanguageTool-<version>-SNAPSHOT/` directory | Inspect `languagetool-server.jar` and `languagetool-commandline.jar` |
+| `languagetool-core`       | `languagetool-core/target/languagetool-core-<version>.jar`                    | Confirm checksum if required by governance |
+
+When governance policies require, archive SHA-256 hashes alongside release notes:
+
+```bash
+sha256sum languagetool-server/target/languagetool-server.jar > checksums.txt
+```
 
 ## Running the Server
 
@@ -106,6 +128,20 @@ Successful responses include a JSON body with `matches` describing detected issu
 | Dependency download failures             | Confirm proxy settings in `~/.m2/settings.xml`, mirror Maven Central if governance requires, or retry with a stable network connection. |
 | Server fails to bind port                | Port already in use—either stop the conflicting service or start LanguageTool with `--port <new>`. |
 | Slow startup with many languages         | Use `--languageModel` to point to faster local storage, trim unused languages via `--language` flags, or preload JVM caches during deployment. |
+
+## Continuous Integration Guardrails
+
+- **Pinned toolchains:** Set up CI jobs with container images or tool caches that pin Java 17 and Maven to avoid drift between developer workstations and automated pipelines.
+- **Memory headroom checks:** Enforce a pre-flight script that aborts builds if available memory drops below 2 GB to prevent noisy failures.
+- **Dependency mirrors:** For restricted networks, configure Maven `settings.xml` with an internal repository manager (Nexus/Artifactory) and audit snapshot usage during pull requests.
+- **Automated smoke tests:** Add a post-build step that launches the server JAR in ephemeral mode and exercises `/v2/health` or `/v2/check` before marking the pipeline green.
+
+## Configuration & Customization Notes
+
+- **Custom rule packs:** Store XML rule additions under `languagetool-core/src/main/resources/org/languagetool/rules/` and extend the Maven build with regression tests (`mvn -pl languagetool-standalone test -Dtest=YourRuleTest`).
+- **Dictionary updates:** Maintain organization-specific wordlists in `languagetool-language-modules/*/src/main/resources/org/languagetool/resource/` and review them quarterly for compliance.
+- **Language model storage:** Host large n-gram datasets on local NAS or object storage, reference them with `--languageModel /mnt/ngrams/<language>` in production launches, and document retention schedules.
+- **Security hardening:** Run the server behind TLS termination (reverse proxy or ingress), disable public `/admin` endpoints if unused, and rotate API tokens where applicable.
 
 ## Operational Runbook Additions
 
