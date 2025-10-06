@@ -10,6 +10,38 @@ const FALLBACK_LABEL = "Malé, Maldives";
 const FALLBACK_ABBREVIATION = "MVT";
 const FALLBACK_OFFSET = "+05:00";
 
+const DISABLE_TIMEZONE_ENV_KEYS = [
+  "DYNAMIC_TIME_SYNC_DISABLE_TIMEZONE_STEP",
+  "DC_TIME_SYNC_DISABLE_TIMEZONE_STEP",
+  "TIME_SYNC_DISABLE_TIMEZONE_STEP",
+];
+
+function coerceBooleanEnv(value) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized.length === 0) {
+    return undefined;
+  }
+
+  if (["1", "true", "yes", "y", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["0", "false", "no", "n", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return undefined;
+}
+
 function coerceString(value) {
   if (typeof value !== "string") {
     return undefined;
@@ -62,6 +94,50 @@ function describeDeskTimeZone() {
   return parts.join(" ");
 }
 
+function getProcessTimeZone() {
+  const tzEnv = coerceString(process.env.TZ);
+  if (tzEnv) {
+    return tzEnv;
+  }
+
+  try {
+    const formatter = new Intl.DateTimeFormat();
+    const options = formatter.resolvedOptions?.();
+    const intlTimeZone = coerceString(options?.timeZone ?? options?.timezone);
+    return intlTimeZone;
+  } catch (_err) {
+    return undefined;
+  }
+}
+
+function hasTimezonePrivileges() {
+  if (process.platform !== "linux") {
+    return false;
+  }
+
+  if (typeof process.getuid !== "function") {
+    return false;
+  }
+
+  try {
+    return process.getuid() === 0;
+  } catch (_err) {
+    return false;
+  }
+}
+
+function resolveDisableTimezoneOverride() {
+  for (const key of DISABLE_TIMEZONE_ENV_KEYS) {
+    const raw = process.env[key];
+    const parsed = coerceBooleanEnv(raw);
+    if (parsed === true) {
+      return key;
+    }
+  }
+
+  return undefined;
+}
+
 function normalizeLogger(logger = console) {
   const fallback = {
     info: console.info.bind(console),
@@ -93,20 +169,43 @@ function normalizeLogger(logger = console) {
 export function syncDeskClock({ logger = console } = {}) {
   const { info, warn, debug } = normalizeLogger(logger);
 
-  const steps = [
-    {
+  const disableTimezoneSource = resolveDisableTimezoneOverride();
+  const disableTimezoneStep = disableTimezoneSource !== undefined;
+  const currentTimeZone = coerceString(getProcessTimeZone());
+  const normalizedCurrentZone = currentTimeZone?.toLowerCase();
+  const normalizedDeskZone = DESK_TIME_ZONE.toLowerCase();
+  const timezoneMatches = normalizedCurrentZone &&
+    normalizedCurrentZone === normalizedDeskZone;
+
+  const steps = [];
+
+  if (disableTimezoneStep) {
+    info(
+      `⏭️  Skipping system timezone adjustment because ${disableTimezoneSource} is set to a truthy value.`,
+    );
+  } else if (timezoneMatches) {
+    info(
+      `⏱️  System timezone already aligned with ${currentTimeZone}; skipping manual adjustment.`,
+    );
+  } else if (!hasTimezonePrivileges()) {
+    info(
+      "ℹ️  Skipping system timezone adjustment because the environment lacks permission to modify /etc/localtime. Set DYNAMIC_TIME_SYNC_DISABLE_TIMEZONE_STEP=true once the host clock is managed externally to silence this note.",
+    );
+  } else {
+    steps.push({
       label: `Set system timezone to ${DESK_TIME_ZONE}`,
       command: "timedatectl",
       args: ["set-timezone", DESK_TIME_ZONE],
       required: true,
-    },
-    {
-      label: "Trigger chrony immediate time sync",
-      command: "chronyc",
-      args: ["-a", "makestep"],
-      required: false,
-    },
-  ];
+    });
+  }
+
+  steps.push({
+    label: "Trigger chrony immediate time sync",
+    command: "chronyc",
+    args: ["-a", "makestep"],
+    required: false,
+  });
 
   info(
     `🕒 Ensuring build environment clock is aligned with ${describeDeskTimeZone()}…`,
