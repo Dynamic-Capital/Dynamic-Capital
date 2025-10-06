@@ -160,6 +160,23 @@ def test_metadata_torch_dot_dtype_hint() -> None:
     assert param.dtype == torch.float32
 
 
+def test_metadata_dtype_hint_key_case_insensitivity() -> None:
+    config = build_gpt_model(
+        depth=1,
+        model_dim=8,
+        num_heads=2,
+        feedforward_ratio=2.0,
+        vocab_size=16,
+        max_position_embeddings=16,
+        metadata={"Torch.DType": "torch.float64"},
+    )
+
+    model = instantiate_torch_model(config)
+    param = next(model.parameters())
+
+    assert param.dtype == torch.float64
+
+
 def test_instantiate_with_unknown_dtype_alias_raises() -> None:
     config = build_gpt_model(
         depth=1,

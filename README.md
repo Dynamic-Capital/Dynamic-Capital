@@ -926,8 +926,9 @@ success, or error states based on the fetch result.
   tests_python/requirements.txt` and run
   `pytest tests_python/test_dynamic_gpt_model.py` to validate the model
   builders. The torch instantiation helper recognises dtype hints from the
-  `metadata['torch_dtype']` or `metadata['torch.dtype']` fields, including
-  values like `"torch.float32"` in addition to the common short aliases.
+  `metadata['torch_dtype']` or `metadata['torch.dtype']` fields (matching keys
+  case-insensitively), including values like `"torch.float32"` in addition to
+  the common short aliases.
 
 ### TypeScript type checking
 

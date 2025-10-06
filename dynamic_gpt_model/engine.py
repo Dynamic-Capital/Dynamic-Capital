@@ -592,11 +592,17 @@ def instantiate_torch_model(
     metadata_dtype: str | None = None
     metadata_key: str | None = None
     if dtype is None:
+        normalised_metadata: dict[str, str] = {
+            key.lower(): key for key in config.metadata.keys()
+        }
         for candidate_key in _TORCH_METADATA_DTYPE_KEYS:
-            value = config.metadata.get(candidate_key)
+            stored_key = normalised_metadata.get(candidate_key.lower())
+            if not stored_key:
+                continue
+            value = config.metadata.get(stored_key)
             if value:
                 metadata_dtype = value
-                metadata_key = candidate_key
+                metadata_key = stored_key
                 break
 
     candidate_dtype: "torch.dtype | str | None"
