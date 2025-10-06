@@ -8,4 +8,5 @@ transformers>=4.57.0
 pyarrow>=15.0.0
 PyPDF2>=3.0.0
 pypdfium2>=4.30.0
+# The default PyPI build bundles CUDA libraries; see INSTALLATION.md for a CPU-only command.
 torch>=2.8.0
