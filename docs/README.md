@@ -35,6 +35,7 @@ documenting which assets were consulted.
 | 1.13 | [dynamic-training-model-architecture.md](./dynamic-training-model-architecture.md) | DAI, DAGI, and DAGS training mesh outline covering cores, capability domains, governance pillars, and phased rollout.      |
 | 1.14 | [dynamic-capital-code-of-conduct.md](./dynamic-capital-code-of-conduct.md)         | Community behavior expectations, reporting paths, and enforcement process.                                                 |
 | 1.15 | [dynamic-capital-milestones.md](./dynamic-capital-milestones.md)                   | Stage-by-stage milestone ladder aligning infrastructure, treasury, governance, and community outcomes.                     |
+| 1.16 | [ui-ux-scorecard.md](./ui-ux-scorecard.md)                                         | Scorecard translating analytics instrumentation into actionable UI/UX performance metrics.                                 |
 
 ## 2. Development Workflow & Standards
 

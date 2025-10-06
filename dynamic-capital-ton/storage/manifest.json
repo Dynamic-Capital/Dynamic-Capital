@@ -1,0 +1,12 @@
+{
+  "bundles": [
+    {
+      "id": "ton-site-public",
+      "label": "TON Site public asset bundle",
+      "paths": [
+        "apps/web/public"
+      ],
+      "expectedSha256": "9da7628952ce0cd02234e7195285beb9afdcff649349a5f870315c0b159dba96"
+    }
+  ]
+}

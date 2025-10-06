@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Client-only hook: interacts with window, document, and navigator
 
-type InteractionData = Record<string, unknown>;
+export type InteractionData = Record<string, unknown>;
 
 interface AnalyticsEvent {
   event_type: string;
@@ -121,15 +121,19 @@ export const useAnalytics = () => {
     }
   }, [ensureSessionId]);
 
-  const trackPageView = useCallback((page?: string) => {
+  const trackPageView = useCallback((
+    page?: string,
+    extraData?: InteractionData,
+  ) => {
+    const resolvedPage = page ||
+      (typeof window !== "undefined" ? window.location.pathname : undefined);
+
     trackEvent({
       event_type: "page_view",
       interaction_data: {
-        page: page ||
-          (typeof window !== "undefined"
-            ? window.location.pathname
-            : undefined),
+        page: resolvedPage,
         timestamp: new Date().toISOString(),
+        ...extraData,
       },
     });
   }, [trackEvent]);
@@ -148,24 +152,34 @@ export const useAnalytics = () => {
     });
   }, [trackEvent]);
 
-  const trackPlanView = useCallback((planId: string, planName?: string) => {
+  const trackPlanView = useCallback((
+    planId: string,
+    planName?: string,
+    extraData?: InteractionData,
+  ) => {
     trackEvent({
       event_type: "plan_view",
       interaction_data: {
         plan_id: planId,
         plan_name: planName,
         timestamp: new Date().toISOString(),
+        ...extraData,
       },
     });
   }, [trackEvent]);
 
-  const trackCheckoutStart = useCallback((planId: string, amount?: number) => {
+  const trackCheckoutStart = useCallback((
+    planId: string,
+    amount?: number,
+    extraData?: InteractionData,
+  ) => {
     trackEvent({
       event_type: "checkout_start",
       interaction_data: {
         plan_id: planId,
         amount,
         timestamp: new Date().toISOString(),
+        ...extraData,
       },
     });
   }, [trackEvent]);

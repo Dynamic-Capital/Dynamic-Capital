@@ -6,9 +6,40 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/utils";
 import { useTheme } from "@/hooks/useTheme";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 export function ThemeToggle() {
-  const { currentTheme, toggleTheme } = useTheme();
+  const { theme, currentTheme, toggleTheme } = useTheme();
+  const { trackEvent } = useAnalytics();
+
+  const handleToggle = React.useCallback(() => {
+    const nextPreference = theme === "light"
+      ? "dark"
+      : theme === "dark"
+      ? "system"
+      : "light";
+
+    toggleTheme();
+
+    const timestamp = new Date().toISOString();
+
+    setTimeout(() => {
+      const resolvedTheme = typeof document !== "undefined"
+        ? document.documentElement.getAttribute("data-theme") ?? undefined
+        : undefined;
+
+      trackEvent({
+        event_type: "theme_toggle",
+        interaction_data: {
+          previous_preference: theme,
+          next_preference: nextPreference,
+          previous_resolved_theme: currentTheme,
+          resolved_theme_after_toggle: resolvedTheme,
+          timestamp,
+        },
+      });
+    }, 0);
+  }, [theme, currentTheme, toggleTheme, trackEvent]);
 
   return (
     <motion.div
@@ -19,7 +50,7 @@ export function ThemeToggle() {
       transition={{ duration: 0.3 }}
     >
       <Button
-        onClick={toggleTheme}
+        onClick={handleToggle}
         variant="outline"
         size="lg"
         className={cn(
