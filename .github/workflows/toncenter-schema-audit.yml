@@ -32,10 +32,35 @@ jobs:
           # - EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y (DCT jetton master)
           # - EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq (DCT treasury jetton wallet)
           # - EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt (STON.fi TON→DCT router)
+          # 2025-10-09 watchlist expansion (pending attribution):
+          # - EQDyAmBSxP1-D--D9GBazb0-MNmZ8ecttc_njImeEzt_heIA – Auxiliary liquidity routing.
+          # - EQDz0wQL6EEdgbPkFgS7nNmywzr468AvgLyhH7PIMALxPB6G – Awaiting tonviewer label review.
+          # - EQDz5SDaF1B8jGEfthlLjVzkByQPbG-FStBVEHAFmS_3wZ-O – Settlement and emissions side-flow monitor.
+          # - EQD1BCRMqIkSzt3XpWGORH_HvX5lHNbpDDtvzCGdDoArGYQn – Candidate treasury satellite wallet.
+          # - EQD1mjivKNskrad8FQV8UtNAC6ayMB5bgv6rYmhOcSKPLjZc – Staking / lockbox disbursement checks.
+          # - EQD2dUSfVIJVT77aBEIjXBe_Z1oj9Kwh40TngDmTEol0l68b – Swap routing validation.
+          # - EQD5xwKMuP4X39iy7Ta79x9QBB4U0pds25eEfuLS6O5icwgy – High-volume transfer confirmation.
+          # - EQD6JaMgi4nf1YpdSyYV5SoIvYPhDNqdUGrgZeRJbjMqJxKD – Ownership tracing in progress.
+          # - EQD6Tv6Kbqp-RYPl_T9Rum_pixdFX71IC83doVRu0fIqv50d – Contract interaction tracing.
+          # - EQD7y8d1ImET4WqHclpIJVED2WHKCXb4U3riNV6spyWmzuya – Derivative routing surveillance.
+          # - EQD9flc1cUiQA-gpEx9J9AsVmRp-VbjP4z4eTLZ5fsfvTGFi – Cross-program transfer monitoring.
+          # - EQD-mBBkUdiPEbkdli268DKsQxNMyPNHD7aDMSwliXG57SFy – Hold until schema deltas stabilise.
           TONCENTER_SCHEMA_ACCOUNTS: |
             EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
             EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq
             EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt
+            EQDyAmBSxP1-D--D9GBazb0-MNmZ8ecttc_njImeEzt_heIA
+            EQDz0wQL6EEdgbPkFgS7nNmywzr468AvgLyhH7PIMALxPB6G
+            EQDz5SDaF1B8jGEfthlLjVzkByQPbG-FStBVEHAFmS_3wZ-O
+            EQD1BCRMqIkSzt3XpWGORH_HvX5lHNbpDDtvzCGdDoArGYQn
+            EQD1mjivKNskrad8FQV8UtNAC6ayMB5bgv6rYmhOcSKPLjZc
+            EQD2dUSfVIJVT77aBEIjXBe_Z1oj9Kwh40TngDmTEol0l68b
+            EQD5xwKMuP4X39iy7Ta79x9QBB4U0pds25eEfuLS6O5icwgy
+            EQD6JaMgi4nf1YpdSyYV5SoIvYPhDNqdUGrgZeRJbjMqJxKD
+            EQD6Tv6Kbqp-RYPl_T9Rum_pixdFX71IC83doVRu0fIqv50d
+            EQD7y8d1ImET4WqHclpIJVED2WHKCXb4U3riNV6spyWmzuya
+            EQD9flc1cUiQA-gpEx9J9AsVmRp-VbjP4z4eTLZ5fsfvTGFi
+            EQD-mBBkUdiPEbkdli268DKsQxNMyPNHD7aDMSwliXG57SFy
           TONCENTER_API_KEY: ${{ secrets.TONCENTER_API_KEY }}
         run: |
           python -m dynamic_ton.schema_guard_runner \
