@@ -6,6 +6,7 @@ import jettonMetadata from "../../../dynamic-capital-ton/contracts/jetton/metada
 import {
   TON_MAINNET_DEDUST_DCT_TON_POOL,
   TON_MAINNET_OPERATIONS_TREASURY,
+  TON_MAINNET_STONFI_ROUTER,
 } from "../../../shared/ton/mainnet-addresses";
 import type { IconName } from "./icons";
 
@@ -147,6 +148,12 @@ const DEDUST_DCT_TON_POOL_ADDRESS = tonAddressSchema.parse(
 );
 const DEDUST_DCT_TON_POOL_EXPLORER_URL = buildTonviewerAccountUrl(
   DEDUST_DCT_TON_POOL_ADDRESS,
+);
+const STONFI_ROUTER_ADDRESS = tonAddressSchema.parse(
+  TON_MAINNET_STONFI_ROUTER,
+);
+const STONFI_ROUTER_EXPLORER_URL = buildTonviewerAccountUrl(
+  STONFI_ROUTER_ADDRESS,
 );
 
 const formatNumber = (value: number) =>
@@ -382,6 +389,9 @@ const tokenDexPools = Object.freeze([
     url: "https://app.ston.fi/swap?from=TON&to=DCT",
     description:
       "Primary TON DEX route delivering deep DCT/TON liquidity for treasury operations and member swaps.",
+    address: STONFI_ROUTER_ADDRESS,
+    addressLabel: shortenTonAddress(STONFI_ROUTER_ADDRESS),
+    explorerUrl: STONFI_ROUTER_EXPLORER_URL,
   },
   {
     dex: "DeDust",
