@@ -64,6 +64,25 @@ Deno.test("telegram-webhook health endpoints respond", async (t) => {
   });
 
   await t.step(
+    "HEAD /telegram-webhook/version shares allow header",
+    async () => {
+      const req = new Request(
+        "https://example.com/functions/v1/telegram-webhook/version",
+        { method: "HEAD" },
+      );
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      assertEquals(res.headers.get("Allow"), "GET,HEAD,POST,OPTIONS");
+      assertEquals(
+        res.headers.get("access-control-allow-methods"),
+        "GET,HEAD,POST,OPTIONS",
+      );
+      const text = await res.text();
+      assertEquals(text, "");
+    },
+  );
+
+  await t.step(
     "OPTIONS /telegram-webhook advertises allowed methods",
     async () => {
       const req = new Request(

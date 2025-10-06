@@ -65,6 +65,7 @@ async function sendMessage(
 }
 
 const ALLOWED_METHODS = "GET,HEAD,POST,OPTIONS";
+const HEALTH_NAME = "telegram-webhook";
 
 function attachAllowCorsHeaders(res: Response, req: Request) {
   const headers = corsHeaders(req, ALLOWED_METHODS);
@@ -73,6 +74,17 @@ function attachAllowCorsHeaders(res: Response, req: Request) {
     res.headers.set(key, value);
   }
   return res;
+}
+
+function healthOk(req: Request, extra: Record<string, unknown> = {}) {
+  return attachAllowCorsHeaders(
+    ok({ name: HEALTH_NAME, ts: new Date().toISOString(), ...extra }),
+    req,
+  );
+}
+
+function emptyAllowResponse(req: Request, status = 200) {
+  return attachAllowCorsHeaders(new Response(null, { status }), req);
 }
 
 export async function handler(req: Request): Promise<Response> {
@@ -87,33 +99,22 @@ export async function handler(req: Request): Promise<Response> {
       normalizedPath.endsWith("/telegram-webhook");
 
     if (req.method === "OPTIONS") {
-      return attachAllowCorsHeaders(
-        new Response(null, { status: 204 }),
-        req,
-      );
+      return emptyAllowResponse(req, 204);
     }
 
     if (req.method === "HEAD" && (isBaseEndpoint || isVersionEndpoint)) {
-      return attachAllowCorsHeaders(new Response(null, { status: 200 }), req);
+      return emptyAllowResponse(req);
     }
 
     // Health/version probe
     if (req.method === "GET" && isVersionEndpoint) {
-      return attachAllowCorsHeaders(
-        ok({ name: "telegram-webhook", ts: new Date().toISOString() }),
-        req,
-      );
+      return healthOk(req);
     }
 
     if (req.method === "GET" && isBaseEndpoint) {
-      return attachAllowCorsHeaders(
-        ok({
-          name: "telegram-webhook",
-          ts: new Date().toISOString(),
-          hint: "Send POST requests with Telegram updates.",
-        }),
-        req,
-      );
+      return healthOk(req, {
+        hint: "Send POST requests with Telegram updates.",
+      });
     }
 
     // Only accept POST for webhook deliveries
