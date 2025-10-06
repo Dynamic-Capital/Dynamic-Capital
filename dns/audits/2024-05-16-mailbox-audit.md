@@ -29,3 +29,8 @@ support | support@dynamiccapital.ton | 3600 | Customer support mailbox alias adv
 ## Follow-up actions
 - Execute `toncli` broadcast once the multisig packet is approved and log the transaction hash in `dns/ton-dns-operations-log.md`.
 - Add monitoring to alert if the TXT records drift from the documented mailbox addresses.
+
+## 2025-10-06 broadcast attempt status
+
+- Initiated a `toncli --version` check to bootstrap the CLI ahead of broadcast, but the command failed while prompting for `func`, `fift`, and `lite-client` executable paths because the TON toolchain is not installed in the current environment.
+- The wallet project and private keys required to sign the DNS update are not present in the repository workspace, so no `toncli send` invocation was executed. The broadcast remains pending until the toolchain binaries and signing keys are provisioned.
