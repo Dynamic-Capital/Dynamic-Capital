@@ -18,6 +18,11 @@ Deno.test("telegram-webhook health endpoints respond", async (t) => {
       res.headers.get("content-type"),
       "application/json; charset=utf-8",
     );
+    assertEquals(res.headers.get("Allow"), "GET,HEAD,POST,OPTIONS");
+    assertEquals(
+      res.headers.get("access-control-allow-methods"),
+      "GET,HEAD,POST,OPTIONS",
+    );
     const payload = await res.json();
     assertEquals(payload.ok, true);
     assertEquals(payload.name, "telegram-webhook");
@@ -31,6 +36,11 @@ Deno.test("telegram-webhook health endpoints respond", async (t) => {
     );
     const res = await handler(req);
     assertEquals(res.status, 200);
+    assertEquals(res.headers.get("Allow"), "GET,HEAD,POST,OPTIONS");
+    assertEquals(
+      res.headers.get("access-control-allow-methods"),
+      "GET,HEAD,POST,OPTIONS",
+    );
     const payload = await res.json();
     assertEquals(payload.ok, true);
     assertEquals(payload.name, "telegram-webhook");

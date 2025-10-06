@@ -66,6 +66,15 @@ async function sendMessage(
 
 const ALLOWED_METHODS = "GET,HEAD,POST,OPTIONS";
 
+function withAllowHeaders(res: Response, req: Request) {
+  const headers = corsHeaders(req, ALLOWED_METHODS);
+  for (const [key, value] of Object.entries(headers)) {
+    res.headers.set(key, value);
+  }
+  res.headers.set("Allow", ALLOWED_METHODS);
+  return res;
+}
+
 export async function handler(req: Request): Promise<Response> {
   const logger = getLogger(req);
   try {
@@ -85,29 +94,26 @@ export async function handler(req: Request): Promise<Response> {
     }
 
     if (req.method === "HEAD" && (isBaseEndpoint || isVersionEndpoint)) {
-      return new Response(null, {
-        status: 200,
-        headers: new Headers({
-          ...corsHeaders(req, ALLOWED_METHODS),
-          "Allow": ALLOWED_METHODS,
-        }),
-      });
+      return withAllowHeaders(new Response(null, { status: 200 }), req);
     }
 
     // Health/version probe
     if (req.method === "GET" && isVersionEndpoint) {
-      return ok(
-        { name: "telegram-webhook", ts: new Date().toISOString() },
+      return withAllowHeaders(
+        ok({ name: "telegram-webhook", ts: new Date().toISOString() }, req),
         req,
       );
     }
 
     if (req.method === "GET" && isBaseEndpoint) {
-      return ok({
-        name: "telegram-webhook",
-        ts: new Date().toISOString(),
-        hint: "Send POST requests with Telegram updates.",
-      }, req);
+      return withAllowHeaders(
+        ok({
+          name: "telegram-webhook",
+          ts: new Date().toISOString(),
+          hint: "Send POST requests with Telegram updates.",
+        }, req),
+        req,
+      );
     }
 
     // Only accept POST for webhook deliveries
