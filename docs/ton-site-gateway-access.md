@@ -1,8 +1,10 @@
 # TON Site Gateway Access Guide
 
-Dynamic Capital serves the Telegram Mini App bundle through a TON Site. Native
-TON wallets resolve `.ton` domains directly, but traditional browsers now have a
-first-party reverse proxy at
+Dynamic Capital serves the Telegram Mini App bundle through a TON Site. Install
+and operate the gateway with the Tonutils Reverse Proxy helper outlined in
+[docs/tonutils-reverse-proxy.md](./tonutils-reverse-proxy.md) to keep the HTTPS
+fallback online. Native TON wallets resolve `.ton` domains directly, but
+traditional browsers now have a first-party reverse proxy at
 <https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton>.
 When standard DNS resolvers do not recognise `dynamiccapital.ton` (for example
 Chrome reporting `DNS_PROBE_FINISHED_NXDOMAIN`), open the reverse proxy URL to
