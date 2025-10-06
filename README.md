@@ -144,6 +144,10 @@ gh api 'search/issues?q=repo:Dynamic-Capital/Dynamic-Capital+is:pr+author:Dynami
 gh api 'repos/Dynamic-Capital/Dynamic-Capital/commits?author=Dynamic-Capital' -q '.[].html_url'
 ```
 
+### Efficiency resources
+
+- [Project efficiency playbook](docs/project-efficiency.md) — Repo-specific tactics for faster builds, leaner dependencies, and predictable validation.
+
 ## Platform Capabilities
 
 ### Telegram Mini App — Next.js + React + Icons
