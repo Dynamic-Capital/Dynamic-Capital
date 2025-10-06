@@ -37,6 +37,12 @@ from datetime import datetime, timezone
 from statistics import fmean
 from typing import Any, Iterable, Mapping, Protocol, Sequence
 
+from .ton_index_client import (
+    TonIndexAccountStatesResult,
+    TonIndexClient,
+    TonIndexTransactionsResult,
+)
+
 __all__ = [
     "TonPricePoint",
     "TonLiquiditySnapshot",
@@ -135,6 +141,7 @@ class TonDataCollector:
         *,
         http_client: Any | None = None,
         base_urls: Mapping[str, str] | None = None,
+        ton_index_client: TonIndexClient | None = None,
     ) -> None:
         self._client = http_client
         self._base_urls = {
@@ -145,6 +152,7 @@ class TonDataCollector:
         }
         if base_urls:
             self._base_urls.update(base_urls)
+        self._ton_index_client = ton_index_client
 
     async def _request(self, url: str, params: Mapping[str, Any] | None = None) -> Any:
         if self._client is None:
@@ -279,6 +287,42 @@ class TonDataCollector:
             total_txs_24h=total_txs_24h,
             avg_gas_fee=gas_price,
             bridge_latency_ms=bridge_latency_ms,
+        )
+
+    async def fetch_account_states(
+        self, addresses: Sequence[str], *, include_boc: bool = False
+    ) -> TonIndexAccountStatesResult:
+        if self._ton_index_client is None:
+            raise RuntimeError(
+                "TonIndexClient is required for account state queries. Provide one via "
+                "TonDataCollector(ton_index_client=...)"
+            )
+        return await self._ton_index_client.get_account_states(
+            addresses, include_boc=include_boc
+        )
+
+    async def fetch_transactions(
+        self,
+        *,
+        account: str | None = None,
+        start_lt: int | None = None,
+        end_lt: int | None = None,
+        limit: int = 20,
+        offset: int = 0,
+        sort_desc: bool = True,
+    ) -> TonIndexTransactionsResult:
+        if self._ton_index_client is None:
+            raise RuntimeError(
+                "TonIndexClient is required for transaction queries. Provide one via "
+                "TonDataCollector(ton_index_client=...)"
+            )
+        return await self._ton_index_client.get_transactions(
+            account=account,
+            start_lt=start_lt,
+            end_lt=end_lt,
+            limit=limit,
+            offset=offset,
+            sort_desc=sort_desc,
         )
 
 

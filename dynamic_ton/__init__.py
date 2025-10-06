@@ -24,6 +24,16 @@ from .engine import (
     TonTreasuryPosture,
 )
 from .nodes import DEFAULT_TON_NODE_CONFIGS, TonNodeConfig, build_ton_node_registry
+from .ton_index_client import (
+    TonIndexAccountState,
+    TonIndexAccountStatesResult,
+    TonIndexAddressBookEntry,
+    TonIndexAddressMetadata,
+    TonIndexClient,
+    TonIndexMessage,
+    TonIndexTransaction,
+    TonIndexTransactionsResult,
+)
 
 __all__ = [
     "AUCTION_START_TIME",
@@ -49,4 +59,12 @@ __all__ = [
     "get_min_price_config",
     "get_min_price_for_domain",
     "get_top_domain_bits",
+    "TonIndexClient",
+    "TonIndexAccountState",
+    "TonIndexAccountStatesResult",
+    "TonIndexAddressBookEntry",
+    "TonIndexAddressMetadata",
+    "TonIndexMessage",
+    "TonIndexTransaction",
+    "TonIndexTransactionsResult",
 ]
