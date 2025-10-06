@@ -32,6 +32,7 @@ shaped dictionaries to keep the code-base type safe and self-documenting.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from statistics import fmean
@@ -49,6 +50,9 @@ __all__ = [
     "TonWalletDistribution",
     "TonNetworkSnapshot",
     "TonActionRecord",
+    "TONCENTER_ACTION_FIELD_ALIASES",
+    "TONCENTER_ACTION_OPTIONAL_FIELDS",
+    "TONCENTER_ACTION_KNOWN_RAW_KEYS",
     "TonDataCollector",
     "TonFeatureEngineer",
     "TonModelCoordinator",
@@ -120,6 +124,46 @@ class TonNetworkSnapshot:
     bridge_latency_ms: float
 
 
+TONCENTER_ACTION_FIELD_ALIASES: Mapping[str, tuple[str, ...]] = {
+    "action_id": ("action_id", "actionId"),
+    "type": ("type",),
+    "success": ("success",),
+    "start_lt": ("start_lt", "startLt"),
+    "end_lt": ("end_lt", "endLt"),
+    "start_utime": ("start_utime", "startUtime"),
+    "end_utime": ("end_utime", "endUtime"),
+    "trace_id": ("trace_id", "traceId"),
+    "trace_end_lt": ("trace_end_lt", "traceEndLt"),
+    "trace_end_utime": ("trace_end_utime", "traceEndUtime"),
+    "trace_external_hash": ("trace_external_hash", "traceExternalHash"),
+    "trace_external_hash_norm": ("trace_external_hash_norm", "traceExternalHashNorm"),
+    "trace_mc_seqno_end": ("trace_mc_seqno_end", "traceMcSeqnoEnd"),
+    "accounts": ("accounts",),
+    "transactions": ("transactions",),
+    "details": ("details",),
+}
+
+TONCENTER_ACTION_OPTIONAL_FIELDS: frozenset[str] = frozenset(
+    {
+        "start_utime",
+        "end_utime",
+        "trace_id",
+        "trace_end_lt",
+        "trace_end_utime",
+        "trace_external_hash",
+        "trace_external_hash_norm",
+        "trace_mc_seqno_end",
+        "accounts",
+        "transactions",
+        "details",
+    }
+)
+
+TONCENTER_ACTION_KNOWN_RAW_KEYS: frozenset[str] = frozenset(
+    key for aliases in TONCENTER_ACTION_FIELD_ALIASES.values() for key in aliases
+)
+
+
 @dataclass(slots=True, frozen=True)
 class TonActionRecord:
     """Represents a normalised action returned by the toncenter v3 API."""
@@ -177,13 +221,10 @@ def _as_optional_int(value: Any, *, field: str) -> int | None:
         candidate = value.strip()
         if candidate == "":
             return None
-        try:
-            return int(candidate, 10)
-        except ValueError as exc:  # pragma: no cover - defensive guard
-            raise ValueError(f"{field} must be an integer or omitted") from exc
+        value = candidate
     try:
-        return int(value)
-    except (TypeError, ValueError) as exc:  # pragma: no cover - defensive guard
+        return _as_int(value, field=field)
+    except ValueError as exc:  # pragma: no cover - defensive guard
         raise ValueError(f"{field} must be an integer or omitted") from exc
 
 
@@ -203,6 +244,40 @@ def _normalise_identifier(value: Any, *, field: str) -> str | None:
     return candidate
 
 
+def _coerce_mapping(value: Any, *, label: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{label} must be a mapping")
+    return value
+
+
+def _extract(
+    mapping: Mapping[str, Any], *candidates: str, required: bool = True
+) -> Any:
+    for key in candidates:
+        if key in mapping:
+            return mapping[key]
+    if required:
+        joined = ", ".join(candidates)
+        raise ValueError(f"Missing required field(s): {joined}")
+    return None
+
+
+def _as_int(value: Any, *, field: str) -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"{field} must be an integer")
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str):
+        candidate = value.strip()
+        if candidate == "":
+            raise ValueError(f"{field} must be an integer")
+        try:
+            return int(candidate, 0)
+        except ValueError as exc:  # pragma: no cover - defensive guard
+            raise ValueError(f"{field} must be an integer") from exc
+    raise ValueError(f"{field} must be an integer")
+
+
 class TonDataCollector:
     """Fetches market, liquidity, and wallet telemetry for TON ecosystems."""
 
@@ -212,6 +287,7 @@ class TonDataCollector:
         http_client: Any | None = None,
         base_urls: Mapping[str, str] | None = None,
         ton_index_client: TonIndexClient | None = None,
+        toncenter_api_key: str | None = None,
     ) -> None:
         self._client = http_client
         self._base_urls = {
@@ -224,6 +300,19 @@ class TonDataCollector:
         if base_urls:
             self._base_urls.update(base_urls)
         self._ton_index_client = ton_index_client
+        self._toncenter_api_key = toncenter_api_key.strip() if toncenter_api_key else None
+        self._unknown_action_fields: Counter[str] = Counter()
+
+    @property
+    def unknown_toncenter_action_fields(self) -> Mapping[str, int]:
+        """Return a snapshot of unrecognised TONCenter action keys observed."""
+
+        return dict(self._unknown_action_fields)
+
+    def reset_unknown_toncenter_action_fields(self) -> None:
+        """Clear previously captured TONCenter action schema warnings."""
+
+        self._unknown_action_fields.clear()
 
     async def _request(self, url: str, params: Mapping[str, Any] | None = None) -> Any:
         if self._client is None:
@@ -304,13 +393,15 @@ class TonDataCollector:
             raise ValueError("sort must be either 'asc' or 'desc'")
 
         base = self._base_urls.get("toncenter_actions", "https://toncenter.com/api/v3")
-        url = f"{base.rstrip('/')}\/actions"
+        url = f"{base.rstrip('/')}/actions"
         params: dict[str, Any] = {
             "account": account_id,
             "limit": limit,
             "offset": offset,
             "sort": sort_order,
         }
+        if self._toncenter_api_key:
+            params["api_key"] = self._toncenter_api_key
         if include_accounts:
             params["include_accounts"] = "true"
 
@@ -330,6 +421,13 @@ class TonDataCollector:
 
         for index, entry in enumerate(raw_actions):
             mapping = _coerce_mapping(entry, label=f"actions[{index}]")
+            unknown_keys: list[str] = []
+            for key in mapping:
+                raw_key = str(key)
+                if raw_key not in TONCENTER_ACTION_KNOWN_RAW_KEYS:
+                    unknown_keys.append(raw_key)
+            if unknown_keys:
+                self._unknown_action_fields.update(unknown_keys)
             accounts: tuple[str, ...] = ()
             if include_accounts and (raw_accounts := mapping.get("accounts")):
                 if isinstance(raw_accounts, Sequence) and not isinstance(
@@ -346,28 +444,52 @@ class TonDataCollector:
             else:
                 transactions = ()
 
+            def _resolve(field: str, *, required: bool = True) -> Any:
+                aliases = TONCENTER_ACTION_FIELD_ALIASES[field]
+                return _extract(mapping, *aliases, required=required)
+
+            def _field_label(field: str) -> str:
+                aliases = TONCENTER_ACTION_FIELD_ALIASES[field]
+                return aliases[-1] if aliases else field
+
             actions.append(
                 TonActionRecord(
-                    action_id=str(_extract(mapping, "action_id", "actionId")),
-                    type=str(_extract(mapping, "type")),
-                    success=_as_bool(_extract(mapping, "success"), field="success"),
-                    start_lt=_as_int(_extract(mapping, "start_lt", "startLt"), field="startLt"),
-                    end_lt=_as_int(_extract(mapping, "end_lt", "endLt"), field="endLt"),
-                    start_utime=_as_optional_int(mapping.get("start_utime"), field="startUtime"),
-                    end_utime=_as_optional_int(mapping.get("end_utime"), field="endUtime"),
-                    trace_id=_normalise_identifier(mapping.get("trace_id"), field="traceId"),
-                    trace_end_lt=_as_optional_int(mapping.get("trace_end_lt"), field="traceEndLt"),
+                    action_id=str(_resolve("action_id")),
+                    type=str(_resolve("type")),
+                    success=_as_bool(_resolve("success"), field="success"),
+                    start_lt=_as_int(_resolve("start_lt"), field=_field_label("start_lt")),
+                    end_lt=_as_int(_resolve("end_lt"), field=_field_label("end_lt")),
+                    start_utime=_as_optional_int(
+                        _resolve("start_utime", required=False),
+                        field=_field_label("start_utime"),
+                    ),
+                    end_utime=_as_optional_int(
+                        _resolve("end_utime", required=False),
+                        field=_field_label("end_utime"),
+                    ),
+                    trace_id=_normalise_identifier(
+                        _resolve("trace_id", required=False),
+                        field=_field_label("trace_id"),
+                    ),
+                    trace_end_lt=_as_optional_int(
+                        _resolve("trace_end_lt", required=False),
+                        field=_field_label("trace_end_lt"),
+                    ),
                     trace_end_utime=_as_optional_int(
-                        mapping.get("trace_end_utime"), field="traceEndUtime"
+                        _resolve("trace_end_utime", required=False),
+                        field=_field_label("trace_end_utime"),
                     ),
                     trace_external_hash=_normalise_identifier(
-                        mapping.get("trace_external_hash"), field="traceExternalHash"
+                        _resolve("trace_external_hash", required=False),
+                        field=_field_label("trace_external_hash"),
                     ),
                     trace_external_hash_norm=_normalise_identifier(
-                        mapping.get("trace_external_hash_norm"), field="traceExternalHashNorm"
+                        _resolve("trace_external_hash_norm", required=False),
+                        field=_field_label("trace_external_hash_norm"),
                     ),
                     trace_mc_seqno_end=_as_optional_int(
-                        mapping.get("trace_mc_seqno_end"), field="traceMcSeqnoEnd"
+                        _resolve("trace_mc_seqno_end", required=False),
+                        field=_field_label("trace_mc_seqno_end"),
                     ),
                     accounts=accounts,
                     transactions=transactions,
