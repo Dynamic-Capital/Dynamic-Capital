@@ -26,12 +26,29 @@ class StatusDocument:
     path: Path
     date: datetime | None
     title: str
+    slug: str
+    tags: tuple[str, ...]
 
     @property
     def identifier(self) -> str:
         """Return a unique identifier for the document."""
 
         return self.path.stem
+
+    def matches(self, key: str) -> bool:
+        """Return True if the provided key matches the document metadata."""
+
+        lowered = key.lower()
+        if lowered in self.identifier.lower() or lowered in self.slug.lower():
+            return True
+        if lowered in self.title.lower():
+            return True
+        return any(lowered in tag.lower() for tag in self.tags)
+
+    def formatted_tags(self) -> str:
+        if not self.tags:
+            return "—"
+        return ", ".join(tag.replace("-", " ") for tag in self.tags)
 
 
 def _discover_status_documents() -> list[StatusDocument]:
@@ -43,8 +60,15 @@ def _discover_status_documents() -> list[StatusDocument]:
     documents: list[StatusDocument] = []
     for path in sorted(STATUS_DIR.glob("*.md")):
         title = _extract_title(path)
+        slug, tags = _extract_slug_and_tags(path)
         documents.append(
-            StatusDocument(path=path, date=_extract_date(path), title=title)
+            StatusDocument(
+                path=path,
+                date=_extract_date(path),
+                title=title,
+                slug=slug,
+                tags=tags,
+            )
         )
 
     if not documents:
@@ -74,6 +98,15 @@ def _extract_title(path: Path) -> str:
     return path.stem
 
 
+def _extract_slug_and_tags(path: Path) -> tuple[str, tuple[str, ...]]:
+    stem = path.stem
+    if "--" not in stem:
+        return stem, ()
+    slug, raw_tags = stem.split("--", 1)
+    tags = tuple(tag.strip() for tag in raw_tags.split("+") if tag.strip())
+    return slug or stem, tags
+
+
 def _select_document(documents: Sequence[StatusDocument], key: str | None) -> StatusDocument:
     if key is None or key.lower() == "latest":
         return documents[0]
@@ -82,7 +115,7 @@ def _select_document(documents: Sequence[StatusDocument], key: str | None) -> St
     if exact_matches:
         return exact_matches[0]
 
-    partial_matches = [doc for doc in documents if key in doc.path.name]
+    partial_matches = [doc for doc in documents if doc.matches(key)]
     if partial_matches:
         return partial_matches[0]
 
@@ -167,6 +200,8 @@ def render_document(
     )
     if document.date is not None:
         lines.append(f"Date: {document.date.strftime('%Y-%m-%d')}")
+    if document.tags:
+        lines.append(f"Tags: {', '.join(document.tags)}")
     lines.append("")
 
     for name in ordered_keys:
@@ -185,12 +220,14 @@ def list_documents(documents: Sequence[StatusDocument]) -> str:
     header = "Available status updates"
     rows.append(header)
     rows.append("=" * len(header))
-    rows.append("Identifier | Date | Title")
-    rows.append("-----------|------|------")
+    rows.append("Identifier | Date | Title | Tags")
+    rows.append("-----------|------|-------|------")
 
     for doc in documents:
         date_text = doc.date.strftime("%Y-%m-%d") if doc.date else "—"
-        rows.append(f"{doc.identifier} | {date_text} | {doc.title}")
+        rows.append(
+            f"{doc.identifier} | {date_text} | {doc.title} | {doc.formatted_tags()}"
+        )
 
     rows.append("")
     rows.append("Use 'playbook <identifier>' to display a document.")

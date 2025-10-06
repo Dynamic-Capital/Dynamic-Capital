@@ -577,8 +577,9 @@ above to refresh the snapshot.
   project, launch, or integration checklist and see which ones have automation
   keys (`npm run checklists`).
 - Review the latest initiative summary with `./playbook`; use `--list` to
-  discover archived updates or `--section` for desk-specific call-outs before
-  governance reviews.
+  discover archived updates (tags appear alongside identifiers for easier fuzzy
+  search) or `--section` for desk-specific call-outs before governance reviews,
+  and attach the exported snippet to leadership channel posts for audit trails.
 - Keep `docs/env.md` in sync when introducing deployment settings such as
   `FUNCTIONS_BASE_URL` or log drain credentials (`LOGTAIL_SOURCE_TOKEN`,
   `LOGTAIL_URL`). Pair updates with the summary script so both docs reference

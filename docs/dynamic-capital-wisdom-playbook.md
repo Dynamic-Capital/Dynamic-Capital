@@ -356,13 +356,20 @@ update the shared knowledge base.
 
 - **Daily stand-up primer.** Launch `./playbook --section "Summary"` before the
   morning stand-up so the facilitator can reiterate the latest initiative
-  highlights and open follow-up actions without re-reading every document.
+  highlights and open follow-up actions without re-reading every document, then
+  attach the exported snippet to the leadership channel summary before closing
+  the stand-up log.
 - **Weekly leadership sync.** Capture desk-specific priorities by running
   `./playbook --section "Dynamic Trading Algo (DTA)" --section "Dynamic Trading Logic (DTL)"`
-  and attaching the rendered snippet to the leadership channel post.
+  and attaching the rendered snippet to the leadership channel post so the
+  archive contains both the narrative and the CLI export artefact.
 - **Quarterly governance review.** Export a full snapshot with
-  `./playbook --all 2025-02-13-initiative-progress` (or the relevant
-  identifier) and archive the output alongside governance meeting minutes.
+  `./playbook --all 2025-02-13-initiative-progress--governance+portfolio` (or the
+  relevant identifier) and archive the output alongside governance meeting
+  minutes.
+- **Distribution tracking.** Reference `2025-02-14-cadence-overlay-circulation--leadership+rituals`
+  for acknowledgement expectations and audit notes whenever the cadence overlay
+  or CLI workflow is re-circulated to ritual owners.
 
 ---
 
@@ -400,7 +407,8 @@ decision log.
 - [ ] Define pause triggers and guardrail thresholds; publish them in the
       operations hub.
 - [ ] Embed a `./playbook` review in weekly stand-ups and quarterly governance
-      reviews; store the exported snapshot with the meeting notes.
+      reviews; verify the exported snapshot is attached to the leadership
+      channel summary and stored with meeting notes.
 - [ ] Review progress against this checklist in four weeks and document
       adjustments.
 
