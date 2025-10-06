@@ -24,7 +24,9 @@ const {
 
 if (defaultedKeys.length > 0) {
   console.warn(
-    `npm-safe · Applied origin defaults (${defaultedKeys.join(", ")}) [${resolvedOrigin}]`,
+    `npm-safe · Applied origin defaults (${
+      defaultedKeys.join(", ")
+    }) [${resolvedOrigin}]`,
   );
 }
 

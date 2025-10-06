@@ -58,11 +58,11 @@ Conflict details:
   updated 2d ago | labels: needs-attention, release-blocker
 ```
 
-- **Conflicts by base branch / author** quickly highlight hotspots that may
-  need coordination.
+- **Conflicts by base branch / author** quickly highlight hotspots that may need
+  coordination.
 - **Unknown mergeability** indicates PRs that GitHub has not yet evaluated.
-  Re-run the command after a few minutes or trigger a re-run in the GitHub UI
-  if they remain in that state.
+  Re-run the command after a few minutes or trigger a re-run in the GitHub UI if
+  they remain in that state.
 
 ### Generate a JSON report
 
@@ -94,5 +94,5 @@ branches, mergeability flags).
   present and has the required scopes.
 - **GitHub GraphQL error / access denied** – Verify the token has access to the
   repository and that the slug is correct.
-- **Empty results** – Confirm there are open pull requests in a conflicted
-  state for the target repository or expand the query to the relevant repo.
+- **Empty results** – Confirm there are open pull requests in a conflicted state
+  for the target repository or expand the query to the relevant repo.

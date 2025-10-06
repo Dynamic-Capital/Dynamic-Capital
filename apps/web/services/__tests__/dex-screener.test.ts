@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  __setDexScreenerFetchOverride,
+  buildDexScreenerResource,
   DEX_SCREENER_API_BASE_URL,
   DEX_SCREENER_API_ENDPOINTS,
-  buildDexScreenerResource,
   fetchDexScreenerSnapshot,
-  __setDexScreenerFetchOverride,
 } from "../dex-screener";
 
 const { latestProfiles, latestBoosts, topBoosts } = DEX_SCREENER_API_ENDPOINTS;
@@ -50,7 +50,11 @@ describe("dex-screener service", () => {
             header: "https://cdn.example.com/header.png",
             openGraph: "https://cdn.example.com/og.png",
             links: [
-              { type: "website", label: "Docs", url: "https://dynamic.capital" },
+              {
+                type: "website",
+                label: "Docs",
+                url: "https://dynamic.capital",
+              },
               { url: "https://dynamic.capital" },
             ],
           },
