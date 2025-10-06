@@ -1,0 +1,2 @@
+# Dependencies required to execute the Python test suite locally.
+torch>=2.8
