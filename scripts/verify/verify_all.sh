@@ -16,6 +16,7 @@ bash scripts/verify/tradingview_webhook.sh
 bash scripts/verify/tunnel_checks.sh
 bash scripts/verify/dynamic_modules.sh
 bash scripts/verify/ton_site.sh
+bash scripts/verify/domain_config.sh
 
 # Build markdown report
 OUT=".out/verify_report.md"
@@ -45,6 +46,7 @@ emit_section "E) TradingView Webhook" ".out/tradingview_webhook.txt"
 emit_section "F) Tunnel CLI Checks" ".out/tunnel_checks.txt"
 emit_section "G) Dynamic Modules" ".out/dynamic_modules.txt"
 emit_section "H) TON Site" ".out/ton_site.txt"
+emit_section "I) Domain Configuration" ".out/domain_checks.txt"
 
 echo "Report written to $OUT"
 say "Done."

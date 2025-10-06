@@ -16,46 +16,25 @@
       "note": "Secondary Cloudflare anycast IP"
     },
     {
-      "type": "A",
+      "type": "CNAME",
       "name": "www",
-      "data": "162.159.140.98",
-      "ttl": 3600,
-      "note": "Primary Cloudflare anycast IP"
+      "data": "dynamic-capital.lovable.app",
+      "ttl": 300,
+      "note": "Alias to apex to avoid duplicating origin A records"
     },
     {
-      "type": "A",
-      "name": "www",
-      "data": "172.66.0.96",
-      "ttl": 3600,
-      "note": "Secondary Cloudflare anycast IP"
-    },
-    {
-      "type": "A",
+      "type": "CNAME",
       "name": "api",
-      "data": "162.159.140.98",
-      "ttl": 3600,
-      "note": "Primary Cloudflare anycast IP"
+      "data": "dynamic-capital.lovable.app",
+      "ttl": 300,
+      "note": "API traffic rides the Cloudflare-managed apex"
     },
     {
-      "type": "A",
-      "name": "api",
-      "data": "172.66.0.96",
-      "ttl": 3600,
-      "note": "Secondary Cloudflare anycast IP"
-    },
-    {
-      "type": "A",
+      "type": "CNAME",
       "name": "ton-gateway",
-      "data": "162.159.140.98",
-      "ttl": 3600,
-      "note": "Primary Cloudflare anycast IP"
-    },
-    {
-      "type": "A",
-      "name": "ton-gateway",
-      "data": "172.66.0.96",
-      "ttl": 3600,
-      "note": "Secondary Cloudflare anycast IP"
+      "data": "ton-gateway.dynamic-capital.ondigitalocean.app",
+      "ttl": 300,
+      "note": "Gateway proxy fronting the DigitalOcean TON site origin"
     }
   ]
 }
