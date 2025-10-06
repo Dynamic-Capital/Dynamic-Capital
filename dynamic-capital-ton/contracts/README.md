@@ -75,6 +75,11 @@ the workflow with the
 [`docs/onchain/dct-tonviewer-verification.md`](../../docs/onchain/dct-tonviewer-verification.md)
 runbook so the explorer badge flips to **Verified** across wallets.
 
+After submitting, monitor the explorer status with the CLI at
+`apps/tools/check-tonviewer-status.ts`. It compares the live Tonapi metadata
+against `metadata.json` and exits with non-zero codes if either the verification
+flag remains `none` or the hosted metadata drifts from the repository copy.
+
 ## Theme collection deployment
 
 The Theme Pass collection (`theme/theme_collection.tact`) is a TIP-4 compliant

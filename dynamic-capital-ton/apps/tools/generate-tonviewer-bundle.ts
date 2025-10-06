@@ -1,27 +1,16 @@
 import { copy } from "https://deno.land/std@0.224.0/fs/copy.ts";
 import { emptyDir } from "https://deno.land/std@0.224.0/fs/empty_dir.ts";
 import { ensureDir } from "https://deno.land/std@0.224.0/fs/ensure_dir.ts";
-import { parse } from "https://deno.land/std@0.224.0/yaml/mod.ts";
+import { dirname, join } from "https://deno.land/std@0.224.0/path/mod.ts";
+
 import {
-  dirname,
-  fromFileUrl,
-  join,
-  resolve,
-} from "https://deno.land/std@0.224.0/path/mod.ts";
+  computeSha256Hex,
+  loadProjectConfig,
+  readJettonMetadata,
+  resolveProjectRoot,
+} from "./_shared.ts";
 
 const textDecoder = new TextDecoder();
-
-function resolveProjectRoot(): string {
-  const here = dirname(fromFileUrl(import.meta.url));
-  return resolve(join(here, "..", ".."));
-}
-
-async function computeSha256Hex(data: Uint8Array): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 async function copyPathIntoBundle(
   projectRoot: string,
@@ -45,7 +34,7 @@ async function writeFile(
 }
 
 async function main() {
-  const projectRoot = resolveProjectRoot();
+  const projectRoot = resolveProjectRoot(import.meta.url);
   const stagingDir = join(projectRoot, "build", "tonviewer", "bundle");
   const outputDir = dirname(stagingDir);
   const zipTarget = join(outputDir, "dct-tonviewer-verification.zip");
@@ -53,23 +42,15 @@ async function main() {
   await ensureDir(stagingDir);
   await emptyDir(stagingDir);
 
-  const configText = await Deno.readTextFile(join(projectRoot, "config.yaml"));
-  const config = parse(configText) as Record<string, unknown>;
-  const tokenConfig = (config.token ?? {}) as Record<string, unknown>;
+  const config = await loadProjectConfig(projectRoot);
+  const tokenConfig = config.token ?? {};
   const jettonAddress = typeof tokenConfig.address === "string"
     ? tokenConfig.address
     : "";
 
-  const metadataPath = join(
-    projectRoot,
-    "contracts",
-    "jetton",
-    "metadata.json",
-  );
-  const metadataBytes = await Deno.readFile(metadataPath);
-  const metadataText = textDecoder.decode(metadataBytes);
-  const metadata = JSON.parse(metadataText) as Record<string, unknown>;
-  const metadataSha256 = await computeSha256Hex(metadataBytes);
+  const metadataInfo = await readJettonMetadata(projectRoot);
+  const metadata = metadataInfo.json;
+  const metadataSha256 = await computeSha256Hex(metadataInfo.bytes);
 
   const manifest = {
     jettonMasterAddress: jettonAddress,
