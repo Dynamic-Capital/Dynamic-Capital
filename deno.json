@@ -75,6 +75,7 @@
   // supabase functions schedule create "*/15 * * * *" telegram-webhook-keeper
   "lock": false,
   "nodeModulesDir": "none",
+  "tlsCertificateStores": ["system"],
   "compilerOptions": {
     "types": [
       "./apps/web/types/tesseract.d.ts",
