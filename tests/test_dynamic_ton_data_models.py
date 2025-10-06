@@ -4,14 +4,26 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Sequence
-from typing import Any, Mapping
+from dataclasses import fields, is_dataclass
+from typing import Any, Mapping, get_type_hints
 
 from dynamic_ton.data_pipeline import TonActionRecord, TonDataCollector
 from dynamic_ton.ton_index_client import (
     TonIndexAccountState,
+    TonIndexAccountStatesResult,
+    TonIndexAddressBookEntry,
+    TonIndexAddressMetadata,
     TonIndexMessage,
     TonIndexTransaction,
+    TonIndexTransactionsResult,
 )
+
+
+def _type_map(cls: type[Any]) -> dict[str, Any]:
+    """Return a mapping of dataclass field names to type hints."""
+
+    hints = get_type_hints(cls)
+    return {field.name: hints[field.name] for field in fields(cls)}
 
 
 class _StubResponse:
@@ -102,6 +114,31 @@ def test_fetch_account_actions_parses_toncenter_payload() -> None:
     assert isinstance(action.details, dict)
 
 
+def test_ton_action_record_schema_matches_contract() -> None:
+    assert is_dataclass(TonActionRecord)
+
+    expected = {
+        "action_id": str,
+        "type": str,
+        "success": bool,
+        "start_lt": int,
+        "end_lt": int,
+        "start_utime": int | None,
+        "end_utime": int | None,
+        "trace_id": str | None,
+        "trace_end_lt": int | None,
+        "trace_end_utime": int | None,
+        "trace_external_hash": str | None,
+        "trace_external_hash_norm": str | None,
+        "trace_mc_seqno_end": int | None,
+        "accounts": tuple[str, ...],
+        "transactions": tuple[str, ...],
+        "details": Mapping[str, Any] | str | None,
+    }
+
+    assert _type_map(TonActionRecord) == expected
+
+
 def test_ton_index_account_state_coerces_numeric_fields() -> None:
     payload = {
         "address": "0:abc",
@@ -122,6 +159,24 @@ def test_ton_index_account_state_coerces_numeric_fields() -> None:
     assert state.status == "active"
     assert state.last_transaction_lt == 26
     assert state.extra_currencies == {"1": 50}
+
+
+def test_ton_index_account_state_schema_matches_contract() -> None:
+    assert is_dataclass(TonIndexAccountState)
+
+    expected = {
+        "address": str,
+        "balance": int,
+        "status": str | None,
+        "account_state_hash": str | None,
+        "last_transaction_hash": str | None,
+        "last_transaction_lt": int | None,
+        "code_hash": str | None,
+        "data_hash": str | None,
+        "extra_currencies": Mapping[str, int],
+    }
+
+    assert _type_map(TonIndexAccountState) == expected
 
 
 def test_ton_index_transaction_parses_nested_messages() -> None:
@@ -180,4 +235,70 @@ def test_ton_index_transaction_parses_nested_messages() -> None:
     out_msg = transaction.out_msgs[0]
     assert out_msg.value == 100_000_000
     assert out_msg.created_at == 1_700_000_020
+
+
+def test_ton_index_transaction_schema_matches_contract() -> None:
+    assert is_dataclass(TonIndexTransaction)
+
+    expected = {
+        "account": str,
+        "hash": str,
+        "lt": int,
+        "now": int,
+        "mc_block_seqno": int | None,
+        "trace_id": str | None,
+        "orig_status": str | None,
+        "end_status": str | None,
+        "total_fees": int,
+        "total_fees_extra_currencies": Mapping[str, int],
+        "in_msg": TonIndexMessage | None,
+        "out_msgs": tuple[TonIndexMessage, ...],
+    }
+
+    assert _type_map(TonIndexTransaction) == expected
+
+
+def test_ton_index_supporting_models_schema_matches_contract() -> None:
+    assert is_dataclass(TonIndexMessage)
+    assert is_dataclass(TonIndexAddressBookEntry)
+    assert is_dataclass(TonIndexAddressMetadata)
+    assert is_dataclass(TonIndexAccountStatesResult)
+    assert is_dataclass(TonIndexTransactionsResult)
+
+    assert _type_map(TonIndexMessage) == {
+        "hash": str,
+        "source": str | None,
+        "destination": str | None,
+        "value": int,
+        "created_lt": int | None,
+        "created_at": int | None,
+        "bounce": bool,
+        "bounced": bool,
+        "ihr_fee": int,
+        "fwd_fee": int,
+        "opcode": int | None,
+        "value_extra_currencies": Mapping[str, int],
+    }
+
+    assert _type_map(TonIndexAddressBookEntry) == {
+        "domain": str | None,
+        "user_friendly": str | None,
+    }
+
+    assert _type_map(TonIndexAddressMetadata) == {
+        "is_indexed": bool,
+        "token_info": tuple[Mapping[str, Any], ...],
+    }
+
+    assert _type_map(TonIndexAccountStatesResult) == {
+        "accounts": tuple[TonIndexAccountState, ...],
+        "address_book": Mapping[str, TonIndexAddressBookEntry],
+        "metadata": Mapping[str, TonIndexAddressMetadata],
+    }
+
+    assert _type_map(TonIndexTransactionsResult) == {
+        "transactions": tuple[TonIndexTransaction, ...],
+        "address_book": Mapping[str, TonIndexAddressBookEntry],
+        "metadata": Mapping[str, TonIndexAddressMetadata],
+    }
 
