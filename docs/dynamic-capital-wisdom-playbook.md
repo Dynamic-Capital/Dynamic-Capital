@@ -352,6 +352,18 @@ Annual   → Legacy & wellbeing summit aligning long-range strategy with capacit
 Use this overlay to align calendars; every ritual should produce artifacts that
 update the shared knowledge base.
 
+### Playbook CLI Ritual Integration
+
+- **Daily stand-up primer.** Launch `./playbook --section "Summary"` before the
+  morning stand-up so the facilitator can reiterate the latest initiative
+  highlights and open follow-up actions without re-reading every document.
+- **Weekly leadership sync.** Capture desk-specific priorities by running
+  `./playbook --section "Dynamic Trading Algo (DTA)" --section "Dynamic Trading Logic (DTL)"`
+  and attaching the rendered snippet to the leadership channel post.
+- **Quarterly governance review.** Export a full snapshot with
+  `./playbook --all 2025-02-13-initiative-progress` (or the relevant
+  identifier) and archive the output alongside governance meeting minutes.
+
 ---
 
 ## Reflection Prompts
@@ -387,6 +399,8 @@ decision log.
       next sprint.
 - [ ] Define pause triggers and guardrail thresholds; publish them in the
       operations hub.
+- [ ] Embed a `./playbook` review in weekly stand-ups and quarterly governance
+      reviews; store the exported snapshot with the meeting notes.
 - [ ] Review progress against this checklist in four weeks and document
       adjustments.
 
