@@ -13,9 +13,30 @@ from dynamic.intelligence.ai_apps.core import DynamicFusionAlgo
 from dynamic.trading.algo.trading_core import DynamicTradingAlgo
 from dynamic.platform.token.treasury import DynamicTreasuryAlgo
 from integrations.supabase_logger import SupabaseLogger
+from integrations.supabase_webhook import SupabaseTradingSignalForwarder
 from integrations.telegram_bot import DynamicTelegramBot
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_METAQUOTES_ID = "F83593E4"
+DEFAULT_TRADINGVIEW_WEBHOOK = "https://www.tradingview.com/u/DynamicCapital-FX/"
+
+
+def _get_metaquotes_id() -> Optional[str]:
+    value = os.environ.get("METAQUOTES_ID", DEFAULT_METAQUOTES_ID)
+    if not value:
+        return None
+    trimmed = value.strip()
+    return trimmed or None
+
+
+def _get_tradingview_webhook() -> Optional[str]:
+    value = os.environ.get("TRADINGVIEW_WEBHOOK_URL", DEFAULT_TRADINGVIEW_WEBHOOK)
+    if not value:
+        return None
+    trimmed = value.strip()
+    return trimmed or None
+
 
 app = Flask(__name__)
 
@@ -23,6 +44,7 @@ fusion = DynamicFusionAlgo()
 trader = DynamicTradingAlgo()
 treasury = DynamicTreasuryAlgo()
 supabase_logger = SupabaseLogger()
+supabase_forwarder = SupabaseTradingSignalForwarder()
 telegram_bot = DynamicTelegramBot.from_env()
 
 SECRET_HEADER = "X-Tradingview-Secret"
@@ -73,6 +95,8 @@ def webhook() -> Any:
     payload = request.get_json(silent=True) or {}
     logger.info("TradingView alert received: %s", payload)
 
+    supabase_forwarder.forward_tradingview_alert(payload)
+
     symbol = str(payload.get("symbol", "XAUUSD"))
     lot = _coerce_lot(payload.get("lot"))
 
@@ -90,6 +114,9 @@ def webhook() -> Any:
 
     status = "executed" if trade_result.ok else "skipped"
 
+    metaquotes_id = _get_metaquotes_id()
+    webhook_url = _get_tradingview_webhook()
+
     return jsonify(
         {
             "status": status,
@@ -103,6 +130,8 @@ def webhook() -> Any:
                 "lot": trade_result.lot or lot,
             },
             "treasury_event": _treasury_event_to_dict(treasury_event),
+            "metaquotes_id": metaquotes_id,
+            "tradingview_webhook": webhook_url,
         }
     )
 
@@ -155,6 +184,14 @@ def _format_telegram_message(
     if treasury_event:
         lines.append(f"🔥 Burned {treasury_event.burned} DCT")
         lines.append(f"💰 Rewards Distributed: {treasury_event.rewards_distributed} DCT")
+
+    webhook_url = _get_tradingview_webhook()
+    if webhook_url:
+        lines.append(f"🌐 TradingView Webhook: {webhook_url}")
+
+    metaquotes_id = _get_metaquotes_id()
+    if metaquotes_id:
+        lines.append(f"🛰 MetaQuotes ID: {metaquotes_id}")
 
     return "\n".join(lines)
 
