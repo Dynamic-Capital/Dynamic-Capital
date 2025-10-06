@@ -74,3 +74,31 @@ jobs:
       - name: Test
         if: steps.script-flags.outputs.test != 'undefined'
         run: npm run test 2>&1 | tee test.log
+
+  python-tests:
+    name: Python GPT regression tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('tests_python/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Python test requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests_python/requirements.txt
+
+      - name: Run GPT regression suite
+        run: pytest tests_python/test_dynamic_gpt_model.py

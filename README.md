@@ -928,6 +928,16 @@ success, or error states based on the fetch result.
   JSON payload.
 - `tests/app/api-demo/page.test.tsx` renders the demo page with a mocked `fetch`
   and verifies that the message appears.
+- Python GPT regression tests live under `tests_python/`. Install the CPU-only
+  PyTorch wheel and pinned pytest runner via `pip install -r
+  tests_python/requirements.txt` and run
+  `pytest tests_python/test_dynamic_gpt_model.py` to validate the model
+  builders. The torch instantiation helper recognises dtype hints from metadata
+  keys such as `torch_dtype`, `torch.dtype`, `torch dtype`, or `torch-dtype`
+  (normalising key separators and case) and accepts values like
+  `"torch.float32"` alongside the short aliases. Conflicting dtype hints that
+  collapse to the same canonical metadata key raise an explicit error so
+  inconsistent precision requests are surfaced during instantiation.
 
 ### TypeScript type checking
 
