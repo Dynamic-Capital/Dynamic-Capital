@@ -78,6 +78,19 @@
   capture remain required before handing over to operations, even though code
   paths are ready.【F:docs/dct-ton-audit.md†L15-L114】
 
+### Repo Health & Go-Live Readiness
+
+- **Automation gaps remain.** The repo still needs the `fix_and_check` sweep,
+  linkage audit, Telegram webhook verification, and the optional Mini App smoke
+  test once secrets and fixes land so CI can certify releases.
+- **Go-live tooling follow-ups are open.** Supabase CLI workflow plumbing,
+  pending PR refreshes, auto-merge enablement, and the production sanity
+  walkthrough must be revisited before the handover package can claim VIP
+  readiness.
+- **Manual checklist is untouched.** Operators still need to execute the full
+  go-live checklist—from webhook validation through admin commands—and archive
+  evidence for each stage before sign-off.
+
 ### Runbooks & Operational Readiness
 
 - The Go-Live Validation Playbook walks operators through webhook checks, bank
