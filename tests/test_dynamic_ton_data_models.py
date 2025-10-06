@@ -114,6 +114,50 @@ def test_fetch_account_actions_parses_toncenter_payload() -> None:
     assert isinstance(action.details, dict)
 
 
+def test_fetch_account_actions_handles_camel_case_optional_fields() -> None:
+    payload = {
+        "actions": [
+            {
+                "actionId": "67890",
+                "type": "NftTransfer",
+                "success": 1,
+                "startLt": "0x2dc6c0",
+                "endLt": "0x2dc6d4",
+                "startUtime": "1701000000",
+                "endUtime": None,
+                "traceId": "trace_camel",
+                "traceEndLt": "0x2dc6d4",
+                "traceEndUtime": "1701000010",
+                "traceExternalHash": "EFGH",
+                "traceExternalHashNorm": "efgh",
+                "traceMcSeqnoEnd": "0x2a",
+                "transactions": ["aa:bb"],
+            }
+        ]
+    }
+
+    stub_client = _StubHttpClient([payload])
+    collector = TonDataCollector(http_client=stub_client)
+
+    (action,) = asyncio.run(
+        collector.fetch_account_actions(
+            account="EQCTestAddress0000000000000000000000000000000000",
+        )
+    )
+
+    assert action.action_id == "67890"
+    assert action.start_lt == 3000000
+    assert action.end_lt == 3000020
+    assert action.start_utime == 1_701_000_000
+    assert action.end_utime is None
+    assert action.trace_id == "trace_camel"
+    assert action.trace_end_lt == 3_000_020
+    assert action.trace_end_utime == 1_701_000_010
+    assert action.trace_external_hash == "EFGH"
+    assert action.trace_external_hash_norm == "efgh"
+    assert action.trace_mc_seqno_end == 42
+
+
 def test_ton_action_record_schema_matches_contract() -> None:
     assert is_dataclass(TonActionRecord)
 
