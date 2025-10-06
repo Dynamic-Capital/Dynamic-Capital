@@ -516,13 +516,62 @@ else:  # pragma: no cover - simple guard for environments without torch
 # ---------------------------------------------------------------------------
 
 
+_DTYPE_ALIAS_MAP = {
+    "float": "float32",
+    "float32": "float32",
+    "fp32": "float32",
+    "double": "float64",
+    "float64": "float64",
+    "fp64": "float64",
+    "float16": "float16",
+    "half": "float16",
+    "fp16": "float16",
+    "bfloat16": "bfloat16",
+    "bf16": "bfloat16",
+}
+
+
+def _resolve_torch_dtype(value: "torch.dtype | str | None") -> "torch.dtype | None":
+    if value is None:
+        return None
+
+    if not _TORCH_AVAILABLE:  # pragma: no cover - guarded by caller
+        raise ImportError("PyTorch is required to resolve dtype aliases")
+
+    if isinstance(value, torch.dtype):
+        return value
+
+    if isinstance(value, str):
+        key = value.strip().lower()
+        alias = _DTYPE_ALIAS_MAP.get(key, key)
+        dtype_obj = getattr(torch, alias, None)
+        if isinstance(dtype_obj, torch.dtype):
+            return dtype_obj
+        raise ValueError(f"Unsupported torch dtype alias: {value!r}")
+
+    raise TypeError("dtype must be a torch.dtype, string alias, or None")
+
+
 def instantiate_torch_model(
     config: GPTModel,
     *,
     device: "torch.device | str | None" = None,
-    dtype: "torch.dtype | None" = None,
+    dtype: "torch.dtype | str | None" = None,
 ) -> DynamicGPTModel:
-    """Instantiate a :class:`DynamicGPTModel` from a high level configuration."""
+    """Instantiate a :class:`DynamicGPTModel` from a high level configuration.
+
+    Parameters
+    ----------
+    config:
+        High level model description produced by :class:`GPTModelBuilder` or
+        related helpers.
+    device:
+        Optional device specifier forwarded to :meth:`torch.nn.Module.to`.
+    dtype:
+        Optional dtype. Accepts concrete :class:`torch.dtype` instances or
+        common string aliases such as ``"float16"``, ``"bf16"``, or
+        ``"float32"``.
+    """
 
     if not _TORCH_AVAILABLE:
         raise ImportError(
@@ -530,9 +579,10 @@ def instantiate_torch_model(
             " package to enable this functionality."
         )
 
+    resolved_dtype = _resolve_torch_dtype(dtype)
     model = DynamicGPTModel(config)
-    if device is not None or dtype is not None:
-        model = model.to(device=device, dtype=dtype)
+    if device is not None or resolved_dtype is not None:
+        model = model.to(device=device, dtype=resolved_dtype)
     return model
 
 
