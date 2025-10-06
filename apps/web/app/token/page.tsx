@@ -324,9 +324,50 @@ export default function TokenPage() {
                 <Text variant="body-default-m" onBackground="neutral-weak">
                   {pool.description}
                 </Text>
-                <Text variant="label-default-s" onBackground="brand-medium">
-                  {pool.url}
-                </Text>
+                <Column gap="8">
+                  <Column gap="4">
+                    <Text
+                      variant="label-default-s"
+                      onBackground="neutral-weak"
+                    >
+                      Swap URL
+                    </Text>
+                    <Text
+                      variant="label-default-s"
+                      onBackground="brand-medium"
+                    >
+                      {pool.url}
+                    </Text>
+                  </Column>
+                  {pool.address
+                    ? (
+                      <Column gap="4">
+                        <Text
+                          variant="label-default-s"
+                          onBackground="neutral-weak"
+                        >
+                          Pool address
+                        </Text>
+                        <Text
+                          variant="body-default-m"
+                          onBackground="brand-medium"
+                        >
+                          {pool.addressLabel ?? pool.address}
+                        </Text>
+                        {pool.explorerUrl
+                          ? (
+                            <Text
+                              variant="label-default-s"
+                              onBackground="brand-medium"
+                            >
+                              {pool.explorerUrl}
+                            </Text>
+                          )
+                          : null}
+                      </Column>
+                    )
+                    : null}
+                </Column>
               </Column>
             </Row>
           ))}
