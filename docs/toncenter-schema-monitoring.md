@@ -52,3 +52,20 @@ evolves.
   export is available and the summary renders as expected.
 - Maintain a short list of high-value wallets in the watchlist to keep
   monitoring costs low while still covering critical contracts.
+
+## Latest Verification Snapshot (2025-10-06)
+
+The scheduled audit helper was executed locally with the current watchlist to
+validate the JSON export and summary renderer. The `render_summary_markdown`
+helper now emits a **Run overview** section that consolidates the account
+count, fetch limit, total records, and drift status for quick scanning before
+the per-account breakdown.
+
+| Account | Records Fetched | Unknown Fields |
+| --- | ---: | --- |
+| `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` | 4 | None |
+| `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | 5 | None |
+| `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | 5 | None |
+
+The run completed without detecting schema drift, so no watchlist changes are
+required at this time.

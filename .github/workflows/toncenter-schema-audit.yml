@@ -29,9 +29,9 @@ jobs:
       - name: Run schema guard
         env:
           TONCENTER_SCHEMA_ACCOUNTS: |
-            EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c
-            0:74D4AEB37037968558D079A5F00A56D00D28A58BA3EF89157BC51EF38DDA7306
-            0:210B9EC158ADF3993014171080F4AEA102CFD7C89E6AFD7791A5F07620CCCCF2
+            EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y # DCT jetton master
+            EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq # DCT treasury jetton wallet
+            EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt # STON.fi TON→DCT router
           TONCENTER_API_KEY: ${{ secrets.TONCENTER_API_KEY }}
         run: |
           python -m dynamic_ton.schema_guard_runner \
@@ -53,25 +53,14 @@ jobs:
           import os
           from pathlib import Path
 
+          from dynamic_ton.schema_guard_runner import render_summary_markdown
+
           report_path = Path("schema-report.json")
           data = json.loads(report_path.read_text())
 
-          lines: list[str] = ["# TONCenter Schema Audit", ""]
-          for account, report in data.get("accounts", {}).items():
-              lines.append(f"## {account}")
-              lines.append(f"- Records fetched: {report['total_records']}")
-              unknown = report.get("unknown_fields", {})
-              if unknown:
-                  lines.append("- Unknown fields detected:")
-                  for field, count in unknown.items():
-                      lines.append(f"  - {field}: {count} occurrence(s)")
-              else:
-                  lines.append("- Unknown fields detected: none")
-              lines.append("")
-
           summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
           with summary_path.open("a", encoding="utf-8") as handle:
-              handle.write("\n".join(lines).strip() + "\n")
+              handle.write(render_summary_markdown(data))
 
           if data.get("has_drift"):
               raise SystemExit("Schema drift detected; review unknown fields above.")
