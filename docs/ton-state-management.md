@@ -21,24 +21,24 @@ contracts for the prop firm ecosystem.
 ### Core Contract Record
 
 ```func
-() store_data(int total_staked, cell stakers_dict, cell traders_dict, int protocol_profits) impure {
+() store_data(int total_staked, cell stakers_dict, cell traders_dict, cell protocol_state) impure {
   set_data(
     begin_cell()
       .store_coins(total_staked)
       .store_dict(stakers_dict)
       .store_dict(traders_dict)
-      .store_coins(protocol_profits)
+      .store_ref(protocol_state)
       .end_cell()
   );
 }
 
-(int, cell, cell, int) load_data() {
+(int, cell, cell, cell) load_data() {
   var ds = get_data().begin_parse();
   return (
     ds~load_coins(),
     ds~load_dict(),
     ds~load_dict(),
-    ds~load_coins()
+    ds~load_ref()
   );
 }
 ```
@@ -71,6 +71,46 @@ cell save_staker_info(int staked_amount, int start_time, int reward_debt) {
 (cell) update_staker_dict(cell stakers_dict, slice staker_addr, int staked_amount, int start_time, int reward_debt) {
   var staker_info = save_staker_info(staked_amount, start_time, reward_debt);
   return stakers_dict~dict_set(staker_addr, staker_info, 256);
+}
+```
+
+### Protocol State Helpers
+
+Keep configuration and guard metadata in a dedicated protocol state cell so the
+main record stays compact while still exposing structured fields to callers.
+
+```func
+cell store_protocol_state(
+  int protocol_profits,
+  int performance_fee,
+  slice governance_token,
+  slice admin,
+  slice emergency_admin,
+  int paused,
+  int pause_time
+) {
+  return begin_cell()
+    .store_coins(protocol_profits)
+    .store_uint(performance_fee, 16)
+    .store_slice(governance_token)
+    .store_slice(admin)
+    .store_slice(emergency_admin)
+    .store_uint(paused, 1)
+    .store_uint(pause_time, 64)
+    .end_cell();
+}
+
+(int, int, slice, slice, slice, int, int) load_protocol_state(cell protocol_state_cell) {
+  var cs = protocol_state_cell.begin_parse();
+  return (
+    cs~load_coins(),
+    cs~load_uint(16),
+    cs~load_slice(256),
+    cs~load_slice(256),
+    cs~load_slice(256),
+    cs~load_uint(1),
+    cs~load_uint(64)
+  );
 }
 ```
 
@@ -183,12 +223,12 @@ references (slices or dictionary cells) when linking modules.
 
 ```func
 () process_staking(slice staker_addr, int amount) impure {
-  var (total_staked, stakers_dict, traders_dict, protocol_profits) = load_data();
+  var (total_staked, stakers_dict, traders_dict, protocol_state) = load_data();
 
   stakers_dict = update_staker_dict(stakers_dict, staker_addr, amount, now(), 0);
   total_staked += amount;
 
-  store_data(total_staked, stakers_dict, traders_dict, protocol_profits);
+  store_data(total_staked, stakers_dict, traders_dict, protocol_state);
 }
 
 () complete_challenge(slice trader_addr, int challenge_id) impure {
@@ -235,7 +275,16 @@ references (slices or dictionary cells) when linking modules.
 
 ```func
 () update_protocol_parameters(int new_fee, slice caller) impure {
-  var (total_staked, stakers_dict, traders_dict, protocol_profits, governance_token, admin) = load_data();
+  var (total_staked, stakers_dict, traders_dict, protocol_state) = load_data();
+  var (
+    protocol_profits,
+    performance_fee,
+    governance_token,
+    admin,
+    emergency_admin,
+    paused,
+    pause_time
+  ) = load_protocol_state(protocol_state);
 
   ;; Only admin or governance contract can update
   throw_unless(401, equal_slices(caller, admin) || is_governance_contract(caller));
@@ -243,24 +292,55 @@ references (slices or dictionary cells) when linking modules.
   ;; Validate parameter bounds
   throw_unless(402, new_fee >= 0 && new_fee <= 2000);
 
-  store_data(total_staked, stakers_dict, traders_dict, new_fee, governance_token, admin);
+  performance_fee = new_fee;
+  protocol_state = store_protocol_state(
+    protocol_profits,
+    performance_fee,
+    governance_token,
+    admin,
+    emergency_admin,
+    paused,
+    pause_time
+  );
+
+  store_data(total_staked, stakers_dict, traders_dict, protocol_state);
 }
 
 () set_emergency_pause(int paused, slice emergency_admin) impure {
-  var current_state = load_data();
+  var (total_staked, stakers_dict, traders_dict, protocol_state) = load_data();
+  var (
+    protocol_profits,
+    performance_fee,
+    governance_token,
+    admin,
+    stored_emergency_admin,
+    current_paused,
+    pause_time
+  ) = load_protocol_state(protocol_state);
 
   ;; Only emergency admin can pause
-  throw_unless(501, equal_slices(emergency_admin, current_state.emergency_admin));
+  throw_unless(501, equal_slices(emergency_admin, stored_emergency_admin));
 
-  current_state.paused = paused;
-  current_state.pause_time = now();
+  current_paused = paused;
+  pause_time = now();
 
-  store_data(current_state);
+  protocol_state = store_protocol_state(
+    protocol_profits,
+    performance_fee,
+    governance_token,
+    admin,
+    stored_emergency_admin,
+    current_paused,
+    pause_time
+  );
+
+  store_data(total_staked, stakers_dict, traders_dict, protocol_state);
 }
 
 () check_not_paused() {
-  var state = load_data();
-  throw_if(502, state.paused == 1);
+  var (_, _, _, protocol_state) = load_data();
+  var (_, _, _, _, _, paused, _) = load_protocol_state(protocol_state);
+  throw_if(502, paused == 1);
 }
 ```
 
