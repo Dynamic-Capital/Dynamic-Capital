@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterable, Mapping
+from typing import Callable, Iterable, Mapping
 
 from dynamic_supabase import (
     DynamicSupabaseEngine,
@@ -16,6 +16,7 @@ __all__ = ["SupabaseDomainOverview", "DynamicSupabaseManager"]
 
 
 _IMPACT_PRIORITY = {"high": 2, "medium": 1, "low": 0}
+_UNSET = object()
 
 
 def _normalise_domain(domain: str) -> str:
@@ -61,12 +62,17 @@ class DynamicSupabaseManager:
     ) -> None:
         self._engines: dict[str, DynamicSupabaseEngine] = {}
         self._labels: dict[str, str] = {}
+        self._factories: dict[str, Callable[[], DynamicSupabaseEngine] | None] = {}
 
         if engines is None:
             engines = build_all_domain_supabase_engines()
 
         for domain, engine in engines.items():
-            self.register_engine(domain, engine)
+            self.register_engine(
+                domain,
+                engine,
+                factory=lambda domain=domain: build_domain_supabase_engine(domain),
+            )
 
     # ------------------------------------------------------------------ helpers
     def _iter_engines(self) -> Iterable[tuple[str, DynamicSupabaseEngine]]:
@@ -74,21 +80,77 @@ class DynamicSupabaseManager:
             yield self._labels[key], self._engines[key]
 
     # ---------------------------------------------------------------- registry
-    def register_engine(self, domain: str, engine: DynamicSupabaseEngine) -> None:
+    def register_engine(
+        self,
+        domain: str,
+        engine: DynamicSupabaseEngine,
+        *,
+        factory: Callable[[], DynamicSupabaseEngine] | None = _UNSET,
+    ) -> None:
         key = _normalise_domain(domain)
         self._engines[key] = engine
         self._labels[key] = domain
+        if factory is _UNSET:
+            # Preserve any existing factory unless explicitly overridden
+            if key not in self._factories:
+                self._factories[key] = None
+        else:
+            self._factories[key] = factory
 
     def get_engine(self, domain: str) -> DynamicSupabaseEngine:
         key = _normalise_domain(domain)
         if key not in self._engines:
             engine = build_domain_supabase_engine(domain)
-            self.register_engine(domain, engine)
+            self.register_engine(
+                domain,
+                engine,
+                factory=lambda domain=domain: build_domain_supabase_engine(domain),
+            )
         return self._engines[key]
 
     @property
     def domains(self) -> tuple[str, ...]:
         return tuple(self._labels[key] for key in sorted(self._labels))
+
+    # --------------------------------------------------------------- lifecycle
+    def refresh_domain(self, domain: str) -> DynamicSupabaseEngine:
+        key = _normalise_domain(domain)
+        label = self._labels.get(key, domain)
+
+        if key not in self._engines:
+            # Domain is unknown; build it using the canonical builder.
+            engine = build_domain_supabase_engine(label)
+            self.register_engine(
+                label,
+                engine,
+                factory=lambda domain=label: build_domain_supabase_engine(domain),
+            )
+            return engine
+
+        factory = self._factories.get(key)
+        if not callable(factory):
+            raise RuntimeError(
+                f"No refresh factory registered for Supabase domain '{label}'. "
+                "Provide a callable via register_engine(..., factory=...) to enable refreshes."
+            )
+
+        engine = factory()
+        self.register_engine(label, engine, factory=factory)
+        return engine
+
+    def refresh_all(self) -> tuple[tuple[str, DynamicSupabaseEngine], ...]:
+        refreshed: list[tuple[str, DynamicSupabaseEngine]] = []
+        for key in sorted(self._labels):
+            label = self._labels[key]
+            refreshed.append((label, self.refresh_domain(label)))
+        return tuple(refreshed)
+
+    def refresh(
+        self, domain: str | None = None
+    ) -> DynamicSupabaseEngine | tuple[tuple[str, DynamicSupabaseEngine], ...]:
+        if domain is not None:
+            return self.refresh_domain(domain)
+        return self.refresh_all()
 
     # ----------------------------------------------------------- data products
     def catalogue(self, *, domain: str | None = None) -> dict[str, object]:
@@ -158,12 +220,4 @@ class DynamicSupabaseManager:
         overviews.sort(key=lambda item: (item.hint_count, item.recent_query_count, item.domain), reverse=True)
         return tuple(overviews)
 
-    # --------------------------------------------------------------- operations
-    def refresh_domain(self, domain: str) -> DynamicSupabaseEngine:
-        engine = build_domain_supabase_engine(domain)
-        self.register_engine(domain, engine)
-        return engine
-
-    def refresh_all(self) -> None:
-        for domain in list(self.domains):
-            self.refresh_domain(domain)
+    # ----------------------------------------------------------- data products

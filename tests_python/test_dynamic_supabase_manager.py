@@ -10,7 +10,8 @@ from dynamic_supabase import DynamicSupabaseEngine
 
 @pytest.fixture()
 def manager() -> DynamicSupabaseManager:
-    alert_engine = DynamicSupabaseEngine(
+    def build_alert_engine() -> DynamicSupabaseEngine:
+        alert_engine = DynamicSupabaseEngine(
         tables=[
             {
                 "name": "signals",
@@ -30,35 +31,38 @@ def manager() -> DynamicSupabaseManager:
                 "average_latency_ms": 420.0,
             }
         ],
-        buckets=[{"name": "ledger-exports", "is_public": False}],
-    )
+            buckets=[{"name": "ledger-exports", "is_public": False}],
+        )
 
-    now = datetime.now(timezone.utc)
-    alert_engine.log_query(
-        {
-            "query_id": "q-1",
-            "resource_type": "table",
-            "resource_name": "public.signals",
-            "operation": "select",
-            "duration_ms": 600.0,
-            "rows_processed": 18_000,
-            "status": "success",
-            "timestamp": now,
-        }
-    )
-    alert_engine.log_query(
-        {
-            "query_id": "q-2",
-            "resource_type": "function",
-            "resource_name": "risk_audit",
-            "operation": "invoke",
-            "duration_ms": 500.0,
-            "status": "error",
-            "timestamp": now,
-        }
-    )
+        now = datetime.now(timezone.utc)
+        alert_engine.log_query(
+            {
+                "query_id": "q-1",
+                "resource_type": "table",
+                "resource_name": "public.signals",
+                "operation": "select",
+                "duration_ms": 600.0,
+                "rows_processed": 18_000,
+                "status": "success",
+                "timestamp": now,
+            }
+        )
+        alert_engine.log_query(
+            {
+                "query_id": "q-2",
+                "resource_type": "function",
+                "resource_name": "risk_audit",
+                "operation": "invoke",
+                "duration_ms": 500.0,
+                "status": "error",
+                "timestamp": now,
+            }
+        )
 
-    calm_engine = DynamicSupabaseEngine(
+        return alert_engine
+
+    def build_calm_engine() -> DynamicSupabaseEngine:
+        calm_engine = DynamicSupabaseEngine(
         tables=[
             {
                 "name": "audit_log",
@@ -86,9 +90,14 @@ def manager() -> DynamicSupabaseManager:
                 "total_size_mb": 320.0,
             }
         ],
-    )
+        )
 
-    return DynamicSupabaseManager(engines={"ops": alert_engine, "growth": calm_engine})
+        return calm_engine
+
+    manager = DynamicSupabaseManager(engines={})
+    manager.register_engine("ops", build_alert_engine(), factory=build_alert_engine)
+    manager.register_engine("growth", build_calm_engine(), factory=build_calm_engine)
+    return manager
 
 
 def test_domains_are_sorted(manager: DynamicSupabaseManager) -> None:
@@ -137,3 +146,18 @@ def test_register_engine_overrides_existing(manager: DynamicSupabaseManager) -> 
     replacement = DynamicSupabaseEngine()
     manager.register_engine("ops", replacement)
     assert manager.get_engine("ops") is replacement
+
+
+def test_refresh_domain_rebuilds_engine(manager: DynamicSupabaseManager) -> None:
+    first = manager.get_engine("ops")
+    refreshed = manager.refresh_domain("ops")
+    assert refreshed is not first
+    assert manager.get_engine("ops") is refreshed
+    assert refreshed.catalogue()["tables"][0]["name"] == "signals"
+
+
+def test_refresh_domain_without_factory_raises() -> None:
+    manager = DynamicSupabaseManager(engines={})
+    manager.register_engine("custom", DynamicSupabaseEngine())
+    with pytest.raises(RuntimeError):
+        manager.refresh_domain("custom")
