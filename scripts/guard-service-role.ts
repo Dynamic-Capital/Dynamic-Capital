@@ -47,7 +47,6 @@ async function scan(dir: string) {
     if (/(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock)$/.test(p)) {
       continue;
     }
-    if (p.endsWith(".env.example")) continue;
     if (!/\.(t|j)sx?$|\.env|\.yml$|\.jsonc?$/.test(p)) continue;
     const buf = await Deno.readFile(p);
     if (isBinary(buf)) continue;
