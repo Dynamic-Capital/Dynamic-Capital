@@ -42,6 +42,7 @@ __all__ = [
     "TonLiquiditySnapshot",
     "TonWalletDistribution",
     "TonNetworkSnapshot",
+    "TonActionRecord",
     "TonDataCollector",
     "TonFeatureEngineer",
     "TonModelCoordinator",
@@ -113,6 +114,28 @@ class TonNetworkSnapshot:
     bridge_latency_ms: float
 
 
+@dataclass(slots=True, frozen=True)
+class TonActionRecord:
+    """Represents a normalised action returned by the toncenter v3 API."""
+
+    action_id: str
+    type: str
+    success: bool
+    start_lt: int
+    end_lt: int
+    start_utime: int | None
+    end_utime: int | None
+    trace_id: str | None
+    trace_end_lt: int | None
+    trace_end_utime: int | None
+    trace_external_hash: str | None
+    trace_external_hash_norm: str | None
+    trace_mc_seqno_end: int | None
+    accounts: tuple[str, ...]
+    transactions: tuple[str, ...]
+    details: Mapping[str, Any] | str | None
+
+
 def _ensure_datetime(value: Any, *, field: str) -> datetime:
     if isinstance(value, datetime):
         return value
@@ -127,6 +150,53 @@ def _ensure_datetime(value: Any, *, field: str) -> datetime:
     raise ValueError(f"Unsupported datetime type for {field}: {type(value)!r}")
 
 
+def _as_bool(value: Any, *, field: str) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "1", "yes"}:
+            return True
+        if lowered in {"false", "0", "no"}:
+            return False
+    if isinstance(value, (int, float)):
+        return bool(int(value))
+    raise ValueError(f"{field} must be a boolean value")
+
+
+def _as_optional_int(value: Any, *, field: str) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        candidate = value.strip()
+        if candidate == "":
+            return None
+        try:
+            return int(candidate, 10)
+        except ValueError as exc:  # pragma: no cover - defensive guard
+            raise ValueError(f"{field} must be an integer or omitted") from exc
+    try:
+        return int(value)
+    except (TypeError, ValueError) as exc:  # pragma: no cover - defensive guard
+        raise ValueError(f"{field} must be an integer or omitted") from exc
+
+
+def _normalise_identifier(value: Any, *, field: str) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        candidate = value.strip()
+        if not candidate:
+            return None
+        if candidate.lower() == "string":
+            return None
+        return candidate
+    candidate = str(value).strip()
+    if not candidate or candidate.lower() == "string":
+        return None
+    return candidate
+
+
 class TonDataCollector:
     """Fetches market, liquidity, and wallet telemetry for TON ecosystems."""
 
@@ -139,6 +209,7 @@ class TonDataCollector:
         self._client = http_client
         self._base_urls = {
             "toncenter": "https://toncenter.com/api/v2",
+            "toncenter_actions": "https://toncenter.com/api/v3",
             "stonfi": "https://api.ston.fi",
             "dedust": "https://api.dedust.io",
             "tonapi": "https://tonapi.io/v2",
@@ -197,6 +268,106 @@ class TonDataCollector:
             start_time=start,
             end_time=end,
         )
+
+    async def fetch_account_actions(
+        self,
+        *,
+        account: str,
+        limit: int = 10,
+        offset: int = 0,
+        sort: str = "desc",
+        include_accounts: bool = False,
+        tx_hash: Any | None = None,
+        msg_hash: Any | None = None,
+        action_id: Any | None = None,
+        trace_id: Any | None = None,
+    ) -> tuple[TonActionRecord, ...]:
+        """Retrieve normalised account actions from toncenter's v3 REST API."""
+
+        account_id = _normalise_identifier(account, field="account")
+        if not account_id:
+            raise ValueError("account must be provided")
+        if limit < 1 or limit > 100:
+            raise ValueError("limit must be between 1 and 100")
+        if offset < 0:
+            raise ValueError("offset must be non-negative")
+        sort_order = sort.lower()
+        if sort_order not in {"asc", "desc"}:
+            raise ValueError("sort must be either 'asc' or 'desc'")
+
+        base = self._base_urls.get("toncenter_actions", "https://toncenter.com/api/v3")
+        url = f"{base.rstrip('/')}\/actions"
+        params: dict[str, Any] = {
+            "account": account_id,
+            "limit": limit,
+            "offset": offset,
+            "sort": sort_order,
+        }
+        if include_accounts:
+            params["include_accounts"] = "true"
+
+        for field_name, value in (
+            ("tx_hash", tx_hash),
+            ("msg_hash", msg_hash),
+            ("action_id", action_id),
+            ("trace_id", trace_id),
+        ):
+            normalised = _normalise_identifier(value, field=field_name)
+            if normalised:
+                params[field_name] = normalised
+
+        payload = await self._request(url, params=params)
+        raw_actions = payload.get("actions", [])
+        actions: list[TonActionRecord] = []
+
+        for index, entry in enumerate(raw_actions):
+            mapping = _coerce_mapping(entry, label=f"actions[{index}]")
+            accounts: tuple[str, ...] = ()
+            if include_accounts and (raw_accounts := mapping.get("accounts")):
+                if isinstance(raw_accounts, Sequence) and not isinstance(
+                    raw_accounts, (str, bytes, bytearray)
+                ):
+                    accounts = tuple(str(item) for item in raw_accounts)
+                else:  # pragma: no cover - API contract safeguard
+                    raise ValueError("accounts must be a sequence when requested")
+            transactions_field = mapping.get("transactions", [])
+            if isinstance(transactions_field, Sequence) and not isinstance(
+                transactions_field, (str, bytes, bytearray)
+            ):
+                transactions = tuple(str(item) for item in transactions_field)
+            else:
+                transactions = ()
+
+            actions.append(
+                TonActionRecord(
+                    action_id=str(_extract(mapping, "action_id", "actionId")),
+                    type=str(_extract(mapping, "type")),
+                    success=_as_bool(_extract(mapping, "success"), field="success"),
+                    start_lt=_as_int(_extract(mapping, "start_lt", "startLt"), field="startLt"),
+                    end_lt=_as_int(_extract(mapping, "end_lt", "endLt"), field="endLt"),
+                    start_utime=_as_optional_int(mapping.get("start_utime"), field="startUtime"),
+                    end_utime=_as_optional_int(mapping.get("end_utime"), field="endUtime"),
+                    trace_id=_normalise_identifier(mapping.get("trace_id"), field="traceId"),
+                    trace_end_lt=_as_optional_int(mapping.get("trace_end_lt"), field="traceEndLt"),
+                    trace_end_utime=_as_optional_int(
+                        mapping.get("trace_end_utime"), field="traceEndUtime"
+                    ),
+                    trace_external_hash=_normalise_identifier(
+                        mapping.get("trace_external_hash"), field="traceExternalHash"
+                    ),
+                    trace_external_hash_norm=_normalise_identifier(
+                        mapping.get("trace_external_hash_norm"), field="traceExternalHashNorm"
+                    ),
+                    trace_mc_seqno_end=_as_optional_int(
+                        mapping.get("trace_mc_seqno_end"), field="traceMcSeqnoEnd"
+                    ),
+                    accounts=accounts,
+                    transactions=transactions,
+                    details=mapping.get("details"),
+                )
+            )
+
+        return tuple(actions)
 
     async def fetch_liquidity(self, *, venue: str, pair: str) -> TonLiquiditySnapshot:
         if venue.lower() == "stonfi":
