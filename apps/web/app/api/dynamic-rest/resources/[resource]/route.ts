@@ -123,16 +123,13 @@ type RouteContext = {
   params: RouteParams;
 };
 
-function extractResource(params?: RouteParams): string | undefined {
-  const resource = params?.resource;
+function extractResource(params: RouteParams): string | undefined {
+  const resource = params.resource;
   if (!resource) return undefined;
   return Array.isArray(resource) ? resource[0] : resource;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: RouteContext = { params: {} },
-) {
+export async function GET(req: NextRequest, { params }: RouteContext) {
   const definition = resolveResource(extractResource(params));
 
   if (!definition) {
