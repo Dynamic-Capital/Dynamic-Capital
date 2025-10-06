@@ -1,9 +1,31 @@
-"""Composable GPT model builder utilities for Dynamic Capital."""
+"""Composable GPT model builder utilities for Dynamic Capital.
+
+This module provides a small configuration layer that describes GPT style
+architectures together with optional PyTorch modules that can be instantiated
+directly from the configuration dataclasses.  When PyTorch is not available the
+configuration objects can still be constructed and inspected, while attempts to
+materialise the neural network raise a clear error message.
+"""
 
 from __future__ import annotations
 
+import importlib.util
+import math
 from dataclasses import dataclass, field
-from typing import Mapping, MutableMapping, Sequence
+from typing import Any, Mapping, MutableMapping, Sequence, TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from torch import Tensor, nn
+
+_TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
+
+if _TORCH_AVAILABLE:  # pragma: no cover - import side effect
+    import torch
+    from torch import Tensor, nn
+else:  # pragma: no cover - import side effect
+    torch = None  # type: ignore[assignment]
+    Tensor = Any  # type: ignore[assignment]
+    nn = Any  # type: ignore[assignment]
 
 __all__ = [
     "GPTEmbeddingConfig",
@@ -11,6 +33,8 @@ __all__ = [
     "GPTModel",
     "GPTStageConfig",
     "GPTModelBuilder",
+    "DynamicGPTModel",
+    "instantiate_torch_model",
     "build_gpt_model",
     "build_gpt_model_from_stages",
 ]
@@ -95,6 +119,7 @@ class GPTBlockConfig:
     residual_dropout: float = 0.0
     activation: str = "gelu"
     use_bias: bool = True
+    layer_norm_epsilon: float = 1e-5
 
     def __post_init__(self) -> None:  # pragma: no cover - deterministic checks
         if self.index < 0:
@@ -107,6 +132,7 @@ class GPTBlockConfig:
         _validate_dropout(self.dropout, label="dropout")
         _validate_dropout(self.attention_dropout, label="attention_dropout")
         _validate_dropout(self.residual_dropout, label="residual_dropout")
+        _ensure_non_negative(self.layer_norm_epsilon, label="layer_norm_epsilon")
 
     @property
     def head_dim(self) -> int:
@@ -246,8 +272,259 @@ class GPTStageConfig:
 
 
 # ---------------------------------------------------------------------------
+# PyTorch modules
+# ---------------------------------------------------------------------------
+
+
+if _TORCH_AVAILABLE:
+
+    def _sinusoidal_embeddings(max_positions: int, model_dim: int) -> "Tensor":
+        if model_dim <= 0:
+            raise ValueError("model_dim must be positive for sinusoidal embeddings")
+
+        half_dim = model_dim // 2
+        if half_dim == 0:
+            return torch.zeros(max_positions, model_dim, dtype=torch.float32)
+
+        denominator = max(half_dim - 1, 1)
+        frequencies = torch.exp(
+            torch.arange(half_dim, dtype=torch.float32) * -(math.log(10_000.0) / denominator)
+        )
+        positions = torch.arange(max_positions, dtype=torch.float32).unsqueeze(1)
+        angles = positions * frequencies.unsqueeze(0)
+        embeddings = torch.zeros(max_positions, model_dim, dtype=torch.float32)
+        embeddings[:, 0::2] = torch.sin(angles)
+        embeddings[:, 1::2] = torch.cos(angles)
+        if model_dim % 2 == 1:
+            embeddings[:, -1] = 0.0
+        return embeddings
+
+
+    def _causal_mask(size: int, *, device: "torch.device | None") -> "Tensor":
+        mask = torch.ones(size, size, device=device, dtype=torch.bool)
+        return torch.triu(mask, diagonal=1)
+
+
+    def _resolve_activation(name: str) -> "nn.Module":
+        key = name.lower().strip()
+        if key in {"gelu", "geglu"}:
+            return nn.GELU()
+        if key in {"relu"}:
+            return nn.ReLU()
+        if key in {"silu", "swish"}:
+            return nn.SiLU()
+        if key in {"tanh"}:
+            return nn.Tanh()
+        raise ValueError(f"Unsupported activation function: {name}")
+
+
+    class CausalSelfAttention(nn.Module):
+        """Multi-head self-attention with a causal mask."""
+
+        def __init__(self, config: GPTBlockConfig) -> None:
+            super().__init__()
+            self.num_heads = config.num_heads
+            self.head_dim = config.head_dim
+            self.model_dim = config.model_dim
+            self.qkv = nn.Linear(self.model_dim, 3 * self.model_dim, bias=config.use_bias)
+            self.proj = nn.Linear(self.model_dim, self.model_dim, bias=config.use_bias)
+            self.attention_dropout = nn.Dropout(config.attention_dropout)
+            self.projection_dropout = nn.Dropout(config.dropout)
+
+        def forward(self, hidden_states: "Tensor", *, mask: "Tensor") -> "Tensor":
+            batch, sequence, _ = hidden_states.shape
+            qkv = self.qkv(hidden_states)
+            query, key, value = qkv.chunk(3, dim=-1)
+
+            query = query.view(batch, sequence, self.num_heads, self.head_dim).transpose(1, 2)
+            key = key.view(batch, sequence, self.num_heads, self.head_dim).transpose(1, 2)
+            value = value.view(batch, sequence, self.num_heads, self.head_dim).transpose(1, 2)
+
+            attention_scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(self.head_dim)
+            attention_scores = attention_scores.masked_fill(mask, float("-inf"))
+            attention_probs = torch.softmax(attention_scores, dim=-1)
+            attention_probs = self.attention_dropout(attention_probs)
+
+            attention_output = torch.matmul(attention_probs, value)
+            attention_output = (
+                attention_output.transpose(1, 2).contiguous().view(batch, sequence, self.model_dim)
+            )
+            attention_output = self.projection_dropout(self.proj(attention_output))
+            return attention_output
+
+
+    class GPTFeedForward(nn.Module):
+        """Feedforward module used inside GPT blocks."""
+
+        def __init__(self, config: GPTBlockConfig) -> None:
+            super().__init__()
+            self.linear_in = nn.Linear(config.model_dim, config.feedforward_dim, bias=config.use_bias)
+            self.activation = _resolve_activation(config.activation)
+            self.dropout = nn.Dropout(config.dropout)
+            self.linear_out = nn.Linear(config.feedforward_dim, config.model_dim, bias=config.use_bias)
+
+        def forward(self, hidden_states: "Tensor") -> "Tensor":
+            hidden_states = self.linear_in(hidden_states)
+            hidden_states = self.activation(hidden_states)
+            hidden_states = self.dropout(hidden_states)
+            hidden_states = self.linear_out(hidden_states)
+            hidden_states = self.dropout(hidden_states)
+            return hidden_states
+
+
+    class GPTBlock(nn.Module):
+        """Transformer decoder block."""
+
+        def __init__(self, config: GPTBlockConfig) -> None:
+            super().__init__()
+            self.layer_norm_1 = nn.LayerNorm(config.model_dim, eps=config.layer_norm_epsilon)
+            self.attention = CausalSelfAttention(config)
+            self.layer_norm_2 = nn.LayerNorm(config.model_dim, eps=config.layer_norm_epsilon)
+            self.feed_forward = GPTFeedForward(config)
+            self.residual_dropout = nn.Dropout(config.residual_dropout)
+
+        def forward(self, hidden_states: "Tensor", *, mask: "Tensor") -> "Tensor":
+            residual = hidden_states
+            hidden_states = self.layer_norm_1(hidden_states)
+            attention_output = self.attention(hidden_states, mask=mask)
+            hidden_states = residual + self.residual_dropout(attention_output)
+
+            residual = hidden_states
+            hidden_states = self.layer_norm_2(hidden_states)
+            feedforward_output = self.feed_forward(hidden_states)
+            hidden_states = residual + self.residual_dropout(feedforward_output)
+            return hidden_states
+
+
+    class DynamicGPTModel(nn.Module):
+        """Minimal PyTorch GPT implementation backed by :class:`GPTModel`."""
+
+        def __init__(self, config: GPTModel) -> None:
+            super().__init__()
+            self.config = config
+            embedding = config.embedding
+
+            self.token_embeddings = nn.Embedding(embedding.vocab_size, embedding.model_dim)
+            if embedding.learnable_positional_embeddings:
+                self.position_embeddings = nn.Embedding(
+                    embedding.max_position_embeddings, embedding.model_dim
+                )
+                self.register_buffer("_static_position_embeddings", None, persistent=False)
+            else:
+                self.position_embeddings = None
+                sinusoidal = _sinusoidal_embeddings(
+                    embedding.max_position_embeddings, embedding.model_dim
+                )
+                self.register_buffer("_static_position_embeddings", sinusoidal, persistent=False)
+
+            self.embedding_dropout = nn.Dropout(embedding.dropout)
+            self.blocks = nn.ModuleList([GPTBlock(block) for block in config.blocks])
+            self.final_layer_norm = (
+                nn.LayerNorm(embedding.model_dim, eps=embedding.layer_norm_epsilon)
+                if config.final_layer_norm
+                else None
+            )
+            self.lm_head = nn.Linear(embedding.model_dim, embedding.vocab_size, bias=config.use_bias)
+            if config.share_embeddings:
+                self.lm_head.weight = self.token_embeddings.weight
+
+            self.max_position_embeddings = embedding.max_position_embeddings
+            self.learnable_positional_embeddings = embedding.learnable_positional_embeddings
+
+        def forward(self, input_ids: "Tensor") -> "Tensor":
+            if input_ids.dim() != 2:
+                raise ValueError(
+                    "input_ids must be a 2D tensor of shape (batch, sequence_length)"
+                )
+
+            batch, sequence = input_ids.shape
+            if sequence > self.max_position_embeddings:
+                raise ValueError(
+                    "sequence length exceeds configured maximum position embeddings"
+                )
+
+            device = input_ids.device
+            positions = torch.arange(sequence, device=device).unsqueeze(0).expand(batch, sequence)
+
+            token_embeddings = self.token_embeddings(input_ids)
+            if self.learnable_positional_embeddings:
+                position_embeddings = self.position_embeddings(positions)
+            else:
+                assert self._static_position_embeddings is not None  # for type checkers
+                position_embeddings = self._static_position_embeddings[:sequence, :].to(device)
+                position_embeddings = position_embeddings.type_as(token_embeddings)
+                position_embeddings = position_embeddings.unsqueeze(0).expand(batch, sequence, -1)
+
+            hidden_states = token_embeddings + position_embeddings
+            hidden_states = self.embedding_dropout(hidden_states)
+
+            if self.blocks:
+                mask = _causal_mask(sequence, device=device)
+                for block in self.blocks:
+                    hidden_states = block(hidden_states, mask=mask)
+
+            if self.final_layer_norm is not None:
+                hidden_states = self.final_layer_norm(hidden_states)
+
+            logits = self.lm_head(hidden_states)
+            return logits
+
+        @torch.no_grad()
+        def generate(
+            self,
+            input_ids: "Tensor",
+            *,
+            max_new_tokens: int,
+            temperature: float = 1.0,
+            top_k: int | None = None,
+        ) -> "Tensor":
+            """Autoregressively generate new tokens."""
+
+            if temperature <= 0:
+                raise ValueError("temperature must be positive")
+
+            output = input_ids
+            for _ in range(max_new_tokens):
+                logits = self.forward(output[:, -self.max_position_embeddings :])
+                logits = logits[:, -1, :] / temperature
+                if top_k is not None and top_k > 0:
+                    top_values, _ = torch.topk(logits, top_k)
+                    threshold = top_values[:, -1].unsqueeze(-1)
+                    logits = torch.where(
+                        logits < threshold, torch.full_like(logits, float("-inf")), logits
+                    )
+                probabilities = torch.softmax(logits, dim=-1)
+                next_token = torch.multinomial(probabilities, num_samples=1)
+                output = torch.cat([output, next_token], dim=1)
+            return output
+
+
+else:  # pragma: no cover - simple guard for environments without torch
+
+    class DynamicGPTModel:  # type: ignore[misc]
+        """Placeholder implementation used when PyTorch is unavailable."""
+
+        def __init__(self, config: GPTModel) -> None:  # noqa: D401 - short message
+            raise ImportError(
+                "PyTorch is required to instantiate DynamicGPTModel. Please install "
+                "the 'torch' package to enable neural model materialisation."
+            )
+
+
+# ---------------------------------------------------------------------------
 # builders
 # ---------------------------------------------------------------------------
+
+
+def instantiate_torch_model(config: GPTModel) -> DynamicGPTModel:
+    """Instantiate a :class:`DynamicGPTModel` from a high level configuration."""
+
+    if not _TORCH_AVAILABLE:
+        raise ImportError(
+            "PyTorch is required to instantiate DynamicGPTModel. Install the 'torch'"
+            " package to enable this functionality."
+        )
+    return DynamicGPTModel(config)
 
 
 @dataclass(slots=True)
@@ -259,6 +536,7 @@ class GPTModelBuilder:
     final_layer_norm: bool = True
     use_bias: bool = True
     default_activation: str = "gelu"
+    layer_norm_epsilon: float = 1e-5
 
     def build(
         self,
@@ -310,6 +588,7 @@ class GPTModelBuilder:
                 residual_dropout=residual_dropout,
                 activation=activation or self.default_activation,
                 use_bias=self.use_bias,
+                layer_norm_epsilon=self.layer_norm_epsilon,
             )
             for index in range(depth)
         ]
@@ -374,6 +653,7 @@ class GPTModelBuilder:
                         residual_dropout=stage.residual_dropout,
                         activation=stage.activation or self.default_activation,
                         use_bias=self.use_bias,
+                        layer_norm_epsilon=self.layer_norm_epsilon,
                     )
                 )
                 block_index += 1
