@@ -177,13 +177,10 @@ def _as_optional_int(value: Any, *, field: str) -> int | None:
         candidate = value.strip()
         if candidate == "":
             return None
-        try:
-            return int(candidate, 10)
-        except ValueError as exc:  # pragma: no cover - defensive guard
-            raise ValueError(f"{field} must be an integer or omitted") from exc
+        value = candidate
     try:
-        return int(value)
-    except (TypeError, ValueError) as exc:  # pragma: no cover - defensive guard
+        return _as_int(value, field=field)
+    except ValueError as exc:  # pragma: no cover - defensive guard
         raise ValueError(f"{field} must be an integer or omitted") from exc
 
 
@@ -201,6 +198,40 @@ def _normalise_identifier(value: Any, *, field: str) -> str | None:
     if not candidate or candidate.lower() == "string":
         return None
     return candidate
+
+
+def _coerce_mapping(value: Any, *, label: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{label} must be a mapping")
+    return value
+
+
+def _extract(
+    mapping: Mapping[str, Any], *candidates: str, required: bool = True
+) -> Any:
+    for key in candidates:
+        if key in mapping:
+            return mapping[key]
+    if required:
+        joined = ", ".join(candidates)
+        raise ValueError(f"Missing required field(s): {joined}")
+    return None
+
+
+def _as_int(value: Any, *, field: str) -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"{field} must be an integer")
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str):
+        candidate = value.strip()
+        if candidate == "":
+            raise ValueError(f"{field} must be an integer")
+        try:
+            return int(candidate, 0)
+        except ValueError as exc:  # pragma: no cover - defensive guard
+            raise ValueError(f"{field} must be an integer") from exc
+    raise ValueError(f"{field} must be an integer")
 
 
 class TonDataCollector:
@@ -304,7 +335,7 @@ class TonDataCollector:
             raise ValueError("sort must be either 'asc' or 'desc'")
 
         base = self._base_urls.get("toncenter_actions", "https://toncenter.com/api/v3")
-        url = f"{base.rstrip('/')}\/actions"
+        url = f"{base.rstrip('/')}/actions"
         params: dict[str, Any] = {
             "account": account_id,
             "limit": limit,
@@ -353,21 +384,52 @@ class TonDataCollector:
                     success=_as_bool(_extract(mapping, "success"), field="success"),
                     start_lt=_as_int(_extract(mapping, "start_lt", "startLt"), field="startLt"),
                     end_lt=_as_int(_extract(mapping, "end_lt", "endLt"), field="endLt"),
-                    start_utime=_as_optional_int(mapping.get("start_utime"), field="startUtime"),
-                    end_utime=_as_optional_int(mapping.get("end_utime"), field="endUtime"),
-                    trace_id=_normalise_identifier(mapping.get("trace_id"), field="traceId"),
-                    trace_end_lt=_as_optional_int(mapping.get("trace_end_lt"), field="traceEndLt"),
+                    start_utime=_as_optional_int(
+                        _extract(mapping, "start_utime", "startUtime", required=False),
+                        field="startUtime",
+                    ),
+                    end_utime=_as_optional_int(
+                        _extract(mapping, "end_utime", "endUtime", required=False),
+                        field="endUtime",
+                    ),
+                    trace_id=_normalise_identifier(
+                        _extract(mapping, "trace_id", "traceId", required=False),
+                        field="traceId",
+                    ),
+                    trace_end_lt=_as_optional_int(
+                        _extract(mapping, "trace_end_lt", "traceEndLt", required=False),
+                        field="traceEndLt",
+                    ),
                     trace_end_utime=_as_optional_int(
-                        mapping.get("trace_end_utime"), field="traceEndUtime"
+                        _extract(mapping, "trace_end_utime", "traceEndUtime", required=False),
+                        field="traceEndUtime",
                     ),
                     trace_external_hash=_normalise_identifier(
-                        mapping.get("trace_external_hash"), field="traceExternalHash"
+                        _extract(
+                            mapping,
+                            "trace_external_hash",
+                            "traceExternalHash",
+                            required=False,
+                        ),
+                        field="traceExternalHash",
                     ),
                     trace_external_hash_norm=_normalise_identifier(
-                        mapping.get("trace_external_hash_norm"), field="traceExternalHashNorm"
+                        _extract(
+                            mapping,
+                            "trace_external_hash_norm",
+                            "traceExternalHashNorm",
+                            required=False,
+                        ),
+                        field="traceExternalHashNorm",
                     ),
                     trace_mc_seqno_end=_as_optional_int(
-                        mapping.get("trace_mc_seqno_end"), field="traceMcSeqnoEnd"
+                        _extract(
+                            mapping,
+                            "trace_mc_seqno_end",
+                            "traceMcSeqnoEnd",
+                            required=False,
+                        ),
+                        field="traceMcSeqnoEnd",
                     ),
                     accounts=accounts,
                     transactions=transactions,
