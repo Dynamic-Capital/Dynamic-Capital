@@ -1,4 +1,6 @@
 dm_haiku==0.0.12
-jax[cuda12-pip]==0.4.25 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+--find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+jax[cuda12-pip]==0.4.25; python_version < "3.12"
+jax==0.4.25; python_version >= "3.12"
 numpy==1.26.4
 sentencepiece==0.2.0
