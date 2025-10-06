@@ -74,3 +74,20 @@ def test_generation_appends_tokens() -> None:
 
     assert generated.shape == (1, 7)
     assert torch.all(generated[:, :4] == 0)
+
+
+def test_instantiate_with_device_and_dtype() -> None:
+    config = build_gpt_model(
+        depth=1,
+        model_dim=8,
+        num_heads=2,
+        feedforward_ratio=2.0,
+        vocab_size=16,
+        max_position_embeddings=16,
+    )
+
+    model = instantiate_torch_model(config, device="cpu", dtype=torch.float64)
+    param = next(model.parameters())
+
+    assert param.device.type == "cpu"
+    assert param.dtype == torch.float64

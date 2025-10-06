@@ -516,7 +516,12 @@ else:  # pragma: no cover - simple guard for environments without torch
 # ---------------------------------------------------------------------------
 
 
-def instantiate_torch_model(config: GPTModel) -> DynamicGPTModel:
+def instantiate_torch_model(
+    config: GPTModel,
+    *,
+    device: "torch.device | str | None" = None,
+    dtype: "torch.dtype | None" = None,
+) -> DynamicGPTModel:
     """Instantiate a :class:`DynamicGPTModel` from a high level configuration."""
 
     if not _TORCH_AVAILABLE:
@@ -524,7 +529,11 @@ def instantiate_torch_model(config: GPTModel) -> DynamicGPTModel:
             "PyTorch is required to instantiate DynamicGPTModel. Install the 'torch'"
             " package to enable this functionality."
         )
-    return DynamicGPTModel(config)
+
+    model = DynamicGPTModel(config)
+    if device is not None or dtype is not None:
+        model = model.to(device=device, dtype=dtype)
+    return model
 
 
 @dataclass(slots=True)
