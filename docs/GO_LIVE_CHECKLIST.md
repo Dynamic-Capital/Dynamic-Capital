@@ -12,6 +12,9 @@ npm run go-live
 
 # Include optional smoke tests
 npm run go-live -- --include-optional
+
+# Preview the command list without executing tasks
+npm run go-live -- --dry-run
 ```
 
 > [!NOTE]
