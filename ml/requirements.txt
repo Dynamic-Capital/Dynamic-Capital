@@ -1,10 +1,11 @@
 agno>=2.1.1
 autogen>=0.9.10
 crewai>=0.201.1
-huggingface_hub>=0.35.3
+huggingface_hub>=0.26.2
 langchain>=0.3.27
 langgraph>=0.6.8
+transformers>=4.46.2
 pyarrow>=15.0.0
 PyPDF2>=3.0.0
 pypdfium2>=4.30.0
-torch>=2.3.0
+torch>=2.4.1
