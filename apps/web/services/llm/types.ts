@@ -27,6 +27,7 @@ export type ProviderId =
   | "dynamic-ags"
   | "openai"
   | "anthropic"
+  | "huggingface"
   | "groq"
   | "llama-cpp"
   | "vllm"

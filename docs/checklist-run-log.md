@@ -23,14 +23,66 @@ is the best fit for the task at hand.
 
 ## Quick Reference
 
-| Scenario                                                      | Command                                                       | When to Use                                                                                    | Output Highlights                                                                |
-| ------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Fast local runs that bypass npm wrappers.                     | `node scripts/run-checklists.js --list`                       | Iterate on the script directly without lifecycle hooks or npm overhead.                        | Streams the checklist metadata immediately in plain text.                        |
-| Runs that require project hooks or environment bootstrapping. | `npm run checklists -- --list`                                | Respect npm lifecycle hooks (`prechecklists`, `.env` loading, etc.) while listing the catalog. | Mirrors the raw list while honoring repository setup requirements.               |
-| Preview a specific checklist without executing tasks.         | `node scripts/run-checklists.js --checklist <name> --dry-run` | Validate the task inventory before running the automation in CI or production.                 | Prints the planned tasks, references, and notes without triggering side effects. |
-| Need usage guidance before choosing a subcommand.             | `npm run checklists`                                          | Remind yourself of the supported options or share quick guidance with teammates.               | Displays the built-in help banner with usage examples.                           |
+| Scenario                                                      | Command                                                       | When to Use                                                                                    | Output Highlights                                                                          |
+| ------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Fast local runs that bypass npm wrappers.                     | `node scripts/run-checklists.js --list`                       | Iterate on the script directly without lifecycle hooks or npm overhead.                        | Streams the checklist metadata immediately in plain text.                                  |
+| Runs that require project hooks or environment bootstrapping. | `npm run checklists -- --list`                                | Respect npm lifecycle hooks (`prechecklists`, `.env` loading, etc.) while listing the catalog. | Mirrors the raw list while honoring repository setup requirements.                         |
+| Preview a specific checklist without executing tasks.         | `node scripts/run-checklists.js --checklist <name> --dry-run` | Validate the task inventory before running the automation in CI or production.                 | Prints the planned tasks, references, and notes without triggering side effects.           |
+| Need usage guidance before choosing a subcommand.             | `npm run checklists`                                          | Remind yourself of the supported options or share quick guidance with teammates.               | Displays the built-in help banner with usage examples.                                     |
+| Review the latest initiative status snapshot.                 | `./playbook`                                                  | Pull the newest `docs/status-updates` summary ahead of stand-ups or report prep.               | Prints the summary and follow-up actions; add `--section` to include desk-specific detail. |
+
+### Automation exports
+
+- Use `npm run checklists -- --automation governance --plan-export automation/logs/governance-plan.json --result-export automation/logs/governance-run.json`
+  to bundle intelligence and trading loops into a single run with machine-readable artefacts.
+- Run `./playbook --automate --export-dir automation/playbook` before leadership cadences to refresh timestamped Markdown snapshots for every initiative update.
 
 ## Command Playbooks
+
+### 2025-02-13 — Dynamic AI Validation Checklist Run
+
+**Command**
+
+```bash
+npm run checklists -- --checklist dai
+```
+
+**Purpose**
+
+Exercise the Dynamic AI regression suites before updating persona prompts or
+orchestration lobes, ensuring the Brain’s pipelines remain auditable.
+
+**Highlights**
+
+- Pytest executed the architecture checks across pipeline phases, residency
+  guards, and telemetry validation (11 tests, all
+  passing).【5f5071†L1-L17】【e4c75d†L1-L6】
+- Persona and fusion coverage verified agent chaining, benchmarking surfaces,
+  and lattice assembly in 36 passing tests, clearing the path for new prompt
+  deployments.【3c4987†L1-L8】
+- Checklist automation completed without manual intervention, producing
+  artefacts for the release record.【3c4987†L6-L8】
+
+### 2025-02-13 — Dynamic AGI Oversight Checklist Run
+
+**Command**
+
+```bash
+npm run checklists -- --checklist dagi
+```
+
+**Purpose**
+
+Validate DAGI self-improvement, mentorship feedback, and orchestration
+diagnostics prior to integrating new modules or telemetry feeds.
+
+**Highlights**
+
+- Oversight pytest suite covered build tooling, identity controls, mentorship
+  pipelines, and fine-tuning adapters with 18 passing
+  tests.【8b5e25†L1-L11】【eb586e†L1-L8】
+- Checklist automation finished successfully, documenting the run for future
+  infrastructure reviews.【fe1511†L1-L3】
 
 ### 2025-10-01 — Modular Architecture Checklist Run
 

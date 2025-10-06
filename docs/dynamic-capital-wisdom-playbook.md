@@ -352,6 +352,27 @@ Annual   → Legacy & wellbeing summit aligning long-range strategy with capacit
 Use this overlay to align calendars; every ritual should produce artifacts that
 update the shared knowledge base.
 
+### Playbook CLI Ritual Integration
+
+- **Daily stand-up primer.** Launch `./playbook --section "Summary"` before the
+  morning stand-up so the facilitator can reiterate the latest initiative
+  highlights and open follow-up actions without re-reading every document, then
+  commit the automation artefact via
+  `./playbook --section "Summary" --export-dir automation/playbook/daily` so the
+  exported snippet is attached to the leadership channel summary before closing
+  the stand-up log.
+- **Weekly leadership sync.** Capture desk-specific priorities by running
+  `./playbook --section "Dynamic Trading Algo (DTA)" --section "Dynamic Trading Logic (DTL)" --export-dir automation/playbook/weekly`
+  and attaching the rendered snippet to the leadership channel post so the
+  archive contains both the narrative and the CLI export artefact.
+- **Quarterly governance review.** Export a full snapshot with
+  `./playbook --automate --export-dir automation/playbook/quarterly` (or focus on
+  a single identifier via `--all`) and archive the output alongside governance
+  meeting minutes.
+- **Distribution tracking.** Reference `2025-02-14-cadence-overlay-circulation--leadership+rituals`
+  for acknowledgement expectations and audit notes whenever the cadence overlay
+  or CLI workflow is re-circulated to ritual owners.
+
 ---
 
 ## Reflection Prompts
@@ -387,6 +408,10 @@ decision log.
       next sprint.
 - [ ] Define pause triggers and guardrail thresholds; publish them in the
       operations hub.
+- [ ] Embed a `./playbook` automation review in weekly stand-ups and quarterly
+      governance reviews; verify the exported snapshot (from `./playbook
+      --automate --export-dir automation/playbook`) is attached to the
+      leadership channel summary and stored with meeting notes.
 - [ ] Review progress against this checklist in four weeks and document
       adjustments.
 
