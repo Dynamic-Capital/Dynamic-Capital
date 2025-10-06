@@ -203,6 +203,40 @@ def _normalise_identifier(value: Any, *, field: str) -> str | None:
     return candidate
 
 
+def _coerce_mapping(value: Any, *, label: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{label} must be a mapping")
+    return value
+
+
+def _extract(
+    mapping: Mapping[str, Any], *candidates: str, required: bool = True
+) -> Any:
+    for key in candidates:
+        if key in mapping:
+            return mapping[key]
+    if required:
+        joined = ", ".join(candidates)
+        raise ValueError(f"Missing required field(s): {joined}")
+    return None
+
+
+def _as_int(value: Any, *, field: str) -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"{field} must be an integer")
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str):
+        candidate = value.strip()
+        if candidate == "":
+            raise ValueError(f"{field} must be an integer")
+        try:
+            return int(candidate, 0)
+        except ValueError as exc:  # pragma: no cover - defensive guard
+            raise ValueError(f"{field} must be an integer") from exc
+    raise ValueError(f"{field} must be an integer")
+
+
 class TonDataCollector:
     """Fetches market, liquidity, and wallet telemetry for TON ecosystems."""
 
@@ -304,7 +338,7 @@ class TonDataCollector:
             raise ValueError("sort must be either 'asc' or 'desc'")
 
         base = self._base_urls.get("toncenter_actions", "https://toncenter.com/api/v3")
-        url = f"{base.rstrip('/')}\/actions"
+        url = f"{base.rstrip('/')}/actions"
         params: dict[str, Any] = {
             "account": account_id,
             "limit": limit,
