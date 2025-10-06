@@ -5,9 +5,9 @@ for production availability.
 
 ## Active pins
 
-| Added on   | Operator | Content hash | Artifact description        | Notes                             |
-| ---------- | -------- | ------------ | --------------------------- | --------------------------------- |
-| YYYY-MM-DD | name     | bag:<hash>   | e.g. Mini App v1.4.0 bundle | rotation schedule or dependencies |
+| Added on   | Operator    | Content hash                                                         | Artifact description                           | Notes                                                                                         |
+| ---------- | ----------- | -------------------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 2025-10-06 | Dynamic Ops | bag:9da7628952ce0cd02234e7195285beb9afdcff649349a5f870315c0b159dba96 | TON Site public asset bundle (apps/web/public) | Hash tracked via `scripts/verify/ton_storage.mjs`; update after publishing new gateway bundle |
 
 ## Archive
 
