@@ -22,6 +22,7 @@ from dai_architecture import (  # noqa: E402 - configured sys.path above
     TaskValidationError,
     build_phase1_mesh,
 )
+from dai_architecture.core_adapters import PHASE1_CORE_CLASSES
 
 
 def _make_envelope(task_id: str, *, intent: str = "accumulate", momentum: float = 0.55) -> TaskEnvelope:
@@ -43,6 +44,21 @@ def _make_envelope(task_id: str, *, intent: str = "accumulate", momentum: float 
 
 
 def test_phase1_mesh_contains_eleven_adapters() -> None:
+    assert len(PHASE1_CORE_CLASSES) == 11
+    assert {adapter.__name__ for adapter in PHASE1_CORE_CLASSES} == {
+        "ChatCPT2Adapter",
+        "GrokAdapter",
+        "DolphinAdapter",
+        "OllamaAdapter",
+        "KimiK2Adapter",
+        "DeepSeekV3Adapter",
+        "DeepSeekR1Adapter",
+        "Qwen3Adapter",
+        "MiniMaxM1Adapter",
+        "ZhipuAdapter",
+        "HunyuanAdapter",
+    }
+
     mesh = build_phase1_mesh()
     assert len(mesh) == 11
     names = {adapter.name for adapter in mesh}
