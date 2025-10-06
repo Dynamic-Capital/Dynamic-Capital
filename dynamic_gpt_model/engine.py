@@ -610,17 +610,42 @@ def instantiate_torch_model(
     metadata_dtype: str | None = None
     metadata_key: str | None = None
     if dtype is None:
-        normalised_metadata: dict[str, str] = {
-            _normalise_metadata_key(key): key for key in config.metadata.keys()
+        canonical_dtype_keys = {
+            _normalise_metadata_key(candidate_key)
+            for candidate_key in _TORCH_METADATA_DTYPE_KEYS
         }
+        canonical_metadata: dict[str, tuple[str, str, str]] = {}
+        for stored_key, stored_value in config.metadata.items():
+            canonical_key = _normalise_metadata_key(stored_key)
+            if canonical_key not in canonical_dtype_keys:
+                continue
+
+            normalised_value = stored_value.strip()
+            entry = canonical_metadata.get(canonical_key)
+            if entry is not None:
+                existing_key, existing_value, existing_normalised = entry
+                if existing_normalised.lower() == normalised_value.lower():
+                    continue
+                raise ValueError(
+                    "Conflicting torch dtype metadata values for keys "
+                    f"{existing_key!r} and {stored_key!r}: "
+                    f"{existing_value!r} vs {stored_value!r}"
+                )
+
+            canonical_metadata[canonical_key] = (
+                stored_key,
+                stored_value,
+                normalised_value,
+            )
+
         for candidate_key in _TORCH_METADATA_DTYPE_KEYS:
             canonical_key = _normalise_metadata_key(candidate_key)
-            stored_key = normalised_metadata.get(canonical_key)
-            if not stored_key:
+            entry = canonical_metadata.get(canonical_key)
+            if entry is None:
                 continue
-            value = config.metadata.get(stored_key)
-            if value:
-                metadata_dtype = value
+            stored_key, _original_value, normalised_value = entry
+            if normalised_value:
+                metadata_dtype = normalised_value
                 metadata_key = stored_key
                 break
 

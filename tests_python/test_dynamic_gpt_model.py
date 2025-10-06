@@ -205,6 +205,38 @@ def test_metadata_dtype_hint_key_separator_normalisation(
     assert param.dtype == expected
 
 
+def test_metadata_dtype_hint_conflict_raises_error() -> None:
+    config = build_gpt_model(
+        depth=1,
+        model_dim=8,
+        num_heads=2,
+        feedforward_ratio=2.0,
+        vocab_size=16,
+        max_position_embeddings=16,
+        metadata={"torch dtype": "float16", "torch-dtype": "float32"},
+    )
+
+    with pytest.raises(ValueError, match="Conflicting torch dtype metadata values"):
+        instantiate_torch_model(config)
+
+
+def test_metadata_dtype_hint_duplicate_consistent_values() -> None:
+    config = build_gpt_model(
+        depth=1,
+        model_dim=8,
+        num_heads=2,
+        feedforward_ratio=2.0,
+        vocab_size=16,
+        max_position_embeddings=16,
+        metadata={"torch_dtype": "FLOAT32", "Torch.DType": "  float32  "},
+    )
+
+    model = instantiate_torch_model(config)
+    param = next(model.parameters())
+
+    assert param.dtype == torch.float32
+
+
 def test_instantiate_with_unknown_dtype_alias_raises() -> None:
     config = build_gpt_model(
         depth=1,

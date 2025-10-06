@@ -35,4 +35,7 @@ call skips the suite, so installing the dependency is required for a full pass.
 The torch instantiation helper accepts dtype hints from metadata keys such as
 `torch_dtype`, `torch.dtype`, `torch dtype`, or `torch-dtype` (normalising key
 separators and case) and recognises extended strings such as `"torch.float32"`
-in addition to the shorter aliases like `"bf16"` and `"float16"`.
+in addition to the shorter aliases like `"bf16"` and `"float16"`. When multiple
+metadata entries collapse to the same canonical key they must agree on the
+requested dtype, otherwise `instantiate_torch_model` raises a descriptive error
+to highlight the conflict.

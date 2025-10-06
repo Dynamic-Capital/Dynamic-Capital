@@ -928,7 +928,9 @@ success, or error states based on the fetch result.
   builders. The torch instantiation helper recognises dtype hints from metadata
   keys such as `torch_dtype`, `torch.dtype`, `torch dtype`, or `torch-dtype`
   (normalising key separators and case) and accepts values like
-  `"torch.float32"` alongside the short aliases.
+  `"torch.float32"` alongside the short aliases. Conflicting dtype hints that
+  collapse to the same canonical metadata key raise an explicit error so
+  inconsistent precision requests are surfaced during instantiation.
 
 ### TypeScript type checking
 
