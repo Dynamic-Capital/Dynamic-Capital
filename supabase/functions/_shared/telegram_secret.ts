@@ -40,6 +40,24 @@ interface SupabaseLike {
   };
 }
 
+const SECRET_DECODER = new TextDecoder();
+
+function decodeSecretBytes(
+  value: ArrayBufferView | ArrayBuffer,
+): string | null {
+  try {
+    const view = value instanceof Uint8Array
+      ? value
+      : value instanceof ArrayBuffer
+      ? new Uint8Array(value)
+      : new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    const decoded = SECRET_DECODER.decode(view).trim();
+    return decoded.length > 0 ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
 function normalizeSecretValue(value: unknown): string | null {
   if (typeof value === "string") {
     const trimmed = value.trim();
@@ -47,15 +65,13 @@ function normalizeSecretValue(value: unknown): string | null {
   }
   if (value == null) return null;
   if (value instanceof Uint8Array) {
-    try {
-      const decoded = new TextDecoder().decode(value).trim();
-      return decoded.length > 0 ? decoded : null;
-    } catch {
-      return null;
-    }
+    return decodeSecretBytes(value);
   }
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
+  if (ArrayBuffer.isView(value)) {
+    return decodeSecretBytes(value);
+  }
+  if (value instanceof ArrayBuffer) {
+    return decodeSecretBytes(value);
   }
   return null;
 }

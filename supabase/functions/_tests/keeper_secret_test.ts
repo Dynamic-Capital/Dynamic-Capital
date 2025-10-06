@@ -45,6 +45,20 @@ Deno.test("keeper: decodes Uint8Array secrets", async () => {
   assertEquals(secret, "db");
 });
 
+Deno.test("keeper: decodes ArrayBuffer secrets", async () => {
+  const buffer = new TextEncoder().encode("db\n").buffer;
+  const supa = mockSupa({ setting_value: buffer });
+  const secret = await ensureWebhookSecret(supa, "env");
+  assertEquals(secret, "db");
+});
+
+Deno.test("keeper: decodes DataView secrets", async () => {
+  const bytes = new TextEncoder().encode("db\n");
+  const supa = mockSupa({ setting_value: new DataView(bytes.buffer) });
+  const secret = await ensureWebhookSecret(supa, "env");
+  assertEquals(secret, "db");
+});
+
 Deno.test("keeper: falls back to env secret", async () => {
   const supa = mockSupa(null);
   const secret = await ensureWebhookSecret(supa, "env");
@@ -74,6 +88,12 @@ Deno.test("keeper: trims process env fallback", async () => {
   } finally {
     Deno.env.delete("TELEGRAM_WEBHOOK_SECRET");
   }
+});
+
+Deno.test("keeper: ignores non-string DB values", async () => {
+  const supa = mockSupa({ setting_value: true });
+  const secret = await ensureWebhookSecret(supa, "env");
+  assertEquals(secret, "env");
 });
 
 Deno.test("keeper: generates if none", async () => {

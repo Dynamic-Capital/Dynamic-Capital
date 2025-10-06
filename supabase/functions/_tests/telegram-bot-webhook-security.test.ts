@@ -106,3 +106,30 @@ Deno.test("accepts normalized bot_settings secrets", async () => {
     __setGetSetting(original);
   }
 });
+
+Deno.test("accepts DataView bot_settings secrets", async () => {
+  const original = getSetting;
+  const bytes = new TextEncoder().encode("s3cr3t\n");
+  const stub =
+    (async (_key: string) =>
+      new DataView(bytes.buffer)) as unknown as typeof getSetting;
+  __setGetSetting(stub);
+
+  try {
+    setTestEnv({ ALLOWED_ORIGINS: "*" });
+    const req = new Request("https://example.com/telegram-bot", {
+      method: "POST",
+      headers: { "x-telegram-bot-api-secret-token": "s3cr3t" },
+      body: "{}",
+    });
+
+    const { validateTelegramHeader } = await import(
+      "../_shared/telegram_secret.ts"
+    );
+    const res = await validateTelegramHeader(req);
+    assertStrictEquals(res, null);
+  } finally {
+    clearTestEnv();
+    __setGetSetting(original);
+  }
+});
