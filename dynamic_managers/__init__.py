@@ -8,6 +8,7 @@ from dynamic_agents._lazy import build_lazy_namespace
 
 _MANAGER_EXPORTS = {
     "dynamic_managers.security": ("DynamicSecurityManager",),
+    "dynamic_managers.supabase": ("DynamicSupabaseManager", "SupabaseDomainOverview"),
 }
 
 _LAZY = build_lazy_namespace(_MANAGER_EXPORTS, default_module="dynamic_managers.security")
