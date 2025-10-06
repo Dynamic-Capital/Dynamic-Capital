@@ -36,7 +36,21 @@ node scripts/ton/install-tonutils-reverse-proxy.mjs
 - Combine `--dry-run` to preview the resolved release, download location, and
   filesystem operations without modifying anything.
 
-Once the binary is installed, start the linking flow:
+Once the binary is installed, start the linking flow. The repository root now
+ships a small wrapper that installs the correct binary on demand and then
+proxies any arguments through to it. The helper first attempts to reuse the
+Node.js installer; if Node.js is unavailable, it falls back to downloading the
+Linux amd64 asset directly with `curl`. Running the wrapper with no extra flags
+automatically targets the production TON domain (`dynamiccapital.ton`). Override
+the domain by setting `TONUTILS_REVERSE_PROXY_DOMAIN` or passing `--domain`
+explicitly when relinking. Pass `TONUTILS_REVERSE_PROXY_VERSION=vX.Y.Z` to pin a
+specific release when using the wrapper:
+
+```bash
+./tonutils-reverse-proxy-linux-amd64
+```
+
+If you already have the binary in `tools/bin`, call it directly:
 
 ```bash
 ./tools/bin/tonutils-reverse-proxy --domain dynamiccapital.ton
