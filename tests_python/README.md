@@ -32,3 +32,7 @@ pytest tests_python/test_dynamic_gpt_model.py
 
 When PyTorch is unavailable the module-level `pytest.importorskip("torch")`
 call skips the suite, so installing the dependency is required for a full pass.
+The torch instantiation helper accepts dtype hints from either
+`metadata['torch_dtype']` or `metadata['torch.dtype']`, and recognises extended
+strings such as `"torch.float32"` in addition to the shorter aliases like
+`"bf16"` and `"float16"`.

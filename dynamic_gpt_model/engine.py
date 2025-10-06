@@ -546,6 +546,12 @@ def _resolve_torch_dtype(value: "torch.dtype | str | None") -> "torch.dtype | No
     if isinstance(value, str):
         key = value.strip().lower()
         alias = _DTYPE_ALIAS_MAP.get(key, key)
+
+        # Support metadata strings like "torch.float32" by stripping common
+        # module prefixes before resolving the attribute on ``torch``.
+        if "." in alias:
+            alias = alias.rsplit(".", maxsplit=1)[-1]
+
         dtype_obj = getattr(torch, alias, None)
         if isinstance(dtype_obj, torch.dtype):
             return dtype_obj
