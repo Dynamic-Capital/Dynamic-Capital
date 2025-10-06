@@ -1,0 +1,28 @@
+name: TON Health Checks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+  pull_request:
+    paths:
+      - 'dynamic-capital-ton/**'
+      - 'docs/ton-storage-pins.md'
+      - 'scripts/verify/ton_site.mjs'
+      - 'scripts/verify/ton_storage.mjs'
+      - 'shared/ton/**'
+      - 'apps/web/**'
+      - '.github/workflows/ton-health.yml'
+
+jobs:
+  ton-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: TON site resolver check
+        run: node scripts/verify/ton_site.mjs
+      - name: TON storage manifest check
+        run: node scripts/verify/ton_storage.mjs dynamic-capital-ton/storage/manifest.json docs/ton-storage-pins.md
