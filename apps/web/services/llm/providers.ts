@@ -212,6 +212,83 @@ const coreProviderDefinitions: ProviderDefinition[] = [
     },
   },
   {
+    id: "huggingface",
+    name: "Hugging Face Inference",
+    description:
+      "Hosted inference via Hugging Face's text generation API (requires access token).",
+    defaultModel: "mistralai/Mistral-7B-Instruct-v0.2",
+    contextWindow: 8_192,
+    maxOutputTokens: 1_024,
+    envKeys: ["HUGGINGFACE_ACCESS_TOKEN", "HUGGINGFACE_API_KEY"],
+    async invoke(
+      { messages, temperature = 0.7, maxTokens, language },
+    ): Promise<Omit<ChatResult, "provider">> {
+      const accessToken = requireEnvVar(
+        "HUGGINGFACE_ACCESS_TOKEN",
+        ["HUGGINGFACE_API_KEY"],
+      );
+      const modelId = optionalEnvVar("HUGGINGFACE_CHAT_MODEL") ??
+        "mistralai/Mistral-7B-Instruct-v0.2";
+      const endpoint = optionalEnvVar("HUGGINGFACE_CHAT_URL") ??
+        `https://api-inference.huggingface.co/models/${modelId}`;
+
+      const { system, conversation } = normalizeMessages(messages);
+      const prompt = buildHuggingFacePrompt(system, conversation, language);
+      if (!prompt) {
+        throw new Error(
+          "Unable to construct prompt for Hugging Face request.",
+        );
+      }
+
+      const payload = {
+        inputs: prompt,
+        parameters: {
+          max_new_tokens: maxTokens ?? 512,
+          temperature,
+          return_full_text: false,
+        },
+      } satisfies HuggingFaceInferencePayload;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(
+          `Hugging Face request failed: ${response.status} ${error}`,
+        );
+      }
+
+      const body = await response.json() as HuggingFaceInferenceResponse;
+
+      if (
+        body &&
+        !Array.isArray(body) &&
+        typeof body === "object" &&
+        "error" in body &&
+        typeof body.error === "string"
+      ) {
+        throw new Error(`Hugging Face error: ${body.error}`);
+      }
+
+      const content = extractHuggingFaceText(body);
+      if (!content) {
+        throw new Error("Hugging Face response did not include text content.");
+      }
+
+      return {
+        message: { role: "assistant", content },
+        rawResponse: body,
+      } satisfies Omit<ChatResult, "provider">;
+    },
+  },
+  {
     id: "groq",
     name: "Groq",
     description: "Mixtral-8x7b via Groq for high-throughput comparisons.",
@@ -414,6 +491,25 @@ interface OpenAIChatResponse {
   };
 }
 
+interface HuggingFaceInferencePayload {
+  inputs: string;
+  parameters?: {
+    max_new_tokens?: number;
+    temperature?: number;
+    return_full_text?: boolean;
+  };
+}
+
+type HuggingFaceInferenceResponse =
+  | readonly {
+    generated_text?: string;
+    [key: string]: unknown;
+  }[]
+  | {
+    error?: unknown;
+    [key: string]: unknown;
+  };
+
 const OPEN_SOURCE_PROMPT_WINDOW = 320;
 
 function summarizeLatestUserPrompt(
@@ -517,6 +613,57 @@ function buildOpenAIMessages(
       content: message.content,
     })),
   ];
+}
+
+function buildHuggingFacePrompt(
+  system: string | undefined,
+  conversation: ChatMessage[],
+  language: string | undefined,
+): string | null {
+  const segments: string[] = [];
+  if (system) {
+    segments.push(`System:\n${system}`);
+  }
+
+  for (const message of conversation) {
+    const roleLabel = message.role === "assistant" ? "Assistant" : "User";
+    segments.push(`${roleLabel}:\n${message.content}`);
+  }
+
+  if (language && language.trim().length > 0) {
+    segments.push(`Instruction:\nRespond in ${language.trim()}.`);
+  }
+
+  segments.push("Assistant:");
+
+  return segments.length > 0 ? segments.join("\n\n") : null;
+}
+
+function extractHuggingFaceText(
+  response: HuggingFaceInferenceResponse,
+): string | undefined {
+  if (Array.isArray(response)) {
+    for (const entry of response) {
+      const text = extractHuggingFaceText(
+        entry as HuggingFaceInferenceResponse,
+      );
+      if (text) {
+        return text;
+      }
+    }
+    return undefined;
+  }
+
+  if (!response || typeof response !== "object") {
+    return undefined;
+  }
+
+  const generated = (response as { generated_text?: unknown }).generated_text;
+  if (typeof generated === "string" && generated.trim().length > 0) {
+    return generated.trim();
+  }
+
+  return undefined;
 }
 
 function extractAnthropicText(

@@ -30,7 +30,12 @@ describe("LLM provider availability", () => {
   });
 
   it("keeps third-party providers gated behind configuration", () => {
-    const externalIds: ProviderId[] = ["openai", "anthropic", "groq"];
+    const externalIds: ProviderId[] = [
+      "openai",
+      "anthropic",
+      "huggingface",
+      "groq",
+    ];
 
     for (const id of externalIds) {
       const provider = getProvider(id);
