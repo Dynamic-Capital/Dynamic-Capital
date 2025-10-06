@@ -40,10 +40,23 @@ emit the correct payload.
    cd dns-updater
    ```
 
-2. Import the domain owner's keys into `keys/` and update
+2. Restore the authorised mnemonic using the provisioning helper:
+
+   ```bash
+   cd ../..
+   python dns/wallets/provision_dns_wallet.py --write-mnemonic
+   cd dns/wallets/dns-updater
+   ```
+
+   The script validates the derived address against
+   `dns/dynamiccapital.ton.json → nft.ownerAddress` and writes the
+   signing artefacts (`build/contract.pk`, `build/contract_address`,
+   `wallet.meta.json`).
+
+3. Import the domain owner's keys into `keys/` and update
    `project.yaml` so `wallet_id`, `workchain`, and `wc_public` match the
-   owner account. Confirm the wallet address matches
-   `dns/dynamiccapital.ton.json → nft.ownerAddress`.
+   owner account (if you are not using the helper). Confirm the wallet
+   address matches `dns/dynamiccapital.ton.json → nft.ownerAddress`.
 
 3. Copy the repository example configuration so `toncli` uses the pinned
    network snapshots:
