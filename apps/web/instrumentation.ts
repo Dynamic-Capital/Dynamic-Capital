@@ -215,12 +215,11 @@ const registerImpl: () => Promise<void> = (() => {
 
     const [
       {
-        ExplicitBucketHistogramAggregation,
+        AggregationType,
         InstrumentType,
         MeterProvider: SDKMeterProvider,
-        View,
       },
-      { Resource },
+      { defaultResource, resourceFromAttributes },
       { SemanticResourceAttributes },
     ] = await Promise.all([
       loadSDKMetricsModule(),
@@ -228,8 +227,8 @@ const registerImpl: () => Promise<void> = (() => {
       loadSemanticConventionsModule(),
     ]);
 
-    const resource = Resource.default().merge(
-      new Resource({
+    const resource = defaultResource().merge(
+      resourceFromAttributes({
         [SemanticResourceAttributes.SERVICE_NAME]: SERVICE_NAME,
         [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
           process.env.VERCEL_ENV || process.env.NODE_ENV || "development",
@@ -243,20 +242,16 @@ const registerImpl: () => Promise<void> = (() => {
       resource,
       readers,
       views: [
-        new View({
+        {
           instrumentName: "http_request_duration_seconds",
           instrumentType: InstrumentType.HISTOGRAM,
-          aggregation: new ExplicitBucketHistogramAggregation([
-            0.05,
-            0.1,
-            0.25,
-            0.5,
-            1,
-            2,
-            5,
-            10,
-          ]),
-        }),
+          aggregation: {
+            type: AggregationType.EXPLICIT_BUCKET_HISTOGRAM,
+            options: {
+              boundaries: [0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10],
+            },
+          },
+        },
       ],
     });
 
