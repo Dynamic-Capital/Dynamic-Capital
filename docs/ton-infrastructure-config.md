@@ -25,6 +25,49 @@ update, and calls out the operational owners.
 - Secure vault (1Password, HashiCorp Vault, or equivalent) for seed phrases,
   ADNL keys, and storage provider credentials.
 
+## Masterchain configuration reference
+
+Audits frequently require a quick mapping between masterchain configuration IDs
+and the operational levers they control. The table below consolidates the core
+entries Dynamic Capital tracks when reviewing on-chain governance proposals or
+validator set changes.
+
+| ID | Parameter | Notes |
+| -- | --------- | ----- |
+| 0  | Config address | Canonical smart contract that stores the configuration dictionary. |
+| 1  | Elector address | Contract responsible for validator elections and stake handling. |
+| 2  | System address | Masterchain system contract used for upgrades and governance triggers. |
+| 4  | Root DNS Contract | Points `.ton` DNS lookups at the current root resolver implementation. |
+| 5  | Blackhole address | Burn sink for coins removed from circulation. |
+| 7  | Currencies volume | Declares native and extra currency supply caps. |
+| 8  | Network version | Signals protocol feature gates to validators. |
+| 9  | Mandatory parameters | IDs that must be present in every configuration proposal. |
+| 10 | Critical parameters | IDs that trigger elevated voting thresholds. |
+| 11 | Proposal conditions | Timing and quorum constraints for configuration voting cycles. |
+| 12 | Workchain configuration | Metadata for each active workchain (shards, zerostate hashes, gas). |
+| 13 | Complaints fee | Stake penalty required to file validator complaints. |
+| 14 | Block reward | Base reward schedule distributed per produced block. |
+| 15 | Election data | Parameters for election rounds (timers, stake thresholds). |
+| 16 | Validators count | Target, minimum, and maximum validator counts. |
+| 17 | Staking parameters | Lock-up duration, stake return delay, and slashing multipliers. |
+| 18 | Storage price | Cost schedule for persistent cell storage. |
+| 20 | Gas params | Default workchain gas limits and price strategy. |
+| 21 | Masterchain gas params | Masterchain-specific overrides to the general gas configuration. |
+| 22 | Masterchain block limits | Upper bounds for block size, gas, and logical time on the masterchain. |
+| 23 | Workchain block limits | Equivalent bounds applied to workchains. |
+| 24 | Masterchain message cost | Fees for masterchain inbound/outbound message processing. |
+| 25 | Workchain message cost | Message fee table for workchain transactions. |
+| 28 | Catchain configuration | Catchain consensus tuning (round intervals, allowed misses). |
+| 29 | Consensus configuration | Parameters for the validator consensus protocol. |
+| 31 | Preferential addresses | Whitelisted system accounts that receive protocol privileges. |
+| 32 | Previous round validators | Snapshot of the prior validator set for election reconciliation. |
+| 34 | Current round validators | Active validator list for the present cycle. |
+| 44 | Suspended addresses | Validators temporarily barred from participation. |
+| 45 | Deferred penalties | Bucket used by governance proposals to stage slashing follow-ups. |
+| 71 | ETH Toncoin Bridge | Canonical bridge contract linking TON with Ethereum. |
+| 72 | BSC Toncoin Bridge | Bridge contract for Binance Smart Chain connectivity. |
+| 79 | ETH Bridge | Legacy Ethereum bridge reference retained for audits. |
+
 ## TON Sites & Services
 
 Dynamic Capital publishes the Telegram Mini App and ancillary static assets to
