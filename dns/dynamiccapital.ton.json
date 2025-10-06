@@ -53,16 +53,9 @@
     {
       "type": "CNAME",
       "name": "api",
-      "data": "your-project-ref.supabase.co",
+      "data": "qeejuomcapbdlhnjqjcc.supabase.co",
       "ttl": 300,
-      "note": "Points the Supabase API surface at the project-ref host. Replace `your-project-ref` with the live Supabase project ref before activation."
-    },
-    {
-      "type": "TXT",
-      "name": "_acme-challenge.api",
-      "data": "pending-supabase-verification-token",
-      "ttl": 300,
-      "note": "Placeholder for Supabase-issued ACME challenge. Replace with the live token, then pin the raw TXT payload to TON Storage/IPFS for Web3 attestation."
+      "note": "Routes API traffic to the live Supabase project ref"
     }
   ],
   "notes": [
@@ -74,10 +67,11 @@
     "Verify resolution through TON DNS tools before going live",
     "Supabase custom domains require `_acme-challenge.api.dynamiccapital.ton` TXT records during verification. Capture the issued tokens in this repo before activation and pin them to TON Storage/IPFS with the hash recorded in the operations multisig memo.",
     "Record resolver or ownership transactions in dns/ton-dns-operations-log.md immediately after broadcasting them so the on-chain audit trail stays aligned with the repository snapshot.",
-    "Use a low TTL (e.g., 60\u2013300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
+    "Use a low TTL (e.g., 60–300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
     "After activation, emit a `custom_domain_activated` event into Supabase `tx_logs` referencing the DNS bundle hash so auditors can verify the Web3 linkage.",
     "Desktop browsers without a TON resolver will show `DNS_PROBE_FINISHED_NXDOMAIN`; direct them to https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton (or the ton.site backup) or install a TON DNS wallet extension to regain access.",
     "Treat https://dynamiccapital.ton as the canonical production surface; keep the DigitalOcean, Lovable, and Vercel hosts warm as failover origins and document rollovers in Supabase `tx_logs`.",
-    "2025-09-30: Auction fill-up executed (event 96ac854938b992f71f33827dac42a7aa9e302539fc55347e006f6eee74dc0d89) adding 0.024137527 TON to the resolver after fees; schedule the next renewal reminder for August 2026."
+    "2025-09-30: Auction fill-up executed (event 96ac854938b992f71f33827dac42a7aa9e302539fc55347e006f6eee74dc0d89) adding 0.024137527 TON to the resolver after fees; schedule the next renewal reminder for August 2026.",
+    "When Supabase issues a fresh ACME token, stage it under dns/operations/acme/ with the block height, then update the TXT record here and commit the hash reference to the multisig memo."
   ]
 }

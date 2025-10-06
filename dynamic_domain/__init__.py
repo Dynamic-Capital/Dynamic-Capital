@@ -7,6 +7,12 @@ from .manager import (
     DomainRecord,
     DynamicDomainManager,
 )
+from .verification import (
+    DomainConfigCheck,
+    summarise_checks,
+    verify_config,
+    verify_directory,
+)
 
 __all__ = [
     "DomainChange",
@@ -14,4 +20,8 @@ __all__ = [
     "DomainChangeType",
     "DomainRecord",
     "DynamicDomainManager",
+    "DomainConfigCheck",
+    "verify_config",
+    "verify_directory",
+    "summarise_checks",
 ]
