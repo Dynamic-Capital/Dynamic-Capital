@@ -1,7 +1,6 @@
 # DEX Screener API Reference
 
-> **Purpose**: Quick reference for integrating Dynamic Capital services with the
-> public [DEX Screener API](https://docs.dexscreener.com/).
+> **Purpose**: Quick reference for integrating Dynamic Capital services with the public [DEX Screener API](https://docs.dexscreener.com/).
 
 ## 📋 Table of Contents
 
@@ -24,10 +23,7 @@
 
 ## Overview
 
-The DEX Screener API provides public market data across multiple blockchains. It
-is suitable for fetching token metadata, pair statistics, active boosts, and
-tracking paid services ("orders") for specific tokens. All endpoints are
-read-only and respond with JSON.
+The DEX Screener API provides public market data across multiple blockchains. It is suitable for fetching token metadata, pair statistics, active boosts, and tracking paid services ("orders") for specific tokens. All endpoints are read-only and respond with JSON.
 
 - **Base URL**: `https://api.dexscreener.com`
 - **Transport**: HTTPS with standard REST semantics
@@ -35,35 +31,30 @@ read-only and respond with JSON.
 
 ## Authentication
 
-No API key is required. All endpoints are available anonymously, but you must
-observe the documented rate limits to avoid throttling.
+No API key is required. All endpoints are available anonymously, but you must observe the documented rate limits to avoid throttling.
 
 ## Rate Limits
 
 The following limits are enforced per IP address:
 
-| Endpoint group                            | Limit                   |
-| ----------------------------------------- | ----------------------- |
-| Token profiles & boosts                   | 60 requests per minute  |
+| Endpoint group | Limit |
+| -------------- | ----- |
+| Token profiles & boosts | 60 requests per minute |
 | DEX data (pairs, search, token snapshots) | 300 requests per minute |
 
-Exponential backoff is recommended if you receive HTTP `429 Too Many Requests`
-responses.
+Exponential backoff is recommended if you receive HTTP `429 Too Many Requests` responses.
 
 ## Error Handling
 
 The API returns conventional HTTP status codes:
 
 - `200` range signals a successful response.
-- `400` range indicates malformed requests (for example, invalid `chainId`
-  values).
+- `400` range indicates malformed requests (for example, invalid `chainId` values).
 - `404` is returned when a requested token or pair cannot be found.
 - `429` indicates a rate-limit violation—back off and retry after a short delay.
-- `500` range reflects transient server errors. Implement retries with jitter
-  for resiliency.
+- `500` range reflects transient server errors. Implement retries with jitter for resiliency.
 
-Responses may include additional metadata such as `message` or `errors` fields
-when an error occurs; log these details for observability.
+Responses may include additional metadata such as `message` or `errors` fields when an error occurs; log these details for observability.
 
 ## Endpoints
 
@@ -181,17 +172,16 @@ Accept: */*
 
 ### Token Orders
 
-Check paid order status (e.g., token profile purchases) for a given token
-address.
+Check paid order status (e.g., token profile purchases) for a given token address.
 
 - **Method**: `GET`
 - **Path**: `/orders/v1/{chainId}/{tokenAddress}`
 - **Rate Limit**: 60 RPM
 
-| Path Parameter | Type   | Description                            |
-| -------------- | ------ | -------------------------------------- |
-| `chainId`      | string | Blockchain identifier (e.g., `solana`) |
-| `tokenAddress` | string | Token mint or contract address         |
+| Path Parameter | Type | Description |
+| -------------- | ---- | ----------- |
+| `chainId` | string | Blockchain identifier (e.g., `solana`) |
+| `tokenAddress` | string | Token mint or contract address |
 
 #### Sample Request
 
@@ -221,10 +211,10 @@ Retrieve up-to-date statistics for one or multiple pairs on a specific chain.
 - **Path**: `/latest/dex/pairs/{chainId}/{pairId}`
 - **Rate Limit**: 300 RPM
 
-| Path Parameter | Type   | Description                                       |
-| -------------- | ------ | ------------------------------------------------- |
-| `chainId`      | string | Blockchain identifier                             |
-| `pairId`       | string | Pair address or comma-separated list of addresses |
+| Path Parameter | Type | Description |
+| -------------- | ---- | ----------- |
+| `chainId` | string | Blockchain identifier |
+| `pairId` | string | Pair address or comma-separated list of addresses |
 
 #### Sample Request
 
@@ -308,9 +298,9 @@ Search for trading pairs by token symbols, names, or addresses.
 - **Path**: `/latest/dex/search`
 - **Rate Limit**: 300 RPM
 
-| Query Parameter | Type   | Description                                                |
-| --------------- | ------ | ---------------------------------------------------------- |
-| `q`             | string | Search string (e.g., `SOL/USDC`, token symbol, or address) |
+| Query Parameter | Type | Description |
+| --------------- | ---- | ----------- |
+| `q` | string | Search string (e.g., `SOL/USDC`, token symbol, or address) |
 
 #### Sample Request
 
@@ -383,9 +373,9 @@ Enumerate all trading pools associated with a specific token address on a chain.
 - **Path**: `/token-pairs/v1/{chainId}/{tokenAddress}`
 - **Rate Limit**: 300 RPM
 
-| Path Parameter | Type   | Description                    |
-| -------------- | ------ | ------------------------------ |
-| `chainId`      | string | Blockchain identifier          |
+| Path Parameter | Type | Description |
+| -------------- | ---- | ----------- |
+| `chainId` | string | Blockchain identifier |
 | `tokenAddress` | string | Token mint or contract address |
 
 #### Sample Request
@@ -461,16 +451,15 @@ Accept: */*
 
 ### Token Snapshot
 
-Request one or more token snapshots to retrieve the most relevant trading pair
-per token.
+Request one or more token snapshots to retrieve the most relevant trading pair per token.
 
 - **Method**: `GET`
 - **Path**: `/tokens/v1/{chainId}/{tokenAddresses}`
 - **Rate Limit**: 300 RPM
 
-| Path Parameter   | Type   | Description                                      |
-| ---------------- | ------ | ------------------------------------------------ |
-| `chainId`        | string | Blockchain identifier                            |
+| Path Parameter | Type | Description |
+| -------------- | ---- | ----------- |
+| `chainId` | string | Blockchain identifier |
 | `tokenAddresses` | string | Comma-separated list of up to 30 token addresses |
 
 #### Sample Request
@@ -536,12 +525,9 @@ Accept: */*
 ## Usage Notes
 
 - Responses are schemaless; expect additional properties as the API evolves.
-- Values such as `priceNative`, `priceUsd`, and timestamps are returned as
-  strings; convert them to numeric types as needed.
-- When batching token addresses (`/tokens/v1`), the API caps the list at **30**
-  entries.
-- Always handle HTTP errors gracefully and implement caching to reduce redundant
-  calls within the rate limits.
+- Values such as `priceNative`, `priceUsd`, and timestamps are returned as strings; convert them to numeric types as needed.
+- When batching token addresses (`/tokens/v1`), the API caps the list at **30** entries.
+- Always handle HTTP errors gracefully and implement caching to reduce redundant calls within the rate limits.
 
 ---
 

@@ -16,39 +16,39 @@ to `DC`, while `Dynamic_Volume`, `Dynamic_Version`, and `Dynamic_Validator` each
 resolve to `DV`. To avoid these collisions, adopt **three-letter short codes**
 that keep the first letter anchored on the domain while preserving uniqueness.
 
-| Domain                | Dynamic concept                | Recommended short code | Notes                                                                    |
-| --------------------- | ------------------------------ | ---------------------- | ------------------------------------------------------------------------ |
-| Trading & Core Engine | Dynamic_Trading_Language       | DTL                    | Keeps trading primitives distinct from task, team, and treasury tooling. |
-|                       | Dynamic_Candles                | DCA                    | Differentiates from contracts while nodding to charting.                 |
-|                       | Dynamic_Orderflow              | DOF                    | Avoids overlap with oracle or operations modules.                        |
-|                       | Dynamic_Agents                 | DAG                    | Prevents confusion with architecture and analytics modules.              |
-|                       | Dynamic_Bots                   | DBT                    | Prevents collision with blockchain (`DBC`).                              |
-|                       | Dynamic_Indicators             | DIN                    | Keeps analytics dashboards consistent.                                   |
-|                       | Dynamic_Predictive             | DPD                    | Distinct from parameters and proxy services.                             |
-|                       | Dynamic_Quantitative           | DQT                    | Maintains parity with research tooling.                                  |
-|                       | Dynamic_Chaos_Engine           | DCE                    | Can extend to `DCH` if more chaos modules emerge.                        |
-|                       | Dynamic_Cycle                  | DYC                    | Stays unique even alongside Dynamic_Candles.                             |
-|                       | Dynamic_Volume                 | DVO                    | Preserves `DVA` for validators.                                          |
-|                       | Dynamic_Zone                   | DZN                    | Keeps zoning/market-structure tools unique.                              |
-|                       | Dynamic_Matrix                 | DMX                    | Highlights matrix experimentation while staying unique.                  |
-| AI & Cognition        | Dynamic_Metacognition          | DMC                    | Keeps metacognition distinct from matrix (`DMX`).                        |
-|                       | Dynamic_Mindset                | DMS                    | Avoids overlap with trading or team modules.                             |
-|                       | Dynamic_Memory                 | DMM                    | Leaves `DMR` available for memory reconsolidation.                       |
-|                       | Dynamic_Learning               | DLR                    | Prevents collision with Dynamic_Library.                                 |
-|                       | Dynamic_Reinforcement_Learning | DRL                    | Aligns with common ML shorthand.                                         |
-|                       | Dynamic_Glossary               | DGL                    | Provides a clean namespace for knowledge artifacts.                      |
-| System & Blockchain   | Dynamic_Architecture           | DAR                    | Avoids `DA` collisions with agents or analytics naming.                  |
-|                       | Dynamic_Framework              | DFW                    | Keeps frameworks distinct from finance or firewall code.                 |
-|                       | Dynamic_Blockchain             | DBC                    | Distinguishes from bots and business tooling.                            |
-|                       | Dynamic_Contracts              | DCT                    | Keeps legal primitives separate from candles.                            |
-|                       | Dynamic_Validator              | DVA                    | Leaves `DVO` available for volume analytics.                             |
-|                       | Dynamic_Wallet                 | DWT                    | Mirrors treasury tooling.                                                |
-|                       | Dynamic_Proxy                  | DPX                    | Maintains clarity across predictive (`DPD`) services.                    |
-| Process & Business    | Dynamic_Playbook               | DPL                    | Resolves conflict with predictive and proxy modules.                     |
-|                       | Dynamic_Version                | DVR                    | Avoids overlap with volume and validator.                                |
-|                       | Dynamic_Parameter              | DPR                    | Keeps parity with configuration artifacts.                               |
-|                       | Dynamic_Library                | DBL                    | Differentiates from learning (DLR).                                      |
-|                       | Dynamic_Team                   | DTM                    | Avoids confusion with trading and task manager.                          |
+| Domain | Dynamic concept | Recommended short code | Notes |
+| --- | --- | --- | --- |
+| Trading & Core Engine | Dynamic_Trading_Language | DTL | Keeps trading primitives distinct from task, team, and treasury tooling. |
+|  | Dynamic_Candles | DCA | Differentiates from contracts while nodding to charting. |
+|  | Dynamic_Orderflow | DOF | Avoids overlap with oracle or operations modules. |
+|  | Dynamic_Agents | DAG | Prevents confusion with architecture and analytics modules. |
+|  | Dynamic_Bots | DBT | Prevents collision with blockchain (`DBC`). |
+|  | Dynamic_Indicators | DIN | Keeps analytics dashboards consistent. |
+|  | Dynamic_Predictive | DPD | Distinct from parameters and proxy services. |
+|  | Dynamic_Quantitative | DQT | Maintains parity with research tooling. |
+|  | Dynamic_Chaos_Engine | DCE | Can extend to `DCH` if more chaos modules emerge. |
+|  | Dynamic_Cycle | DYC | Stays unique even alongside Dynamic_Candles. |
+|  | Dynamic_Volume | DVO | Preserves `DVA` for validators. |
+|  | Dynamic_Zone | DZN | Keeps zoning/market-structure tools unique. |
+|  | Dynamic_Matrix | DMX | Highlights matrix experimentation while staying unique. |
+| AI & Cognition | Dynamic_Metacognition | DMC | Keeps metacognition distinct from matrix (`DMX`). |
+|  | Dynamic_Mindset | DMS | Avoids overlap with trading or team modules. |
+|  | Dynamic_Memory | DMM | Leaves `DMR` available for memory reconsolidation. |
+|  | Dynamic_Learning | DLR | Prevents collision with Dynamic_Library. |
+|  | Dynamic_Reinforcement_Learning | DRL | Aligns with common ML shorthand. |
+|  | Dynamic_Glossary | DGL | Provides a clean namespace for knowledge artifacts. |
+| System & Blockchain | Dynamic_Architecture | DAR | Avoids `DA` collisions with agents or analytics naming. |
+|  | Dynamic_Framework | DFW | Keeps frameworks distinct from finance or firewall code. |
+|  | Dynamic_Blockchain | DBC | Distinguishes from bots and business tooling. |
+|  | Dynamic_Contracts | DCT | Keeps legal primitives separate from candles. |
+|  | Dynamic_Validator | DVA | Leaves `DVO` available for volume analytics. |
+|  | Dynamic_Wallet | DWT | Mirrors treasury tooling. |
+|  | Dynamic_Proxy | DPX | Maintains clarity across predictive (`DPD`) services. |
+| Process & Business | Dynamic_Playbook | DPL | Resolves conflict with predictive and proxy modules. |
+|  | Dynamic_Version | DVR | Avoids overlap with volume and validator. |
+|  | Dynamic_Parameter | DPR | Keeps parity with configuration artifacts. |
+|  | Dynamic_Library | DBL | Differentiates from learning (DLR). |
+|  | Dynamic_Team | DTM | Avoids confusion with trading and task manager. |
 
 ### Optimization heuristics for new short codes
 

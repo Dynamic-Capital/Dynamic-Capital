@@ -13,8 +13,8 @@
 
 - Daily facilitators now launch `./playbook --section "Summary"` before the
   stand-up to capture fresh highlights and confirm action owners.
-- Weekly leadership syncs add desk-specific sections (`Dynamic Trading Algo` and
-  `Dynamic Trading Logic`) to their agenda exports to align trading and
+- Weekly leadership syncs add desk-specific sections (`Dynamic Trading Algo`
+  and `Dynamic Trading Logic`) to their agenda exports to align trading and
   intelligence desks on shared blockers.
 - Quarterly governance reviews archive the full rendered document so compliance
   desks can reference prior commitments during audits.

@@ -330,8 +330,7 @@ export function DynamicCliWorkbench() {
                 {scenarioDiagnostics.summary.mostRecentPulse
                   ? (
                     <Tag size="s" background="neutral-alpha-weak">
-                      Latest pulse:{" "}
-                      {scenarioDiagnostics.summary.mostRecentPulse}
+                      Latest pulse: {scenarioDiagnostics.summary.mostRecentPulse}
                     </Tag>
                   )
                   : null}

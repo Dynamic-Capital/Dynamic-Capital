@@ -37,8 +37,7 @@ const HIGHLIGHTS = [
   {
     icon: "refresh" as const,
     title: "Credits that recharge",
-    body:
-      "Top up DCT (Dynamic Capital Tokens) anytime for chat and automations.",
+    body: "Top up DCT (Dynamic Capital Tokens) anytime for chat and automations.",
   },
 ];
 

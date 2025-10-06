@@ -366,13 +366,12 @@ update the shared knowledge base.
   and attaching the rendered snippet to the leadership channel post so the
   archive contains both the narrative and the CLI export artefact.
 - **Quarterly governance review.** Export a full snapshot with
-  `./playbook --automate --export-dir automation/playbook/quarterly` (or focus
-  on a single identifier via `--all`) and archive the output alongside
-  governance meeting minutes.
-- **Distribution tracking.** Reference
-  `2025-02-14-cadence-overlay-circulation--leadership+rituals` for
-  acknowledgement expectations and audit notes whenever the cadence overlay or
-  CLI workflow is re-circulated to ritual owners.
+  `./playbook --automate --export-dir automation/playbook/quarterly` (or focus on
+  a single identifier via `--all`) and archive the output alongside governance
+  meeting minutes.
+- **Distribution tracking.** Reference `2025-02-14-cadence-overlay-circulation--leadership+rituals`
+  for acknowledgement expectations and audit notes whenever the cadence overlay
+  or CLI workflow is re-circulated to ritual owners.
 
 ---
 
@@ -410,10 +409,9 @@ decision log.
 - [ ] Define pause triggers and guardrail thresholds; publish them in the
       operations hub.
 - [ ] Embed a `./playbook` automation review in weekly stand-ups and quarterly
-      governance reviews; verify the exported snapshot (from
-      `./playbook
-      --automate --export-dir automation/playbook`) is
-      attached to the leadership channel summary and stored with meeting notes.
+      governance reviews; verify the exported snapshot (from `./playbook
+      --automate --export-dir automation/playbook`) is attached to the
+      leadership channel summary and stored with meeting notes.
 - [ ] Review progress against this checklist in four weeks and document
       adjustments.
 

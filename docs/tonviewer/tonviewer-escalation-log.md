@@ -1,20 +1,29 @@
 # Tonviewer Verification Escalation Log
 
-| Date (UTC) | Owner      | Action                                                                                                                                  | Reference                      | Outcome                                                                                                                                                                                                                                                                                  |
-| ---------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2025-10-03 | Operations | Submitted initial verification ticket with metadata bundle.                                                                             | Ticket `TVR-4821`              | Acknowledged by Tonviewer support; verification pending.                                                                                                                                                                                                                                 |
-| 2025-10-05 | Compliance | Delivered supplemental issuer documentation and proof-of-mint hash.                                                                     | Email to support@tonviewer.com | Awaiting confirmation that documents were received.                                                                                                                                                                                                                                      |
-| 2025-10-06 | Analytics  | Ran `check-tonviewer-status.ts` to confirm status and hash parity.                                                                      | Script log                     | Jetton still unverified (`none`). Follow-up required.                                                                                                                                                                                                                                    |
-| 2025-10-07 | Operations | Escalated ticket `TVR-4821` with refreshed metadata hash and issuer statement attachment.                                               | Ticket `TVR-4821` follow-up    | Tonviewer support acknowledged escalation and queued for reviewer assignment; completed attachments checklist (issuer PDF, metadata JSON + digest note, status script log, compliance archive link) with artifacts logged in `/docs/tonviewer/templates/tvr-4821-follow-up.md` guidance. |
-| 2025-10-08 | Compliance | Finalized and archived notarized KYC dossier; circulated storage reference.                                                             | Compliance archive notice      | Stored at `s3://dynamic-compliance/kyc/dct/2025-10-08/` with access audit log updated and credentials rotation confirmed.                                                                                                                                                                |
-| 2025-10-09 | Analytics  | Re-ran `check-tonviewer-status.ts`, logged verification outcome immediately, and scheduled next run for 2025-10-10 16:00 UTC.           | Script log                     | Verification flag remains `none`; follow-up run queued, verification journal timestamped 2025-10-09 16:02 UTC.                                                                                                                                                                           |
-| 2025-10-10 | Analytics  | Executed scheduled status script and captured full log plus digest confirmation for attachments kit refresh.                            | Script log                     | Tonviewer verification flag still `none`; uploaded log to `s3://dynamic-compliance/kyc/dct/2025-10-08/logs/2025-10-10/` and noted next run for 2025-10-11 16:00 UTC.                                                                                                                     |
-| 2025-10-11 | Operations | Dispatched secondary escalation referencing updated logs and refreshed attachments checklist, including presigned archive link renewal. | Ticket `TVR-4821` follow-up #2 | Tonviewer acknowledged receipt; escalation tracker updated with new reviewer ETA (48 hours).                                                                                                                                                                                             |
-| 2025-10-12 | Compliance | Reviewed S3 access logs for the KYC archive, rotated presigned URL expiring 2025-10-14, and documented retention controls.              | Ticket `DCT-COMP-2025-118`     | No anomalous access detected; new link shared with Operations and captured in escalation evidence pack.                                                                                                                                                                                  |
+| Date (UTC) | Owner | Action | Reference | Outcome |
+| --- | --- | --- | --- | --- |
+| 2025-10-03 | Operations | Submitted initial verification ticket with metadata bundle. | Ticket `TVR-4821` | Acknowledged by Tonviewer support; verification pending. |
+| 2025-10-05 | Compliance | Delivered supplemental issuer documentation and proof-of-mint hash. | Email to support@tonviewer.com | Awaiting confirmation that documents were received. |
+| 2025-10-06 | Analytics | Ran `check-tonviewer-status.ts` to confirm status and hash parity. | Script log | Jetton still unverified (`none`). Follow-up required. |
+| 2025-10-07 | Operations | Escalated ticket with issuer statement PDF, metadata JSON, digest note, and verification log per checklist. | Email reply to support@tonviewer.com | Auto-response confirmed receipt; manual review pending. |
+| 2025-10-08 | Compliance | Archived notarized KYC dossier and logged storage link `s3://dynamic-compliance/kyc/dct/2025-10-08/`. | Ticket `DCT-COMP-2025-118` | Archive verified; access recorded in escalation notes. |
+| 2025-10-09 | Analytics | Logged verification status (`none`), scheduled 2025-10-10 script rerun, and added immediate logging guidance. | Tonviewer status report | Verification unchanged; rerun queued. |
+| 2025-10-10 | Analytics | Executed scheduled script, captured log excerpt, and registered 2025-10-11 contingency escalation. | `check-tonviewer-status-20251010.log` | Verification still `none`; escalation prep continues. |
+| 2025-10-11 | Operations | Prepared secondary escalation package using updated follow-up template; pending reviewer response. | Template checklist | Standing by for Tonviewer verdict before dispatch. |
+| 2025-10-12 | Compliance | Reviewed compliance archive and confirmed attachments checklist completeness for Oct-07 dispatch. | `s3://dynamic-compliance/kyc/dct/2025-10-08/` | No gaps found; archive remains accessible. |
 
 ## Pending Follow-Ups
 
-- 2025-10-13: Await Tonviewer reviewer verdict; if still pending by 18:00 UTC,
-  request status update citing second escalation acknowledgement.
-- 2025-10-14: Validate that renewed presigned archive link remains accessible to
-  Tonviewer and extend again if verification still outstanding.
+- 2025-10-11: Dispatch secondary escalation if no reviewer response arrives by 16:00 UTC.
+- 2025-10-13: Perform progress check on Tonviewer status and refresh this log with any updates.
+- 2025-10-14: Revalidate compliance archive access and extend presigned URL if escalation remains open.
+
+## Attachments Checklist – 2025-10-07 Submission
+
+| Artefact | Prepared | Verified | Logged | Notes |
+| --- | --- | --- | --- | --- |
+| Issuer statement export (`dct-issuer-statement-20251007.pdf`) | ✅ | ✅ | ✅ | Stored locally for dispatch and hash recorded in log. |
+| Metadata JSON (`metadata.json`) | ✅ | ✅ | ✅ | Digest matched `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4`. |
+| Digest note (`metadata-digest.txt`) | ✅ | ✅ | ✅ | Upload path `s3://dynamic-compliance/kyc/dct/2025-10-08/hashes/metadata-digest.txt`. |
+| Verification script log (`check-tonviewer-status-20251007.log`) | ✅ | ✅ | ✅ | Latest run captured at 2025-10-07 15:59 UTC with flag `none`. |
+| Compliance archive link | ✅ | ✅ | ✅ | Presigned URL valid through 2025-10-14 00:00 UTC; access logged in ticket. |

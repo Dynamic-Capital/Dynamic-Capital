@@ -156,16 +156,16 @@ export function VipPlansPricingSection() {
             Check back soon or ping the desk for a quick walkthrough.
           </Text>
         </Column>
-        <Row gap="12" s={{ direction: "column" }}>
-          <Button
-            size="m"
-            variant="secondary"
-            data-border="rounded"
-            href="/checkout"
-            prefixIcon="sparkles"
-          >
-            Go to checkout
-          </Button>
+          <Row gap="12" s={{ direction: "column" }}>
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              href="/checkout"
+              prefixIcon="sparkles"
+            >
+              Go to checkout
+            </Button>
           <Button
             size="m"
             variant="secondary"
@@ -195,8 +195,8 @@ export function VipPlansPricingSection() {
             onBackground="neutral-weak"
             wrap="balance"
           >
-            Straightforward pricing that mirrors checkout. DCT, copy trading,
-            and withdrawals stay explained in plain words.
+            Straightforward pricing that mirrors checkout. DCT, copy
+            trading, and withdrawals stay explained in plain words.
           </Text>
           <Row gap="8" wrap>
             {BILLING_HIGHLIGHTS.map((item) => (

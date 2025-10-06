@@ -197,9 +197,7 @@ function normaliseProfile(candidate: unknown): DexScreenerProfile | null {
   }) satisfies DexScreenerProfile;
 }
 
-function normaliseProfilesCollection(
-  value: unknown,
-): readonly DexScreenerProfile[] {
+function normaliseProfilesCollection(value: unknown): readonly DexScreenerProfile[] {
   if (!Array.isArray(value) || value.length === 0) {
     return EMPTY_PROFILES;
   }
@@ -247,9 +245,7 @@ function normaliseBoost(candidate: unknown): DexScreenerBoost | null {
   }) satisfies DexScreenerBoost;
 }
 
-function normaliseBoostsCollection(
-  value: unknown,
-): readonly DexScreenerBoost[] {
+function normaliseBoostsCollection(value: unknown): readonly DexScreenerBoost[] {
   if (!Array.isArray(value) || value.length === 0) {
     return EMPTY_BOOSTS;
   }
