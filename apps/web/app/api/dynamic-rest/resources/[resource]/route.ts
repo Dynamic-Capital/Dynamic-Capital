@@ -19,6 +19,7 @@ import {
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 const RESOURCE_ENDPOINTS = DYNAMIC_REST_ENDPOINTS.resources;
+const RESOURCE_ROUTE_NAME = "/api/dynamic-rest/resources/[resource]" as const;
 
 type ResourceEndpoint =
   (typeof RESOURCE_ENDPOINTS)[keyof typeof RESOURCE_ENDPOINTS];
@@ -49,64 +50,104 @@ function createCachedResource<Payload extends ResourcePayload>(
   );
 }
 
-const RESOURCE_DEFINITIONS = {
-  [RESOURCE_ENDPOINTS.instruments.slug]: {
-    endpoint: RESOURCE_ENDPOINTS.instruments,
-    getResource: createCachedResource(
-      "dynamic-rest-resources-instruments",
-      buildDynamicRestInstrumentsResponse,
-    ),
-  },
-  [RESOURCE_ENDPOINTS.tradingDesk.slug]: {
-    endpoint: RESOURCE_ENDPOINTS.tradingDesk,
-    getResource: createCachedResource(
-      "dynamic-rest-resources-trading-desk",
-      buildDynamicRestTradingDeskResponse,
-    ),
-  },
-  [RESOURCE_ENDPOINTS.bondYields.slug]: {
-    endpoint: RESOURCE_ENDPOINTS.bondYields,
-    getResource: createCachedResource(
-      "dynamic-rest-resources-bond-yields",
-      buildDynamicRestBondYieldsResponse,
-    ),
-  },
-  [RESOURCE_ENDPOINTS.openSource.slug]: {
-    endpoint: RESOURCE_ENDPOINTS.openSource,
-    getResource: createCachedResource(
-      "dynamic-rest-resources-open-source",
-      buildDynamicRestOpenSourceResponse,
-    ),
-  },
-  [RESOURCE_ENDPOINTS.marketAdvisories.slug]: {
-    endpoint: RESOURCE_ENDPOINTS.marketAdvisories,
-    getResource: createCachedResource(
-      "dynamic-rest-resources-market-advisories",
-      buildDynamicRestMarketAdvisoriesResponse,
-    ),
-  },
-  [RESOURCE_ENDPOINTS.dexScreener.slug]: {
-    endpoint: RESOURCE_ENDPOINTS.dexScreener,
-    getResource: createCachedResource(
-      "dynamic-rest-resources-dex-screener",
-      buildDynamicRestDexScreenerResponse,
-    ),
-  },
-} satisfies Record<ResourceSlug, ResourceDefinition>;
+const RESOURCE_DEFINITIONS = Object.freeze(
+  {
+    [RESOURCE_ENDPOINTS.instruments.slug]: {
+      endpoint: RESOURCE_ENDPOINTS.instruments,
+      getResource: createCachedResource(
+        "dynamic-rest-resources-instruments",
+        buildDynamicRestInstrumentsResponse,
+      ),
+    },
+    [RESOURCE_ENDPOINTS.tradingDesk.slug]: {
+      endpoint: RESOURCE_ENDPOINTS.tradingDesk,
+      getResource: createCachedResource(
+        "dynamic-rest-resources-trading-desk",
+        buildDynamicRestTradingDeskResponse,
+      ),
+    },
+    [RESOURCE_ENDPOINTS.bondYields.slug]: {
+      endpoint: RESOURCE_ENDPOINTS.bondYields,
+      getResource: createCachedResource(
+        "dynamic-rest-resources-bond-yields",
+        buildDynamicRestBondYieldsResponse,
+      ),
+    },
+    [RESOURCE_ENDPOINTS.openSource.slug]: {
+      endpoint: RESOURCE_ENDPOINTS.openSource,
+      getResource: createCachedResource(
+        "dynamic-rest-resources-open-source",
+        buildDynamicRestOpenSourceResponse,
+      ),
+    },
+    [RESOURCE_ENDPOINTS.marketAdvisories.slug]: {
+      endpoint: RESOURCE_ENDPOINTS.marketAdvisories,
+      getResource: createCachedResource(
+        "dynamic-rest-resources-market-advisories",
+        buildDynamicRestMarketAdvisoriesResponse,
+      ),
+    },
+    [RESOURCE_ENDPOINTS.dexScreener.slug]: {
+      endpoint: RESOURCE_ENDPOINTS.dexScreener,
+      getResource: createCachedResource(
+        "dynamic-rest-resources-dex-screener",
+        buildDynamicRestDexScreenerResponse,
+      ),
+    },
+  } satisfies Record<ResourceSlug, ResourceDefinition>,
+);
 
-const RESOURCE_SLUGS = Object.keys(RESOURCE_DEFINITIONS) as ResourceSlug[];
+const RESOURCE_SLUGS = Object.freeze(
+  Object.keys(RESOURCE_DEFINITIONS) as ResourceSlug[],
+);
 
 function hasResourceDefinition(slug: string): slug is ResourceSlug {
   return Object.prototype.hasOwnProperty.call(RESOURCE_DEFINITIONS, slug);
 }
 
-type RouteParams = {
+type RouteParams = Readonly<{
   resource?: string | string[];
-};
+}>;
 
-type RouteContext = {
-  params: Readonly<RouteParams>;
-};
+type RouteHandlerContext = Readonly<{
+  params: RouteParams;
+}>;
+
+const EMPTY_ROUTE_PARAMS: RouteParams = Object.freeze({}) as RouteParams;
+
+type ResourceErrorPayload = Readonly<{
+  status: "error";
+  message: string;
+  availableResources: readonly ResourceSlug[];
+}>;
+
+const AMBIGUOUS_RESOURCE_ERROR: ResourceErrorPayload = Object.freeze({
+  status: "error",
+  message: "Multiple resource slugs provided. Specify a single resource.",
+  availableResources: RESOURCE_SLUGS,
+});
+
+const UNKNOWN_RESOURCE_ERROR: ResourceErrorPayload = Object.freeze({
+  status: "error",
+  message: "Unknown dynamic REST resource",
+  availableResources: RESOURCE_SLUGS,
+});
+
+const createErrorResponder = (
+  payload: ResourceErrorPayload,
+  status: number,
+) =>
+(req: Request) => jsonResponse(payload, { status }, req);
+
+const ambiguousResourceResponse = createErrorResponder(
+  AMBIGUOUS_RESOURCE_ERROR,
+  400,
+);
+
+const unknownResourceResponse = createErrorResponder(
+  UNKNOWN_RESOURCE_ERROR,
+  404,
+);
 
 type ResolvedResource =
   | { type: "ok"; definition: ResourceDefinition }
@@ -154,26 +195,24 @@ function resolveResourceFromParams(
   return { type: "ok", definition: RESOURCE_DEFINITIONS[resolvedSlug] };
 }
 
-export async function GET(req: NextRequest, { params }: RouteContext) {
+const getRouteName = (resolution: ResolvedResource) =>
+  resolution.type === "ok"
+    ? resolution.definition.endpoint.path
+    : RESOURCE_ROUTE_NAME;
+
+export async function GET(
+  req: NextRequest,
+  context: RouteHandlerContext,
+) {
+  const params = context?.params ?? EMPTY_ROUTE_PARAMS;
   const resolution = resolveResourceFromParams(params);
 
-  switch (resolution.type) {
-    case "ambiguous":
-      return jsonResponse(
-        {
-          status: "error",
-          message:
-            "Multiple resource slugs provided. Specify a single resource.",
-          availableResources: RESOURCE_SLUGS,
-        },
-        { status: 400 },
-        req,
-      );
-    case "ok": {
-      const { endpoint, getResource } = resolution.definition;
-      const routeName = endpoint.path;
-
-      return withApiMetrics(req, routeName, async () => {
+  return withApiMetrics(req, getRouteName(resolution), async () => {
+    switch (resolution.type) {
+      case "ambiguous":
+        return ambiguousResourceResponse(req);
+      case "ok": {
+        const { getResource } = resolution.definition;
         const payload = await getResource();
 
         return jsonResponse(
@@ -185,19 +224,11 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
           },
           req,
         );
-      });
+      }
+      default:
+        return unknownResourceResponse(req);
     }
-    default:
-      return jsonResponse(
-        {
-          status: "error",
-          message: "Unknown dynamic REST resource",
-          availableResources: RESOURCE_SLUGS,
-        },
-        { status: 404 },
-        req,
-      );
-  }
+  });
 }
 
 export const POST = methodNotAllowed;
