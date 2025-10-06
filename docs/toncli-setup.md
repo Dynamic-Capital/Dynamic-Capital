@@ -8,10 +8,9 @@ or local workstations) before running any TON contract tooling.
 ## Prerequisites
 
 - Python 3.12 or newer available on the `PATH`.
-- Access to the TON toolchain binaries (`func`, `fift`, and `lite-client`).
-  These must expose a `-V` flag that prints the standard "build information"
-  string. Package managers maintained by the TON community or reproducible build
-  artifacts published by Dynamic Capital are both acceptable sources.
+- Ability to install Debian packages (for `libsodium`) and unpack AppImage
+  archives extracted from TON's release bundles.
+- Network access to download the official TON toolchain release assets.
 
 ## Installation steps
 
@@ -33,38 +32,49 @@ or local workstations) before running any TON contract tooling.
    pip install -r dns/requirements-toncli.txt
    ```
 
-2. **Provide stub binaries (optional for CI smoke tests).** In environments
-   where the real TON binaries are unavailable, create lightweight wrappers that
-   emit valid version strings so `toncli` can complete its first-run checks:
+2. **Install the TON binaries.** Download the latest TON release bundle and
+   extract the AppImage payloads to obtain native ELF binaries that satisfy the
+   `-V` handshake expected by `toncli`:
 
    ```bash
-   cat <<'SH' | sudo tee /usr/local/bin/func >/dev/null
-   #!/bin/sh
-   echo "TON Compiler build information: [func 1.0.0, commit abcdef]"
-   SH
-   sudo chmod +x /usr/local/bin/func
+   export TON_RELEASE=v2025.07
+   mkdir -p /tmp/ton-toolchain && cd /tmp/ton-toolchain
+   curl -L -O "https://github.com/ton-blockchain/ton/releases/download/${TON_RELEASE}/ton-linux-x86_64.zip"
+   unzip ton-linux-x86_64.zip "func" "fift" "lite-client"
 
-   cat <<'SH' | sudo tee /usr/local/bin/fift >/dev/null
-   #!/bin/sh
-   echo "Fift Interpreter build information: [fift 1.0.0, commit abcdef]"
-   SH
-   sudo chmod +x /usr/local/bin/fift
-
-   cat <<'SH' | sudo tee /usr/local/bin/lite-client >/dev/null
-   #!/bin/sh
-   echo "Lite Client build information: [lite-client 1.0.0, commit abcdef]"
-   SH
-   sudo chmod +x /usr/local/bin/lite-client
+   for bin in func fift lite-client; do
+     chmod +x "$bin"
+     "./$bin" --appimage-extract >/dev/null 2>&1
+     sudo install -m 0755 squashfs-root/usr/bin/$bin /usr/local/bin/$bin
+     rm -rf squashfs-root "$bin"
+   done
    ```
 
-   Replace these wrappers with the genuine binaries for production workflows.
+   The command copies the extracted binaries to `/usr/local/bin`. Validate the
+   installation by checking the version banner for each executable:
 
-3. **Generate the configuration file.** Copy
+   ```bash
+   func -V
+   fift -V
+   lite-client -V
+   ```
+
+   Each command should print a "build information" tuple for commit
+   `cac968f7…` (or the hash associated with the downloaded release).
+
+3. **Install runtime libraries.** The extracted binaries depend on
+   `libsodium`. Install it with:
+
+   ```bash
+   sudo apt-get update && sudo apt-get install -y libsodium23
+   ```
+
+4. **Generate the configuration file.** Copy
    [`dynamic-capital-ton/toncli.config.example.ini`](../dynamic-capital-ton/toncli.config.example.ini)
    to `~/.config/toncli/config.ini` and edit the executable paths if your
    binaries live outside `/usr/local/bin`.
 
-4. **Verify the installation.** Run `toncli -v` to confirm the CLI boots and
+5. **Verify the installation.** Run `toncli -v` to confirm the CLI boots and
    prints the installed version. The first invocation will copy the standard
    library files into `~/.config/toncli/` and emit output similar to:
 
@@ -79,7 +89,7 @@ or local workstations) before running any TON contract tooling.
    toncli` to pull in the compatible
    versions.
 
-5. **Generate the TON Site ADNL (optional).** When onboarding a fresh
+6. **Generate the TON Site ADNL (optional).** When onboarding a fresh
    environment, derive the TON Site ADNL and Ed25519 key pair with:
 
    ```bash
@@ -117,4 +127,5 @@ introduces a private RPC endpoint.
   `setuptools` is installed.
 - **Repeated prompts for executable paths** – confirm the paths in
   `~/.config/toncli/config.ini` point to binaries that print the standard "build
-  information" banner when invoked with `-V`.
+  information" banner when invoked with `-V`, and reinstall the binaries if the
+  extraction step was skipped.

@@ -56,6 +56,20 @@
       "data": "qeejuomcapbdlhnjqjcc.supabase.co",
       "ttl": 300,
       "note": "Routes API traffic to the live Supabase project ref"
+    },
+    {
+      "type": "TXT",
+      "name": "hello",
+      "data": "mailbox=hello@dynamiccapital.ton",
+      "ttl": 3600,
+      "note": "General inquiries mailbox alias advertised through TON DNS"
+    },
+    {
+      "type": "TXT",
+      "name": "support",
+      "data": "mailbox=support@dynamiccapital.ton",
+      "ttl": 3600,
+      "note": "Customer support mailbox alias advertised through TON DNS"
     }
   ],
   "notes": [

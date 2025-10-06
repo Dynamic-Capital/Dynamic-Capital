@@ -35,3 +35,21 @@ preparing governance packets or multisig memos.
 
 Document follow-on DNS payloads, TON Storage uploads, and resolver rotations in
 chronological order beneath this entry.
+
+## 2025-10-06 – Mailbox TXT broadcast prep
+
+- **Objective** — Publish the `mailbox=hello@dynamiccapital.ton` and
+  `mailbox=support@dynamiccapital.ton` TXT aliases from
+  `dns/dynamiccapital.ton.json` using `toncli send` to update the resolver
+  contract `EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo`.
+- **Tooling status** — Installed the TON release bundle (`v2025.07`) and staged
+  the extracted `func`, `fift`, and `lite-client` binaries in `/usr/local/bin`.
+  Added `libsodium23` so the executables load successfully and confirmed each
+  binary reports build `cac968f7…` via `-V`. `toncli 0.0.43` now launches and
+  lists all wallet and DNS subcommands.
+- **Operational gap** — No wallet project or signing keys are present in the
+  repository workspace, preventing creation of a multisig packet or broadcast
+  of the TXT update.
+- **Next steps** — Restore the authorised wallet project, fund it with at least
+  0.1 TON for fees, regenerate the TXT payloads if necessary, and rerun
+  `toncli send --net mainnet ...` to record the transaction hash for this log.
