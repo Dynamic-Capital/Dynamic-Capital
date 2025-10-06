@@ -2,3 +2,4 @@ huggingface_hub>=0.35.3
 pyarrow>=15.0.0
 PyPDF2>=3.0.0
 pypdfium2>=4.30.0
+torch>=2.3.0
