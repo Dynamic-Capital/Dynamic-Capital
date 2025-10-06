@@ -10,6 +10,8 @@
 - **Support Ticket Reference:** `TVR-4821`
 - **Verification Log Update:** Recorded 2025-10-09 16:02 UTC (`none`)
 - **Next Scheduled Run:** 2025-10-10 16:00 UTC
+- **Escalation Evidence Delivered:** 2025-10-07 follow-up submitted with digest `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4` and issuer statement PDF.
+- **KYC Archive Reference:** `s3://dynamic-compliance/kyc/dct/2025-10-08/` (read-only access)
 
 ## Metadata Comparison
 
@@ -33,8 +35,9 @@
 
 ## Outstanding Actions
 
-1. Await Tonviewer response to escalation `TVR-4821`; if no update arrives by 2025-10-11, prepare a second escalation.
+1. Await Tonviewer response to escalation `TVR-4821`; if no update arrives by 2025-10-11, prepare a second escalation using the `TVR-4821` follow-up template.
 2. Maintain parity checks between local metadata and Tonapi to document any deviation prior to Tonviewer response.
+3. Complete compliance archive access log review on 2025-10-12 and refresh link expiry tokens if required.
 
 ## Verification Follow-up Plan
 
@@ -43,6 +46,8 @@
 | Support escalation | Submit a follow-up request through Tonviewer support referencing ticket `TVR-4821` and attach latest metadata hash. | Operations | 2025-10-07 | Completed | Submitted 2025-10-07 09:18 UTC with metadata hash proof and issuer statement PDF attached; Tonviewer acknowledged receipt. |
 | Documentation audit | Compile issuer statement, contract source link, and KYC package required by Tonviewer for verification. | Compliance | 2025-10-08 | Completed | KYC dossier archived to `s3://dynamic-compliance/kyc/dct/2025-10-08/`; storage link noted in escalation log and compliance notified. |
 | Status confirmation | Re-run `check-tonviewer-status.ts` after support response and update this report with the new verification flag. | Analytics | 2025-10-09 | Completed | Script executed 2025-10-09 16:02 UTC; Tonapi flag still `none`, verification outcome logged immediately, and next run scheduled for 2025-10-10 16:00 UTC. |
+| Secondary escalation readiness | Prepare follow-up package using `/docs/tonviewer/templates/tvr-4821-follow-up.md` if Tonviewer remains silent. | Operations | 2025-10-11 | Planned | Template drafted; awaiting trigger condition (no response by 2025-10-11 12:00 UTC). |
+| Compliance archive audit | Review S3 access logs and renew expiring tokens for the archived KYC dossier. | Compliance | 2025-10-12 | Planned | Audit checklist queued under ticket `DCT-COMP-2025-118`; results to be logged in escalation log. |
 
 ### Supporting Materials
 
