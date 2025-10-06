@@ -11,6 +11,9 @@ const bannedSnippets = [
   "SUPABASE_SERVICE_ROLE_KEY",
 ];
 
+const TELEGRAM_TOKEN_RE = /\b\d{7,12}:[A-Za-z0-9_-]{30,}\b/g;
+const SUPABASE_SERVICE_JWT_PREFIX = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+
 const isBinary = (buf: Uint8Array) => {
   for (let i = 0; i < Math.min(buf.length, 1024); i++) {
     if (buf[i] === 0) return true;
@@ -56,6 +59,20 @@ async function scan(dir: string) {
     if (txt.match(highEntropy) && txt.includes("supabase")) {
       console.error(
         `Possible secret material in ${p}. Remove and rotate if real.`,
+      );
+      bad = true;
+    }
+
+    if (txt.includes(SUPABASE_SERVICE_JWT_PREFIX)) {
+      console.error(
+        `Supabase service role JWT prefix detected in ${p}. Remove and rotate immediately.`,
+      );
+      bad = true;
+    }
+
+    if (txt.match(TELEGRAM_TOKEN_RE)) {
+      console.error(
+        `Telegram bot token detected in ${p}. Remove and rotate immediately.`,
       );
       bad = true;
     }

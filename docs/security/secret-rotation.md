@@ -13,6 +13,26 @@ procedures for each secret.
 
 ---
 
+## 2025-05-08 incident summary
+
+- **Trigger**: GitHub secret scanning reported a leaked Telegram bot token and a
+  Supabase service-role key stored under `external/…` paths.
+- **Immediate actions**:
+  - Revoked the exposed Telegram token via BotFather and issued a replacement.
+  - Reset the Supabase service-role key from the project dashboard and updated
+    managed secret stores.
+  - Purged the leaked values from the repository and added automated guards to
+    prevent similar patterns from re-entering version control.
+- **Follow-up tasks**:
+  - Redeploy Supabase Edge Functions using the refreshed secrets.
+  - Run `supabase functions logs telegram-webhook --since 10m` to confirm 200
+    responses.
+  - Capture any remaining references by running
+    `git log -S"<revoked-fragment>" --stat` and force-pushing cleansed branches
+    if necessary.
+
+Use the rotation runbooks below whenever a new leak is reported.
+
 ## Telegram bot token rotation
 
 ### When to trigger
