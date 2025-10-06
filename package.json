@@ -42,6 +42,7 @@
     "docs:project-scan": "$(bash scripts/deno_bin.sh) run -A scripts/project/generate-project-scan.ts",
     "docs:whitepapers": "tsx scripts/whitepaper/generate.ts",
     "drizzle:migrations:validate": "deno run -A scripts/validate-drizzle-migrations.ts",
+    "github:scan-conflicts": "tsx scripts/github/scan-conflicts.ts",
     "proj:collect": "tsx scripts/project/collect-conventional-commits.ts",
     "proj:notes": "tsx scripts/project/generate-release-notes.ts",
     "proj:readme": "tsx scripts/project/update-readme.ts",
