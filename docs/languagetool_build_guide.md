@@ -31,8 +31,8 @@ controlled networks.
 
 - ✅ **Toolchain** – Confirm Java 17 and the latest Maven release are on `PATH`
   (`java -version`, `mvn -version`).
-- ✅ **Memory** – Export `MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512m"`; increase
-  the heap on constrained CI runners.
+- ✅ **Memory** – Export `MAVEN_OPTS="-Xmx2g"`; increase the heap on constrained
+  CI runners.
 - ✅ **Disk** – Ensure >3 GB free on the build volume for git history, Maven
   cache, and assembled artifacts.
 - ✅ **Network posture** – Verify outbound HTTPS access or configure
@@ -60,7 +60,7 @@ builds.
    ```
 2. **Set Maven memory headroom**
    ```bash
-   export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512m"
+   export MAVEN_OPTS="-Xmx2g"
    ```
    Adjust `-Xmx` upward on hosts that also run other JVM workloads. Cache
    `~/.m2/repository` between CI jobs to shrink cold-start times.
@@ -72,11 +72,11 @@ builds.
    full build.
 4. **Compile desired modules**
 
-   | Objective                      | Command                                         | Notes                                   |
-   | ------------------------------ | ----------------------------------------------- | --------------------------------------- |
-   | Full verification build        | `mvn clean install`                             | Runs unit + integration tests.          |
-   | Fast binary build (skip tests) | `mvn clean install -DskipTests`                 | Use for local iteration only.           |
-   | Server only with deps          | `mvn clean install -pl languagetool-server -am` | Builds the HTTP server and dependencies |
+| Objective                      | Command                                         | Notes                                    |
+| ------------------------------ | ----------------------------------------------- | ---------------------------------------- |
+| Full verification build        | `mvn clean install`                             | Runs unit + integration tests.           |
+| Fast binary build (skip tests) | `mvn clean install -DskipTests`                 | Use for local iteration only.            |
+| Server only with deps          | `mvn clean install -pl languagetool-server -am` | Builds the HTTP server and dependencies. |
 
 ### Module Overview
 
