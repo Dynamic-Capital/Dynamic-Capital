@@ -96,7 +96,6 @@
     "@ton/ton": "^15.3.1",
     "@tonconnect/ui-react": "^2.3.1",
     "@upstash/redis": "^1.35.4",
-    "@vercel/otel": "^1.13.0",
     "@web3-onboard/common": "^2.4.2",
     "@web3-onboard/core": "^2.24.1",
     "class-variance-authority": "^0.7.1",

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from "node:child_process";
 import { createSanitizedNpmEnv } from "../utils/npm-env.mjs";
 
 function shellQuote(value) {
@@ -13,6 +14,30 @@ const canonicalKeys = [
 
 const sanitized = createSanitizedNpmEnv();
 const commands = [];
+
+function readNpmConfig(key) {
+  try {
+    const result = spawnSync("npm", ["config", "get", key], {
+      env: sanitized,
+      encoding: "utf8",
+    });
+
+    if (result.status !== 0) {
+      return undefined;
+    }
+
+    const value = result.stdout.trim();
+    if (
+      !value || value === "null" || value === "undefined" || value === "false"
+    ) {
+      return undefined;
+    }
+
+    return value;
+  } catch {
+    return undefined;
+  }
+}
 
 for (const [lowerKey, upperKey] of canonicalKeys) {
   const value = sanitized[lowerKey];
@@ -29,6 +54,22 @@ for (const [lowerKey, upperKey] of canonicalKeys) {
 for (const key of legacyHttpKeys) {
   if (key in process.env) {
     commands.push(`unset ${key}`);
+  }
+}
+
+const legacyHttpProxyConfig = readNpmConfig("http-proxy");
+if (legacyHttpProxyConfig) {
+  commands.push("# Remove deprecated npm config entries");
+  commands.push("npm config delete http-proxy");
+
+  const proxyValue = sanitized.npm_config_proxy;
+  if (typeof proxyValue === "string" && proxyValue.length > 0) {
+    commands.push(`npm config set proxy ${shellQuote(proxyValue)}`);
+  }
+
+  const httpsProxyValue = sanitized.npm_config_https_proxy;
+  if (typeof httpsProxyValue === "string" && httpsProxyValue.length > 0) {
+    commands.push(`npm config set https-proxy ${shellQuote(httpsProxyValue)}`);
   }
 }
 

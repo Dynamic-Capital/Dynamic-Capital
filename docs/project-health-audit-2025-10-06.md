@@ -71,3 +71,16 @@
   workflows.
 - Maintain the zero-vulnerability posture by integrating `npm audit --omit=dev`
   into CI and reviewing new advisories promptly.
+
+## Follow-up Execution (2025-10-07)
+
+- Upgraded the telemetry stack to `@opentelemetry/*@0.206.x` and
+  `@vercel/otel@^2.0.1`, adopting the new aggregation helpers and resource
+  factories to keep instrumentation compatible with the 2.x metric SDK.
+- Bumped `@supabase/supabase-js` to `^2.74.0` across the web app, algorithms
+  webhook worker, TON mini app, and Supabase functions, refreshing lockfiles to
+  capture the new client build.
+- Enhanced `scripts/env/clean-legacy-npm-proxy.mjs` so engineers receive
+  explicit `npm config` commands to drop deprecated `http-proxy` keys and set
+  canonical proxy values, eliminating the install-time warning noted in the
+  audit.
