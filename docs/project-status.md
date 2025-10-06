@@ -2,14 +2,16 @@
 
 ## Executive Summary
 
+**Go-live readiness remains blocked until automation sweeps and manual checklist evidence land.** The table below highlights the current remediation owners and next steps.
+
 <!-- deno-fmt-ignore -->
 | Area | Status | Evidence | Follow-up |
 | --- | --- | --- | --- |
 | Protocol design & tokenomics | ✅ Ready | Multi-layer scope and hard-cap locked.[^proto-evidence] | Keep emissions dashboard post-launch.[^proto-followup] |
 | Treasury configuration & guardrails | ✅ Ready | Config enforces cap, routing, and staking rules.[^treasury-evidence] | Match Supabase settings to on-chain refs.[^treasury-followup] |
-| Allocator contract & regression coverage | ✅ Ready | Allocator guarded and regression-tested.[^allocator-evidence] | Close outstanding checklist tasks.[^allocator-followup] |
-| Off-chain onboarding flows | ✅ Ready | Onboarding flows production-ready.[^offchain-evidence] | Archive wallet + subscription test logs.[^offchain-followup] |
-| Operational runbooks | ✅ Ready | Go-live dry runs captured for ops.[^runbook-evidence] | Store transcripts and API logs with releases.[^runbook-followup] |
+| Allocator contract & regression coverage | 🟠 Blocked | Allocator guarded and regression-tested, but automation sweeps still failing.[^allocator-evidence] | Close outstanding checklist tasks after `fix_and_check` sweep stabilizes.[^allocator-followup] |
+| Off-chain onboarding flows | 🟠 Blocked | Onboarding flows production-ready, awaiting refreshed webhook verification.[^offchain-evidence] | Restore webhook secrets, rerun verification, and attach wallet/subscription outputs to the release notes.[^offchain-followup] |
+| Operational runbooks | 🔴 Not ready | Go-live dry runs captured, but manual checklist artifacts are missing.[^runbook-evidence] | File dry-run transcripts, payment/crypto logs, and admin outputs before marking complete.[^runbook-followup] |
 
 [^proto-evidence]: Whitepaper codifies the intelligence/execution/liquidity
     layers and the DCT hard-cap
