@@ -22,29 +22,39 @@ interface AnalyticsEvent {
 
 const SESSION_STORAGE_KEY = "analytics_session_id";
 
+const getRuntimeCrypto = (): Crypto | undefined => {
+  if (typeof globalThis === "undefined") return undefined;
+  const runtime = globalThis as typeof globalThis & { msCrypto?: Crypto };
+  return runtime.crypto ?? runtime.msCrypto;
+};
+
+let fallbackCounter = 0;
+
 const generateSessionId = (): string => {
-  if (typeof window !== "undefined") {
-    const cryptoObject = window.crypto ?? (window as typeof window & {
-      msCrypto?: Crypto;
-    }).msCrypto;
+  const cryptoApi = getRuntimeCrypto();
 
-    if (cryptoObject?.getRandomValues) {
-      const randomBytes = new Uint8Array(16);
-      cryptoObject.getRandomValues(randomBytes);
-      const randomHex = Array.from(randomBytes)
-        .map((byte) => byte.toString(16).padStart(2, "0"))
-        .join("");
-
-      return `session_${randomHex}`;
-    }
+  if (cryptoApi?.randomUUID) {
+    return `session_${cryptoApi.randomUUID()}`;
   }
 
-  const timestamp = Date.now().toString(36);
-  const perfTime = typeof performance !== "undefined"
-    ? Math.floor(performance.now() * 1000).toString(36)
-    : "";
+  if (cryptoApi?.getRandomValues) {
+    const randomBytes = new Uint8Array(16);
+    cryptoApi.getRandomValues(randomBytes);
+    const randomHex = Array.from(randomBytes)
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
 
-  return `session_${timestamp}${perfTime}`;
+    return `session_${randomHex}`;
+  }
+
+  fallbackCounter = (fallbackCounter + 1) % Number.MAX_SAFE_INTEGER;
+  if (typeof console !== "undefined") {
+    console.warn(
+      "Secure Crypto API unavailable; using deterministic session identifier.",
+    );
+  }
+
+  return `session_fallback_${Date.now().toString(36)}_${fallbackCounter}`;
 };
 
 const readStoredSessionId = (): string | null => {

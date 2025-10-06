@@ -291,3 +291,37 @@ export const mna = () =>
 
 export const oops = (message: string, hint?: unknown, req?: Request) =>
   jsonResponse({ ok: false, error: message, hint }, { status: 500 }, req);
+
+let errorReferenceCounter = 0;
+
+const nextErrorReference = () => {
+  if (
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
+  errorReferenceCounter = (errorReferenceCounter + 1) % Number.MAX_SAFE_INTEGER;
+  return `err-${Date.now().toString(36)}-${errorReferenceCounter}`;
+};
+
+type InternalErrorOptions = {
+  req?: Request;
+  message?: string;
+  extra?: Record<string, unknown>;
+  headers?: HeadersInit;
+  reference?: string;
+};
+
+export const internalError = (
+  error: unknown,
+  options: InternalErrorOptions = {},
+) => {
+  const reference = options.reference ?? nextErrorReference();
+  console.error(`[internal-error:${reference}]`, error);
+  const { req, message = "Internal server error", extra, headers } = options;
+  return jsonResponse(
+    { ok: false, error: message, reference, ...(extra ?? {}) },
+    { status: 500, headers },
+    req,
+  );
+};

@@ -1,4 +1,5 @@
 import { createClient } from "../_shared/client.ts";
+import { internalError } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
@@ -10,6 +11,21 @@ const corsHeaders = {
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[ANALYTICS-DATA] ${step}${detailsStr}`);
+};
+
+const secureRandomBetween = (min: number, max: number) => {
+  const range = max - min;
+  if (!Number.isFinite(range) || range === 0) return min;
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.getRandomValues === "function"
+  ) {
+    const buffer = new Uint32Array(1);
+    crypto.getRandomValues(buffer);
+    const normalized = buffer[0] / 0xffffffff;
+    return min + normalized * range;
+  }
+  return min;
 };
 
 export const handler = registerHandler(async (req) => {
@@ -166,8 +182,8 @@ export const handler = registerHandler(async (req) => {
 
     // Calculate comparison metrics (simplified - in real implementation, compare with previous period)
     const comparisonData = {
-      revenue_change: Math.random() * 30 - 10, // Mock percentage change
-      sales_change: Math.random() * 20 - 5,
+      revenue_change: secureRandomBetween(-10, 20),
+      sales_change: secureRandomBetween(-5, 15),
     };
 
     const analyticsData = {
@@ -192,22 +208,22 @@ export const handler = registerHandler(async (req) => {
       status: 200,
     });
   } catch (error) {
+    const reference = crypto.randomUUID();
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in analytics-data", { message: errorMessage });
+    logStep("ERROR in analytics-data", { message: errorMessage, reference });
 
-    return new Response(
-      JSON.stringify({
-        error: errorMessage,
+    return internalError(error, {
+      req,
+      message: "Failed to generate analytics data.",
+      extra: {
         timeframe: "today",
         total_revenue: 0,
         currency: "USD",
         package_performance: [],
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
       },
-    );
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      reference,
+    });
   }
 });
 

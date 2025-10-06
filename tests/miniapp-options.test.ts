@@ -13,6 +13,19 @@ const supaState: SupaMockState = { tables: {} };
 const globalWithSupaMock = globalThis as GlobalWithSupaMock;
 globalWithSupaMock.__SUPA_MOCK__ = supaState;
 
+const TELEGRAM_API_ORIGIN = "https://api.telegram.org";
+
+const isTelegramApiRequest = (input: Request | string | URL): boolean => {
+  try {
+    const parsed = input instanceof Request
+      ? new URL(input.url)
+      : new URL(String(input));
+    return parsed.origin === TELEGRAM_API_ORIGIN;
+  } catch {
+    return false;
+  }
+};
+
 function setEnv() {
   process.env.TELEGRAM_BOT_TOKEN = "testtoken";
   process.env.TELEGRAM_WEBHOOK_SECRET = "testsecret";
@@ -41,8 +54,7 @@ test("sendMiniAppOrBotOptions uses nav:plans callback", async () => {
   const calls: Array<{ body: string }> = [];
   const originalFetch = globalThis.fetch;
   globalThis.fetch = ((input: Request | string | URL, init?: RequestInit) => {
-    const url = String(input);
-    if (url.startsWith("https://api.telegram.org")) {
+    if (isTelegramApiRequest(input)) {
       calls.push({ body: init?.body ? String(init.body) : "" });
       const response = new Response(
         JSON.stringify({ ok: true, result: { message_id: 1 } }),

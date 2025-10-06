@@ -35,10 +35,15 @@ async function callTelegram(
 ) {
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/${method}`;
   try {
+    const safePayload = { ...payload };
+    if (typeof safePayload.text === "string") {
+      safePayload.text = sanitizeMarkdown(safePayload.text);
+    }
+
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(safePayload),
     });
     if (!response.ok) {
       const errorData = await response.text();
@@ -50,7 +55,7 @@ async function callTelegram(
         payload.parse_mode === "Markdown"
       ) {
         console.log("Retrying with plain text due to markdown parsing error");
-        const plainPayload = { ...payload, parse_mode: undefined };
+        const plainPayload = { ...safePayload, parse_mode: undefined };
         return callTelegram(method, plainPayload, true);
       }
 

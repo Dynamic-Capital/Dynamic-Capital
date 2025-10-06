@@ -1,4 +1,5 @@
 import { optionalEnv } from "../_shared/env.ts";
+import { internalError } from "../_shared/http.ts";
 import { createLogger } from "../_shared/logger.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
@@ -113,22 +114,15 @@ export const handler = registerHandler(async (req) => {
     );
   } catch (error) {
     logger.error("🚨 Debug error:", error);
-    return new Response(
-      JSON.stringify(
-        {
-          success: false,
-          error: error.message,
-          stack: error.stack,
-          timestamp: new Date().toISOString(),
-        },
-        null,
-        2,
-      ),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return internalError(error, {
+      req,
+      message: "Failed to execute debug inspection.",
+      extra: {
+        success: false,
+        timestamp: new Date().toISOString(),
       },
-    );
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
 

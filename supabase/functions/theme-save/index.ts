@@ -1,5 +1,6 @@
 // >>> DC BLOCK: theme-save-core (start)
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { internalError } from "../_shared/http.ts";
 import { optionalEnv, requireEnv } from "../_shared/env.ts";
 
 function parseToken(bearer: string | undefined) {
@@ -54,9 +55,10 @@ export async function handler(req: Request): Promise<Response> {
     return new Response(JSON.stringify({ ok }), {
       headers: { "content-type": "application/json" },
     });
-  } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
-      status: 500,
+  } catch (error) {
+    console.error("Failed to persist theme preference", error);
+    return internalError(error, {
+      message: "Unable to persist theme preference.",
     });
   }
 }

@@ -1,5 +1,8 @@
 name: Deploy to DigitalOcean App Platform
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
