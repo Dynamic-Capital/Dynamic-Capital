@@ -324,9 +324,62 @@ export default function TokenPage() {
                 <Text variant="body-default-m" onBackground="neutral-weak">
                   {pool.description}
                 </Text>
-                <Text variant="label-default-s" onBackground="brand-medium">
-                  {pool.url}
-                </Text>
+                <Column gap="8">
+                  <Column gap="4">
+                    <Text
+                      variant="label-default-s"
+                      onBackground="neutral-weak"
+                    >
+                      Swap URL
+                    </Text>
+                    <Text
+                      as="a"
+                      href={pool.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      variant="label-default-s"
+                      onBackground="brand-medium"
+                      className="break-all"
+                    >
+                      {pool.url}
+                    </Text>
+                  </Column>
+                  {pool.address
+                    ? (
+                      <Column gap="4">
+                        <Text
+                          variant="label-default-s"
+                          onBackground="neutral-weak"
+                        >
+                          Pool address
+                        </Text>
+                        <Text
+                          variant="body-default-m"
+                          onBackground="brand-medium"
+                          className="font-mono break-all"
+                        >
+                          {pool.addressLabel ?? pool.address}
+                        </Text>
+                        {pool.explorerUrl
+                          ? (
+                            <Text
+                              as="a"
+                              href={pool.explorerUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              variant="label-default-s"
+                              onBackground="brand-medium"
+                              className="flex items-center gap-1"
+                            >
+                              View on Tonviewer
+                              <Icon name="arrowUpRight" />
+                            </Text>
+                          )
+                          : null}
+                      </Column>
+                    )
+                    : null}
+                </Column>
               </Column>
             </Row>
           ))}

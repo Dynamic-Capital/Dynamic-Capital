@@ -20,6 +20,9 @@ export const TON_MAINNET_DCT_TREASURY_WALLET =
 export const TON_MAINNET_STONFI_ROUTER =
   "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
 
+export const TON_MAINNET_DEDUST_DCT_TON_POOL =
+  "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm";
+
 export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
   {
     key: "operationsTreasury",
@@ -54,6 +57,13 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     label: "STON.fi DCT/TON router",
     friendlyAddress: TON_MAINNET_STONFI_ROUTER,
     description: "Liquidity router used for treasury swaps and burns.",
+  },
+  {
+    key: "dedustDctTonPool",
+    label: "DeDust DCT/TON pool",
+    friendlyAddress: TON_MAINNET_DEDUST_DCT_TON_POOL,
+    description:
+      "Primary DeDust pool holding Dynamic Capital TON-side liquidity reserves.",
   },
 ] as const satisfies readonly TonMainnetAccountDefinition[];
 
