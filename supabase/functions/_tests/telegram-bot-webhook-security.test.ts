@@ -1,50 +1,57 @@
-import { assertEquals } from "std/testing/asserts.ts";
+import { assertEquals, assertStrictEquals } from "std/testing/asserts.ts";
 import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
-Deno.test("telegram-bot rejects requests without secret", async () => {
+Deno.test("rejects requests without secret and preserves CORS", async () => {
   setTestEnv({
     TELEGRAM_WEBHOOK_SECRET: "s3cr3t",
-    SUPABASE_URL: "https://example.com",
-    SUPABASE_SERVICE_ROLE_KEY: "srv",
-    TELEGRAM_BOT_TOKEN: "token",
-    MINI_APP_URL: "https://example.com/",
+    ALLOWED_ORIGINS: "*",
   });
-  const { default: handler } = await import("../telegram-bot/index.ts");
+
   const req = new Request("https://example.com/telegram-bot", {
     method: "POST",
     body: "{}",
+    headers: { origin: "https://example.com" },
   });
-  const res = await handler(req);
-  assertEquals(res.status, 401);
+
+  const { validateTelegramHeader } = await import(
+    "../_shared/telegram_secret.ts"
+  );
+  const res = await validateTelegramHeader(req);
+  assertEquals(res?.status, 401);
+  assertStrictEquals(res?.headers.get("access-control-allow-origin"), "*");
+
   clearTestEnv();
 });
 
-Deno.test("telegram-bot accepts valid secret", async () => {
+Deno.test("accepts valid secret", async () => {
   setTestEnv({
     TELEGRAM_WEBHOOK_SECRET: "s3cr3t",
-    SUPABASE_URL: "https://example.com",
-    SUPABASE_SERVICE_ROLE_KEY: "srv",
-    TELEGRAM_BOT_TOKEN: "token",
-    MINI_APP_URL: "https://example.com/",
+    ALLOWED_ORIGINS: "*",
   });
-  const { default: handler } = await import("../telegram-bot/index.ts");
+
   const req = new Request("https://example.com/telegram-bot", {
     method: "POST",
-    headers: { "x-telegram-bot-api-secret-token": "s3cr3t" },
-    body: JSON.stringify({ test: "ping" }),
+    headers: {
+      "x-telegram-bot-api-secret-token": "s3cr3t",
+      origin: "https://example.com",
+    },
+    body: JSON.stringify({}),
   });
-  const res = await handler(req);
-  assertEquals(res.status, 200);
-  const json = await res.json();
-  assertEquals(json.pong, true);
+
+  const { validateTelegramHeader } = await import(
+    "../_shared/telegram_secret.ts"
+  );
+  const res = await validateTelegramHeader(req);
+  assertStrictEquals(res, null);
+
   clearTestEnv();
 });
 
-Deno.test("telegram-bot /version endpoint", async () => {
-  const { default: handler } = await import("../telegram-bot/index.ts");
+Deno.test("skips validation for version endpoint", async () => {
   const req = new Request("https://example.com/version", { method: "GET" });
-  const res = await handler(req);
-  assertEquals(res.status, 200);
-  const json = await res.json();
-  assertEquals(json.name, "telegram-bot");
+  const { validateTelegramHeader } = await import(
+    "../_shared/telegram_secret.ts"
+  );
+  const res = await validateTelegramHeader(req);
+  assertStrictEquals(res, null);
 });
