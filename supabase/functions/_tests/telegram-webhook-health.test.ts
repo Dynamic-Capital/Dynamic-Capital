@@ -63,5 +63,24 @@ Deno.test("telegram-webhook health endpoints respond", async (t) => {
     assertEquals(text, "");
   });
 
+  await t.step(
+    "OPTIONS /telegram-webhook advertises allowed methods",
+    async () => {
+      const req = new Request(
+        "https://example.com/functions/v1/telegram-webhook",
+        { method: "OPTIONS" },
+      );
+      const res = await handler(req);
+      assertEquals(res.status, 204);
+      assertEquals(res.headers.get("Allow"), "GET,HEAD,POST,OPTIONS");
+      assertEquals(
+        res.headers.get("access-control-allow-methods"),
+        "GET,HEAD,POST,OPTIONS",
+      );
+      const text = await res.text();
+      assertEquals(text, "");
+    },
+  );
+
   clearTestEnv();
 });

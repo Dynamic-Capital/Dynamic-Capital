@@ -66,12 +66,12 @@ async function sendMessage(
 
 const ALLOWED_METHODS = "GET,HEAD,POST,OPTIONS";
 
-function withAllowHeaders(res: Response, req: Request) {
+function attachAllowCorsHeaders(res: Response, req: Request) {
   const headers = corsHeaders(req, ALLOWED_METHODS);
+  headers["Allow"] = ALLOWED_METHODS;
   for (const [key, value] of Object.entries(headers)) {
     res.headers.set(key, value);
   }
-  res.headers.set("Allow", ALLOWED_METHODS);
   return res;
 }
 
@@ -87,46 +87,43 @@ export async function handler(req: Request): Promise<Response> {
       normalizedPath.endsWith("/telegram-webhook");
 
     if (req.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: new Headers(corsHeaders(req, ALLOWED_METHODS)),
-      });
+      return attachAllowCorsHeaders(
+        new Response(null, { status: 204 }),
+        req,
+      );
     }
 
     if (req.method === "HEAD" && (isBaseEndpoint || isVersionEndpoint)) {
-      return withAllowHeaders(new Response(null, { status: 200 }), req);
+      return attachAllowCorsHeaders(new Response(null, { status: 200 }), req);
     }
 
     // Health/version probe
     if (req.method === "GET" && isVersionEndpoint) {
-      return withAllowHeaders(
-        ok({ name: "telegram-webhook", ts: new Date().toISOString() }, req),
+      return attachAllowCorsHeaders(
+        ok({ name: "telegram-webhook", ts: new Date().toISOString() }),
         req,
       );
     }
 
     if (req.method === "GET" && isBaseEndpoint) {
-      return withAllowHeaders(
+      return attachAllowCorsHeaders(
         ok({
           name: "telegram-webhook",
           ts: new Date().toISOString(),
           hint: "Send POST requests with Telegram updates.",
-        }, req),
+        }),
         req,
       );
     }
 
     // Only accept POST for webhook deliveries
     if (req.method !== "POST") {
-      return jsonResponse(
-        { ok: false, error: "Method Not Allowed" },
-        {
-          status: 405,
-          headers: {
-            Allow: ALLOWED_METHODS,
-            ...corsHeaders(req, ALLOWED_METHODS),
-          },
-        },
+      return attachAllowCorsHeaders(
+        jsonResponse(
+          { ok: false, error: "Method Not Allowed" },
+          { status: 405 },
+        ),
+        req,
       );
     }
 
