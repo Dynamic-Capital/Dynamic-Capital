@@ -3,7 +3,10 @@ import { z } from "zod";
 import jettonMetadata from "../../../dynamic-capital-ton/contracts/jetton/metadata.json" assert {
   type: "json",
 };
-import { TON_MAINNET_OPERATIONS_TREASURY } from "../../../shared/ton/mainnet-addresses";
+import {
+  TON_MAINNET_DEDUST_DCT_TON_POOL,
+  TON_MAINNET_OPERATIONS_TREASURY,
+} from "../../../shared/ton/mainnet-addresses";
 import type { IconName } from "./icons";
 
 const TON_URL_SCHEME_PATTERN = /^ton:\/\//i;
@@ -126,12 +129,25 @@ const OPERATIONS_TREASURY_WALLET = tonAddressSchema.parse(
 );
 const OPERATIONS_TREASURY_EXPLORER_URL =
   `https://tonviewer.com/${OPERATIONS_TREASURY_WALLET}`;
+const buildTonviewerAccountUrl = (address?: string) => {
+  const normalizedAddress = normalizeTonAddress(address);
+  return normalizedAddress
+    ? `https://tonviewer.com/${normalizedAddress}`
+    : undefined;
+};
 const buildJettonExplorerUrl = (address?: string) => {
   const normalizedAddress = normalizeTonAddress(address);
   return normalizedAddress
     ? `https://tonviewer.com/jetton/${normalizedAddress}`
     : undefined;
 };
+
+const DEDUST_DCT_TON_POOL_ADDRESS = tonAddressSchema.parse(
+  TON_MAINNET_DEDUST_DCT_TON_POOL,
+);
+const DEDUST_DCT_TON_POOL_EXPLORER_URL = buildTonviewerAccountUrl(
+  DEDUST_DCT_TON_POOL_ADDRESS,
+);
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-US").format(value);
@@ -160,6 +176,9 @@ type DexPool = {
   pair: string;
   url: string;
   description: string;
+  address?: string;
+  addressLabel?: string;
+  explorerUrl?: string;
 };
 
 type SupplySplit = {
@@ -370,6 +389,9 @@ const tokenDexPools = Object.freeze([
     url: "https://dedust.io/swap/TON-DCT",
     description:
       "Secondary routing venue leveraging DeDust's TON-native liquidity network for balanced execution.",
+    address: DEDUST_DCT_TON_POOL_ADDRESS,
+    addressLabel: shortenTonAddress(DEDUST_DCT_TON_POOL_ADDRESS),
+    explorerUrl: DEDUST_DCT_TON_POOL_EXPLORER_URL,
   },
 ]) satisfies readonly DexPool[];
 
@@ -377,6 +399,7 @@ const tokenSameAs = uniqueStrings([
   ...(tokenMetadata.sameAs ?? []),
   tokenDescriptor.externalUrl,
   ...tokenDexPools.map((pool) => pool.url),
+  ...tokenDexPools.map((pool) => pool.explorerUrl),
   tokenJettonExplorerUrl,
 ]);
 
