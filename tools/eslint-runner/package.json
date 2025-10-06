@@ -1,0 +1,11 @@
+{
+  "name": "eslint-runner",
+  "private": true,
+  "version": "1.0.0",
+  "description": "ESLint runner for GitHub Actions",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@microsoft/eslint-formatter-sarif": "3.1.0",
+    "eslint": "8.10.0"
+  }
+}
