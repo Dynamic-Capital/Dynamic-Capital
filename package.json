@@ -66,6 +66,7 @@
     "doctl:sync-site": "node scripts/doctl/sync-site-config.mjs",
     "checklists": "node scripts/run-checklists.js",
     "go-live": "node scripts/run-checklists.js --checklist go-live",
+    "go-live--dry-run": "node scripts/run-checklists.js --checklist go-live --dry-run",
     "export": "node scripts/npm-safe.mjs run build",
     "output": "node scripts/npm-safe.mjs -w apps/web run copy-static",
     "supabase:start": "supabase start",
