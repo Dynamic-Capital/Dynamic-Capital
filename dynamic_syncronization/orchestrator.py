@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from statistics import fmean
 from typing import Deque, Iterable, Iterator, Mapping, MutableMapping, Sequence
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 __all__ = [
     "DynamicSyncronizationOrchestrator",
@@ -21,6 +22,25 @@ __all__ = [
 _ALLOWED_STATUSES = {"success", "warning", "failed", "skipped"}
 _SEVERITY_WEIGHTS = {"critical": 0.6, "major": 0.4, "minor": 0.2, "info": 0.1}
 _CRITICALITY_WEIGHTS = {"critical": 1.0, "high": 0.8, "medium": 0.5, "low": 0.3}
+
+
+def _coerce_timezone(value: object | None) -> ZoneInfo:
+    if isinstance(value, ZoneInfo):
+        return value
+    if value is None:
+        return ZoneInfo("UTC")
+    cleaned = str(value).strip()
+    if not cleaned:
+        return ZoneInfo("UTC")
+    try:
+        return ZoneInfo(cleaned)
+    except ZoneInfoNotFoundError as exc:  # pragma: no cover - defensive guard
+        raise ValueError(f"unknown timezone: {cleaned}") from exc
+
+
+def _timezone_key(value: ZoneInfo) -> str:
+    key = getattr(value, "key", None)
+    return key if key else str(value)
 
 
 # ---------------------------------------------------------------------------
@@ -103,6 +123,23 @@ def _clamp(value: float, *, lower: float = 0.0, upper: float = 1.0) -> float:
     return max(lower, min(upper, value))
 
 
+def _localise_incident(incident: SyncIncident, target: ZoneInfo) -> SyncIncident:
+    clone = object.__new__(SyncIncident)
+    object.__setattr__(clone, "identifier", incident.identifier)
+    object.__setattr__(clone, "system", incident.system)
+    object.__setattr__(clone, "severity", incident.severity)
+    object.__setattr__(clone, "summary", incident.summary)
+    object.__setattr__(clone, "details", incident.details)
+    object.__setattr__(clone, "opened_at", incident.opened_at.astimezone(target))
+    object.__setattr__(clone, "resolved_at", (
+        incident.resolved_at.astimezone(target)
+        if incident.resolved_at is not None
+        else None
+    ))
+    object.__setattr__(clone, "metadata", incident.metadata)
+    return clone
+
+
 # ---------------------------------------------------------------------------
 # dataclass definitions
 
@@ -116,6 +153,7 @@ class SyncSystem:
     cadence_minutes: float
     tolerance_minutes: float
     criticality: str = "medium"
+    timezone: ZoneInfo = field(default_factory=lambda: ZoneInfo("UTC"))
     tags: tuple[str, ...] = field(default_factory=tuple)
     metadata: Mapping[str, object] | None = None
 
@@ -128,6 +166,7 @@ class SyncSystem:
         if normalised_criticality not in _CRITICALITY_WEIGHTS:
             normalised_criticality = "medium"
         self.criticality = normalised_criticality
+        self.timezone = _coerce_timezone(self.timezone)
         self.tags = _normalise_tags(self.tags)
         self.metadata = _coerce_metadata(self.metadata)
 
@@ -226,6 +265,7 @@ class SyncStatusSnapshot:
     reliability: float
     average_drift_minutes: float
     last_synced_at: datetime | None
+    timezone: ZoneInfo
     incidents: tuple[SyncIncident, ...]
     dependencies: tuple[str, ...]
     tags: tuple[str, ...]
@@ -242,6 +282,7 @@ class SyncStatusSnapshot:
             "last_synced_at": self.last_synced_at.isoformat()
             if self.last_synced_at
             else None,
+            "timezone": _timezone_key(self.timezone),
             "incidents": [
                 {
                     "identifier": incident.identifier,
@@ -280,7 +321,7 @@ class DynamicSyncronizationOrchestrator:
         self._events: dict[str, Deque[SyncEvent]] = {}
         self._incidents: dict[str, list[SyncIncident]] = {}
         self._incident_index: dict[str, SyncIncident] = {}
-        self._status_cache: dict[str, SyncStatusSnapshot] = {}
+        self._status_cache: dict[tuple[str, str], SyncStatusSnapshot] = {}
         if systems:
             for system in systems:
                 self.add_system(system)
@@ -359,15 +400,23 @@ class DynamicSyncronizationOrchestrator:
     # ------------------------------------------------------------------
     # status computation
 
-    def status(self, system: str) -> SyncStatusSnapshot:
+    def status(
+        self, system: str, *, timezone: str | ZoneInfo | None = None
+    ) -> SyncStatusSnapshot:
         key = _normalise_key(system)
         if key not in self._systems:
             raise KeyError(f"unknown system: {system}")
-        cached = self._status_cache.get(key)
+        system_definition = self._systems[key]
+        target_timezone = (
+            _coerce_timezone(timezone)
+            if timezone is not None
+            else system_definition.timezone
+        )
+        cache_key = (key, _timezone_key(target_timezone))
+        cached = self._status_cache.get(cache_key)
         if cached is not None:
             return cached
 
-        system_definition = self._systems[key]
         events = tuple(self._events.get(key, ()))
         open_incidents = tuple(
             incident for incident in self._incidents.get(key, ()) if incident.is_open
@@ -395,34 +444,49 @@ class DynamicSyncronizationOrchestrator:
             "open_incident_count": len(open_incidents),
             "reliability": reliability,
         }
+        metadata["timezone"] = _timezone_key(target_timezone)
         if last_event is not None:
             metadata["last_status"] = last_event.status
             metadata["last_latency_seconds"] = last_event.duration_seconds
             metadata["last_notes"] = last_event.notes
         if system_definition.metadata:
             metadata.update(system_definition.metadata)
+        localised_incidents = tuple(
+            _localise_incident(incident, target_timezone) for incident in open_incidents
+        )
         snapshot = SyncStatusSnapshot(
             system=system_definition.name,
             status=status,
             health_score=health_score,
             reliability=reliability,
             average_drift_minutes=average_drift,
-            last_synced_at=last_event.completed_at if last_event else None,
-            incidents=open_incidents,
+            last_synced_at=(
+                last_event.completed_at.astimezone(target_timezone)
+                if last_event
+                else None
+            ),
+            timezone=target_timezone,
+            incidents=localised_incidents,
             dependencies=dependencies,
             tags=system_definition.tags,
             summary=summary,
             metadata=metadata,
         )
-        self._status_cache[key] = snapshot
+        self._status_cache[cache_key] = snapshot
         return snapshot
 
-    def iter_status(self) -> Iterator[SyncStatusSnapshot]:
+    def iter_status(
+        self, *, timezone: str | ZoneInfo | None = None
+    ) -> Iterator[SyncStatusSnapshot]:
         for system in sorted(self._systems.values(), key=lambda item: item.name.lower()):
-            yield self.status(system.name)
+            yield self.status(system.name, timezone=timezone)
 
-    def status_map(self) -> MutableMapping[str, SyncStatusSnapshot]:
-        return {snapshot.system: snapshot for snapshot in self.iter_status()}
+    def status_map(
+        self, *, timezone: str | ZoneInfo | None = None
+    ) -> MutableMapping[str, SyncStatusSnapshot]:
+        return {
+            snapshot.system: snapshot for snapshot in self.iter_status(timezone=timezone)
+        }
 
     # ------------------------------------------------------------------
     # computation helpers
@@ -544,4 +608,6 @@ class DynamicSyncronizationOrchestrator:
         raise TypeError("incident must be SyncIncident or mapping")
 
     def _invalidate_status(self, key: str) -> None:
-        self._status_cache.pop(key, None)
+        to_remove = [cache_key for cache_key in self._status_cache if cache_key[0] == key]
+        for cache_key in to_remove:
+            self._status_cache.pop(cache_key, None)
