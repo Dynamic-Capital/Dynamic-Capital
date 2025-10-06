@@ -32,6 +32,51 @@ is the best fit for the task at hand.
 
 ## Command Playbooks
 
+### 2025-02-13 — Dynamic AI Validation Checklist Run
+
+**Command**
+
+```bash
+npm run checklists -- --checklist dai
+```
+
+**Purpose**
+
+Exercise the Dynamic AI regression suites before updating persona prompts or
+orchestration lobes, ensuring the Brain’s pipelines remain auditable.
+
+**Highlights**
+
+- Pytest executed the architecture checks across pipeline phases, residency
+  guards, and telemetry validation (11 tests, all
+  passing).【5f5071†L1-L17】【e4c75d†L1-L6】
+- Persona and fusion coverage verified agent chaining, benchmarking surfaces,
+  and lattice assembly in 36 passing tests, clearing the path for new prompt
+  deployments.【3c4987†L1-L8】
+- Checklist automation completed without manual intervention, producing
+  artefacts for the release record.【3c4987†L6-L8】
+
+### 2025-02-13 — Dynamic AGI Oversight Checklist Run
+
+**Command**
+
+```bash
+npm run checklists -- --checklist dagi
+```
+
+**Purpose**
+
+Validate DAGI self-improvement, mentorship feedback, and orchestration
+diagnostics prior to integrating new modules or telemetry feeds.
+
+**Highlights**
+
+- Oversight pytest suite covered build tooling, identity controls, mentorship
+  pipelines, and fine-tuning adapters with 18 passing
+  tests.【8b5e25†L1-L11】【eb586e†L1-L8】
+- Checklist automation finished successfully, documenting the run for future
+  infrastructure reviews.【fe1511†L1-L3】
+
 ### 2025-10-01 — Modular Architecture Checklist Run
 
 **Command**
