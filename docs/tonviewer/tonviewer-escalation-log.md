@@ -5,6 +5,7 @@
 | 2025-10-03 | Operations | Submitted initial verification ticket with metadata bundle. | Ticket `TVR-4821` | Acknowledged by Tonviewer support; verification pending. |
 | 2025-10-05 | Compliance | Delivered supplemental issuer documentation and proof-of-mint hash. | Email to support@tonviewer.com | Awaiting confirmation that documents were received. |
 | 2025-10-06 | Analytics | Ran `check-tonviewer-status.ts` to confirm status and hash parity. | Script log | Jetton still unverified (`none`). Follow-up required. |
+| 2025-10-06 | Analytics | Re-ran `check-tonviewer-status.ts` at 17:21 UTC to refresh Tonapi snapshot. | Script log | Status unchanged; verification flag `none`. |
 
 ## Pending Follow-Ups
 
