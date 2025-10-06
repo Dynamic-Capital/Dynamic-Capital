@@ -57,3 +57,6 @@ need to automate vendor reviews or track renewal dates programmatically.
 - [KYC Dossier Completion Checklist](kyc-dossier-checklist.md) – step-by-step
   validation of intake, screening, and governance evidence required before
   activating a participant in the Dynamic KYC registry.
+- [DCT Treasury Onboarding – Completed KYC Dossier (2025-10-08)](dossiers/dct-2025-10-08.md)
+  – evidence log showing each checklist requirement executed and archived for
+  ticket `DCT-COMP-2025-118`.
