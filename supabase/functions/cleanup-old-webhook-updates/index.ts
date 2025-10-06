@@ -1,4 +1,5 @@
 import { createClient } from "../_shared/client.ts";
+import { internalError } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
@@ -23,14 +24,16 @@ export const handler = registerHandler(async (req) => {
       JSON.stringify({ success: true, deleted: count ?? 0 }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (err) {
-    return new Response(
-      JSON.stringify({ success: false, error: String(err) }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+  } catch (error) {
+    const reference = crypto.randomUUID();
+    console.error(`Failed to cleanup webhook updates [${reference}]`, error);
+    return internalError(error, {
+      req,
+      message: "Cleanup failed.",
+      extra: { success: false },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      reference,
+    });
   }
 });
 

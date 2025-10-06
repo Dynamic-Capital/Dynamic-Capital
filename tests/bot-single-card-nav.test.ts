@@ -5,6 +5,19 @@ import { freshImport } from "./utils/freshImport.ts";
 const supaState: any = { tables: {} };
 (globalThis as any).__SUPA_MOCK__ = supaState;
 
+const TELEGRAM_API_ORIGIN = "https://api.telegram.org";
+
+const isTelegramApiRequest = (input: Request | string | URL): boolean => {
+  try {
+    const parsed = input instanceof Request
+      ? new URL(input.url)
+      : new URL(String(input));
+    return parsed.origin === TELEGRAM_API_ORIGIN;
+  } catch {
+    return false;
+  }
+};
+
 function setEnv() {
   process.env.TELEGRAM_BOT_TOKEN = "testtoken";
   process.env.TELEGRAM_WEBHOOK_SECRET = "testsecret";
@@ -44,8 +57,8 @@ test("callback edits message instead of sending new one", async () => {
     input: Request | string | URL,
     init?: RequestInit,
   ) => {
-    const url = String(input);
-    if (url.startsWith("https://api.telegram.org")) {
+    if (isTelegramApiRequest(input)) {
+      const url = input instanceof Request ? input.url : String(input);
       calls.push({ url, body: init?.body ? String(init.body) : "" });
       return new Response(
         JSON.stringify({ ok: true, result: { message_id: 42 } }),

@@ -1,5 +1,8 @@
 name: TradingView Ideas Collector
 
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: "0 */6 * * *"

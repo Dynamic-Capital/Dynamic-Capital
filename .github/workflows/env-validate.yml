@@ -1,5 +1,8 @@
 name: env-validate
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:

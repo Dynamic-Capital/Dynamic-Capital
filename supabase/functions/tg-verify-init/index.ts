@@ -1,5 +1,6 @@
 // >>> DC BLOCK: tg-verify-core (start)
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { internalError } from "../_shared/http.ts";
 import { getEnv } from "../_shared/env.ts";
 import { signHS256 } from "../_shared/jwt.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
@@ -62,9 +63,10 @@ async function handler(req: Request): Promise<Response> {
         },
       },
     );
-  } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
-      status: 500,
+  } catch (error) {
+    console.error("Failed to initialize Telegram verification", error);
+    return internalError(error, {
+      message: "Failed to initialize verification session.",
     });
   }
 }

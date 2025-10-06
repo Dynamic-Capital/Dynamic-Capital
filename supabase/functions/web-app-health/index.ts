@@ -101,11 +101,13 @@ export async function handler(req: Request): Promise<Response> {
 
     return healthResponse(health, req, ["GET"]);
   } catch (error) {
+    const reference = crypto.randomUUID();
+    console.error(`web-app-health failure [${reference}]`, error);
     const fallback = buildHealthReport([
       {
         component: "web_app_health",
         status: "error",
-        message: error instanceof Error ? error.message : String(error),
+        message: `Health checks unavailable (reference: ${reference})`,
         response_time: 0,
         last_checked: new Date().toISOString(),
       },

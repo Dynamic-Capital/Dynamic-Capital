@@ -1,3 +1,4 @@
+import { internalError } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import {
   getConfig,
@@ -124,8 +125,12 @@ export const handler = registerHandler(async (req) => {
       default:
         return json({ error: "invalid action" }, 400);
     }
-  } catch (e) {
-    return json({ error: String(e) }, 500);
+  } catch (error) {
+    console.error("Feature flag configuration error", error);
+    return internalError(error, {
+      req,
+      message: "Failed to process configuration request.",
+    });
   }
 });
 

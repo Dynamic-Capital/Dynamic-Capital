@@ -1,5 +1,8 @@
 name: Deploy to DigitalOcean Kubernetes
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
 

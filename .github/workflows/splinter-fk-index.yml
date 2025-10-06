@@ -1,4 +1,8 @@
 name: DB Lint + Auto FK Index PR
+
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   schedule:
