@@ -66,8 +66,9 @@ team submits a verification package. Generate the canonical archive by running:
 $(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/generate-tonviewer-bundle.ts
 ```
 
-The script collects the FunC discoverable sources, frozen metadata, this README,
-and a machine-readable manifest (metadata checksum + governance summary) into
+The script collects the full FunC discoverable sources (including the
+`imports/` helper modules), frozen metadata, this README, and a machine-readable
+manifest (metadata checksum + governance summary) into
 `build/tonviewer/dct-tonviewer-verification.zip`. Submit the ZIP through the
 [Tonviewer verification portal](https://tonviewer.com/verification) and track
 the workflow with the

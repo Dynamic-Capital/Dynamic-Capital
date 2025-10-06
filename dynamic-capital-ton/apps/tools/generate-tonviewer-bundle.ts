@@ -1,3 +1,4 @@
+import { copy } from "https://deno.land/std@0.224.0/fs/copy.ts";
 import { emptyDir } from "https://deno.land/std@0.224.0/fs/empty_dir.ts";
 import { ensureDir } from "https://deno.land/std@0.224.0/fs/ensure_dir.ts";
 import { parse } from "https://deno.land/std@0.224.0/yaml/mod.ts";
@@ -22,7 +23,7 @@ async function computeSha256Hex(data: Uint8Array): Promise<string> {
     .join("");
 }
 
-async function copyFileIntoBundle(
+async function copyPathIntoBundle(
   projectRoot: string,
   stagingDir: string,
   relativePath: string,
@@ -30,7 +31,7 @@ async function copyFileIntoBundle(
   const source = join(projectRoot, relativePath);
   const destination = join(stagingDir, relativePath);
   await ensureDir(dirname(destination));
-  await Deno.copyFile(source, destination);
+  await copy(source, destination, { overwrite: true });
 }
 
 async function writeFile(
@@ -92,7 +93,7 @@ async function main() {
     `This archive packages the canonical Dynamic Capital Token (DCT) artifacts required by Tonviewer and TON Discovery reviewers.` +
     `\n\n` +
     `## Contents\n\n` +
-    `- \`contracts/jetton/discoverable/master.fc\` — FunC source used for the verification diff.\n` +
+    `- \`contracts/jetton/discoverable/\` — FunC master source plus import modules required for Tonviewer diffing.\n` +
     `- \`contracts/jetton/metadata.json\` — Frozen jetton metadata served to wallets and explorers.\n` +
     `- \`contracts/README.md\` — Deployment and governance notes for auditors.\n` +
     `- \`manifest.json\` — Machine-readable summary with metadata checksums.\n\n` +
@@ -101,17 +102,17 @@ async function main() {
     `2. Submit the archive through the Tonviewer verification portal and cite the multisig/timelock controls.\n` +
     `3. After approval, refresh Tonviewer and Tonkeeper to confirm the \"Verified\" badge is displayed.\n`;
 
-  await copyFileIntoBundle(
+  await copyPathIntoBundle(
     projectRoot,
     stagingDir,
-    join("contracts", "jetton", "discoverable", "master.fc"),
+    join("contracts", "jetton", "discoverable"),
   );
-  await copyFileIntoBundle(
+  await copyPathIntoBundle(
     projectRoot,
     stagingDir,
     join("contracts", "jetton", "metadata.json"),
   );
-  await copyFileIntoBundle(
+  await copyPathIntoBundle(
     projectRoot,
     stagingDir,
     join("contracts", "README.md"),
