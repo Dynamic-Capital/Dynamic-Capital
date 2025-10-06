@@ -1,14 +1,17 @@
 #!/usr/bin/env tsx
 import { Address } from "@ton/core";
+import { ProxyAgent, type Dispatcher } from "undici";
 
 import {
   TON_MAINNET_ACCOUNT_DEFINITIONS,
   type TonMainnetAccountDefinition,
 } from "../../shared/ton/mainnet-addresses";
 
-const DEFAULT_TONCENTER_BASE = "https://toncenter.com/api/v2";
+const DEFAULT_TONCENTER_BASE = "https://toncenter.com/api/v3";
 const DEFAULT_TIMEOUT_MS = 8_000;
 const NANOTON_IN_TON = 1_000_000_000n;
+
+const proxyAgentCache = new Map<string, ProxyAgent>();
 
 interface CliOptions {
   toncenterBase: string;
@@ -146,6 +149,80 @@ function ensureTrailingSlash(value: string): string {
   return value.endsWith("/") ? value : `${value}/`;
 }
 
+function getDefaultPort(url: URL): string {
+  if (url.port) return url.port;
+  if (url.protocol === "http:") return "80";
+  if (url.protocol === "https:") return "443";
+  return "";
+}
+
+function parseNoProxyEnv(value: string | undefined): string[] {
+  if (!value) return [];
+  return value.split(",").map((entry) => entry.trim()).filter(Boolean);
+}
+
+function hostMatchesNoProxy(hostname: string, port: string, pattern: string): boolean {
+  if (!pattern) return false;
+  if (pattern === "*") return true;
+
+  let candidate = pattern;
+  let portConstraint = "";
+
+  const separatorIndex = candidate.lastIndexOf(":");
+  if (separatorIndex > -1 && !candidate.includes("[")) {
+    portConstraint = candidate.slice(separatorIndex + 1);
+    candidate = candidate.slice(0, separatorIndex);
+  }
+
+  if (portConstraint && portConstraint !== port) {
+    return false;
+  }
+
+  if (candidate.startsWith(".")) {
+    const suffix = candidate.slice(1);
+    return hostname === suffix || hostname.endsWith(`.${suffix}`);
+  }
+
+  return hostname === candidate;
+}
+
+function shouldBypassProxy(url: URL): boolean {
+  const noProxyEntries = parseNoProxyEnv(process.env.NO_PROXY ?? process.env.no_proxy);
+  if (noProxyEntries.length === 0) {
+    return false;
+  }
+
+  const hostname = url.hostname;
+  const port = getDefaultPort(url);
+  return noProxyEntries.some((entry) => hostMatchesNoProxy(hostname, port, entry));
+}
+
+function getProxyDispatcher(url: URL): Dispatcher | undefined {
+  if (shouldBypassProxy(url)) {
+    return undefined;
+  }
+
+  const proxyUrl = process.env.HTTPS_PROXY ?? process.env.https_proxy ??
+    process.env.HTTP_PROXY ?? process.env.http_proxy;
+  if (!proxyUrl) {
+    return undefined;
+  }
+
+  let agent = proxyAgentCache.get(proxyUrl);
+  if (!agent) {
+    try {
+      agent = new ProxyAgent(proxyUrl);
+      proxyAgentCache.set(proxyUrl, agent);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`Warning: failed to configure proxy agent (${message}).`);
+      return undefined;
+    }
+  }
+
+  return agent;
+}
+
 function slugifyKey(label: string, fallbackIndex: number): string {
   const slug = label
     .toLowerCase()
@@ -255,6 +332,7 @@ async function fetchWithTimeout(
     const response = await fetch(url, {
       headers: { accept: "application/json" },
       signal: controller.signal,
+      dispatcher: getProxyDispatcher(url),
     });
     return response;
   } finally {
@@ -281,7 +359,7 @@ async function probeAccount(
 ): Promise<ToncenterAccountState & { rawAddress: string }> {
   let rawAddress: string;
   try {
-    rawAddress = Address.parse(account.friendlyAddress).toRawString();
+    rawAddress = Address.parse(account.friendlyAddress).toRawString().toLowerCase();
   } catch (error) {
     const message = error instanceof Error
       ? error.message
@@ -294,12 +372,15 @@ async function probeAccount(
     };
   }
 
-  const query: Record<string, string> = { address: rawAddress };
+  const query: Record<string, string> = {
+    address: rawAddress,
+    include_boc: "false",
+  };
   if (options.apiKey) {
     query.api_key = options.apiKey;
   }
 
-  const url = buildToncenterUrl(options.base, "getAddressInformation", query);
+  const url = buildToncenterUrl(options.base, "accountStates", query);
   let response: Response;
   let rawBody = "";
 
@@ -369,6 +450,20 @@ async function probeAccount(
     };
   }
 
+  const payloadError = (payload as { error?: unknown }).error;
+  if (payloadError) {
+    const message = typeof payloadError === "string"
+      ? payloadError
+      : JSON.stringify(payloadError);
+    return {
+      rawAddress,
+      ok: false,
+      error: message || "Toncenter reported an error",
+      rawResponse: payload,
+      url: url.toString(),
+    };
+  }
+
   const okField = (payload as { ok?: boolean }).ok;
   if (okField === false) {
     const errorMessage = (payload as { error?: string }).error;
@@ -381,15 +476,47 @@ async function probeAccount(
     };
   }
 
-  const result = (payload as { result?: Record<string, unknown> }).result ?? {};
-  const state = typeof result.state === "string" ? result.state : undefined;
+  const accountsField = (payload as { accounts?: unknown }).accounts;
+  if (!Array.isArray(accountsField)) {
+    return {
+      rawAddress,
+      ok: false,
+      error: "Toncenter returned an unexpected payload shape",
+      rawResponse: payload,
+      url: url.toString(),
+    };
+  }
+
+  const accountPayload = accountsField.find((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    const entryAddress = (entry as { address?: unknown }).address;
+    if (typeof entryAddress !== "string") return false;
+    return entryAddress.toLowerCase() === rawAddress;
+  }) as Record<string, unknown> | undefined;
+
+  if (!accountPayload) {
+    return {
+      rawAddress,
+      ok: false,
+      error: "Toncenter did not return state for the requested address",
+      rawResponse: payload,
+      url: url.toString(),
+    };
+  }
+
+  const state = typeof accountPayload.status === "string"
+    ? accountPayload.status
+    : undefined;
   const balanceRaw = (() => {
-    const value = result.balance;
+    const value = (accountPayload as { balance?: unknown }).balance;
     if (typeof value === "string") return value;
     if (typeof value === "number") return value.toString();
     return undefined;
   })();
-  const lastPaid = parseTimestamp(result.last_paid);
+  const lastPaid = parseTimestamp(
+    (accountPayload as { last_payment?: unknown }).last_payment ??
+      (accountPayload as { last_paid?: unknown }).last_paid,
+  );
 
   let balanceNanoton: string | undefined;
   let balanceTon: string | undefined;
@@ -412,7 +539,7 @@ async function probeAccount(
     balanceTon,
     balanceDisplay,
     lastPaid,
-    rawResponse: result,
+    rawResponse: accountPayload,
     url: url.toString(),
   };
 }
