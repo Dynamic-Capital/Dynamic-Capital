@@ -83,6 +83,10 @@ the `signals` table that the MT5 bridge consumes.
    temporarily pause downstream processing.
 3. Update TradingView alerts (or upstream services) to target the Supabase
    Functions URL and include the secret in the `x-tradingview-secret` header.
+   The Python bridge in `integrations/tradingview.py` now forwards alerts
+   automatically when `TRADING_SIGNALS_WEBHOOK_SECRET` (or
+   `SUPABASE_TRADING_SIGNAL_SECRET`) and Supabase connection details are
+   present.
 4. Verify Supabase has the `signals` table and related RPC helpers deployed via
    the trading automation migration set.
 

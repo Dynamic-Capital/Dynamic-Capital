@@ -13,6 +13,7 @@ from dynamic.intelligence.ai_apps.core import DynamicFusionAlgo
 from dynamic.trading.algo.trading_core import DynamicTradingAlgo
 from dynamic.platform.token.treasury import DynamicTreasuryAlgo
 from integrations.supabase_logger import SupabaseLogger
+from integrations.supabase_webhook import SupabaseTradingSignalForwarder
 from integrations.telegram_bot import DynamicTelegramBot
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ fusion = DynamicFusionAlgo()
 trader = DynamicTradingAlgo()
 treasury = DynamicTreasuryAlgo()
 supabase_logger = SupabaseLogger()
+supabase_forwarder = SupabaseTradingSignalForwarder()
 telegram_bot = DynamicTelegramBot.from_env()
 
 SECRET_HEADER = "X-Tradingview-Secret"
@@ -92,6 +94,8 @@ def webhook() -> Any:
 
     payload = request.get_json(silent=True) or {}
     logger.info("TradingView alert received: %s", payload)
+
+    supabase_forwarder.forward_tradingview_alert(payload)
 
     symbol = str(payload.get("symbol", "XAUUSD"))
     lot = _coerce_lot(payload.get("lot"))

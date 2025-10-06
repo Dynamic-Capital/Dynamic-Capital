@@ -81,6 +81,13 @@ def stubbed_components(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
         def log_trade(self, payload: dict[str, object]) -> None:
             self.logged_payloads.append(payload)
 
+    class DummyForwarder:
+        def __init__(self) -> None:
+            self.forwarded: list[dict[str, object]] = []
+
+        def forward_tradingview_alert(self, payload: dict[str, object]) -> None:
+            self.forwarded.append(payload)
+
     class DummyBot:
         def __init__(self) -> None:
             self.messages: list[str] = []
@@ -92,12 +99,14 @@ def stubbed_components(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     trader = DummyTrader()
     treasury = DummyTreasury()
     supabase_logger = DummyLogger()
+    supabase_forwarder = DummyForwarder()
     bot = DummyBot()
 
     monkeypatch.setattr(tradingview, "fusion", fusion)
     monkeypatch.setattr(tradingview, "trader", trader)
     monkeypatch.setattr(tradingview, "treasury", treasury)
     monkeypatch.setattr(tradingview, "supabase_logger", supabase_logger)
+    monkeypatch.setattr(tradingview, "supabase_forwarder", supabase_forwarder)
     monkeypatch.setattr(tradingview, "telegram_bot", bot)
 
     return SimpleNamespace(
@@ -105,6 +114,7 @@ def stubbed_components(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
         trader=trader,
         treasury=treasury,
         supabase_logger=supabase_logger,
+        supabase_forwarder=supabase_forwarder,
         bot=bot,
     )
 
@@ -154,6 +164,7 @@ def test_webhook_processes_payload_with_valid_secret(
     assert data["status"] == "executed"
     assert stubbed_components.supabase_logger.logged_payloads
     assert stubbed_components.bot.messages
+    assert stubbed_components.supabase_forwarder.forwarded
     logged_payload = stubbed_components.supabase_logger.logged_payloads[-1]
     assert logged_payload["lot"] == pytest.approx(0.25)
     assert data["trade"]["lot"] == pytest.approx(0.25)

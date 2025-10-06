@@ -63,6 +63,9 @@ Store secrets in the droplet's env file or systemd unit:
 - OPENAI_API_KEY _(if AI assistants are active)_
 - BINANCE_PAY_API_KEY / BINANCE_PAY_SECRET _(callback replay utilities)_
 - TRADINGVIEW_WEBHOOK_URL
+- SUPABASE_TRADING_SIGNAL_SECRET _(optional forwarder override)_
+- SUPABASE_TRADING_SIGNAL_URL _(override Supabase function base, optional)_
+- SUPABASE_WEBHOOK_TIMEOUT _(optional timeout tuning)_
 - METAQUOTES_ID
 
 ## Shared CI/CD variables
