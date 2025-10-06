@@ -30,6 +30,12 @@ Dynamic Capital attests that the Dynamic Capital Token (DCT) is the official gov
   - Proof-of-mint transaction hash `f4b87c5bd23c1d6db1dfc6b9349b825ea6d3944d18d4e7d0c6d2b3e5b6b1c482`.
   - Corporate resolution authorizing issuance dated 2025-07-15 (archived in the compliance drive).
 
+## Escalation Evidence (2025-10-07 Refresh)
+
+- PDF export `exports/dct-issuer-statement-20251007.pdf` generated via `pandoc`; SHA-256 recorded in the escalation log.
+- Metadata digest `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4` confirmed against `metadata.json` prior to dispatch.
+- Compliance archive location `s3://dynamic-compliance/kyc/dct/2025-10-08/` contains notarized KYC dossier, digest note, and verification logs for Tonviewer reviewers.
+
 ## Contact
 
 For verification requests, please reach out to compliance@dynamic.capital and include "Tonviewer Verification" in the subject line. The compliance office will respond within two business days and can provide notarized corporate documents if required.
