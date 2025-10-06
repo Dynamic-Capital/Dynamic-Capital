@@ -96,23 +96,8 @@ const RESOURCE_DEFINITIONS = {
 
 const RESOURCE_SLUGS = Object.keys(RESOURCE_DEFINITIONS) as ResourceSlug[];
 
-function resolveResource(
-  resource: string | undefined,
-): ResourceDefinition | null {
-  if (!resource) {
-    return null;
-  }
-
-  const normalized = resource.trim().toLowerCase();
-  if (!normalized) {
-    return null;
-  }
-
-  if (Object.prototype.hasOwnProperty.call(RESOURCE_DEFINITIONS, normalized)) {
-    return RESOURCE_DEFINITIONS[normalized as ResourceSlug];
-  }
-
-  return null;
+function hasResourceDefinition(slug: string): slug is ResourceSlug {
+  return Object.prototype.hasOwnProperty.call(RESOURCE_DEFINITIONS, slug);
 }
 
 type RouteParams = {
@@ -120,49 +105,99 @@ type RouteParams = {
 };
 
 type RouteContext = {
-  params: RouteParams;
+  params: Readonly<RouteParams>;
 };
 
-function extractResource(params?: RouteParams): string | undefined {
-  const resource = params?.resource;
-  if (!resource) return undefined;
-  return Array.isArray(resource) ? resource[0] : resource;
-}
+type ResolvedResource =
+  | { type: "ok"; definition: ResourceDefinition }
+  | { type: "unknown" }
+  | { type: "ambiguous" };
 
-export async function GET(
-  req: NextRequest,
-  { params }: RouteContext = { params: {} },
-) {
-  const definition = resolveResource(extractResource(params));
-
-  if (!definition) {
-    return jsonResponse(
-      {
-        status: "error",
-        message: "Unknown dynamic REST resource",
-        availableResources: RESOURCE_SLUGS,
-      },
-      { status: 404 },
-      req,
-    );
+function resolveResourceFromParams(
+  params: Readonly<RouteParams>,
+): ResolvedResource {
+  const { resource } = params;
+  if (!resource) {
+    return { type: "unknown" };
   }
 
-  const { endpoint, getResource } = definition;
-  const routeName = endpoint.path;
+  const values = Array.isArray(resource) ? resource : [resource];
 
-  return withApiMetrics(req, routeName, async () => {
-    const payload = await getResource();
+  let resolvedSlug: ResourceSlug | null = null;
 
-    return jsonResponse(
-      payload,
-      {
-        headers: {
-          "cache-control": DYNAMIC_REST_CACHE_CONTROL_HEADER,
+  for (const value of values) {
+    if (typeof value !== "string") {
+      continue;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      continue;
+    }
+
+    const normalized = trimmed.toLowerCase();
+    if (!hasResourceDefinition(normalized)) {
+      return { type: "unknown" };
+    }
+
+    if (resolvedSlug && resolvedSlug !== normalized) {
+      return { type: "ambiguous" };
+    }
+
+    resolvedSlug = normalized as ResourceSlug;
+  }
+
+  if (!resolvedSlug) {
+    return { type: "unknown" };
+  }
+
+  return { type: "ok", definition: RESOURCE_DEFINITIONS[resolvedSlug] };
+}
+
+export async function GET(req: NextRequest, { params }: RouteContext) {
+  const resolution = resolveResourceFromParams(params);
+
+  switch (resolution.type) {
+    case "ambiguous":
+      return jsonResponse(
+        {
+          status: "error",
+          message:
+            "Multiple resource slugs provided. Specify a single resource.",
+          availableResources: RESOURCE_SLUGS,
         },
-      },
-      req,
-    );
-  });
+        { status: 400 },
+        req,
+      );
+    case "ok": {
+      const { endpoint, getResource } = resolution.definition;
+      const routeName = endpoint.path;
+
+      return withApiMetrics(req, routeName, async () => {
+        const payload = await getResource();
+
+        return jsonResponse(
+          payload,
+          {
+            headers: {
+              "cache-control": DYNAMIC_REST_CACHE_CONTROL_HEADER,
+            },
+          },
+          req,
+        );
+      });
+    }
+    default:
+      return jsonResponse(
+        {
+          status: "error",
+          message: "Unknown dynamic REST resource",
+          availableResources: RESOURCE_SLUGS,
+        },
+        { status: 404 },
+        req,
+      );
+  }
 }
 
 export const POST = methodNotAllowed;
