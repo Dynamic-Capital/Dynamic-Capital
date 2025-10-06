@@ -78,6 +78,36 @@
   capture remain required before handing over to operations, even though code
   paths are ready.【F:docs/dct-ton-audit.md†L15-L114】
 
+### Repo Health & Go-Live Readiness
+
+#### Automation Sweeps
+
+| Task | Status | Blocker | Immediate Next Action |
+| --- | --- | --- | --- |
+| `fix_and_check` lint + format sweep | 🔴 Open | Missing secret material for CI and unresolved formatting regressions | Land formatting fixes locally, inject secrets into CI, then re-run pipeline |
+| Linkage audit | 🔴 Open | Dependency list not exported for audit module | Regenerate manifest with `npm run linkage:audit` and attach to pipeline |
+| Telegram webhook verification | 🟠 Blocked | Secrets unavailable in CI | Coordinate with infra to supply bot tokens and rerun verification script |
+| Mini App smoke test (optional) | 🟠 Blocked | Telegram verification pending | Unblock webhook check first, then schedule smoke test in CI |
+
+#### Workflow & Tooling Follow-ups
+
+| Workflow | Status | Blocker | Immediate Next Action |
+| --- | --- | --- | --- |
+| Supabase CLI deployment workflow | 🔴 Open | Secrets + migration diff unsettled | Finalize migration manifest, add secrets to CI, run dry run |
+| Pending PR refresh with full CI pass | 🔴 Open | Lint/typecheck failures from missing sweep | Complete automation sweep, rebase PR, and trigger CI |
+| Auto-merge enablement | 🟡 Pending | Requires green CI across default branch | Stabilize tests and lint pipeline, then enable in repo settings |
+| Production sanity walkthrough | 🟠 Blocked | Lacks refreshed automation evidence | Finish CI remediation, then rerun walkthrough with current commit |
+
+#### Manual Go-Live Checklist
+
+| Checklist Area | Status | Evidence Gap | Immediate Next Action |
+| --- | --- | --- | --- |
+| Webhook health validation | 🔴 Not started | No transcript archived | Execute webhook validation script and store logs in release folder |
+| Payment flow exercises | 🔴 Not started | Banking and duplicate handling outputs missing | Run happy-path and exception paths, capture bank reviewer notes |
+| Crypto confirmations | 🔴 Not started | Confirmation logs absent | Trigger TON deposit cycle, export explorer + node evidence |
+| Admin command verification | 🔴 Not started | Command outputs not filed | Execute admin suite and file command transcripts |
+| Evidence archival | 🔴 Not started | No consolidated package | Bundle artifacts into release evidence drive after above steps |
+
 ### Runbooks & Operational Readiness
 
 - The Go-Live Validation Playbook walks operators through webhook checks, bank
