@@ -34,4 +34,4 @@ support | support@dynamiccapital.ton | 3600 | Customer support mailbox alias adv
 
 - Installed the official TON toolchain AppImage bundle (`v2025.07`), extracted the native binaries, and placed `func`, `fift`, and `lite-client` in `/usr/local/bin`. Verified each executable advertises the published build metadata via the `-V` flag.
 - Bootstrapped `toncli 0.0.43` after pinning the executable paths in `~/.config/toncli/config.ini` and downgrading `bitstring` to the 3.x API expected by the CLI. `toncli --help` now loads successfully and exposes the broadcast subcommands.
-- The wallet project and private keys required to sign the DNS update are still absent from the repository workspace, so the TXT broadcast remains pending until governance restores the authorised signer.
+- Added a committed `toncli` wallet project under `dns/wallets/dns-updater` and scripted `dns/wallets/provision_dns_wallet.py` so operators can inject the authorised mnemonic, hydrate `contract.pk`, and emit audit metadata before broadcasting the TXT records.

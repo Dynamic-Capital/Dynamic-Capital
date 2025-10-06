@@ -89,7 +89,18 @@ or local workstations) before running any TON contract tooling.
    toncli` to pull in the compatible
    versions.
 
-6. **Generate the TON Site ADNL (optional).** When onboarding a fresh
+6. **Hydrate the DNS signing wallet.** Once the toolchain loads, restore the
+   authorised mnemonic into the repository wallet project:
+
+   ```bash
+   python dns/wallets/provision_dns_wallet.py --write-mnemonic
+   ```
+
+   The helper writes the private key, binary address payload, and metadata
+   required for `toncli wallet`/`toncli send`. Skip `--write-mnemonic` if the
+   plaintext seed should stay out of the workspace.
+
+7. **Generate the TON Site ADNL (optional).** When onboarding a fresh
    environment, derive the TON Site ADNL and Ed25519 key pair with:
 
    ```bash

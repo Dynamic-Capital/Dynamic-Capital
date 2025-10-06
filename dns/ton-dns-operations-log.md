@@ -47,9 +47,10 @@ chronological order beneath this entry.
   Added `libsodium23` so the executables load successfully and confirmed each
   binary reports build `cac968f7…` via `-V`. `toncli 0.0.43` now launches and
   lists all wallet and DNS subcommands.
-- **Operational gap** — No wallet project or signing keys are present in the
-  repository workspace, preventing creation of a multisig packet or broadcast
-  of the TXT update.
-- **Next steps** — Restore the authorised wallet project, fund it with at least
-  0.1 TON for fees, regenerate the TXT payloads if necessary, and rerun
+- **Operational gap** — The committed wallet project still needs the authorised
+  mnemonic restored and funded before a multisig packet can be signed for the
+  TXT update.
+- **Next steps** — Hydrate `dns/wallets/dns-updater` with the authorised
+  mnemonic via `dns/wallets/provision_dns_wallet.py`, fund the wallet with at
+  least 0.1 TON for fees, regenerate the TXT payloads if necessary, and rerun
   `toncli send --net mainnet ...` to record the transaction hash for this log.

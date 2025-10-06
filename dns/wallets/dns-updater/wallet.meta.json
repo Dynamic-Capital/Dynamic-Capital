@@ -1,0 +1,13 @@
+{
+  "generated_at": null,
+  "mnemonic_source": null,
+  "wallet_version": "v4r2",
+  "workchain": 0,
+  "wallet_id": 698983191,
+  "public_key_hex": null,
+  "addresses": {
+    "raw": null,
+    "bounceable": null,
+    "non_bounceable": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G"
+  }
+}
