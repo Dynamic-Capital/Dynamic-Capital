@@ -29,6 +29,7 @@ import { dynamicUI } from "@/resources";
 import { iconLibrary } from "@/resources/icons";
 import { TonConnectProvider } from "@/integrations/tonconnect";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/config/supabase-runtime";
+import { RouteAnalytics } from "@/components/analytics/RouteAnalytics";
 
 const {
   basics: basicsConfig,
@@ -78,6 +79,7 @@ export default function Providers({ children }: { children: ReactNode }) {
                       <SupabaseProvider>
                         <TelegramAuthProvider>
                           <TonConnectProvider>
+                            <RouteAnalytics />
                             {children}
                           </TonConnectProvider>
                         </TelegramAuthProvider>
