@@ -79,10 +79,13 @@
       halving the inbound TON (Step 2). _Completed 2025-10-06_
 - [x] Emit `DepositEvent` fields using the parsed jetton and forward payload
       data without reparsing (Step 3). _Completed 2025-10-06_
-- [x] Extend or add allocator regression tests to cover compliant transfers and
-      rejection paths (Step 4). _Completed 2025-10-06; see 2025-10-06 test log_
-- [x] Run formatting, linting, and contract/test suites relevant to the
-      allocator changes (Step 5). _Completed 2025-10-06_
+- [ ] Extend or add allocator regression tests to cover compliant transfers and
+      rejection paths (Step 4). _Blocked 2025-10-06: Deno aborted while caching
+      npm dependencies (e.g., `bnc-sdk@4.6.9`, `@grammyjs/conversations@2.1.0`)
+      with repeated HTTP 502s; rerun required once the registry outage clears_
+- [ ] Run formatting, linting, and contract/test suites relevant to the
+      allocator changes (Step 5). _Blocked until the regression suites can
+      execute successfully_
 
 ## Dependencies & Open Questions
 
@@ -97,9 +100,10 @@
 
 - Executed `npm run go-live` to refresh the Telegram webhook automation and
   captured the run log under `docs/checklist-runs/2025-10-06-go-live.md`.
-- Ran the allocator regression suite via
+- The latest attempts to rerun the allocator regression suite via
   ``npx deno test --config deno.json -A --unsafely-ignore-certificate-errors``
-  and documented the results in `docs/test-run-2025-10-06.md`.
-- Validated the Supabase wallet-link and subscription flows with
-  ``npx deno test supabase/functions --allow-all --unsafely-ignore-certificate-errors --no-check``
-  and archived the output alongside the allocator run in the same test log.
+-  failed because npm returned `502` responses while caching dependencies such as
+  `bnc-sdk@4.6.9` and `@grammyjs/conversations@2.1.0`; see the updated test log
+  for failure traces and retry instructions.
+- Supabase wallet-link and subscription flows remain pending revalidation until
+  the dependency outage is resolved and the Deno suites complete successfully.

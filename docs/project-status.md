@@ -7,7 +7,7 @@
 | --- | --- | --- | --- |
 | Protocol design & tokenomics | ✅ Ready | Multi-layer scope and hard-cap locked.[^proto-evidence] | Keep emissions dashboard post-launch.[^proto-followup] |
 | Treasury configuration & guardrails | ✅ Ready | Config enforces cap, routing, and staking rules.[^treasury-evidence] | Match Supabase settings to on-chain refs.[^treasury-followup] |
-| Allocator contract & regression coverage | ✅ Ready | Allocator guarded and regression-tested.[^allocator-evidence] | Package the refreshed checklist and test evidence with release bundles.[^allocator-followup] |
+| Allocator contract & regression coverage | ⚠️ Blocked | TIP-3 parsing fixes are merged, but the latest Deno rerun failed while caching `bnc-sdk@4.6.9` (HTTP 502).[^allocator-evidence] | Re-run allocator + Supabase suites and capture new evidence once the npm CDN stabilizes.[^allocator-followup] |
 | Off-chain onboarding flows | ✅ Ready | Onboarding flows production-ready.[^offchain-evidence] | Archive wallet + subscription test logs.[^offchain-followup] |
 | Operational runbooks | ✅ Ready | Go-live dry runs captured for ops.[^runbook-evidence] | Store transcripts and API logs with releases.[^runbook-followup] |
 
@@ -26,13 +26,14 @@
     production addresses.【F:docs/dct-ton-audit.md†L105-L116】
 
 [^allocator-evidence]: Tact allocator validates TIP-3 transfers, timelocks admin
-    actions, forwards declared TON, and emits events covered by Deno regression
-    tests.【F:dynamic-capital-ton/contracts/pool_allocator.tact†L32-L218】【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】
+    actions, and forwards declared TON, but the regression suites failed to
+    complete on 2025-10-06 because the npm CDN returned `502` errors while
+    caching dependencies such as `bnc-sdk@4.6.9` and
+    `@grammyjs/conversations@2.1.0`.【F:dynamic-capital-ton/contracts/pool_allocator.tact†L32-L218】【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:docs/test-run-2025-10-06.md†L1-L36】
 
-[^allocator-followup]: Implementation plan updated 2025-10-06 with all parsing,
-    forwarding, and regression tasks marked complete alongside fresh go-live and
-    Deno test logs for
-    auditors.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L101】【F:docs/checklist-runs/2025-10-06-go-live.md†L1-L34】【F:docs/test-run-2025-10-06.md†L1-L27】
+[^allocator-followup]: Implementation plan reopened the regression test
+    checklist items until the npm CDN recovers and new evidence is captured
+    alongside the go-live automation log.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L108】【F:docs/checklist-runs/2025-10-06-go-live.md†L1-L34】【F:docs/test-run-2025-10-06.md†L1-L36】
 
 [^offchain-evidence]: Supabase wallet linking, subscription processing, and the
     Mini App runbook document deterministic onboarding paths for
@@ -69,9 +70,10 @@
 
 ### Automated Coverage & Evidence
 
-- **Allocator regression tests** cover timelock scheduling, swap math, compliant
-  TIP-3 transfers, withdrawal limits, and router forwarding to lock in recent
-  fixes.【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】
+- **Allocator regression tests** remain pending revalidation; repeated npm CDN
+  `502` errors (e.g., `bnc-sdk@4.6.9`, `@grammyjs/conversations@2.1.0`) blocked
+  the latest Deno reruns, so the suites need to be repeated once the registry
+  outage clears.【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:docs/test-run-2025-10-06.md†L1-L36】
 - **Supabase function suites** assert wallet conflict handling and subscription
   path validation, mirroring audit expectations that off-chain services stay
   deterministic.【F:dynamic-capital-ton/supabase/functions/link-wallet/index.test.ts†L1-L133】【F:docs/dct-ton-audit.md†L12-L36】
@@ -105,14 +107,13 @@
 
 ## Outstanding Actions
 
-1. **Bundle the new evidence artifacts.** Include the updated implementation
-   plan, go-live automation log, and Deno test summary with the next release
-   candidate so auditors have direct access to the refreshed
-   proof.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L101】【F:docs/checklist-runs/2025-10-06-go-live.md†L1-L34】【F:docs/test-run-2025-10-06.md†L1-L27】
+1. **Restore regression evidence.** Resolve the npm CDN outage and rerun the
+   allocator plus Supabase Deno suites, then attach the successful transcripts to
+   the implementation plan and release bundle.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L108】【F:docs/test-run-2025-10-06.md†L1-L36】
 2. **Record routine quality gates.** Continue attaching allocator and Supabase
    test outputs (plus lint/typecheck logs where relevant) to release notes or CI
-   artifacts to satisfy audit guidance on execution
-   evidence.【F:docs/dct-ton-audit.md†L25-L113】【F:docs/test-run-2025-10-06.md†L1-L27】
+   artifacts once executions succeed so the audit trail
+   remains complete.【F:docs/dct-ton-audit.md†L25-L113】【F:docs/test-run-2025-10-06.md†L1-L34】
 3. **Archive the remaining dry-run evidence.** Retain webhook transcripts, bank
    review outputs, duplicate receipt rejection, crypto confirmation logs, and
    admin command exports alongside the latest release notes so auditors can
