@@ -11,8 +11,8 @@ browsers and Telegram clients can reach the Dynamic Capital TON Site via HTTPS.
   `443`).
 - TON wallet (Tonkeeper, MyTonWallet, Tonhub, etc.) authorised to sign the DNS
   linking transaction.
-- `curl` or `wget` for manual installs if you prefer not to use the automation
-  script.
+- `curl` (required by the installer; `wget` remains useful for manual fallback
+  downloads).
 
 ## Quick install via repository script
 
@@ -23,11 +23,18 @@ platform and stores it under `tools/bin`.
 node scripts/ton/install-tonutils-reverse-proxy.mjs
 ```
 
+- The helper resolves the latest GitHub release, confirms the platform-specific
+  asset exists, and reports the tag that was installed.
 - Pass `--dir` to override the destination directory.
-- Use `--force` to overwrite an existing binary.
-- Add `--version vX.Y.Z` to pin a specific Git tag (defaults to the latest
-  release).
-- Combine `--dry-run` to preview the actions without modifying the filesystem.
+- Use `--force` to reinstall the binary even when one already exists (safe on
+  Windows where rename semantics differ).
+- Add `--version vX.Y.Z` to pin a specific Git tag; otherwise the script uses
+  the `latest` release endpoint.
+- Provide a personal token with `--token <gh_token>` (or set
+  `GITHUB_TOKEN=<gh_token>`) when running repeatedly to avoid GitHub API rate
+  limits.
+- Combine `--dry-run` to preview the resolved release, download location, and
+  filesystem operations without modifying anything.
 
 Once the binary is installed, start the linking flow:
 
@@ -42,16 +49,13 @@ linked domain in `config.json`; subsequent restarts do not require the
 
 ## Manual download (fallback)
 
-If you prefer to manage the binary manually, download the release that matches
-your platform:
+If you prefer to manage the binary manually, download the release that matches your platform:
 
-| Platform      | Command                                                                                                              |
-| ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Linux (amd64) | `wget https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-linux-amd64`         |
-| Linux (arm64) | `wget https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-linux-arm64`         |
-| macOS (Intel) | `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-mac-amd64`       |
-| macOS (Apple) | `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-mac-arm64`       |
-| Windows (x64) | `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-windows-x64.exe` |
+- **Linux (amd64):** `wget https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-linux-amd64`
+- **Linux (arm64):** `wget https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-linux-arm64`
+- **macOS (Intel):** `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-mac-amd64`
+- **macOS (Apple):** `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-mac-arm64`
+- **Windows (x64):** `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-windows-x64.exe`
 
 Make the binary executable on Unix hosts:
 
