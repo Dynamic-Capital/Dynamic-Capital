@@ -16,9 +16,11 @@
 6. **Signature:** Use the Operations escalation signature block from the Operations communications playbook.
 
 ## Attachments Checklist
-- [ ] Issuer statement export (PDF or Markdown)
-- [ ] Metadata JSON file and SHA-256 digest text
-- [ ] Latest verification log excerpt
+- [ ] Issuer statement export (PDF or Markdown) generated from `/docs/tonviewer/dct-issuer-statement.md`
+- [ ] `dynamic-capital-ton/contracts/jetton/metadata.json`
+- [ ] SHA-256 digest note for metadata (`1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4`)
+- [ ] Latest `check-tonviewer-status.ts` verification log excerpt
+- [ ] Read-only compliance archive link `s3://dynamic-compliance/kyc/dct/2025-10-08/`
 
 ## Logging Instructions
 - Update `/docs/tonviewer/tonviewer-escalation-log.md` with the dispatch timestamp and reference ID.
