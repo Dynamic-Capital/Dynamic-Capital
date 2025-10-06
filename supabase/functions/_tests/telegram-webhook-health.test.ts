@@ -7,11 +7,11 @@ Deno.test("telegram-webhook health endpoints respond", async (t) => {
     "../telegram-webhook/index.ts?health"
   );
 
+  const baseUrl = "https://dynamic.capital/functions/v1/telegram-webhook";
+  const versionUrl = `${baseUrl}/version`;
+
   await t.step("GET /telegram-webhook returns ok", async () => {
-    const req = new Request(
-      "https://example.com/functions/v1/telegram-webhook",
-      { method: "GET" },
-    );
+    const req = new Request(baseUrl, { method: "GET" });
     const res = await handler(req);
     assertEquals(res.status, 200);
     assertEquals(
@@ -30,10 +30,7 @@ Deno.test("telegram-webhook health endpoints respond", async (t) => {
   });
 
   await t.step("GET /telegram-webhook/version returns ok", async () => {
-    const req = new Request(
-      "https://example.com/functions/v1/telegram-webhook/version",
-      { method: "GET" },
-    );
+    const req = new Request(versionUrl, { method: "GET" });
     const res = await handler(req);
     assertEquals(res.status, 200);
     assertEquals(res.headers.get("Allow"), "GET,HEAD,POST,OPTIONS");
@@ -48,10 +45,7 @@ Deno.test("telegram-webhook health endpoints respond", async (t) => {
   });
 
   await t.step("HEAD /telegram-webhook shares allow header", async () => {
-    const req = new Request(
-      "https://example.com/functions/v1/telegram-webhook",
-      { method: "HEAD" },
-    );
+    const req = new Request(baseUrl, { method: "HEAD" });
     const res = await handler(req);
     assertEquals(res.status, 200);
     assertEquals(res.headers.get("Allow"), "GET,HEAD,POST,OPTIONS");
@@ -66,10 +60,7 @@ Deno.test("telegram-webhook health endpoints respond", async (t) => {
   await t.step(
     "HEAD /telegram-webhook/version shares allow header",
     async () => {
-      const req = new Request(
-        "https://example.com/functions/v1/telegram-webhook/version",
-        { method: "HEAD" },
-      );
+      const req = new Request(versionUrl, { method: "HEAD" });
       const res = await handler(req);
       assertEquals(res.status, 200);
       assertEquals(res.headers.get("Allow"), "GET,HEAD,POST,OPTIONS");
@@ -85,10 +76,7 @@ Deno.test("telegram-webhook health endpoints respond", async (t) => {
   await t.step(
     "OPTIONS /telegram-webhook advertises allowed methods",
     async () => {
-      const req = new Request(
-        "https://example.com/functions/v1/telegram-webhook",
-        { method: "OPTIONS" },
-      );
+      const req = new Request(baseUrl, { method: "OPTIONS" });
       const res = await handler(req);
       assertEquals(res.status, 204);
       assertEquals(res.headers.get("Allow"), "GET,HEAD,POST,OPTIONS");
