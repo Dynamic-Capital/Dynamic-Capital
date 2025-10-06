@@ -14,6 +14,7 @@ const providerIdSchema = z.enum([
   "dynamic-ags",
   "openai",
   "anthropic",
+  "huggingface",
   "groq",
   "llama-cpp",
   "vllm",
