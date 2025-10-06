@@ -11,6 +11,7 @@
 - **Verification Log Update:** Recorded 2025-10-09 16:02 UTC (`none`)
 - **Next Scheduled Run:** 2025-10-10 16:00 UTC
 - **Escalation Evidence Delivered:** 2025-10-07 follow-up submitted with digest `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4`, attached `dynamic-capital-ton/contracts/jetton/metadata.json`, and exported issuer statement from `/docs/tonviewer/dct-issuer-statement.md`.
+- **Attachments Checklist Status:** Checklist completed 2025-10-07 (issuer PDF, metadata JSON + digest note, status script log, compliance archive link) per `/docs/tonviewer/templates/tvr-4821-follow-up.md`.
 - **KYC Archive Reference:** `s3://dynamic-compliance/kyc/dct/2025-10-08/` (read-only access)
 
 ## Metadata Comparison

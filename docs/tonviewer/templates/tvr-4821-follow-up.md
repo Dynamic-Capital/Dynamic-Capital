@@ -16,31 +16,43 @@
 6. **Signature:** Use the Operations escalation signature block from the Operations communications playbook.
 
 ## Attachments Checklist
-- [ ] **Issuer statement export**
-  - **Source:** `/docs/tonviewer/dct-issuer-statement.md`
-  - **Format:** Export to PDF unless Tonviewer reconfirms Markdown is acceptable.
-  - **Verification:** Open the exported file to confirm the issuer signature block renders correctly and matches the latest compliance revision.
-  - **Logging:** Note the export timestamp and file hash in `/docs/tonviewer/tonviewer-escalation-log.md`.
-- [ ] **Metadata JSON file**
-  - **Source:** `dynamic-capital-ton/contracts/jetton/metadata.json`
-  - **Format:** Attach the raw JSON file; do not compress unless Tonviewer explicitly asks for an archive.
-  - **Verification:** Recalculate SHA-256 before dispatch and confirm it equals `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4`.
-  - **Logging:** Record the digest confirmation and any diffs observed during validation.
-- [ ] **SHA-256 digest note**
-  - **Source:** Include in the email body or as a plaintext attachment (`metadata-digest.txt`).
-  - **Format:** `SHA-256 (metadata.json) = 1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4` with the calculation timestamp.
-  - **Verification:** Capture the terminal output from the hash calculation and archive it under the compliance evidence folder.
-  - **Logging:** Reference the hash command used and storage location for the output snippet.
-- [ ] **Verification script excerpt**
-  - **Source:** Latest run of `dynamic-capital-ton/apps/tools/check-tonviewer-status.ts`.
-  - **Format:** Paste the relevant log lines (timestamp + verification flag) into the email body and attach the full log as `check-tonviewer-status-<YYYYMMDD>.log`.
-  - **Verification:** Ensure the excerpt timestamp aligns with the `Verification Log Update` value in the status report.
-  - **Logging:** Store the full log alongside the dispatch artefacts in the compliance archive and cite the path in the escalation log.
-- [ ] **Compliance archive link**
-  - **Source:** `s3://dynamic-compliance/kyc/dct/2025-10-08/`
-  - **Format:** Provide as a read-only pre-signed URL valid for at least 7 days; confirm permissions before sending.
-  - **Verification:** Review the S3 access control list and expiry to ensure Tonviewer can access without modification rights.
-  - **Logging:** Record the generated link expiry and any access confirmations in ticket `DCT-COMP-2025-118`.
+
+For each artifact, mark the three checkboxes to confirm the item is **prepared**, **verified**, and **logged** before dispatching the escalation package. Use the callouts for quick reference to the commands and evidence destinations.
+
+### Issuer statement export
+- [ ] **Prepared** – Export `/docs/tonviewer/dct-issuer-statement.md` to PDF (unless Tonviewer reconfirms Markdown acceptance) and name the file `dct-issuer-statement-<YYYYMMDD>.pdf`.
+- [ ] **Verified** – Open the PDF to confirm the issuer signature block renders correctly and matches the latest compliance revision.
+- [ ] **Logged** – Record the export timestamp, filename, and SHA-256 hash in `/docs/tonviewer/tonviewer-escalation-log.md`.
+
+> **Command reference:** `mkdir -p exports && pandoc docs/tonviewer/dct-issuer-statement.md -o exports/dct-issuer-statement-<YYYYMMDD>.pdf`
+
+### Metadata JSON file
+- [ ] **Prepared** – Stage `dynamic-capital-ton/contracts/jetton/metadata.json` for attachment without compression.
+- [ ] **Verified** – Run `sha256sum dynamic-capital-ton/contracts/jetton/metadata.json` and confirm the output equals `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4`.
+- [ ] **Logged** – Paste the digest output and validation timestamp into the escalation log entry for the dispatch.
+
+> **Command reference:** ``sha256sum dynamic-capital-ton/contracts/jetton/metadata.json``
+
+### SHA-256 digest note
+- [ ] **Prepared** – Create `metadata-digest.txt` containing `SHA-256 (metadata.json) = 1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4` and the calculation timestamp.
+- [ ] **Verified** – Cross-check the digest note against the command output captured above.
+- [ ] **Logged** – Archive the terminal output under `s3://dynamic-compliance/kyc/dct/2025-10-08/hashes/` and link the object key in the escalation log.
+
+> **Command reference:** ``mkdir -p evidence && sha256sum dynamic-capital-ton/contracts/jetton/metadata.json | tee evidence/metadata-digest.txt``
+
+### Verification script excerpt
+- [ ] **Prepared** – Execute `$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/check-tonviewer-status.ts` and save the log as `check-tonviewer-status-<YYYYMMDD>.log`.
+- [ ] **Verified** – Ensure the excerpt shown in the email includes the latest timestamp and verification flag (`none` until Tonviewer confirms).
+- [ ] **Logged** – Upload the full log to `s3://dynamic-compliance/kyc/dct/2025-10-08/logs/` and reference the object key plus timestamp in the escalation log.
+
+> **Command reference:** `mkdir -p logs && $(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/check-tonviewer-status.ts | tee logs/check-tonviewer-status-<YYYYMMDD>.log`
+
+### Compliance archive link
+- [ ] **Prepared** – Generate a read-only pre-signed URL for `s3://dynamic-compliance/kyc/dct/2025-10-08/` that remains valid for at least 7 days.
+- [ ] **Verified** – Review the S3 ACL and expiry to confirm Tonviewer receives view-only access.
+- [ ] **Logged** – Record the generated link, expiry timestamp, and any access confirmations in ticket `DCT-COMP-2025-118` and the escalation log.
+
+> **Command reference:** `aws s3 presign s3://dynamic-compliance/kyc/dct/2025-10-08/ --expires-in 604800`
 
 ## Logging Instructions
 - Update `/docs/tonviewer/tonviewer-escalation-log.md` with the dispatch timestamp and reference ID.
