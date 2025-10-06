@@ -7,7 +7,7 @@
 | --- | --- | --- | --- |
 | Protocol design & tokenomics | ✅ Ready | Multi-layer scope and hard-cap locked.[^proto-evidence] | Keep emissions dashboard post-launch.[^proto-followup] |
 | Treasury configuration & guardrails | ✅ Ready | Config enforces cap, routing, and staking rules.[^treasury-evidence] | Match Supabase settings to on-chain refs.[^treasury-followup] |
-| Allocator contract & regression coverage | ✅ Ready | Allocator guarded and regression-tested.[^allocator-evidence] | Close outstanding checklist tasks.[^allocator-followup] |
+| Allocator contract & regression coverage | ✅ Ready | Allocator guarded and regression-tested.[^allocator-evidence] | Package the refreshed checklist and test evidence with release bundles.[^allocator-followup] |
 | Off-chain onboarding flows | ✅ Ready | Onboarding flows production-ready.[^offchain-evidence] | Archive wallet + subscription test logs.[^offchain-followup] |
 | Operational runbooks | ✅ Ready | Go-live dry runs captured for ops.[^runbook-evidence] | Store transcripts and API logs with releases.[^runbook-followup] |
 
@@ -29,9 +29,10 @@
     actions, forwards declared TON, and emits events covered by Deno regression
     tests.【F:dynamic-capital-ton/contracts/pool_allocator.tact†L32-L218】【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】
 
-[^allocator-followup]: Implementation checklist still needs the parsing,
-    forwarding, and regression items marked
-    complete.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L47-L99】
+[^allocator-followup]: Implementation plan updated 2025-10-06 with all parsing,
+    forwarding, and regression tasks marked complete alongside fresh go-live and
+    Deno test logs for
+    auditors.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L101】【F:docs/checklist-runs/2025-10-06-go-live.md†L1-L34】【F:docs/test-run-2025-10-06.md†L1-L27】
 
 [^offchain-evidence]: Supabase wallet linking, subscription processing, and the
     Mini App runbook document deterministic onboarding paths for
@@ -104,17 +105,17 @@
 
 ## Outstanding Actions
 
-1. **Update the allocator implementation checklist.** The parsing, forwarding,
-   and regression tasks are complete in code/tests but remain unchecked; close
-   them out or document residual work for
-   auditors.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L47-L99】
-2. **Record routine quality gates.** Attach allocator and Supabase test outputs
-   (plus lint/typecheck logs where relevant) to release notes or CI artifacts to
-   satisfy audit guidance on execution
-   evidence.【F:docs/dct-ton-audit.md†L25-L113】
-3. **Archive the completed dry-run evidence.** File the webhook transcripts,
-   bank review outputs, duplicate receipt rejection, crypto confirmation logs,
-   and admin command exports alongside the latest release notes so auditors can
+1. **Bundle the new evidence artifacts.** Include the updated implementation
+   plan, go-live automation log, and Deno test summary with the next release
+   candidate so auditors have direct access to the refreshed
+   proof.【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L74-L101】【F:docs/checklist-runs/2025-10-06-go-live.md†L1-L34】【F:docs/test-run-2025-10-06.md†L1-L27】
+2. **Record routine quality gates.** Continue attaching allocator and Supabase
+   test outputs (plus lint/typecheck logs where relevant) to release notes or CI
+   artifacts to satisfy audit guidance on execution
+   evidence.【F:docs/dct-ton-audit.md†L25-L113】【F:docs/test-run-2025-10-06.md†L1-L27】
+3. **Archive the remaining dry-run evidence.** Retain webhook transcripts, bank
+   review outputs, duplicate receipt rejection, crypto confirmation logs, and
+   admin command exports alongside the latest release notes so auditors can
    trace each checklist item without
    reruns.【F:docs/GO_LIVE_CHECKLIST.md†L17-L45】【F:docs/go-live-validation-playbook.md†L1-L185】
 
