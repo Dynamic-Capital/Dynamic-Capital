@@ -7,7 +7,7 @@
     "apps/*"
   ],
   "engines": {
-    "node": "^20"
+    "node": "^22"
   },
   "scripts": {
     "build": "node scripts/npm-safe.mjs run build:web && node scripts/npm-safe.mjs run build:landing",

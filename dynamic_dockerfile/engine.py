@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import subprocess
 from dataclasses import dataclass, field
-import json
+from pathlib import Path
 from typing import Dict, Iterable, Mapping, MutableMapping, Sequence, Tuple
 
 __all__ = [
@@ -16,6 +18,59 @@ __all__ = [
     "DockerfileArtifact",
     "DynamicDockerfileEngine",
 ]
+
+
+# ---------------------------------------------------------------------------
+# repository metadata helpers
+
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _extract_major_version(raw: str | None) -> str | None:
+    if not raw:
+        return None
+    match = re.search(r"(\d+)", raw)
+    if not match:
+        return None
+    return match.group(1)
+
+
+def _read_text_file(path: Path) -> str | None:
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return None
+
+
+def _resolve_node_major_version() -> str:
+    env_override = _extract_major_version(os.getenv("DYNAMIC_NODE_MAJOR_VERSION"))
+    if env_override:
+        return env_override
+
+    nvm_version = _extract_major_version(_read_text_file(_REPO_ROOT / ".nvmrc"))
+    if nvm_version:
+        return nvm_version
+
+    package_json_path = _REPO_ROOT / "package.json"
+    try:
+        package_engines = json.loads(package_json_path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        package_engines = None
+    if isinstance(package_engines, dict):
+        engines = package_engines.get("engines")
+        if isinstance(engines, dict):
+            node_entry = engines.get("node")
+            node_major = _extract_major_version(node_entry if isinstance(node_entry, str) else None)
+            if node_major:
+                return node_major
+
+    return "20"
+
+
+def _default_node_base_images() -> Tuple[str, str]:
+    node_major = _resolve_node_major_version()
+    return (f"node:{node_major}-bullseye", f"node:{node_major}-alpine")
 
 
 # ---------------------------------------------------------------------------
@@ -449,7 +504,7 @@ class DynamicDockerfileEngine:
 
     DEFAULT_BASE_IMAGES: Mapping[str, tuple[str, str]] = {
         "python": ("python:3.11-slim", "python:3.11-slim"),
-        "node": ("node:20-bullseye", "node:20-alpine"),
+        "node": _default_node_base_images(),
         "go": ("golang:1.21-bullseye", "gcr.io/distroless/base-debian11"),
     }
 
