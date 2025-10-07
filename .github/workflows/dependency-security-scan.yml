@@ -1,0 +1,52 @@
+name: Dependency Security Scan
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - package.json
+      - package-lock.json
+      - .github/workflows/dependency-security-scan.yml
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  npm-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/*/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
+
+      - name: Run npm audit
+        id: audit
+        continue-on-error: true
+        run: |
+          npm audit --omit=dev --audit-level=high > audit-report.txt
+          cat audit-report.txt
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit-report.txt
+
+      - name: Fail on vulnerabilities
+        if: steps.audit.outcome == 'failure'
+        run: |
+          echo "::error::High-severity vulnerabilities detected. See audit-report.txt artifact for details."
+          exit 1
