@@ -51,6 +51,22 @@ example value, and where it's referenced in the repository.
 | `TRADINGVIEW_LOG_LEVEL`          | Optional log level override for the TradingView collector (`INFO`, `DEBUG`, etc.).      | No       | `DEBUG`                                               | `collect_tradingview.py`                                                                                                                                   |
 | `METAQUOTES_ID`                  | MetaQuotes push notification identifier appended to trade alerts.                       | Yes      | `F83593E4`                                            | `integrations/tradingview.py`, `tests/integrations/test_tradingview_webhook.py`                                                                            |
 
+## Node Orchestration
+
+Node configuration overrides are supplied as JSON payloads so schedulers and the
+web console can bootstrap without querying Supabase.
+
+| Key                                    | Purpose                                                                                    | Required | Example                                      | Used in                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------ | -------- | -------------------------------------------- | -------------------------------------------------------------------------- |
+| `NODE_CONFIG__HUMAN_ANALYSIS`          | Overrides the `human-analysis` processing node configuration when Supabase is unavailable. | No       | `{"type":"processing","interval_sec":21600}` | `apps/web/config/node-configs.ts`, `dynamic/trading/algo/dynamic_nodes.py` |
+| `NODE_CONFIG__DYNAMIC_HEDGE`           | Overrides the `dynamic-hedge` policy node scheduling metadata.                             | No       | `{"type":"policy","interval_sec":300}`       | `apps/web/config/node-configs.ts`, `dynamic/trading/algo/dynamic_nodes.py` |
+| `NODE_CONFIG__TON_NETWORK_HEALTH`      | Seeds the TON network health ingestion node definition for local schedulers.               | No       | `{"type":"ingestion","interval_sec":120}`    | `apps/web/config/node-configs.ts`, `dynamic_ton/nodes.py`                  |
+| `NODE_CONFIG__TON_LIQUIDITY_INGESTION` | Seeds the TON liquidity ingestion node definition for local schedulers.                    | No       | `{"type":"ingestion","interval_sec":300}`    | `apps/web/config/node-configs.ts`, `dynamic_ton/nodes.py`                  |
+| `NODE_CONFIG__TON_WALLET_AUDIT`        | Seeds the TON wallet audit processing node definition for local schedulers.                | No       | `{"type":"processing","interval_sec":600}`   | `apps/web/config/node-configs.ts`, `dynamic_ton/nodes.py`                  |
+| `NODE_CONFIG__TON_FEATURE_ENGINEER`    | Seeds the TON feature engineering processing node definition for local schedulers.         | No       | `{"type":"processing","interval_sec":900}`   | `apps/web/config/node-configs.ts`, `dynamic_ton/nodes.py`                  |
+| `NODE_CONFIG__TON_EXECUTION_PLANNER`   | Seeds the TON execution planner policy node definition for local schedulers.               | No       | `{"type":"policy","interval_sec":600}`       | `apps/web/config/node-configs.ts`, `dynamic_ton/nodes.py`                  |
+| `NODE_CONFIG__TON_OPS_BRIEFING`        | Seeds the TON operations briefing community node definition for local schedulers.          | No       | `{"type":"community","interval_sec":3600}`   | `apps/web/config/node-configs.ts`, `dynamic_ton/nodes.py`                  |
+
 ## Telegram
 
 | Key                                   | Purpose                                                                                          | Required  | Example                              | Used in                                                                                                                                              |
