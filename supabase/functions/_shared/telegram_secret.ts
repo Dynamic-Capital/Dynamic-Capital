@@ -134,6 +134,8 @@ function timingSafeEqual(a: string, b: string): boolean {
   }
   return out === 0;
 }
+let missingSecretLogged = false;
+
 export async function validateTelegramHeader(
   req: Request,
 ): Promise<Response | null> {
@@ -145,7 +147,15 @@ export async function validateTelegramHeader(
     return null;
   }
   const exp = normalizeSecretValue(await expectedSecret());
-  if (!exp) return unauth("missing secret", req);
+  if (!exp) {
+    if (!missingSecretLogged) {
+      missingSecretLogged = true;
+      console.warn(
+        "[telegram] TELEGRAM_WEBHOOK_SECRET not configured; skipping header validation",
+      );
+    }
+    return null;
+  }
   const got = normalizeSecretValue(
     req.headers.get("x-telegram-bot-api-secret-token"),
   );

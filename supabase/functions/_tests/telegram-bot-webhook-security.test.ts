@@ -24,6 +24,23 @@ Deno.test("rejects requests without secret and preserves CORS", async () => {
   clearTestEnv();
 });
 
+Deno.test("allows requests when secret is not configured", async () => {
+  clearTestEnv();
+
+  const req = new Request("https://example.com/telegram-bot", {
+    method: "POST",
+    body: "{}",
+  });
+
+  const { validateTelegramHeader } = await import(
+    "../_shared/telegram_secret.ts"
+  );
+  const res = await validateTelegramHeader(req);
+  assertStrictEquals(res, null);
+
+  clearTestEnv();
+});
+
 Deno.test("accepts valid secret", async () => {
   setTestEnv({
     TELEGRAM_WEBHOOK_SECRET: "s3cr3t",
