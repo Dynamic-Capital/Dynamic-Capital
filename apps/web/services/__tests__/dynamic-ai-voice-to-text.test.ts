@@ -69,4 +69,37 @@ describe("callDynamicAiVoiceToText", () => {
     expect(abortSignal?.aborted).toBe(true);
     expect(externalController.signal.aborted).toBe(false);
   });
+
+  it("propagates already-aborted external signals to the fetch controller", async () => {
+    expect.assertions(4);
+
+    const fetchMock = vi.fn(
+      async (_input: RequestInfo | URL, init?: RequestInit) => {
+        const abortSignal = init?.signal as AbortSignal | undefined;
+        expect(abortSignal).toBeDefined();
+        expect(abortSignal?.aborted).toBe(true);
+
+        throw new DOMException("Aborted", "AbortError");
+      },
+    );
+
+    (globalThis as Record<PropertyKey, unknown>)[DYNAMIC_AI_FETCH_OVERRIDE] =
+      fetchMock;
+
+    const { callDynamicAiVoiceToText } = await import(
+      "../dynamic-ai/voice-to-text"
+    );
+
+    const externalController = new AbortController();
+    externalController.abort(new Error("external"));
+
+    await expect(
+      callDynamicAiVoiceToText({
+        file: new Blob(["dummy"], { type: "audio/webm" }),
+        signal: externalController.signal,
+      }),
+    ).rejects.toMatchObject({ name: "AbortError" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });
