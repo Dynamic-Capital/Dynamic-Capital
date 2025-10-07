@@ -13,6 +13,45 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[ANALYTICS-DATA] ${step}${detailsStr}`);
 };
 
+const DEFAULT_TIMEFRAME = "today" as const;
+
+type KnownTimeframe = "today" | "week" | "14days" | "month";
+
+const timeframeResolvers: Record<KnownTimeframe, (now: Date) => Date> = {
+  today: (now) => new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+  week: (now) => new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+  "14days": (now) => new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+  month: (now) => new Date(now.getFullYear(), now.getMonth(), 1),
+};
+
+const resolveRequestedTimeframe = (payload: unknown) => {
+  if (
+    typeof payload === "object" &&
+    payload !== null &&
+    "timeframe" in payload &&
+    typeof (payload as Record<string, unknown>).timeframe === "string"
+  ) {
+    return (payload as { timeframe: string }).timeframe.trim() ||
+      DEFAULT_TIMEFRAME;
+  }
+  return DEFAULT_TIMEFRAME;
+};
+
+const resolveDateRange = (timeframe: string, now: Date) => {
+  const normalizedTimeframe =
+    Object.prototype.hasOwnProperty.call(timeframeResolvers, timeframe)
+      ? (timeframe as KnownTimeframe)
+      : DEFAULT_TIMEFRAME;
+
+  const startDate = timeframeResolvers[normalizedTimeframe](now);
+
+  return {
+    startDate,
+    endDate: now,
+    normalizedTimeframe,
+  };
+};
+
 const secureRandomBetween = (min: number, max: number) => {
   const range = max - min;
   if (!Number.isFinite(range) || range === 0) return min;
@@ -33,99 +72,72 @@ export const handler = registerHandler(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let timeframe: string = DEFAULT_TIMEFRAME;
+  let appliedTimeframe: KnownTimeframe = DEFAULT_TIMEFRAME;
   try {
     logStep("Analytics data request started");
 
     const supabaseClient = createClient("service");
 
-    const { timeframe } = await req.json().catch(() => ({
-      timeframe: "today",
-    }));
-    logStep("Processing timeframe", { timeframe });
+    const requestPayload: unknown = await req.json().catch(() => ({}));
+    timeframe = resolveRequestedTimeframe(requestPayload);
 
     const now = new Date();
-    let startDate: Date;
-    const endDate = now;
-
-    // Calculate date ranges based on timeframe
-    switch (timeframe) {
-      case "today":
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        break;
-      case "week":
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case "14days":
-        startDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-        break;
-      case "month":
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        break;
-      default:
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    }
-
-    logStep("Date range calculated", {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+    const { startDate, endDate, normalizedTimeframe } = resolveDateRange(
+      timeframe,
+      now,
+    );
+    appliedTimeframe = normalizedTimeframe;
+    logStep("Processing timeframe", {
+      requested: timeframe,
+      applied: appliedTimeframe,
     });
 
-    // Get revenue data from payments table
-    const { data: revenueData, error: revenueError } = await supabaseClient
-      .from("payments")
-      .select("amount, currency, created_at, plan_id")
-      .eq("status", "completed")
-      .gte("created_at", startDate.toISOString())
-      .lte("created_at", endDate.toISOString());
+    const startIso = startDate.toISOString();
+    const endIso = endDate.toISOString();
+    logStep("Date range calculated", {
+      startDate: startIso,
+      endDate: endIso,
+    });
 
-    if (revenueError) {
-      logStep("Revenue query error", { error: revenueError });
-      throw new Error(`Revenue query failed: ${revenueError.message}`);
-    }
-
-    // Get subscription data for package performance
-    const { data: subscriptionData, error: subscriptionError } =
-      await supabaseClient
+    const [
+      { data: revenueData, error: revenueError },
+      { data: subscriptionData, error: subscriptionError },
+      { data: plansData, error: plansError },
+      [
+        { count: totalUsers, error: usersError },
+        { count: vipUsers, error: vipError },
+        { count: pendingPayments, error: pendingPaymentsError },
+      ],
+    ] = await Promise.all([
+      supabaseClient
+        .from("payments")
+        .select("amount, currency, created_at, plan_id")
+        .eq("status", "completed")
+        .gte("created_at", startIso)
+        .lte("created_at", endIso),
+      supabaseClient
         .from("user_subscriptions")
         .select("plan_id, payment_status, created_at")
         .eq("payment_status", "completed")
-        .gte("created_at", startDate.toISOString())
-        .lte("created_at", endDate.toISOString());
-
-    if (subscriptionError) {
-      logStep("Subscription query error", { error: subscriptionError });
-      throw new Error(
-        `Subscription query failed: ${subscriptionError.message}`,
-      );
-    }
-
-    // Get subscription plans for reference
-    const { data: plansData, error: plansError } = await supabaseClient
-      .from("subscription_plans")
-      .select("id, name, price, currency");
-
-    if (plansError) {
-      logStep("Plans query error", { error: plansError });
-      throw new Error(`Plans query failed: ${plansError.message}`);
-    }
-
-    // Get aggregate metrics for dashboard overview
-    const [
-      { count: totalUsers, error: usersError },
-      { count: vipUsers, error: vipError },
-      { count: pendingPayments, error: pendingPaymentsError },
-    ] = await Promise.all([
+        .gte("created_at", startIso)
+        .lte("created_at", endIso),
       supabaseClient
-        .from("bot_users")
-        .select("id", { count: "exact", head: true }),
-      supabaseClient
-        .from("current_vip")
-        .select("telegram_id", { count: "exact", head: true })
-        .eq("is_vip", true),
-      supabaseClient
-        .from("payments")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending"),
+        .from("subscription_plans")
+        .select("id, name, price, currency"),
+      Promise.all([
+        supabaseClient
+          .from("bot_users")
+          .select("id", { count: "exact", head: true }),
+        supabaseClient
+          .from("current_vip")
+          .select("telegram_id", { count: "exact", head: true })
+          .eq("is_vip", true),
+        supabaseClient
+          .from("payments")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending"),
+      ]),
     ]);
 
     if (usersError) {
@@ -188,6 +200,7 @@ export const handler = registerHandler(async (req) => {
 
     const analyticsData = {
       timeframe,
+      applied_timeframe: appliedTimeframe,
       total_revenue: totalRevenue,
       currency: "USD",
       comparison: comparisonData,
@@ -216,7 +229,8 @@ export const handler = registerHandler(async (req) => {
       req,
       message: "Failed to generate analytics data.",
       extra: {
-        timeframe: "today",
+        timeframe,
+        applied_timeframe: appliedTimeframe,
         total_revenue: 0,
         currency: "USD",
         package_performance: [],
