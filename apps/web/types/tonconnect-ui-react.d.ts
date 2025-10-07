@@ -17,6 +17,8 @@ declare module "@tonconnect/ui-react" {
     aboutUrl: string;
     universalLink: string;
     bridgeUrl: string;
+    deepLink?: string;
+    jsBridgeKey?: string;
     platforms?: readonly string[];
   }
 
