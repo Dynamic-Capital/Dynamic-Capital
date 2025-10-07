@@ -1,8 +1,13 @@
 import { registerHandler } from "../_shared/serve.ts";
 import { bad, corsHeaders, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { createClient } from "../_shared/client.ts";
-import { need } from "../_shared/env.ts";
+import { need, optionalEnv } from "../_shared/env.ts";
 import { normalizeAllocatorInvestorKey } from "../_shared/private-pool.ts";
+import {
+  TonIndexClient,
+  type TonTransactionPayload,
+} from "../_shared/ton-index.ts";
+import { normaliseTonAddress } from "../_shared/ton-address.ts";
 
 interface AllocatorEvent {
   depositId: string;
@@ -94,6 +99,157 @@ function normalizeEvent(event: AllocatorEvent): Required<AllocatorEvent> {
   };
 }
 
+function extractBlockSeqno(proof: ProofPayload): number | null {
+  if (!proof.blockId) return null;
+  const parts = proof.blockId.split(":");
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const part = parts[i];
+    if (!part) continue;
+    const decimal = Number(part);
+    if (Number.isInteger(decimal) && decimal >= 0) {
+      return decimal;
+    }
+    const hex = Number.parseInt(part, 16);
+    if (!Number.isNaN(hex) && hex >= 0) {
+      return hex;
+    }
+  }
+  return null;
+}
+
+function deriveTonAmount(payload: TonTransactionPayload): number | null {
+  const candidates: Array<number | null | undefined> = [
+    payload.amountTon,
+    payload.amount,
+    payload.value,
+    payload.in_msg?.value,
+    ...(payload.out_msgs ?? []).map((msg) => msg.value ?? null),
+  ];
+  for (const candidate of candidates) {
+    if (candidate == null) continue;
+    const numeric = Number(candidate);
+    if (!Number.isFinite(numeric) || numeric <= 0) continue;
+    const ton = numeric > 1_000_000 ? numeric / 1_000_000_000 : numeric;
+    if (Number.isFinite(ton) && ton > 0) {
+      return ton;
+    }
+  }
+  return null;
+}
+
+function collectAddresses(payload: TonTransactionPayload): string[] {
+  const addresses: string[] = [];
+  const push = (value?: string | null) => {
+    if (!value) return;
+    try {
+      const normalised = normaliseTonAddress(value).raw.toUpperCase();
+      if (!addresses.includes(normalised)) {
+        addresses.push(normalised);
+      }
+    } catch {
+      // ignore addresses we cannot normalise
+    }
+  };
+  push(payload.account?.address ?? null);
+  push(payload.in_msg?.source ?? null);
+  push(payload.in_msg?.destination ?? null);
+  for (const msg of payload.out_msgs ?? []) {
+    push(msg.source ?? null);
+    push(msg.destination ?? null);
+  }
+  return addresses;
+}
+
+async function verifyOnChainEvent(
+  event: Required<AllocatorEvent>,
+  proof: ProofPayload,
+  client: TonIndexClient,
+): Promise<
+  | {
+    ok: true;
+    details: {
+      amountTon: number;
+      blockSeqno: number | null;
+      investorAddress: string;
+      timestamp: string | null;
+    };
+  }
+  | { ok: false; error: string; hint?: string }
+> {
+  let transaction: TonTransactionPayload;
+  try {
+    transaction = await client.getTransaction(event.tonTxHash);
+  } catch (error) {
+    const message = error instanceof Error
+      ? error.message
+      : "Failed to query TON index";
+    return {
+      ok: false as const,
+      error: "Unable to fetch transaction",
+      hint: message,
+    };
+  }
+
+  const expectedInvestor = normaliseTonAddress(event.investorKey).raw
+    .toUpperCase();
+  const addresses = collectAddresses(transaction);
+  if (!addresses.includes(expectedInvestor)) {
+    return {
+      ok: false as const,
+      error: "Transaction does not involve the investor wallet",
+    };
+  }
+
+  const amountTon = deriveTonAmount(transaction);
+  if (!amountTon) {
+    return {
+      ok: false as const,
+      error: "Unable to determine TON amount from transaction",
+    };
+  }
+  const expectedTon = event.usdtAmount / event.fxRate;
+  const tolerance = Math.max(0.05, expectedTon * 0.02);
+  if (amountTon + tolerance < expectedTon) {
+    return {
+      ok: false as const,
+      error: "On-chain TON amount is below expected threshold",
+    };
+  }
+
+  const proofSeqno = extractBlockSeqno(proof);
+  const blockSeqno = transaction.mc_block_seqno ?? proofSeqno ?? null;
+  if (
+    transaction.mc_block_seqno != null &&
+    proofSeqno != null &&
+    transaction.mc_block_seqno !== proofSeqno
+  ) {
+    return {
+      ok: false as const,
+      error: "Proof block ID does not match transaction sequence",
+    };
+  }
+
+  const timestampCandidate = transaction.now ?? transaction.utime ?? null;
+  let timestampIso: string | null = null;
+  if (timestampCandidate != null) {
+    const numeric = Number(timestampCandidate);
+    if (Number.isFinite(numeric)) {
+      const millis = numeric > 1_000_000_000_000 ? numeric : numeric * 1000;
+      timestampIso = new Date(millis).toISOString();
+    }
+  }
+
+  return {
+    ok: true as const,
+    details: {
+      amountTon,
+      blockSeqno,
+      investorAddress: expectedInvestor,
+      timestamp: timestampIso,
+    },
+  };
+}
+
 export const handler = registerHandler(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders(req) });
@@ -136,6 +292,23 @@ export const handler = registerHandler(async (req) => {
     );
   }
 
+  const indexClient = new TonIndexClient({
+    baseUrl: optionalEnv("TON_ALLOCATOR_INDEX_URL") ??
+      optionalEnv("TON_INDEX_BASE_URL") ??
+      undefined,
+    apiKey: optionalEnv("TON_INDEX_API_KEY") ?? undefined,
+  });
+
+  const verification = await verifyOnChainEvent(
+    normalized,
+    parsed.proof,
+    indexClient,
+  );
+  if (!verification.ok) {
+    const hint = "hint" in verification ? verification.hint : undefined;
+    return bad(verification.error, hint, req);
+  }
+
   const supabase = getSupabaseServiceClient();
   const now = new Date().toISOString();
 
@@ -151,6 +324,11 @@ export const handler = registerHandler(async (req) => {
     event_payload: parsed.event,
     observed_at: parsed.observedAt ?? now,
     verified_at: now,
+    on_chain_investor: verification.details.investorAddress,
+    on_chain_amount_ton: verification.details.amountTon,
+    on_chain_block_seqno: verification.details.blockSeqno,
+    on_chain_timestamp: verification.details.timestamp,
+    verification_error: null,
   };
 
   const { data, error } = await supabase
