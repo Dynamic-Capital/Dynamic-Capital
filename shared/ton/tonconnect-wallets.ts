@@ -92,14 +92,13 @@ export function toTonConnectWalletListEntry(
   };
 }
 
-const DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES = Object.freeze(
+const DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES =
   TONCONNECT_RECOMMENDED_WALLETS.map((wallet) =>
     toTonConnectWalletListEntry(wallet)
-  ),
-) as ReadonlyArray<TonConnectWalletListEntry>;
+  ) as ReadonlyArray<TonConnectWalletListEntry>;
 
 const DEFAULT_TONCONNECT_WALLETS_LIST_CONFIGURATION = {
-  includeWallets: DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES,
+  includeWallets: [...DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES],
 } as const satisfies TonConnectWalletsListConfiguration;
 
 export const TONCONNECT_WALLETS_LIST_CONFIGURATION =
