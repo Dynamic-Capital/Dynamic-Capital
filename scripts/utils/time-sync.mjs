@@ -5,10 +5,12 @@ import deskTimeZoneConfig from "../../shared/time/desk-time-zone.json" with {
   type: "json",
 };
 
-const FALLBACK_TIME_ZONE = "Indian/Maldives";
-const FALLBACK_LABEL = "Malé, Maldives";
-const FALLBACK_ABBREVIATION = "MVT";
-const FALLBACK_OFFSET = "+05:00";
+const SERVER_TIME_ZONE_METADATA = resolveServerTimeZoneMetadata();
+
+const FALLBACK_TIME_ZONE = SERVER_TIME_ZONE_METADATA.timeZone;
+const FALLBACK_LABEL = SERVER_TIME_ZONE_METADATA.label;
+const FALLBACK_ABBREVIATION = SERVER_TIME_ZONE_METADATA.abbreviation;
+const FALLBACK_OFFSET = SERVER_TIME_ZONE_METADATA.offset;
 
 const CACHE_TTL_MS = 60_000;
 
@@ -122,6 +124,74 @@ function getProcessTimeZone() {
   } catch (_err) {
     return undefined;
   }
+}
+
+function resolveServerTimeZoneMetadata() {
+  const timeZone = coerceString(getProcessTimeZone()) ?? "UTC";
+
+  let label;
+  let abbreviation;
+  let offset;
+
+  try {
+    const now = new Date();
+
+    const longOffsetFormatter = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "longOffset",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const offsetPart = longOffsetFormatter
+      .formatToParts(now)
+      .find((part) => part.type === "timeZoneName");
+
+    const offsetMatch = offsetPart?.value.match(/([+-]\d{2})(?::?(\d{2}))?/);
+
+    if (offsetMatch) {
+      const hours = offsetMatch[1];
+      const minutes = offsetMatch[2] ?? "00";
+      offset = `${hours}:${minutes}`;
+    }
+
+    const shortFormatter = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "short",
+      hour: "2-digit",
+    });
+
+    const abbreviationPart = shortFormatter
+      .formatToParts(now)
+      .find((part) => part.type === "timeZoneName");
+
+    if (abbreviationPart) {
+      const normalized = abbreviationPart.value.replace(/GMT|UTC/gi, "").trim();
+      if (normalized.length > 0) {
+        abbreviation = normalized;
+      }
+    }
+  } catch (_error) {
+    // Ignore Intl failures and fall back to generic labels.
+  }
+
+  if (timeZone === "UTC") {
+    offset ??= "+00:00";
+    abbreviation ??= "UTC";
+  }
+
+  if (!label) {
+    label = timeZone === "UTC"
+      ? "Coordinated Universal Time"
+      : `Server (${timeZone})`;
+  }
+
+  return {
+    timeZone,
+    label,
+    abbreviation,
+    offset,
+  };
 }
 
 function hasTimezonePrivileges() {
