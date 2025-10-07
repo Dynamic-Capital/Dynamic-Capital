@@ -21,7 +21,7 @@
 | Name           | Dynamic Capital Token                                                                                   | Dynamic Capital Token                                                                                   | ✅    |
 | Symbol         | DCT                                                                                                     | DCT                                                                                                     | ✅    |
 | Decimals       | 9                                                                                                       | 9                                                                                                       | ✅    |
-| Image URL      | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCTMark.png) | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCTMark.png) | ✅    |
+| Image URL      | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCT-Mark.svg) | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCT-Mark.svg) | ✅    |
 | Jetton Address | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`                                    | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`                                    | ✅    |
 
 ## Network Metrics
