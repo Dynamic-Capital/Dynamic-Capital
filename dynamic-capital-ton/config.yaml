@@ -1,8 +1,8 @@
 token:
-  name: Dynamic Capital Token
-  symbol: DCT
+  name: STON.fi pTON-DCT LP
+  symbol: STONFI-PTON-DCT-LP
   decimals: 9
-  address: "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7"
+  address: "0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3"
   maxSupply: 100000000
 
 contracts:
