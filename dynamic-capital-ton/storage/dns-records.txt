@@ -1,0 +1,11 @@
+jetton_master=EQDSmz4R...ig6Wx_6y
+treasury_wallet=UQD1zAJP...H_cNOK0G
+stonfi_pool=EQAyD7O8...5lfJPyfA
+dedust_pool=EQDTJ4lH...yrLumEFm
+dao_contract=EQDAOxyz...daoAddr
+metadata=https://dynamiccapital.ton/jetton-metadata.json
+api=https://api.dynamiccapital.ton
+manifest=https://dynamiccapital.ton/tonconnect-manifest.json
+docs=https://dynamiccapital.ton/docs
+signature=<to_be_filled_by_script>
+updated=2025-10-07

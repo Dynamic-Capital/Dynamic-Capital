@@ -73,3 +73,40 @@ interactions across wallets, marketplaces, and services.
 - [TON DNS Contracts](https://github.com/ton-blockchain/dns-contract)
 - [TON DNS Subresolver Guidelines](https://docs.ton.org/v3/guidelines/web3/ton-dns/subresolvers)
 - [TEP-81 DNS Standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0081-dns-standard.md)
+
+## Dynamic Capital DNS Verification Playbook
+
+The `dynamiccapital.ton` domain now exposes a signed `dns-records.txt` so all
+official contracts resolve from a single trusted source.
+
+### Authoritative DNS Bundle
+
+- `dynamic-capital-ton/storage/dns-records.txt` contains the latest contract
+  references (Jetton, treasury, DEX pools, DAO, APIs) alongside a signature
+  placeholder. Only the treasury wallet should publish updates.
+- Update records locally, sign them with the treasury mnemonic using the
+  `verify-dns.ts` script, and paste the output into the TON DNS manager.
+
+### Local Signing Script
+
+- Run `npm install` to pull the TON SDK dependencies, then execute
+  `npx tsx dynamic-capital-ton/apps/tools/verify-dns.ts` after exporting
+  `TREASURY_MNEMONIC`.
+- The script fetches Jetton metadata, validates connectivity to toncenter, and
+  emits a fully signed DNS block ready for publication.
+
+### Public Verification Endpoint
+
+- A Supabase Edge Function (`supabase/functions/dns-verify`) fetches the
+  published record, removes the signature field, and confirms the Ed25519
+  signature with the treasury public key.
+- Deploy the function and surface
+  `https://api.dynamiccapital.ton/dns-verify` so wallets and explorers can
+  programmatically confirm authenticity.
+
+### Operational Recommendations
+
+- Mirror `dns-records.txt` to IPFS and log updates in the `treasury_flows`
+  ledger to maintain long-term transparency.
+- Add future records such as `staking_contract`, `nft_memberships`, and
+  `bridge_contract` once those products reach mainnet readiness.
