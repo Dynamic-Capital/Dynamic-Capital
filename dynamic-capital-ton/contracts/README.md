@@ -66,9 +66,9 @@ team submits a verification package. Generate the canonical archive by running:
 $(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/generate-tonviewer-bundle.ts
 ```
 
-The script collects the full FunC discoverable sources (including the
-`imports/` helper modules), frozen metadata, this README, and a machine-readable
-manifest (metadata checksum + governance summary) into
+The script collects the full FunC discoverable sources (including the `imports/`
+helper modules), frozen metadata, this README, and a machine-readable manifest
+(metadata checksum + governance summary) into
 `build/tonviewer/dct-tonviewer-verification.zip`. Submit the ZIP through the
 [Tonviewer verification portal](https://tonviewer.com/verification) and track
 the workflow with the
@@ -79,6 +79,29 @@ After submitting, monitor the explorer status with the CLI at
 `apps/tools/check-tonviewer-status.ts`. It compares the live Tonapi metadata
 against `metadata.json` and exits with non-zero codes if either the verification
 flag remains `none` or the hosted metadata drifts from the repository copy.
+
+## Explorer verification shortcuts
+
+Use the following canonical explorer pages to validate the on-chain jetton and
+liquidity pool wallets. Tonscan includes both the raw workchain and friendly
+addresses so the link works regardless of which representation a wallet shows.
+
+| Platform  | Scope                | Canonical link(s)                                                                                                                                                                              |
+| --------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tonscan   | Jetton overview      | [Friendly](https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [Raw](https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7) |
+| Tonviewer | Jetton overview      | [tonviewer.com/jetton/0:d29…96c7](https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7)                                                             |
+| STON.fi   | pTON/DCT pool wallet | [tonviewer.com/EQAx…0_MI](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI)                                                                                              |
+| Dedust    | TON/DCT pool wallet  | [tonviewer.com/EQDT…mEFm](https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm)                                                                                              |
+
+### Metadata guardrails
+
+Run the validation script after editing `metadata.json` to ensure the `sameAs`
+block stays canonical and continues to reference the jetton, pool, and DEX
+routes without drift:
+
+```sh
+deno run -A dynamic-capital-ton/apps/tools/validate-jetton-links.ts
+```
 
 ## Theme collection deployment
 
