@@ -6,6 +6,27 @@ export const DIGITALOCEAN_ACTIVE_ORIGIN =
 export const DIGITALOCEAN_LEGACY_ORIGIN =
   "https://dynamic-capital.ondigitalocean.app";
 
+function safeParseHost(origin) {
+  if (!origin) return undefined;
+  try {
+    return new URL(origin).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
+function inferZoneFromHost(hostname) {
+  if (!hostname) return undefined;
+  const segments = hostname.split(".").filter(Boolean);
+  if (segments.length <= 1) {
+    return hostname;
+  }
+  return segments.slice(1).join(".");
+}
+
+const DIGITALOCEAN_ACTIVE_HOST = safeParseHost(DIGITALOCEAN_ACTIVE_ORIGIN);
+const DIGITALOCEAN_LEGACY_HOST = safeParseHost(DIGITALOCEAN_LEGACY_ORIGIN);
+
 export const PRODUCTION_ALLOWED_ORIGINS = [
   "https://dynamiccapital.ton",
   "https://www.dynamiccapital.ton",
@@ -15,6 +36,23 @@ export const PRODUCTION_ALLOWED_ORIGINS = [
   "https://dynamic-capital.vercel.app",
   "https://dynamic-capital.lovable.app",
 ];
+
+const DEFAULT_DOMAIN_ALIASES = [
+  DIGITALOCEAN_ACTIVE_HOST
+    ? {
+      domain: DIGITALOCEAN_ACTIVE_HOST,
+      zone: inferZoneFromHost(DIGITALOCEAN_ACTIVE_HOST),
+      type: "ALIAS",
+    }
+    : undefined,
+  DIGITALOCEAN_LEGACY_HOST
+    ? {
+      domain: DIGITALOCEAN_LEGACY_HOST,
+      zone: inferZoneFromHost(DIGITALOCEAN_LEGACY_HOST),
+      type: "ALIAS",
+    }
+    : undefined,
+].filter(Boolean);
 
 const DEFAULT_HEALTH_CHECK_PATH = "/healthz";
 
@@ -64,6 +102,115 @@ function formatScopeChangeLabel(key, previous, next, context) {
     return `${context}: ${detail}`;
   }
   return detail;
+}
+
+function ensureDomainRecord(domains, alias, changes) {
+  if (!alias || typeof alias.domain !== "string") {
+    return;
+  }
+
+  const normalizedDomain = alias.domain.trim();
+  if (!normalizedDomain) {
+    return;
+  }
+
+  const domainContext = `domain '${normalizedDomain}'`;
+  const existing = domains.find((item) =>
+    typeof item?.domain === "string" &&
+    item.domain.trim().toLowerCase() === normalizedDomain.toLowerCase()
+  );
+
+  if (!existing) {
+    const record = {
+      domain: normalizedDomain,
+      type: alias.type ?? "ALIAS",
+      wildcard: alias.wildcard ?? false,
+    };
+    if (alias.zone) {
+      record.zone = alias.zone;
+    }
+    domains.push(record);
+    changes.add(`${domainContext} added (${record.type})`);
+    if (record.zone) {
+      changes.add(`${domainContext} zone → ${record.zone}`);
+    }
+    return;
+  }
+
+  if (alias.type && existing.type !== alias.type) {
+    existing.type = alias.type;
+    changes.add(`${domainContext} type → ${alias.type}`);
+  }
+
+  if (alias.zone && existing.zone !== alias.zone) {
+    existing.zone = alias.zone;
+    changes.add(`${domainContext} zone → ${alias.zone}`);
+  }
+
+  if (existing.wildcard === undefined) {
+    existing.wildcard = alias.wildcard ?? false;
+    changes.add(`${domainContext} wildcard → ${existing.wildcard}`);
+  }
+}
+
+function ensureIngressRule({
+  rules,
+  host,
+  serviceName,
+  changes,
+  presentHosts,
+}) {
+  if (!host) {
+    return;
+  }
+
+  const normalizedHost = host.trim();
+  if (!normalizedHost) {
+    return;
+  }
+
+  const lowerHost = normalizedHost.toLowerCase();
+  const existing = rules.find((entry) =>
+    entry && typeof entry === "object" &&
+    typeof entry.match === "object" &&
+    typeof entry.match?.authority === "object" &&
+    typeof entry.match.authority?.exact === "string" &&
+    entry.match.authority.exact.trim().toLowerCase() === lowerHost
+  );
+
+  if (existing) {
+    if (!existing.component || existing.component.name !== serviceName) {
+      existing.component = { name: serviceName };
+      changes.add(
+        `ingress component → service '${serviceName}' (${normalizedHost})`,
+      );
+    }
+
+    if (!existing.match.path || existing.match.path.prefix !== "/") {
+      existing.match.path = { prefix: "/" };
+      changes.add(`ingress path prefix → / (${normalizedHost})`);
+    }
+
+    if (existing.match.authority.exact !== normalizedHost) {
+      existing.match.authority.exact = normalizedHost;
+      changes.add(`ingress authority exact → ${normalizedHost}`);
+    }
+
+    presentHosts.add(lowerHost);
+    return;
+  }
+
+  rules.push({
+    component: { name: serviceName },
+    match: {
+      authority: { exact: normalizedHost },
+      path: { prefix: "/" },
+    },
+  });
+  presentHosts.add(lowerHost);
+  changes.add(
+    `ingress rule added for ${normalizedHost} → service '${serviceName}'`,
+  );
 }
 
 function upsertEnv(envs, key, value, scope, changes, context) {
@@ -348,6 +495,16 @@ export function normalizeAppSpec({
     }
   }
 
+  for (const alias of DEFAULT_DOMAIN_ALIASES) {
+    if (!alias) {
+      continue;
+    }
+    if (alias.domain.toLowerCase() === finalDomain.toLowerCase()) {
+      continue;
+    }
+    ensureDomainRecord(spec.domains, alias, changes);
+  }
+
   const canonicalDomainLower = finalDomain.toLowerCase();
   const knownDomains = new Set(
     spec.domains
@@ -360,49 +517,69 @@ export function normalizeAppSpec({
   );
   knownDomains.add(canonicalDomainLower);
 
-  if (spec.ingress && typeof spec.ingress === "object") {
-    spec.ingress.rules = ensureArray(spec.ingress.rules);
-    let hasCanonicalRule = false;
+  const aliasHosts = DEFAULT_DOMAIN_ALIASES
+    .map((alias) => alias?.domain?.toLowerCase())
+    .filter((host) => host && host !== canonicalDomainLower);
+  for (const host of aliasHosts) {
+    knownDomains.add(host);
+  }
 
-    for (const rule of spec.ingress.rules) {
-      if (
-        rule && typeof rule === "object" && rule.match &&
-        typeof rule.match === "object" && rule.match.authority
-      ) {
-        const authority = rule.match.authority;
-        const rawExact = typeof authority.exact === "string"
-          ? authority.exact.trim()
-          : undefined;
+  if (!spec.ingress || typeof spec.ingress !== "object") {
+    spec.ingress = {};
+  }
 
-        if (rawExact) {
-          const lowerExact = rawExact.toLowerCase();
-          if (lowerExact === canonicalDomainLower) {
-            hasCanonicalRule = true;
-            continue;
-          }
+  spec.ingress.rules = ensureArray(spec.ingress.rules);
+  const requiredHosts = new Map([[canonicalDomainLower, finalDomain]]);
+  for (const alias of DEFAULT_DOMAIN_ALIASES) {
+    if (!alias?.domain) {
+      continue;
+    }
+    const lower = alias.domain.toLowerCase();
+    if (lower === canonicalDomainLower) {
+      continue;
+    }
+    requiredHosts.set(lower, alias.domain);
+  }
 
-          if (knownDomains.has(lowerExact)) {
-            continue;
-          }
-        }
+  const presentIngressHosts = new Set();
+  for (const [, hostValue] of requiredHosts) {
+    ensureIngressRule({
+      rules: spec.ingress.rules,
+      host: hostValue,
+      serviceName,
+      changes,
+      presentHosts: presentIngressHosts,
+    });
+  }
 
-        authority.exact = finalDomain;
-        hasCanonicalRule = true;
-        changes.add(`ingress authority exact → ${finalDomain}`);
-      }
+  for (const rule of spec.ingress.rules) {
+    if (
+      !rule || typeof rule !== "object" || !rule.match ||
+      typeof rule.match !== "object"
+    ) {
+      continue;
     }
 
-    if (!hasCanonicalRule) {
-      spec.ingress.rules.unshift({
-        component: { name: serviceName },
-        match: {
-          authority: { exact: finalDomain },
-          path: { prefix: "/" },
-        },
-      });
-      changes.add(
-        `ingress rule added for ${finalDomain} → service '${serviceName}'`,
-      );
+    const authority = rule.match.authority;
+    if (!authority || typeof authority !== "object") {
+      continue;
+    }
+
+    const rawExact = typeof authority.exact === "string"
+      ? authority.exact.trim()
+      : undefined;
+    if (!rawExact) {
+      continue;
+    }
+
+    const lowerExact = rawExact.toLowerCase();
+    if (requiredHosts.has(lowerExact)) {
+      continue;
+    }
+
+    if (!knownDomains.has(lowerExact)) {
+      authority.exact = finalDomain;
+      changes.add(`ingress authority exact → ${finalDomain}`);
     }
   }
 
