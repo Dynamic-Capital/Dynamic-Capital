@@ -866,6 +866,7 @@ async function main() {
   }
 
   const defaultDirectCandidates = [
+    "https://dynamic.capital/ton-site",
     "https://dynamic-capital-qazf2.ondigitalocean.app/ton-site",
     "https://dynamic-capital.ondigitalocean.app/ton-site",
     "https://dynamic-capital.vercel.app/ton-site",

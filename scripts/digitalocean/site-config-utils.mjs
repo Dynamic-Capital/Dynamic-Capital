@@ -1,6 +1,7 @@
 import { URL } from "node:url";
 
-export const DIGITALOCEAN_PRIMARY_ORIGIN =
+export const PRIMARY_PRODUCTION_ORIGIN = "https://dynamic.capital";
+export const DIGITALOCEAN_ACTIVE_ORIGIN =
   "https://dynamic-capital-qazf2.ondigitalocean.app";
 export const DIGITALOCEAN_LEGACY_ORIGIN =
   "https://dynamic-capital.ondigitalocean.app";
@@ -8,9 +9,9 @@ export const DIGITALOCEAN_LEGACY_ORIGIN =
 export const PRODUCTION_ALLOWED_ORIGINS = [
   "https://dynamiccapital.ton",
   "https://www.dynamiccapital.ton",
-  DIGITALOCEAN_PRIMARY_ORIGIN,
+  PRIMARY_PRODUCTION_ORIGIN,
+  DIGITALOCEAN_ACTIVE_ORIGIN,
   DIGITALOCEAN_LEGACY_ORIGIN,
-  "https://dynamic.capital",
   "https://dynamic-capital.vercel.app",
   "https://dynamic-capital.lovable.app",
 ];
