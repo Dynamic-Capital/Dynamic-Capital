@@ -1,9 +1,9 @@
 import type {
-  TonConnectUIWallet,
+  UIWallet,
   WalletsListConfiguration,
 } from "@tonconnect/ui-react";
 
-type WalletPlatform = NonNullable<TonConnectUIWallet["platforms"]>[number];
+type WalletPlatform = NonNullable<UIWallet["platforms"]>[number];
 
 export type TonConnectWalletMetadata = {
   appName: string;
@@ -15,8 +15,8 @@ export type TonConnectWalletMetadata = {
   platforms: ReadonlyArray<WalletPlatform>;
 };
 
-export type TonConnectWalletListEntry = TonConnectUIWallet & {
-  platforms: ReadonlyArray<WalletPlatform>;
+export type TonConnectWalletListEntry = UIWallet & {
+  platforms: WalletPlatform[];
 };
 
 export type TonConnectWalletsListConfiguration = WalletsListConfiguration;
@@ -88,7 +88,7 @@ export function toTonConnectWalletListEntry(
     aboutUrl: wallet.aboutUrl,
     universalLink: wallet.universalLink,
     bridgeUrl: wallet.bridgeUrl,
-    platforms: [...wallet.platforms] as ReadonlyArray<WalletPlatform>,
+    platforms: [...wallet.platforms] as WalletPlatform[],
   };
 }
 

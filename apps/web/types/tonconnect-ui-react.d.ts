@@ -20,8 +20,10 @@ declare module "@tonconnect/ui-react" {
     platforms?: readonly string[];
   }
 
+  export type UIWallet = TonConnectUIWallet;
+
   export interface WalletsListConfiguration {
-    includeWallets?: readonly TonConnectUIWallet[];
+    includeWallets?: readonly UIWallet[];
   }
 
   export interface TonConnectUIProviderProps {
