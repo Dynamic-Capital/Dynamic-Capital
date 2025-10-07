@@ -20,11 +20,10 @@ import { cache } from "react";
 import { Projects } from "@/components/dynamic-portfolio/work";
 import { Badge } from "@/components/ui/badge";
 
-type MaybePromise<T> = T | Promise<T>;
 type WorkPageParams = { slug: string | string[] };
 type WorkPageProps = {
-  params?: MaybePromise<WorkPageParams>;
-  searchParams?: unknown;
+  params?: Promise<WorkPageParams>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 const WORK_POSTS_PATH = ["app", "work", "projects"] as const;

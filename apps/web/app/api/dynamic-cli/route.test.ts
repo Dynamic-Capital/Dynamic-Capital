@@ -195,7 +195,8 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
     );
   }
 
-  const stdinData = lastProcess?.stdin.chunks.join("");
+  const stdinChunks = lastProcess?.stdin?.chunks ?? [];
+  const stdinData = stdinChunks.join("");
   if (!stdinData) {
     throw new Error("Expected scenario JSON to be written to stdin");
   }

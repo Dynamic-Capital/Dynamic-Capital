@@ -2,12 +2,14 @@ import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 
 import { WebCheckout } from "@/components/checkout/WebCheckout";
 
-interface CheckoutPageProps {
-  searchParams?: {
-    plan?: string;
-    promo?: string;
-  };
-}
+type CheckoutPageSearchParams = {
+  plan?: string;
+  promo?: string;
+};
+
+type CheckoutPageProps = {
+  searchParams?: Promise<CheckoutPageSearchParams>;
+};
 
 export const metadata = {
   title: "Checkout – Dynamic Capital",
@@ -15,9 +17,12 @@ export const metadata = {
     "Complete your Dynamic Capital VIP membership purchase and unlock the trading desk.",
 };
 
-export default function CheckoutPage({ searchParams }: CheckoutPageProps) {
-  const selectedPlan = searchParams?.plan;
-  const promoCode = searchParams?.promo;
+export default async function CheckoutPage({
+  searchParams,
+}: CheckoutPageProps) {
+  const resolvedParams = searchParams ? await searchParams : undefined;
+  const selectedPlan = resolvedParams?.plan;
+  const promoCode = resolvedParams?.promo;
 
   return (
     <Column gap="24" paddingY="40" align="center" horizontal="center" fillWidth>

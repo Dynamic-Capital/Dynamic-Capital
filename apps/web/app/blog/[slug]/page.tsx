@@ -22,11 +22,10 @@ import { cache } from "react";
 import { Posts } from "@/components/dynamic-portfolio/blog/Posts";
 import { ShareSection } from "@/components/dynamic-portfolio/blog/ShareSection";
 
-type MaybePromise<T> = T | Promise<T>;
 type BlogPageParams = { slug: string | string[] };
 type BlogPageProps = {
-  params?: MaybePromise<BlogPageParams>;
-  searchParams?: unknown;
+  params?: Promise<BlogPageParams>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 const BLOG_POSTS_PATH = ["app", "blog", "posts"] as const;

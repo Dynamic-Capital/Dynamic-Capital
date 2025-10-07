@@ -255,7 +255,10 @@ export function MoversTable({
   formatters,
   emptyLabel = "No movers available.",
 }: MoversTableProps) {
-  const resolvedFormatters = { ...defaultMoversFormatters, ...formatters };
+  const resolvedFormatters: Required<MoversTableProps["formatters"]> = {
+    ...defaultMoversFormatters,
+    ...(formatters ?? {}),
+  };
   const labels = {
     changePercent: columnLabels?.changePercent ?? "Change %",
     change: columnLabels?.change ?? "Change",
