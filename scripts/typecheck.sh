@@ -28,18 +28,24 @@ if [ -n "${DENO_CERT_FILE:-}" ] && [ -f "$DENO_CERT_FILE" ]; then
   CERT_ARG="--cert $DENO_CERT_FILE"
 fi
 
+# Allow remote module imports without interactive prompts in Deno 2+
+ALLOW_IMPORT_ARG=""
+if [ "${DENO_ALLOW_IMPORT:-1}" != "0" ]; then
+  ALLOW_IMPORT_ARG="--allow-import"
+fi
+
 $DENO_BIN --version || true
 
 # Prefetch remotes (best-effort)
 if compgen -G "supabase/functions/*/index.ts" > /dev/null; then
-  $DENO_BIN cache $CERT_ARG --unstable-net --reload --no-lock supabase/functions/*/index.ts || true
+  $DENO_BIN cache $CERT_ARG $ALLOW_IMPORT_ARG --unstable-net --reload --no-lock supabase/functions/*/index.ts || true
 fi
 
 echo "== Type-check Edge Functions =="
 if compgen -G "supabase/functions/*/index.ts" > /dev/null; then
   for f in supabase/functions/*/index.ts; do
-    echo "$DENO_BIN check $CERT_ARG --unstable-net --remote --no-lock $f"
-    $DENO_BIN check $CERT_ARG --unstable-net --remote --no-lock "$f"
+    echo "$DENO_BIN check $CERT_ARG $ALLOW_IMPORT_ARG --unstable-net --remote --no-lock $f"
+    $DENO_BIN check $CERT_ARG $ALLOW_IMPORT_ARG --unstable-net --remote --no-lock "$f"
   done
 else
   echo "No Edge Function entrypoints found."
