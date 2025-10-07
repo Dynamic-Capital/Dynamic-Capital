@@ -349,48 +349,98 @@ function TradingViewWidget(
   );
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const hasAttemptedRenderRef = useRef(false);
 
   useEffect(() => {
-    let isActive = true;
     const containerElement = containerRef.current;
-
-    if (typeof window === "undefined") {
+    if (!containerElement || typeof window === "undefined") {
       return () => {
-        isActive = false;
+        hasAttemptedRenderRef.current = false;
       };
     }
 
-    setError(null);
-    loadTradingViewScript()
-      .then(() => {
-        if (!isActive || !window.TradingView) {
-          return;
-        }
+    let isActive = true;
+    let observer: IntersectionObserver | null = null;
+    let retryTimeout: number | undefined;
 
-        window.TradingView.widget({
-          container_id: containerId,
-          symbol,
-          interval,
-          timezone: "Etc/UTC",
-          theme: "dark",
-          style: "1",
-          locale: "en",
-          enable_publishing: false,
-          hide_legend: false,
-          hide_top_toolbar: false,
-          hide_side_toolbar: true,
-          allow_symbol_change: false,
-          autosize: true,
+    const renderWidget = () => {
+      setError(null);
+      loadTradingViewScript()
+        .then(() => {
+          if (!isActive || !window.TradingView) {
+            return;
+          }
+
+          window.TradingView.widget({
+            container_id: containerId,
+            symbol,
+            interval,
+            timezone: "Etc/UTC",
+            theme: "dark",
+            style: "1",
+            locale: "en",
+            enable_publishing: false,
+            hide_legend: false,
+            hide_top_toolbar: false,
+            hide_side_toolbar: true,
+            allow_symbol_change: false,
+            autosize: true,
+          });
+
+          if (observer) {
+            observer.disconnect();
+            observer = null;
+          }
+        })
+        .catch(() => {
+          if (isActive) {
+            setError("Live chart unavailable right now");
+            hasAttemptedRenderRef.current = false;
+            if (observer && containerElement) {
+              observer.observe(containerElement);
+            }
+            retryTimeout = window.setTimeout(() => {
+              if (isActive && !hasAttemptedRenderRef.current) {
+                attemptRender();
+              }
+            }, 2_000);
+          }
         });
-      })
-      .catch(() => {
-        if (isActive) {
-          setError("Live chart unavailable right now");
-        }
+    };
+
+    const attemptRender = () => {
+      if (hasAttemptedRenderRef.current || !isActive) {
+        return;
+      }
+      hasAttemptedRenderRef.current = true;
+      renderWidget();
+    };
+
+    if ("IntersectionObserver" in window) {
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.target === containerElement && entry.isIntersecting) {
+            attemptRender();
+          }
+        });
+      }, {
+        rootMargin: "64px",
+        threshold: 0.15,
       });
+      observer.observe(containerElement);
+    } else {
+      attemptRender();
+    }
 
     return () => {
       isActive = false;
+      hasAttemptedRenderRef.current = false;
+      if (observer) {
+        observer.disconnect();
+      }
+      if (retryTimeout !== undefined) {
+        window.clearTimeout(retryTimeout);
+      }
       if (containerElement) {
         containerElement.innerHTML = "";
       }

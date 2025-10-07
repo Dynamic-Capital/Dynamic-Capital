@@ -194,9 +194,80 @@ function verifyAdminToken(
   return payload;
 }
 
+const ADMIN_INIT_DATA_SUCCESS_TTL_MS = 60_000;
+const ADMIN_INIT_DATA_FAILURE_TTL_MS = 5_000;
+
+type AdminVerificationCacheEntry = {
+  readonly expiresAt: number;
+  readonly result: AdminVerificationResult;
+};
+
+const adminVerificationCache = new Map<string, AdminVerificationCacheEntry>();
+
+function cloneAdminVerificationResult(
+  result: AdminVerificationResult,
+): AdminVerificationResult {
+  if (result.ok) {
+    return { ok: true, userId: result.userId };
+  }
+
+  const failure = result as AdminVerificationFailure;
+  return {
+    ok: false,
+    status: failure.status,
+    message: failure.message,
+  };
+}
+
+function getCachedAdminVerification(
+  initData: string,
+): AdminVerificationResult | undefined {
+  const cached = adminVerificationCache.get(initData);
+  if (!cached) {
+    return undefined;
+  }
+
+  if (cached.expiresAt <= Date.now()) {
+    adminVerificationCache.delete(initData);
+    return undefined;
+  }
+
+  return cloneAdminVerificationResult(cached.result);
+}
+
+function shouldCacheResult(result: AdminVerificationResult): boolean {
+  if (result.ok) {
+    return true;
+  }
+  return (result as AdminVerificationFailure).status === 401;
+}
+
+function cacheAdminVerification(
+  initData: string,
+  result: AdminVerificationResult,
+): void {
+  if (!shouldCacheResult(result)) {
+    return;
+  }
+
+  const ttl = result.ok
+    ? ADMIN_INIT_DATA_SUCCESS_TTL_MS
+    : ADMIN_INIT_DATA_FAILURE_TTL_MS;
+  const entry: AdminVerificationCacheEntry = {
+    expiresAt: Date.now() + ttl,
+    result: cloneAdminVerificationResult(result),
+  };
+  adminVerificationCache.set(initData, entry);
+}
+
 async function verifyAdminInitData(
   initData: string,
 ): Promise<AdminVerificationResult> {
+  const cached = getCachedAdminVerification(initData);
+  if (cached) {
+    return cached;
+  }
+
   const url = buildFunctionUrl("ADMIN_CHECK");
   try {
     const response = await fetch(url, {
@@ -222,17 +293,21 @@ async function verifyAdminInitData(
     const data = await response.json().catch(() => ({}));
     if (data && data.ok === true) {
       const userIdValue = data.user_id ?? data.userId;
-      return {
+      const result: AdminVerificationResult = {
         ok: true,
         userId: userIdValue ? String(userIdValue) : undefined,
       };
+      cacheAdminVerification(initData, result);
+      return result;
     }
 
-    return {
+    const failureResult: AdminVerificationResult = {
       ok: false,
       status: 401,
       message: "Admin verification failed.",
     };
+    cacheAdminVerification(initData, failureResult);
+    return failureResult;
   } catch (error) {
     console.error("Failed to verify admin initData", error);
     return {
@@ -241,6 +316,10 @@ async function verifyAdminInitData(
       message: "Admin verification service unavailable.",
     };
   }
+}
+
+export function __resetAdminVerificationCacheForTesting(): void {
+  adminVerificationCache.clear();
 }
 
 export async function verifyAdminRequest(
