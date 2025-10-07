@@ -1,9 +1,15 @@
 export const PRODUCTION_ORIGIN = "https://dynamiccapital.ton";
 
+export const DIGITALOCEAN_PRIMARY_ORIGIN =
+  "https://dynamic-capital-qazf2.ondigitalocean.app";
+export const DIGITALOCEAN_LEGACY_ORIGIN =
+  "https://dynamic-capital.ondigitalocean.app";
+
 export const PRODUCTION_ALLOWED_ORIGIN_LIST = [
   "https://dynamiccapital.ton",
   "https://www.dynamiccapital.ton",
-  "https://dynamic-capital.ondigitalocean.app",
+  DIGITALOCEAN_PRIMARY_ORIGIN,
+  DIGITALOCEAN_LEGACY_ORIGIN,
   "https://dynamic.capital",
   "https://dynamic-capital.vercel.app",
   "https://dynamic-capital.lovable.app",
