@@ -1,6 +1,6 @@
 import { createClient } from "./client.ts";
 import { maybe } from "./env.ts";
-import { getFeatureFlagDefault } from "../../../shared/feature-flags.ts";
+import { getFeatureFlagDefault } from "./feature-flags.ts";
 
 // In-memory fallback map when kv_config table is unavailable
 const memStore = new Map<string, unknown>();
