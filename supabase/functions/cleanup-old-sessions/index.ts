@@ -160,7 +160,7 @@ async function sendFollowUpMessages(): Promise<number> {
       const message = followUpMessages[messageIndex];
 
       const result = await sendTelegramMessage(
-        parseInt(user.telegram_id),
+        parseInt(user.telegram_id, 10),
         message,
       );
 
@@ -262,7 +262,7 @@ async function resetStuckSessions(): Promise<number> {
 
       // Send reset message to user
       await sendTelegramMessage(
-        parseInt(session.telegram_user_id),
+        parseInt(session.telegram_user_id, 10),
         "⏰ Your session has been reset due to inactivity. Type /start to begin again or /help for assistance.",
       );
 
