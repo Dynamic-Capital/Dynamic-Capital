@@ -21,11 +21,11 @@ export function setCallbackMessageId(id: number | null) {
   currentMessageId = id;
 }
 
+const TELEGRAM_MARKDOWN_ESCAPE_PATTERN = /([\\_*\[\]()~`>#+\-=|{}.!])/g;
+
 // Sanitize markdown to prevent Telegram parsing errors
 function sanitizeMarkdown(text: string): string {
-  return text
-    .replace(/[[\]_()*~`>#+=|{}.!-]/g, "\\$&")
-    .replace(/\n/g, "\\n");
+  return text.replace(TELEGRAM_MARKDOWN_ESCAPE_PATTERN, "\\$1");
 }
 
 async function callTelegram(
@@ -36,7 +36,9 @@ async function callTelegram(
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/${method}`;
   try {
     const safePayload = { ...payload };
+    let originalText: string | undefined;
     if (typeof safePayload.text === "string") {
+      originalText = safePayload.text;
       safePayload.text = sanitizeMarkdown(safePayload.text);
     }
 
@@ -52,10 +54,14 @@ async function callTelegram(
       // If markdown parsing failed and we haven't retried yet, try with plain text
       if (
         errorData.includes("can't parse entities") && !retryWithPlainText &&
-        payload.parse_mode === "Markdown"
+        payload.parse_mode === "MarkdownV2"
       ) {
         console.log("Retrying with plain text due to markdown parsing error");
-        const plainPayload = { ...safePayload, parse_mode: undefined };
+        const plainPayload = {
+          ...payload,
+          text: originalText ?? payload.text,
+          parse_mode: undefined,
+        };
         return callTelegram(method, plainPayload, true);
       }
 
@@ -63,7 +69,10 @@ async function callTelegram(
     }
     return await response.json();
   } catch (error) {
-    console.error(`❌ Error calling Telegram API [${method}]:`, error);
+    const safeError = error instanceof Error
+      ? { name: error.name, message: error.message }
+      : { message: String(error) };
+    console.error(`❌ Error calling Telegram API [${method}]:`, safeError);
     return null;
   }
 }
@@ -105,7 +114,7 @@ export async function sendMessage(
     chat_id: chatId,
     text,
     reply_markup: replyMarkup,
-    parse_mode: "Markdown",
+    parse_mode: "MarkdownV2",
     disable_web_page_preview: true, // Improve performance
   };
 

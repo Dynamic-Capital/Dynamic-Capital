@@ -113,7 +113,10 @@ export const handler = registerHandler(async (req) => {
       },
     );
   } catch (error) {
-    logger.error("🚨 Debug error:", error);
+    const safeError = error instanceof Error
+      ? { name: error.name, message: error.message }
+      : { message: String(error) };
+    logger.error("🚨 Debug error:", safeError);
     return internalError(error, {
       req,
       message: "Failed to execute debug inspection.",

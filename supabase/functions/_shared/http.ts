@@ -317,7 +317,10 @@ export const internalError = (
   options: InternalErrorOptions = {},
 ) => {
   const reference = options.reference ?? nextErrorReference();
-  console.error(`[internal-error:${reference}]`, error);
+  const safeError = error instanceof Error
+    ? { name: error.name, message: error.message }
+    : { message: String(error) };
+  console.error(`[internal-error:${reference}]`, safeError);
   const { req, message = "Internal server error", extra, headers } = options;
   return jsonResponse(
     { ok: false, error: message, reference, ...(extra ?? {}) },

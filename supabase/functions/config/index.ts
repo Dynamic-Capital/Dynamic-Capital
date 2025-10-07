@@ -126,7 +126,10 @@ export const handler = registerHandler(async (req) => {
         return json({ error: "invalid action" }, 400);
     }
   } catch (error) {
-    console.error("Feature flag configuration error", error);
+    const safeError = error instanceof Error
+      ? { name: error.name, message: error.message }
+      : { message: String(error) };
+    console.error("Feature flag configuration error", safeError);
     return internalError(error, {
       req,
       message: "Failed to process configuration request.",

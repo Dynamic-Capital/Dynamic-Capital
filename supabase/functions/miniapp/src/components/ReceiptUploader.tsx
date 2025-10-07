@@ -11,7 +11,7 @@ export default function ReceiptUploader({ onChange }: Props) {
     const file = e.target.files?.[0] || null;
 
     // Revoke previous object URL to avoid memory leaks
-    if (preview) URL.revokeObjectURL(preview);
+    if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
 
     onChange(file);
 
@@ -22,13 +22,13 @@ export default function ReceiptUploader({ onChange }: Props) {
   // Clean up object URL when component unmounts or preview changes
   useEffect(() => {
     return () => {
-      if (preview) URL.revokeObjectURL(preview);
+      if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
     };
   }, [preview]);
 
   return (
     <div>
-      {preview && (
+      {preview && preview.startsWith("blob:") && (
         <img
           src={preview}
           alt="Receipt preview"
