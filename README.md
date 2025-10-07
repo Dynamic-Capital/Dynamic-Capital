@@ -1,4 +1,4 @@
-# Dynamic Capital — Telegram Bot & Mini App
+# Dynamic Capital — Web3 
 
 <!-- BADGES:START -->
 <!-- BADGES:END -->
