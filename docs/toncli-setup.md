@@ -59,11 +59,11 @@ or local workstations) before running any TON contract tooling.
    lite-client -V
    ```
 
-   Each command should print a "build information" tuple for commit
-   `cac968f7…` (or the hash associated with the downloaded release).
+   Each command should print a "build information" tuple for commit `cac968f7…`
+   (or the hash associated with the downloaded release).
 
-3. **Install runtime libraries.** The extracted binaries depend on
-   `libsodium`. Install it with:
+3. **Install runtime libraries.** The extracted binaries depend on `libsodium`.
+   Install it with:
 
    ```bash
    sudo apt-get update && sudo apt-get install -y libsodium23

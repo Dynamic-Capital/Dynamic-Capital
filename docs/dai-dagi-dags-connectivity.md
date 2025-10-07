@@ -59,16 +59,17 @@ For the end-to-end tasks required to stand up these integrations, consult the
 
 ## Knowledge Base Health Snapshot — November 2025 refresh
 
-| Domain | Coverage status | Accuracy sample | Telemetry freshness |
-| ------ | --------------- | --------------- | ------------------- |
-| **DAI** | 60 / 60 catalogue objects present (100%) | 97 / 100 artefacts passing review (97%) | Last probe 6h ago; 0 failed checks |
-| **DAGI** | 55 / 56 objects present (98.2%) | 90 / 96 artefacts passing review (93.8%) | Last probe 9h ago; 0 failed checks |
-| **DAGS** | 53 / 55 objects present (96.4%) | 88 / 92 artefacts passing review (95.7%) | Last probe 8h ago; 0 failed checks |
+| Domain   | Coverage status                          | Accuracy sample                          | Telemetry freshness                |
+| -------- | ---------------------------------------- | ---------------------------------------- | ---------------------------------- |
+| **DAI**  | 60 / 60 catalogue objects present (100%) | 97 / 100 artefacts passing review (97%)  | Last probe 6h ago; 0 failed checks |
+| **DAGI** | 55 / 56 objects present (98.2%)          | 90 / 96 artefacts passing review (93.8%) | Last probe 9h ago; 0 failed checks |
+| **DAGS** | 53 / 55 objects present (96.4%)          | 88 / 92 artefacts passing review (95.7%) | Last probe 8h ago; 0 failed checks |
 
 These figures reflect the latest merged benchmark payload and demonstrate that
 the recent curation pass closed the remaining coverage gaps for DAI while
 raising DAGI and DAGS accuracy into the target `B+` band. Regenerate the
-letter-grade view after future updates by running `python
+letter-grade view after future updates by running
+`python
 scripts/run_knowledge_base_benchmark.py --config benchmarks/dai-dagi-dags.json`
 so operators can track remediation progress alongside the connectivity probes.
 【F:benchmarks/dai-dagi-dags.json†L1-L18】【F:scripts/run_knowledge_base_benchmark.py†L1-L104】

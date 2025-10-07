@@ -34,27 +34,27 @@ _Last run: 30 Sep 2025 (UTC) based on GitHub API snapshots._
 
 ### 1. Due diligence
 
-| Status | Task | Notes |
-| --- | --- | --- |
+| Status           | Task                                                                                    | Notes                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | ⚙️ Script staged | Subscribe to release notifications on `tonkeeper-web`, `wallet-api`, and `ton-connect`. | Added a configurable watcher (`scripts/tonkeeper/watch-releases.mjs`) that supports GitHub tokens, external repo manifests, throttling, and JSON/table exports for downstream automation; schedule it from an environment with outbound network access to replace manual GitHub notification toggles.【F:scripts/tonkeeper/watch-releases.mjs†L7-L265】【2fb53a†L1-L15】 |
-| ✅ Complete | Review API surface changes in `tonconnect-sdk`, `tonapi-go`, and `pytonapi`. | Captured current release branches and versions (Ton Connect SDK `3.2.0-beta.0`, Go module targeting Go 1.22/1.23, PyTONAPI v0.5.0) to confirm compatibility with Dynamic Capital services.【6012a9†L1-L5】【604462†L1-L1】【c06f57†L1-L5】【eaf94d†L1-L10】【dba1ed†L1-L9】 |
-| ✅ Complete | Validate asset listing workflows against `ton-assets`. | Reviewed repository structure and contribution manual to align schema checks and update cadence for Dynamic Capital listings.【b78e0c†L1-L9】【ab6b88†L1-L29】 |
+| ✅ Complete      | Review API surface changes in `tonconnect-sdk`, `tonapi-go`, and `pytonapi`.            | Captured current release branches and versions (Ton Connect SDK `3.2.0-beta.0`, Go module targeting Go 1.22/1.23, PyTONAPI v0.5.0) to confirm compatibility with Dynamic Capital services.【6012a9†L1-L5】【604462†L1-L1】【c06f57†L1-L5】【eaf94d†L1-L10】【dba1ed†L1-L9】                                                                                              |
+| ✅ Complete      | Validate asset listing workflows against `ton-assets`.                                  | Reviewed repository structure and contribution manual to align schema checks and update cadence for Dynamic Capital listings.【b78e0c†L1-L9】【ab6b88†L1-L29】                                                                                                                                                                                                           |
 
 ### 2. Implementation
 
-| Status | Task | Notes |
-| --- | --- | --- |
+| Status            | Task                                                                          | Notes                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ----------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ⚙️ Runbook staged | Mirror Ton Connect auth flows in staging with `tonkeeper-web` and demo dApps. | Auth runbook now captures toolchain prerequisites, staging boot overrides, demo manifest publishing, and Telegram/ngrok guidance, and a helper script fetches Tonendpoint payloads for both networks—execution is blocked only by Dynamic Capital staging credentials and Tonkeeper demo configuration.【F:docs/tonconnect-staging-auth-playbook.md†L1-L138】【F:scripts/tonkeeper/tonendpoint-config.mjs†L1-L132】 |
-| ⚙️ Docs aligned | Integrate `wallet-api` sandbox endpoints and document response contracts. | Pulled the updated deep-link matrix from Ton Console docs to map current URI parameters, enabling contract documentation without relying on the deprecated README; next step is validating responses against staging APIs.【bfbbfb†L1-L120】【c68773†L1-L79】 |
-| ⚠️ Evaluate | Embed `ton-keychain` security helpers where applicable. | Beta toolkit now has a published specification for mnemonic derivation across TON/ETH/TRON/BTC—perform cryptographic review before importing packages into custodial tooling flows.【7d12a1†L1-L11】【31f24d†L1-L52】 |
+| ⚙️ Docs aligned   | Integrate `wallet-api` sandbox endpoints and document response contracts.     | Pulled the updated deep-link matrix from Ton Console docs to map current URI parameters, enabling contract documentation without relying on the deprecated README; next step is validating responses against staging APIs.【bfbbfb†L1-L120】【c68773†L1-L79】                                                                                                                                                       |
+| ⚠️ Evaluate       | Embed `ton-keychain` security helpers where applicable.                       | Beta toolkit now has a published specification for mnemonic derivation across TON/ETH/TRON/BTC—perform cryptographic review before importing packages into custodial tooling flows.【7d12a1†L1-L11】【31f24d†L1-L52】                                                                                                                                                                                               |
 
 ### 3. Monitoring and support
 
-| Status | Task | Notes |
-| --- | --- | --- |
+| Status           | Task                                                                | Notes                                                                                                                                                                                                                                                                                               |
+| ---------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ⚙️ Script staged | Automate health checks for `ton-assets` and `ton-console` releases. | Extend the new watcher script to track these repos’ push timestamps—ready for scheduling once outbound network access is available, preserving current `main/master` baselines from 30 Sep 2025.【F:scripts/tonkeeper/watch-releases.mjs†L7-L265】【01cc74†L1-L5】【b3694a†L1-L5】【2fb53a†L1-L15】 |
-| ✅ Complete | Align telemetry with `analytics-schemas`. | Reviewed base schema requirements to ensure Dynamic Capital dashboards mirror Tonkeeper’s analytics contracts.【cb8697†L1-L11】 |
-| ✅ Complete | Set quarterly review cadence for Tonkeeper roadmap alignment. | Established baseline using latest push data for wallet, API, and SDK repositories to drive Q4 2025 review checkpoints.【71ab7c†L1-L5】【532c3a†L1-L5】【6012a9†L1-L5】 |
+| ✅ Complete      | Align telemetry with `analytics-schemas`.                           | Reviewed base schema requirements to ensure Dynamic Capital dashboards mirror Tonkeeper’s analytics contracts.【cb8697†L1-L11】                                                                                                                                                                     |
+| ✅ Complete      | Set quarterly review cadence for Tonkeeper roadmap alignment.       | Established baseline using latest push data for wallet, API, and SDK repositories to drive Q4 2025 review checkpoints.【71ab7c†L1-L5】【532c3a†L1-L5】【6012a9†L1-L5】                                                                                                                              |
 
 ## Observations for Dynamic Capital
 
@@ -77,7 +77,8 @@ _Last run: 30 Sep 2025 (UTC) based on GitHub API snapshots._
 
 ## Automation script quick start
 
-> ℹ️ Each helper script supports `--help` to print its available options and defaults without making network calls.
+> ℹ️ Each helper script supports `--help` to print its available options and
+> defaults without making network calls.
 
 #### Release watcher
 
@@ -117,27 +118,30 @@ node scripts/tonkeeper/github-snapshot.mjs \
 - `--include-forks` controls whether forked repositories are tallied alongside
   Tonkeeper-owned codebases, while `--limit` trims the crawl for quick probes.
   Combine with repeated `--repo owner/name` flags to force-include ecosystem
-  projects in the output payload.【F:scripts/tonkeeper/github-snapshot.mjs†L12-L164】【F:scripts/tonkeeper/github-snapshot.mjs†L166-L239】
+  projects in the output
+  payload.【F:scripts/tonkeeper/github-snapshot.mjs†L12-L164】【F:scripts/tonkeeper/github-snapshot.mjs†L166-L239】
 - The script prints JSON, JSONL, or pretty-printed payloads summarising
   repository counts, language totals, and the most recent pushes; `--output`
-  writes the structured snapshot for downstream tooling and still logs
-  warnings when GitHub requests fail.【F:scripts/tonkeeper/github-snapshot.mjs†L241-L323】
+  writes the structured snapshot for downstream tooling and still logs warnings
+  when GitHub requests
+  fail.【F:scripts/tonkeeper/github-snapshot.mjs†L241-L323】
 
 ### Install Ton CLI helpers
 
-Dynamic Capital engineers frequently need Tonkeeper’s reference CLI for
-contract scaffolding, migrations, and project inspection. Use the installation
-helper to fetch the latest `toncli` release via `pip` (default) or `pipx`:
+Dynamic Capital engineers frequently need Tonkeeper’s reference CLI for contract
+scaffolding, migrations, and project inspection. Use the installation helper to
+fetch the latest `toncli` release via `pip` (default) or `pipx`:
 
 ```bash
 node scripts/tonkeeper/install-ton-cli.mjs --upgrade
 ```
 
-- `--pipx` switches the installer to `pipx`, forcing a reinstall with
-  `--force` when paired with `--upgrade` to ensure a fresh virtual environment.
+- `--pipx` switches the installer to `pipx`, forcing a reinstall with `--force`
+  when paired with `--upgrade` to ensure a fresh virtual environment.
 - `--python` overrides the Python interpreter (defaults to `python3`), while
   `--global` drops the `--user` flag for system-wide installs when run from
   controlled environments.
 - The script verifies the executable on `PATH` and surfaces follow-up guidance
   when the binary lands in platform-specific locations such as `~/.local/bin`
-  (Linux/macOS) or `%APPDATA%\Python\Python311\Scripts` on Windows.【F:scripts/tonkeeper/install-ton-cli.mjs†L1-L152】
+  (Linux/macOS) or `%APPDATA%\Python\Python311\Scripts` on
+  Windows.【F:scripts/tonkeeper/install-ton-cli.mjs†L1-L152】

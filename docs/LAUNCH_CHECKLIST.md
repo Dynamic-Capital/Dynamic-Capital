@@ -22,7 +22,10 @@
 
 Set each value in **Supabase Edge → Functions → Secrets** before deploying.
 
-> **Note:** If the Python bridge forwards alerts to Supabase, configure `SUPABASE_TRADING_SIGNAL_SECRET` (or reuse `TRADING_SIGNALS_WEBHOOK_SECRET`) and optionally `SUPABASE_TRADING_SIGNAL_URL` in the bridge runtime environment.
+> **Note:** If the Python bridge forwards alerts to Supabase, configure
+> `SUPABASE_TRADING_SIGNAL_SECRET` (or reuse `TRADING_SIGNALS_WEBHOOK_SECRET`)
+> and optionally `SUPABASE_TRADING_SIGNAL_URL` in the bridge runtime
+> environment.
 
 ## Audit and Keeper
 
