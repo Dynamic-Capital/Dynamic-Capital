@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, Suspense, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -79,7 +79,9 @@ export default function Providers({ children }: { children: ReactNode }) {
                       <SupabaseProvider>
                         <TelegramAuthProvider>
                           <TonConnectProvider>
-                            <RouteAnalytics />
+                            <Suspense fallback={null}>
+                              <RouteAnalytics />
+                            </Suspense>
                             {children}
                           </TonConnectProvider>
                         </TelegramAuthProvider>

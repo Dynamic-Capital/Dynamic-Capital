@@ -92,7 +92,8 @@ export function useTheme() {
 
         if (!error && data) {
           const mode = data.mode;
-          applyTheme(mode === "auto" ? "system" : mode);
+          const resolvedMode = mode === "auto" ? "system" : mode ?? "system";
+          applyTheme(resolvedMode);
           return;
         }
       }

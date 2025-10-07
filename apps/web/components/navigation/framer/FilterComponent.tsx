@@ -137,7 +137,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
     "Search every Dynamic Capital surface and jump to the experience you need.",
   onItemSelect,
 }) => {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const shouldReduceMotion = useReducedMotion();
   const [hash, setHash] = useState<string>("");
   const [query, setQuery] = useState<string>("");

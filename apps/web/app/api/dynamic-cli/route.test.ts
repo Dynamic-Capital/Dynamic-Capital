@@ -96,6 +96,14 @@ function resetOverrides() {
   ];
 }
 
+function assertMockProcess(
+  process: MockChildProcess | null,
+): asserts process is MockChildProcess {
+  if (!process) {
+    throw new Error("Expected CLI process to be captured");
+  }
+}
+
 Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
   Deno.env.set("DYNAMIC_AGI_PYTHON", "python-agi");
   Deno.env.set("DYNAMIC_CLI_PYTHON", "python-cli");
@@ -195,7 +203,10 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
     );
   }
 
-  const stdinChunks = lastProcess?.stdin?.chunks ?? [];
+  assertMockProcess(lastProcess);
+
+  const process: MockChildProcess = lastProcess;
+  const stdinChunks = process.stdin.chunks;
   const stdinData = stdinChunks.join("");
   if (!stdinData) {
     throw new Error("Expected scenario JSON to be written to stdin");

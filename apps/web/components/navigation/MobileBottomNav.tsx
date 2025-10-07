@@ -16,7 +16,7 @@ import NAV_ITEMS, { type NavItem } from "./nav-items";
 const navItems = NAV_ITEMS.filter((n) => n.showOnMobile);
 
 export const MobileBottomNav: React.FC = () => {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const reduceMotion = useReducedMotion();
   const columnCount = navItems.length || 1;
   const [hash, setHash] = useState<string>("");

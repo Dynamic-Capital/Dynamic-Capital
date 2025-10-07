@@ -134,10 +134,11 @@ const coreProviderDefinitions: ProviderDefinition[] = [
     ): Promise<Omit<ChatResult, "provider">> {
       const client = new OpenAIClient();
       const { system, conversation } = normalizeMessages(messages);
+      const resolvedMaxTokens = maxTokens ?? this.maxOutputTokens;
       const response = await client.createChatCompletion({
         model: "gpt-4.1-mini",
         temperature,
-        max_tokens: maxTokens,
+        max_tokens: resolvedMaxTokens,
         messages: buildOpenAIMessages(system, conversation),
       });
 
@@ -168,9 +169,10 @@ const coreProviderDefinitions: ProviderDefinition[] = [
     ): Promise<Omit<ChatResult, "provider">> {
       const apiKey = requireEnvVar("ANTHROPIC_API_KEY");
       const { system, conversation } = normalizeMessages(messages);
+      const resolvedMaxTokens = maxTokens ?? this.maxOutputTokens;
       const payload = {
         model: "claude-3-5-sonnet-latest",
-        max_tokens: maxTokens,
+        max_tokens: resolvedMaxTokens,
         temperature,
         system,
         messages: conversation.map((message) => ({
@@ -305,11 +307,12 @@ const coreProviderDefinitions: ProviderDefinition[] = [
     ): Promise<Omit<ChatResult, "provider">> {
       const apiKey = requireEnvVar("GROQ_API_KEY");
       const { system, conversation } = normalizeMessages(messages);
+      const resolvedMaxTokens = maxTokens ?? this.maxOutputTokens;
 
       const payload = {
         model: "mixtral-8x7b-32768",
         temperature,
-        max_tokens: maxTokens,
+        max_tokens: resolvedMaxTokens,
         messages: buildOpenAIMessages(system, conversation),
       } satisfies OpenAIChatPayload;
 
