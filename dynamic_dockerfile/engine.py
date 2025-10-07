@@ -449,7 +449,7 @@ class DynamicDockerfileEngine:
 
     DEFAULT_BASE_IMAGES: Mapping[str, tuple[str, str]] = {
         "python": ("python:3.11-slim", "python:3.11-slim"),
-        "node": ("node:20-bullseye", "node:20-alpine"),
+        "node": ("node:22-bullseye", "node:22-alpine"),
         "go": ("golang:1.21-bullseye", "gcr.io/distroless/base-debian11"),
     }
 

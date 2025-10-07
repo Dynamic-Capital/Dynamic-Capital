@@ -78,7 +78,7 @@ def test_dynamic_dockerfile_single_stage_node() -> None:
 
     artifact = engine.compose(context)
 
-    assert "FROM node:20-alpine" in artifact.content
+    assert "FROM node:22-alpine" in artifact.content
     assert "COPY . ." in artifact.content
     assert "RUN npm install --global pnpm" in artifact.content
     assert "CMD [\"node\", \"server.js\"]" in artifact.content
