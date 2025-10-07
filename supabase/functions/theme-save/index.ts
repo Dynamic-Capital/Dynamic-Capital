@@ -56,7 +56,10 @@ export async function handler(req: Request): Promise<Response> {
       headers: { "content-type": "application/json" },
     });
   } catch (error) {
-    console.error("Failed to persist theme preference", error);
+    const safeError = error instanceof Error
+      ? { name: error.name, message: error.message }
+      : { message: String(error) };
+    console.error("Failed to persist theme preference", safeError);
     return internalError(error, {
       message: "Unable to persist theme preference.",
     });

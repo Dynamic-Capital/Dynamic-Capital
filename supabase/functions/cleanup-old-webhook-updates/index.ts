@@ -26,7 +26,13 @@ export const handler = registerHandler(async (req) => {
     );
   } catch (error) {
     const reference = crypto.randomUUID();
-    console.error(`Failed to cleanup webhook updates [${reference}]`, error);
+    const safeError = error instanceof Error
+      ? { name: error.name, message: error.message }
+      : { message: String(error) };
+    console.error(
+      `Failed to cleanup webhook updates [${reference}]`,
+      safeError,
+    );
     return internalError(error, {
       req,
       message: "Cleanup failed.",
