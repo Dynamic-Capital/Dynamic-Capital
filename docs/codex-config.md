@@ -1,29 +1,68 @@
 # Codex Configuration Guide
 
-This guide explains how to locate and maintain the shared Codex configuration file used by both the CLI and the IDE extension. Use it when you need to change the default model, adjust approval prompts, or tune sandbox access.
+Use this guide to keep your Codex configuration fast, safe, and consistent across the CLI and IDE extension. The same `config.toml` powers both surfaces, so an optimized setup prevents surprises when you switch contexts.
 
 ## Configuration file location
 
 - **Path:** `~/.codex/config.toml`
-- **IDE shortcut:** Click the gear icon in the top-right corner of the Codex IDE extension, then choose **Codex Settings → Open config.toml** to open the file directly.
+- **IDE shortcut:** Click the gear icon in the top-right corner of the Codex IDE extension, then choose **Codex Settings → Open config.toml** to jump directly into the file.
 
-The same configuration applies to both the CLI and the IDE extension, so changes you make here affect every Codex surface tied to your account.
+## Quick optimization checklist
 
-## Common configuration options
+1. Back up the current config before making changes (copy to `config.toml.bak`).
+2. Define the default model and provider together so the CLI and IDE stay in sync.
+3. Tighten the approval policy and sandbox mode for production or shared machines.
+4. Scope environment variables explicitly—avoid forwarding secrets you do not need.
+5. Capture repeatable combinations as profiles so you can swap contexts without edits.
 
-| Setting                      | Purpose                                                         | Example `config.toml` entry                              | CLI override                              |
-| ---------------------------- | --------------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------- |
-| `model`                      | Selects the default model used by the CLI and IDE.              | `model = "gpt-5"`                                        | `codex --model gpt-5`                     |
-| `model_provider`             | Chooses the backend provider referenced by the active model.    | `model_provider = "ollama"`                              | `codex --config model_provider="ollama"` |
-| `approval_policy`            | Controls when Codex pauses for confirmation before executing.   | `approval_policy = "on-request"`                         | `codex --approval-policy on-request`      |
-| `sandbox_mode`               | Sets the filesystem/network access level for generated commands | `sandbox_mode = "workspace-write"`                       | `codex --sandbox workspace-write`         |
-| `model_reasoning_effort`     | Tunes reasoning depth for models that support adjustable effort | `model_reasoning_effort = "high"`                        | `codex --config model_reasoning_effort="high"` |
-| `[shell_environment_policy]` | Restricts environment variables forwarded to spawned commands.  | `[shell_environment_policy]\ninclude_only = ["PATH", "HOME"]` | `codex --config shell_environment_policy.include_only='["PATH","HOME"]'` |
+## Core configuration options
 
-## Profiles for alternate setups
+| Setting | Why it matters | Optimized `config.toml` example | Fast override |
+| --- | --- | --- | --- |
+| `model` | Pins the model you reach for most often. Pair with `model_provider` to avoid mismatches. | `model = "gpt-5"` | `codex --model gpt-5` |
+| `model_provider` | Identifies the backend that serves the active model. | `model_provider = "ollama"` | `codex --config model_provider="ollama"` |
+| `approval_policy` | Controls when Codex prompts before running commands. Use `on-request` or `always` on shared hardware. | `approval_policy = "on-request"` | `codex --approval-policy on-request` |
+| `sandbox_mode` | Limits filesystem and network scope. Lock down to `workspace-read`/`workspace-write` to prevent accidental leaks. | `sandbox_mode = "workspace-write"` | `codex --sandbox workspace-write` |
+| `model_reasoning_effort` | Trades latency for deeper reasoning on compatible models. | `model_reasoning_effort = "high"` | `codex --config model_reasoning_effort="high"` |
+| `[shell_environment_policy]` | Controls which environment variables reach spawned commands. | ```toml
+[shell_environment_policy]
+include_only = ["PATH", "HOME"]
+``` | `codex --config shell_environment_policy.include_only='["PATH","HOME"]'` |
 
-Define multiple `[profiles.<name>]` blocks in `config.toml` to switch between configurations. Launch the CLI with `codex --profile my-profile` to apply the profile-specific options without editing the base file.
+### Security hardening tips
 
-## Additional resources
+- Prefer `exclude` lists only when you have tight CI coverage; otherwise stick to `include_only` so new secrets are not leaked automatically.
+- Combine strict approval prompts (`always`) with `workspace-read` sandboxing when demonstrating commands live or pairing with new contributors.
+- Keep a minimal profile for CI/automation that disables the sandbox only if the workflow requires network access.
 
-Consult the full Codex configuration reference on GitHub for every available key, along with IDE personalization options such as keyboard shortcuts and UI preferences (accessible via the gear icon → **IDE settings**).
+## Profile recipes
+
+Profiles let you switch between optimized setups without editing the root keys. Add them to `config.toml` as dedicated blocks:
+
+```toml
+[profiles.fast-iteration]
+model = "gpt-5"
+model_reasoning_effort = "medium"
+approval_policy = "auto"
+sandbox_mode = "workspace-write"
+
+[profiles.locked-down]
+model = "gpt-4.1"
+approval_policy = "always"
+sandbox_mode = "workspace-read"
+
+[profiles.batch-automation]
+model = "gpt-5"
+model_reasoning_effort = "high"
+approval_policy = "on-request"
+[profiles.batch-automation.shell_environment_policy]
+include_only = ["PATH", "HOME", "CI", "SUPABASE_URL"]
+```
+
+Activate a profile on the CLI with `codex --profile fast-iteration`. In the IDE, use the gear icon → **Codex Settings → Active profile** to toggle the same presets.
+
+## IDE personalization
+
+After the agent settings are dialed in, open **Keyboard shortcuts** from the gear menu to pin frequently used actions (e.g., *Explain diff*, *Generate tests*) and keep the optimized workflow close at hand.
+
+For the exhaustive key list, review the Codex configuration reference on GitHub.

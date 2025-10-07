@@ -62,7 +62,7 @@ documenting which assets were consulted.
 | 3.4 | [SECRETS.md](./SECRETS.md)                               | Supabase Edge secret handling patterns and guard tasks.                  |
 | 3.5 | [GITHUB_PAT.md](./GITHUB_PAT.md)                         | Requirements for generating and using GitHub Personal Access Tokens.     |
 | 3.6 | [SUPABASE_LOG_STREAMING.md](./SUPABASE_LOG_STREAMING.md) | Steps to forward Supabase logs to external aggregators.                  |
-| 3.7 | [codex-config.md](./codex-config.md)                     | Shared Codex CLI/IDE configuration reference with common option overrides. |
+| 3.7 | [codex-config.md](./codex-config.md)                     | Shared Codex CLI/IDE configuration reference with optimization checklists and profile recipes. |
 
 ## 4. Deployment & Infrastructure
 
