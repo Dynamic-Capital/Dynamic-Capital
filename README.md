@@ -148,6 +148,10 @@ gh api 'repos/Dynamic-Capital/Dynamic-Capital/commits?author=Dynamic-Capital' -q
 
 - [Project efficiency playbook](docs/project-efficiency.md) — Repo-specific tactics for faster builds, leaner dependencies, and predictable validation.
 
+### GitHub web tips
+
+- 💡 Append `.patch` or `.diff` to any GitHub commit, PR, or file comparison URL to access a plaintext diff that's perfect for quick reviews or copy/paste workflows.
+
 ## Platform Capabilities
 
 ### Telegram Mini App — Next.js + React + Icons
