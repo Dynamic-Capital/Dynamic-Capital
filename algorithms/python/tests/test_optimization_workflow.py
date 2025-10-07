@@ -172,3 +172,16 @@ def test_optimize_trading_stack_aligns_adr_tuning_with_live_logic():
     assert tuned.adr_stop_loss_factor >= base_config.adr_stop_loss_factor
     assert tuned.manual_stop_loss_pips >= base_config.manual_stop_loss_pips
 
+
+def test_optimize_trading_stack_deduplicates_search_space_when_parallel():
+    snapshots = _build_snapshots()
+    plan = optimize_trading_stack(
+        snapshots,
+        {"neighbors": [1, 1, 2], "label_lookahead": [2, 2]},
+        max_workers=2,
+    )
+
+    assert len(plan.history) == 2
+    evaluated_neighbors = {config.neighbors for config, _ in plan.history}
+    assert evaluated_neighbors == {1, 2}
+

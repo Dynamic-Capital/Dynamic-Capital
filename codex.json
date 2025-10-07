@@ -1,3 +1,7 @@
 {
-  "verboseMaxFiles": 30
+  "verboseMaxFiles": 30,
+  "release": {
+    "channel": "alpha",
+    "version": "latest"
+  }
 }
