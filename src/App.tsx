@@ -1,15 +1,22 @@
-import { type ReactNode } from "react";
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import { type ReactNode, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Link,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import Providers from "@/app/providers";
 import { TonConnectProvider } from "@/integrations/tonconnect";
 import { DynamicGuiShowcase } from "./components/DynamicGuiShowcase";
 import CheckoutPage from "~/pages/CheckoutPage";
 import NotFoundPage from "~/pages/NotFoundPage";
-import DashboardPage from "@/pages/DashboardPage";
-import MarketPage from "@/pages/MarketPage";
-import SnapshotPage from "@/pages/SnapshotPage";
-import Web3Page from "~/pages/Web3Page";
-import ChatPage from "@/pages/ChatPage";
+import { DashboardSection } from "@/pages/DashboardPage";
+import { MarketSection } from "@/pages/MarketPage";
+import { SnapshotSection } from "@/pages/SnapshotPage";
+import { WalletSection } from "~/pages/Web3Page";
+import { ChatSection } from "@/pages/ChatPage";
 import { LayoutDashboard, TrendingUp, Camera, Wallet, MessageSquare } from "lucide-react";
 
 function AppProviders({ children }: { children: ReactNode }) {
@@ -23,11 +30,33 @@ function AppProviders({ children }: { children: ReactNode }) {
 }
 
 function HomePage() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (location.hash) {
+      const target = document.querySelector(location.hash);
+      if (target instanceof HTMLElement) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [location.hash]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="container mx-auto px-4 py-10">
+      <section className="container mx-auto px-4 py-10">
         <DynamicGuiShowcase />
-      </div>
+      </section>
+      <DashboardSection />
+      <MarketSection />
+      <SnapshotSection />
+      <WalletSection />
+      <ChatSection />
     </div>
   );
 }
@@ -54,35 +83,35 @@ function SiteHeader() {
           </Link>
           <nav className="flex gap-6">
             <Link
-              to="/dashboard"
+              to="/#dashboard"
               className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
             >
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
             </Link>
             <Link
-              to="/market"
+              to="/#market"
               className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
             >
               <TrendingUp className="w-4 h-4" />
               Market
             </Link>
             <Link
-              to="/snapshot"
+              to="/#snapshot"
               className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
             >
               <Camera className="w-4 h-4" />
               Snapshot
             </Link>
             <Link
-              to="/web3"
+              to="/#wallet"
               className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
             >
               <Wallet className="w-4 h-4" />
               Web3
             </Link>
             <Link
-              to="/chat"
+              to="/#chat"
               className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
             >
               <MessageSquare className="w-4 h-4" />
@@ -104,11 +133,11 @@ function App() {
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/market" element={<MarketPage />} />
-              <Route path="/snapshot" element={<SnapshotPage />} />
-              <Route path="/web3" element={<Web3Page />} />
-              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/dashboard" element={<Navigate to="/#dashboard" replace />} />
+              <Route path="/market" element={<Navigate to="/#market" replace />} />
+              <Route path="/snapshot" element={<Navigate to="/#snapshot" replace />} />
+              <Route path="/web3" element={<Navigate to="/#wallet" replace />} />
+              <Route path="/chat" element={<Navigate to="/#chat" replace />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
