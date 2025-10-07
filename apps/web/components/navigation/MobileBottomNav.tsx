@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/utils";
@@ -20,6 +20,7 @@ export const MobileBottomNav: React.FC = () => {
   const reduceMotion = useReducedMotion();
   const columnCount = navItems.length || 1;
   const [hash, setHash] = useState<string>("");
+  const navRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -33,6 +34,43 @@ export const MobileBottomNav: React.FC = () => {
 
     return () => window.removeEventListener("hashchange", updateHash);
   }, [pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const element = navRef.current;
+    const updateHeight = () => {
+      const height = element?.offsetHeight ?? 0;
+      document.documentElement.style.setProperty(
+        "--mobile-nav-height",
+        `${height}px`,
+      );
+    };
+
+    updateHeight();
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" && element
+        ? new ResizeObserver(updateHeight)
+        : null;
+
+    if (resizeObserver && element) {
+      resizeObserver.observe(element);
+    }
+
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateHeight);
+      resizeObserver?.disconnect();
+      document.documentElement.style.setProperty(
+        "--mobile-nav-height",
+        "0px",
+      );
+    };
+  }, []);
 
   const isActive = (item: NavItem) => {
     if (item.href?.startsWith("/#")) {
@@ -58,6 +96,7 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <motion.nav
+      ref={navRef}
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50 md:hidden safe-area-bottom",
         "bg-gradient-navigation backdrop-blur-xl border-t border-border/50",

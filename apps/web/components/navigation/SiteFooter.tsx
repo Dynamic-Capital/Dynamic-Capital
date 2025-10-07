@@ -26,34 +26,52 @@ const QUICK_LINKS = [
   { label: "Research", href: "/blog" },
 ];
 
+const chunkLinks = <T,>(items: T[], columnCount: number): T[][] => {
+  if (columnCount <= 0) {
+    return [items];
+  }
+  const size = Math.ceil(items.length / columnCount);
+  return Array.from({ length: columnCount }, (_, index) =>
+    items.slice(index * size, index * size + size)
+  ).filter((column) => column.length > 0);
+};
+
+const QUICK_LINK_COLUMNS = chunkLinks(QUICK_LINKS, 3);
+
 export function SiteFooter() {
   const currentYear = new Date().getFullYear();
   const footerNav = NAV_ITEMS.filter((item) => item.showOnMobile).slice(0, 4);
 
   return (
-    <footer className="relative w-full border-t border-border/60 bg-background/80">
+    <footer className="relative w-full border-t border-border/60 bg-background/80 pb-[calc(2rem+var(--mobile-nav-height))]">
       <Column
         fillWidth
         gap="32"
         paddingX="16"
         paddingY="24"
-        className="mx-auto max-w-6xl"
+        className="mx-auto w-full max-w-6xl"
       >
-        <Column gap="16" align="start">
-          <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
-            Multi-LLM orchestration workspace
-          </Tag>
-          <Column gap="8" align="start" maxWidth={48}>
+        <Row
+          gap="24"
+          wrap
+          horizontal="between"
+          vertical="center"
+          className="rounded-2xl border border-border/60 bg-background/80 p-6 shadow-lg shadow-primary/10"
+        >
+          <Column gap="12" align="start" maxWidth={44}>
+            <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
+              Multi-LLM orchestration workspace
+            </Tag>
             <Text variant="heading-strong-m" onBackground="neutral-strong">
               Ready to compare providers side by side?
             </Text>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              Launch the studio to benchmark models, or book concierge setup to
+              Launch the studio to benchmark models or book concierge setup to
               configure routing policies, observability, and guardrails for your
               desk.
             </Text>
           </Column>
-          <Row gap="12" wrap>
+          <Row gap="12" wrap horizontal="end">
             <Button
               href="/tools/multi-llm"
               variant="primary"
@@ -66,10 +84,10 @@ export function SiteFooter() {
               View workspace plans
             </Button>
           </Row>
-        </Column>
+        </Row>
 
-        <div className="grid w-full gap-6 text-sm md:grid-cols-2">
-          <Column gap="12">
+        <div className="grid w-full gap-10 lg:grid-cols-[3fr,2fr]">
+          <Column gap="16" align="start">
             <Text
               variant="label-default-s"
               className="uppercase"
@@ -77,19 +95,23 @@ export function SiteFooter() {
             >
               Quick links
             </Text>
-            <Column gap="8">
-              {QUICK_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
-                  {link.label}
-                </a>
+            <div className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {QUICK_LINK_COLUMNS.map((column, index) => (
+                <Column key={index} gap="8" className="min-w-[12rem]">
+                  {column.map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </Column>
               ))}
-            </Column>
+            </div>
           </Column>
-          <Column gap="12">
+          <Column gap="16" align="start">
             <Text
               variant="label-default-s"
               className="uppercase"
@@ -108,6 +130,10 @@ export function SiteFooter() {
                 </a>
               ))}
             </Column>
+            <Text variant="body-default-xs" onBackground="neutral-weak">
+              Need a guided run-through? Explore orchestration, routing, and
+              compliance guardrails with the workspace team.
+            </Text>
           </Column>
         </div>
 

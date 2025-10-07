@@ -305,9 +305,11 @@ export default async function RootLayout(
               zIndex={0}
               fillWidth
               padding="l"
-              paddingBottom="24"
               horizontal="center"
               flex={1}
+              style={{
+                paddingBottom: "calc(6rem + var(--mobile-nav-height))",
+              }}
             >
               <Flex
                 id="main-content"

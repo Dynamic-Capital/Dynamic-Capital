@@ -11,6 +11,13 @@
 @layer base {
   :root {
     --site-header-height: 64px;
+    --mobile-nav-height: 72px;
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --mobile-nav-height: 0px;
+    }
   }
 
   *, *::before, *::after {
@@ -76,6 +83,15 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 
   @keyframes pulse-glow {

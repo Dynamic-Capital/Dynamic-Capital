@@ -40,10 +40,22 @@ export function SiteHeader() {
     };
 
     updateHeaderHeight();
-    window.addEventListener("resize", updateHeaderHeight);
+    const handleResize = () => updateHeaderHeight();
+    window.addEventListener("resize", handleResize);
+
+    const element = headerRef.current;
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" && element
+        ? new ResizeObserver(() => updateHeaderHeight())
+        : null;
+
+    if (resizeObserver && element) {
+      resizeObserver.observe(element);
+    }
 
     return () => {
-      window.removeEventListener("resize", updateHeaderHeight);
+      window.removeEventListener("resize", handleResize);
+      resizeObserver?.disconnect();
     };
   }, []);
 
@@ -60,11 +72,11 @@ export function SiteHeader() {
         style={{ scaleX: scrollProgress }}
         aria-hidden
       />
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4">
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-[auto,1fr,auto] items-center gap-3 px-4 py-3 sm:gap-4 sm:py-4">
         <Link
           href="/"
           aria-label="Dynamic Capital home"
-          className="flex items-center gap-3"
+          className="flex items-center gap-3 rounded-md px-2 py-1 transition hover:bg-accent/40"
         >
           <span className="contents">
             <BrandLogo size="md" variant="brand" showText={false} animated />
@@ -74,57 +86,59 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <DesktopNav />
+        <DesktopNav className="justify-center" />
 
-        <div className="flex items-center gap-3">
-          <Button
-            size="sm"
-            className="hidden md:inline-flex"
-            onClick={() => {
-              void connectWallet();
-            }}
-          >
-            Connect wallet
-          </Button>
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary lg:flex"
-          >
-            <Link href="/support">Support</Link>
-          </Button>
-          {user
-            ? (
-              <>
+        <div className="flex items-center justify-end gap-2">
+          <div className="hidden items-center gap-2 md:flex">
+            <Button
+              size="sm"
+              className="md:inline-flex"
+              onClick={() => {
+                void connectWallet();
+              }}
+            >
+              Connect wallet
+            </Button>
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary lg:flex"
+            >
+              <Link href="/support">Support</Link>
+            </Button>
+            {user
+              ? (
+                <>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary lg:inline-flex"
+                  >
+                    <Link href="/profile">Profile</Link>
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => signOut()}
+                    className="hidden lg:inline-flex"
+                  >
+                    Sign out
+                  </Button>
+                </>
+              )
+              : (
                 <Button
                   asChild
-                  variant="ghost"
                   size="sm"
-                  className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary lg:inline-flex"
-                >
-                  <Link href="/profile">Profile</Link>
-                </Button>
-                <Button
                   variant="secondary"
-                  size="sm"
-                  onClick={() => signOut()}
                   className="hidden lg:inline-flex"
                 >
-                  Sign out
+                  <Link href="/login">Sign in</Link>
                 </Button>
-              </>
-            )
-            : (
-              <Button
-                asChild
-                size="sm"
-                variant="secondary"
-                className="hidden lg:inline-flex"
-              >
-                <Link href="/login">Sign in</Link>
-              </Button>
-            )}
+              )}
+          </div>
           <div className="flex items-center gap-2 md:hidden">
             <Button
               variant="secondary"
