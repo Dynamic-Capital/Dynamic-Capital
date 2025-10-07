@@ -28,16 +28,18 @@ const getRuntimeCrypto = (): Crypto | undefined => {
   return runtime.crypto ?? runtime.msCrypto;
 };
 
-let fallbackCounter = 0;
-
 const generateSessionId = (): string => {
   const cryptoApi = getRuntimeCrypto();
 
-  if (cryptoApi?.randomUUID) {
+  if (!cryptoApi) {
+    throw new Error("Secure Crypto API unavailable");
+  }
+
+  if (cryptoApi.randomUUID) {
     return `session_${cryptoApi.randomUUID()}`;
   }
 
-  if (cryptoApi?.getRandomValues) {
+  if (cryptoApi.getRandomValues) {
     const randomBytes = new Uint8Array(16);
     cryptoApi.getRandomValues(randomBytes);
     const randomHex = Array.from(randomBytes)
@@ -47,14 +49,7 @@ const generateSessionId = (): string => {
     return `session_${randomHex}`;
   }
 
-  fallbackCounter = (fallbackCounter + 1) % Number.MAX_SAFE_INTEGER;
-  if (typeof console !== "undefined") {
-    console.warn(
-      "Secure Crypto API unavailable; using deterministic session identifier.",
-    );
-  }
-
-  return `session_fallback_${Date.now().toString(36)}_${fallbackCounter}`;
+  throw new Error("Secure randomness primitives are unavailable");
 };
 
 const readStoredSessionId = (): string | null => {
@@ -70,7 +65,7 @@ const persistSessionId = (id: string) => {
 export const useAnalytics = () => {
   const sessionId = useRef<string | null>(null);
 
-  const ensureSessionId = useCallback((): string => {
+  const ensureSessionId = useCallback((): string | null => {
     if (sessionId.current) {
       return sessionId.current;
     }
@@ -81,10 +76,18 @@ export const useAnalytics = () => {
       return stored;
     }
 
-    const newSessionId = generateSessionId();
-    sessionId.current = newSessionId;
-    persistSessionId(newSessionId);
-    return newSessionId;
+    try {
+      const newSessionId = generateSessionId();
+      sessionId.current = newSessionId;
+      persistSessionId(newSessionId);
+      return newSessionId;
+    } catch (error) {
+      if (typeof console !== "undefined") {
+        console.warn("Unable to create analytics session identifier", error);
+      }
+      sessionId.current = null;
+      return null;
+    }
   }, []);
 
   useEffect(() => {
@@ -93,9 +96,10 @@ export const useAnalytics = () => {
 
   const trackEvent = useCallback(async (event: AnalyticsEvent) => {
     try {
+      const sessionIdentifier = ensureSessionId();
       const eventWithContext: AnalyticsEvent = {
         ...event,
-        session_id: ensureSessionId(),
+        ...(sessionIdentifier ? { session_id: sessionIdentifier } : {}),
       };
       if (typeof window !== "undefined") {
         eventWithContext.user_agent = navigator.userAgent;

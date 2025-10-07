@@ -4,6 +4,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   migrate:
     runs-on: ubuntu-latest
