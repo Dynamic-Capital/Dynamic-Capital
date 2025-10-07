@@ -7,7 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DynamicCliWorkbench } from "../DynamicCliWorkbench";
 import { DEFAULT_DYNAMIC_CLI_SCENARIO } from "@/services/dynamic-cli";
 
-const getAdminAuthMock = vi.fn(() => ({ token: "test-admin-token" }));
+const getAdminAuthMock = vi.fn<() => { token: string } | null>(
+  () => ({ token: "test-admin-token" }),
+);
 
 vi.mock("@/hooks/useTelegramAuth", () => ({
   useTelegramAuth: () => ({

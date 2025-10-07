@@ -137,7 +137,8 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
     "Search every Dynamic Capital surface and jump to the experience you need.",
   onItemSelect,
 }) => {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = rawPathname ?? "/";
   const shouldReduceMotion = useReducedMotion();
   const [hash, setHash] = useState<string>("");
   const [query, setQuery] = useState<string>("");
@@ -158,7 +159,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
     return () => {
       window.removeEventListener("hashchange", updateHash);
     };
-  }, [pathname]);
+  }, [rawPathname]);
 
   const enhancedItems = useMemo<EnhancedNavItem[]>(() => {
     return items.map((item) => {

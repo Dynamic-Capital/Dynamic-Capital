@@ -16,7 +16,8 @@ import NAV_ITEMS, { type NavItem } from "./nav-items";
 const navItems = NAV_ITEMS.filter((n) => n.showOnMobile);
 
 export const MobileBottomNav: React.FC = () => {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = rawPathname ?? "/";
   const reduceMotion = useReducedMotion();
   const columnCount = navItems.length || 1;
   const [hash, setHash] = useState<string>("");
@@ -32,7 +33,7 @@ export const MobileBottomNav: React.FC = () => {
     window.addEventListener("hashchange", updateHash);
 
     return () => window.removeEventListener("hashchange", updateHash);
-  }, [pathname]);
+  }, [rawPathname]);
 
   const isActive = (item: NavItem) => {
     if (item.href?.startsWith("/#")) {
@@ -123,7 +124,7 @@ export const MobileBottomNav: React.FC = () => {
               );
             })}
             <AnimatePresence>
-              {pathname && activeIndex >= 0 && (
+              {rawPathname && activeIndex >= 0 && (
                 <motion.div
                   className="pointer-events-none absolute bottom-0 left-0 h-1 rounded-t-full bg-primary"
                   layoutId="activeIndicator"

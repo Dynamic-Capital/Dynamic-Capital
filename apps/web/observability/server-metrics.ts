@@ -1,18 +1,19 @@
+import type { Attributes as OtelAttributes, Context } from "@opentelemetry/api";
+
 const SERVICE_NAME = "dynamic-capital-web";
 
-type AttributeValue = string | number | boolean | null | undefined;
-export type Attributes = Record<string, AttributeValue>;
+export type Attributes = OtelAttributes;
 
 interface CounterLike {
-  add(value: number, attributes?: Attributes): void;
+  add(value: number, attributes?: Attributes, context?: Context): void;
 }
 
 interface HistogramLike {
-  record(value: number, attributes?: Attributes): void;
+  record(value: number, attributes?: Attributes, context?: Context): void;
 }
 
 interface UpDownCounterLike {
-  add(value: number, attributes?: Attributes): void;
+  add(value: number, attributes?: Attributes, context?: Context): void;
 }
 
 export interface ApiMetricsInstrumentation {

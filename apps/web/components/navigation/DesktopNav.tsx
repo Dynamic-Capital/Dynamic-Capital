@@ -10,7 +10,8 @@ import NAV_ITEMS, { type NavItem } from "./nav-items";
 const navItems = NAV_ITEMS;
 
 export const DesktopNav: React.FC = () => {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = rawPathname ?? "/";
   const shouldReduceMotion = useReducedMotion();
   const [hash, setHash] = useState<string>("");
 
@@ -27,7 +28,7 @@ export const DesktopNav: React.FC = () => {
     return () => {
       window.removeEventListener("hashchange", updateHash);
     };
-  }, [pathname]);
+  }, [rawPathname]);
 
   const isActive = (item: NavItem) => {
     if (item.href?.startsWith("/#")) {

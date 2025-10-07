@@ -886,8 +886,8 @@ function normalizeEconomicEvent(
   const event: EconomicEvent = {
     id: eventId,
     title,
-    day: formatDay(date, raw.day),
-    time: formatTime(date, raw.time),
+    day: formatDay(date, raw.day ?? null),
+    time: formatTime(date, raw.time ?? null),
     impact: coerceImpact(
       raw.impact ?? raw.impact_level ?? raw.impactLevel ?? raw.importance,
     ),

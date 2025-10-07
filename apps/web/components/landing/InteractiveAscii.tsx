@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  CSSProperties,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import type { CSSProperties, RefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMotionValue, useSpring } from "framer-motion";
 
 const characterSets = {
@@ -249,7 +243,7 @@ class SeededRandom {
 
 function useFollowCursor(
   smoothing = 0,
-  containerRef: React.RefObject<HTMLElement>,
+  containerRef: RefObject<HTMLElement>,
 ) {
   const movementTransition = useMemo(
     () => ({ damping: 100, stiffness: mapRange(smoothing, 0, 100, 2000, 50) }),
@@ -652,7 +646,8 @@ export function InteractiveAscii({
 }: InteractiveAsciiProps) {
   const [text, setText] = useState("");
   const [maskUrl, setMaskUrl] = useState<string>();
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerElementRef = containerRef as unknown as RefObject<HTMLElement>;
   const textRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -667,7 +662,7 @@ export function InteractiveAscii({
   const { x: cursorX, y: cursorY, initialized, initializedRef } =
     useFollowCursor(
       cursor?.smoothing ?? 0,
-      containerRef,
+      containerElementRef,
     );
 
   useEffect(() => {
@@ -866,7 +861,7 @@ export function InteractiveAscii({
     }
   }, [sizing]);
 
-  useResizeObserver(containerRef, updateScale);
+  useResizeObserver(containerElementRef, updateScale);
 
   useEffect(() => {
     updateScale();
