@@ -33,14 +33,22 @@ export const handler = registerHandler(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let timeframe: string = "today";
   try {
     logStep("Analytics data request started");
 
     const supabaseClient = createClient("service");
 
-    const { timeframe } = await req.json().catch(() => ({
-      timeframe: "today",
-    }));
+    const requestPayload: unknown = await req.json().catch(() => ({}));
+    if (
+      typeof requestPayload === "object" &&
+      requestPayload !== null &&
+      "timeframe" in requestPayload &&
+      typeof (requestPayload as Record<string, unknown>).timeframe ===
+        "string"
+    ) {
+      timeframe = (requestPayload as { timeframe: string }).timeframe;
+    }
     logStep("Processing timeframe", { timeframe });
 
     const now = new Date();
@@ -216,7 +224,7 @@ export const handler = registerHandler(async (req) => {
       req,
       message: "Failed to generate analytics data.",
       extra: {
-        timeframe: "today",
+        timeframe,
         total_revenue: 0,
         currency: "USD",
         package_performance: [],
