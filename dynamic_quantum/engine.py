@@ -198,26 +198,38 @@ class DynamicQuantumEngine:
         return self._decay_factor
 
     def register_pulse(self, pulse: QuantumPulse | Mapping[str, object]) -> QuantumPulse:
-        if isinstance(pulse, Mapping):
-            pulse = QuantumPulse(**pulse)
-        elif not isinstance(pulse, QuantumPulse):  # pragma: no cover - defensive guard
-            raise TypeError("pulse must be a QuantumPulse or mapping")
-        if len(self._pulses) == self._window:
-            removed = self._pulses.popleft()
-            self._update_totals(removed, sign=-1.0)
-        self._pulses.append(pulse)
-        self._update_totals(pulse, sign=1.0)
-        return pulse
+        """Register a single pulse with the resonance engine."""
+
+        registered = self.register_pulses((pulse,))
+        return registered[0]
 
     def register_pulses(
         self, pulses: Sequence[QuantumPulse | Mapping[str, object]]
     ) -> tuple[QuantumPulse, ...]:
         """Register a batch of pulses efficiently."""
 
-        registered: MutableSequence[QuantumPulse] = []
+        if not pulses:
+            return ()
+
+        converted: MutableSequence[QuantumPulse] = []
         for pulse in pulses:
-            registered.append(self.register_pulse(pulse))
-        return tuple(registered)
+            if isinstance(pulse, Mapping):
+                converted.append(QuantumPulse(**pulse))
+            elif isinstance(pulse, QuantumPulse):
+                converted.append(pulse)
+            else:  # pragma: no cover - defensive guard
+                raise TypeError("pulse must be a QuantumPulse or mapping")
+
+        overflow = max(0, len(self._pulses) + len(converted) - self._window)
+        for _ in range(overflow):
+            removed = self._pulses.popleft()
+            self._update_totals(removed, sign=-1.0)
+
+        for pulse in converted:
+            self._pulses.append(pulse)
+            self._update_totals(pulse, sign=1.0)
+
+        return tuple(converted)
 
     def clear(self) -> None:
         self._pulses.clear()
