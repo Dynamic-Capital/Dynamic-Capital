@@ -1,4 +1,6 @@
 name: TON Health Checks
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
