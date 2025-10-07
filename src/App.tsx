@@ -1,16 +1,64 @@
-import { type ReactNode } from "react";
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import { type MouseEvent, type ReactNode, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Link,
+  Navigate,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
 import Providers from "@/app/providers";
 import { TonConnectProvider } from "@/integrations/tonconnect";
 import { DynamicGuiShowcase } from "./components/DynamicGuiShowcase";
 import CheckoutPage from "~/pages/CheckoutPage";
 import NotFoundPage from "~/pages/NotFoundPage";
-import DashboardPage from "@/pages/DashboardPage";
-import MarketPage from "@/pages/MarketPage";
-import SnapshotPage from "@/pages/SnapshotPage";
-import Web3Page from "~/pages/Web3Page";
-import ChatPage from "@/pages/ChatPage";
+import { DashboardSection } from "@/pages/DashboardPage";
+import { MarketSection } from "@/pages/MarketPage";
+import { SnapshotSection } from "@/pages/SnapshotPage";
+import { WalletSection } from "~/pages/Web3Page";
+import { ChatSection } from "@/pages/ChatPage";
 import { LayoutDashboard, TrendingUp, Camera, Wallet, MessageSquare } from "lucide-react";
+
+const NAV_ITEMS = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "market", label: "Market", icon: TrendingUp },
+  { id: "snapshot", label: "Snapshot", icon: Camera },
+  { id: "wallet", label: "Web3", icon: Wallet },
+  { id: "chat", label: "Chat", icon: MessageSquare },
+];
+
+function getScrollBehavior(): ScrollBehavior {
+  if (typeof window === "undefined") {
+    return "auto";
+  }
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return prefersReducedMotion ? "auto" : "smooth";
+}
+
+function scrollToSection(hash: string, behavior: ScrollBehavior = getScrollBehavior()) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const normalized = hash.startsWith("#") ? hash.slice(1) : hash;
+  if (!normalized) {
+    return false;
+  }
+
+  const target = document.getElementById(normalized);
+  if (target instanceof HTMLElement) {
+    target.scrollIntoView({ behavior, block: "start" });
+    if (target.tabIndex < 0) {
+      target.setAttribute("tabindex", "-1");
+    }
+    target.focus({ preventScroll: true });
+    return true;
+  }
+
+  return false;
+}
 
 function AppProviders({ children }: { children: ReactNode }) {
   return (
@@ -23,11 +71,31 @@ function AppProviders({ children }: { children: ReactNode }) {
 }
 
 function HomePage() {
+  const location = useLocation();
+  const navigationType = useNavigationType();
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const behavior = navigationType === "POP" ? "auto" : getScrollBehavior();
+
+    if (!location.hash || !scrollToSection(location.hash, behavior)) {
+      window.scrollTo({ top: 0, behavior });
+    }
+  }, [location.key, location.hash, navigationType]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="container mx-auto px-4 py-10">
+      <section className="container mx-auto px-4 py-10">
         <DynamicGuiShowcase />
-      </div>
+      </section>
+      <DashboardSection />
+      <MarketSection />
+      <SnapshotSection />
+      <WalletSection />
+      <ChatSection />
     </div>
   );
 }
@@ -45,6 +113,17 @@ function SiteFooter() {
 }
 
 function SiteHeader() {
+  const location = useLocation();
+
+  const handleNavClick = (targetHash: string) => (event: MouseEvent<HTMLAnchorElement>) => {
+    if (location.pathname === "/" && location.hash === targetHash) {
+      event.preventDefault();
+      if (!scrollToSection(targetHash)) {
+        window.scrollTo({ top: 0, behavior: getScrollBehavior() });
+      }
+    }
+  };
+
   return (
     <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -53,41 +132,17 @@ function SiteHeader() {
             Dynamic Capital
           </Link>
           <nav className="flex gap-6">
-            <Link
-              to="/dashboard"
-              className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              Dashboard
-            </Link>
-            <Link
-              to="/market"
-              className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-            >
-              <TrendingUp className="w-4 h-4" />
-              Market
-            </Link>
-            <Link
-              to="/snapshot"
-              className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-            >
-              <Camera className="w-4 h-4" />
-              Snapshot
-            </Link>
-            <Link
-              to="/web3"
-              className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-            >
-              <Wallet className="w-4 h-4" />
-              Web3
-            </Link>
-            <Link
-              to="/chat"
-              className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
-            >
-              <MessageSquare className="w-4 h-4" />
-              Chat
-            </Link>
+            {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+              <Link
+                key={id}
+                to={`/#${id}`}
+                onClick={handleNavClick(`#${id}`)}
+                className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary"
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </Link>
+            ))}
           </nav>
         </div>
       </div>
@@ -104,11 +159,11 @@ function App() {
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/market" element={<MarketPage />} />
-              <Route path="/snapshot" element={<SnapshotPage />} />
-              <Route path="/web3" element={<Web3Page />} />
-              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/dashboard" element={<Navigate to="/#dashboard" replace />} />
+              <Route path="/market" element={<Navigate to="/#market" replace />} />
+              <Route path="/snapshot" element={<Navigate to="/#snapshot" replace />} />
+              <Route path="/web3" element={<Navigate to="/#wallet" replace />} />
+              <Route path="/chat" element={<Navigate to="/#chat" replace />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

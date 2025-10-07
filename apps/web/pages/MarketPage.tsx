@@ -2,12 +2,12 @@ import { StrengthMeter } from "@/components/trading/StrengthMeter";
 import { TrendChart } from "@/components/trading/TrendChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function MarketPage() {
+export function MarketSection() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Market Analysis</h1>
+    <section id="market" className="py-16">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="mb-8 flex items-center justify-between">
+          <h2 className="text-3xl font-bold">Market Analysis</h2>
 
           <Tabs defaultValue="currency" className="w-auto">
             <TabsList>
@@ -34,24 +34,32 @@ export default function MarketPage() {
           </TabsContent>
 
           <TabsContent value="heatmap">
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="py-12 text-center text-muted-foreground">
               Heat map visualization coming soon...
             </div>
           </TabsContent>
 
           <TabsContent value="volatility">
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="py-12 text-center text-muted-foreground">
               Volatility charts coming soon...
             </div>
           </TabsContent>
 
           <TabsContent value="trends">
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="py-12 text-center text-muted-foreground">
               Trend analysis coming soon...
             </div>
           </TabsContent>
         </Tabs>
       </div>
+    </section>
+  );
+}
+
+export default function MarketPage() {
+  return (
+    <div className="min-h-screen bg-background">
+      <MarketSection />
     </div>
   );
 }

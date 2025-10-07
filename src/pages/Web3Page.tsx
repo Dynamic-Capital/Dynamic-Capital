@@ -1,14 +1,22 @@
-import { UnifiedWalletConnect } from '@/components/web3/UnifiedWalletConnect';
+import { UnifiedWalletConnect } from "@/components/web3/UnifiedWalletConnect";
+
+export function WalletSection() {
+  return (
+    <section id="wallet" className="py-16">
+      <div className="container mx-auto px-4">
+        <div className="mx-auto max-w-2xl">
+          <h2 className="mb-8 text-4xl font-bold">Web3 Wallet</h2>
+          <UnifiedWalletConnect />
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function Web3Page() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-10">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold mb-8">Web3 Wallet</h1>
-          <UnifiedWalletConnect />
-        </div>
-      </div>
+      <WalletSection />
     </div>
   );
 }
