@@ -4,6 +4,8 @@
 import { assert, assertEquals } from "std/assert/mod.ts";
 import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
+const ORIGINAL_FETCH = globalThis.fetch;
+
 const SECRET = "allocator-secret";
 
 async function loadHandler() {
@@ -43,6 +45,43 @@ function clearAllocatorSecret() {
   }
 }
 
+function stubTransactionFetch(
+  options: {
+    amountNano?: number;
+    investor?: string;
+    status?: number;
+    blockSeq?: number;
+    timestamp?: number;
+  },
+) {
+  const {
+    amountNano = 2_000_000_000,
+    investor = "0:ABCDEF",
+    status = 200,
+    blockSeq = 12345,
+    timestamp = 1_700_000_000,
+  } = options;
+  globalThis.fetch = (async (input: Request | string) => {
+    const url = typeof input === "string" ? input : input.url;
+    if (url.includes("/transactions/")) {
+      if (status !== 200) {
+        return new Response(JSON.stringify({ error: "failed" }), { status });
+      }
+      return new Response(
+        JSON.stringify({
+          hash: "ABC123",
+          account: { address: investor },
+          in_msg: { source: investor, value: amountNano },
+          mc_block_seqno: blockSeq,
+          now: timestamp,
+        }),
+        { status: 200 },
+      );
+    }
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  }) as typeof fetch;
+}
+
 Deno.test("ton-allocator-webhook rejects missing signature", async () => {
   setTestEnv({
     SUPABASE_URL: "https://stub.supabase.co",
@@ -59,6 +98,7 @@ Deno.test("ton-allocator-webhook rejects missing signature", async () => {
     );
     assertEquals(res.status, 401);
   } finally {
+    globalThis.fetch = ORIGINAL_FETCH;
     clearAllocatorSecret();
     clearTestEnv();
   }
@@ -70,6 +110,12 @@ Deno.test("ton-allocator-webhook stores event and triggers notifier", async () =
     SUPABASE_SERVICE_ROLE_KEY: "service-key",
   });
   setAllocatorSecret(SECRET);
+  stubTransactionFetch({
+    amountNano: 2_100_000_000,
+    investor: "0:ABCDEF",
+    blockSeq: 54321,
+    timestamp: 1_700_000_123,
+  });
 
   const inserted: Record<string, unknown>[] = [];
   const rpcCalls: Array<{ name: string; args: Record<string, unknown> }> = [];
@@ -156,6 +202,10 @@ Deno.test("ton-allocator-webhook stores event and triggers notifier", async () =
     assertEquals(record.observed_at, body.observedAt);
     assert(typeof record.verified_at === "string");
     assert(!Number.isNaN(Date.parse(record.verified_at as string)));
+    assertEquals(record.on_chain_investor, "0:abcdef");
+    assertEquals(record.on_chain_amount_ton, 2.1);
+    assertEquals(record.on_chain_block_seqno, 54321);
+    assert(typeof record.on_chain_timestamp === "string");
 
     assertEquals(rpcCalls.length, 1);
     assertEquals(rpcCalls[0], {
@@ -164,6 +214,99 @@ Deno.test("ton-allocator-webhook stores event and triggers notifier", async () =
     });
   } finally {
     delete globalAny.__SUPABASE_SERVICE_CLIENT__;
+    globalThis.fetch = ORIGINAL_FETCH;
+    clearAllocatorSecret();
+    clearTestEnv();
+  }
+});
+
+Deno.test("ton-allocator-webhook rejects mismatched transaction", async () => {
+  setTestEnv({
+    SUPABASE_URL: "https://stub.supabase.co",
+    SUPABASE_SERVICE_ROLE_KEY: "service-key",
+  });
+  setAllocatorSecret(SECRET);
+  stubTransactionFetch({ investor: "0:FFFF" });
+
+  const body = {
+    event: {
+      depositId: 1,
+      investorKey: "0:ABCDEF",
+      usdtAmount: 100,
+      dctAmount: 95,
+      fxRate: 1.0,
+      tonTxHash: "ABC123",
+    },
+    proof: {
+      blockId: "-1:1:1",
+      shardProof: "payload",
+      signature: "0xdead",
+    },
+  };
+  const payload = JSON.stringify(body);
+  const signature = await sign(payload, SECRET);
+
+  try {
+    const { handler } = await loadHandler();
+    const res = await handler(
+      new Request("http://localhost/functions/v1/ton-allocator-webhook", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-allocator-signature": signature,
+        },
+        body: payload,
+      }),
+    );
+    assertEquals(res.status, 400);
+  } finally {
+    globalThis.fetch = ORIGINAL_FETCH;
+    clearAllocatorSecret();
+    clearTestEnv();
+  }
+});
+
+Deno.test("ton-allocator-webhook handles indexer failure", async () => {
+  setTestEnv({
+    SUPABASE_URL: "https://stub.supabase.co",
+    SUPABASE_SERVICE_ROLE_KEY: "service-key",
+  });
+  setAllocatorSecret(SECRET);
+  stubTransactionFetch({ status: 500 });
+
+  const body = {
+    event: {
+      depositId: 1,
+      investorKey: "0:ABCDEF",
+      usdtAmount: 100,
+      dctAmount: 95,
+      fxRate: 1.0,
+      tonTxHash: "ABC123",
+    },
+    proof: {
+      blockId: "-1:1:1",
+      shardProof: "payload",
+      signature: "0xdead",
+    },
+  };
+  const payload = JSON.stringify(body);
+  const signature = await sign(payload, SECRET);
+
+  try {
+    const { handler } = await loadHandler();
+    const res = await handler(
+      new Request("http://localhost/functions/v1/ton-allocator-webhook", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-allocator-signature": signature,
+        },
+        body: payload,
+      }),
+    );
+    assertEquals(res.status, 400);
+  } finally {
+    globalThis.fetch = ORIGINAL_FETCH;
     clearAllocatorSecret();
     clearTestEnv();
   }

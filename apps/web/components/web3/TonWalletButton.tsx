@@ -18,6 +18,36 @@ export function TonWalletButton() {
 
   const saveTonAddress = useCallback(async (tonAddress: string) => {
     try {
+      const validationResponse = await fetch(
+        "/functions/v1/validate-ton-address",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ address: tonAddress }),
+        },
+      );
+
+      if (!validationResponse.ok) {
+        const errorBody = await validationResponse.json().catch(() => null);
+        const message = errorBody?.error ?? "Failed to validate TON address";
+        throw new Error(message);
+      }
+
+      const validationData = await validationResponse.json() as {
+        ok?: boolean;
+        error?: string;
+        hint?: string;
+        normalizedAddress?: string;
+      };
+
+      if (!validationData.ok) {
+        throw new Error(
+          validationData.error ?? "TON address validation failed",
+        );
+      }
+
+      const normalizedAddress = validationData.normalizedAddress ?? tonAddress;
+
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -30,7 +60,7 @@ export function TonWalletButton() {
       const { error } = await supabase
         .from("profiles")
         .update({
-          ton_wallet_address: tonAddress,
+          ton_wallet_address: normalizedAddress,
         })
         .eq("id", user.id);
 
@@ -45,7 +75,10 @@ export function TonWalletButton() {
     } catch (error) {
       console.error("[TonWallet] Error saving address:", error);
       lastAttemptedAddressRef.current = null;
-      toast.error("Unexpected error while saving TON wallet");
+      const message = error instanceof Error
+        ? error.message
+        : "Unexpected error while saving TON wallet";
+      toast.error(message);
     }
   }, []);
 

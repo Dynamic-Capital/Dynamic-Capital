@@ -4,6 +4,7 @@
     "https://esm.sh/@supabase/supabase-js@2": "./esm.sh/@supabase/supabase-js@2.js",
     "https://esm.sh/@supabase/supabase-js@2?dts": "./esm.sh/@supabase/supabase-js@2.types.ts",
     "https://esm.sh/@supabase/supabase-js@2.53.0": "./esm.sh/@supabase/supabase-js@2.53.0.js",
+    "https://esm.sh/@supabase/supabase-js@2.74.0": "./esm.sh/@supabase/supabase-js@2.74.0.js",
     "https://esm.sh/": "./esm.sh/",
     "@supabase/supabase-js": "./esm.sh/@supabase/supabase-js@2.js",
     "mime-types": "./esm.sh/mime-types@3.0.1.js",
