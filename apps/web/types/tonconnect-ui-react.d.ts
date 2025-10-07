@@ -17,11 +17,11 @@ declare module "@tonconnect/ui-react" {
     aboutUrl: string;
     universalLink: string;
     bridgeUrl: string;
-    platforms?: string[];
+    platforms?: readonly string[];
   }
 
   export interface WalletsListConfiguration {
-    includeWallets?: TonConnectUIWallet[];
+    includeWallets?: readonly TonConnectUIWallet[];
   }
 
   export interface TonConnectUIProviderProps {

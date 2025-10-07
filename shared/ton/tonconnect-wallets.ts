@@ -15,14 +15,23 @@ export type TonConnectWalletListEntry = {
   aboutUrl: string;
   universalLink: string;
   bridgeUrl: string;
-  platforms: string[];
+  platforms: readonly string[];
 };
 
 export type TonConnectWalletsListConfiguration = {
-  includeWallets: TonConnectWalletListEntry[];
+  includeWallets: readonly TonConnectWalletListEntry[];
 };
 
 export const TONCONNECT_RECOMMENDED_WALLETS = [
+  {
+    appName: "telegram-wallet",
+    name: "Wallet",
+    imageUrl: "https://config.ton.org/assets/telegram_wallet.png",
+    aboutUrl: "https://wallet.tg/",
+    universalLink: "https://t.me/wallet?attach=wallet",
+    bridgeUrl: "https://walletbot.me/tonconnect-bridge/bridge",
+    platforms: ["ios", "android", "macos", "windows", "linux"] as const,
+  },
   {
     appName: "tonkeeper",
     name: "Tonkeeper",
@@ -80,17 +89,30 @@ export function toTonConnectWalletListEntry(
     aboutUrl: wallet.aboutUrl,
     universalLink: wallet.universalLink,
     bridgeUrl: wallet.bridgeUrl,
-    platforms: [...wallet.platforms],
+    platforms: wallet.platforms,
   };
 }
+
+const DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES =
+  TONCONNECT_RECOMMENDED_WALLETS.map((wallet) =>
+    toTonConnectWalletListEntry(wallet)
+  );
+
+const DEFAULT_TONCONNECT_WALLETS_LIST_CONFIGURATION = {
+  includeWallets: DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES,
+} as const satisfies TonConnectWalletsListConfiguration;
+
+export const TONCONNECT_WALLETS_LIST_CONFIGURATION =
+  DEFAULT_TONCONNECT_WALLETS_LIST_CONFIGURATION;
 
 export function createTonConnectWalletsListConfiguration(
   wallets: readonly TonConnectWalletMetadata[] = TONCONNECT_RECOMMENDED_WALLETS,
 ): TonConnectWalletsListConfiguration {
+  if (wallets === TONCONNECT_RECOMMENDED_WALLETS) {
+    return TONCONNECT_WALLETS_LIST_CONFIGURATION;
+  }
+
   return {
     includeWallets: wallets.map((wallet) => toTonConnectWalletListEntry(wallet)),
   };
 }
-
-export const TONCONNECT_WALLETS_LIST_CONFIGURATION =
-  createTonConnectWalletsListConfiguration();

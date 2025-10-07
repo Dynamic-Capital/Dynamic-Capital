@@ -36,7 +36,7 @@ const ONBOARDING_STEPS = [
     icon: "sparkles" as const,
     title: "Launch TonConnect inside Telegram",
     description:
-      "Investors tap the Mini App link and authenticate with Tonkeeper, DeDust Wallet, STON.fi Wallet, MyTonWallet, or Tonhub without leaving Telegram.",
+      "Investors tap the Mini App link and authenticate with Wallet (Telegram), Tonkeeper, DeDust Wallet, STON.fi Wallet, MyTonWallet, or Tonhub without leaving Telegram.",
   },
   {
     icon: "check" as const,
@@ -81,6 +81,11 @@ const AUTOMATION_EVENTS = [
 ] as const;
 
 const SUPPORTED_WALLETS = [
+  {
+    name: "Wallet (Telegram)",
+    description:
+      "Native Telegram wallet with TonConnect support across mobile and desktop clients.",
+  },
   {
     name: "Tonkeeper",
     description:
