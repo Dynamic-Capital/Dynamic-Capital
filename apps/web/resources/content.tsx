@@ -10,7 +10,7 @@ import {
   Work,
 } from "@/resources/types";
 import { Line, Row, Text } from "@/components/dynamic-ui-system";
-import { zones } from "tzdata";
+import tzdata from "tzdata";
 
 import deskTimeZone from "../../../shared/time/desk-time-zone.json";
 import { supabaseAsset } from "./assets";
@@ -44,21 +44,35 @@ function resolveServerTimeZone():
   return undefined;
 }
 
+const { zones } = tzdata;
+
+type DeskTimeZoneConfig = {
+  iana?: unknown;
+  label?: unknown;
+};
+
+const deskTimeZoneConfig = deskTimeZone as DeskTimeZoneConfig;
+
+function coerceString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 const serverTimeZone = resolveServerTimeZone();
 
 const fallbackDeskTimeZone: IANATimeZone =
   (serverTimeZone?.timeZone ?? "UTC") as IANATimeZone;
-const rawDeskTimeZone =
-  typeof deskTimeZone?.iana === "string" && deskTimeZone.iana.length > 0
-    ? deskTimeZone.iana
-    : undefined;
+const rawDeskTimeZone = coerceString(deskTimeZoneConfig?.iana);
 const DESK_TIME_ZONE =
   (rawDeskTimeZone ?? fallbackDeskTimeZone) as IANATimeZone;
 
-const DESK_TIME_ZONE_LABEL =
-  typeof deskTimeZone?.label === "string" && deskTimeZone.label.length > 0
-    ? deskTimeZone.label
-    : serverTimeZone?.label ?? "Server local time";
+const DESK_TIME_ZONE_LABEL = coerceString(deskTimeZoneConfig?.label) ??
+  serverTimeZone?.label ??
+  "Server local time";
 
 const person: Person = {
   firstName: "Abdul Mumin",
