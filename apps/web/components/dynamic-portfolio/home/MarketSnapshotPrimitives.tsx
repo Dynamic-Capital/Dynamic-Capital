@@ -231,7 +231,9 @@ const formatDecimal = (value: number | undefined, digits = 4) => {
   return value.toFixed(digits);
 };
 
-const defaultMoversFormatters: Required<MoversTableProps["formatters"]> = {
+type MoversFormatters = NonNullable<MoversTableProps["formatters"]>;
+
+const defaultMoversFormatters: Required<MoversFormatters> = {
   changePercent: formatSignedPercent,
   change: (value) => formatDecimal(value),
   extra: (value) => formatDecimal(value, 1),
@@ -255,7 +257,13 @@ export function MoversTable({
   formatters,
   emptyLabel = "No movers available.",
 }: MoversTableProps) {
-  const resolvedFormatters = { ...defaultMoversFormatters, ...formatters };
+  const resolvedFormatters: Required<MoversFormatters> = {
+    changePercent: formatters?.changePercent ??
+      defaultMoversFormatters.changePercent,
+    change: formatters?.change ?? defaultMoversFormatters.change,
+    extra: formatters?.extra ?? defaultMoversFormatters.extra,
+    last: formatters?.last ?? defaultMoversFormatters.last,
+  };
   const labels = {
     changePercent: columnLabels?.changePercent ?? "Change %",
     change: columnLabels?.change ?? "Change",

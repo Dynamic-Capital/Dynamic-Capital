@@ -10,7 +10,7 @@ import NAV_ITEMS, { type NavItem } from "./nav-items";
 const navItems = NAV_ITEMS;
 
 export const DesktopNav: React.FC = () => {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const shouldReduceMotion = useReducedMotion();
   const [hash, setHash] = useState<string>("");
 

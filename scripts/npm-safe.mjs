@@ -9,22 +9,54 @@ import { createSanitizedNpmEnv } from "./utils/npm-env.mjs";
 
 const args = process.argv.slice(2);
 
+function detectScriptName(argv) {
+  for (let index = 0; index < argv.length; index += 1) {
+    if (argv[index] === "run" && index + 1 < argv.length) {
+      return argv[index + 1];
+    }
+  }
+  return undefined;
+}
+
+function shouldSyncOrigin(scriptName) {
+  if (!scriptName) {
+    return false;
+  }
+  const normalized = String(scriptName).trim();
+  if (!normalized) {
+    return false;
+  }
+  return /^(build(?::|$)|export$|output$)/.test(normalized);
+}
+
 if (args.length === 0) {
   console.error("Usage: node scripts/npm-safe.mjs <npm arguments>");
   process.exit(1);
 }
 
+const requestedScript = detectScriptName(args);
 const {
   defaultedKeys,
+  originSource,
+  preferSyncedOrigin,
   resolvedOrigin,
 } = applyBrandingEnvDefaults({
   allowedOrigins: PRODUCTION_ALLOWED_ORIGINS,
   fallbackOrigin: PRODUCTION_ORIGIN,
+  preferFallbackForEphemeralHosts: shouldSyncOrigin(requestedScript),
 });
 
 if (defaultedKeys.length > 0) {
   console.warn(
-    `npm-safe · Applied origin defaults (${defaultedKeys.join(", ")}) [${resolvedOrigin}]`,
+    `npm-safe · Applied origin defaults (${
+      defaultedKeys.join(", ")
+    }) [${resolvedOrigin}]`,
+  );
+} else if (preferSyncedOrigin && originSource === "fallback") {
+  console.info(
+    `npm-safe · Enforcing canonical origin ${resolvedOrigin} for ${
+      requestedScript ?? "npm command"
+    }.`,
   );
 }
 

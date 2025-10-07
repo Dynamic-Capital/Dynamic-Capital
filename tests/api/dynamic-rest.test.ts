@@ -165,7 +165,7 @@ async function run() {
 
   const resourceResponse = await getResource(
     new Request("http://localhost/api/dynamic-rest/resources/open-source"),
-    { params: { resource: "open-source" } },
+    { params: Promise.resolve({ resource: "open-source" }) },
   );
 
   assert.equal(resourceResponse.status, 200);

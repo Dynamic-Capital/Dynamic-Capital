@@ -249,7 +249,7 @@ class SeededRandom {
 
 function useFollowCursor(
   smoothing = 0,
-  containerRef: React.RefObject<HTMLElement>,
+  containerRef: React.RefObject<HTMLElement | null>,
 ) {
   const movementTransition = useMemo(
     () => ({ damping: 100, stiffness: mapRange(smoothing, 0, 100, 2000, 50) }),
@@ -606,7 +606,7 @@ function generateAscii(
 }
 
 function useResizeObserver(
-  elementRef: React.RefObject<HTMLElement>,
+  elementRef: React.RefObject<HTMLElement | null>,
   callback: () => void,
 ) {
   useEffect(() => {

@@ -70,7 +70,7 @@ function RefreshAnimationComponent({
   }, [active, interactiveAscii, prefersReducedMotion]);
 
   const Ascii = interactiveAscii;
-  const shouldAnimate = Boolean(Ascii && active);
+  const hasAscii = Ascii !== null;
   const label = ariaLabel;
 
   if (prefersReducedMotion) {
@@ -81,7 +81,7 @@ function RefreshAnimationComponent({
     <span className={cn(styles.frame, className)}>
       <span className={styles.glow} aria-hidden="true" />
       <AnimatePresence initial={false} mode="wait">
-        {shouldAnimate
+        {hasAscii && active
           ? (
             <motion.span
               key="refresh-ascii"

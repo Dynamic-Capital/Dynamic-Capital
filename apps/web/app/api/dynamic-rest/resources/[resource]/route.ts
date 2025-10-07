@@ -101,16 +101,12 @@ const RESOURCE_SLUGS = Object.freeze(
   Object.keys(RESOURCE_DEFINITIONS) as ResourceSlug[],
 );
 
-function hasResourceDefinition(slug: string): slug is ResourceSlug {
-  return Object.prototype.hasOwnProperty.call(RESOURCE_DEFINITIONS, slug);
-}
-
 type RouteParams = {
-  resource: string;
+  resource?: string | string[];
 };
 
 type RouteHandlerContext = {
-  params: RouteParams;
+  params: Promise<RouteParams>;
 };
 
 type ResourceErrorPayload = Readonly<{
@@ -159,11 +155,10 @@ function resolveResourceFromParams(
     return { type: "unknown" };
   }
 
-  const values = Array.isArray(resourceParam)
-    ? resourceParam
-    : [resourceParam];
+  const values = Array.isArray(resourceParam) ? resourceParam : [resourceParam];
 
   let resolvedSlug: ResourceSlug | null = null;
+  let resolvedDefinition: ResourceDefinition | null = null;
 
   for (const value of values) {
     if (typeof value !== "string") {
@@ -176,7 +171,8 @@ function resolveResourceFromParams(
     }
 
     const normalized = trimmed.toLowerCase();
-    if (!hasResourceDefinition(normalized)) {
+    const definition = RESOURCE_DEFINITIONS[normalized as ResourceSlug] ?? null;
+    if (!definition) {
       return { type: "unknown" };
     }
 
@@ -185,13 +181,14 @@ function resolveResourceFromParams(
     }
 
     resolvedSlug = normalized as ResourceSlug;
+    resolvedDefinition = definition;
   }
 
-  if (!resolvedSlug) {
+  if (!resolvedDefinition) {
     return { type: "unknown" };
   }
 
-  return { type: "ok", definition: RESOURCE_DEFINITIONS[resolvedSlug] };
+  return { type: "ok", definition: resolvedDefinition };
 }
 
 const getRouteName = (resolution: ResolvedResource) =>
@@ -203,7 +200,8 @@ export async function GET(
   req: NextRequest,
   context: RouteHandlerContext,
 ) {
-  const resolution = resolveResourceFromParams(context?.params?.resource);
+  const params = await context.params;
+  const resolution = resolveResourceFromParams(params?.resource);
 
   return withApiMetrics(req, getRouteName(resolution), async () => {
     switch (resolution.type) {

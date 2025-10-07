@@ -13,6 +13,19 @@ export const PRODUCTION_ALLOWED_ORIGINS = PRODUCTION_ALLOWED_ORIGIN_LIST.join(
   ",",
 );
 
+const TRUTHY_VALUES = new Set(["1", "true", "yes", "on"]);
+
+export function isTruthyFlag(value) {
+  if (value === undefined || value === null) {
+    return false;
+  }
+  const normalised = String(value).trim().toLowerCase();
+  if (!normalised) {
+    return false;
+  }
+  return TRUTHY_VALUES.has(normalised);
+}
+
 function coerceOrigin(input) {
   if (!input) {
     return undefined;
@@ -48,38 +61,85 @@ function hostToOrigin(host) {
 export function resolveBrandingOrigin({
   env = process.env,
   fallbackOrigin = PRODUCTION_ORIGIN,
+  preferFallbackForEphemeralHosts = false,
 } = {}) {
-  const candidates = [
-    ["LOVABLE_ORIGIN", env.LOVABLE_ORIGIN],
-    ["SITE_URL", env.SITE_URL],
-    ["NEXT_PUBLIC_SITE_URL", env.NEXT_PUBLIC_SITE_URL],
-    ["URL", env.URL],
-    ["APP_URL", env.APP_URL],
-    ["PUBLIC_URL", env.PUBLIC_URL],
-    ["DEPLOY_URL", env.DEPLOY_URL],
-    ["DEPLOYMENT_URL", env.DEPLOYMENT_URL],
-    ["PRIMARY_HOST", hostToOrigin(env.PRIMARY_HOST)],
-    ["DIGITALOCEAN_APP_URL", env.DIGITALOCEAN_APP_URL],
-    [
-      "DIGITALOCEAN_APP_SITE_DOMAIN",
-      hostToOrigin(env.DIGITALOCEAN_APP_SITE_DOMAIN),
-    ],
-    [
-      "DIGITALOCEAN_APP_DOMAIN",
-      hostToOrigin(env.DIGITALOCEAN_APP_DOMAIN),
-    ],
-    [
-      "DIGITALOCEAN_PRIMARY_HOST",
-      hostToOrigin(env.DIGITALOCEAN_PRIMARY_HOST),
-    ],
-    ["VERCEL_URL", env.VERCEL_URL ? `https://${env.VERCEL_URL}` : undefined],
+  const preferFallback = preferFallbackForEphemeralHosts ||
+    isTruthyFlag(env.SYNCED_BUILD_ORIGIN) ||
+    isTruthyFlag(env.BRANDING_ENFORCE_PRODUCTION);
+
+  const candidateSources = [
+    { source: "LOVABLE_ORIGIN", value: env.LOVABLE_ORIGIN, ephemeral: false },
+    { source: "SITE_URL", value: env.SITE_URL, ephemeral: false },
+    {
+      source: "NEXT_PUBLIC_SITE_URL",
+      value: env.NEXT_PUBLIC_SITE_URL,
+      ephemeral: false,
+    },
+    { source: "URL", value: env.URL, ephemeral: false },
+    { source: "APP_URL", value: env.APP_URL, ephemeral: false },
+    { source: "PUBLIC_URL", value: env.PUBLIC_URL, ephemeral: false },
+    { source: "DEPLOY_URL", value: env.DEPLOY_URL, ephemeral: false },
+    {
+      source: "DEPLOYMENT_URL",
+      value: env.DEPLOYMENT_URL,
+      ephemeral: false,
+    },
+    {
+      source: "PRIMARY_HOST",
+      value: hostToOrigin(env.PRIMARY_HOST),
+      ephemeral: true,
+    },
+    {
+      source: "DIGITALOCEAN_APP_URL",
+      value: env.DIGITALOCEAN_APP_URL,
+      ephemeral: true,
+    },
+    {
+      source: "DIGITALOCEAN_APP_SITE_DOMAIN",
+      value: hostToOrigin(env.DIGITALOCEAN_APP_SITE_DOMAIN),
+      ephemeral: true,
+    },
+    {
+      source: "DIGITALOCEAN_APP_DOMAIN",
+      value: hostToOrigin(env.DIGITALOCEAN_APP_DOMAIN),
+      ephemeral: true,
+    },
+    {
+      source: "DIGITALOCEAN_PRIMARY_HOST",
+      value: hostToOrigin(env.DIGITALOCEAN_PRIMARY_HOST),
+      ephemeral: true,
+    },
+    {
+      source: "VERCEL_URL",
+      value: env.VERCEL_URL ? `https://${env.VERCEL_URL}` : undefined,
+      ephemeral: true,
+    },
   ];
 
-  for (const [source, rawValue] of candidates) {
-    const normalized = coerceOrigin(rawValue);
-    if (normalized) {
-      return { originSource: source, resolvedOrigin: normalized };
+  const findFirstValidOrigin = (candidates) => {
+    for (const candidate of candidates) {
+      const normalized = coerceOrigin(candidate.value);
+      if (normalized) {
+        return { originSource: candidate.source, resolvedOrigin: normalized };
+      }
     }
+    return null;
+  };
+
+  if (preferFallback) {
+    const stableCandidates = candidateSources.filter((item) => !item.ephemeral);
+    const stableOrigin = findFirstValidOrigin(stableCandidates);
+    if (stableOrigin) {
+      return stableOrigin;
+    }
+    const normalizedFallback = coerceOrigin(fallbackOrigin) ??
+      PRODUCTION_ORIGIN;
+    return { originSource: "fallback", resolvedOrigin: normalizedFallback };
+  }
+
+  const resolvedCandidate = findFirstValidOrigin(candidateSources);
+  if (resolvedCandidate) {
+    return resolvedCandidate;
   }
 
   const normalizedFallback = coerceOrigin(fallbackOrigin) ?? PRODUCTION_ORIGIN;
@@ -95,10 +155,16 @@ export function applyBrandingEnvDefaults({
   fallbackOrigin = PRODUCTION_ORIGIN,
   allowedOrigins = () => PRODUCTION_ALLOWED_ORIGINS,
   includeSupabasePlaceholders = true,
+  preferFallbackForEphemeralHosts = false,
 } = {}) {
+  const preferFallback = preferFallbackForEphemeralHosts ||
+    isTruthyFlag(env.SYNCED_BUILD_ORIGIN) ||
+    isTruthyFlag(env.BRANDING_ENFORCE_PRODUCTION);
+
   const { originSource, resolvedOrigin } = resolveBrandingOrigin({
     env,
     fallbackOrigin,
+    preferFallbackForEphemeralHosts: preferFallback,
   });
 
   const defaultedKeys = [];
@@ -146,6 +212,7 @@ export function applyBrandingEnvDefaults({
     defaultedKeys,
     lovableOriginDefaulted,
     originSource,
+    preferSyncedOrigin: preferFallback,
     resolvedOrigin,
     supabaseFallbacks,
   };

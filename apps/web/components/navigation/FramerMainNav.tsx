@@ -94,7 +94,7 @@ const buildNavItems = (
 
 const FramerMainNav = () => {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
 
   const navigate = useCallback(
     (path: string) => {

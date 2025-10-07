@@ -108,7 +108,7 @@ export const SystemHealth = () => {
 
       if (response.ok && data.ok) {
         const audit = data.linkage as LinkageAudit;
-        const issues = [];
+        const issues: string[] = [];
 
         if (!audit.sameHost_webhook_vs_functions) {
           issues.push("Webhook host mismatch");

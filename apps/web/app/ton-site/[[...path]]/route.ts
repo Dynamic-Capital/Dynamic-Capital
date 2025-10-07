@@ -98,9 +98,13 @@ function rewriteLocation(location: string, origin: string): string {
   }
 }
 
+type TonSiteRouteParams = { path?: string[] };
+
+type TonSiteRouteContext = { params: Promise<TonSiteRouteParams> };
+
 async function proxyTonSite(
   req: NextRequest,
-  params: { path?: string[] } = {},
+  params: TonSiteRouteParams = {},
 ): Promise<Response> {
   if (
     ![
@@ -133,16 +137,24 @@ async function proxyTonSite(
   );
 }
 
+async function resolveRouteParams(
+  params: TonSiteRouteContext["params"],
+): Promise<TonSiteRouteParams> {
+  return await params;
+}
+
 export async function GET(
   req: NextRequest,
-  context: { params: { path?: string[] } },
+  context: TonSiteRouteContext,
 ): Promise<Response> {
-  return await proxyTonSite(req, context.params);
+  const params = await resolveRouteParams(context.params);
+  return await proxyTonSite(req, params);
 }
 
 export async function HEAD(
   req: NextRequest,
-  context: { params: { path?: string[] } },
+  context: TonSiteRouteContext,
 ): Promise<Response> {
-  return await proxyTonSite(req, context.params);
+  const params = await resolveRouteParams(context.params);
+  return await proxyTonSite(req, params);
 }

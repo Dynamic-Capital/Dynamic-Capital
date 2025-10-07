@@ -77,7 +77,7 @@ export function AuthForm() {
   });
   const [oauthLoading, setOauthLoading] = useState<Provider | null>(null);
 
-  const redirectParam = searchParams.get("redirect");
+  const redirectParam = searchParams?.get("redirect") ?? null;
   const redirectPath = useMemo(() => {
     if (!redirectParam) {
       return null;
@@ -111,7 +111,7 @@ export function AuthForm() {
     return `${normalized.replace(/-/g, " ")} page`;
   }, [resolvedRedirect]);
 
-  const modeParam = searchParams.get("mode");
+  const modeParam = searchParams?.get("mode") ?? null;
   useEffect(() => {
     if (modeParam === "signup" || modeParam === "signin") {
       setMode(modeParam);

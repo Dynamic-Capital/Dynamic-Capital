@@ -5,13 +5,15 @@ import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PaymentStatus } from "@/components/receipts/PaymentStatus";
 
-interface PaymentStatusPageProps {
-  searchParams?: {
-    payment_id?: string;
-    status?: string;
-    plan?: string;
-  };
-}
+type PaymentStatusSearchParams = {
+  payment_id?: string;
+  status?: string;
+  plan?: string;
+};
+
+type PaymentStatusPageProps = {
+  searchParams?: Promise<PaymentStatusSearchParams>;
+};
 
 export const metadata: Metadata = {
   title: "Payment Status – Dynamic Capital",
@@ -37,12 +39,13 @@ const getStatusNotice = (status?: string, plan?: string) => {
   );
 };
 
-export default function PaymentStatusPage(
+export default async function PaymentStatusPage(
   { searchParams }: PaymentStatusPageProps,
 ) {
-  const paymentId = searchParams?.payment_id;
-  const status = searchParams?.status;
-  const planParam = searchParams?.plan;
+  const resolvedParams = searchParams ? await searchParams : undefined;
+  const paymentId = resolvedParams?.payment_id;
+  const status = resolvedParams?.status;
+  const planParam = resolvedParams?.plan;
 
   let plan: string | undefined;
   if (typeof planParam === "string") {

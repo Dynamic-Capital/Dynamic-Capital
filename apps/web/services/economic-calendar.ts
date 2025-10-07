@@ -811,7 +811,7 @@ function parseDate(raw: RawEconomicEvent): Date | null {
   return null;
 }
 
-function formatDay(date: Date | null, fallback: string | null): string {
+function formatDay(date: Date | null, fallback?: string | null): string {
   if (date) {
     const weekday = new Intl.DateTimeFormat("en-US", {
       weekday: "short",
@@ -832,7 +832,7 @@ function formatDay(date: Date | null, fallback: string | null): string {
   return "—";
 }
 
-function formatTime(date: Date | null, fallback: string | null): string {
+function formatTime(date: Date | null, fallback?: string | null): string {
   if (date) {
     const time = new Intl.DateTimeFormat("en-GB", {
       hour: "2-digit",
