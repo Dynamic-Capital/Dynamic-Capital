@@ -1,9 +1,11 @@
 # Codex MCP Multi-Agent Workflow Guide
 
-This guide shows how to expose Codex CLI as a Model Context Protocol (MCP) server and orchestrate it with the OpenAI Agents SDK. You will:
+This guide shows how to expose Codex CLI as a Model Context Protocol (MCP)
+server and orchestrate it with the OpenAI Agents SDK. You will:
 
 1. Prepare a local environment with the required tooling.
-2. Launch Codex CLI once as a long-lived MCP server to avoid restart overhead on back-to-back runs.
+2. Launch Codex CLI once as a long-lived MCP server to avoid restart overhead on
+   back-to-back runs.
 3. Build a focused single-agent workflow that ships a tiny browser game.
 4. Grow the scenario into a guarded multi-agent pipeline and inspect its trace.
 
@@ -24,7 +26,8 @@ cd codex-workflows
 printf "OPENAI_API_KEY=sk-..." > .env
 ```
 
-Set up and activate a Python virtual environment, then install the Agents SDK packages:
+Set up and activate a Python virtual environment, then install the Agents SDK
+packages:
 
 ```bash
 python -m venv .venv
@@ -34,7 +37,9 @@ pip install --upgrade openai openai-agents python-dotenv
 
 ## 2. Expose Codex CLI as an MCP server
 
-Create `codex_mcp.py` with the boilerplate below. The script starts Codex CLI as an MCP server using stdio, keeps the process alive across agent turns, and is designed to stay warm for consecutive workflows.
+Create `codex_mcp.py` with the boilerplate below. The script starts Codex CLI as
+an MCP server using stdio, keeps the process alive across agent turns, and is
+designed to stay warm for consecutive workflows.
 
 ```python
 import asyncio
@@ -67,11 +72,14 @@ Verify that the server launches cleanly:
 python codex_mcp.py
 ```
 
-The script prints `Codex MCP server started.` and exits, confirming the MCP server is ready to reuse in subsequent workflows without reinitializing Codex.
+The script prints `Codex MCP server started.` and exits, confirming the MCP
+server is ready to reuse in subsequent workflows without reinitializing Codex.
 
 ## 3. Ship a single-agent workflow
 
-Extend `codex_mcp.py` so a designer agent writes a short brief and hands it to a developer agent that calls Codex MCP to implement the game. Both agents share the same long-lived MCP server, so repeated runs avoid start-up latency.
+Extend `codex_mcp.py` so a designer agent writes a short brief and hands it to a
+developer agent that calls Codex MCP to implement the game. Both agents share
+the same long-lived MCP server, so repeated runs avoid start-up latency.
 
 ```python
 import asyncio
@@ -129,11 +137,16 @@ Run the workflow:
 python codex_mcp.py
 ```
 
-Codex reads the designer’s brief, writes `index.html`, and produces a playable game. Because the MCP server stays active for the entire session, you can execute the script repeatedly without paying for fresh Codex start-ups each time.
+Codex reads the designer’s brief, writes `index.html`, and produces a playable
+game. Because the MCP server stays active for the entire session, you can
+execute the script repeatedly without paying for fresh Codex start-ups each
+time.
 
 ## 4. Grow into a multi-agent pipeline
 
-For a production-style workflow, create `multi_agent_workflow.py`. This script layers on a project manager and scoped specialist agents. The shared MCP server optimizes back-to-back hand-offs by eliminating reconnect overhead.
+For a production-style workflow, create `multi_agent_workflow.py`. This script
+layers on a project manager and scoped specialist agents. The shared MCP server
+optimizes back-to-back hand-offs by eliminating reconnect overhead.
 
 ```python
 import asyncio
@@ -316,7 +329,8 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-The project manager coordinates hand-offs, ensures prerequisites exist before progressing, and hands control back after each agent finishes.
+The project manager coordinates hand-offs, ensures prerequisites exist before
+progressing, and hands control back after each agent finishes.
 
 ## 5. Execute the pipeline and inspect artifacts
 
@@ -335,14 +349,19 @@ Expected outputs include:
 - `/backend/server.js` plus `package.json` if requested.
 - `/tests/TEST_PLAN.md` and any automation scripts.
 
-Because the MCP server stays open for the entire run, sequential role hand-offs incur minimal overhead, keeping back-to-back agent invocations snappy.
+Because the MCP server stays open for the entire run, sequential role hand-offs
+incur minimal overhead, keeping back-to-back agent invocations snappy.
 
 ## 6. Trace the workflow
 
-Codex automatically records traces that capture prompts, tool calls, file writes, and hand-offs. After the multi-agent run completes, open the Traces dashboard to review the execution timeline and drill into any step for auditability or debugging insights.
+Codex automatically records traces that capture prompts, tool calls, file
+writes, and hand-offs. After the multi-agent run completes, open the Traces
+dashboard to review the execution timeline and drill into any step for
+auditability or debugging insights.
 
 ## 7. Next steps
 
 - Expand the pipeline with additional roles, guardrails, or integration tests.
 - Swap Codex MCP for another MCP-compatible tool to explore hybrid workflows.
-- Parameterize the task list so you can queue multiple projects back-to-back without restarting the MCP server.
+- Parameterize the task list so you can queue multiple projects back-to-back
+  without restarting the MCP server.

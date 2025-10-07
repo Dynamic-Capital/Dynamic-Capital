@@ -9,9 +9,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --site-header-height: 64px;
-  }
+  :root {}
 
   *, *::before, *::after {
     box-sizing: border-box;
@@ -76,6 +74,15 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 
   @keyframes pulse-glow {

@@ -22,6 +22,7 @@ import {
   type DynamicChatEngineExecuteInput,
   useDynamicChatEngine,
 } from "@/hooks/useDynamicChatEngine";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import {
   type ChatResult,
   type ProviderId,
@@ -107,6 +108,16 @@ export function DynamicChat() {
     LANGUAGE_OPTIONS[0].value,
   );
 
+  const { loading: adminLoading, getAdminAuth } = useTelegramAuth();
+  const resolveAdminAuth = useCallback(
+    () => getAdminAuth?.() ?? null,
+    [getAdminAuth],
+  );
+  const adminAuth = resolveAdminAuth();
+  const hasAdminCredentials = Boolean(
+    adminAuth?.token ?? adminAuth?.initData,
+  );
+
   const selectedProvider = useMemo(() => {
     return providers.find((provider) => provider.id === selectedProviderId) ??
       null;
@@ -136,9 +147,29 @@ export function DynamicChat() {
       throw new Error("Select a provider before sending a message.");
     }
 
+    const auth = resolveAdminAuth();
+    if (!auth?.token && !auth?.initData) {
+      throw new Error(
+        "Admin authentication required. Refresh your admin session and try again.",
+      );
+    }
+
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+    };
+
+    if (auth.token) {
+      headers["Authorization"] = `Bearer ${auth.token}`;
+      headers["x-admin-token"] = auth.token;
+    }
+
+    if (auth.initData) {
+      headers["x-telegram-init-data"] = auth.initData;
+    }
+
     const response = await fetch("/api/tools/multi-llm/chat", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers,
       body: JSON.stringify({
         providerId: selectedProvider.id,
         messages: pendingMessages.map(({ role, content }) => ({
@@ -162,7 +193,13 @@ export function DynamicChat() {
 
     const result = (await response.json()) as ChatResult;
     return result;
-  }, [languageOption.lang, maxTokens, selectedProvider, temperature]);
+  }, [
+    languageOption.lang,
+    maxTokens,
+    resolveAdminAuth,
+    selectedProvider,
+    temperature,
+  ]);
 
   const {
     conversation,
@@ -257,6 +294,14 @@ export function DynamicChat() {
       return;
     }
 
+    const auth = resolveAdminAuth();
+    if (!auth?.token && !auth?.initData) {
+      setError(
+        "Admin authentication required. Refresh your admin session and try again.",
+      );
+      return;
+    }
+
     if (!selectedProvider.configured) {
       setError(
         `${selectedProvider.name} is not configured. Add the required API key to continue.`,
@@ -265,7 +310,13 @@ export function DynamicChat() {
     }
 
     await sendMessage();
-  }, [input, selectedProvider, sendMessage, setError]);
+  }, [
+    input,
+    resolveAdminAuth,
+    selectedProvider,
+    sendMessage,
+    setError,
+  ]);
 
   const providerLabelId = useId();
   const providerHelperId = useId();
@@ -749,7 +800,10 @@ export function DynamicChat() {
                 variant="brand"
                 onClick={handleSend}
                 isLoading={isLoading}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() ||
+                  isLoading ||
+                  adminLoading ||
+                  !hasAdminCredentials}
                 className="rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-[0.18em]"
               >
                 <Send className="mr-2 h-4 w-4" aria-hidden="true" />

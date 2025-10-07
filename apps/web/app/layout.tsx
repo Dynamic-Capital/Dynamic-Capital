@@ -20,7 +20,6 @@ import Providers from "./providers";
 import { RouteGuard, ScrollToHash } from "@/components/dynamic-portfolio";
 import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { SiteFooter } from "@/components/navigation/SiteFooter";
-import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
 import { SkipToContent } from "@/components/navigation/SkipToContent";
 import { HideOnMiniApp } from "@/components/navigation/HideOnMiniApp";
 import { dynamicBranding, dynamicUI } from "@/resources";
@@ -305,9 +304,11 @@ export default async function RootLayout(
               zIndex={0}
               fillWidth
               padding="l"
-              paddingBottom="24"
               horizontal="center"
               flex={1}
+              style={{
+                paddingBottom: "4rem",
+              }}
             >
               <Flex
                 id="main-content"
@@ -321,9 +322,6 @@ export default async function RootLayout(
             </Flex>
             <HideOnMiniApp>
               <SiteFooter />
-            </HideOnMiniApp>
-            <HideOnMiniApp>
-              <MobileBottomNav />
             </HideOnMiniApp>
           </Column>
         </Providers>
