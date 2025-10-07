@@ -449,18 +449,24 @@ async function runTask(task, packageScripts, baseEnv) {
 const {
   defaultedKeys,
   lovableOriginDefaulted,
+  originSource,
+  preferSyncedOrigin,
   resolvedOrigin,
   supabaseFallbacks,
 } = applyBrandingEnvDefaults({
   allowedOrigins: PRODUCTION_ALLOWED_ORIGINS,
   fallbackOrigin: PRODUCTION_ORIGIN,
+  preferFallbackForEphemeralHosts: true,
 });
 
 banner(
   "Codex CLI · Friendly Build Mode",
   "Running Dynamic build tasks with cheerful updates.",
 );
-info(`Resolved origin preference: ${resolvedOrigin}`);
+const resolvedOriginDescriptor = preferSyncedOrigin && originSource === "fallback"
+  ? `${resolvedOrigin} (synced fallback)`
+  : `${resolvedOrigin} (source: ${originSource})`;
+info(`Resolved origin preference: ${resolvedOriginDescriptor}`);
 
 if (defaultedKeys.length > 0) {
   warn(

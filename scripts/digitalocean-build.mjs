@@ -17,6 +17,8 @@ const cacheFileName = "digitalocean-static-fingerprint.json";
 const {
   allowedOrigins,
   defaultedKeys: brandingDefaults,
+  originSource,
+  preferSyncedOrigin,
   resolvedOrigin: canonicalOrigin,
 } = applyBrandingEnvDefaults({
   allowedOrigins: ({ env, resolvedOrigin }) => {
@@ -29,6 +31,7 @@ const {
     return Array.from(defaults).join(",");
   },
   includeSupabasePlaceholders: false,
+  preferFallbackForEphemeralHosts: true,
 });
 
 if (brandingDefaults.length > 0) {
@@ -37,8 +40,11 @@ if (brandingDefaults.length > 0) {
     brandingDefaults.join(", "),
   );
 } else {
+  const originDescriptor = preferSyncedOrigin && originSource === "fallback"
+    ? `${canonicalOrigin} (synced fallback)`
+    : `${canonicalOrigin} (source: ${originSource})`;
   console.log(
-    `DigitalOcean build: branding environment already configured (origin: ${canonicalOrigin}).`,
+    `DigitalOcean build: branding environment already configured (origin: ${originDescriptor}).`,
   );
 }
 

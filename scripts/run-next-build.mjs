@@ -34,11 +34,14 @@ const fallbackOrigin = isCI ? PRODUCTION_ORIGIN : LOCAL_DEV_ORIGIN;
 
 const {
   defaultedKeys: defaultNotices,
+  originSource,
+  preferSyncedOrigin,
   resolvedOrigin,
 } = applyBrandingEnvDefaults({
   allowedOrigins: ({ env, resolvedOrigin: origin }) => env.SITE_URL ?? origin,
   fallbackOrigin,
   includeSupabasePlaceholders: false,
+  preferFallbackForEphemeralHosts: isCI,
 });
 
 if (defaultNotices.length > 0) {
@@ -47,8 +50,11 @@ if (defaultNotices.length > 0) {
     defaultNotices,
   );
 } else {
+  const originDetails = preferSyncedOrigin && originSource === "fallback"
+    ? `${resolvedOrigin} (synced fallback)`
+    : `${resolvedOrigin} (source: ${originSource})`;
   console.info(
-    `Branding origin already configured for Next.js build: ${resolvedOrigin}`,
+    `Branding origin already configured for Next.js build: ${originDetails}`,
   );
 }
 
