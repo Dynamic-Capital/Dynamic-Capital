@@ -109,7 +109,6 @@ export const SystemStatus = () => {
     // Warm timezone cache to avoid repeated database lookups
     getTimezones();
     checkSystemStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkSystemStatus = async () => {
