@@ -210,7 +210,8 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
   across devices.
 - **Automation guardrails** enforce per-user hedging limits, circuit breakers,
   and operator approval queues before new strategies reach production.
-- **Supported wallets** include Tonkeeper, OpenMask, and MyTonWallet with
+- **Supported wallets** include Tonkeeper, DeDust Wallet, STON.fi Wallet,
+  MyTonWallet, Tonhub, and OpenMask with
   dynamic capability negotiation for staking, swaps, and signature payloads.
 
 ### Treasury & Token

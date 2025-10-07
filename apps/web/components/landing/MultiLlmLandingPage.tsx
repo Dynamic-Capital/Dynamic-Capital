@@ -84,7 +84,7 @@ const WALLET_FEATURES = [
   {
     title: "TonConnect onboarding",
     description:
-      "Investors connect Tonkeeper, MyTonWallet, or Tonhub inside Telegram in seconds.",
+      "Investors connect Tonkeeper, DeDust Wallet, STON.fi Wallet, MyTonWallet, or Tonhub inside Telegram in seconds.",
     icon: "sparkles" as const,
   },
   {

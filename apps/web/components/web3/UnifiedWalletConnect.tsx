@@ -37,7 +37,8 @@ export function UnifiedWalletConnect() {
 
         <TabsContent value="ton" className="space-y-4 pt-4">
           <div className="text-sm text-muted-foreground mb-2">
-            Connect your TON wallet (MyTonWallet, Tonkeeper, etc.)
+            Connect your TON wallet (Tonkeeper, DeDust Wallet, STON.fi Wallet,
+            MyTonWallet, Tonhub, etc.)
           </div>
           <TonWalletButton />
         </TabsContent>

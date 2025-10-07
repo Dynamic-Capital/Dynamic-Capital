@@ -10,8 +10,23 @@ declare module "@tonconnect/ui-react" {
     account?: TonConnectAccount | null;
   }
 
+  export interface TonConnectUIWallet {
+    appName: string;
+    name: string;
+    imageUrl: string;
+    aboutUrl: string;
+    universalLink: string;
+    bridgeUrl: string;
+    platforms?: string[];
+  }
+
+  export interface WalletsListConfiguration {
+    includeWallets?: TonConnectUIWallet[];
+  }
+
   export interface TonConnectUIProviderProps {
     manifestUrl: string;
+    walletsListConfiguration?: WalletsListConfiguration;
     children?: ReactNode;
   }
 
