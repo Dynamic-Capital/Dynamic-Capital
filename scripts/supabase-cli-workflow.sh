@@ -40,14 +40,21 @@ fi
 
 cd "${ROOT_DIR}"
 
+urlencode() {
+  local value="$1"
+  python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' -- "${value}"
+}
+
 build_db_url() {
   local user="$1"
   local password="$2"
   local host="$3"
 
+  local encoded_user
   local encoded_password
-  encoded_password="$(node -e "console.log(encodeURIComponent(process.argv[1] ?? ''))" "${password}")"
-  printf 'postgresql://%s:%s@%s:5432/postgres' "${user}" "${encoded_password}" "${host}"
+  encoded_user="$(urlencode "${user}")"
+  encoded_password="$(urlencode "${password}")"
+  printf 'postgresql://%s:%s@%s:5432/postgres' "${encoded_user}" "${encoded_password}" "${host}"
 }
 
 DB_HOST="db.${PROJECT_REF}.supabase.co"

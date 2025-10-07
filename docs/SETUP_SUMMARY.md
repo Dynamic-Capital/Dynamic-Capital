@@ -45,10 +45,10 @@
 ## What’s Left
 
 - If not already: run `npx supabase login && supabase link && supabase db push`
-  (or `bash scripts/supabase-cli-workflow.sh`). The workflow now accepts
-  optional `SUPABASE_DB_USER`/`SUPABASE_DB_URL` overrides so you can point
-  migrations at a custom Postgres role or connection string when the default
-  `postgres` user isn’t reachable.
+  (or `bash scripts/supabase-cli-workflow.sh`).
+- When the default `postgres` role is blocked (for example, when a bastion
+  tunnel is required), set `SUPABASE_DB_USER` or `SUPABASE_DB_URL` before
+  running the workflow to point migrations at an alternate connection string.
 - Open/refresh the PR with the add-only files; ensure checks (`typecheck`,
   `test`, `audit`, `test-and-pr`) pass.
 - Enable auto-merge and add branch protection (mark those checks as required).
