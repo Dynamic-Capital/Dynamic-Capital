@@ -4,4 +4,5 @@
 -- can create sessions.
 update auth.config
 set allow_anonymous_sign_ins = false
-where id = 1;
+where id = 1
+  and coalesce(allow_anonymous_sign_ins, true);
