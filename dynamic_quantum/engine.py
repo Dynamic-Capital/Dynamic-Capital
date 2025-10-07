@@ -214,10 +214,38 @@ class DynamicQuantumEngine:
     ) -> tuple[QuantumPulse, ...]:
         """Register a batch of pulses efficiently."""
 
-        registered: MutableSequence[QuantumPulse] = []
+        if not pulses:
+            return ()
+
+        prepared: MutableSequence[QuantumPulse] = []
         for pulse in pulses:
-            registered.append(self.register_pulse(pulse))
-        return tuple(registered)
+            if isinstance(pulse, Mapping):
+                pulse = QuantumPulse(**pulse)
+            elif not isinstance(pulse, QuantumPulse):  # pragma: no cover - defensive guard
+                raise TypeError("pulse must be a QuantumPulse or mapping")
+            prepared.append(pulse)
+
+        if not prepared:
+            return ()
+
+        window = self._window
+        pulse_buffer = self._pulses
+
+        if len(prepared) >= window:
+            self.clear()
+            prepared = prepared[-window:]
+        else:
+            excess = len(pulse_buffer) + len(prepared) - window
+            if excess > 0:
+                for _ in range(min(excess, len(pulse_buffer))):
+                    removed = pulse_buffer.popleft()
+                    self._update_totals(removed, sign=-1.0)
+
+        for pulse in prepared:
+            pulse_buffer.append(pulse)
+            self._update_totals(pulse, sign=1.0)
+
+        return tuple(prepared)
 
     def clear(self) -> None:
         self._pulses.clear()

@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from datetime import datetime
+from functools import lru_cache
+from types import MappingProxyType
 from typing import Iterable, Mapping, MutableMapping, Sequence, Tuple, Type
 
 from dynamic_agents._insight import AgentInsight, Number, utcnow
@@ -512,6 +514,7 @@ QUANTUM_AGENT_PROFILES: Mapping[str, QuantumAgentProfile] = {
 }
 
 
+@lru_cache(maxsize=1)
 def list_quantum_agent_profiles() -> Tuple[QuantumAgentProfile, ...]:
     return tuple(QUANTUM_AGENT_PROFILES.values())
 
@@ -564,8 +567,9 @@ class DynamicDionysusQuantumAgent(DynamicQuantumAgent):
     profile = QUANTUM_AGENT_PROFILES["dionysus"]
 
 
+@lru_cache(maxsize=1)
 def build_quantum_agent_registry() -> Mapping[str, Type[DynamicQuantumAgent]]:
-    return {
+    registry = {
         profile.code: agent
         for profile, agent in (
             (QUANTUM_AGENT_PROFILES["zeus"], DynamicZeusQuantumAgent),
@@ -582,4 +586,5 @@ def build_quantum_agent_registry() -> Mapping[str, Type[DynamicQuantumAgent]]:
             (QUANTUM_AGENT_PROFILES["dionysus"], DynamicDionysusQuantumAgent),
         )
     }
+    return MappingProxyType(registry)
 
