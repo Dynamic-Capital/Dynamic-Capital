@@ -1,3 +1,10 @@
+import type {
+  TonConnectUIWallet,
+  WalletsListConfiguration,
+} from "@tonconnect/ui-react";
+
+type WalletPlatform = NonNullable<TonConnectUIWallet["platforms"]>[number];
+
 export type TonConnectWalletMetadata = {
   appName: string;
   name: string;
@@ -5,22 +12,14 @@ export type TonConnectWalletMetadata = {
   aboutUrl: string;
   universalLink: string;
   bridgeUrl: string;
-  platforms: readonly string[];
+  platforms: ReadonlyArray<WalletPlatform>;
 };
 
-export type TonConnectWalletListEntry = {
-  appName: string;
-  name: string;
-  imageUrl: string;
-  aboutUrl: string;
-  universalLink: string;
-  bridgeUrl: string;
-  platforms: readonly string[];
+export type TonConnectWalletListEntry = TonConnectUIWallet & {
+  platforms: ReadonlyArray<WalletPlatform>;
 };
 
-export type TonConnectWalletsListConfiguration = {
-  includeWallets: readonly TonConnectWalletListEntry[];
-};
+export type TonConnectWalletsListConfiguration = WalletsListConfiguration;
 
 export const TONCONNECT_RECOMMENDED_WALLETS = [
   {
@@ -89,14 +88,15 @@ export function toTonConnectWalletListEntry(
     aboutUrl: wallet.aboutUrl,
     universalLink: wallet.universalLink,
     bridgeUrl: wallet.bridgeUrl,
-    platforms: wallet.platforms,
+    platforms: [...wallet.platforms] as ReadonlyArray<WalletPlatform>,
   };
 }
 
-const DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES =
+const DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES = Object.freeze(
   TONCONNECT_RECOMMENDED_WALLETS.map((wallet) =>
     toTonConnectWalletListEntry(wallet)
-  );
+  ),
+) as ReadonlyArray<TonConnectWalletListEntry>;
 
 const DEFAULT_TONCONNECT_WALLETS_LIST_CONFIGURATION = {
   includeWallets: DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES,
@@ -114,5 +114,5 @@ export function createTonConnectWalletsListConfiguration(
 
   return {
     includeWallets: wallets.map((wallet) => toTonConnectWalletListEntry(wallet)),
-  };
+  } as const satisfies TonConnectWalletsListConfiguration;
 }

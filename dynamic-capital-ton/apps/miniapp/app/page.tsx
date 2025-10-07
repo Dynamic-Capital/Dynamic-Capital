@@ -1042,10 +1042,26 @@ function HomeInner() {
     const updatedAt = selectedPlan?.meta.updatedAt;
     return updatedAt ? formatRelativeTime(updatedAt) : null;
   }, [selectedPlan?.meta.updatedAt]);
-  const planSnapshot = useMemo(
-    () => normalisePlanSnapshot(selectedPlan?.meta.snapshot ?? null),
-    [selectedPlan?.meta.snapshot],
-  );
+  const planSnapshot = useMemo<
+    { currency: string; snapshot: NormalizedPlanSnapshot } | null
+  >(() => {
+    if (!selectedPlan) {
+      return null;
+    }
+
+    const normalizedSnapshot = normalisePlanSnapshot(
+      selectedPlan.meta.snapshot ?? null,
+    );
+
+    if (!normalizedSnapshot) {
+      return null;
+    }
+
+    return {
+      currency: selectedPlan.meta.currency,
+      snapshot: normalizedSnapshot,
+    };
+  }, [selectedPlan]);
   const wallet = tonConnectUI?.account;
   const walletAddress = wallet?.address;
 
@@ -1849,8 +1865,8 @@ function HomeInner() {
 
           {planSnapshot && (
             <PlanSnapshotCard
-              snapshot={planSnapshot}
-              currency={selectedPlan.meta.currency}
+              snapshot={planSnapshot.snapshot}
+              currency={planSnapshot.currency}
             />
           )}
 
