@@ -1,9 +1,9 @@
 import type {
-  TonConnectUIWallet,
+  UIWallet,
   WalletsListConfiguration,
 } from "@tonconnect/ui-react";
 
-type WalletPlatform = NonNullable<TonConnectUIWallet["platforms"]>[number];
+type WalletPlatform = NonNullable<UIWallet["platforms"]>[number];
 
 export type TonConnectWalletMetadata = {
   appName: string;
@@ -12,11 +12,15 @@ export type TonConnectWalletMetadata = {
   aboutUrl: string;
   universalLink: string;
   bridgeUrl: string;
+  deepLink?: string;
+  jsBridgeKey?: string;
   platforms: ReadonlyArray<WalletPlatform>;
 };
 
-export type TonConnectWalletListEntry = TonConnectUIWallet & {
-  platforms: ReadonlyArray<WalletPlatform>;
+export type TonConnectWalletListEntry = UIWallet & {
+  platforms: WalletPlatform[];
+  deepLink?: TonConnectWalletMetadata["deepLink"];
+  jsBridgeKey?: TonConnectWalletMetadata["jsBridgeKey"];
 };
 
 export type TonConnectWalletsListConfiguration = WalletsListConfiguration;
@@ -25,7 +29,7 @@ export const TONCONNECT_RECOMMENDED_WALLETS = [
   {
     appName: "telegram-wallet",
     name: "Wallet",
-    imageUrl: "https://config.ton.org/assets/telegram_wallet.png",
+    imageUrl: "https://wallet.tg/images/logo-288.png",
     aboutUrl: "https://wallet.tg/",
     universalLink: "https://t.me/wallet?attach=wallet",
     bridgeUrl: "https://walletbot.me/tonconnect-bridge/bridge",
@@ -38,7 +42,17 @@ export const TONCONNECT_RECOMMENDED_WALLETS = [
     aboutUrl: "https://tonkeeper.com",
     universalLink: "https://app.tonkeeper.com/ton-connect",
     bridgeUrl: "https://bridge.tonapi.io/bridge",
-    platforms: ["ios", "android", "chrome", "firefox", "macos"] as const,
+    deepLink: "tonkeeper-tc://",
+    jsBridgeKey: "tonkeeper",
+    platforms: [
+      "ios",
+      "android",
+      "chrome",
+      "firefox",
+      "macos",
+      "windows",
+      "linux",
+    ] as const,
   },
   {
     appName: "dedust",
@@ -65,31 +79,52 @@ export const TONCONNECT_RECOMMENDED_WALLETS = [
     aboutUrl: "https://tonhub.com",
     universalLink: "https://tonhub.com/ton-connect",
     bridgeUrl: "https://connect.tonhubapi.com/tonconnect",
+    jsBridgeKey: "tonhub",
     platforms: ["ios", "android"] as const,
   },
   {
     appName: "mytonwallet",
     name: "MyTonWallet",
-    imageUrl: "https://mytonwallet.io/icon-256.png",
+    imageUrl: "https://static.mytonwallet.io/icon-256.png",
     aboutUrl: "https://mytonwallet.io",
     universalLink: "https://connect.mytonwallet.org",
     bridgeUrl: "https://tonconnectbridge.mytonwallet.org/bridge/",
-    platforms: ["chrome", "windows", "macos", "linux"] as const,
+    deepLink: "mytonwallet-tc://",
+    jsBridgeKey: "mytonwallet",
+    platforms: [
+      "chrome",
+      "windows",
+      "macos",
+      "linux",
+      "ios",
+      "android",
+      "firefox",
+    ] as const,
   },
 ] satisfies readonly TonConnectWalletMetadata[];
 
 export function toTonConnectWalletListEntry(
   wallet: TonConnectWalletMetadata,
 ): TonConnectWalletListEntry {
-  return {
+  const entry: TonConnectWalletListEntry = {
     appName: wallet.appName,
     name: wallet.name,
     imageUrl: wallet.imageUrl,
     aboutUrl: wallet.aboutUrl,
     universalLink: wallet.universalLink,
     bridgeUrl: wallet.bridgeUrl,
-    platforms: [...wallet.platforms] as ReadonlyArray<WalletPlatform>,
+    platforms: [...wallet.platforms] as WalletPlatform[],
   };
+
+  if (wallet.deepLink) {
+    entry.deepLink = wallet.deepLink;
+  }
+
+  if (wallet.jsBridgeKey) {
+    entry.jsBridgeKey = wallet.jsBridgeKey;
+  }
+
+  return entry;
 }
 
 const DEFAULT_TONCONNECT_WALLET_LIST_ENTRIES =
