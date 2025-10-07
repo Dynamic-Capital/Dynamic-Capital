@@ -8,10 +8,18 @@ import {
 
 export interface TokenConfig {
   address?: string;
+  name?: string;
+  symbol?: string;
+  decimals?: number;
+}
+
+export interface ContractsConfig {
+  dexRouter?: string;
 }
 
 export interface ProjectConfig {
   token?: TokenConfig;
+  contracts?: ContractsConfig;
 }
 
 export function resolveProjectRoot(metaUrl: string): string {
@@ -19,7 +27,9 @@ export function resolveProjectRoot(metaUrl: string): string {
   return resolve(join(here, "..", ".."));
 }
 
-export async function loadProjectConfig(projectRoot: string): Promise<ProjectConfig> {
+export async function loadProjectConfig(
+  projectRoot: string,
+): Promise<ProjectConfig> {
   const configText = await Deno.readTextFile(join(projectRoot, "config.yaml"));
   return parse(configText) as ProjectConfig;
 }

@@ -37,3 +37,9 @@ The off-chain jetton metadata lives in `metadata.json`. It surfaces the token
 name, symbol, decimals (9), and canonical project URL so wallets and explorers
 can render DCT consistently. Publish the file to IPFS or your preferred static
 host and point the master contract's metadata URI to the hosted JSON artifact.
+After updating the JSON, run the validation helper to confirm the verification
+links remain intact:
+
+```sh
+deno run -A ../../apps/tools/validate-jetton-links.ts
+```
