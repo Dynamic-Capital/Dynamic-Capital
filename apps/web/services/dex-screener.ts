@@ -6,11 +6,13 @@ const DEX_SCREENER_FETCH_OVERRIDE = Symbol.for(
 
 const DEX_SCREENER_API_BASE_URL = "https://api.dexscreener.com" as const;
 
-export const DEX_SCREENER_API_ENDPOINTS = Object.freeze({
-  latestProfiles: "/token-profiles/latest/v1",
-  latestBoosts: "/token-boosts/latest/v1",
-  topBoosts: "/token-boosts/top/v1",
-} as const);
+export const DEX_SCREENER_API_ENDPOINTS = Object.freeze(
+  {
+    latestProfiles: "/token-profiles/latest/v1",
+    latestBoosts: "/token-boosts/latest/v1",
+    topBoosts: "/token-boosts/top/v1",
+  } as const,
+);
 
 const DEFAULT_TIMEOUT_MS = 7_500;
 const MAX_RESULTS = 20;

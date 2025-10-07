@@ -33,9 +33,13 @@ is the best fit for the task at hand.
 
 ### Automation exports
 
-- Use `npm run checklists -- --automation governance --plan-export automation/logs/governance-plan.json --result-export automation/logs/governance-run.json`
-  to bundle intelligence and trading loops into a single run with machine-readable artefacts.
-- Run `./playbook --automate --export-dir automation/playbook` before leadership cadences to refresh timestamped Markdown snapshots for every initiative update.
+- Use
+  `npm run checklists -- --automation governance --plan-export automation/logs/governance-plan.json --result-export automation/logs/governance-run.json`
+  to bundle intelligence and trading loops into a single run with
+  machine-readable artefacts.
+- Run `./playbook --automate --export-dir automation/playbook` before leadership
+  cadences to refresh timestamped Markdown snapshots for every initiative
+  update.
 
 ## Command Playbooks
 

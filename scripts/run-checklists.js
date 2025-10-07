@@ -675,7 +675,9 @@ function listChecklists() {
       console.log(`    ${automation.description}`);
     }
     console.log(
-      `    Includes: ${automation.checklists.map((name) => `\`${name}\``).join(", ")}`,
+      `    Includes: ${
+        automation.checklists.map((name) => `\`${name}\``).join(", ")
+      }`,
     );
     console.log("");
   }
@@ -1140,5 +1142,7 @@ function writeJson(destination, payload) {
     `${JSON.stringify(payload, null, 2)}\n`,
     "utf-8",
   );
-  console.log(`\nExported automation log → ${path.relative(PROJECT_ROOT, absolutePath)}`);
+  console.log(
+    `\nExported automation log → ${path.relative(PROJECT_ROOT, absolutePath)}`,
+  );
 }

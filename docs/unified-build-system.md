@@ -2,7 +2,10 @@
 
 ## Overview
 
-The Dynamic Capital application now uses a unified build system that consolidates all build processes into a single, streamlined workflow. This ensures consistent builds across all platforms (DigitalOcean, Vercel, Lovable, and local development).
+The Dynamic Capital application now uses a unified build system that
+consolidates all build processes into a single, streamlined workflow. This
+ensures consistent builds across all platforms (DigitalOcean, Vercel, Lovable,
+and local development).
 
 ## Architecture
 
@@ -31,6 +34,7 @@ The Dynamic Capital application now uses a unified build system that consolidate
 ### 1. Platform Auto-Detection
 
 The build system automatically detects the deployment platform:
+
 - **DigitalOcean**: Detects `DIGITALOCEAN_APP_ID`
 - **Vercel**: Detects `VERCEL`
 - **Lovable**: Detects `LOVABLE_BUILD`
@@ -39,6 +43,7 @@ The build system automatically detects the deployment platform:
 ### 2. TON Domain Configuration
 
 The build ensures proper configuration for:
+
 - Primary TON domain: `dynamiccapital.ton`
 - TON Site Gateway: `ton-gateway.dynamic-capital.ondigitalocean.app`
 - Fallback Gateway: `ton-gateway.dynamic-capital.lovable.app`
@@ -47,6 +52,7 @@ The build ensures proper configuration for:
 ### 3. Unified Environment Management
 
 All environment variables are centrally managed and validated:
+
 ```bash
 SITE_URL=https://dynamiccapital.ton
 ALLOWED_ORIGINS=https://dynamiccapital.ton,https://dynamic-capital-qazf2.ondigitalocean.app,...
@@ -63,6 +69,7 @@ npm run build
 ```
 
 This runs the unified build script which:
+
 1. Configures branding and environment variables
 2. Verifies TON configuration
 3. Generates brand assets
@@ -160,7 +167,8 @@ Runs the Next.js development server with hot reload.
 The application is accessible via multiple entry points:
 
 1. **Native TON**: `dynamiccapital.ton` (requires TON wallet browser extension)
-2. **HTTPS Gateway**: `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
+2. **HTTPS Gateway**:
+   `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
 3. **DigitalOcean**: `https://dynamic-capital-qazf2.ondigitalocean.app`
 4. **Legacy Gateway**: `https://ton.site/dynamiccapital.ton`
 
@@ -171,6 +179,7 @@ All domains are configured in the allowed origins list and CORS policy.
 ### Caching
 
 The build system uses caching to speed up subsequent builds:
+
 - Build cache: `.build-cache/`
 - npm cache: Automatically configured
 - Next.js cache: `.next/cache/`
@@ -222,6 +231,7 @@ SKIP_ASSET_UPLOAD=true npm run build
 ## Monitoring
 
 Build status can be monitored via:
+
 - DigitalOcean App Console
 - Vercel Dashboard
 - Build logs in terminal
@@ -238,6 +248,7 @@ The old build system is preserved as `build:legacy`. To migrate:
 ## Performance
 
 Typical build times:
+
 - Local (cold): ~2-3 minutes
 - Local (cached): ~30-60 seconds
 - DigitalOcean (cold): ~3-4 minutes

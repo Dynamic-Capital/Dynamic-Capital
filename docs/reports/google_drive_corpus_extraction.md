@@ -5,14 +5,15 @@
 A fresh extraction run against the Google Drive share link
 `https://drive.google.com/drive/folders/1F2A1RO8W5DDa8yWIKBMos_k32DQD4jpB?usp=sharing`
 now succeeds without requiring authenticated API access. By invoking the `gdown`
-library from Python (and temporarily raising its hard-coded per-folder limit)
-we retrieved 115 files (PDF, DOCX, PPTX, PNG, and JSON assets) spanning the
-`books/Law`, `books/Others`, `books/Trading`, and `research` sub-folders. The full
-hierarchy currently lives under `/tmp/drive_folder_python` on the runner.
+library from Python (and temporarily raising its hard-coded per-folder limit) we
+retrieved 115 files (PDF, DOCX, PPTX, PNG, and JSON assets) spanning the
+`books/Law`, `books/Others`, `books/Trading`, and `research` sub-folders. The
+full hierarchy currently lives under `/tmp/drive_folder_python` on the runner.
 
 ## Steps Performed
 
-1. Installed `gdown` (`pip install gdown`) to interact with public Drive folders.
+1. Installed `gdown` (`pip install gdown`) to interact with public Drive
+   folders.
 2. Launched a small Python snippet to import `gdown.download_folder`, bump the
    `MAX_NUMBER_FILES` constant from 50 to 1000, and call the library API:
    ```bash
@@ -34,14 +35,14 @@ hierarchy currently lives under `/tmp/drive_folder_python` on the runner.
 
 ## Follow-up Options
 
-- **Ingest into the corpus pipeline.** Run `python scripts/index_google_drive_pdfs.py` with
-  the same share link once Google Drive API credentials (API key or OAuth access
-  token) are available. The script requires credentials to invoke Drive's
-  metadata API but will leverage the same folder structure already mirrored
-  locally.
+- **Ingest into the corpus pipeline.** Run
+  `python scripts/index_google_drive_pdfs.py` with the same share link once
+  Google Drive API credentials (API key or OAuth access token) are available.
+  The script requires credentials to invoke Drive's metadata API but will
+  leverage the same folder structure already mirrored locally.
 - **Archive for reproducibility.** If long-term storage is needed, tar/zip the
-  `/tmp/drive_folder_python` directory and check it into an artefact bucket or other
-  persistent storage location accessible to the ingestion job.
+  `/tmp/drive_folder_python` directory and check it into an artefact bucket or
+  other persistent storage location accessible to the ingestion job.
 - **Enable OCR when necessary.** A small subset of PDFs may rely on scanned
   images. Before indexing, install the optional OCR toolchain
   (`pip install PyPDF2 pdf2image pytesseract Pillow`) and add `--enable-ocr` to

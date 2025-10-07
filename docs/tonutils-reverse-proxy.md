@@ -63,13 +63,19 @@ linked domain in `config.json`; subsequent restarts do not require the
 
 ## Manual download (fallback)
 
-If you prefer to manage the binary manually, download the release that matches your platform:
+If you prefer to manage the binary manually, download the release that matches
+your platform:
 
-- **Linux (amd64):** `wget https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-linux-amd64`
-- **Linux (arm64):** `wget https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-linux-arm64`
-- **macOS (Intel):** `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-mac-amd64`
-- **macOS (Apple):** `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-mac-arm64`
-- **Windows (x64):** `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-windows-x64.exe`
+- **Linux (amd64):**
+  `wget https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-linux-amd64`
+- **Linux (arm64):**
+  `wget https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-linux-arm64`
+- **macOS (Intel):**
+  `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-mac-amd64`
+- **macOS (Apple):**
+  `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-mac-arm64`
+- **Windows (x64):**
+  `curl -LO https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-windows-x64.exe`
 
 Make the binary executable on Unix hosts:
 

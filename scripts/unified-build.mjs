@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Unified Build Script for Dynamic Capital TON Web3 App
- * 
+ *
  * This script consolidates the build process for the entire application:
  * - Next.js web app with TON integration
  * - Static assets and CDN uploads
@@ -66,7 +66,7 @@ function parseBool(value, defaultValue = false) {
 async function runCommand(command, args, options = {}) {
   const { env: providedEnv, ...rest } = options;
   const env = createSanitizedNpmEnv(providedEnv ?? {});
-  
+
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: "inherit",
@@ -95,21 +95,24 @@ function configureBranding() {
     allowedOrigins: ({ env, resolvedOrigin }) => {
       const existing = env.ALLOWED_ORIGINS?.trim();
       if (existing) return existing;
-      
+
       const defaults = new Set(PRODUCTION_ALLOWED_ORIGIN_LIST);
       defaults.add(resolvedOrigin);
       defaults.add(`https://${TON_DOMAINS.primary}`);
       defaults.add(`https://www.${TON_DOMAINS.primary}`);
       defaults.add(`https://${TON_DOMAINS.gateway}`);
       defaults.add(`https://${TON_DOMAINS.gatewayFallback}`);
-      
+
       return Array.from(defaults).join(",");
     },
     includeSupabasePlaceholders: false,
   });
 
   if (brandingDefaults.length > 0) {
-    console.log("✅ Applied default branding variables:", brandingDefaults.join(", "));
+    console.log(
+      "✅ Applied default branding variables:",
+      brandingDefaults.join(", "),
+    );
   } else {
     console.log(`✅ Branding configured (origin: ${canonicalOrigin})`);
   }
@@ -124,7 +127,7 @@ function configureBranding() {
 // Build the Next.js application
 async function buildNextApp() {
   console.log("\n📦 Building Next.js application...");
-  
+
   const buildEnv = {
     NODE_ENV: "production",
     NEXT_TELEMETRY_DISABLED: "1",
@@ -149,7 +152,7 @@ async function typeCheck() {
   }
 
   console.log("\n🔍 Running type check...");
-  
+
   const code = await runCommand(npmCommand, ["run", "typecheck"], {
     cwd: path.join(__dirname, "..", "apps", "web"),
   });
@@ -172,11 +175,15 @@ async function uploadAssets() {
   const fingerprint = await hashDirectory(staticDir);
 
   if (!fingerprint) {
-    console.warn(`⚠️  Directory "${staticDir}" not found. Skipping asset upload.`);
+    console.warn(
+      `⚠️  Directory "${staticDir}" not found. Skipping asset upload.`,
+    );
     return;
   }
 
-  console.log(`\n📤 Uploading static assets (${fingerprint.fileCount} files)...`);
+  console.log(
+    `\n📤 Uploading static assets (${fingerprint.fileCount} files)...`,
+  );
 
   const requiredKeys = ["CDN_BUCKET", "CDN_ACCESS_KEY", "CDN_SECRET_KEY"];
   const missingKeys = requiredKeys.filter((key) => !process.env[key]?.trim());
@@ -198,7 +205,7 @@ async function uploadAssets() {
 // Generate brand assets
 async function generateBrandAssets() {
   console.log("\n🎨 Generating brand assets...");
-  
+
   const code = await runCommand(npmCommand, ["run", "generate:brand-assets"], {
     cwd: path.join(__dirname, "..", "apps", "web"),
   });
@@ -213,7 +220,7 @@ async function generateBrandAssets() {
 // Verify TON configuration
 function verifyTonConfig() {
   console.log("\n🔗 Verifying TON configuration...");
-  
+
   const tonConfig = {
     primaryDomain: TON_DOMAINS.primary,
     gateway: TON_DOMAINS.gateway,
@@ -232,7 +239,7 @@ async function main() {
 
     // Step 1: Configure branding and environment
     const { canonicalOrigin, allowedOrigins } = configureBranding();
-    
+
     // Step 2: Verify TON configuration
     verifyTonConfig();
 
@@ -261,8 +268,10 @@ async function main() {
     console.log("  Canonical Origin:", canonicalOrigin);
     console.log("  TON Domain:", TON_DOMAINS.primary);
     console.log("  TON Gateway:", TON_DOMAINS.gateway);
-    console.log("  CDN Upload:", BUILD_CONFIG.enableCDN ? "Enabled" : "Disabled");
-    
+    console.log(
+      "  CDN Upload:",
+      BUILD_CONFIG.enableCDN ? "Enabled" : "Disabled",
+    );
   } catch (error) {
     console.error("\n❌ Build failed:", error.message);
     process.exit(1);

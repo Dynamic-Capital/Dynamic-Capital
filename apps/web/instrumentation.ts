@@ -329,13 +329,11 @@ const registerImpl: () => Promise<void> = (() => {
       return;
     }
 
-    const SDKMeterProvider =
-      meterProviderCtor as MeterProviderConstructor;
+    const SDKMeterProvider = meterProviderCtor as MeterProviderConstructor;
     const InstrumentType = instrumentType as InstrumentTypeLike;
     const View = viewCtor as ViewConstructor;
     const ExplicitBucketHistogramAggregation =
-      explicitBucketHistogramAggregationCtor as
-        ExplicitBucketHistogramAggregationConstructor;
+      explicitBucketHistogramAggregationCtor as ExplicitBucketHistogramAggregationConstructor;
 
     const Resource = resourceCtor as ResourceConstructor;
 
