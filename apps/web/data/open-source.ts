@@ -95,6 +95,14 @@ export const OPEN_SOURCE_CATALOG: OpenSourceCatalogData = {
   ],
   toolkits: [
     {
+      name: "AutoGen",
+      description:
+        "Microsoft's conversational multi-agent framework for coordinating tool-enabled AI workers and humans in shared workflows.",
+      homepage: "https://github.com/microsoft/autogen",
+      license: "MIT",
+      tags: ["multi-agent", "automation", "coordination"],
+    },
+    {
       name: "AutoGPT",
       description:
         "Experimental open multi-agent system that chains tools and memory for autonomous task execution.",
@@ -111,12 +119,36 @@ export const OPEN_SOURCE_CATALOG: OpenSourceCatalogData = {
       tags: ["multi-agent", "coordination", "planning"],
     },
     {
+      name: "Langroid",
+      description:
+        "Composable Python framework for building cooperative agent teams with shared memory, tool use, and human-in-the-loop control.",
+      homepage: "https://github.com/langroid/langroid",
+      license: "MIT",
+      tags: ["python", "agents", "tool-use"],
+    },
+    {
       name: "LangGraph",
       description:
         "LangChain extension for building cyclic workflows, stateful agents, and guarded tool execution.",
       homepage: "https://github.com/langchain-ai/langgraph",
       license: "MIT",
       tags: ["workflow", "graph", "guardrails"],
+    },
+    {
+      name: "smolagents",
+      description:
+        "Hugging Face's lightweight agent runtime featuring ReAct-style planning, tool calling, and guarded evaluation loops.",
+      homepage: "https://github.com/huggingface/smolagents",
+      license: "Apache-2.0",
+      tags: ["lightweight", "react", "hugging-face"],
+    },
+    {
+      name: "SuperAGI",
+      description:
+        "Production-focused autonomous agent platform with workflow design studio, tool marketplace, and observability dashboards.",
+      homepage: "https://github.com/TransformerOptimus/SuperAGI",
+      license: "Apache-2.0",
+      tags: ["platform", "autonomous", "orchestration"],
     },
   ],
 } as const;
