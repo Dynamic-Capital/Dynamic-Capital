@@ -146,6 +146,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Daily drawdown guardrail applied to risk parameters (percentage)",
     )
     parser.add_argument(
+        "--max-workers",
+        type=int,
+        help="Optional override for parallel optimisation workers (defaults to CPU-based heuristic)",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         help="Optional path to write the optimisation summary JSON payload",
@@ -175,12 +180,15 @@ def run(argv: Sequence[str] | None = None) -> dict[str, object]:
         max_daily_drawdown_pct=float(args.max_drawdown),
     )
 
+    max_workers = None if args.max_workers is None or args.max_workers <= 0 else int(args.max_workers)
+
     plan = optimize_trading_stack(
         snapshots,
         search_space,
         base_config=base_config,
         risk_parameters=risk_parameters,
         initial_equity=float(args.initial_equity),
+        max_workers=max_workers,
     )
 
     summary = _plan_to_summary(plan)

@@ -300,6 +300,7 @@ def optimize_trading_stack(
     health_monitor: Optional[HealthMonitor] = None,
     advisor: "TradeAdvisor" | None = None,
     previous_plan: Optional["OptimizationPlan"] = None,
+    max_workers: Optional[int] = None,
 ) -> OptimizationPlan:
     """Execute the optimisation tasks recommended by the trading playbook."""
 
@@ -345,6 +346,7 @@ def optimize_trading_stack(
         scoring=scoring,
         initial_equity=initial_equity,
         pipeline_state=pipeline_state,
+        max_workers=max_workers,
     )
     best_config, best_result, history = search.run()
 
@@ -394,6 +396,7 @@ def run_review_and_optimize(
     health_monitor: Optional[HealthMonitor] = None,
     advisor: "TradeAdvisor" | None = None,
     previous_run: Optional[ReviewOptimizationRun] = None,
+    max_workers: Optional[int] = None,
 ) -> ReviewOptimizationRun:
     """Run a review synthesis followed by an optimisation cycle."""
 
@@ -417,6 +420,7 @@ def run_review_and_optimize(
         health_monitor=health_monitor,
         advisor=advisor,
         previous_plan=previous_run.optimization if previous_run else None,
+        max_workers=max_workers,
     )
 
     return ReviewOptimizationRun(review=review_report, optimization=optimization_plan)
