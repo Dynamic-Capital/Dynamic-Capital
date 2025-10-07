@@ -3,7 +3,7 @@
 import { mna, nf } from "../_shared/http.ts";
 import { optionalEnv, requireEnv } from "../_shared/env.ts";
 import { serveStatic, StaticOpts } from "../_shared/static.ts";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { ENHANCED_SECURITY_HEADERS, withSecurity } from "./security.ts";
 import { DISABLE_HTML_COMPRESSION, smartCompress } from "./compression.ts";
 import { fetchFromStorage } from "./storage.ts";
