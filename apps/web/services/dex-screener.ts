@@ -1,3 +1,5 @@
+import { optionalEnvVar } from "@/utils/env.ts";
+
 const DEX_SCREENER_FETCH_OVERRIDE = Symbol.for(
   "dynamic-capital.dex-screener.fetch-override",
 );
@@ -12,6 +14,41 @@ export const DEX_SCREENER_API_ENDPOINTS = {
 
 const DEFAULT_TIMEOUT_MS = 7_500;
 const MAX_RESULTS = 20;
+
+const DEFAULT_DEX_SCREENER_CACHE_TTL_SECONDS = 120;
+
+function resolveDexScreenerCacheTtl(rawValue: string | undefined): number {
+  if (!rawValue) {
+    return DEFAULT_DEX_SCREENER_CACHE_TTL_SECONDS;
+  }
+
+  const parsed = Number.parseInt(rawValue, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return DEFAULT_DEX_SCREENER_CACHE_TTL_SECONDS;
+  }
+
+  return parsed;
+}
+
+export const DEX_SCREENER_CACHE_TAG = "dex-screener" as const;
+
+export const DEX_SCREENER_CACHE_TTL_SECONDS = resolveDexScreenerCacheTtl(
+  optionalEnvVar("DEX_SCREENER_CACHE_TTL_SECONDS", [
+    "DEX_CACHE_TTL_SECONDS",
+    "CACHE_TTL_SECONDS",
+  ]),
+);
+
+export const DEX_SCREENER_CACHE_CONTROL_HEADER =
+  `public, max-age=0, s-maxage=${DEX_SCREENER_CACHE_TTL_SECONDS}, stale-while-revalidate=86400` as const;
+
+const DEX_SCREENER_RESPONSE_METADATA = Object.freeze({
+  version: 1,
+  repository: "Dynamic Capital",
+  source: "DEX Screener API",
+});
+
+export type DexScreenerResponseMetadata = typeof DEX_SCREENER_RESPONSE_METADATA;
 
 const EMPTY_LINKS = Object.freeze([]) as readonly DexScreenerLink[];
 const EMPTY_PROFILES = Object.freeze([]) as readonly DexScreenerProfile[];
@@ -67,6 +104,17 @@ export interface DexScreenerResource {
   readonly latestBoosts: readonly DexScreenerBoost[];
   readonly topBoosts: readonly DexScreenerBoost[];
   readonly errors?: readonly DexScreenerError[];
+}
+
+function buildDexScreenerMetadata(): DexScreenerResponseMetadata {
+  return { ...DEX_SCREENER_RESPONSE_METADATA };
+}
+
+export interface DexScreenerResponseEnvelope {
+  readonly status: "ok";
+  readonly generatedAt: string;
+  readonly metadata: DexScreenerResponseMetadata;
+  readonly resource: DexScreenerResource;
 }
 
 interface DexScreenerRequestOptions {
@@ -197,7 +245,9 @@ function normaliseProfile(candidate: unknown): DexScreenerProfile | null {
   }) satisfies DexScreenerProfile;
 }
 
-function normaliseProfilesCollection(value: unknown): readonly DexScreenerProfile[] {
+function normaliseProfilesCollection(
+  value: unknown,
+): readonly DexScreenerProfile[] {
   if (!Array.isArray(value) || value.length === 0) {
     return EMPTY_PROFILES;
   }
@@ -245,7 +295,9 @@ function normaliseBoost(candidate: unknown): DexScreenerBoost | null {
   }) satisfies DexScreenerBoost;
 }
 
-function normaliseBoostsCollection(value: unknown): readonly DexScreenerBoost[] {
+function normaliseBoostsCollection(
+  value: unknown,
+): readonly DexScreenerBoost[] {
   if (!Array.isArray(value) || value.length === 0) {
     return EMPTY_BOOSTS;
   }
@@ -489,6 +541,19 @@ export async function buildDexScreenerResource(
       errors: fallbackError,
     });
   }
+}
+
+export async function buildDexScreenerResponse(
+  now: Date = new Date(),
+): Promise<DexScreenerResponseEnvelope> {
+  const resource = await buildDexScreenerResource();
+  const envelope = Object.freeze({
+    status: "ok" as const,
+    generatedAt: now.toISOString(),
+    metadata: buildDexScreenerMetadata(),
+    resource,
+  }) satisfies DexScreenerResponseEnvelope;
+  return envelope;
 }
 
 export function __setDexScreenerFetchOverride(

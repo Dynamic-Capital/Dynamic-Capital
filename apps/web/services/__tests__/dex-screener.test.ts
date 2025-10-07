@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  __setDexScreenerFetchOverride,
+  buildDexScreenerResource,
+  buildDexScreenerResponse,
   DEX_SCREENER_API_BASE_URL,
   DEX_SCREENER_API_ENDPOINTS,
-  buildDexScreenerResource,
   fetchDexScreenerSnapshot,
-  __setDexScreenerFetchOverride,
 } from "../dex-screener";
 
 const { latestProfiles, latestBoosts, topBoosts } = DEX_SCREENER_API_ENDPOINTS;
@@ -31,62 +32,66 @@ function toUrl(input: RequestInfo | URL): string {
   return (input as Request).url;
 }
 
+function createSuccessfulFetchStub(): typeof fetch {
+  return async (input) => {
+    const url = toUrl(input);
+    if (url === PROFILES_URL) {
+      return responseFrom([
+        {
+          url: "https://dexscreener.com/ton/sample",
+          chainId: "ton",
+          tokenAddress: "EQA111",
+          description: "Test profile",
+          icon: "https://cdn.example.com/icon.png",
+          header: "https://cdn.example.com/header.png",
+          openGraph: "https://cdn.example.com/og.png",
+          links: [
+            { type: "website", label: "Docs", url: "https://dynamic.capital" },
+            { url: "https://dynamic.capital" },
+          ],
+        },
+        {
+          url: "not-a-url",
+          chainId: "ton",
+          tokenAddress: "EQA222",
+        },
+      ]);
+    }
+    if (url === LATEST_BOOSTS_URL) {
+      return responseFrom([
+        {
+          url: "https://dexscreener.com/ton/sample-boost",
+          chainId: "ton",
+          tokenAddress: "EQA111",
+          amount: "40",
+          totalAmount: 200,
+          links: [
+            { type: "twitter", url: "https://x.com/dynamiccapital" },
+          ],
+        },
+      ]);
+    }
+    if (url === TOP_BOOSTS_URL) {
+      return responseFrom([
+        {
+          url: "https://dexscreener.com/ton/top",
+          chainId: "ton",
+          tokenAddress: "EQA333",
+          totalAmount: "500",
+        },
+      ]);
+    }
+    throw new Error(`Unexpected fetch ${url}`);
+  };
+}
+
 describe("dex-screener service", () => {
   afterEach(() => {
     __setDexScreenerFetchOverride(undefined);
   });
 
   it("normalises snapshot payloads", async () => {
-    __setDexScreenerFetchOverride(async (input) => {
-      const url = toUrl(input);
-      if (url === PROFILES_URL) {
-        return responseFrom([
-          {
-            url: "https://dexscreener.com/ton/sample",
-            chainId: "ton",
-            tokenAddress: "EQA111",
-            description: "Test profile",
-            icon: "https://cdn.example.com/icon.png",
-            header: "https://cdn.example.com/header.png",
-            openGraph: "https://cdn.example.com/og.png",
-            links: [
-              { type: "website", label: "Docs", url: "https://dynamic.capital" },
-              { url: "https://dynamic.capital" },
-            ],
-          },
-          {
-            url: "not-a-url",
-            chainId: "ton",
-            tokenAddress: "EQA222",
-          },
-        ]);
-      }
-      if (url === LATEST_BOOSTS_URL) {
-        return responseFrom([
-          {
-            url: "https://dexscreener.com/ton/sample-boost",
-            chainId: "ton",
-            tokenAddress: "EQA111",
-            amount: "40",
-            totalAmount: 200,
-            links: [
-              { type: "twitter", url: "https://x.com/dynamiccapital" },
-            ],
-          },
-        ]);
-      }
-      if (url === TOP_BOOSTS_URL) {
-        return responseFrom([
-          {
-            url: "https://dexscreener.com/ton/top",
-            chainId: "ton",
-            tokenAddress: "EQA333",
-            totalAmount: "500",
-          },
-        ]);
-      }
-      throw new Error(`Unexpected fetch ${url}`);
-    });
+    __setDexScreenerFetchOverride(createSuccessfulFetchStub());
 
     const snapshot = await fetchDexScreenerSnapshot();
     expect(snapshot.status).toBe("ok");
@@ -127,5 +132,19 @@ describe("dex-screener service", () => {
     const resource = await buildDexScreenerResource();
     expect(resource.status).toBe("partial");
     expect(resource.errors?.length).toBe(2);
+  });
+
+  it("builds a dex screener response envelope", async () => {
+    __setDexScreenerFetchOverride(createSuccessfulFetchStub());
+
+    const now = new Date("2025-09-25T05:00:00Z");
+    const response = await buildDexScreenerResponse(now);
+
+    expect(response.status).toBe("ok");
+    expect(response.generatedAt).toBe(now.toISOString());
+    expect(response.metadata.repository).toBe("Dynamic Capital");
+    expect(response.metadata.source).toBe("DEX Screener API");
+    expect(response.resource.status).toBe("ok");
+    expect(response.resource.totals.profiles).toBe(1);
   });
 });
