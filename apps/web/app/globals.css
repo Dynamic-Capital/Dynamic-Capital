@@ -9,16 +9,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --site-header-height: 64px;
-    --mobile-nav-height: 72px;
-  }
-
-  @media (min-width: 768px) {
-    :root {
-      --mobile-nav-height: 0px;
-    }
-  }
+  :root {}
 
   *, *::before, *::after {
     box-sizing: border-box;
