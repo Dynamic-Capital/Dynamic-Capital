@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface UseDeskClockOptions {
   /**
@@ -30,13 +30,13 @@ interface DeskClockState {
 }
 
 const DEFAULT_INTERVAL = 60_000;
+const MIN_INTERVAL = 1_000;
 
 export function useDeskClock(
   { updateInterval = DEFAULT_INTERVAL, immediate = true }: UseDeskClockOptions =
     {},
 ): DeskClockState {
   const [now, setNow] = useState(() => new Date());
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!immediate) {
@@ -48,27 +48,43 @@ export function useDeskClock(
   }, [immediate]);
 
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
+    const interval = window.setInterval(() => {
       setNow(new Date());
-    }, Math.max(updateInterval, 1_000));
+    }, Math.max(updateInterval, MIN_INTERVAL));
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      window.clearInterval(interval);
     };
   }, [updateInterval]);
 
-  const formatted = useMemo(() => {
+  const formatter = useMemo(() => {
+    if (
+      typeof Intl === "undefined" || typeof Intl.DateTimeFormat !== "function"
+    ) {
+      return undefined;
+    }
+
     try {
       return new Intl.DateTimeFormat(undefined, {
         dateStyle: "medium",
         timeStyle: "short",
-      }).format(now);
+      });
+    } catch {
+      return undefined;
+    }
+  }, []);
+
+  const formatted = useMemo(() => {
+    if (!formatter) {
+      return now.toLocaleString();
+    }
+
+    try {
+      return formatter.format(now);
     } catch {
       return now.toLocaleString();
     }
-  }, [now]);
+  }, [formatter, now]);
 
   return {
     now,
