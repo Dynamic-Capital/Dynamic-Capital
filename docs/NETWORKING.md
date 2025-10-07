@@ -285,6 +285,9 @@ Deno.serve(async (req) => {
   and is deployed as `/websocket-relay` on the Supabase functions domain.
 - The handler expects a `jwt` query parameter and validates it with a
   service-role Supabase client before completing the WebSocket upgrade.
+- Supabase configuration disables the default JWT middleware for this function
+  (`verify_jwt = false`) so the Edge Function can accept WebSocket upgrades from
+  browsers that cannot set custom headers.
 - When `OPENAI_API_KEY` is present, the function instantiates the official
   OpenAI Realtime SDK and relays events between the browser and the upstream
   session. Queueing ensures that client events sent before the upstream session
