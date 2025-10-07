@@ -54,14 +54,14 @@ documenting which assets were consulted.
 
 ## 3. Environment & Configuration
 
-| Ref | Document                                                 | Summary                                                                  |
-| --- | -------------------------------------------------------- | ------------------------------------------------------------------------ |
-| 3.1 | [CONFIG.md](./CONFIG.md)                                 | Central list of configuration surfaces and how they map to environments. |
-| 3.2 | [CONFIG_SECRETS.md](./CONFIG_SECRETS.md)                 | Playbook for syncing sensitive configuration between environments.       |
-| 3.3 | [env.md](./env.md)                                       | Environment variable reference with default values and usage notes.      |
-| 3.4 | [SECRETS.md](./SECRETS.md)                               | Supabase Edge secret handling patterns and guard tasks.                  |
-| 3.5 | [GITHUB_PAT.md](./GITHUB_PAT.md)                         | Requirements for generating and using GitHub Personal Access Tokens.     |
-| 3.6 | [SUPABASE_LOG_STREAMING.md](./SUPABASE_LOG_STREAMING.md) | Steps to forward Supabase logs to external aggregators.                  |
+| Ref | Document                                                 | Summary                                                                                        |
+| --- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 3.1 | [CONFIG.md](./CONFIG.md)                                 | Central list of configuration surfaces and how they map to environments.                       |
+| 3.2 | [CONFIG_SECRETS.md](./CONFIG_SECRETS.md)                 | Playbook for syncing sensitive configuration between environments.                             |
+| 3.3 | [env.md](./env.md)                                       | Environment variable reference with default values and usage notes.                            |
+| 3.4 | [SECRETS.md](./SECRETS.md)                               | Supabase Edge secret handling patterns and guard tasks.                                        |
+| 3.5 | [GITHUB_PAT.md](./GITHUB_PAT.md)                         | Requirements for generating and using GitHub Personal Access Tokens.                           |
+| 3.6 | [SUPABASE_LOG_STREAMING.md](./SUPABASE_LOG_STREAMING.md) | Steps to forward Supabase logs to external aggregators.                                        |
 | 3.7 | [codex-config.md](./codex-config.md)                     | Shared Codex CLI/IDE configuration reference with optimization checklists and profile recipes. |
 
 ## 4. Deployment & Infrastructure

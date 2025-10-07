@@ -51,10 +51,9 @@ export const MobileBottomNav: React.FC = () => {
 
     updateHeight();
 
-    const resizeObserver =
-      typeof ResizeObserver !== "undefined" && element
-        ? new ResizeObserver(updateHeight)
-        : null;
+    const resizeObserver = typeof ResizeObserver !== "undefined" && element
+      ? new ResizeObserver(updateHeight)
+      : null;
 
     if (resizeObserver && element) {
       resizeObserver.observe(element);
