@@ -69,4 +69,20 @@ describe("TelegramAuthProvider admin token validation", () => {
     expect(screen.queryByText("Admin dashboard")).not.toBeInTheDocument();
     expect(localStorage.getItem("dc_admin_token")).toBeNull();
   });
+
+  it("accepts the development ADMIN token without remote validation", async () => {
+    localStorage.setItem("dc_admin_token", "ADMIN");
+
+    render(
+      <TelegramAuthProvider>
+        <AdminGate>
+          <div>Admin dashboard</div>
+        </AdminGate>
+      </TelegramAuthProvider>,
+    );
+
+    expect(await screen.findByText("Admin dashboard")).toBeInTheDocument();
+    expect(callEdgeFunctionMock).not.toHaveBeenCalled();
+    expect(localStorage.getItem("dc_admin_token")).toBe("ADMIN");
+  });
 });

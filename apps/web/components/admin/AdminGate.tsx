@@ -33,6 +33,7 @@ export function AdminGate({ children }: AdminGateProps) {
   } = useTelegramAuth();
   const { toast } = useToast();
   const [manualInitData, setManualInitData] = useState("");
+  const [manualAdminToken, setManualAdminToken] = useState("");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const isCheckingAccess = loading || validatingAdminToken;
@@ -112,6 +113,33 @@ export function AdminGate({ children }: AdminGateProps) {
       return;
     }
     void authenticateWithInitData(manualInitData.trim());
+  };
+
+  const handleManualTokenAuth = async () => {
+    const trimmedToken = manualAdminToken.trim();
+    if (!trimmedToken) {
+      toast({
+        title: "Missing admin token",
+        description: "Enter an admin token to continue",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const result = await refreshValidatedAdminToken(trimmedToken);
+    if (result.valid) {
+      setManualAdminToken("");
+      toast({
+        title: "Admin token accepted",
+        description: "Admin privileges unlocked",
+      });
+    } else {
+      toast({
+        title: "Token rejected",
+        description: result.error ?? "Unable to validate admin token",
+        variant: "destructive",
+      });
+    }
   };
 
   const openInTelegram = () => {
@@ -236,6 +264,36 @@ export function AdminGate({ children }: AdminGateProps) {
                 validatingAdminToken}
             >
               {isAuthenticating ? "Authenticating…" : "Manual authentication"}
+            </Button>
+          </Column>
+          <Column gap="8">
+            <Row horizontal="between" vertical="center">
+              <Text variant="body-default-s" onBackground="neutral-weak">
+                Use admin token
+              </Text>
+              <Tag size="s" prefixIcon="shield">
+                ADMIN
+              </Tag>
+            </Row>
+            <Input
+              id="manual-admin-token"
+              value={manualAdminToken}
+              onChange={(event) => setManualAdminToken(event.target.value)}
+              placeholder="Enter admin token"
+              aria-label="Manual admin token"
+            />
+            <Text variant="body-default-xs" onBackground="neutral-weak">
+              Tip: use <code>ADMIN</code>{" "}
+              for local development without Telegram initData.
+            </Text>
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              onClick={handleManualTokenAuth}
+              disabled={!manualAdminToken.trim() || validatingAdminToken}
+            >
+              {validatingAdminToken ? "Validating…" : "Validate admin token"}
             </Button>
           </Column>
         </Column>
