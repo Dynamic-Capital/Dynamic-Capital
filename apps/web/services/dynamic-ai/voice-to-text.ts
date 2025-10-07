@@ -78,6 +78,61 @@ export interface DynamicAiVoiceToTextResult extends DynamicAiTranscription {
   temperature: number;
 }
 
+type AbortSignalWithReason = AbortSignal & {
+  reason?: unknown;
+  throwIfAborted?: () => void;
+};
+
+function extractAbortReason(signal?: AbortSignal): unknown {
+  if (!signal) return undefined;
+
+  const signalWithReason = signal as AbortSignalWithReason;
+
+  if ("reason" in signalWithReason && signalWithReason.reason !== undefined) {
+    return signalWithReason.reason;
+  }
+
+  if (typeof signalWithReason.throwIfAborted === "function") {
+    try {
+      signalWithReason.throwIfAborted();
+    } catch (error) {
+      return error;
+    }
+  }
+
+  return undefined;
+}
+
+function bridgeAbortSignal(
+  external: AbortSignal | undefined,
+  controller: AbortController,
+): () => void {
+  if (!external) {
+    return () => {};
+  }
+
+  const propagateAbort = () => {
+    const reason = extractAbortReason(external);
+    if (reason !== undefined) {
+      controller.abort(reason);
+    } else {
+      controller.abort();
+    }
+  };
+
+  if (external.aborted) {
+    propagateAbort();
+    return () => {};
+  }
+
+  const handleAbort = () => propagateAbort();
+  external.addEventListener("abort", handleAbort, { once: true });
+
+  return () => {
+    external.removeEventListener("abort", handleAbort);
+  };
+}
+
 export async function callDynamicAiVoiceToText({
   file,
   fileName,
@@ -123,6 +178,8 @@ export async function callDynamicAiVoiceToText({
   }
 
   const controller = new AbortController();
+  const removeExternalAbort = bridgeAbortSignal(signal, controller);
+
   const timeoutId = setTimeout(
     () => controller.abort(),
     DYNAMIC_AI_VOICE_TO_TEXT_TIMEOUT_MS,
@@ -135,7 +192,7 @@ export async function callDynamicAiVoiceToText({
         authorization: `Bearer ${DYNAMIC_AI_VOICE_TO_TEXT_KEY}`,
       },
       body: formData,
-      signal: signal ?? controller.signal,
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -153,5 +210,6 @@ export async function callDynamicAiVoiceToText({
     } satisfies DynamicAiVoiceToTextResult;
   } finally {
     clearTimeout(timeoutId);
+    removeExternalAbort();
   }
 }
