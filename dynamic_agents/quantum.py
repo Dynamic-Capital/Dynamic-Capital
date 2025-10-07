@@ -20,6 +20,7 @@ __all__ = [
     "QuantumAgentInsight",
     "DynamicQuantumAgent",
     "QuantumAgentWorkflowResult",
+    "run_all_quantum_agents",
     "QUANTUM_AGENT_PROFILES",
     "list_quantum_agent_profiles",
     "build_quantum_agent_registry",
@@ -159,6 +160,22 @@ class QuantumAgentWorkflowResult:
 
     insight: QuantumAgentInsight
     pulses: Tuple[QuantumPulse, ...]
+
+
+def _coerce_pulse(
+    pulse: QuantumPulse | Mapping[str, object],
+) -> QuantumPulse:
+    if isinstance(pulse, QuantumPulse):
+        return pulse
+    if isinstance(pulse, Mapping):
+        return QuantumPulse(**pulse)
+    raise TypeError("pulse must be a QuantumPulse or mapping")
+
+
+def _coerce_pulse_sequence(
+    pulses: Sequence[QuantumPulse | Mapping[str, object]]
+) -> Tuple[QuantumPulse, ...]:
+    return tuple(_coerce_pulse(pulse) for pulse in pulses)
 
 
 class DynamicQuantumAgent:
@@ -364,6 +381,49 @@ class DynamicQuantumAgent:
             states=states,
         )
         return QuantumAgentWorkflowResult(insight=insight, pulses=registered)
+
+
+def run_all_quantum_agents(
+    pulses: Sequence[QuantumPulse | Mapping[str, object]],
+    *,
+    environment: QuantumEnvironment | None = None,
+    include_decoherence: bool = False,
+    decoherence_steps: int = 5,
+    timestamp: datetime | None = None,
+    domains: Sequence[str] | None = None,
+    states: Sequence[str] | None = None,
+    registry: Mapping[str, Type[DynamicQuantumAgent]] | None = None,
+    agent_kwargs: Mapping[str, Mapping[str, object]] | None = None,
+) -> Mapping[str, QuantumAgentWorkflowResult]:
+    """Run the quantum workflow across the full agent registry."""
+
+    if not pulses:
+        raise ValueError("pulses must not be empty")
+
+    resolved_registry = registry or build_quantum_agent_registry()
+    if not resolved_registry:
+        return {}
+
+    resolved_pulses = _coerce_pulse_sequence(pulses)
+    results: dict[str, QuantumAgentWorkflowResult] = {}
+
+    for code, agent_cls in resolved_registry.items():
+        kwargs: Mapping[str, object] | None = None
+        if agent_kwargs is not None:
+            kwargs = agent_kwargs.get(code)
+        agent = agent_cls(**(dict(kwargs) if kwargs else {}))
+        results[code] = agent.run_workflow(
+            resolved_pulses,
+            environment=environment,
+            include_decoherence=include_decoherence,
+            decoherence_steps=decoherence_steps,
+            timestamp=timestamp,
+            domains=domains,
+            states=states,
+            clear=True,
+        )
+
+    return results
 
 
 def _build_profile(
