@@ -27,3 +27,6 @@ verify_jwt = true
 
 [functions.custom-llm-chat]
 verify_jwt = true
+
+[functions.telegram-bot]
+verify_jwt = false
