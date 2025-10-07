@@ -123,6 +123,28 @@ export async function callDynamicAiVoiceToText({
   }
 
   const controller = new AbortController();
+  const propagateExternalAbort = () => {
+    if (!signal) return;
+    if (signal.reason !== undefined) {
+      controller.abort(signal.reason);
+    } else {
+      controller.abort();
+    }
+  };
+
+  let removeExternalAbort: (() => void) | undefined;
+  if (signal) {
+    if (signal.aborted) {
+      propagateExternalAbort();
+    } else {
+      const handleAbort = () => propagateExternalAbort();
+      signal.addEventListener("abort", handleAbort);
+      removeExternalAbort = () => {
+        signal.removeEventListener("abort", handleAbort);
+      };
+    }
+  }
+
   const timeoutId = setTimeout(
     () => controller.abort(),
     DYNAMIC_AI_VOICE_TO_TEXT_TIMEOUT_MS,
@@ -135,7 +157,7 @@ export async function callDynamicAiVoiceToText({
         authorization: `Bearer ${DYNAMIC_AI_VOICE_TO_TEXT_KEY}`,
       },
       body: formData,
-      signal: signal ?? controller.signal,
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -153,5 +175,6 @@ export async function callDynamicAiVoiceToText({
     } satisfies DynamicAiVoiceToTextResult;
   } finally {
     clearTimeout(timeoutId);
+    removeExternalAbort?.();
   }
 }
