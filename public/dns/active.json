@@ -1,0 +1,16 @@
+{
+  "domain": "dynamiccapital.ton",
+  "records": {
+    "jetton_master": "EQDSmz4R...ig6Wx_6y",
+    "treasury_wallet": "UQD1zAJP...H_cN0K0G",
+    "stonfi_pool": "EQAyD7O8...5lfJPyfA",
+    "dedust_pool": "EQDTJ4lH...yrLumEFm",
+    "dao_contract": "EQDAOxyz...daoAddr",
+    "api": "https://api.dynamiccapital.ton",
+    "updated": "2025-10-07"
+  },
+  "signatures": {
+    "dao": "base64:abc123...",
+    "treasury": "base64:def456..."
+  }
+}
