@@ -24,31 +24,31 @@ Store the following key-value pairs in the TON DNS TXT record so integrators can
 auto-discover Dynamic Capital contracts and services when resolving
 `dynamiccapital.ton`:
 
-| Key               | Address / URL                    | Description                          |
-| ----------------- | -------------------------------- | ------------------------------------ |
-| `jetton_master`   | `EQDSmz4R…ig6Wx_6y`              | Dynamic Capital Token (DCT)          |
-| `treasury_wallet` | `UQD1zAJP…H_cNOK0G`              | Treasury & mint authority            |
-| `stonfi_pool`     | `EQAyD7O8…5lfJPyfA`              | STON.fi DCT/TON pool                 |
-| `dedust_pool`     | `EQDTJ4lH…yrLumEFm`              | DeDust DCT/TON vault                 |
-| `dao_contract`    | `future DAO multisig`            | Governance executor                  |
-| `api_endpoint`    | `https://api.dynamiccapital.ton` | REST / Supabase gateway              |
-| `metadata`        | `ipfs://QmDCTMeta...`            | Jetton metadata JSON (legacy mirror) |
-| `web`             | `https://dynamiccapital.ton`     | Marketing & dashboard site           |
+| Key               | Address / URL                                     | Description                    |
+| ----------------- | ------------------------------------------------- | ------------------------------ |
+| `jetton_master`   | `EQDSmz4R…ig6Wx_6y`                               | Dynamic Capital Token (DCT)    |
+| `treasury_wallet` | `UQD1zAJP…H_cNOK0G`                               | Treasury & mint authority      |
+| `stonfi_pool`     | `EQAyD7O8…5lfJPyfA`                               | STON.fi DCT/TON pool           |
+| `dedust_pool`     | `EQDTJ4lH…yrLumEFm`                               | DeDust DCT/TON vault           |
+| `dao_contract`    | `future DAO multisig`                             | Governance executor            |
+| `api_endpoint`    | `https://api.dynamiccapital.ton`                  | REST / Supabase gateway        |
+| `metadata`        | `https://dynamiccapital.ton/jetton-metadata.json` | Jetton metadata JSON (primary) |
+| `web`             | `https://dynamiccapital.ton`                      | Marketing & dashboard site     |
 
 ## Integration Touchpoints
 
-### Web and Mini Apps
+### Web, Mini Apps, and Wallet Auth
 
 - Serve applications from `https://dynamiccapital.ton` (marketing + dashboards)
   and `https://mini.dynamiccapital.ton` (Telegram mini-app).
 - Host `tonconnect-manifest.json` at
   `https://dynamiccapital.ton/tonconnect-manifest.json` to enable TON Connect v2
-  login flows.
+  login flows and reuse the same manifest for web and mini-app entry points.
 
 ### Smart Contracts & Metadata
 
 - Reference `dynamiccapital.ton` as the metadata root instead of hardcoded IPFS
-  links.
+  links, falling back to IPFS mirrors only for redundancy.
 - Publish Jetton metadata at `https://dynamiccapital.ton/jetton-metadata.json`.
 
 ```json
@@ -72,8 +72,8 @@ auto-discover Dynamic Capital contracts and services when resolving
 }
 ```
 
-- Mirror the metadata to IPFS for redundancy while treating the domain-hosted
-  JSON as primary.
+- Mirror the metadata JSON to IPFS for redundancy while keeping the
+  domain-hosted file authoritative.
 
 ### APIs & Automation
 
@@ -130,12 +130,11 @@ checks are in place.
 
 ## Automation Benefits
 
-- Supabase functions and bots rely on domain-based endpoints, simplifying
-  versioning and portability.
+- Domain-based Supabase and bot endpoints simplify versioning and portability.
 - Explorers fetch official metadata directly from `dynamiccapital.ton`,
-  preventing spoofed Jetton entries.
-- Wallet verification surfaces "by dynamiccapital.ton" trust badges when the
-  metadata URL matches the domain.
+  preventing spoofed Jetton entries and enabling verified branding.
+- Wallet verification surfaces "by dynamiccapital.ton" trust badges once the
+  metadata URL resolves to the domain-hosted JSON.
 
 ## Recommended Next Steps
 
@@ -158,6 +157,13 @@ checks are in place.
   live.
 
 ## Summary
+
+- Anchor every production endpoint (apps, APIs, manifests, and metadata) to
+  `dynamiccapital.ton` to guarantee a single source of truth.
+- Use the TON DNS registry map so wallets and explorers auto-resolve the jetton,
+  pools, and treasury addresses.
+- Maintain redundant hosting (IPFS mirrors, SSL, signed ownership proofs) to
+  preserve trust while keeping the domain copy authoritative.
 
 By anchoring Jetton metadata, liquidity infrastructure, and automation pipelines
 to `dynamiccapital.ton`, Dynamic Capital delivers a unified, verifiable on-chain
