@@ -32,3 +32,9 @@ verify_jwt = true
 
 [functions.telegram-bot]
 verify_jwt = false
+
+[functions.websocket-relay]
+verify_jwt = false
+
+[functions.openai-webhook]
+verify_jwt = false
