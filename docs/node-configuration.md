@@ -109,6 +109,12 @@ score of `0.9` to help schedulers prioritise hedge execution.
      ```bash
      NODE_CONFIG__LORENTZIAN_1='{ "type": "processing", "interval_sec": 30, "dependencies": ["market_data"], "outputs": ["signals"] }'
      ```
+
+     The repository seeds `.env.example` with canonical keys such as
+     `NODE_CONFIG__HUMAN_ANALYSIS` and `NODE_CONFIG__TON_NETWORK_HEALTH` so
+     local environments mirror the Supabase defaults. A regression test
+     (`tests/node-configs-env-example.test.ts`) parses those samples to ensure
+     they stay valid JSON payloads for the loader.
 3. **Bootstrap the runtime**
    - When a worker starts, it should:
      1. Load its `node_id` configuration from Supabase or `.env`.
