@@ -71,17 +71,17 @@
 
 ## Implementation Checklist
 
-- [ ] Update `handleJettonTransfer` parsing order to follow TIP-3 transfer
+- [x] Update `handleJettonTransfer` parsing order to follow TIP-3 transfer
       structure (Steps 1.1–1.5).
-- [ ] Guard against malformed payloads by validating the deposit opcode
+- [x] Guard against malformed payloads by validating the deposit opcode
       extracted from the forward payload (Step 1.6).
-- [ ] Forward the parsed `forward_ton_amount` to `self.dexRouter` instead of
+- [x] Forward the parsed `forward_ton_amount` to `self.dexRouter` instead of
       halving the inbound TON (Step 2).
-- [ ] Emit `DepositEvent` fields using the parsed jetton and forward payload
+- [x] Emit `DepositEvent` fields using the parsed jetton and forward payload
       data without reparsing (Step 3).
-- [ ] Extend or add allocator regression tests to cover compliant transfers and
+- [x] Extend or add allocator regression tests to cover compliant transfers and
       rejection paths (Step 4).
-- [ ] Run formatting, linting, and contract/test suites relevant to the
+- [x] Run formatting, linting, and contract/test suites relevant to the
       allocator changes (Step 5).
 
 ## Dependencies & Open Questions
@@ -95,6 +95,7 @@
 
 ## Test Execution Notes
 
-- `$(bash scripts/deno_bin.sh) test -A dynamic-capital-ton/apps/tests/pool_allocator.test.ts`
-  now completes successfully after isolating the allocator suite's Deno
-  configuration, confirming the parsing and forwarding regressions are covered.
+- `$(bash ../scripts/deno_bin.sh) test --no-npm --no-lock --node-modules-dir=false \\
+  --unsafely-ignore-certificate-errors -A --no-check apps/tests/pool_allocator.test.ts`
+  completes successfully, confirming the allocator parsing and forwarding
+  regressions are covered by the dedicated suite.

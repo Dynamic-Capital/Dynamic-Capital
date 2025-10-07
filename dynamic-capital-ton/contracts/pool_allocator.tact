@@ -143,27 +143,28 @@ contract TonPoolAllocator {
     Int jettonAmount = body.loadCoins();
     body.loadMsgAddress(); // destination
     body.loadMsgAddress(); // response destination
-    body.loadMaybeRef(); // skip custom payload
+    body.loadMaybeRef(); // custom payload (unused)
     Int forwardTonAmount = body.loadCoins();
-    require(msg.info.value - msg.info.fwdFee >= forwardTonAmount, "allocator: insufficient ton");
 
     cell forwardPayloadCell = body.loadEitherRef();
     slice forwardPayload = forwardPayloadCell.beginParse();
 
     Int forwardOp = forwardPayload.loadUint(32);
-    if (forwardOp != OP_DEPOSIT) {
-      self.reject(msg, "allocator: unsupported op");
-      return;
-    }
+    require(forwardOp == OP_DEPOSIT, "allocator: unsupported op");
 
     Int depositId = forwardPayload.loadUint(64);
     Slice investorKey = forwardPayload.loadBitsSlice(256);
-    Int usdtAmount = forwardPayload.loadCoins();
-    require(usdtAmount == jettonAmount, "allocator: amount mismatch");
+    Int forwardUsdtAmount = forwardPayload.loadCoins();
+    require(forwardUsdtAmount == jettonAmount, "allocator: amount mismatch");
     Int dctAmount = forwardPayload.loadCoins();
     require(dctAmount > 0, "allocator: invalid dct amount");
     Int expectedFx = forwardPayload.loadUint(64);
     Slice tonTx = forwardPayload.loadBitsSlice(256);
+
+    require(
+      msg.info.value - msg.info.fwdFee >= forwardTonAmount,
+      "allocator: insufficient ton",
+    );
 
     sendRawMessage(
       InternalMessage{
@@ -180,7 +181,7 @@ contract TonPoolAllocator {
     DepositEvent event = DepositEvent{
       depositId: depositId,
       investorKey: investorKey,
-      usdtAmount: usdtAmount,
+      usdtAmount: forwardUsdtAmount,
       dctAmount: dctAmount,
       fxRate: expectedFx,
       tonTxHash: tonTx,
