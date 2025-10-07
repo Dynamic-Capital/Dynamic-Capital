@@ -5,7 +5,7 @@ import {
 } from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { parse as parseDotenv } from "dotenv";
+import { parseEnvFile } from "./support/parse-env.ts";
 
 const EXPECTED_NODE_IDS = [
   "dynamic-hedge",
@@ -21,7 +21,7 @@ const EXPECTED_NODE_IDS = [
 test(".env.example node config samples stay parseable", async () => {
   const envPath = resolve(process.cwd(), ".env.example");
   const file = readFileSync(envPath, "utf8");
-  const parsed = parseDotenv(file);
+  const parsed = parseEnvFile(file);
 
   const nodeConfigEntries = Object.entries(parsed).filter(([key]) =>
     key.startsWith("NODE_CONFIG__")

@@ -9,6 +9,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT_REF="${SUPABASE_PROJECT_REF:-}"
 ACCESS_TOKEN="${SUPABASE_ACCESS_TOKEN:-}"
 DB_PASSWORD="${SUPABASE_DB_PASSWORD:-}"
+DB_USER="${SUPABASE_DB_USER:-postgres}"
+DB_URL_OVERRIDE="${SUPABASE_DB_URL:-}"
 
 if [[ -z "${ACCESS_TOKEN}" ]]; then
   echo "SUPABASE_ACCESS_TOKEN is required to run the Supabase CLI workflow." >&2
@@ -38,6 +40,26 @@ fi
 
 cd "${ROOT_DIR}"
 
+urlencode() {
+  local value="$1"
+  python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' -- "${value}"
+}
+
+build_db_url() {
+  local user="$1"
+  local password="$2"
+  local host="$3"
+
+  local encoded_user
+  local encoded_password
+  encoded_user="$(urlencode "${user}")"
+  encoded_password="$(urlencode "${password}")"
+  printf 'postgresql://%s:%s@%s:5432/postgres' "${encoded_user}" "${encoded_password}" "${host}"
+}
+
+DB_HOST="db.${PROJECT_REF}.supabase.co"
+DB_URL="${DB_URL_OVERRIDE:-$(build_db_url "${DB_USER}" "${DB_PASSWORD}" "${DB_HOST}")}"
+
 run_supabase() {
   local description="$1"
   shift
@@ -47,6 +69,7 @@ run_supabase() {
 
 run_supabase "Logging in to Supabase CLI" login --token "${ACCESS_TOKEN}" --no-browser --yes
 run_supabase "Linking project ${PROJECT_REF}" link --project-ref "${PROJECT_REF}" --password "${DB_PASSWORD}" --yes
-run_supabase "Pushing database migrations" db push --linked --password "${DB_PASSWORD}" --yes
+run_supabase "Pushing database migrations" \
+  db push --linked --password "${DB_PASSWORD}" --db-url "${DB_URL}" --yes
 
 echo "Supabase CLI workflow completed for project ${PROJECT_REF}."
