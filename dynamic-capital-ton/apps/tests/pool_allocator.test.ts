@@ -6,6 +6,7 @@ import {
   beginCell,
   DEFAULT_FORWARD_DESTINATION,
   DEFAULT_FORWARD_RESPONSE,
+  OP_DEPOSIT,
   OP_JETTON_TRANSFER,
   createDepositForwardPayload,
   createJettonTransferBody,
@@ -334,6 +335,47 @@ Deno.test("jetton transfer enforces forward ton amount", () => {
   });
 });
 
+Deno.test("jetton transfer event surfaces parsed payload data", () => {
+  const allocator = new MockAllocator({
+    timelockSeconds: 15,
+    jettonWallet: "GOOD",
+  });
+  allocator.setNow(777);
+
+  const event = allocator.processJettonTransfer({
+    wallet: "GOOD",
+    jettonAmount: 300,
+    forwardTonAmount: 2.5,
+    depositId: "77",
+    investorKey: "0xabcd",
+    usdtAmount: 300,
+    fxRate: 4,
+    tonTxHash: "0x7777",
+  });
+
+  assertEquals(event, {
+    depositId: "77",
+    investorKey: "0xabcd",
+    usdtAmount: 300,
+    dctAmount: 75,
+    fxRate: 4,
+    tonTxHash: "0x7777",
+    timestamp: 777,
+  });
+
+  assertEquals(allocator.routerForwards.at(-1), {
+    value: 2.5,
+    payload: {
+      depositId: "77",
+      investorKey: "0xabcd",
+      usdtAmount: 300,
+      dctAmount: 75,
+      fxRate: 4,
+      tonTxHash: "0x7777",
+    },
+  });
+});
+
 Deno.test("tip-3 transfer payload carries allocator deposit fields", () => {
   const forwardPayload = createDepositForwardPayload({
     depositId: 42n,
@@ -411,5 +453,22 @@ Deno.test("forward payload rejects zero dct amount", () => {
     () => decodeAllocatorForwardPayload(forwardPayload),
     Error,
     "allocator: invalid dct amount",
+  );
+});
+
+Deno.test("forward payload rejects truncated payloads", () => {
+  const truncated = beginCell()
+    .storeUint(OP_DEPOSIT, 32)
+    .storeUint(5n, 64)
+    .storeBuffer(new Uint8Array(32).fill(1))
+    .storeCoins(10n)
+    .storeCoins(5n)
+    .storeUint(2n, 64)
+    .endCell();
+
+  assertThrows(
+    () => decodeAllocatorForwardPayload(truncated),
+    Error,
+    "cell: no more data to load",
   );
 });
