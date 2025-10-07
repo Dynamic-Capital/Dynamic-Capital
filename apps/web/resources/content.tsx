@@ -10,13 +10,44 @@ import {
   Work,
 } from "@/resources/types";
 import { Line, Row, Text } from "@/components/dynamic-ui-system";
+import { zones } from "tzdata";
 
 import deskTimeZone from "../../../shared/time/desk-time-zone.json";
 import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";
 import { resolveTonSiteUrl } from "../../../shared/ton/site";
 
-const fallbackDeskTimeZone: IANATimeZone = "Indian/Maldives";
+function isIANATimeZone(value: string): value is IANATimeZone {
+  return Object.prototype.hasOwnProperty.call(zones, value);
+}
+
+function resolveServerTimeZone():
+  | { timeZone: IANATimeZone; label: string }
+  | undefined {
+  try {
+    const formatter = new Intl.DateTimeFormat();
+    const options = formatter.resolvedOptions?.();
+    const maybeZone = options?.timeZone;
+
+    if (typeof maybeZone === "string" && isIANATimeZone(maybeZone)) {
+      return {
+        timeZone: maybeZone,
+        label: maybeZone === "UTC"
+          ? "Coordinated Universal Time"
+          : `Server (${maybeZone})`,
+      };
+    }
+  } catch (_error) {
+    // Ignore runtime detection errors and fall back to UTC.
+  }
+
+  return undefined;
+}
+
+const serverTimeZone = resolveServerTimeZone();
+
+const fallbackDeskTimeZone: IANATimeZone =
+  (serverTimeZone?.timeZone ?? "UTC") as IANATimeZone;
 const rawDeskTimeZone =
   typeof deskTimeZone?.iana === "string" && deskTimeZone.iana.length > 0
     ? deskTimeZone.iana
@@ -27,7 +58,7 @@ const DESK_TIME_ZONE =
 const DESK_TIME_ZONE_LABEL =
   typeof deskTimeZone?.label === "string" && deskTimeZone.label.length > 0
     ? deskTimeZone.label
-    : "Malé, Maldives";
+    : serverTimeZone?.label ?? "Server local time";
 
 const person: Person = {
   firstName: "Abdul Mumin",
