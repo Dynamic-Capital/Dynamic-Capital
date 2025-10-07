@@ -6,12 +6,11 @@ import { motion, useScroll, useSpring } from "framer-motion";
 
 import BrandLogo from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/utils";
-
 import {
   CTA_LINKS,
   LANDING_SECTION_IDS,
 } from "@/components/landing/landing-config";
+import { cn } from "@/utils";
 
 import { DesktopNav } from "./DesktopNav";
 import { MobileMenu } from "./MobileMenu";
@@ -60,7 +59,7 @@ export function SiteHeader() {
         style={{ scaleX: scrollProgress }}
         aria-hidden
       />
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link
           href="/"
           aria-label="Dynamic Capital home"
@@ -81,15 +80,17 @@ export function SiteHeader() {
             asChild
             variant="ghost"
             size="sm"
-            className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary md:inline-flex"
+            className="hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary md:inline-flex"
           >
-            <Link href={`/#${LANDING_SECTION_IDS.join}`}>Scroll to join</Link>
+            <Link href={`/#${LANDING_SECTION_IDS.highlights}`}>
+              Product tour
+            </Link>
           </Button>
           <Button
             asChild
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary lg:inline-flex"
+            className="hidden border-border/70 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:border-primary hover:text-primary lg:inline-flex"
           >
             <Link
               href={CTA_LINKS.telegram}

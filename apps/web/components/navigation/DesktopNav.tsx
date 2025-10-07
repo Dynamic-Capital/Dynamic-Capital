@@ -1,44 +1,76 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import React, { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { cn } from "@/utils";
 import { motion, useReducedMotion } from "framer-motion";
+
+import { LANDING_SECTION_IDS } from "@/components/landing/landing-config";
+import { cn } from "@/utils";
+
 import NAV_ITEMS, { type NavItem } from "./nav-items";
 
-const navItems = NAV_ITEMS;
+const DEFAULT_ACTIVE_ID = LANDING_SECTION_IDS.hero;
 
 export const DesktopNav: React.FC = () => {
   const pathname = usePathname() ?? "/";
   const shouldReduceMotion = useReducedMotion();
-  const [hash, setHash] = useState<string>("");
+  const [activeSectionId, setActiveSectionId] = useState<string>(
+    DEFAULT_ACTIVE_ID,
+  );
+
+  const navItems = useMemo(() => NAV_ITEMS, []);
+  const isLandingRoute = pathname === "/";
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!isLandingRoute || typeof window === "undefined") {
+      return undefined;
+    }
 
-    const updateHash = () => {
-      setHash(window.location.hash ?? "");
-    };
+    const sections = navItems
+      .map((item) => document.getElementById(item.id))
+      .filter((section): section is HTMLElement => Boolean(section));
 
-    updateHash();
-    window.addEventListener("hashchange", updateHash);
+    if (!sections.length) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visibleEntry?.target?.id) {
+          setActiveSectionId(visibleEntry.target.id);
+        }
+      },
+      {
+        rootMargin: "-45% 0px -45% 0px",
+        threshold: [0.2, 0.4, 0.6, 0.8, 1],
+      },
+    );
+
+    sections.forEach((section) => observer.observe(section));
 
     return () => {
-      window.removeEventListener("hashchange", updateHash);
+      sections.forEach((section) => observer.unobserve(section));
+      observer.disconnect();
     };
-  }, [pathname]);
+  }, [isLandingRoute, navItems]);
+
+  useEffect(() => {
+    if (!isLandingRoute || typeof window === "undefined") {
+      return;
+    }
+
+    const hash = window.location.hash.replace("#", "");
+    setActiveSectionId(hash || DEFAULT_ACTIVE_ID);
+  }, [isLandingRoute]);
 
   const isActive = (item: NavItem) => {
-    if (item.href?.startsWith("/#")) {
-      const target = item.href.split("#")[1] ?? "";
-      if (pathname !== "/") {
-        return false;
-      }
-      if (target === "overview") {
-        return hash === "" || hash === "#overview";
-      }
-      return hash === `#${target}`;
+    if (isLandingRoute) {
+      return activeSectionId === item.id;
     }
 
     if (item.path === "/") {
@@ -48,70 +80,62 @@ export const DesktopNav: React.FC = () => {
     return pathname.startsWith(item.path);
   };
 
+  const handleClick = (item: NavItem) => {
+    if (!isLandingRoute) {
+      return;
+    }
+
+    setActiveSectionId(item.id);
+  };
+
   return (
     <motion.nav
-      className="hidden md:flex items-center gap-1"
+      className="hidden items-center md:flex"
       role="navigation"
       aria-label="Main navigation"
-      initial={shouldReduceMotion ? false : { opacity: 0, y: -20 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
     >
-      {navItems.map((item, index) => {
-        const Icon = item.icon;
-        const active = isActive(item);
-        return (
-          <motion.div
-            key={item.id}
-            initial={shouldReduceMotion ? false : { opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{
-              duration: shouldReduceMotion ? 0 : 0.3,
-              delay: shouldReduceMotion ? 0 : index * 0.1,
-            }}
-            whileHover={shouldReduceMotion ? undefined : { scale: 1.05 }}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
-          >
-            <Link
-              href={item.href ?? item.path}
-              aria-label={item.ariaLabel}
-              className={cn(
-                "flex min-w-[11rem] flex-col gap-1 rounded-md px-4 py-3 transition",
-                active
-                  ? "bg-primary text-primary-foreground shadow-sm shadow-primary/30"
-                  : "text-foreground hover:bg-accent hover:text-accent-foreground",
-              )}
+      <ul className="flex items-center gap-1 rounded-full border border-border/60 bg-background/70 p-1 shadow-sm">
+        {navItems.map((item, index) => {
+          const Icon = item.icon;
+          const active = isActive(item);
+
+          return (
+            <motion.li
+              key={item.id}
+              className="relative"
+              initial={shouldReduceMotion ? false : { opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.3,
+                delay: shouldReduceMotion ? 0 : index * 0.05,
+              }}
             >
-              <span className="contents">
-                <span
-                  className={cn(
-                    "text-[11px] font-semibold uppercase tracking-wide",
-                    active
-                      ? "text-primary-foreground/80"
-                      : "text-muted-foreground",
-                  )}
-                >
+              <Link
+                href={item.href ?? item.path}
+                aria-label={item.ariaLabel}
+                scroll
+                prefetch={false}
+                className={cn(
+                  "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
+                  active
+                    ? "bg-primary/10 text-primary shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                )}
+                onClick={() => handleClick(item)}
+              >
+                <Icon className={cn("h-4 w-4", active ? "text-primary" : "")} />
+                <span className="sr-only sm:not-sr-only sm:inline">
                   {item.step}
                 </span>
-                <div className="flex items-center gap-2 font-medium">
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </div>
-                <span
-                  className={cn(
-                    "text-xs leading-snug",
-                    active
-                      ? "text-primary-foreground/80"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  {item.description}
-                </span>
-              </span>
-            </Link>
-          </motion.div>
-        );
-      })}
+                <span>{item.label}</span>
+              </Link>
+            </motion.li>
+          );
+        })}
+      </ul>
     </motion.nav>
   );
 };
