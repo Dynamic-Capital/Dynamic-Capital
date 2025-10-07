@@ -59,7 +59,21 @@ async function sendTelegramMessage(chatId: number, text: string) {
   }
 }
 
-async function cleanupOldSessions() {
+function normaliseError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
+async function cleanupOldSessions(): Promise<number> {
   try {
     console.log("Starting session cleanup...");
 
@@ -76,7 +90,7 @@ async function cleanupOldSessions() {
 
     if (error) {
       console.error("Error fetching inactive sessions:", error);
-      return;
+      return 0;
     }
 
     console.log(
@@ -106,7 +120,7 @@ async function cleanupOldSessions() {
   }
 }
 
-async function sendFollowUpMessages() {
+async function sendFollowUpMessages(): Promise<number> {
   try {
     console.log("Checking for users needing follow-up messages...");
 
@@ -123,7 +137,7 @@ async function sendFollowUpMessages() {
 
     if (error) {
       console.error("Error fetching inactive users:", error);
-      return;
+      return 0;
     }
 
     console.log(
@@ -146,7 +160,7 @@ async function sendFollowUpMessages() {
       const message = followUpMessages[messageIndex];
 
       const result = await sendTelegramMessage(
-        parseInt(user.telegram_id),
+        parseInt(user.telegram_id, 10),
         message,
       );
 
@@ -175,7 +189,7 @@ async function sendFollowUpMessages() {
   }
 }
 
-async function cleanupOldMessages() {
+async function cleanupOldMessages(): Promise<number> {
   try {
     console.log("Cleaning up old messages...");
 
@@ -190,7 +204,7 @@ async function cleanupOldMessages() {
 
     if (error) {
       console.error("Error fetching old messages:", error);
-      return;
+      return 0;
     }
 
     // Delete old interaction records
@@ -201,7 +215,7 @@ async function cleanupOldMessages() {
 
     if (deleteError) {
       console.error("Error deleting old messages:", deleteError);
-      return;
+      return 0;
     }
 
     console.log(`Cleaned up ${oldMessages?.length || 0} old message records`);
@@ -212,7 +226,7 @@ async function cleanupOldMessages() {
   }
 }
 
-async function resetStuckSessions() {
+async function resetStuckSessions(): Promise<number> {
   try {
     console.log("Checking for stuck user sessions...");
 
@@ -228,7 +242,7 @@ async function resetStuckSessions() {
 
     if (error) {
       console.error("Error fetching stuck sessions:", error);
-      return;
+      return 0;
     }
 
     console.log(`Found ${stuckSessions?.length || 0} stuck sessions to reset`);
@@ -248,7 +262,7 @@ async function resetStuckSessions() {
 
       // Send reset message to user
       await sendTelegramMessage(
-        parseInt(session.telegram_user_id),
+        parseInt(session.telegram_user_id, 10),
         "⏰ Your session has been reset due to inactivity. Type /start to begin again or /help for assistance.",
       );
 
@@ -302,7 +316,7 @@ export const handler = registerHandler(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: normaliseError(error),
         timestamp: new Date().toISOString(),
       }),
       {
