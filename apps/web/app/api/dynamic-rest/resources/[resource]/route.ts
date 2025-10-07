@@ -105,13 +105,9 @@ function hasResourceDefinition(slug: string): slug is ResourceSlug {
   return Object.prototype.hasOwnProperty.call(RESOURCE_DEFINITIONS, slug);
 }
 
-type RouteParams = {
-  resource: string;
-};
-
-type RouteHandlerContext = {
-  params: RouteParams;
-};
+type RouteParams = Readonly<{
+  resource?: string | readonly string[];
+}>;
 
 type ResourceErrorPayload = Readonly<{
   status: "error";
@@ -159,9 +155,7 @@ function resolveResourceFromParams(
     return { type: "unknown" };
   }
 
-  const values = Array.isArray(resourceParam)
-    ? resourceParam
-    : [resourceParam];
+  const values = Array.isArray(resourceParam) ? resourceParam : [resourceParam];
 
   let resolvedSlug: ResourceSlug | null = null;
 
@@ -201,9 +195,9 @@ const getRouteName = (resolution: ResolvedResource) =>
 
 export async function GET(
   req: NextRequest,
-  context: RouteHandlerContext,
+  context: { readonly params: RouteParams },
 ) {
-  const resolution = resolveResourceFromParams(context?.params?.resource);
+  const resolution = resolveResourceFromParams(context.params.resource);
 
   return withApiMetrics(req, getRouteName(resolution), async () => {
     switch (resolution.type) {
