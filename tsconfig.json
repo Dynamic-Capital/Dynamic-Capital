@@ -3,6 +3,7 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./apps/web/*"],
+      "@shared/*": ["./shared/*"],
       "~/*": ["./src/*"],
       "next/font/google": ["./src/stubs/next-font-google.ts"]
     },

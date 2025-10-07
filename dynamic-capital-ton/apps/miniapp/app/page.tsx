@@ -7,7 +7,6 @@ import {
 } from "@tonconnect/ui-react";
 import type {
   SendTransactionRequest,
-  WalletsListConfiguration,
   TonConnectUI,
 } from "@tonconnect/ui-react";
 import {
@@ -21,6 +20,7 @@ import type { CSSProperties, JSX } from "react";
 import {
   useMiniAppThemeManager,
 } from "@shared/miniapp/use-miniapp-theme";
+import { TONCONNECT_WALLETS_LIST_CONFIGURATION } from "@shared/ton/tonconnect-wallets";
 import type {
   MiniAppThemeOption,
   TonConnectLike,
@@ -189,42 +189,6 @@ type PlanSyncStatus = {
   isRealtimeSyncing: boolean;
   updatedAt?: string;
   error?: string | null;
-};
-
-const RECOMMENDED_WALLETS: NonNullable<
-  WalletsListConfiguration["includeWallets"]
-> = [
-  {
-    appName: "tonkeeper",
-    name: "Tonkeeper",
-    imageUrl: "https://tonkeeper.com/assets/tonconnect-icon.png",
-    aboutUrl: "https://tonkeeper.com",
-    universalLink: "https://app.tonkeeper.com/ton-connect",
-    bridgeUrl: "https://bridge.tonapi.io/bridge",
-    platforms: ["ios", "android", "chrome", "firefox"],
-  },
-  {
-    appName: "tonhub",
-    name: "Tonhub",
-    imageUrl: "https://tonhub.com/tonconnect_logo.png",
-    aboutUrl: "https://tonhub.com",
-    universalLink: "https://tonhub.com/ton-connect",
-    bridgeUrl: "https://connect.tonhubapi.com/tonconnect",
-    platforms: ["ios", "android"],
-  },
-  {
-    appName: "mytonwallet",
-    name: "MyTonWallet",
-    imageUrl: "https://mytonwallet.io/icon-256.png",
-    aboutUrl: "https://mytonwallet.io",
-    universalLink: "https://connect.mytonwallet.org",
-    bridgeUrl: "https://tonconnectbridge.mytonwallet.org/bridge/",
-    platforms: ["chrome", "windows", "macos", "linux"],
-  },
-];
-
-const WALLETS_LIST_CONFIGURATION: WalletsListConfiguration = {
-  includeWallets: RECOMMENDED_WALLETS,
 };
 
 const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
@@ -2813,7 +2777,7 @@ export default function Page() {
   return (
     <TonConnectUIProvider
       manifestUrl={TONCONNECT_MANIFEST_URL}
-      walletsListConfiguration={WALLETS_LIST_CONFIGURATION}
+      walletsListConfiguration={TONCONNECT_WALLETS_LIST_CONFIGURATION}
     >
       <HomeInner />
     </TonConnectUIProvider>

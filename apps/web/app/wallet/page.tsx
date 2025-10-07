@@ -12,6 +12,7 @@ import {
   type LayerZeroEnvironment,
 } from "@/config/layerzero";
 import { UnifiedWalletConnect } from "@/components/web3/UnifiedWalletConnect";
+import { TonWalletCatalogue } from "@/components/web3/TonWalletCatalogue";
 
 const HERO_HIGHLIGHTS = [
   {
@@ -36,7 +37,7 @@ const ONBOARDING_STEPS = [
     icon: "sparkles" as const,
     title: "Launch TonConnect inside Telegram",
     description:
-      "Investors tap the Mini App link and authenticate with Tonkeeper, MyTonWallet, or Tonhub without leaving Telegram.",
+      "Investors tap the Mini App link and authenticate with Wallet (Telegram), Tonkeeper, DeDust Wallet, STON.fi Wallet, MyTonWallet, or Tonhub without leaving Telegram.",
   },
   {
     icon: "check" as const,
@@ -78,24 +79,6 @@ const AUTOMATION_EVENTS = [
   "Process-subscription functions compare incoming payments to the registered wallet before crediting staking units.",
   "Link-wallet flows reject duplicate addresses so every investor maintains a single, auditable entry in Supabase.",
   "Treasury monitoring jobs mirror intake and operations wallets to keep capital allocations accountable.",
-] as const;
-
-const SUPPORTED_WALLETS = [
-  {
-    name: "Tonkeeper",
-    description:
-      "Mobile-first wallet with TonConnect 2.0 support for instant Mini App onboarding.",
-  },
-  {
-    name: "MyTonWallet",
-    description:
-      "Browser extension and desktop flows for operators who prefer workstation trading.",
-  },
-  {
-    name: "Tonhub",
-    description:
-      "Lightweight mobile wallet ideal for community members joining from Telegram.",
-  },
 ] as const;
 
 type LayerZeroFeature = {
@@ -298,25 +281,7 @@ export default function WalletPage() {
         <Heading variant="heading-strong-l">
           Wallets your community already trusts
         </Heading>
-        <Row gap="16" wrap className="gap-6">
-          {SUPPORTED_WALLETS.map((wallet) => (
-            <Column
-              key={wallet.name}
-              gap="8"
-              padding="16"
-              radius="m"
-              background="page"
-              border="neutral-alpha-medium"
-              data-border="rounded"
-              className="flex-1 min-w-[220px]"
-            >
-              <Text variant="label-strong-m">{wallet.name}</Text>
-              <Text variant="body-default-s" onBackground="neutral-weak">
-                {wallet.description}
-              </Text>
-            </Column>
-          ))}
-        </Row>
+        <TonWalletCatalogue />
       </Column>
 
       <Column gap="24" maxWidth={40} fillWidth>
