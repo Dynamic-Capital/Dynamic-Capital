@@ -285,3 +285,81 @@ capital.
 
 Regular retrospectives after each phase ensure lessons feed back into automation
 rules and DAO governance proposals.
+
+## 20. Run Playbook Execution Protocol
+
+Operationalize the liquidity system with an explicit command sequence each time
+a cycle is initiated.
+
+### 20.1 Control Room Checklist
+
+- [ ] Confirm Supabase and Edge Function status pages are green.
+- [ ] Verify TON RPC endpoints (STON.fi, DeDust) respond within <300 ms latency.
+- [ ] Validate treasury wallet balances match the latest `treasury_flows`
+      snapshot.
+- [ ] Review DAO queue to ensure no pending proposal conflicts with planned
+      parameters.
+- [ ] Communicate run start time and owner in the operations Telegram channel.
+
+### 20.2 Execution Timeline
+
+| Minute | Action Owner     | Action                                                                 |
+| ------ | ---------------- | ---------------------------------------------------------------------- |
+| T−15   | Ops Lead         | Engage maintenance flag, pull baseline metrics, acknowledge alerts.    |
+| T−10   | Treasury Analyst | Stage TON/DCT balances for rebalancing and buyback legs.               |
+| T−05   | Automation SRE   | Arm single-flight locks, confirm retry queues are empty.               |
+| T0     | Ops Lead         | Execute rebalance or skip if deviation ≤ threshold.                    |
+| T+05   | Treasury Analyst | Deploy liquidity to target pool weights using staged balances.         |
+| T+10   | Ops Lead         | Run `/buyback-burn`, capture transaction hashes, update burn ledger.   |
+| T+15   | Automation SRE   | Trigger `/sync-pool-stats` and verify dashboards refresh successfully. |
+| T+20   | Ops Lead         | Release maintenance flag, broadcast summary with metrics snapshot.     |
+
+### 20.3 Metrics to Capture per Run
+
+- **Liquidity Drift Correction:** Absolute difference between target and actual
+  pool weights before and after the cycle.
+- **TON Utilization Time:** Minutes from inflow detection to first deployment
+  transaction.
+- **Buyback Slippage:** Effective price paid vs. midpoint at execution time.
+- **Automation Reliability:** Number of retries required per Edge Function and
+  total execution duration.
+- **Reporting Lag:** Minutes until dashboards reflect post-run state and DAO
+  observers confirm receipt.
+
+### 20.4 Post-Run Documentation
+
+1. Upload execution log to Supabase with references to transaction hashes and
+   Edge Function job IDs.
+2. Append findings to the weekly liquidity ops status report.
+3. File remediation tasks in the backlog for any breach of guardrails or SLA.
+4. Confirm DAO observers acknowledged the broadcast within the agreed response
+   window.
+
+## 21. Incident Response Playbook
+
+Activate this sequence if the run deviates from expected parameters.
+
+1. **Stabilize:** Pause additional automation triggers, freeze new liquidity
+   deployments, and notify stakeholders.
+2. **Diagnose:** Review recent Edge Function logs, RPC health metrics, and
+   contract event traces to isolate the root cause.
+3. **Remediate:** Execute targeted fixes (e.g., rerun failed job, failover RPC,
+   update Supabase entry) and document every intervention.
+4. **Recover:** Resume the runbook once metrics return within tolerance and
+   backlog tickets are created for follow-up analysis.
+5. **Report:** Publish a post-incident memo detailing impact, timeline, and
+   long-term corrective actions for DAO transparency.
+
+## 22. Continuous Run Validation
+
+Maintain operational readiness between cycles through routine validation.
+
+- **Dry Runs:** Simulate the playbook weekly using staging wallets to test new
+  automation rules before production deployment.
+- **Telemetry Audits:** Compare Supabase logs against Grafana dashboards to
+  ensure signal parity and alert accuracy.
+- **DAO Alignment Reviews:** Cross-check upcoming proposals with the run
+  schedule to avoid conflicting parameter changes during execution windows.
+- **Knowledge Base Updates:** Refresh this playbook with lessons from each
+  retrospective and include links to relevant status documents surfaced via the
+  `playbook` CLI.
