@@ -51,6 +51,11 @@ export interface LoadNodeConfigsResult {
   errors: NodeConfigParseError[];
 }
 
+export interface LoadNodeConfigsOptions {
+  prefix?: string;
+  snapshot?: Record<string, string | undefined>;
+}
+
 function sanitizeString(value: unknown): string | undefined {
   if (typeof value === "string") {
     const trimmed = value.trim();
@@ -241,10 +246,10 @@ export function parseNodeConfigValue(
 }
 
 export function loadNodeConfigsFromEnv(
-  options: { prefix?: string } = {},
+  options: LoadNodeConfigsOptions = {},
 ): LoadNodeConfigsResult {
   const prefix = options.prefix ?? NODE_CONFIG_ENV_PREFIX;
-  const snapshot = resolveEnvSnapshot();
+  const snapshot = options.snapshot ?? resolveEnvSnapshot();
   const configs: NodeConfig[] = [];
   const errors: NodeConfigParseError[] = [];
 
