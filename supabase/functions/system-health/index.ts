@@ -7,12 +7,21 @@ import {
 } from "../_shared/health.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
+type SupabaseServiceClient = ReturnType<typeof getServiceClient>;
+
+function resolveServiceClient(): SupabaseServiceClient {
+  const globalAny = globalThis as {
+    __SUPABASE_SERVICE_CLIENT__?: SupabaseServiceClient;
+  };
+  return globalAny.__SUPABASE_SERVICE_CLIENT__ ?? getServiceClient();
+}
+
 export const handler = registerHandler(async (req) => {
   const guard = guardHealthRequest(req, ["GET"]);
   if (guard) return guard;
 
   try {
-    const supabase = getServiceClient();
+    const supabase = resolveServiceClient();
 
     const checks = await Promise.all([
       measureHealthCheck("database", async () => {
