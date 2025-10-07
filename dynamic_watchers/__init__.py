@@ -23,6 +23,10 @@ _WATCHER_EXPORTS = {
         "WatcherReport",
         "DynamicWatcher",
     ),
+    "dynamic_watchers.api_watcher": (
+        "ApiWatcherResult",
+        "run_api_watcher",
+    ),
 }
 
 _LAZY = build_lazy_namespace(_WATCHER_EXPORTS, default_module="dynamic_watchers.base")

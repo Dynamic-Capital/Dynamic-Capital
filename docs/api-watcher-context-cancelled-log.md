@@ -46,6 +46,20 @@ When the API service shuts down an internal watcher loop it emits an error log w
 3. **Harden shutdown hooks.** Ensure watchers flush in-flight work and acknowledge cancellation quickly; update unit tests to cover cancellation paths where feasible.
 4. **Add observability guards.** Alert when cancellation rates exceed a defined threshold in a given time window to distinguish normal rotations from instability.
 
+## Running the API Watcher
+
+Use the `scripts/run_api_watcher.py` helper to analyse recent watcher exit logs and surface alerts when cancellations cluster too closely together.
+
+```bash
+python scripts/run_api_watcher.py --input watcher-events.json --min-gap-seconds 180
+```
+
+The script accepts newline-delimited JSON or a JSON array. It prints a tabular summary by default, or JSON with `--format json`. Combine it with a log query to investigate the latest `context canceled` events:
+
+```bash
+lq "component=api error='context canceled'" --limit 50 | python scripts/run_api_watcher.py --min-gap-seconds 240
+```
+
 ## References
 
 - [Go `context` package – Cancellation Propagation](https://pkg.go.dev/context#WithCancel)
