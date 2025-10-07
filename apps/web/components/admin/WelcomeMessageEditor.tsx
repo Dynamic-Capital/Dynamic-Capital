@@ -96,7 +96,6 @@ export const WelcomeMessageEditor = () => {
 
   useEffect(() => {
     fetchWelcomeMessage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const createDefaultWelcomeMessage = async () => {

@@ -11,6 +11,35 @@ type TelemetryState = {
   prometheusExporter?: PrometheusExporter;
 };
 
+type ResourceInstance = {
+  merge(other: ResourceInstance): ResourceInstance;
+};
+
+type ResourceConstructor = {
+  default(): ResourceInstance;
+  new (attributes: Record<string, unknown>): ResourceInstance;
+};
+
+type MeterProviderConstructor = new (options: {
+  resource: ResourceInstance;
+  readers: unknown[];
+  views: unknown[];
+}) => MeterProvider;
+
+type ViewConstructor = new (options: {
+  instrumentName: string;
+  instrumentType: unknown;
+  aggregation: unknown;
+}) => unknown;
+
+type ExplicitBucketHistogramAggregationConstructor = new (
+  boundaries: number[],
+) => unknown;
+
+type InstrumentTypeLike = {
+  HISTOGRAM: unknown;
+};
+
 type SentryFacade = {
   init?: (options: Record<string, unknown>) => void;
   getCurrentHub?: () => { getClient?: () => unknown } | undefined;
@@ -186,15 +215,52 @@ const registerImpl: () => Promise<void> = (() => {
       // Optional dependency not installed; continue without Vercel helper.
     }
 
-    const [
-      { registerInstrumentations },
-      { HttpInstrumentation },
-      { FetchInstrumentation },
-    ] = await Promise.all([
-      loadInstrumentationModule(),
-      loadHttpInstrumentationModule(),
-      loadFetchInstrumentationModule(),
-    ]);
+    function fallbackToExistingMeterProvider(
+      message: string,
+      error?: unknown,
+    ) {
+      if (!telemetryState.meterProvider) {
+        telemetryState.meterProvider = metrics
+          .getMeterProvider() as unknown as MeterProvider;
+      }
+      if (!isProduction) {
+        console.warn("[telemetry]", message, error);
+      }
+    }
+
+    let registerInstrumentations:
+      InstrumentationModule["registerInstrumentations"];
+    let HttpInstrumentation: HttpInstrumentationModule["HttpInstrumentation"];
+    let FetchInstrumentation:
+      FetchInstrumentationModule["FetchInstrumentation"];
+    try {
+      [
+        { registerInstrumentations },
+        { HttpInstrumentation },
+        { FetchInstrumentation },
+      ] = await Promise.all([
+        loadInstrumentationModule(),
+        loadHttpInstrumentationModule(),
+        loadFetchInstrumentationModule(),
+      ]);
+    } catch (error) {
+      fallbackToExistingMeterProvider(
+        "Failed to load OpenTelemetry instrumentation modules",
+        error,
+      );
+      return;
+    }
+
+    if (
+      typeof registerInstrumentations !== "function" ||
+      typeof HttpInstrumentation !== "function" ||
+      typeof FetchInstrumentation !== "function"
+    ) {
+      fallbackToExistingMeterProvider(
+        "OpenTelemetry instrumentation exports are unavailable",
+      );
+      return;
+    }
 
     registerInstrumentations({
       instrumentations: [
@@ -213,20 +279,65 @@ const registerImpl: () => Promise<void> = (() => {
       ],
     });
 
-    const [
-      {
-        ExplicitBucketHistogramAggregation,
-        InstrumentType,
-        MeterProvider: SDKMeterProvider,
-        View,
-      },
-      { Resource },
-      { SemanticResourceAttributes },
-    ] = await Promise.all([
-      loadSDKMetricsModule(),
-      loadResourcesModule(),
-      loadSemanticConventionsModule(),
-    ]);
+    let metricsModule: SDKMetricsModule;
+    let resourcesModule: ResourcesModule;
+    let semanticConventionsModule: SemanticConventionsModule;
+    try {
+      [metricsModule, resourcesModule, semanticConventionsModule] =
+        await Promise.all([
+          loadSDKMetricsModule(),
+          loadResourcesModule(),
+          loadSemanticConventionsModule(),
+        ]);
+    } catch (error) {
+      fallbackToExistingMeterProvider(
+        "Failed to load OpenTelemetry SDK modules",
+        error,
+      );
+      return;
+    }
+
+    const { SemanticResourceAttributes } = semanticConventionsModule;
+
+    const metricsExports = metricsModule as Record<string, unknown>;
+    const meterProviderCtor = metricsExports["MeterProvider"];
+    const instrumentType = metricsExports["InstrumentType"];
+    const viewCtor = metricsExports["View"];
+    const explicitBucketHistogramAggregationCtor =
+      metricsExports["ExplicitBucketHistogramAggregation"];
+
+    if (
+      typeof meterProviderCtor !== "function" ||
+      typeof viewCtor !== "function" ||
+      typeof explicitBucketHistogramAggregationCtor !== "function" ||
+      typeof instrumentType !== "object" ||
+      instrumentType === null
+    ) {
+      fallbackToExistingMeterProvider(
+        "OpenTelemetry metrics SDK exports are unavailable",
+      );
+      return;
+    }
+
+    const resourceExports = resourcesModule as Record<string, unknown>;
+    const resourceCtor = resourceExports["Resource"];
+
+    if (typeof resourceCtor !== "function") {
+      fallbackToExistingMeterProvider(
+        "OpenTelemetry resources SDK exports are unavailable",
+      );
+      return;
+    }
+
+    const SDKMeterProvider =
+      meterProviderCtor as MeterProviderConstructor;
+    const InstrumentType = instrumentType as InstrumentTypeLike;
+    const View = viewCtor as ViewConstructor;
+    const ExplicitBucketHistogramAggregation =
+      explicitBucketHistogramAggregationCtor as
+        ExplicitBucketHistogramAggregationConstructor;
+
+    const Resource = resourceCtor as ResourceConstructor;
 
     const resource = Resource.default().merge(
       new Resource({
