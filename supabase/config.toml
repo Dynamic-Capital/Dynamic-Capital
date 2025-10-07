@@ -39,3 +39,15 @@ verify_jwt = false
 
 [functions.openai-webhook]
 verify_jwt = false
+
+[functions."dao-dns-proposal"]
+verify_jwt = false
+
+[functions."vote-dns"]
+verify_jwt = false
+
+[functions."execute-dns"]
+verify_jwt = false
+
+[functions."dns-verify"]
+verify_jwt = false
