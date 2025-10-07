@@ -19,6 +19,7 @@ __all__ = [
     "QuantumAgentProfile",
     "QuantumAgentInsight",
     "DynamicQuantumAgent",
+    "QuantumAgentWorkflowResult",
     "QUANTUM_AGENT_PROFILES",
     "list_quantum_agent_profiles",
     "build_quantum_agent_registry",
@@ -152,6 +153,14 @@ class QuantumAgentInsight:
         return payload
 
 
+@dataclass(slots=True)
+class QuantumAgentWorkflowResult:
+    """Aggregate payload emitted when running a workflow cycle."""
+
+    insight: QuantumAgentInsight
+    pulses: Tuple[QuantumPulse, ...]
+
+
 class DynamicQuantumAgent:
     """Base class implementing Dynamic Quantum Agent orchestration."""
 
@@ -198,6 +207,18 @@ class DynamicQuantumAgent:
 
     def clear(self) -> None:
         self._engine.clear()
+
+    def ingest_pulses(
+        self,
+        pulses: Sequence[QuantumPulse | Mapping[str, object]],
+        *,
+        clear: bool = False,
+    ) -> Tuple[QuantumPulse, ...]:
+        """Register pulses while optionally resetting previous state."""
+
+        if clear:
+            self.clear()
+        return self.register_pulses(pulses)
 
     def _resolve_environment(self, environment: QuantumEnvironment | None) -> QuantumEnvironment | None:
         if environment is not None:
@@ -316,6 +337,33 @@ class DynamicQuantumAgent:
             environment=self._environment_as_mapping(resolved_environment),
             decoherence_projection=decoherence_projection,
         )
+
+    def run_workflow(
+        self,
+        pulses: Sequence[QuantumPulse | Mapping[str, object]],
+        *,
+        environment: QuantumEnvironment | None = None,
+        include_decoherence: bool = False,
+        decoherence_steps: int = 5,
+        timestamp: datetime | None = None,
+        domains: Sequence[str] | None = None,
+        states: Sequence[str] | None = None,
+        clear: bool = False,
+    ) -> QuantumAgentWorkflowResult:
+        """Convenience helper that ingests pulses and emits an insight."""
+
+        registered = self.ingest_pulses(pulses, clear=clear)
+        if not registered:
+            raise ValueError("pulses must not be empty")
+        insight = self.generate_insight(
+            environment=environment,
+            include_decoherence=include_decoherence,
+            decoherence_steps=decoherence_steps,
+            timestamp=timestamp,
+            domains=domains,
+            states=states,
+        )
+        return QuantumAgentWorkflowResult(insight=insight, pulses=registered)
 
 
 def _build_profile(
