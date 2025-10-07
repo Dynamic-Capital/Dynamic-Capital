@@ -3,21 +3,21 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
-import { LifeBuoy } from "lucide-react";
 
 import BrandLogo from "@/components/BrandLogo";
-import { useAuth } from "@/hooks/useAuth";
-import { useWalletConnect } from "@/hooks/useWalletConnect";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
+
+import {
+  CTA_LINKS,
+  LANDING_SECTION_IDS,
+} from "@/components/landing/landing-config";
 
 import { DesktopNav } from "./DesktopNav";
 import { MobileMenu } from "./MobileMenu";
 
 export function SiteHeader() {
   const headerRef = useRef<HTMLElement | null>(null);
-  const { user, signOut } = useAuth();
-  const connectWallet = useWalletConnect();
   const { scrollYProgress } = useScroll();
   const scrollProgress = useSpring(scrollYProgress, {
     stiffness: 120,
@@ -76,80 +76,56 @@ export function SiteHeader() {
 
         <DesktopNav />
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button
+            asChild
+            variant="ghost"
             size="sm"
-            className="hidden md:inline-flex"
-            onClick={() => {
-              void connectWallet();
-            }}
+            className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary md:inline-flex"
           >
-            Connect wallet
+            <Link href={`/#${LANDING_SECTION_IDS.join}`}>Scroll to join</Link>
           </Button>
           <Button
             asChild
             variant="ghost"
             size="sm"
-            className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary lg:flex"
+            className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary lg:inline-flex"
           >
-            <Link href="/support">Support</Link>
+            <Link
+              href={CTA_LINKS.telegram}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Telegram
+            </Link>
           </Button>
-          {user
-            ? (
-              <>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary lg:inline-flex"
-                >
-                  <Link href="/profile">Profile</Link>
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => signOut()}
-                  className="hidden lg:inline-flex"
-                >
-                  Sign out
-                </Button>
-              </>
-            )
-            : (
-              <Button
-                asChild
-                size="sm"
-                variant="secondary"
-                className="hidden lg:inline-flex"
-              >
-                <Link href="/login">Sign in</Link>
-              </Button>
-            )}
-          <div className="flex items-center gap-2 md:hidden">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                void connectWallet();
-              }}
+          <Button
+            asChild
+            size="sm"
+            className="hidden font-semibold uppercase tracking-wide md:inline-flex"
+          >
+            <Link
+              href={CTA_LINKS.invest}
+              target="_blank"
+              rel="noreferrer"
             >
-              Connect
-            </Button>
-            <Button
-              asChild
-              variant="ghost"
-              size="icon"
-              aria-label="Open support"
+              Launch desk
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="sm"
+            className="md:hidden"
+          >
+            <Link
+              href={CTA_LINKS.invest}
+              target="_blank"
+              rel="noreferrer"
             >
-              <Link href="/support" aria-label="Support center">
-                <span className="contents">
-                  <LifeBuoy className="h-5 w-5" />
-                  <span className="sr-only">Support</span>
-                </span>
-              </Link>
-            </Button>
-            <MobileMenu />
-          </div>
+              Launch
+            </Link>
+          </Button>
+          <MobileMenu />
         </div>
       </div>
     </header>

@@ -12,14 +12,11 @@ import {
 } from "@/components/dynamic-ui-system";
 import { baseURL, person } from "@/resources";
 
+import { CTA_LINKS, LANDING_SECTION_IDS } from "./landing-config";
+
 const SCHEMA_TITLE = "Dynamic Capital — Unified Desk";
 const SCHEMA_DESCRIPTION =
   "All of Dynamic Capital now lives on a single adaptive page with real-time highlights.";
-
-const CTA_LINKS = {
-  telegram: "https://t.me/dynamiccapital",
-  invest: "https://app.dynamic.capital",
-};
 
 const HERO_CONTENT = {
   eyebrow: "Single page desk",
@@ -105,6 +102,8 @@ export function MultiLlmLandingPage() {
       />
 
       <motion.section
+        id={LANDING_SECTION_IDS.hero}
+        aria-labelledby="landing-hero-heading"
         initial={fadeIn.initial}
         animate={fadeIn.animate}
         transition={{ duration: 0.7, ease: "easeOut" }}
@@ -119,6 +118,7 @@ export function MultiLlmLandingPage() {
           {HERO_CONTENT.eyebrow}
         </motion.span>
         <Heading
+          id="landing-hero-heading"
           variant="heading-strong-l"
           className="max-w-3xl text-balance text-4xl sm:text-5xl"
         >
@@ -197,12 +197,17 @@ export function MultiLlmLandingPage() {
       </motion.section>
 
       <motion.section
+        id={LANDING_SECTION_IDS.highlights}
+        aria-labelledby="landing-highlights-heading"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
         transition={{ staggerChildren: 0.12 }}
         className="grid w-full grid-cols-1 gap-6 md:grid-cols-3"
       >
+        <span id="landing-highlights-heading" className="sr-only">
+          Highlights
+        </span>
         {FEATURE_CARDS.map((feature) => (
           <motion.article
             key={feature.title}
@@ -220,6 +225,7 @@ export function MultiLlmLandingPage() {
       </motion.section>
 
       <motion.section
+        id={LANDING_SECTION_IDS.rhythm}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
@@ -230,7 +236,11 @@ export function MultiLlmLandingPage() {
           variants={staggerChild}
           className="grid gap-3 sm:grid-cols-[minmax(0,0.6fr),1fr] sm:items-start"
         >
-          <Heading variant="heading-strong-m" className="text-3xl">
+          <Heading
+            id="landing-rhythm-heading"
+            variant="heading-strong-m"
+            className="text-3xl"
+          >
             A morning-to-evening rhythm
           </Heading>
           <Text variant="body-default-m" onBackground="neutral-weak">
@@ -261,6 +271,7 @@ export function MultiLlmLandingPage() {
       </motion.section>
 
       <motion.section
+        id={LANDING_SECTION_IDS.stakeholders}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
@@ -271,7 +282,11 @@ export function MultiLlmLandingPage() {
           variants={staggerChild}
           className="grid w-full max-w-3xl gap-4"
         >
-          <Heading variant="heading-strong-m" className="text-3xl sm:text-4xl">
+          <Heading
+            id="landing-stakeholders-heading"
+            variant="heading-strong-m"
+            className="text-3xl sm:text-4xl"
+          >
             Built for investors, analysts, and community guardians alike
           </Heading>
           <Text variant="body-default-m" onBackground="neutral-weak">
@@ -297,6 +312,33 @@ export function MultiLlmLandingPage() {
             </li>
           ))}
         </motion.ul>
+      </motion.section>
+
+      <motion.section
+        id={LANDING_SECTION_IDS.join}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ staggerChildren: 0.12 }}
+        className="flex w-full flex-col items-center gap-6 text-center"
+        aria-labelledby="landing-join-heading"
+      >
+        <motion.div
+          variants={staggerChild}
+          className="grid w-full max-w-2xl gap-3"
+        >
+          <Heading
+            id="landing-join-heading"
+            variant="heading-strong-m"
+            className="text-3xl"
+          >
+            Join the desk cadence
+          </Heading>
+          <Text variant="body-default-m" onBackground="neutral-weak">
+            Launch the live desk to feel the flow or drop into Telegram to
+            follow treasury moves as they happen.
+          </Text>
+        </motion.div>
         <Row gap="12" wrap horizontal="center" className="gap-4">
           <Button
             size="m"

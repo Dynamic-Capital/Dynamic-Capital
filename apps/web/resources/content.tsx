@@ -46,19 +46,26 @@ function resolveServerTimeZone():
 
 const serverTimeZone = resolveServerTimeZone();
 
+type DeskTimeZoneConfig = {
+  iana?: string | null;
+  label?: string | null;
+};
+
+const deskTimeZoneConfig = deskTimeZone as DeskTimeZoneConfig;
+
 const fallbackDeskTimeZone: IANATimeZone =
   (serverTimeZone?.timeZone ?? "UTC") as IANATimeZone;
-const rawDeskTimeZone =
-  typeof deskTimeZone?.iana === "string" && deskTimeZone.iana.length > 0
-    ? deskTimeZone.iana
-    : undefined;
+const rawDeskTimeZone = typeof deskTimeZoneConfig?.iana === "string" &&
+    deskTimeZoneConfig.iana.length > 0
+  ? deskTimeZoneConfig.iana
+  : undefined;
 const DESK_TIME_ZONE =
   (rawDeskTimeZone ?? fallbackDeskTimeZone) as IANATimeZone;
 
-const DESK_TIME_ZONE_LABEL =
-  typeof deskTimeZone?.label === "string" && deskTimeZone.label.length > 0
-    ? deskTimeZone.label
-    : serverTimeZone?.label ?? "Server local time";
+const DESK_TIME_ZONE_LABEL = typeof deskTimeZoneConfig?.label === "string" &&
+    deskTimeZoneConfig.label.length > 0
+  ? deskTimeZoneConfig.label
+  : serverTimeZone?.label ?? "Server local time";
 
 const person: Person = {
   firstName: "Abdul Mumin",
