@@ -5,10 +5,10 @@
   "outputDirectory": "apps/web/.next",
   "devCommand": "npm run dev -- --port $PORT",
   "env": {
-    "SITE_URL": "https://dynamiccapital.ton",
-    "NEXT_PUBLIC_SITE_URL": "https://dynamiccapital.ton",
-    "ALLOWED_ORIGINS": "https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://dynamic-capital.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app",
-    "MINIAPP_ORIGIN": "https://dynamiccapital.ton",
-    "TELEGRAM_WEBHOOK_URL": "https://dynamiccapital.ton/webhook"
+    "SITE_URL": "https://dynamic.capital",
+    "NEXT_PUBLIC_SITE_URL": "https://dynamic.capital",
+    "ALLOWED_ORIGINS": "https://dynamic.capital,https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app",
+    "MINIAPP_ORIGIN": "https://dynamic.capital",
+    "TELEGRAM_WEBHOOK_URL": "https://dynamic.capital/webhook"
   }
 }
