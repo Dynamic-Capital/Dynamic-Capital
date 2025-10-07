@@ -1,14 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  Activity,
-  CandlestickChart,
-  GraduationCap,
-  Home,
-  LineChart,
-  Radar,
-  Sparkles,
-  Wallet,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 export type MiniAppTabId =
   | "dynamic-hq"
@@ -32,13 +23,17 @@ export interface MiniAppTabMeta {
   tone?: MiniAppTabTone;
 }
 
+export type MiniAppTabIcon =
+  | { type: "lucide"; icon: LucideIcon }
+  | { type: "image"; src: string; alt: string };
+
 export interface MiniAppTab {
   id: MiniAppTabId;
   href: string;
   label: string;
   eyebrow: string;
   description: string;
-  Icon: LucideIcon;
+  icon: MiniAppTabIcon;
   analyticsEvent: string;
   badge?: MiniAppTabBadge;
   meta?: MiniAppTabMeta;
@@ -52,7 +47,11 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     label: "Dynamic HQ",
     eyebrow: "Command",
     description: "Agenda, automation status, and plan sprints.",
-    Icon: Home,
+    icon: {
+      type: "image",
+      src: "/miniapp/dc-mark.svg",
+      alt: "Dynamic Capital mark",
+    },
     analyticsEvent: "nav_dynamic_hq",
     badge: { label: "New", tone: "accent" },
   },
@@ -62,7 +61,11 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     label: "Dynamic Market",
     eyebrow: "Market",
     description: "Portfolio pulse, KPIs, and equity curve.",
-    Icon: LineChart,
+    icon: {
+      type: "image",
+      src: "/miniapp/dlm-mark.svg",
+      alt: "Dynamic Live Market mark",
+    },
     analyticsEvent: "nav_dynamic_market",
     meta: { label: "Live", icon: Sparkles, tone: "accent" },
   },
@@ -72,7 +75,11 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     label: "Dynamic Watchlist",
     eyebrow: "Signals",
     description: "Core assets with catalysts and automation hooks.",
-    Icon: Radar,
+    icon: {
+      type: "image",
+      src: "/miniapp/di-mark.svg",
+      alt: "Dynamic Intelligence mark",
+    },
     analyticsEvent: "nav_dynamic_watchlist",
   },
   {
@@ -81,7 +88,11 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     label: "Dynamic Pool Trading",
     eyebrow: "Pool",
     description: "Fund transparency, supply allocation, and epochs.",
-    Icon: CandlestickChart,
+    icon: {
+      type: "image",
+      src: "/miniapp/dfp-mark.svg",
+      alt: "Dynamic Fund Pool mark",
+    },
     analyticsEvent: "nav_dynamic_pool_trading",
   },
   {
@@ -90,7 +101,11 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     label: "Dynamic Signals",
     eyebrow: "Feed",
     description: "Realtime desk triggers and automation alerts.",
-    Icon: Activity,
+    icon: {
+      type: "image",
+      src: "/miniapp/dagi-mark.svg",
+      alt: "Dynamic AGI mark",
+    },
     analyticsEvent: "nav_dynamic_signals",
     meta: { label: "Streaming", icon: Sparkles, tone: "accent" },
   },
@@ -100,7 +115,11 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     label: "Dynamic Learn & Earn",
     eyebrow: "Mentor",
     description: "Mentor chat, office hours, and skill tracks.",
-    Icon: GraduationCap,
+    icon: {
+      type: "image",
+      src: "/miniapp/dle-mark.svg",
+      alt: "Dynamic Learn & Earn mark",
+    },
     analyticsEvent: "nav_dynamic_learn",
     showInBottomNav: true,
   },
@@ -110,7 +129,11 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     label: "Dynamic Access",
     eyebrow: "Access",
     description: "Membership, billing, and concierge support.",
-    Icon: Wallet,
+    icon: {
+      type: "image",
+      src: "/miniapp/dv-mark.svg",
+      alt: "Dynamic VIP mark",
+    },
     analyticsEvent: "nav_dynamic_access",
     showInBottomNav: false,
   },

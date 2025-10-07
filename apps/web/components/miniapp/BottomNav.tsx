@@ -3,12 +3,30 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 import { haptic } from "@/lib/telegram";
 import { track } from "@/lib/metrics";
 import { cn } from "@/utils";
 
-import { MINIAPP_TABS } from "./navigation";
+import { MINIAPP_TABS, type MiniAppTabIcon } from "./navigation";
+
+function renderTabIcon(icon: MiniAppTabIcon, active: boolean) {
+  if (icon.type === "lucide") {
+    const IconComponent = icon.icon;
+    return <IconComponent size={20} strokeWidth={active ? 2.4 : 2} />;
+  }
+
+  return (
+    <Image
+      src={icon.src}
+      alt={icon.alt}
+      width={20}
+      height={20}
+      className={cn("h-5 w-5", active ? "opacity-100" : "opacity-80")}
+    />
+  );
+}
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -26,8 +44,8 @@ export function BottomNav() {
               `repeat(${primaryTabs.length}, minmax(0, 1fr))`,
           }}
         >
-          {primaryTabs.map(({ href, label, Icon, analyticsEvent }) => {
-            const active = pathname?.startsWith(href);
+          {primaryTabs.map(({ href, label, icon, analyticsEvent }) => {
+            const active = pathname?.startsWith(href) ?? false;
 
             return (
               <Link
@@ -55,7 +73,7 @@ export function BottomNav() {
                   />
                 )}
                 <span className="miniapp-bottom-tab__icon">
-                  <Icon size={20} strokeWidth={active ? 2.4 : 2} />
+                  {renderTabIcon(icon, active)}
                 </span>
                 <span className="miniapp-bottom-tab__label">{label}</span>
               </Link>

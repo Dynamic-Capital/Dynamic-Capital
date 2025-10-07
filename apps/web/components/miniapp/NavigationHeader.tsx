@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useMemo } from "react";
+import Image from "next/image";
 
 import { haptic } from "@/lib/telegram";
 import { track } from "@/lib/metrics";
@@ -12,8 +13,39 @@ import { cn } from "@/utils";
 import {
   MINIAPP_TABS,
   type MiniAppTab,
+  type MiniAppTabIcon,
   type MiniAppTabTone,
 } from "./navigation";
+
+function renderTabIcon(
+  icon: MiniAppTabIcon,
+  {
+    size,
+    strokeWidth = 2,
+    className,
+  }: { size: number; strokeWidth?: number; className?: string },
+) {
+  if (icon.type === "lucide") {
+    const IconComponent = icon.icon;
+    return (
+      <IconComponent
+        size={size}
+        strokeWidth={strokeWidth}
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={icon.src}
+      alt={icon.alt}
+      width={size}
+      height={size}
+      className={className}
+    />
+  );
+}
 
 const badgeToneMap: Record<MiniAppTabTone, string> = {
   accent: "border-primary/60 bg-primary/20 text-primary-foreground",
@@ -43,7 +75,11 @@ export function NavigationHeader() {
             transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeOut" }}
             className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white"
           >
-            <activeTab.Icon size={20} strokeWidth={2.2} />
+            {renderTabIcon(activeTab.icon, {
+              size: 20,
+              strokeWidth: 2.2,
+              className: "h-5 w-5",
+            })}
           </motion.div>
           <div className="flex-1 space-y-1">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60">
@@ -121,7 +157,14 @@ export function NavigationHeader() {
                       "border-primary/50 bg-primary/25 text-primary-foreground",
                   )}
                 >
-                  <tab.Icon size={18} strokeWidth={isActive ? 2.4 : 2} />
+                  {renderTabIcon(tab.icon, {
+                    size: 18,
+                    strokeWidth: isActive ? 2.4 : 2,
+                    className: cn(
+                      "h-5 w-5 transition-opacity",
+                      isActive ? "opacity-100" : "opacity-80",
+                    ),
+                  })}
                 </span>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60">

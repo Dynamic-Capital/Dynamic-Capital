@@ -10,12 +10,25 @@ import {
   Work,
 } from "@/resources/types";
 import { Line, Row, Text } from "@/components/dynamic-ui-system";
-import { zones } from "tzdata";
+import { zones } from "./iana-zones";
 
 import deskTimeZone from "../../../shared/time/desk-time-zone.json";
 import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";
 import { resolveTonSiteUrl } from "../../../shared/ton/site";
+
+interface DeskTimeZoneRecord {
+  iana: unknown;
+  label: unknown;
+  abbreviation: unknown;
+  offset: unknown;
+}
+
+const deskTimeZoneRecord: DeskTimeZoneRecord = deskTimeZone;
+
+function asNonEmptyString(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
 
 function isIANATimeZone(value: string): value is IANATimeZone {
   return Object.prototype.hasOwnProperty.call(zones, value);
@@ -48,17 +61,14 @@ const serverTimeZone = resolveServerTimeZone();
 
 const fallbackDeskTimeZone: IANATimeZone =
   (serverTimeZone?.timeZone ?? "UTC") as IANATimeZone;
-const rawDeskTimeZone =
-  typeof deskTimeZone?.iana === "string" && deskTimeZone.iana.length > 0
-    ? deskTimeZone.iana
-    : undefined;
+const rawDeskTimeZone = asNonEmptyString(deskTimeZoneRecord.iana);
 const DESK_TIME_ZONE =
   (rawDeskTimeZone ?? fallbackDeskTimeZone) as IANATimeZone;
 
 const DESK_TIME_ZONE_LABEL =
-  typeof deskTimeZone?.label === "string" && deskTimeZone.label.length > 0
-    ? deskTimeZone.label
-    : serverTimeZone?.label ?? "Server local time";
+  asNonEmptyString(deskTimeZoneRecord.label) ??
+  serverTimeZone?.label ??
+  "Server local time";
 
 const person: Person = {
   firstName: "Abdul Mumin",

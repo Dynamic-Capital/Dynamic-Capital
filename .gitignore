@@ -70,6 +70,8 @@ miniapp/
 !apps/web/services/miniapp/**
 !apps/web/app/(miniapp)/
 !apps/web/app/(miniapp)/**
+!apps/web/public/miniapp/
+!apps/web/public/miniapp/**
 
 # Keep miniapp static assets (explicit allow)
 !supabase/functions/miniapp/
