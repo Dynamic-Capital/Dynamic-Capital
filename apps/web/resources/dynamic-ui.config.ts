@@ -11,10 +11,14 @@ import {
   SocialSharingConfig,
   StyleConfig,
   SystemUIConfig,
-} from "@/resources/types";
+} from "./types";
 import { resolveTonSiteUrl } from "../../../shared/ton/site";
 import { dynamicBranding } from "./dynamic-branding.config";
 import { home } from "./content";
+import {
+  dynamicDataStyleDefaults,
+  dynamicStyleDefaults,
+} from "../../../shared/branding/dynamic-ui-tokens";
 
 const brandingMetadata = dynamicBranding.metadata;
 const brandingAssets = dynamicBranding.assets;
@@ -82,32 +86,9 @@ const fonts: FontsConfig = {
   code,
 };
 
-const style: StyleConfig = {
-  theme: "system",
-  neutral: "gray",
-  brand: "blue",
-  accent: "cyan",
-  solid: "contrast",
-  solidStyle: "flat",
-  border: "playful",
-  surface: "translucent",
-  transition: "all",
-  scaling: "100",
-};
+const style: StyleConfig = dynamicStyleDefaults;
 
-const dataStyle: DataStyleConfig = {
-  variant: "gradient",
-  mode: "categorical",
-  height: 24,
-  axis: {
-    stroke: "var(--neutral-alpha-weak)",
-  },
-  tick: {
-    fill: "var(--neutral-on-background-weak)",
-    fontSize: 11,
-    line: false,
-  },
-};
+const dataStyle: DataStyleConfig = dynamicDataStyleDefaults;
 
 const effects: EffectsConfig = {
   mask: {

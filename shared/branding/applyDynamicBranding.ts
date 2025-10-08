@@ -1,15 +1,14 @@
-import { dynamicBranding, dynamicUI } from "../../apps/web/resources";
+import { dynamicBranding } from "../../apps/web/resources/dynamic-branding.config";
+import {
+  dynamicDataStyleDefaults,
+  dynamicStyleDefaults,
+} from "./dynamic-ui-tokens";
 
 const BRANDING_STYLE_ELEMENT_ID = "dynamic-branding-tokens";
 const THEME_STORAGE_KEY = "data-theme";
 
-const {
-  basics: basicsConfig,
-  dataViz: dataVizConfig,
-} = dynamicUI;
-
-const { style } = basicsConfig;
-const { dataStyle } = dataVizConfig;
+const style = dynamicStyleDefaults;
+const dataStyle = dynamicDataStyleDefaults;
 
 const DEFAULT_THEME = style.theme === "light" || style.theme === "dark"
   ? style.theme

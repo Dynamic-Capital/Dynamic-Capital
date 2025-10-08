@@ -6,11 +6,11 @@ import {
   type ThemePassModePalette,
   ThemePassSchema,
   type ThemePassTypography,
-} from "@/resources/types/theme-pass";
+} from "../resources/types/theme-pass";
 import type {
   BrandingThemeTokens,
   BrandingTokens,
-} from "@/resources/types/branding.types";
+} from "../resources/types/branding.types";
 
 export type ThemePassNormalizationResult = {
   data: ThemePass;
@@ -139,12 +139,13 @@ function applyModePalette(
     }
   }
 
-  if (Array.isArray(palette.charts)) {
-    palette.charts.forEach((chartValue, index) => {
-      if (typeof chartValue === "string" && chartValue.trim()) {
-        target[`--chart-${index + 1}`] = chartValue;
-      }
-    });
+  const charts = Array.isArray(palette.charts) ? palette.charts : [];
+
+  for (let index = 0; index < charts.length; index += 1) {
+    const chartValue = charts[index];
+    if (typeof chartValue === "string" && chartValue.trim()) {
+      target[`--chart-${index + 1}`] = chartValue;
+    }
   }
 
   if (palette.tokens && typeof palette.tokens === "object") {
