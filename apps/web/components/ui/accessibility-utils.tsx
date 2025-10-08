@@ -23,14 +23,18 @@ export function SkipLink({ href, children, className }: SkipLinkProps) {
   );
 }
 
-interface VisuallyHiddenProps {
+interface VisuallyHiddenProps extends React.HTMLAttributes<HTMLSpanElement> {
   children: React.ReactNode;
-  className?: string;
 }
 
-export function VisuallyHidden({ children, className }: VisuallyHiddenProps) {
+export function VisuallyHidden({
+  children,
+  className,
+  ...props
+}: VisuallyHiddenProps) {
   return (
     <span
+      {...props}
       className={cn(
         "sr-only",
         className,
