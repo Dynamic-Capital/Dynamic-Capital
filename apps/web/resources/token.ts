@@ -8,6 +8,10 @@ import {
   DCT_ACTION_PAD,
   type DctActionPadDefinition,
 } from "../../../shared/ton/dct-action-pad";
+import {
+  DCT_OMNICHAIN_ROUTES,
+  type DctOmnichainRouteDefinition,
+} from "../../../shared/dct/omnichain";
 import { DCT_DEX_POOLS } from "../../../shared/ton/dct-liquidity";
 import type { IconName } from "./icons";
 
@@ -191,6 +195,8 @@ type DexPool = {
   jettonWalletUrl?: string;
 };
 
+type OmnichainRoute = DctOmnichainRouteDefinition;
+
 type SupplySplit = {
   label: string;
   value: string;
@@ -231,6 +237,7 @@ type TokenContent = {
   treasuryWalletUrl: string;
   treasuryWalletTonscanUrl?: string;
   actionPad: DctActionPadDefinition;
+  omnichainRoutes: readonly OmnichainRoute[];
 };
 
 type TokenDescriptor = {
@@ -388,17 +395,25 @@ const tokenLockTiers = Object.freeze([
 ]) satisfies readonly LockTier[];
 
 const tokenDexPools = Object.freeze(
-  DCT_DEX_POOLS.map((pool) => ({
-    dex: pool.dex,
-    pair: pool.pair,
-    url: pool.swapUrl,
-    description: pool.description,
-    address: pool.poolAddress,
-    addressLabel: shortenTonAddress(pool.poolAddress),
-    explorerUrl: pool.poolExplorerUrl,
-    jettonWalletUrl: pool.jettonWalletExplorerUrl,
-  } satisfies DexPool)),
+  DCT_DEX_POOLS.map((pool) => {
+    const address = pool.poolAddress;
+
+    return {
+      dex: pool.dex,
+      pair: pool.pair,
+      url: pool.swapUrl,
+      description: pool.description,
+      address,
+      addressLabel: address ? shortenTonAddress(address) : undefined,
+      explorerUrl: pool.poolExplorerUrl,
+      jettonWalletUrl: pool.jettonWalletExplorerUrl,
+    } satisfies DexPool;
+  }),
 ) as readonly DexPool[];
+
+const tokenOmnichainRoutes = Object.freeze(
+  DCT_OMNICHAIN_ROUTES.map((route): OmnichainRoute => ({ ...route })),
+) as readonly OmnichainRoute[];
 
 const tokenSameAs = uniqueStrings([
   ...(tokenMetadata.sameAs ?? []),
@@ -406,6 +421,9 @@ const tokenSameAs = uniqueStrings([
   ...tokenDexPools.map((pool) => pool.url),
   ...tokenDexPools.map((pool) => pool.explorerUrl),
   ...tokenDexPools.map((pool) => pool.jettonWalletUrl),
+  ...tokenOmnichainRoutes.flatMap((route) =>
+    route.links.map((link) => link.href)
+  ),
   tokenJettonExplorerUrl,
 ]);
 
@@ -427,6 +445,7 @@ const tokenContent: TokenContent = {
   treasuryWalletUrl: OPERATIONS_TREASURY_EXPLORER_URL,
   treasuryWalletTonscanUrl: buildTonscanAccountUrl(OPERATIONS_TREASURY_WALLET),
   actionPad: DCT_ACTION_PAD,
+  omnichainRoutes: tokenOmnichainRoutes,
 };
 
 export {

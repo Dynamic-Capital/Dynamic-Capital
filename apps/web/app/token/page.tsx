@@ -382,6 +382,86 @@ export default function TokenPage() {
           ))}
         </Column>
       </Column>
+
+      {tokenContent.omnichainRoutes.length > 0
+        ? (
+          <Column gap="24" maxWidth={40} fillWidth>
+            <Heading variant="heading-strong-l">Omnichain routing</Heading>
+            <Column gap="16">
+              {tokenContent.omnichainRoutes.map((route) => {
+                const statusLabel = `${route.status.slice(0, 1).toUpperCase()}${
+                  route.status.slice(1)
+                }`;
+
+                return (
+                  <Row
+                    key={route.key}
+                    gap="16"
+                    background="surface"
+                    border="neutral-alpha-medium"
+                    radius="l"
+                    padding="20"
+                    s={{ direction: "column" }}
+                  >
+                    <Column gap="12" fillWidth>
+                      <Row gap="12" vertical="center" wrap>
+                        <Icon name="sparkles" onBackground="brand-medium" />
+                        <Heading variant="heading-strong-m">
+                          {route.label}
+                        </Heading>
+                        <Tag size="s" background="brand-alpha-weak">
+                          {route.provider}
+                        </Tag>
+                        <Tag size="s" background="brand-alpha-weak">
+                          {statusLabel}
+                        </Tag>
+                      </Row>
+                      <Row gap="8" wrap>
+                        {route.networks.map((network) => (
+                          <Tag
+                            key={`${route.key}-${network}`}
+                            size="s"
+                            background="neutral-alpha-weak"
+                          >
+                            {network}
+                          </Tag>
+                        ))}
+                      </Row>
+                      <Text
+                        variant="body-default-m"
+                        onBackground="neutral-weak"
+                      >
+                        {route.description}
+                      </Text>
+                      {route.links.length > 0
+                        ? (
+                          <Column gap="4">
+                            {route.links.map((link) => (
+                              <Text
+                                key={link.href}
+                                as="a"
+                                href={link.href}
+                                target="_blank"
+                                rel="noreferrer"
+                                variant="label-default-s"
+                                onBackground="brand-medium"
+                                className="flex items-center gap-1"
+                              >
+                                {link.label}
+                                <Icon name="arrowUpRight" />
+                              </Text>
+                            ))}
+                          </Column>
+                        )
+                        : null}
+                    </Column>
+                  </Row>
+                );
+              })}
+            </Column>
+          </Column>
+        )
+        : null}
     </Column>
   );
 }

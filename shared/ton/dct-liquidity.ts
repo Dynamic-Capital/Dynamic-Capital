@@ -13,10 +13,10 @@ export interface DctDexPoolDefinition {
   readonly pair: string;
   readonly swapUrl: string;
   readonly description: string;
-  readonly poolAddress: string;
-  readonly poolExplorerUrl: string;
-  readonly jettonWalletAddress: string;
-  readonly jettonWalletExplorerUrl: string;
+  readonly poolAddress?: string;
+  readonly poolExplorerUrl?: string;
+  readonly jettonWalletAddress?: string;
+  readonly jettonWalletExplorerUrl?: string;
 }
 
 export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
@@ -32,6 +32,13 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     jettonWalletExplorerUrl: buildTonviewerAccountUrl(
       TON_MAINNET_STONFI_DCT_JETTON_WALLET,
     ),
+  },
+  {
+    dex: "DeDust",
+    pair: "DCT/USDT",
+    swapUrl: "https://dedust.io/swap/USDT-DCT",
+    description:
+      "Stablecoin routing venue pairing DCT with USDT for treasury hedging and settlement flows across TON and bridged assets.",
   },
   {
     dex: "DeDust",
