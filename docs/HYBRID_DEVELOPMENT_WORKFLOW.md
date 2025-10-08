@@ -45,5 +45,6 @@ graph TD
 
 - Keep `.env.example` up to date when new variables are introduced.
 - Run `npm test` and `npm run lint` before committing to ensure code quality.
-- Use `npm run build:all` or `node lovable-build.js` to compile both the Next.js
-  app and mini app functions.
+- Use `npm run build:all` to compile both the Next.js app and the mini app. The
+  legacy Lovable pipeline is still available behind `npm run build:legacy` for
+  parity checks.

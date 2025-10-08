@@ -163,6 +163,10 @@ the data dependencies that must be honored when scaling features.
 - **Establish scaffolding commands.** Add
   `npm run generate:route -- --name <segment>` (or a Plop generator) so every
   new route includes testing stubs, telemetry hooks, and documentation updates.
+  The generator now ships with the repo—running it creates `layout.tsx`,
+  `page.tsx`, loading/error boundaries, an observability helper, optional
+  `route.ts`, and a Vitest smoke test under `tests/routes/` for the provided
+  segment.
 - **Co-locate observability.** Standardize on a lightweight `logRouteRequest`
   helper imported by new `route.ts` files to push metrics into Supabase or
   Logflare. This keeps monitoring coverage consistent as the API surface grows.

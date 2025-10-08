@@ -21,7 +21,8 @@ review signals that still require human judgement.
 
 ## Normalisation pass
 
-- [ ] Run the format validator suite: `npm run lint:kb` to confirm schema
+- [ ] Run the format validator suite: `npm run lint:kb data/knowledge_base`
+      (optionally add `--strict` or `--min-tokens 80`) to confirm schema
       compatibility for JSONL/CSV payloads and
       `python tools/validate_markdown.py` for markdown capsules.
 - [ ] Execute `python ml/validate_embeddings.py --drop 2025-11-07` to ensure
