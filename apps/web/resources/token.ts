@@ -3,11 +3,12 @@ import { z } from "zod";
 import jettonMetadata from "../../../dynamic-capital-ton/contracts/jetton/metadata.json" assert {
   type: "json",
 };
+import { TON_MAINNET_OPERATIONS_TREASURY } from "../../../shared/ton/mainnet-addresses";
 import {
-  TON_MAINNET_DEDUST_DCT_TON_POOL,
-  TON_MAINNET_OPERATIONS_TREASURY,
-  TON_MAINNET_STONFI_ROUTER,
-} from "../../../shared/ton/mainnet-addresses";
+  DCT_ACTION_PAD,
+  type DctActionPadDefinition,
+} from "../../../shared/ton/dct-action-pad";
+import { DCT_DEX_POOLS } from "../../../shared/ton/dct-liquidity";
 import type { IconName } from "./icons";
 
 const TON_URL_SCHEME_PATTERN = /^ton:\/\//i;
@@ -143,18 +144,19 @@ const buildJettonExplorerUrl = (address?: string) => {
     : undefined;
 };
 
-const DEDUST_DCT_TON_POOL_ADDRESS = tonAddressSchema.parse(
-  TON_MAINNET_DEDUST_DCT_TON_POOL,
-);
-const DEDUST_DCT_TON_POOL_EXPLORER_URL = buildTonviewerAccountUrl(
-  DEDUST_DCT_TON_POOL_ADDRESS,
-);
-const STONFI_ROUTER_ADDRESS = tonAddressSchema.parse(
-  TON_MAINNET_STONFI_ROUTER,
-);
-const STONFI_ROUTER_EXPLORER_URL = buildTonviewerAccountUrl(
-  STONFI_ROUTER_ADDRESS,
-);
+const buildTonscanAccountUrl = (address?: string) => {
+  const normalizedAddress = normalizeTonAddress(address);
+  return normalizedAddress
+    ? `https://tonscan.org/address/${normalizedAddress}`
+    : undefined;
+};
+
+const buildTonscanJettonUrl = (address?: string) => {
+  const normalizedAddress = normalizeTonAddress(address);
+  return normalizedAddress
+    ? `https://tonscan.org/jetton/${normalizedAddress}`
+    : undefined;
+};
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-US").format(value);
@@ -186,6 +188,7 @@ type DexPool = {
   address?: string;
   addressLabel?: string;
   explorerUrl?: string;
+  jettonWalletUrl?: string;
 };
 
 type SupplySplit = {
@@ -226,6 +229,8 @@ type TokenContent = {
   marketCapUsd: number;
   treasuryWalletAddress: string;
   treasuryWalletUrl: string;
+  treasuryWalletTonscanUrl?: string;
+  actionPad: DctActionPadDefinition;
 };
 
 type TokenDescriptor = {
@@ -382,34 +387,25 @@ const tokenLockTiers = Object.freeze([
   },
 ]) satisfies readonly LockTier[];
 
-const tokenDexPools = Object.freeze([
-  {
-    dex: "STON.fi",
-    pair: "DCT/TON",
-    url: "https://app.ston.fi/swap?from=TON&to=DCT",
-    description:
-      "Primary TON DEX route delivering deep DCT/TON liquidity for treasury operations and member swaps.",
-    address: STONFI_ROUTER_ADDRESS,
-    addressLabel: shortenTonAddress(STONFI_ROUTER_ADDRESS),
-    explorerUrl: STONFI_ROUTER_EXPLORER_URL,
-  },
-  {
-    dex: "DeDust",
-    pair: "DCT/TON",
-    url: "https://dedust.io/swap/TON-DCT",
-    description:
-      "Secondary routing venue leveraging DeDust's TON-native liquidity network for balanced execution.",
-    address: DEDUST_DCT_TON_POOL_ADDRESS,
-    addressLabel: shortenTonAddress(DEDUST_DCT_TON_POOL_ADDRESS),
-    explorerUrl: DEDUST_DCT_TON_POOL_EXPLORER_URL,
-  },
-]) satisfies readonly DexPool[];
+const tokenDexPools = Object.freeze(
+  DCT_DEX_POOLS.map((pool) => ({
+    dex: pool.dex,
+    pair: pool.pair,
+    url: pool.swapUrl,
+    description: pool.description,
+    address: pool.poolAddress,
+    addressLabel: shortenTonAddress(pool.poolAddress),
+    explorerUrl: pool.poolExplorerUrl,
+    jettonWalletUrl: pool.jettonWalletExplorerUrl,
+  } satisfies DexPool)),
+) as readonly DexPool[];
 
 const tokenSameAs = uniqueStrings([
   ...(tokenMetadata.sameAs ?? []),
   tokenDescriptor.externalUrl,
   ...tokenDexPools.map((pool) => pool.url),
   ...tokenDexPools.map((pool) => pool.explorerUrl),
+  ...tokenDexPools.map((pool) => pool.jettonWalletUrl),
   tokenJettonExplorerUrl,
 ]);
 
@@ -429,6 +425,16 @@ const tokenContent: TokenContent = {
   marketCapUsd: TGE_MARKET_CAP_USD,
   treasuryWalletAddress: OPERATIONS_TREASURY_WALLET,
   treasuryWalletUrl: OPERATIONS_TREASURY_EXPLORER_URL,
+  treasuryWalletTonscanUrl: buildTonscanAccountUrl(OPERATIONS_TREASURY_WALLET),
+  actionPad: DCT_ACTION_PAD,
 };
 
-export { tokenContent, tokenDescriptor };
+export {
+  buildJettonExplorerUrl,
+  buildTonscanAccountUrl,
+  buildTonscanJettonUrl,
+  buildTonviewerAccountUrl,
+  shortenTonAddress,
+  tokenContent,
+  tokenDescriptor,
+};

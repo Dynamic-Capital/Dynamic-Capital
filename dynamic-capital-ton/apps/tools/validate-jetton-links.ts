@@ -25,9 +25,18 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
     url: "https://dynamic.capital/token",
   },
   {
+    label: "Dynamic Capital (TON domain) → token page",
+    url: "https://dynamiccapital.ton/token",
+  },
+  {
     label: "Tonviewer → jetton overview",
     url:
       "https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+  },
+  {
+    label: "Tonviewer → jetton overview (friendly)",
+    url:
+      "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
   },
   {
     label: "Tonscan → jetton overview (raw)",
@@ -50,12 +59,22 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
     label: "Tonviewer → STON.fi pool wallet",
     url:
-      "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+      "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
   },
   {
     label: "Tonviewer → Dedust pool wallet",
     url:
-      "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
+      "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+  },
+  {
+    label: "Tonviewer → STON.fi DCT jetton wallet",
+    url:
+      "https://tonviewer.com/EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_",
+  },
+  {
+    label: "Tonviewer → Dedust DCT jetton wallet",
+    url:
+      "https://tonviewer.com/EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm",
   },
 ];
 

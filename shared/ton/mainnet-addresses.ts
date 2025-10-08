@@ -3,6 +3,8 @@ export interface TonMainnetAccountDefinition {
   readonly label: string;
   readonly friendlyAddress: string;
   readonly description?: string;
+  readonly tonDns?: string;
+  readonly explorerUrl?: string;
 }
 
 export const TON_MAINNET_OPERATIONS_TREASURY =
@@ -14,14 +16,41 @@ export const TON_MAINNET_INTAKE_WALLET =
 export const TON_MAINNET_JETTON_MASTER =
   "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
 
+export const TON_MAINNET_DCT_TREASURY_ALIAS = "dynamiccapital.ton";
 export const TON_MAINNET_DCT_TREASURY_WALLET =
   "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
+
+const DCT_TREASURY_TRANSFER_MEMO = "Dynamic Capital DCT deposit";
+
+export const TON_MAINNET_DCT_TREASURY_TONVIEWER_URL =
+  `https://tonviewer.com/${TON_MAINNET_DCT_TREASURY_WALLET}`;
+
+export const TON_MAINNET_DCT_TREASURY_TONKEEPER_LINK =
+  `https://app.tonkeeper.com/transfer/${TON_MAINNET_DCT_TREASURY_ALIAS}` +
+  `?jetton=${TON_MAINNET_JETTON_MASTER}` +
+  `&text=${encodeURIComponent(DCT_TREASURY_TRANSFER_MEMO)}`;
+
+export const TON_MAINNET_DCT_TREASURY_TON_TRANSFER_LINK =
+  `ton://transfer/${TON_MAINNET_DCT_TREASURY_ALIAS}` +
+  `?jetton=${TON_MAINNET_JETTON_MASTER}` +
+  `&text=${encodeURIComponent(DCT_TREASURY_TRANSFER_MEMO)}`;
+
+export const TON_MAINNET_DCT_TREASURY_MEMO = DCT_TREASURY_TRANSFER_MEMO;
 
 export const TON_MAINNET_STONFI_ROUTER =
   "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
 
-export const TON_MAINNET_DEDUST_DCT_TON_POOL =
+export const TON_MAINNET_DCT_WALLET_V5R1 =
   "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm";
+
+export const TON_MAINNET_STONFI_DCT_JETTON_WALLET =
+  "EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_";
+
+export const TON_MAINNET_DEDUST_DCT_JETTON_WALLET =
+  "EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm";
+
+export const TON_MAINNET_DEDUST_DCT_TON_POOL =
+  "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI";
 
 export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
   {
@@ -51,6 +80,8 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     friendlyAddress: TON_MAINNET_DCT_TREASURY_WALLET,
     description:
       "Primary treasury wallet holding circulating DCT for emissions and burns.",
+    tonDns: TON_MAINNET_DCT_TREASURY_ALIAS,
+    explorerUrl: TON_MAINNET_DCT_TREASURY_TONVIEWER_URL,
   },
   {
     key: "stonfiRouter",
@@ -59,11 +90,31 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     description: "Liquidity router used for treasury swaps and burns.",
   },
   {
+    key: "stonfiDctJettonWallet",
+    label: "STON.fi DCT jetton wallet",
+    friendlyAddress: TON_MAINNET_STONFI_DCT_JETTON_WALLET,
+    description:
+      "Jetton wallet derived from the STON.fi router for DCT liquidity ops.",
+  },
+  {
+    key: "walletV5r1",
+    label: "DCT wallet (Wallet v5r1)",
+    friendlyAddress: TON_MAINNET_DCT_WALLET_V5R1,
+    description: "Jetton wallet contract deployed with wallet_v5r1 code.",
+  },
+  {
     key: "dedustDctTonPool",
     label: "DeDust DCT/TON pool",
     friendlyAddress: TON_MAINNET_DEDUST_DCT_TON_POOL,
     description:
       "Primary DeDust pool holding Dynamic Capital TON-side liquidity reserves.",
+  },
+  {
+    key: "dedustDctJettonWallet",
+    label: "DeDust DCT jetton wallet",
+    friendlyAddress: TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
+    description:
+      "Jetton wallet bound to the DeDust TON/DCT pool for accounting checks.",
   },
 ] as const satisfies readonly TonMainnetAccountDefinition[];
 

@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import {
   Column,
   Heading,
@@ -15,9 +13,8 @@ import {
 } from "@/config/layerzero";
 import { UnifiedWalletConnect } from "@/components/web3/UnifiedWalletConnect";
 import { TonWalletCatalogue } from "@/components/web3/TonWalletCatalogue";
-import { TonkeeperDeepLinkButtons } from "@/components/web3/TonkeeperDeepLinkButtons";
-import { tokenContent, tokenDescriptor } from "@/resources";
-import { TON_MAINNET_DCT_TREASURY_WALLET } from "@shared/ton/mainnet-addresses";
+import { tokenContent } from "@/resources";
+import { TreasuryActionPad } from "@/components/token/TreasuryActionPad";
 
 const HERO_HIGHLIGHTS = [
   {
@@ -91,12 +88,6 @@ const AUTOMATION_EVENTS = [
   "Treasury monitoring jobs mirror intake and operations wallets to keep capital allocations accountable.",
 ] as const;
 
-const WITHDRAWAL_POINTS = [
-  "Submit a withdrawal notice at least 7 days ahead so the desk rebalances staked DCT.",
-  "Operations execute on-chain releases straight back to your linked TonConnect address.",
-  "Telegram concierge can coordinate expedited withdrawals once compliance clears the ticket.",
-] as const;
-
 const SUPPORTED_WALLETS = [
   "Wallet (Telegram)",
   "Tonkeeper",
@@ -106,37 +97,6 @@ const SUPPORTED_WALLETS = [
   "MyTonWallet",
   "Bitget Wallet",
 ] as const;
-
-const DCT_TREASURY_ADDRESS = TON_MAINNET_DCT_TREASURY_WALLET;
-const DCT_TREASURY_URL = `https://tonviewer.com/${DCT_TREASURY_ADDRESS}`;
-const DCT_JETTON_ADDRESS = tokenDescriptor.address ?? null;
-const DCT_JETTON_URL = DCT_JETTON_ADDRESS
-  ? `https://tonviewer.com/jetton/${DCT_JETTON_ADDRESS}`
-  : null;
-
-const STONFI_POOL = tokenContent.dexPools.find((pool) =>
-  pool.dex === "STON.fi"
-);
-const DEDUST_POOL = tokenContent.dexPools.find((pool) => pool.dex === "DeDust");
-
-const STONFI_SWAP_URL = STONFI_POOL?.url ??
-  "https://app.ston.fi/swap?from=TON&to=DCT";
-const DEDUST_SWAP_URL = DEDUST_POOL?.url ?? "https://dedust.io/swap/TON-DCT";
-const STONFI_EXPLORER_URL = STONFI_POOL?.explorerUrl ?? null;
-const DEDUST_EXPLORER_URL = DEDUST_POOL?.explorerUrl ?? null;
-
-function shortenTonAddress(address: string, visible = 6): string {
-  if (!address) {
-    return "";
-  }
-
-  const trimmed = address.trim();
-  if (trimmed.length <= visible * 2) {
-    return trimmed;
-  }
-
-  return `${trimmed.slice(0, visible)}…${trimmed.slice(-visible)}`;
-}
 
 type LayerZeroFeature = {
   icon: "sparkles" | "shield" | "repeat";
@@ -206,11 +166,6 @@ export default function WalletPage() {
   const layerZeroEnvironment = LAYERZERO_CONFIG.environment;
   const layerZeroEndpoints = LAYERZERO_CONFIG.endpoints;
   const layerZeroFeatures = createLayerZeroFeatures(layerZeroEnvironment);
-  const dctTreasuryLabel = shortenTonAddress(DCT_TREASURY_ADDRESS);
-  const dctJettonLabel = DCT_JETTON_ADDRESS
-    ? shortenTonAddress(DCT_JETTON_ADDRESS)
-    : null;
-
   return (
     <Column
       gap="40"
@@ -282,205 +237,10 @@ export default function WalletPage() {
         <Heading variant="heading-strong-l">DCT treasury actions</Heading>
         <Text variant="body-default-m" onBackground="neutral-weak">
           DCT is the primary settlement currency across Dynamic Capital. Use the
-          actions below to deposit into the treasury, schedule on-chain
-          withdrawals, and route swaps through liquid TON venues.
+          unified action pad to onboard, deposit, withdraw, and route liquidity
+          without leaving the wallet desk.
         </Text>
-        <Column gap="16">
-          <Column
-            gap="16"
-            background="surface"
-            border="neutral-alpha-medium"
-            radius="l"
-            padding="20"
-            className="shadow-lg shadow-primary/5"
-          >
-            <Row gap="12" vertical="center" wrap>
-              <Icon name="wallet" onBackground="brand-medium" />
-              <Heading variant="heading-strong-m">Deposit DCT</Heading>
-              <Tag size="s" background="brand-alpha-weak">
-                TonConnect
-              </Tag>
-            </Row>
-            <Text variant="body-default-m" onBackground="neutral-weak">
-              Move DCT into the treasury from Wallet (Telegram), Tonkeeper,
-              STON.fi Wallet, DeDust Wallet, MyTonWallet, Tonhub, or Bitget
-              Wallet.
-            </Text>
-            <TonkeeperDeepLinkButtons
-              address={DCT_TREASURY_ADDRESS}
-              jettonAddress={DCT_JETTON_ADDRESS ?? undefined}
-              memo="Dynamic Capital DCT deposit"
-              className="w-full"
-            />
-            <Column gap="8">
-              <Row gap="8" vertical="center" wrap>
-                <Icon name="shield" size="s" onBackground="brand-medium" />
-                <Text variant="label-default-s" onBackground="neutral-weak">
-                  Treasury wallet
-                </Text>
-                <Text
-                  variant="body-default-m"
-                  onBackground="neutral-strong"
-                  className="font-mono"
-                >
-                  {dctTreasuryLabel}
-                </Text>
-              </Row>
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={DCT_TREASURY_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                >
-                  View treasury
-                  <Icon name="arrowUpRight" size="xs" />
-                </a>
-                {DCT_JETTON_URL
-                  ? (
-                    <a
-                      href={DCT_JETTON_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                    >
-                      View jetton master
-                      <Icon name="arrowUpRight" size="xs" />
-                    </a>
-                  )
-                  : null}
-              </div>
-            </Column>
-          </Column>
-
-          <Column
-            gap="16"
-            background="surface"
-            border="neutral-alpha-medium"
-            radius="l"
-            padding="20"
-            className="shadow-lg shadow-primary/5"
-          >
-            <Row gap="12" vertical="center" wrap>
-              <Icon name="arrowUpRight" onBackground="brand-medium" />
-              <Heading variant="heading-strong-m">Withdraw DCT</Heading>
-              <Tag size="s" background="neutral-alpha-medium">
-                7-day notice
-              </Tag>
-            </Row>
-            <Text variant="body-default-m" onBackground="neutral-weak">
-              Once your TonConnect wallet is linked, request DCT withdrawals
-              from the investor desk or concierge. Releases land back in the
-              same verified address after compliance clears the ticket.
-            </Text>
-            <Row gap="12" wrap>
-              <Link
-                href="/tools/dynamic-portfolio"
-                className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-              >
-                Open investor desk
-                <Icon name="arrowUpRight" size="xs" />
-              </Link>
-              <a
-                href="https://t.me/DynamicCapital_Support"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-              >
-                Message concierge
-                <Icon name="arrowUpRight" size="xs" />
-              </a>
-            </Row>
-            <Column gap="12" as="ul">
-              {WITHDRAWAL_POINTS.map((point) => (
-                <Row
-                  key={point}
-                  gap="12"
-                  as="li"
-                  horizontal="start"
-                  className="items-start"
-                >
-                  <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
-                    <Icon name="check" size="s" />
-                  </span>
-                  <Text variant="body-default-m" onBackground="neutral-weak">
-                    {point}
-                  </Text>
-                </Row>
-              ))}
-            </Column>
-          </Column>
-
-          <Column
-            gap="16"
-            background="surface"
-            border="neutral-alpha-medium"
-            radius="l"
-            padding="20"
-            className="shadow-lg shadow-primary/5"
-          >
-            <Row gap="12" vertical="center" wrap>
-              <Icon name="repeat" onBackground="brand-medium" />
-              <Heading variant="heading-strong-m">Swap DCT</Heading>
-              <Tag size="s" background="brand-alpha-weak">
-                STON.fi
-              </Tag>
-              <Tag size="s" background="brand-alpha-weak">
-                DeDust
-              </Tag>
-            </Row>
-            <Text variant="body-default-m" onBackground="neutral-weak">
-              Access deep DCT/TON liquidity for treasury balancing and member
-              swaps through STON.fi and DeDust pools.
-            </Text>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={STONFI_SWAP_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary hover:bg-primary/20"
-              >
-                STON.fi swap
-              </a>
-              <a
-                href={DEDUST_SWAP_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary hover:bg-primary/20"
-              >
-                DeDust swap
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {STONFI_EXPLORER_URL
-                ? (
-                  <a
-                    href={STONFI_EXPLORER_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                  >
-                    STON.fi pool explorer
-                    <Icon name="arrowUpRight" size="xs" />
-                  </a>
-                )
-                : null}
-              {DEDUST_EXPLORER_URL
-                ? (
-                  <a
-                    href={DEDUST_EXPLORER_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                  >
-                    DeDust pool explorer
-                    <Icon name="arrowUpRight" size="xs" />
-                  </a>
-                )
-                : null}
-            </div>
-          </Column>
-        </Column>
+        <TreasuryActionPad pad={tokenContent.actionPad} />
       </Column>
 
       <Column gap="24" maxWidth={40} fillWidth>
