@@ -28,8 +28,11 @@ The command performs five groups of checks:
    stakeholders.【F:dynamic-capital-ton/apps/tools/check-ton-contracts.ts†L177-L246】【F:dynamic-capital-ton/storage/dns-records.txt†L1-L18】
 4. **Domain endpoint probes** – performs HTTP checks against the metadata,
    TON Connect manifest, API, and docs URLs registered in DNS to guarantee the
-   onboarding collateral is
-   reachable.【F:dynamic-capital-ton/apps/tools/check-ton-contracts.ts†L103-L174】【F:dynamic-capital-ton/apps/tools/check-ton-contracts.ts†L265-L285】
+   onboarding collateral is reachable. When TON-native origins return a
+   temporary gateway error, the sweep now falls back to the mirrored
+   `dynamic.capital` surfaces declared in `storage/dns-records.txt` so operators
+   can confirm the HTTPS aliases remain live while the `.ton` resolver catches
+   up.【F:dynamic-capital-ton/apps/tools/check-ton-contracts.ts†L103-L174】【F:dynamic-capital-ton/apps/tools/check-ton-contracts.ts†L265-L333】【F:dynamic-capital-ton/storage/dns-records.txt†L13-L20】
 5. **Jetton wallet advisories** – inspects Tonapi holder data and DEX metadata
    to explain any `nonexist` wallet statuses and outline the actions required to
    deploy missing jetton wallets before
@@ -62,8 +65,10 @@ escalation.【F:dynamic-capital-ton/apps/tools/check-ton-contracts.ts†L306-L32
   to seed initial liquidity when STON.fi flags the asset with `no_liquidity`.
 - **Domain collateral:** if any endpoint check fails, publish the missing files
   (metadata JSON, TON Connect manifest, API swagger, docs) before inviting new
-  partners so they do not hit 404s during
-  verification.【F:dynamic-capital-ton/apps/tools/check-ton-contracts.ts†L265-L285】
+  partners so they do not hit 404s during verification. The sweep surfaces both
+  the primary `.ton` URL and the `dynamic.capital` fallback so you can verify at
+  least one origin serves the collateral while TON DNS
+  propagates.【F:dynamic-capital-ton/apps/tools/check-ton-contracts.ts†L265-L333】【F:dynamic-capital-ton/storage/dns-records.txt†L13-L20】
 - **Tonapi downtime:** exit code `7` signals Tonapi is unreachable. Pause
   onboarding and re-run the sweep once Tonapi's status endpoint reports the REST
   gateway as healthy to ensure downstream checks are

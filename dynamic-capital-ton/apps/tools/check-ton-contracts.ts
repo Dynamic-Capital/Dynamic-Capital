@@ -12,6 +12,14 @@ import {
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 
+const TON_DOMAIN_SUFFIX = ".ton";
+
+interface HttpTarget {
+  key: string;
+  name: string;
+  fallbackKey?: string;
+}
+
 interface DnsRecords {
   [key: string]: string;
 }
@@ -302,12 +310,38 @@ async function httpProbe(url: string): Promise<Response> {
   }
 }
 
+function isTonDomain(url: URL): boolean {
+  return url.hostname.toLowerCase().endsWith(TON_DOMAIN_SUFFIX);
+}
+
+function buildTonFallbackUrl(primary: URL, fallbackRaw?: string): string | undefined {
+  if (fallbackRaw && isHttpUrl(fallbackRaw)) {
+    return normalizeUrl(fallbackRaw);
+  }
+  if (isTonDomain(primary)) {
+    const host = primary.hostname;
+    const scheme = primary.protocol === "https:" ? "https" : "http";
+    const replacementHost = host === "dynamiccapital.ton"
+      ? "dynamic.capital"
+      : host.endsWith(".dynamiccapital.ton")
+      ? `${host.replace(/\.dynamiccapital\.ton$/, ".dynamic.capital")}`
+      : "";
+    if (replacementHost) {
+      const path = primary.pathname.startsWith("/")
+        ? primary.pathname
+        : `/${primary.pathname}`;
+      return `${scheme}://${replacementHost}${path}${primary.search}${primary.hash}`;
+    }
+  }
+  return undefined;
+}
+
 async function checkHttpEndpoints(records: DnsRecords): Promise<HttpCheckResult> {
-  const targets: { key: string; name: string }[] = [
-    { key: "metadata", name: "Jetton metadata" },
-    { key: "manifest", name: "TON Connect manifest" },
-    { key: "api", name: "Dynamic Capital API" },
-    { key: "docs", name: "Docs portal" },
+  const targets: HttpTarget[] = [
+    { key: "metadata", name: "Jetton metadata", fallbackKey: "metadata_fallback" },
+    { key: "manifest", name: "TON Connect manifest", fallbackKey: "manifest_fallback" },
+    { key: "api", name: "Dynamic Capital API", fallbackKey: "api_fallback" },
+    { key: "docs", name: "Docs portal", fallbackKey: "docs_fallback" },
   ];
 
   const rows: HttpCheckRow[] = [];
@@ -319,34 +353,88 @@ async function checkHttpEndpoints(records: DnsRecords): Promise<HttpCheckResult>
       continue;
     }
     const url = normalizeUrl(rawUrl);
+    let urlObj: URL;
     try {
-      const response = await httpProbe(url);
-      const note = response.url && response.url !== url
-        ? `redirected → ${response.url}`
-        : "";
-      rows.push({
-        Name: target.name,
-        URL: url,
-        Status: `${response.status} ${response.statusText}`,
-        Healthy: response.ok ? "✅" : "⚠️",
-        "Content-Type": response.headers.get("content-type") ?? "(unknown)",
-        Note: note,
-      });
-    } catch (error) {
+      urlObj = new URL(url);
+    } catch (urlError) {
+      const reason = urlError instanceof Error ? urlError.message : String(urlError);
       errors.push({
         name: target.name,
         address: url,
-        reason: error instanceof Error ? error.message : String(error),
+        reason: `invalid URL: ${reason}`,
       });
       rows.push({
         Name: target.name,
         URL: url,
-        Status: "unreachable",
+        Status: "invalid URL",
         Healthy: "⚠️",
         "Content-Type": "(unknown)",
-        Note: "fetch failed",
+        Note: reason,
+      });
+      continue;
+    }
+    const noteParts: string[] = [];
+
+    let response: Response | null = null;
+    let statusSummary = "unreachable";
+    let healthy = false;
+    let contentType = "(unknown)";
+
+    try {
+      response = await httpProbe(url);
+      statusSummary = `${response.status} ${response.statusText}`;
+      healthy = response.ok;
+      contentType = response.headers.get("content-type") ?? contentType;
+      if (response.url && response.url !== url) {
+        noteParts.push(`redirected → ${response.url}`);
+      }
+    } catch (error) {
+      noteParts.push(
+        `fetch failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
+    let usedFallback = false;
+    const fallbackRaw = target.fallbackKey ? records[target.fallbackKey] : undefined;
+    const fallbackUrl = buildTonFallbackUrl(urlObj, fallbackRaw);
+
+    if (!healthy && fallbackUrl) {
+      try {
+        const fallbackResponse = await httpProbe(fallbackUrl);
+        noteParts.push(
+          `${response ? `primary ${statusSummary}; ` : ""}fallback → ${fallbackUrl} (${fallbackResponse.status} ${fallbackResponse.statusText})`,
+        );
+        if (fallbackResponse.ok) {
+          healthy = true;
+          usedFallback = true;
+          statusSummary = `${fallbackResponse.status} ${fallbackResponse.statusText}`;
+          contentType = fallbackResponse.headers.get("content-type") ?? contentType;
+        } else if (!response) {
+          statusSummary = `${fallbackResponse.status} ${fallbackResponse.statusText}`;
+        }
+      } catch (fallbackError) {
+        noteParts.push(
+          `fallback failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`,
+        );
+      }
+    }
+
+    if (!healthy) {
+      errors.push({
+        name: target.name,
+        address: url,
+        reason: noteParts.join("; ") || statusSummary,
       });
     }
+
+    rows.push({
+      Name: target.name,
+      URL: url,
+      Status: usedFallback ? `${statusSummary} (fallback)` : statusSummary,
+      Healthy: healthy ? "✅" : "⚠️",
+      "Content-Type": contentType,
+      Note: noteParts.join("; "),
+    });
   }
 
   return { rows, errors };
