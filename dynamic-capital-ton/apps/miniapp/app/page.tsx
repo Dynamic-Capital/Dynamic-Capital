@@ -6,6 +6,7 @@ import {
   useTonConnectUI,
 } from "@tonconnect/ui-react";
 import type {
+  ActionConfiguration,
   SendTransactionRequest,
   TonConnectUI,
 } from "@tonconnect/ui-react";
@@ -40,7 +41,11 @@ import type {
 } from "../data/live-intel";
 import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
 import { getSupabaseClient } from "../lib/supabase-client";
-import { DYNAMIC_TON_API_USER_ID, OPS_TREASURY_ADDRESS } from "../lib/config";
+import {
+  DYNAMIC_TON_API_USER_ID,
+  OPS_TREASURY_ADDRESS,
+  TONCONNECT_TWA_RETURN_URL,
+} from "../lib/config";
 import { THEME_MINT_PLANS, type ThemeMintPlan } from "../data/theme-mints";
 
 type SectionId =
@@ -134,6 +139,11 @@ const SECTION_IDS: SectionId[] = [
   "support",
 ];
 
+const TONCONNECT_ACTIONS_CONFIGURATION =
+  resolveTonConnectActionsConfiguration();
+
+const CHAT_LAUNCHER_SCROLL_THRESHOLD = 220;
+
 function createDefaultMintingState(): Record<number, MintingPlanState> {
   return Object.fromEntries(
     THEME_MINT_PLANS.map((plan) => [
@@ -144,6 +154,30 @@ function createDefaultMintingState(): Record<number, MintingPlanState> {
 }
 
 type TonConnectAccountLike = NonNullable<TonConnectLike["account"]>;
+
+function resolveTonConnectActionsConfiguration():
+  | ActionConfiguration
+  | undefined {
+  if (!TONCONNECT_TWA_RETURN_URL) {
+    return undefined;
+  }
+
+  const trimmed = TONCONNECT_TWA_RETURN_URL.trim();
+  if (!trimmed || !trimmed.includes("://")) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        "[miniapp] Ignoring TONCONNECT_TWA_RETURN_URL without protocol",
+        trimmed,
+      );
+    }
+    return undefined;
+  }
+
+  return {
+    returnStrategy: "back",
+    twaReturnUrl: trimmed as `${string}://${string}`,
+  };
+}
 
 function toTonConnectThemeSource(
   instance: TonConnectUI | null,
@@ -931,6 +965,47 @@ function useTelegramId(): string {
   return telegramId ? String(telegramId) : DYNAMIC_TON_API_USER_ID;
 }
 
+function useCompactChatLauncher(
+  threshold: number = CHAT_LAUNCHER_SCROLL_THRESHOLD,
+): boolean {
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    let rafId: number | null = null;
+
+    const evaluate = () => {
+      rafId = null;
+      const shouldCompact = window.scrollY > threshold;
+      setIsCompact((previous) =>
+        previous === shouldCompact ? previous : shouldCompact
+      );
+    };
+
+    const handleScroll = () => {
+      if (rafId !== null) {
+        return;
+      }
+      rafId = window.requestAnimationFrame(evaluate);
+    };
+
+    evaluate();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [threshold]);
+
+  return isCompact;
+}
+
 function formatWalletAddress(address?: string | null): string {
   if (!address) {
     return "No wallet connected";
@@ -981,6 +1056,7 @@ function HomeInner() {
   const telegramId = useTelegramId();
   const liveIntel = useLiveIntel();
   const [countdown, setCountdown] = useState<number | null>(null);
+  const isChatCompact = useCompactChatLauncher();
   const { manager: themeManager, state: themeState } = useMiniAppThemeManager(
     tonConnectThemeSource,
   );
@@ -1569,17 +1645,24 @@ function HomeInner() {
     }
   }
 
-  function scrollToSection(sectionId: SectionId) {
-    if (typeof window === "undefined") {
-      return;
-    }
+  const scrollToSection = useCallback(
+    (sectionId: SectionId) => {
+      if (typeof window === "undefined") {
+        return;
+      }
 
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-      setActiveSection(sectionId);
-    }
-  }
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+        setActiveSection(sectionId);
+      }
+    },
+    [setActiveSection],
+  );
+
+  const handleChatLauncherClick = useCallback(() => {
+    scrollToSection("support");
+  }, [scrollToSection]);
 
   return (
     <div className="app-shell">
@@ -2229,6 +2312,11 @@ function HomeInner() {
         {statusMessage && <div className="status-banner">{statusMessage}</div>}
       </main>
 
+      <ChatLauncher
+        compact={isChatCompact}
+        onOpen={handleChatLauncherClick}
+      />
+
       <nav aria-label="Mini app sections" className="bottom-nav">
         {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
           const isActive = activeSection === id;
@@ -2246,6 +2334,42 @@ function HomeInner() {
           );
         })}
       </nav>
+    </div>
+  );
+}
+
+type ChatLauncherProps = {
+  compact: boolean;
+  onOpen: () => void;
+};
+
+function ChatLauncher({ compact, onOpen }: ChatLauncherProps) {
+  return (
+    <div className={`chat-launcher${compact ? " chat-launcher--compact" : ""}`}>
+      <button
+        type="button"
+        className="chat-launcher__button"
+        onClick={onOpen}
+        aria-label="Write to start up"
+        title="Write to start up"
+      >
+        <span className="chat-launcher__icon" aria-hidden>
+          <svg viewBox="0 0 24 24" role="presentation" aria-hidden>
+            <path
+              d="M4.25 4.5h15.5a1.75 1.75 0 0 1 1.75 1.75v8.5a1.75 1.75 0 0 1-1.75 1.75H13l-3.9 3.4a.75.75 0 0 1-1.25-.56V16.5H4.25A1.75 1.75 0 0 1 2.5 14.75v-8.5A1.75 1.75 0 0 1 4.25 4.5Z"
+              fill="currentColor"
+              fillRule="evenodd"
+              clipRule="evenodd"
+            />
+          </svg>
+        </span>
+        <span className="chat-launcher__text" aria-hidden={compact}>
+          <span className="chat-launcher__title">Write to start up</span>
+          <span className="chat-launcher__subtitle">
+            Chat with desk concierge
+          </span>
+        </span>
+      </button>
     </div>
   );
 }
@@ -2787,6 +2911,7 @@ export default function Page() {
     <TonConnectUIProvider
       manifestUrl={TONCONNECT_MANIFEST_URL}
       walletsListConfiguration={TONCONNECT_WALLETS_LIST_CONFIGURATION}
+      actionsConfiguration={TONCONNECT_ACTIONS_CONFIGURATION}
     >
       <HomeInner />
     </TonConnectUIProvider>
