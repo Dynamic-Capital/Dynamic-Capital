@@ -8,13 +8,13 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import { TonkeeperDeepLinkButtons } from "@/components/web3/TonkeeperDeepLinkButtons";
 import {
   baseURL as siteBaseURL,
   tokenContent,
   tokenDescriptor,
 } from "@/resources";
 import { cn } from "@/utils";
+import { TreasuryActionPad } from "@/components/token/TreasuryActionPad";
 
 const normalizeBaseURL = (value: string) =>
   value.endsWith("/") ? value.slice(0, -1) : value;
@@ -136,27 +136,8 @@ export default function TokenPage() {
             );
           })}
         </Row>
-        <Column
-          gap="12"
-          align="center"
-          horizontal="center"
-          className="w-full max-w-2xl"
-        >
-          <TonkeeperDeepLinkButtons
-            address={tokenContent.treasuryWalletAddress}
-            memo="Dynamic Capital Treasury"
-            jettonAddress={tokenDescriptor.address}
-            className="w-full"
-          />
-          <Text
-            variant="body-default-xs"
-            onBackground="neutral-weak"
-            align="center"
-          >
-            Dynamic deep links detect Telegram and mobile contexts to open
-            Tonkeeper natively, while HTTPS and ton:// fallbacks stay ready for
-            desktop wallets and other clients.
-          </Text>
+        <Column className="w-full max-w-3xl">
+          <TreasuryActionPad pad={tokenContent.actionPad} />
         </Column>
         <Row gap="16" wrap horizontal="center">
           <Row
@@ -372,6 +353,22 @@ export default function TokenPage() {
                               className="flex items-center gap-1"
                             >
                               View on Tonviewer
+                              <Icon name="arrowUpRight" />
+                            </Text>
+                          )
+                          : null}
+                        {pool.jettonWalletUrl
+                          ? (
+                            <Text
+                              as="a"
+                              href={pool.jettonWalletUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              variant="label-default-s"
+                              onBackground="brand-medium"
+                              className="flex items-center gap-1"
+                            >
+                              View DCT jetton wallet
                               <Icon name="arrowUpRight" />
                             </Text>
                           )

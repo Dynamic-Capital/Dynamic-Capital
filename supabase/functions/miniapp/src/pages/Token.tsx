@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -31,30 +31,14 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import QrCode from "../components/QrCode";
 import { cn } from "../lib/utils";
-
-const DCT_TREASURY_ADDRESS = "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
-const DCT_TREASURY_URL = `https://tonviewer.com/${DCT_TREASURY_ADDRESS}`;
-const DCT_JETTON_ADDRESS = "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
-const DCT_JETTON_URL = `https://tonviewer.com/jetton/${DCT_JETTON_ADDRESS}`;
-const STONFI_POOL_URL = "https://app.ston.fi/swap?from=TON&to=DCT";
-const STONFI_EXPLORER_URL =
-  "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
-const DEDUST_POOL_URL = "https://dedust.io/swap/TON-DCT";
-const DEDUST_EXPLORER_URL =
-  "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm";
-const TONKEEPER_UNIVERSAL_LINK =
-  `https://app.tonkeeper.com/transfer/${DCT_TREASURY_ADDRESS}?jetton=${DCT_JETTON_ADDRESS}&text=${
-    encodeURIComponent(
-      "Dynamic Capital DCT deposit",
-    )
-  }`;
-const TON_STANDARD_LINK =
-  `ton://transfer/${DCT_TREASURY_ADDRESS}?jetton=${DCT_JETTON_ADDRESS}&text=${
-    encodeURIComponent(
-      "Dynamic Capital DCT deposit",
-    )
-  }`;
+import {
+  DCT_ACTION_PAD,
+  type DctActionDefinition,
+  type DctActionKey,
+} from "../../../../../shared/ton/dct-action-pad";
+import { DCT_DEX_POOLS } from "../../../../../shared/ton/dct-liquidity";
 
 const HERO_HIGHLIGHTS = [
   {
@@ -86,6 +70,15 @@ const SUPPORTED_WALLETS = [
   "MyTonWallet",
   "Bitget Wallet",
 ] as const;
+
+const ACTION_PAD = DCT_ACTION_PAD;
+
+const ACTION_ICON_MAP: Record<DctActionKey, LucideIcon> = {
+  onboard: Users,
+  deposit: ArrowDownToLine,
+  withdraw: ArrowUpFromLine,
+  utilize: RefreshCcw,
+};
 
 const ONBOARDING_STEPS = [
   {
@@ -247,29 +240,17 @@ const SECURITY_FEATURES = [
   },
 ] as const;
 
-const DEX_OPTIONS = [
-  {
-    name: "STON.fi",
-    description:
-      "Route TON ↔︎ DCT swaps through the primary liquidity router used for treasury burns.",
-    swapUrl: STONFI_POOL_URL,
-    explorerUrl: STONFI_EXPLORER_URL,
-  },
-  {
-    name: "DeDust",
-    description:
-      "Tap the DCT/TON pool that backs Dynamic Capital's TON-side liquidity reserves.",
-    swapUrl: DEDUST_POOL_URL,
-    explorerUrl: DEDUST_EXPLORER_URL,
-  },
-] as const;
+const DEX_OPTIONS = DCT_DEX_POOLS.map((pool) => ({
+  name: pool.dex,
+  description: pool.description,
+  swapUrl: pool.swapUrl,
+  explorerUrl: pool.poolExplorerUrl,
+  jettonWalletUrl: pool.jettonWalletExplorerUrl,
+})) as const;
 
 type SectionId =
   | "overview"
-  | "onboarding"
-  | "deposit"
-  | "withdraw"
-  | "swap"
+  | "actions"
   | "security"
   | "automation"
   | "how-it-works"
@@ -284,23 +265,13 @@ type Section = {
 
 const SECTIONS: Section[] = [
   { id: "overview", label: "Overview", icon: Sparkles },
-  { id: "onboarding", label: "Onboarding", icon: Users },
-  { id: "deposit", label: "Deposit", icon: ArrowDownToLine },
-  { id: "withdraw", label: "Withdraw", icon: ArrowUpFromLine },
-  { id: "swap", label: "Swap", icon: RefreshCcw },
+  { id: "actions", label: "Actions", icon: Wallet },
   { id: "security", label: "Security", icon: Shield },
   { id: "automation", label: "Automation", icon: Bot },
   { id: "how-it-works", label: "How it works", icon: Network },
   { id: "docs", label: "Docs & papers", icon: BookOpen },
   { id: "market", label: "Market watch", icon: LineChart },
 ];
-
-function shortenAddress(value: string, visible = 6) {
-  if (value.length <= visible * 2) {
-    return value;
-  }
-  return `${value.slice(0, visible)}…${value.slice(-visible)}`;
-}
 
 export default function Token() {
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
@@ -310,6 +281,33 @@ export default function Token() {
       type: "success" | "warn" | "error";
     } | null
   >(null);
+  const [activeAction, setActiveAction] = useState<DctActionKey>(
+    ACTION_PAD.defaultActionKey,
+  );
+
+  const activeActionDefinition = useMemo<DctActionDefinition | undefined>(
+    () => ACTION_PAD.actions.find((action) => action.key === activeAction),
+    [activeAction],
+  );
+
+  const handleCopyField = useCallback(
+    async (label: string, value: string) => {
+      try {
+        await navigator.clipboard.writeText(value);
+        setToast({
+          type: "success",
+          message: `${label} copied`,
+        });
+      } catch (error) {
+        console.error("Failed to copy action pad field", error);
+        setToast({
+          type: "error",
+          message: "Copy not available",
+        });
+      }
+    },
+    [],
+  );
 
   const activeSectionContent = useMemo(() => {
     switch (activeSection) {
@@ -367,221 +365,290 @@ export default function Token() {
             </CardContent>
           </Card>
         );
-      case "onboarding":
+      case "actions":
         return (
           <Card className="bg-card/50 backdrop-blur border-border/60">
             <CardHeader>
               <CardTitle className="text-lg text-foreground">
-                Link your TonConnect wallet
+                Deposit, withdraw, and use DCT
               </CardTitle>
               <CardDescription className="text-sm">
-                Three quick steps and you're ready to move DCT in Dynamic
-                Capital.
+                A single action pad routes onboarding, treasury deposits,
+                withdrawals, and liquidity links without leaving Telegram.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 pt-2">
-              {ONBOARDING_STEPS.map((step, index) => (
-                <div
-                  key={step.title}
-                  className="flex items-start gap-3 rounded-lg border border-border/40 bg-secondary/40 p-3"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
-                    {index + 1}
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-foreground">
-                      {step.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {step.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              <div className="space-y-3 rounded-lg border border-dashed border-border/60 bg-secondary/30 p-3">
-                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <ClipboardList className="h-4 w-4 text-primary" />
-                  Investor milestones
-                </div>
-                <ul className="space-y-2">
-                  {INVESTOR_MILESTONES.map((milestone) => (
-                    <li
-                      key={milestone.title}
-                      className="text-xs text-muted-foreground"
+              <div className="grid gap-2 sm:grid-cols-2">
+                {ACTION_PAD.actions.map((action) => {
+                  const IconComponent = ACTION_ICON_MAP[action.key];
+                  const isActive = action.key === activeAction;
+                  return (
+                    <Button
+                      key={action.key}
+                      variant={isActive ? "default" : "outline"}
+                      className="justify-start gap-2"
+                      onClick={() => setActiveAction(action.key)}
                     >
-                      <span className="font-medium text-foreground">
-                        {milestone.title}:
-                      </span>{" "}
-                      {milestone.description}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      case "deposit":
-        return (
-          <Card className="bg-card/50 backdrop-blur border-border/60">
-            <CardHeader>
-              <CardTitle className="text-lg text-foreground">
-                Deposit DCT into the treasury
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Use your preferred TonConnect wallet to transfer jettons
-                directly into Dynamic Capital.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-2">
-              <div className="rounded-lg border border-border/40 bg-secondary/40 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Treasury wallet
-                </p>
-                <p className="mt-1 font-mono text-sm text-foreground">
-                  {shortenAddress(DCT_TREASURY_ADDRESS)}
-                </p>
-                <div className="mt-3 grid grid-cols-1 gap-2">
-                  <Button
-                    variant="secondary"
-                    className="justify-start gap-2"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(
-                          DCT_TREASURY_ADDRESS,
-                        );
-                        setToast({
-                          type: "success",
-                          message: "Treasury address copied",
-                        });
-                      } catch (error) {
-                        console.error("Failed to copy treasury address", error);
-                        setToast({
-                          type: "error",
-                          message: "Copy not available",
-                        });
-                      }
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copy address
-                  </Button>
-                  <Button asChild className="gap-2">
-                    <a
-                      href={TONKEEPER_UNIVERSAL_LINK}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Wallet className="h-4 w-4" />
-                      Open in Tonkeeper
-                    </a>
-                  </Button>
-                  <Button asChild variant="outline" className="gap-2">
-                    <a href={TON_STANDARD_LINK} rel="noreferrer">
-                      <Repeat className="h-4 w-4" />
-                      Use ton:// link
-                    </a>
-                  </Button>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <Button
-                  asChild
-                  variant="outline"
-                  className="gap-2 text-sm"
-                >
-                  <a href={DCT_TREASURY_URL} target="_blank" rel="noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                    View treasury on TON Explorer
-                  </a>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="gap-2 text-sm"
-                >
-                  <a href={DCT_JETTON_URL} target="_blank" rel="noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                    View jetton master
-                  </a>
-                </Button>
-              </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Treasury transfers remain auditable in Tonviewer. Include your
-                investor memo when prompted so reconciliation clears instantly.
-              </p>
-            </CardContent>
-          </Card>
-        );
-      case "withdraw":
-        return (
-          <Card className="bg-card/50 backdrop-blur border-border/60">
-            <CardHeader>
-              <CardTitle className="text-lg text-foreground">
-                Schedule a withdrawal
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Keep operations smooth by submitting requests ahead of time.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 pt-2">
-              {WITHDRAWAL_POINTS.map((point) => (
-                <div
-                  key={point}
-                  className="flex items-start gap-3 rounded-lg border border-border/40 bg-secondary/40 p-3"
-                >
-                  <ArrowUpFromLine className="mt-0.5 h-4 w-4 text-primary" />
-                  <p className="text-sm text-muted-foreground">{point}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        );
-      case "swap":
-        return (
-          <Card className="bg-card/50 backdrop-blur border-border/60">
-            <CardHeader>
-              <CardTitle className="text-lg text-foreground">
-                Swap DCT on leading DEXs
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Preferred liquidity routes for balancing TON and DCT positions.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-2">
-              {DEX_OPTIONS.map((dex) => (
-                <div
-                  key={dex.name}
-                  className="space-y-3 rounded-lg border border-border/40 bg-secondary/40 p-3"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-base font-semibold text-foreground">
-                      {dex.name}
-                    </p>
-                    <Badge className="bg-primary/15 text-primary">DEX</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {dex.description}
-                  </p>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Button asChild className="gap-2 text-sm">
-                      <a href={dex.swapUrl} target="_blank" rel="noreferrer">
-                        <RefreshCcw className="h-4 w-4" />
-                        Open swap
-                      </a>
+                      <IconComponent className="h-4 w-4" />
+                      {action.label}
                     </Button>
-                    <Button asChild variant="outline" className="gap-2 text-sm">
-                      <a
-                        href={dex.explorerUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        View on Tonviewer
-                      </a>
-                    </Button>
+                  );
+                })}
+              </div>
+
+              {activeActionDefinition
+                ? (
+                  <div className="space-y-4 rounded-lg border border-border/40 bg-secondary/40 p-3">
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-foreground">
+                        {activeActionDefinition.summary}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {activeActionDefinition.description}
+                      </p>
+                    </div>
+                    <ul className="space-y-2">
+                      {activeActionDefinition.highlights.map((highlight) => (
+                        <li
+                          key={highlight}
+                          className="flex items-start gap-2 text-xs text-muted-foreground"
+                        >
+                          <Check className="mt-0.5 h-4 w-4 text-primary" />
+                          {highlight}
+                        </li>
+                      ))}
+                    </ul>
+
+                    {activeAction === "onboard"
+                      ? (
+                        <div className="space-y-3 rounded-lg border border-dashed border-border/60 bg-secondary/30 p-3">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                            <ClipboardList className="h-4 w-4 text-primary" />
+                            Onboarding playbook
+                          </div>
+                          <ul className="space-y-2">
+                            {ONBOARDING_STEPS.map((step) => (
+                              <li
+                                key={step.title}
+                                className="text-xs text-muted-foreground"
+                              >
+                                <span className="font-medium text-foreground">
+                                  {step.title}:
+                                </span>{" "}
+                                {step.description}
+                              </li>
+                            ))}
+                          </ul>
+                          <Button asChild className="gap-2">
+                            <a
+                              href="https://dynamiccapital.ai/wallet"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Open wallet desk
+                            </a>
+                          </Button>
+                        </div>
+                      )
+                      : null}
+
+                    {activeAction === "deposit"
+                      ? (
+                        <div className="space-y-3">
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <Button asChild className="gap-2">
+                              <a
+                                href={ACTION_PAD.tonkeeperUniversalLink}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <Wallet className="h-4 w-4" />
+                                Open Tonkeeper link
+                              </a>
+                            </Button>
+                            <Button asChild variant="outline" className="gap-2">
+                              <a href={ACTION_PAD.tonTransferLink}>
+                                <ExternalLink className="h-4 w-4" />
+                                Use ton:// URI
+                              </a>
+                            </Button>
+                          </div>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {ACTION_PAD.copyFields.map((field) => (
+                              <div key={field.key} className="space-y-1">
+                                <Button
+                                  variant="secondary"
+                                  className="w-full justify-start gap-2"
+                                  onClick={() =>
+                                    handleCopyField(field.label, field.value)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                  Copy {field.label}
+                                </Button>
+                                {field.helper
+                                  ? (
+                                    <p className="text-xs text-muted-foreground">
+                                      {field.helper}
+                                    </p>
+                                  )
+                                  : null}
+                              </div>
+                            ))}
+                          </div>
+                          {ACTION_PAD.qrLink
+                            ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <QrCode value={ACTION_PAD.qrLink} size={180} />
+                                <p className="text-center text-xs text-muted-foreground">
+                                  Scan to launch the {ACTION_PAD.alias}{" "}
+                                  deposit link in your TonConnect wallet.
+                                </p>
+                              </div>
+                            )
+                            : null}
+                        </div>
+                      )
+                      : null}
+
+                    {activeAction === "withdraw"
+                      ? (
+                        <div className="space-y-3">
+                          <div className="space-y-2 rounded-lg border border-dashed border-border/60 bg-secondary/30 p-3">
+                            <p className="text-sm font-semibold text-foreground">
+                              Withdrawal guidelines
+                            </p>
+                            <ul className="space-y-2">
+                              {WITHDRAWAL_POINTS.map((point) => (
+                                <li
+                                  key={point}
+                                  className="flex items-start gap-2 text-xs text-muted-foreground"
+                                >
+                                  <Check className="mt-0.5 h-4 w-4 text-primary" />
+                                  {point}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <Button asChild className="gap-2">
+                              <a
+                                href="https://dynamiccapital.ai/tools/dynamic-portfolio"
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <ArrowUpFromLine className="h-4 w-4" />
+                                Open investor desk
+                              </a>
+                            </Button>
+                            <Button asChild variant="outline" className="gap-2">
+                              <a
+                                href="https://t.me/DynamicCapital_Support"
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <Users className="h-4 w-4" />
+                                Message concierge
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                      )
+                      : null}
+
+                    {activeAction === "utilize"
+                      ? (
+                        <div className="space-y-2">
+                          {DEX_OPTIONS.map((dex) => (
+                            <div
+                              key={dex.name}
+                              className="space-y-2 rounded-lg border border-border/40 bg-secondary/30 p-3"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-semibold text-foreground">
+                                    {dex.name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {dex.description}
+                                  </p>
+                                </div>
+                                <Badge className="bg-primary/15 text-xs text-primary">
+                                  {dex.name} DEX
+                                </Badge>
+                              </div>
+                              <div className="grid gap-2 sm:grid-cols-3">
+                                <Button asChild className="gap-2 text-sm">
+                                  <a
+                                    href={dex.swapUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <RefreshCcw className="h-4 w-4" />
+                                    Open swap
+                                  </a>
+                                </Button>
+                                <Button
+                                  asChild
+                                  variant="outline"
+                                  className="gap-2 text-sm"
+                                >
+                                  <a
+                                    href={dex.explorerUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                    Pool explorer
+                                  </a>
+                                </Button>
+                                <Button
+                                  asChild
+                                  variant="outline"
+                                  className="gap-2 text-sm"
+                                >
+                                  <a
+                                    href={dex.jettonWalletUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                    Jetton wallet
+                                  </a>
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                      : null}
+
+                    {activeActionDefinition.links.length > 0
+                      ? (
+                        <div className="flex flex-wrap gap-2">
+                          {activeActionDefinition.links.map((link) => (
+                            <Button
+                              key={link.href}
+                              asChild
+                              variant="outline"
+                              className="gap-2 text-sm"
+                            >
+                              <a
+                                href={link.href}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                {link.label}
+                              </a>
+                            </Button>
+                          ))}
+                        </div>
+                      )
+                      : null}
                   </div>
-                </div>
-              ))}
+                )
+                : null}
             </CardContent>
           </Card>
         );
