@@ -60,12 +60,21 @@ function normalizeValue(value: unknown): string {
   return String(value);
 }
 
-function normalizeFriendlyAddress(value: string | undefined): string | undefined {
+interface ParsedAddress {
+  friendly: string;
+  raw: string;
+}
+
+function parseAddress(value: string | undefined): ParsedAddress | undefined {
   if (!value) {
     return undefined;
   }
   try {
-    return Address.parse(value).toString();
+    const address = Address.parse(value);
+    return {
+      friendly: address.toString(),
+      raw: address.toRawString(),
+    };
   } catch (_error) {
     return undefined;
   }
@@ -603,7 +612,7 @@ async function verifyWalletOwnership(
 
   const rows: WalletOwnershipRow[] = [];
   const errors: FetchError[] = [];
-  const expectedMaster = normalizeFriendlyAddress(jettonMaster);
+  const expectedMaster = parseAddress(jettonMaster);
 
   for (const check of checks) {
     const walletAddressRaw = records[check.walletKey];
@@ -611,7 +620,7 @@ async function verifyWalletOwnership(
       continue;
     }
 
-    const ownerExpected = normalizeFriendlyAddress(
+    const ownerExpected = parseAddress(
       typeof records[check.ownerKey] === "string"
         ? records[check.ownerKey]
         : undefined,
@@ -619,21 +628,21 @@ async function verifyWalletOwnership(
 
     try {
       const data = await fetchJettonWalletData(walletAddressRaw);
-      const ownerActual = normalizeFriendlyAddress(data.owner);
-      const masterActual = normalizeFriendlyAddress(data.master);
+      const ownerActual = parseAddress(data.owner);
+      const masterActual = parseAddress(data.master);
       const ownerMatches = ownerExpected && ownerActual
-        ? ownerExpected === ownerActual
+        ? ownerExpected.raw === ownerActual.raw
         : undefined;
       const masterMatches = expectedMaster && masterActual
-        ? expectedMaster === masterActual
+        ? expectedMaster.raw === masterActual.raw
         : undefined;
       rows.push({
         wallet: check.walletName,
         walletAddress: walletAddressRaw,
-        ownerExpected,
-        ownerActual,
-        masterExpected: expectedMaster,
-        masterActual,
+        ownerExpected: ownerExpected?.friendly,
+        ownerActual: ownerActual?.friendly,
+        masterExpected: expectedMaster?.friendly,
+        masterActual: masterActual?.friendly,
         ownerMatches,
         masterMatches,
       });
