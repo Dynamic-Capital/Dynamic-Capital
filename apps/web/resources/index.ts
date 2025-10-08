@@ -41,4 +41,12 @@ export {
 
 export { getRouteDefinitions, isRouteEnabled } from "./routes";
 
-export { tokenContent, tokenDescriptor } from "./token";
+export {
+  buildJettonExplorerUrl,
+  buildTonscanAccountUrl,
+  buildTonscanJettonUrl,
+  buildTonviewerAccountUrl,
+  shortenTonAddress,
+  tokenContent,
+  tokenDescriptor,
+} from "./token";

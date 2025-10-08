@@ -145,6 +145,20 @@ const buildJettonExplorerUrl = (address?: string) => {
     : undefined;
 };
 
+const buildTonscanAccountUrl = (address?: string) => {
+  const normalizedAddress = normalizeTonAddress(address);
+  return normalizedAddress
+    ? `https://tonscan.org/address/${normalizedAddress}`
+    : undefined;
+};
+
+const buildTonscanJettonUrl = (address?: string) => {
+  const normalizedAddress = normalizeTonAddress(address);
+  return normalizedAddress
+    ? `https://tonscan.org/jetton/${normalizedAddress}`
+    : undefined;
+};
+
 const DEDUST_DCT_TON_POOL_ADDRESS = tonAddressSchema.parse(
   TON_MAINNET_DEDUST_DCT_TON_POOL,
 );
@@ -241,6 +255,7 @@ type TokenContent = {
   marketCapUsd: number;
   treasuryWalletAddress: string;
   treasuryWalletUrl: string;
+  treasuryWalletTonscanUrl?: string;
 };
 
 type TokenDescriptor = {
@@ -447,6 +462,15 @@ const tokenContent: TokenContent = {
   marketCapUsd: TGE_MARKET_CAP_USD,
   treasuryWalletAddress: OPERATIONS_TREASURY_WALLET,
   treasuryWalletUrl: OPERATIONS_TREASURY_EXPLORER_URL,
+  treasuryWalletTonscanUrl: buildTonscanAccountUrl(OPERATIONS_TREASURY_WALLET),
 };
 
-export { tokenContent, tokenDescriptor };
+export {
+  buildJettonExplorerUrl,
+  buildTonscanAccountUrl,
+  buildTonscanJettonUrl,
+  buildTonviewerAccountUrl,
+  shortenTonAddress,
+  tokenContent,
+  tokenDescriptor,
+};

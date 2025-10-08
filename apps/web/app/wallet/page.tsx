@@ -16,7 +16,15 @@ import {
 import { UnifiedWalletConnect } from "@/components/web3/UnifiedWalletConnect";
 import { TonWalletCatalogue } from "@/components/web3/TonWalletCatalogue";
 import { TonkeeperDeepLinkButtons } from "@/components/web3/TonkeeperDeepLinkButtons";
-import { tokenContent, tokenDescriptor } from "@/resources";
+import {
+  buildJettonExplorerUrl,
+  buildTonscanAccountUrl,
+  buildTonscanJettonUrl,
+  buildTonviewerAccountUrl,
+  shortenTonAddress,
+  tokenContent,
+  tokenDescriptor,
+} from "@/resources";
 import { TON_MAINNET_DCT_TREASURY_WALLET } from "@shared/ton/mainnet-addresses";
 
 const HERO_HIGHLIGHTS = [
@@ -108,42 +116,59 @@ const SUPPORTED_WALLETS = [
 ] as const;
 
 const DCT_TREASURY_ADDRESS = TON_MAINNET_DCT_TREASURY_WALLET;
-const DCT_TREASURY_TONVIEWER_URL = tokenContent.treasuryWalletUrl;
-const DCT_TREASURY_TONSCAN_URL =
-  `https://tonscan.org/address/${DCT_TREASURY_ADDRESS}`;
-const DCT_JETTON_ADDRESS = tokenDescriptor.address ?? null;
-const DCT_JETTON_TONVIEWER_URL = DCT_JETTON_ADDRESS
-  ? `https://tonviewer.com/jetton/${DCT_JETTON_ADDRESS}`
-  : null;
-const DCT_JETTON_TONSCAN_URL = DCT_JETTON_ADDRESS
-  ? `https://tonscan.org/jetton/${DCT_JETTON_ADDRESS}`
-  : null;
-
-const STONFI_POOL = tokenContent.dexPools.find((pool) =>
-  pool.dex === "STON.fi"
+const DCT_TREASURY_TONVIEWER_URL = buildTonviewerAccountUrl(
+  DCT_TREASURY_ADDRESS,
 );
-const DEDUST_POOL = tokenContent.dexPools.find((pool) => pool.dex === "DeDust");
+const DCT_TREASURY_TONSCAN_URL = buildTonscanAccountUrl(
+  DCT_TREASURY_ADDRESS,
+);
+const DCT_JETTON_ADDRESS = tokenDescriptor.address;
+const DCT_JETTON_TONVIEWER_URL = buildJettonExplorerUrl(DCT_JETTON_ADDRESS);
+const DCT_JETTON_TONSCAN_URL = buildTonscanJettonUrl(DCT_JETTON_ADDRESS);
 
-const STONFI_SWAP_URL = STONFI_POOL?.url ??
-  "https://app.ston.fi/swap?from=TON&to=DCT";
-const DEDUST_SWAP_URL = DEDUST_POOL?.url ?? "https://dedust.io/swap/TON-DCT";
-const STONFI_EXPLORER_URL = STONFI_POOL?.explorerUrl ?? null;
-const DEDUST_EXPLORER_URL = DEDUST_POOL?.explorerUrl ?? null;
-const STONFI_JETTON_WALLET_URL = STONFI_POOL?.jettonWalletUrl ?? null;
-const DEDUST_JETTON_WALLET_URL = DEDUST_POOL?.jettonWalletUrl ?? null;
+type ExplorerLink = {
+  label: string;
+  href: string;
+};
 
-function shortenTonAddress(address: string, visible = 6): string {
-  if (!address) {
-    return "";
-  }
+const createExplorerLink = (
+  label: string,
+  href?: string | null,
+): ExplorerLink | null => (href ? { label, href } : null);
 
-  const trimmed = address.trim();
-  if (trimmed.length <= visible * 2) {
-    return trimmed;
-  }
+const isExplorerLink = (
+  value: ExplorerLink | null | undefined,
+): value is ExplorerLink => Boolean(value);
 
-  return `${trimmed.slice(0, visible)}…${trimmed.slice(-visible)}`;
-}
+const TEXT_LINK_CLASS_NAME =
+  "flex items-center gap-1 text-sm font-semibold text-primary hover:underline";
+const SWAP_LINK_CLASS_NAME =
+  "inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary hover:bg-primary/20";
+
+const DEX_POOLS = tokenContent.dexPools;
+
+const TREASURY_EXPLORER_LINKS = [
+  createExplorerLink("View treasury on Tonviewer", DCT_TREASURY_TONVIEWER_URL),
+  createExplorerLink("View treasury on Tonscan", DCT_TREASURY_TONSCAN_URL),
+  createExplorerLink(
+    "View jetton master on Tonviewer",
+    DCT_JETTON_TONVIEWER_URL,
+  ),
+  createExplorerLink(
+    "View jetton master on Tonscan",
+    DCT_JETTON_TONSCAN_URL,
+  ),
+].filter(isExplorerLink);
+
+const DEX_SWAP_LINKS = DEX_POOLS.map((pool) => ({
+  label: `${pool.dex} swap`,
+  href: pool.url,
+}));
+
+const DEX_EXPLORER_LINKS = DEX_POOLS.flatMap((pool) => [
+  createExplorerLink(`${pool.dex} pool explorer`, pool.explorerUrl),
+  createExplorerLink(`${pool.dex} jetton wallet`, pool.jettonWalletUrl),
+]).filter(isExplorerLink);
 
 type LayerZeroFeature = {
   icon: "sparkles" | "shield" | "repeat";
@@ -334,54 +359,18 @@ export default function WalletPage() {
                 </Text>
               </Row>
               <div className="flex flex-wrap gap-3">
-                {DCT_TREASURY_TONVIEWER_URL
-                  ? (
-                    <a
-                      href={DCT_TREASURY_TONVIEWER_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                    >
-                      View treasury on Tonviewer
-                      <Icon name="arrowUpRight" size="xs" />
-                    </a>
-                  )
-                  : null}
-                <a
-                  href={DCT_TREASURY_TONSCAN_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                >
-                  View treasury on Tonscan
-                  <Icon name="arrowUpRight" size="xs" />
-                </a>
-                {DCT_JETTON_TONVIEWER_URL
-                  ? (
-                    <a
-                      href={DCT_JETTON_TONVIEWER_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                    >
-                      View jetton master on Tonviewer
-                      <Icon name="arrowUpRight" size="xs" />
-                    </a>
-                  )
-                  : null}
-                {DCT_JETTON_TONSCAN_URL
-                  ? (
-                    <a
-                      href={DCT_JETTON_TONSCAN_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                    >
-                      View jetton master on Tonscan
-                      <Icon name="arrowUpRight" size="xs" />
-                    </a>
-                  )
-                  : null}
+                {TREASURY_EXPLORER_LINKS.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={TEXT_LINK_CLASS_NAME}
+                  >
+                    {link.label}
+                    <Icon name="arrowUpRight" size="xs" />
+                  </a>
+                ))}
               </div>
             </Column>
           </Column>
@@ -409,7 +398,7 @@ export default function WalletPage() {
             <Row gap="12" wrap>
               <Link
                 href="/tools/dynamic-portfolio"
-                className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                className={TEXT_LINK_CLASS_NAME}
               >
                 Open investor desk
                 <Icon name="arrowUpRight" size="xs" />
@@ -418,7 +407,7 @@ export default function WalletPage() {
                 href="https://t.me/DynamicCapital_Support"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                className={TEXT_LINK_CLASS_NAME}
               >
                 Message concierge
                 <Icon name="arrowUpRight" size="xs" />
@@ -455,88 +444,42 @@ export default function WalletPage() {
             <Row gap="12" vertical="center" wrap>
               <Icon name="repeat" onBackground="brand-medium" />
               <Heading variant="heading-strong-m">Swap DCT</Heading>
-              <Tag size="s" background="brand-alpha-weak">
-                STON.fi
-              </Tag>
-              <Tag size="s" background="brand-alpha-weak">
-                DeDust
-              </Tag>
+              {DEX_POOLS.map((pool) => (
+                <Tag key={pool.dex} size="s" background="brand-alpha-weak">
+                  {pool.dex}
+                </Tag>
+              ))}
             </Row>
             <Text variant="body-default-m" onBackground="neutral-weak">
               Access deep DCT/TON liquidity for treasury balancing and member
               swaps through STON.fi and DeDust pools.
             </Text>
             <div className="flex flex-wrap gap-3">
-              <a
-                href={STONFI_SWAP_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary hover:bg-primary/20"
-              >
-                STON.fi swap
-              </a>
-              <a
-                href={DEDUST_SWAP_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary hover:bg-primary/20"
-              >
-                DeDust swap
-              </a>
+              {DEX_SWAP_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={SWAP_LINK_CLASS_NAME}
+                >
+                  {link.label}
+                </a>
+              ))}
             </div>
             <div className="flex flex-wrap gap-3">
-              {STONFI_EXPLORER_URL
-                ? (
-                  <a
-                    href={STONFI_EXPLORER_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                  >
-                    STON.fi pool explorer
-                    <Icon name="arrowUpRight" size="xs" />
-                  </a>
-                )
-                : null}
-              {DEDUST_EXPLORER_URL
-                ? (
-                  <a
-                    href={DEDUST_EXPLORER_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                  >
-                    DeDust pool explorer
-                    <Icon name="arrowUpRight" size="xs" />
-                  </a>
-                )
-                : null}
-              {STONFI_JETTON_WALLET_URL
-                ? (
-                  <a
-                    href={STONFI_JETTON_WALLET_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                  >
-                    STON.fi DCT jetton wallet
-                    <Icon name="arrowUpRight" size="xs" />
-                  </a>
-                )
-                : null}
-              {DEDUST_JETTON_WALLET_URL
-                ? (
-                  <a
-                    href={DEDUST_JETTON_WALLET_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                  >
-                    DeDust DCT jetton wallet
-                    <Icon name="arrowUpRight" size="xs" />
-                  </a>
-                )
-                : null}
+              {DEX_EXPLORER_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={TEXT_LINK_CLASS_NAME}
+                >
+                  {link.label}
+                  <Icon name="arrowUpRight" size="xs" />
+                </a>
+              ))}
             </div>
           </Column>
         </Column>
