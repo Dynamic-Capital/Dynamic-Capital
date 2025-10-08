@@ -82,6 +82,15 @@ After submitting, monitor the explorer status with the CLI at
 against `metadata.json` and exits with non-zero codes if either the verification
 flag remains `none` or the hosted metadata drifts from the repository copy.
 
+### Tonkeeper verification workflow
+
+Tonkeeper displays an **Unverified Token** banner until the project submits the
+jetton metadata through their [`ton-assets` repository pull request
+process](https://tonkeeper.helpscoutdocs.com/article/127-tokennftverification).
+Fork the repository, add the Dynamic Capital Token YAML manifest under
+`jettons/`, and track any reviewer feedback directly on the pull request to keep
+the wallet status aligned with the explorers above.
+
 ## Explorer verification shortcuts
 
 Use the following canonical explorer pages to validate the on-chain jetton and

@@ -16,6 +16,7 @@ const error::invalid_op = 72;
 const error::wrong_op = 0xffff;
 const error::not_owner = 73;
 const error::not_valid_wallet = 74;
+const error::low_message_value = 75;
 const error::wrong_workchain = 333;
 
 ;; jetton-minter
