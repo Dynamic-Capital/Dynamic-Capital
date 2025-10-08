@@ -4,7 +4,7 @@
   "description": "Dynamic Capital is a Web3-native financial ecosystem built on the TON blockchain, designed to empower traders, investors, and learners through automation, mentorship, and transparent revenue-sharing.\n\n🔹 Core Asset: DCT Token\n• Utility: VIP mentorship, staking, governance, fund pool access, NFT memberships\n• Tokenomics: 100M supply, deflationary tax (50% burn, 30% treasury, 20% liquidity)\n\n🔹 Treasury & Rewards\n• Revenue-backed public wallet fueling staking incentives, buybacks, and ecosystem growth\n\n🔹 Market Path\n• Price rollout: $0.02 (Private) → $0.05 (IDO) → $0.10 (Listing) → Target $1–$5 mid-term\n\n🔹 Governance & Security\n• DAO voting with a 48-hour guarded window for treasury actions and expansions\n• Audited smart contracts, monthly revenue reporting, and a public treasury address.\n\nDynamic Capital Foundation ensures ethical growth, transparency, and community ownership.",
   "decimals": 9,
   "address": "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
-  "image": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCT-Mark.svg",
+  "image": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCTMark.png",
   "external_url": "https://dynamiccapital.ton/token",
   "sameAs": [
     "https://dynamiccapital.ton/token",
@@ -18,8 +18,8 @@
     "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
     "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
     "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
-    "https://tonviewer.com/EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_",
-    "https://tonviewer.com/EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm"
+    "https://tonviewer.com/EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3",
+    "https://tonviewer.com/EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz"
   ],
   "attributes": [
     {
