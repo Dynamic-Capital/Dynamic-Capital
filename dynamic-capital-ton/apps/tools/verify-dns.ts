@@ -13,6 +13,11 @@ import {
   TON_MAINNET_STONFI_ROUTER,
 } from "../../../shared/ton/mainnet-addresses";
 
+type JettonMetadata = {
+  readonly name?: string;
+  readonly symbol?: string;
+};
+
 const DOMAIN = "dynamiccapital.ton";
 const METADATA_URL = "https://dynamiccapital.ton/jetton-metadata.json";
 const RPC_ENDPOINT = "https://toncenter.com/api/v2/jsonRPC";
@@ -20,24 +25,6 @@ const TON_VIEWER_JETTON_URL =
   `https://tonviewer.com/jetton/${TON_MAINNET_JETTON_MASTER}`;
 const TONSCAN_JETTON_URL =
   `https://tonscan.org/jetton/${TON_MAINNET_JETTON_MASTER}`;
-
-const dnsRecord: Record<string, string> = {
-  ton_alias: TON_MAINNET_DCT_TREASURY_ALIAS,
-  jetton_master: TON_MAINNET_JETTON_MASTER,
-  treasury_wallet: TON_MAINNET_DCT_TREASURY_WALLET,
-  stonfi_pool: TON_MAINNET_STONFI_ROUTER,
-  stonfi_jetton_wallet: TON_MAINNET_STONFI_DCT_JETTON_WALLET,
-  wallet_v5r1: TON_MAINNET_DCT_WALLET_V5R1,
-  dedust_pool: TON_MAINNET_DEDUST_DCT_TON_POOL,
-  dedust_jetton_wallet: TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
-  jetton_tonviewer: TON_VIEWER_JETTON_URL,
-  jetton_tonscan: TONSCAN_JETTON_URL,
-  dao_contract: "EQDAOxyz...daoAddr",
-  metadata: METADATA_URL,
-  api: "https://api.dynamiccapital.ton",
-  manifest: "https://dynamiccapital.ton/tonconnect-manifest.json",
-  docs: "https://dynamiccapital.ton/docs",
-};
 
 async function fetchJettonWallet(ownerFriendly: string): Promise<string> {
   const ownerAddress = Address.parse(ownerFriendly);
@@ -109,14 +96,48 @@ async function main() {
     throw new Error("TREASURY_MNEMONIC must contain 24 words");
   }
 
-  const { data: metadata } = await axios.get(METADATA_URL, {
+  const { data: metadata } = await axios.get<JettonMetadata>(METADATA_URL, {
     timeout: 10_000,
   });
+
+  if (!metadata || typeof metadata.symbol !== "string" || metadata.symbol.trim() === "") {
+    throw new Error("Jetton metadata is missing the token symbol");
+  }
+
+  if (metadata.symbol !== "DCT") {
+    throw new Error(
+      `Jetton metadata symbol mismatch: expected DCT received ${metadata.symbol}`,
+    );
+  }
+
+  if (!metadata.name || metadata.name.trim() === "") {
+    throw new Error("Jetton metadata is missing the token name");
+  }
+
   console.log(
     `Jetton metadata verified for ${DOMAIN}:`,
     metadata.name,
     metadata.symbol,
   );
+
+  const dnsRecord: Record<string, string> = {
+    ton_alias: TON_MAINNET_DCT_TREASURY_ALIAS,
+    token_symbol: metadata.symbol,
+    jetton_master: TON_MAINNET_JETTON_MASTER,
+    treasury_wallet: TON_MAINNET_DCT_TREASURY_WALLET,
+    stonfi_pool: TON_MAINNET_STONFI_ROUTER,
+    stonfi_jetton_wallet: TON_MAINNET_STONFI_DCT_JETTON_WALLET,
+    wallet_v5r1: TON_MAINNET_DCT_WALLET_V5R1,
+    dedust_pool: TON_MAINNET_DEDUST_DCT_TON_POOL,
+    dedust_jetton_wallet: TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
+    jetton_tonviewer: TON_VIEWER_JETTON_URL,
+    jetton_tonscan: TONSCAN_JETTON_URL,
+    dao_contract: "EQDAOxyz...daoAddr",
+    metadata: METADATA_URL,
+    api: "https://api.dynamiccapital.ton",
+    manifest: "https://dynamiccapital.ton/tonconnect-manifest.json",
+    docs: "https://dynamiccapital.ton/docs",
+  };
 
   const [stonfiWallet, dedustWallet] = await Promise.all([
     fetchJettonWallet(TON_MAINNET_STONFI_ROUTER),

@@ -75,7 +75,9 @@ service-role execution by keepers.
 
 `dao-dns-proposal` stores the payload (ensuring `domain` is included) and posts
 an optional webhook to `DAO_WEBHOOK_URL` for DAO awareness. Quorum defaults to
-60% but can be overridden per proposal (bounded between 1–100%).
+60% but can be overridden per proposal (bounded between 1–100%). Payloads must
+also include `token_symbol: "DCT"` so downstream verifiers reject attempts to
+publish inconsistent tickers.
 
 ### Voting
 
@@ -143,6 +145,7 @@ mirrors the canonical structure:
   "domain": "dynamiccapital.ton",
   "records": {
     "ton_alias": "dynamiccapital.ton",
+    "token_symbol": "DCT",
     "jetton_master": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "treasury_wallet": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
     "stonfi_pool": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
@@ -157,7 +160,7 @@ mirrors the canonical structure:
     "api": "https://api.dynamiccapital.ton",
     "manifest": "https://dynamiccapital.ton/tonconnect-manifest.json",
     "docs": "https://dynamiccapital.ton/docs",
-    "updated": "2025-10-08"
+    "updated": "2025-10-09"
   },
   "signatures": {
     "dao": "base64:abc123...",

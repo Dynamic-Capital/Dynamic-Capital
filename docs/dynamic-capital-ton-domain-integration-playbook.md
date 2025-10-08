@@ -25,22 +25,23 @@ Store the following key-value pairs in the TON DNS TXT record so integrators can
 auto-discover Dynamic Capital contracts and services when resolving
 `dynamiccapital.ton`:
 
-| Key                    | Address / URL                                                                   | Description                    |
-| ---------------------- | ------------------------------------------------------------------------------- | ------------------------------ |
-| `ton_alias`            | `dynamiccapital.ton`                                                            | DNS alias resolving deposits   |
-| `jetton_master`        | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                              | Dynamic Capital Token (DCT)    |
-| `treasury_wallet`      | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`                              | Treasury & mint authority      |
-| `stonfi_pool`          | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt`                              | STON.fi DCT/TON pool           |
-| `stonfi_jetton_wallet` | `EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_`                              | STON.fi jetton wallet for DCT  |
-| `wallet_v5r1`          | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm`                              | Jetton wallet (Wallet v5r1)    |
-| `dedust_pool`          | `EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI`                              | DeDust DCT/TON vault           |
-| `dedust_jetton_wallet` | `EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm`                              | DeDust jetton wallet for DCT   |
-| `dao_contract`         | `future DAO multisig`                                                           | Governance executor            |
-| `jetton_tonviewer`     | `https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | Jetton explorer (Tonviewer)    |
-| `jetton_tonscan`       | `https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`   | Jetton explorer (Tonscan)      |
-| `api_endpoint`         | `https://api.dynamiccapital.ton`                                                | REST / Supabase gateway        |
-| `metadata`             | `https://dynamiccapital.ton/jetton-metadata.json`                               | Jetton metadata JSON (primary) |
-| `web`                  | `https://dynamiccapital.ton`                                                    | Marketing & dashboard site     |
+| Key                    | Address / URL                                                                   | Description                                           |
+| ---------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `ton_alias`            | `dynamiccapital.ton`                                                            | DNS alias resolving deposits                          |
+| `token_symbol`         | `DCT`                                                                           | Canonical ticker across wallets, pools, and exchanges |
+| `jetton_master`        | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                              | Dynamic Capital Token (DCT)                           |
+| `treasury_wallet`      | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`                              | Treasury & mint authority                             |
+| `stonfi_pool`          | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt`                              | STON.fi DCT/TON pool                                  |
+| `stonfi_jetton_wallet` | `EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_`                              | STON.fi jetton wallet for DCT                         |
+| `wallet_v5r1`          | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm`                              | Jetton wallet (Wallet v5r1)                           |
+| `dedust_pool`          | `EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI`                              | DeDust DCT/TON vault                                  |
+| `dedust_jetton_wallet` | `EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm`                              | DeDust jetton wallet for DCT                          |
+| `dao_contract`         | `future DAO multisig`                                                           | Governance executor                                   |
+| `jetton_tonviewer`     | `https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | Jetton explorer (Tonviewer)                           |
+| `jetton_tonscan`       | `https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`   | Jetton explorer (Tonscan)                             |
+| `api_endpoint`         | `https://api.dynamiccapital.ton`                                                | REST / Supabase gateway                               |
+| `metadata`             | `https://dynamiccapital.ton/jetton-metadata.json`                               | Jetton metadata JSON (primary)                        |
+| `web`                  | `https://dynamiccapital.ton`                                                    | Marketing & dashboard site                            |
 
 ## Integration Touchpoints
 
@@ -60,6 +61,8 @@ auto-discover Dynamic Capital contracts and services when resolving
 - Derive the STON.fi and DeDust jetton wallets from the master contract using
   `runGetMethod(get_wallet_address)` before broadcasting DNS updates so the
   resolver values match on-chain state.
+- Include `token_symbol=DCT` in every DNS payload so wallets, explorers, and
+  liquidity venues render the canonical ticker.
 
 ```json
 {
@@ -74,6 +77,7 @@ auto-discover Dynamic Capital contracts and services when resolving
     "twitter": "https://x.com/dynamic_capital"
   },
   "contracts": {
+    "token_symbol": "DCT",
     "ton_alias": "dynamiccapital.ton",
     "jetton_master": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "stonfi_pool": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
@@ -104,6 +108,7 @@ Add the following entries to the TON DNS resolver:
 
 ```
 ton_alias=dynamiccapital.ton
+token_symbol=DCT
 jetton_master=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 treasury_wallet=EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq
 stonfi_pool=EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt
