@@ -24,7 +24,7 @@ export function CustomLLMChat({
   placeholder = "Type your message...",
 }: CustomLLMChatProps) {
   const [input, setInput] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const { messages, sendMessage, isLoading, error } = useCustomLLMChat({
     provider,
@@ -36,10 +36,31 @@ export function CustomLLMChat({
   });
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const viewport = scrollAreaRef.current?.querySelector<HTMLElement>(
+      "[data-radix-scroll-area-viewport]",
+    );
+
+    if (!viewport) {
+      return;
     }
-  }, [messages]);
+
+    const distanceFromBottom =
+      viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop;
+    const shouldStickToBottom = distanceFromBottom < 64;
+
+    const raf = requestAnimationFrame(() => {
+      if (!shouldStickToBottom && !isLoading) {
+        return;
+      }
+
+      viewport.scrollTo({
+        top: viewport.scrollHeight,
+        behavior: shouldStickToBottom ? "smooth" : "auto",
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [isLoading, messages]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -58,7 +79,7 @@ export function CustomLLMChat({
 
   return (
     <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
         <div className="space-y-4">
           {messages.map((message, index) => (
             <Card
