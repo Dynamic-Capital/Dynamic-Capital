@@ -34,6 +34,7 @@ import { Badge } from "../components/ui/badge";
 import QrCode from "../components/QrCode";
 import { cn } from "../lib/utils";
 
+const DCT_TREASURY_ALIAS = "dynamiccapital.ton";
 const DCT_TREASURY_ADDRESS = "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
 const DCT_TREASURY_URL = `https://tonviewer.com/${DCT_TREASURY_ADDRESS}`;
 const DCT_JETTON_ADDRESS = "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
@@ -49,13 +50,13 @@ const OPERATIONS_TREASURY_ADDRESS =
 const OPERATIONS_TREASURY_URL =
   `https://tonviewer.com/${OPERATIONS_TREASURY_ADDRESS}`;
 const TONKEEPER_UNIVERSAL_LINK =
-  `https://app.tonkeeper.com/transfer/${DCT_TREASURY_ADDRESS}?jetton=${DCT_JETTON_ADDRESS}&text=${
+  `https://app.tonkeeper.com/transfer/${DCT_TREASURY_ALIAS}?jetton=${DCT_JETTON_ADDRESS}&text=${
     encodeURIComponent(
       "Dynamic Capital DCT deposit",
     )
   }`;
 const TON_STANDARD_LINK =
-  `ton://transfer/${DCT_TREASURY_ADDRESS}?jetton=${DCT_JETTON_ADDRESS}&text=${
+  `ton://transfer/${DCT_TREASURY_ALIAS}?jetton=${DCT_JETTON_ADDRESS}&text=${
     encodeURIComponent(
       "Dynamic Capital DCT deposit",
     )
@@ -433,8 +434,9 @@ export default function Token() {
                 Deposit DCT into the treasury
               </CardTitle>
               <CardDescription className="text-sm">
-                Use your preferred TonConnect wallet to transfer jettons
-                directly into Dynamic Capital.
+                Use the {DCT_TREASURY_ALIAS}{" "}
+                TON DNS alias with your preferred TonConnect wallet to transfer
+                jettons directly into Dynamic Capital.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-2">
@@ -443,7 +445,11 @@ export default function Token() {
                   Treasury wallet
                 </p>
                 <p className="mt-1 font-mono text-sm text-foreground">
-                  {shortenAddress(DCT_TREASURY_ADDRESS)}
+                  {DCT_TREASURY_ALIAS}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Resolves to {shortenAddress(DCT_TREASURY_ADDRESS)}{" "}
+                  for explorer verification.
                 </p>
                 <div className="mt-3 grid grid-cols-1 gap-2">
                   <Button
@@ -451,15 +457,16 @@ export default function Token() {
                     className="justify-start gap-2"
                     onClick={async () => {
                       try {
-                        await navigator.clipboard.writeText(
-                          DCT_TREASURY_ADDRESS,
-                        );
+                        await navigator.clipboard.writeText(DCT_TREASURY_ALIAS);
                         setToast({
                           type: "success",
-                          message: "Treasury address copied",
+                          message: "TON alias copied",
                         });
                       } catch (error) {
-                        console.error("Failed to copy treasury address", error);
+                        console.error(
+                          "Failed to copy treasury TON alias",
+                          error,
+                        );
                         setToast({
                           type: "error",
                           message: "Copy not available",
@@ -468,7 +475,34 @@ export default function Token() {
                     }}
                   >
                     <Copy className="h-4 w-4" />
-                    Copy address
+                    Copy {DCT_TREASURY_ALIAS}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="justify-start gap-2"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(
+                          DCT_TREASURY_ADDRESS,
+                        );
+                        setToast({
+                          type: "success",
+                          message: "Raw address copied",
+                        });
+                      } catch (error) {
+                        console.error(
+                          "Failed to copy treasury address",
+                          error,
+                        );
+                        setToast({
+                          type: "error",
+                          message: "Copy not available",
+                        });
+                      }
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy raw address
                   </Button>
                   <Button asChild className="gap-2">
                     <a
@@ -489,7 +523,7 @@ export default function Token() {
                 </div>
                 <QrCode
                   value={TON_STANDARD_LINK}
-                  caption="Scan to launch the deposit link in your TonConnect wallet."
+                  caption={`Scan to launch the ${DCT_TREASURY_ALIAS} deposit link in your TonConnect wallet.`}
                   className="mt-4"
                 />
               </div>
