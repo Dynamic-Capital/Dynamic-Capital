@@ -8,6 +8,7 @@ is the best fit for the task at hand.
 
 - [Quick Reference](#quick-reference)
 - [Command Playbooks](#command-playbooks)
+  - [2025-10-18 — Checklist Catalog Listing](#2025-10-18--checklist-catalog-listing)
   - [2025-10-17 — Modular Architecture Checklist Run](#2025-10-17--modular-architecture-checklist-run)
   - [2025-10-17 — Automated Trading Build Checklist Run](#2025-10-17--automated-trading-build-checklist-run)
   - [2025-10-01 — Modular Architecture Checklist Run](#2025-10-01--modular-architecture-checklist-run)
@@ -42,6 +43,29 @@ is the best fit for the task at hand.
   update.
 
 ## Command Playbooks
+
+### 2025-10-18 — Checklist Catalog Listing
+
+**Command**
+
+```bash
+npm run checklists -- --list
+```
+
+**Purpose**
+
+Confirm the live catalog of automation-ready checklists and bundles before
+choosing a targeted run or governance sweep.
+
+**Highlights**
+
+- Enumerates 15 checklist entry points along with the referenced documentation,
+  automation tasks, and optional runners so teams can stage the correct
+  pipelines without guesswork.【c74812†L8-L106】
+- Surfaces three automation bundles (`governance`, `readiness`, `full`) to
+  streamline multi-checklist execution ahead of leadership reviews.【c74812†L107-L123】
+- Lists every reusable task in the library, clarifying which scripts the
+  automation engine will invoke during composite runs.【c74812†L124-L151】
 
 ### 2025-02-13 — Dynamic AI Validation Checklist Run
 
