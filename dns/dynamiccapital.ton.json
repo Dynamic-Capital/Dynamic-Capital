@@ -26,6 +26,54 @@
       "command": "npm run ton:generate-adnl",
       "timestamp": "2025-10-02T21:08:41Z",
       "note": "ADNL derived from Ed25519 key pair for TON Site certificate provisioning"
+    },
+    "gateways": {
+      "primary": {
+        "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
+        "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+        "provider": "DigitalOcean App Platform",
+        "note": "Cloudflare reverse proxy bridging standard browsers to the TON Site origin",
+        "upstream": "https://dynamic-capital.vercel.app"
+      },
+      "fallback": {
+        "host": "ton-gateway.dynamic-capital.lovable.app",
+        "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
+        "provider": "Lovable App Platform",
+        "note": "Hot standby reverse proxy mirroring the DigitalOcean gateway",
+        "upstream": "https://dynamic-capital.vercel.app"
+      }
+    },
+    "buttons": [
+      {
+        "label": "Manage",
+        "uri": "https://dns.tonkeeper.com/manage?v=0:038f473650b2d1641bd09563eb8c99f1e84e5c72eb0fb8fdc534a4430f14c1b5"
+      },
+      {
+        "label": "Open (Gateway)",
+        "uri": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton"
+      },
+      {
+        "label": "Open (Fallback)",
+        "uri": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton"
+      }
+    ],
+    "verification": {
+      "https": {
+        "checked_at": "2025-10-08T12:22:59Z",
+        "status": "degraded",
+        "endpoints": [
+          {
+            "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+            "http_status": 503,
+            "notes": "DigitalOcean reverse proxy now returns HTTP 503. The upstream DigitalOcean app host https://dynamic-capital-qazf2.ondigitalocean.app/ responds with HTTP 404, preventing the TON bundle from loading."
+          },
+          {
+            "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
+            "http_status": 503,
+            "notes": "Lovable standby mirrors the same upstream outage and now emits HTTP 503 for TON Site requests."
+          }
+        ]
+      }
     }
   },
   "records": [
@@ -58,6 +106,20 @@
       "note": "Routes API traffic to the live Supabase project ref"
     },
     {
+      "type": "CNAME",
+      "name": "ton-gateway",
+      "data": "ton-gateway.dynamic-capital.ondigitalocean.app",
+      "ttl": 300,
+      "note": "Primary reverse proxy fronting the DigitalOcean TON Site origin"
+    },
+    {
+      "type": "CNAME",
+      "name": "ton-gateway-fallback",
+      "data": "ton-gateway.dynamic-capital.lovable.app",
+      "ttl": 300,
+      "note": "Secondary reverse proxy served from Lovable infrastructure"
+    },
+    {
       "type": "TXT",
       "name": "hello",
       "data": "mailbox=hello@dynamiccapital.ton",
@@ -80,8 +142,10 @@
     "TON Site ADNL 0:65f3bcd1730c1cdde82a75b0331ee8b5c28203f1ab1e7467347ae7b937feb239 (see ton_site.public_key_base64)",
     "Verify resolution through TON DNS tools before going live",
     "Supabase custom domains require `_acme-challenge.api.dynamiccapital.ton` TXT records during verification. Capture the issued tokens in this repo before activation and pin them to TON Storage/IPFS with the hash recorded in the operations multisig memo.",
+    "Keep the `ton-gateway` CNAMEs aligned with the DigitalOcean and Lovable reverse proxy hostnames so browsers without TON DNS continue to bridge through HTTPS.",
+    "2025-10-08: Follow-up HTTPS probe captured HTTP 503 responses from both gateways. Investigate the DigitalOcean app host https://dynamic-capital-qazf2.ondigitalocean.app/ returning HTTP 404 and restore the TON bundle before revalidating.",
     "Record resolver or ownership transactions in dns/ton-dns-operations-log.md immediately after broadcasting them so the on-chain audit trail stays aligned with the repository snapshot.",
-    "Use a low TTL (e.g., 60–300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
+    "Use a low TTL (e.g., 60\u2013300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
     "After activation, emit a `custom_domain_activated` event into Supabase `tx_logs` referencing the DNS bundle hash so auditors can verify the Web3 linkage.",
     "Desktop browsers without a TON resolver will show `DNS_PROBE_FINISHED_NXDOMAIN`; direct them to https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton (or the ton.site backup) or install a TON DNS wallet extension to regain access.",
     "Treat https://dynamiccapital.ton as the canonical production surface; keep the DigitalOcean, Lovable, and Vercel hosts warm as failover origins and document rollovers in Supabase `tx_logs`.",
