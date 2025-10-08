@@ -1,0 +1,8 @@
+{
+  "name": "Dynamic Capital Mini App",
+  "short_name": "Dynamic VIP",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#DC2828"
+}

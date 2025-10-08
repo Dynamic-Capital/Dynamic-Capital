@@ -1,12 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Miniapp</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Dynamic Capital Mini App for streamlined deposits, admin tools, and subscription management with a glassmorphism UI."
+    />
+    <link rel="icon" href="/favicon.ico" />
+    <title>Dynamic Capital • Mini App</title>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#DC2828" />
+    <!-- Telegram WebApp SDK -->
+    <script
+      defer
+      src="https://telegram.org/js/telegram-web-app.js"
+      integrity="sha384-wu6NaNFje/cy2WpzoCYjC6iPCpaj31EaX/jvOdLlueI1ZvziK83GJATi3JJ3gTL+"
+      crossorigin="anonymous"
+    ></script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <noscript>This app requires JavaScript to run.</noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

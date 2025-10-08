@@ -1,7 +1,8 @@
 import clsx from "clsx";
-import { type ComponentProps, forwardRef, type ReactNode } from "react";
+import { type CSSProperties, forwardRef } from "react";
 
 import { Row } from "./internal/components/Row";
+import type { RowProps } from "./internal/components/Row";
 import type {
   Colors,
   ColorScheme,
@@ -10,12 +11,14 @@ import type {
 
 import styles from "./Pulse.module.scss";
 
-interface PulseProps extends ComponentProps<typeof Row> {
+type PulseBaseProps = Omit<RowProps, "children">;
+
+interface PulseProps extends PulseBaseProps {
   variant?: ColorScheme;
   size?: CondensedTShirtSizes;
-  children?: ReactNode;
+  children?: RowProps["children"];
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 }
 
 const Pulse = forwardRef<HTMLDivElement, PulseProps>(
@@ -37,36 +40,42 @@ const Pulse = forwardRef<HTMLDivElement, PulseProps>(
     const mediumSolid = `${variant}-medium` as Colors;
     const strongSolid = `${variant}-strong` as Colors;
 
+    const containerProps: PulseBaseProps = {
+      ...flex,
+      minWidth: containerSize,
+      minHeight: containerSize,
+      center: true,
+      className: clsx(styles.container, className),
+      style,
+    };
+
+    const overlayProps: PulseBaseProps = {
+      position: "absolute",
+      className: styles.position,
+      pointerEvents: "none",
+    };
+
+    const mediumDotProps: PulseBaseProps = {
+      solid: mediumSolid,
+      radius: "full",
+      className: styles.dot,
+      width: dotSize,
+      height: dotSize,
+    };
+
+    const indicatorProps: PulseBaseProps = {
+      solid: strongSolid,
+      minWidth: indicatorSize,
+      minHeight: indicatorSize,
+      radius: "full",
+    };
+
     return (
-      <Row
-        ref={ref}
-        minWidth={containerSize}
-        minHeight={containerSize}
-        center
-        data-solid="color"
-        className={clsx(styles.container, className)}
-        style={style}
-        {...flex}
-      >
-        <Row
-          position="absolute"
-          className={styles.position}
-          pointerEvents="none"
-        >
-          <Row
-            solid={mediumSolid}
-            radius="full"
-            className={styles.dot}
-            width={dotSize}
-            height={dotSize}
-          />
+      <Row ref={ref} data-solid="color" {...containerProps}>
+        <Row {...overlayProps}>
+          <Row {...mediumDotProps} />
         </Row>
-        <Row
-          solid={strongSolid}
-          minWidth={indicatorSize}
-          minHeight={indicatorSize}
-          radius="full"
-        />
+        <Row {...indicatorProps} />
         {children}
       </Row>
     );
