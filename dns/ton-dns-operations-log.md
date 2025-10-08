@@ -85,3 +85,20 @@ chronological order beneath this entry.
   in `dns/dynamiccapital.ton.json` back to `ok` with the new timestamps and
   committed the probe results in
   `dns/https-gateway-verification-2025-10-08.md`.
+
+## 2025-10-10 – Gateway regression detected
+
+- **Symptom** — Routine verification at 16:41 UTC returned `HTTP 503` from both
+  HTTPS gateways while polling `/dynamiccapital.ton`. The primary Envoy edge
+  replied with a synthetic `200` header followed by the upstream `503` body.
+- **Origin check** — Direct request to
+  `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
+  responded with `HTTP 404`, indicating the TON bundle is no longer published on
+  the DigitalOcean origin.
+- **Repository updates** — Set `ton_site.verification.https.status` back to
+  `error` in `dns/dynamiccapital.ton.json` and refreshed
+  `dns/https-gateway-verification-2025-10-08.md` with the failing curl output so
+  the audit trail reflects the downtime.
+- **Next steps** — Rebuild and redeploy the TON site bundle, verify the origin
+  returns `HTTP 200`, then re-test the gateways before restoring the resolver
+  status to `ok`.

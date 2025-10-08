@@ -59,18 +59,18 @@
     ],
     "verification": {
       "https": {
-        "checked_at": "2025-10-10T11:47:52Z",
-        "status": "ok",
+        "checked_at": "2025-10-10T16:41:43Z",
+        "status": "error",
         "endpoints": [
           {
             "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-            "http_status": 200,
-            "notes": "Gateway returns HTTP 200 with the refreshed TON Site bundle served from the redeployed DigitalOcean origin."
+            "http_status": 503,
+            "notes": "2025-10-10 curl probe (`curl -s -o /tmp/output.html -w '%{http_code}' …`) returned HTTP 503, indicating the gateway is no longer serving the TON bundle."
           },
           {
             "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
-            "http_status": 200,
-            "notes": "Fallback gateway successfully proxies the restored origin and delivers HTTP 200."
+            "http_status": 503,
+            "notes": "Fallback gateway mirrors the same 503 response observed on the primary bridge during the latest verification."
           }
         ]
       }
@@ -138,6 +138,7 @@
     "Keep the `ton-gateway` CNAMEs aligned with the DigitalOcean and Lovable reverse proxy hostnames so browsers without TON DNS continue to bridge through HTTPS.",
     "2025-10-08: Follow-up HTTPS probe captured HTTP 503 responses from both gateways. Investigate the DigitalOcean app host https://dynamic-capital-qazf2.ondigitalocean.app/ returning HTTP 404 and restore the TON bundle before revalidating.",
     "2025-10-10: Redeployed the TON Site bundle to dynamic-capital-qazf2.ondigitalocean.app, clearing the 404 at the origin and restoring HTTP 200 responses on both HTTPS gateways.",
+    "2025-10-10 16:41 UTC: Follow-up probe recorded HTTP 503 on both gateways and HTTP 404 on the DigitalOcean origin. Leave verification in error until the TON bundle is republished.",
     "Record resolver or ownership transactions in dns/ton-dns-operations-log.md immediately after broadcasting them so the on-chain audit trail stays aligned with the repository snapshot.",
     "Use a low TTL (e.g., 60\u2013300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
     "After activation, emit a `custom_domain_activated` event into Supabase `tx_logs` referencing the DNS bundle hash so auditors can verify the Web3 linkage.",
