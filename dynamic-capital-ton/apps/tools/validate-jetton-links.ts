@@ -57,6 +57,11 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
     url: "https://dedust.io/swap/TON-DCT",
   },
   {
+    label: "Tonviewer → STON.fi LP jetton",
+    url:
+      "https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3",
+  },
+  {
     label: "Tonviewer → STON.fi pool wallet",
     url:
       "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
@@ -65,6 +70,11 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
     label: "Tonviewer → Dedust pool wallet",
     url:
       "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+  },
+  {
+    label: "Tonviewer → Dedust LP jetton",
+    url:
+      "https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98",
   },
   {
     label: "Tonviewer → STON.fi DCT jetton wallet",

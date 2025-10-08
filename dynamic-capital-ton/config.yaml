@@ -10,7 +10,7 @@ contracts:
   admin: "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD"
   # Treasury receives transfer taxes and allocator forwards.
   treasury: "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD"
-  # Primary STON.fi router for DCT↔TON liquidity.
+  # Primary STON.fi router for DCT↔TON liquidity (raw 0:779dcc815138d9500e449c5291e7f12738c23d575b5310000f6a253bd607384e).
   dexRouter: "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt"
 
 splits:
