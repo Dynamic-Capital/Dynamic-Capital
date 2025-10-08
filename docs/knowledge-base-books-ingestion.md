@@ -62,6 +62,16 @@ OneDrive/DynamicAI_DB/
    - Split content into 500–1000 token blocks using the shared text utils
      (`npm run chunk:text <file>`). Store results as `.jsonl` with fields
      `{ "chunk_id", "source_path", "content" }`.
+   - Pass `--chunk-size` and `--overlap` to tune chunk granularity, or `--out`
+     to write the JSONL file to a specific directory:
+
+     ```bash
+     npm run chunk:text -- \
+       data/knowledge_base/books/processed/trading-in-the-zone.md \
+       --out data/knowledge_base/books/processed/trading-in-the-zone.chunks.jsonl \
+       --chunk-size 900 --overlap 150
+     ```
+
    - Flag glossary-style sections separately for targeted retrieval prompts.
 4. **Quality review**
    - Spot check a random sample of chunks for extraction noise, diagrams that
@@ -73,10 +83,16 @@ OneDrive/DynamicAI_DB/
 
 - Generate embeddings with the standard pipeline
   (`npm run embeddings:build knowledge_base/books`). Store vectors in pgvector
-  when online or FAISS/Chroma locally.
+  when online or FAISS/Chroma locally. The helper streams chunk JSONL files,
+  batches calls to `text-embedding-3-small` (tweak with `--model` or `--batch`),
+  and writes the resulting vectors to `data/knowledge_base/embeddings/*.jsonl`
+  unless `--out` overrides the destination.
 - Add metadata attributes: `category`, `author`, `publication_year`, and
   `strategy_tags` so retrieval filters can align textual insights with market
   regimes.
+- Run `npm run lint:kb data/knowledge_base/books/processed` to validate the
+  chunk schema (duplicate IDs, empty content, short snippets) before shipping
+  embeddings.
 - Refresh the knowledge index once all categories are processed. Capture the
   resulting manifest (number of chunks, embedding dimensionality, checksum)
   under `reports/knowledge_base/`.

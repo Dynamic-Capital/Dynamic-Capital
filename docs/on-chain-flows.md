@@ -77,4 +77,15 @@ flowchart LR
 This page ships with the rest of the repository documentation. If the public
 docs portal is enabled, rerun the docs publisher (`npm run docs:export` or the
 workflow defined in [`project-updater.md`](./project-updater.md)) after updating
-on-chain metadata so the portal mirrors the latest explorer links.
+on-chain metadata so the portal mirrors the latest explorer links. The exporter
+accepts optional flags when a focused export is needed:
+
+```bash
+npm run docs:export -- \
+  --input docs/on-chain-flows.md \
+  --out data/docs/export
+```
+
+All Markdown under `docs/` and the root `README.md` are included by default. The
+resulting `manifest.json` summarises titles, headings, and timestamps for
+downstream pipelines.

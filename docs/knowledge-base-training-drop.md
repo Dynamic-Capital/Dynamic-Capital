@@ -35,7 +35,17 @@ into Supabase Storage and the local repository when preparing new runs.
 3. **Mirror to storage**
    - Run the existing Supabase ↔ OneDrive sync (`npm run sync:onedrive` if
      available) or trigger the Power Automate flow responsible for dataset
-     promotion.
+     promotion. The CLI accepts the share link and destination so the mirror can
+     be reproduced locally:
+
+     ```bash
+     npm run sync:onedrive -- \
+       "https://1drv.ms/f/c/2ff0428a2f57c7a4/EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg" \
+       --dest data/knowledge_base --metadata-only
+     ```
+
+     Remove `--metadata-only` to download file contents after verifying the
+     manifest output (`data/knowledge_base/onedrive-manifest.json`).
    - Confirm `public.one_drive_assets` contains the `knowledge_base/` entries
      via Supabase SQL.
 4. **Ingest locally**

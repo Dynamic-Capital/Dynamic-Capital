@@ -17,7 +17,8 @@ and root-level configuration.
 ## 2. Build Outputs
 
 - Use the unified script `npm run build:all` to compile both the Next.js app and
-  mini app functions.
+  mini app functions. For historical comparisons, the Lovable pipeline lives at
+  `npm run build:legacy`.
 - Ensure build artifacts (`.next`, `supabase/functions/*/dist`) are excluded
   from version control via `.gitignore`.
 - Document any build steps that require additional tooling inside `docs/` so new

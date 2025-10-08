@@ -524,6 +524,9 @@ npm run build:miniapp
 
 # build both targets
 npm run build:all
+
+# run the legacy Lovable bundler
+npm run build:legacy
 ```
 
 `npm run build` produces a standalone bundle in `.next/standalone` which can be
@@ -908,7 +911,25 @@ export PROJECT_REF=<your-project-ref>
 ```
 
 The commands `npm run deploy:edge`, `npm run edge:deploy:core`, and
-`npm run edge:deploy:ops` will read this variable when deploying functions.
+`npm run edge:deploy:ops` will read this variable when deploying functions. The
+wrappers forward the reference to the underlying Deno tasks (`deno task
+edge:deploy:*`) so each call invokes the Supabase CLI with the expected project
+context. Use the presets to roll out different slices of the estate:
+
+- `npm run deploy:edge` – runs the "all" preset, chaining the core and ops
+  task lists (bot runtime, checkout flows, promo helpers, broadcast jobs, etc.).
+- `npm run edge:deploy:core` – deploys the customer-facing bundle: auth,
+  checkout, analytics, promo validators, and the bot entry points.
+- `npm run edge:deploy:ops` – deploys the operational tooling: ops health,
+  admin workflow functions, security rotations, broadcast cron, and other back
+  office helpers.
+
+To iterate locally on functions, use the bundled server wrapper which respects
+the same environment variables:
+
+```bash
+npm run serve:functions -- --env-file supabase/.env.local broadcast-dispatch
+```
 
 Deploy a single function manually:
 
