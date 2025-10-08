@@ -69,12 +69,12 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
     label: "Tonviewer → STON.fi DCT jetton wallet",
     url:
-      "https://tonviewer.com/EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_",
+      "https://tonviewer.com/EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3",
   },
   {
     label: "Tonviewer → Dedust DCT jetton wallet",
     url:
-      "https://tonviewer.com/EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm",
+      "https://tonviewer.com/EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
   },
 ];
 
