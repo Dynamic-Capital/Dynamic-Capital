@@ -10,6 +10,8 @@ import {
   join,
 } from "https://deno.land/std@0.224.0/path/mod.ts";
 
+const DEFAULT_TIMEOUT_MS = 15_000;
+
 interface DnsRecords {
   [key: string]: string;
 }
@@ -17,6 +19,7 @@ interface DnsRecords {
 interface AccountStatusRow {
   name: string;
   address: string;
+  rawAddress?: string;
   status: string;
   interfaces: string;
 }
@@ -73,15 +76,40 @@ async function parseDnsRecords(projectRoot: string): Promise<DnsRecords> {
   return entries;
 }
 
-async function fetchJson<T>(url: string, description: string): Promise<T> {
-  const response = await fetch(url);
+async function fetchJson<T>(
+  url: string,
+  description: string,
+  init: RequestInit = {},
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    response = await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(`Timed out while fetching ${description} (${url})`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!response.ok) {
     const body = await response.text();
     throw new Error(
       `Failed to fetch ${description} (status ${response.status}): ${body}`,
     );
   }
-  return await response.json() as T;
+  try {
+    return await response.json() as T;
+  } catch (error) {
+    const body = await response.text();
+    throw new Error(
+      `Failed to parse ${description} response as JSON: ${error instanceof Error ? error.message : String(error)}. Body: ${body}`,
+    );
+  }
 }
 
 interface TonapiJettonResponse {
@@ -90,9 +118,47 @@ interface TonapiJettonResponse {
 }
 
 interface TonapiAccountResponse {
+  address?: string;
   status?: string;
   interfaces?: string[];
   is_wallet?: boolean;
+}
+
+interface TonapiStatusResponse {
+  rest_online?: boolean;
+  indexing_latency?: number;
+  last_known_masterchain_seqno?: number;
+}
+
+interface TonapiJettonHolderResponse {
+  addresses?: Array<{
+    address?: string;
+    owner?: {
+      address?: string;
+    };
+  }>;
+  total?: number;
+}
+
+interface HttpCheckRow {
+  Name: string;
+  URL: string;
+  Status: string;
+  Healthy: string;
+  "Content-Type": string;
+  Note: string;
+}
+
+interface HttpCheckResult {
+  rows: HttpCheckRow[];
+  errors: FetchError[];
+}
+
+interface WalletAdvisory {
+  name: string;
+  address: string;
+  message: string;
+  severity: "info" | "action";
 }
 
 interface MetadataComparison {
@@ -159,6 +225,236 @@ function isAddressCandidate(value: string | undefined): value is string {
   return true;
 }
 
+function normalizeUrl(value: string): string {
+  return value.trim().replace(/\s+/g, "");
+}
+
+function isHttpUrl(value: string | undefined): value is string {
+  if (!value) {
+    return false;
+  }
+  const normalized = normalizeUrl(value);
+  return normalized.startsWith("http://") || normalized.startsWith("https://");
+}
+
+function base64ToBytes(value: string): Uint8Array {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = normalized.length % 4 === 0
+    ? 0
+    : 4 - (normalized.length % 4);
+  const padded = normalized + "=".repeat(padding);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function friendlyToRawAddress(address: string | undefined): string | undefined {
+  if (!address) {
+    return undefined;
+  }
+  if (address.includes(":")) {
+    return address;
+  }
+  try {
+    const bytes = base64ToBytes(address);
+    if (bytes.length !== 36) {
+      return undefined;
+    }
+    const workchainByte = bytes[1];
+    const workchain = workchainByte > 127 ? workchainByte - 256 : workchainByte;
+    const hash = Array.from(bytes.slice(2, 34))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+    return `${workchain}:${hash}`;
+  } catch (_error) {
+    return undefined;
+  }
+}
+
+async function httpProbe(url: string): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+  try {
+    let response = await fetch(url, {
+      method: "HEAD",
+      redirect: "follow",
+      signal: controller.signal,
+    });
+    if (response.status === 405 || response.status === 501) {
+      response = await fetch(url, {
+        method: "GET",
+        redirect: "follow",
+        signal: controller.signal,
+        headers: { Accept: "*/*" },
+      });
+    }
+    return response;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(`Request timed out (${url})`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function checkHttpEndpoints(records: DnsRecords): Promise<HttpCheckResult> {
+  const targets: { key: string; name: string }[] = [
+    { key: "metadata", name: "Jetton metadata" },
+    { key: "manifest", name: "TON Connect manifest" },
+    { key: "api", name: "Dynamic Capital API" },
+    { key: "docs", name: "Docs portal" },
+  ];
+
+  const rows: HttpCheckRow[] = [];
+  const errors: FetchError[] = [];
+
+  for (const target of targets) {
+    const rawUrl = records[target.key];
+    if (!isHttpUrl(rawUrl)) {
+      continue;
+    }
+    const url = normalizeUrl(rawUrl);
+    try {
+      const response = await httpProbe(url);
+      const note = response.url && response.url !== url
+        ? `redirected → ${response.url}`
+        : "";
+      rows.push({
+        Name: target.name,
+        URL: url,
+        Status: `${response.status} ${response.statusText}`,
+        Healthy: response.ok ? "✅" : "⚠️",
+        "Content-Type": response.headers.get("content-type") ?? "(unknown)",
+        Note: note,
+      });
+    } catch (error) {
+      errors.push({
+        name: target.name,
+        address: url,
+        reason: error instanceof Error ? error.message : String(error),
+      });
+      rows.push({
+        Name: target.name,
+        URL: url,
+        Status: "unreachable",
+        Healthy: "⚠️",
+        "Content-Type": "(unknown)",
+        Note: "fetch failed",
+      });
+    }
+  }
+
+  return { rows, errors };
+}
+
+async function fetchTonapiStatus(): Promise<TonapiStatusResponse> {
+  return await fetchJson<TonapiStatusResponse>(
+    "https://tonapi.io/v2/status",
+    "Tonapi service status",
+  );
+}
+
+async function fetchJettonHolders(
+  jettonAddress: string,
+): Promise<Set<string>> {
+  const seen = new Set<string>();
+  const limit = 256;
+  let offset = 0;
+
+  while (true) {
+    const data = await fetchJson<TonapiJettonHolderResponse>(
+      `https://tonapi.io/v2/jettons/${jettonAddress}/holders?limit=${limit}&offset=${offset}`,
+      "Tonapi jetton holder list",
+    );
+    const addresses = data.addresses ?? [];
+    if (addresses.length === 0) {
+      break;
+    }
+    for (const entry of addresses) {
+      const ownerAddress = entry.owner?.address ?? entry.address;
+      if (ownerAddress) {
+        seen.add(ownerAddress);
+      }
+    }
+    offset += addresses.length;
+    if (data.total !== undefined && offset >= data.total) {
+      break;
+    }
+  }
+
+  return seen;
+}
+
+interface StonAssetResponse {
+  asset?: {
+    tags?: string[];
+  };
+}
+
+async function fetchStonAssetTags(
+  records: DnsRecords,
+): Promise<string[] | undefined> {
+  const jettonMaster = records["jetton_master"];
+  if (!jettonMaster || !jettonMaster.startsWith("EQ")) {
+    return undefined;
+  }
+  try {
+    const asset = await fetchJson<StonAssetResponse>(
+      `https://api.ston.fi/v1/assets/${jettonMaster}`,
+      "STON.fi asset metadata",
+    );
+    return asset.asset?.tags;
+  } catch (_error) {
+    return undefined;
+  }
+}
+
+async function buildWalletAdvisories(
+  jettonAddress: string,
+  records: DnsRecords,
+  rows: AccountStatusRow[],
+): Promise<WalletAdvisory[]> {
+  const inactiveRows = rows.filter((row) => row.status === "nonexist");
+  if (inactiveRows.length === 0) {
+    return [];
+  }
+
+  const holderSet = await fetchJettonHolders(jettonAddress);
+  const stonTags = await fetchStonAssetTags(records);
+  const advisories: WalletAdvisory[] = [];
+
+  for (const row of inactiveRows) {
+    const rawAddress = row.rawAddress ?? friendlyToRawAddress(row.address);
+    const holderKnown = rawAddress ? holderSet.has(rawAddress) : false;
+    let message =
+      "Tonapi reports this jetton wallet contract is not deployed yet.";
+
+    if (!holderKnown) {
+      message +=
+        " Deploy a minimal DCT transfer from the jetton minter to this address or add liquidity so the wallet initializes before onboarding.";
+    }
+
+    if (row.name.toLowerCase().includes("ston.fi") && stonTags?.includes("no_liquidity")) {
+      message +=
+        " STON.fi currently flags the asset with `no_liquidity`; seed the pool to clear the warning.";
+    }
+
+    advisories.push({
+      name: row.name,
+      address: row.address,
+      message,
+      severity: holderKnown ? "info" : "action",
+    });
+  }
+
+  return advisories;
+}
+
 async function collectAccountStatuses(
   records: DnsRecords,
 ): Promise<{ rows: AccountStatusRow[]; errors: FetchError[] }> {
@@ -189,6 +485,7 @@ async function collectAccountStatuses(
       rows.push({
         name: target.name,
         address,
+        rawAddress: account.address,
         status: account.status ?? "unknown",
         interfaces,
       });
@@ -208,8 +505,15 @@ async function main() {
   const projectRoot = resolveProjectRoot(import.meta.url);
   const jettonSummary = await compareJettonMetadata(projectRoot);
   const dnsRecords = await parseDnsRecords(projectRoot);
+  const tonapiStatus = await fetchTonapiStatus();
   const { rows: accountRows, errors: accountErrors } =
     await collectAccountStatuses(dnsRecords);
+  const httpChecks = await checkHttpEndpoints(dnsRecords);
+  const walletAdvisories = await buildWalletAdvisories(
+    jettonSummary.jettonAddress,
+    dnsRecords,
+    accountRows,
+  );
 
   console.log("Dynamic Capital → TON contract verification summary\n");
   console.log(`Jetton address: ${jettonSummary.jettonAddress}`);
@@ -226,9 +530,23 @@ async function main() {
     `\nTonapi verification flag: ${jettonSummary.verification ?? "unknown"}`,
   );
 
+  if (tonapiStatus.rest_online !== undefined) {
+    const statusEmoji = tonapiStatus.rest_online ? "✅" : "⚠️";
+    console.log(
+      `Tonapi REST gateway: ${statusEmoji} (latency ${tonapiStatus.indexing_latency ?? "?"}s, masterchain seqno ${tonapiStatus.last_known_masterchain_seqno ?? "?"})`,
+    );
+  }
+
   if (accountRows.length > 0) {
     console.log("\nAccount status checks:");
-    console.table(accountRows);
+    console.table(
+      accountRows.map(({ name, address, status, interfaces }) => ({
+        name,
+        address,
+        status,
+        interfaces,
+      })),
+    );
   } else {
     console.log("\nAccount status checks: (no DNS targets with addresses)");
   }
@@ -237,6 +555,26 @@ async function main() {
     console.warn("\nEncountered errors while fetching account data:");
     for (const error of accountErrors) {
       console.warn(`- ${error.name} (${error.address}): ${error.reason}`);
+    }
+  }
+
+  if (httpChecks.rows.length > 0) {
+    console.log("\nDomain endpoint checks:");
+    console.table(httpChecks.rows);
+  }
+
+  if (httpChecks.errors.length > 0) {
+    console.warn("\nEncountered errors while probing HTTP endpoints:");
+    for (const error of httpChecks.errors) {
+      console.warn(`- ${error.name} (${error.address}): ${error.reason}`);
+    }
+  }
+
+  if (walletAdvisories.length > 0) {
+    console.warn("\nJetton wallet remediation guidance:");
+    for (const advisory of walletAdvisories) {
+      const prefix = advisory.severity === "action" ? "- [ACTION]" : "- [INFO]";
+      console.warn(`${prefix} ${advisory.name} (${advisory.address}): ${advisory.message}`);
     }
   }
 
@@ -270,6 +608,15 @@ async function main() {
 
   if (accountErrors.length > 0) {
     exitCode = Math.max(exitCode, 5);
+  }
+
+  const httpFailures = httpChecks.rows.filter((row) => row.Healthy !== "✅");
+  if (httpFailures.length > 0 || httpChecks.errors.length > 0) {
+    exitCode = Math.max(exitCode, 6);
+  }
+
+  if (tonapiStatus.rest_online === false) {
+    exitCode = Math.max(exitCode, 7);
   }
 
   Deno.exit(exitCode);
