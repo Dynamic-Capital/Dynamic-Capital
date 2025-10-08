@@ -50,11 +50,18 @@ This task matrix operationalizes the standardization plan for Dynamic Capital's 
 - **Task 8.2:** Architect Dynamic Trading Logic and the Dynamic Trading Algorithm as TON-first microservices that surface programmable strategies, parameter tuning, and simulation dashboards. *Acceptance:* Investor and admin routes can launch, pause, and audit algorithmic strategies using animated control cards with contextual tags.
 - **Task 8.3:** Integrate Dynamic Capital Token utilities (staking, governance, reward accrual) and Dynamic NFT trading rails into unified marketplace components with animated state changes and ton:// deep links. *Acceptance:* Users can traverse token and NFT experiences through the “one hint” navigation pattern with consistent tagging, motion, and TON wallet confirmation flows.
 
+## 9. Dynamic Chat-First Engagement Surface
+- **Task 9.1:** Elevate `DynamicChat` (or successor) to the default landing experience by refactoring the root layout so authenticated and guest users arrive in a chat workspace that immediately streams TON-aware market reviews, trade ideas, and signal summaries via the intelligence services layer. *Acceptance:* Opening the app renders the chat with live data within 1s and no competing hero surfaces.
+- **Task 9.2:** Design an animated top-of-chat command bar that lists “Dynamic Items & Services” (e.g., Market Reviews, Trade Ideas, Signals, NFT Desk, Token Utilities) as tagged, pressable menu chips following the single-hint navigation system. *Acceptance:* Usability testing confirms users can trigger any service within two interactions from the command bar.
+- **Task 9.3:** Implement per-card TON context tags (network status, wallet connection, risk level) and CTA buttons that pipe into the standardized navigation/workspace layouts, ensuring every chat-surfaced module can deep-link users into the broader app without breaking conversational state. *Acceptance:* Deep links preserve chat history and animate transitions into the corresponding tool layout.
+- **Task 9.4:** Integrate chat-specific motion and accessibility tokens—typing indicators, streaming animations, auto-scroll cues—using the motion system (Section 6) so real-time interactions remain performant and readable. *Acceptance:* Performance budget maintains <16ms frame times during peak streaming events on reference devices.
+- **Task 9.5:** Document governance workflows for conversational content, including alignment with Dynamic branding playbooks, TON compliance, and human oversight requirements for AI-generated recommendations. *Acceptance:* Compliance review validates that chat transcripts reference the appropriate playbooks and audit logs.
+
 ## Dependencies & Sequencing
 1. Complete the route registry (Task 1.1) before refactoring navigation (Task 1.2) and workspace layouts (Tasks 2.x, 4.x).
 2. Motion design tokens (Task 6.1) should precede layout refactors to avoid rework.
 3. Documentation updates (Tasks 7.x) follow after the functional changes stabilize.
-4. Dynamic intelligence and trading modules (Tasks 8.x) depend on the shared navigation, workspace, and motion systems to guarantee consistent interaction patterns.
+4. Dynamic intelligence, trading modules, and the chat-first surface (Tasks 8.x–9.x) depend on the shared navigation, workspace, and motion systems to guarantee consistent interaction patterns.
 
 ## Success Metrics
 - Single source of truth for routes reduces navigation bugs (track through regression suite).
