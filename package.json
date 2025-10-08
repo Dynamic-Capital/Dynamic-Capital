@@ -62,6 +62,7 @@
     "verify": "bash scripts/verify/verify_all.sh",
     "smoke:tunnel": "node scripts/smoke-tunnel.mjs",
     "audit": "npm audit",
+    "audit:metadata": "node scripts/audit/index.mjs",
     "audit:fix": "npm audit fix",
     "sync-env": "deno run -A scripts/sync-env.ts",
     "env:validate": "tsx scripts/env/validate.ts",

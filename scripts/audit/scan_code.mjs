@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
+import { pathToFileURL } from "url";
 
-const ROOT = process.cwd();
 const SRC_DIRS = ["src", "supabase/functions"];
 const PACKAGE_SCAN_SKIP = new Set([
   "node_modules",
@@ -15,46 +15,48 @@ const PACKAGE_SCAN_SKIP = new Set([
   ".turbo",
 ]);
 
-function walk(dir) {
+function walk(root, dir) {
   const out = [];
-  if (!fs.existsSync(dir)) return out;
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) out.push(...walk(p));
-    else if (/\.(ts|js|mjs|tsx|jsx|json)$/.test(e.name)) out.push(p);
+  const target = path.join(root, dir);
+  if (!fs.existsSync(target)) return out;
+  for (const entry of fs.readdirSync(target, { withFileTypes: true })) {
+    const fullPath = path.join(target, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...walk(root, path.join(dir, entry.name)));
+    } else if (/\.(ts|js|mjs|tsx|jsx|json)$/.test(entry.name)) {
+      out.push(fullPath);
+    }
   }
   return out;
 }
 
-function read(p) {
+function read(filePath) {
   try {
-    return fs.readFileSync(p, "utf8");
+    return fs.readFileSync(filePath, "utf8");
   } catch {
     return "";
   }
 }
 
-const files = SRC_DIRS.flatMap((d) => walk(path.join(ROOT, d)));
-
-function findPackageJsonFiles(dir) {
+function findPackageJsonFiles(root, dir = ".") {
   const results = [];
-  if (!fs.existsSync(dir)) return results;
+  const target = path.join(root, dir);
+  if (!fs.existsSync(target)) return results;
 
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+  for (const entry of fs.readdirSync(target, { withFileTypes: true })) {
     const entryPath = path.join(dir, entry.name);
-
     if (entry.isDirectory()) {
       if (PACKAGE_SCAN_SKIP.has(entry.name)) continue;
-      results.push(...findPackageJsonFiles(entryPath));
+      results.push(...findPackageJsonFiles(root, entryPath));
     } else if (entry.isFile() && entry.name === "package.json") {
-      results.push(entryPath);
+      results.push(path.join(root, entryPath));
     }
   }
 
   return results;
 }
 
-function collectNextBuildScripts(packageJsonPaths) {
+function collectNextBuildScripts(root, packageJsonPaths) {
   const results = [];
 
   for (const pkgPath of packageJsonPaths) {
@@ -73,7 +75,7 @@ function collectNextBuildScripts(packageJsonPaths) {
       if (!/\bnext\s+build\b/.test(command)) continue;
 
       results.push({
-        package_file: path.relative(ROOT, pkgPath),
+        package_file: path.relative(root, pkgPath),
         script: name,
         command,
       });
@@ -116,85 +118,96 @@ function summarizeDuplicateNextBuilds(entries) {
   return duplicates.sort((a, b) => a.command.localeCompare(b.command));
 }
 
-const packageJsonPaths = findPackageJsonFiles(ROOT);
-const nextBuildScripts = collectNextBuildScripts(packageJsonPaths);
-const duplicateNextBuilds = summarizeDuplicateNextBuilds(nextBuildScripts);
+export function scanCode({
+  root = process.cwd(),
+  outputDir = path.join(process.cwd(), ".audit"),
+} = {}) {
+  const files = SRC_DIRS.flatMap((dir) => walk(root, dir));
+  const packageJsonPaths = findPackageJsonFiles(root);
+  const nextBuildScripts = collectNextBuildScripts(root, packageJsonPaths);
+  const duplicateNextBuilds = summarizeDuplicateNextBuilds(nextBuildScripts);
 
-const cbVals = new Set(); // callback_data values
-const cbDefs = new Set(); // where defined (constants)
-const fnDirs = new Set(); // edge functions (folder names)
-const fnRefs = new Set(); // code references to function names
-const tableRefs = new Set(); // db.from('table') table names
+  const cbVals = new Set();
+  const cbDefs = new Set();
+  const fnDirs = new Set();
+  const fnRefs = new Set();
+  const tableRefs = new Set();
 
-// Edge functions present (by directory name)
-const FN_ROOT = path.join(ROOT, "supabase", "functions");
-if (fs.existsSync(FN_ROOT)) {
-  for (const e of fs.readdirSync(FN_ROOT, { withFileTypes: true })) {
-    if (e.isDirectory()) fnDirs.add(e.name);
-  }
-}
-
-// Regexes
-const reCallbackData = /callback_data\s*:\s*['"]([^'"]+)['"]/g;
-const reCBMapValue = /CB\.\w+\s*=\s*['"]([^'"]+)['"]/g; // in case of assignments
-const reCBObject = /export\s+const\s+CB\s*=\s*\{([\s\S]*?)\}\s*as\s*const/s;
-const reCBPair = /['"]?([A-Z0-9_]+)['"]?\s*:\s*['"]([^'"]+)['"]/g;
-const reFromTable = /\.from\(\s*['"]([a-zA-Z0-9_\.]+)['"]\s*\)/g;
-const reFuncFetch = /\/functions\/v1\/([a-zA-Z0-9\-_]+)/g;
-const reFuncNameStr = /['"`]([a-zA-Z0-9\-_]+)['"`]/g;
-
-for (const f of files) {
-  const s = read(f);
-  // find callback_data usage
-  for (const m of s.matchAll(reCallbackData)) cbVals.add(m[1]);
-
-  // find CB object values
-  const obj = s.match(reCBObject)?.[1];
-  if (obj) {
-    for (const m of obj.matchAll(reCBPair)) {
-      cbVals.add(m[2]);
-      cbDefs.add(m[2]);
+  const fnRoot = path.join(root, "supabase", "functions");
+  if (fs.existsSync(fnRoot)) {
+    for (const entry of fs.readdirSync(fnRoot, { withFileTypes: true })) {
+      if (entry.isDirectory()) fnDirs.add(entry.name);
     }
   }
-  for (const m of s.matchAll(reCBMapValue)) {
-    cbVals.add(m[1]);
-    cbDefs.add(m[1]);
-  }
 
-  // find table refs
-  for (const m of s.matchAll(reFromTable)) tableRefs.add(m[1]);
+  const reCallbackData = /callback_data\s*:\s*['"]([^'"]+)['"]/g;
+  const reCBMapValue = /CB\.\w+\s*=\s*['"]([^'"]+)['"]/g;
+  const reCBObject = /export\s+const\s+CB\s*=\s*\{([\s\S]*?)\}\s*as\s*const/s;
+  const reCBPair = /['"]?([A-Z0-9_]+)['"]?\s*:\s*['"]([^'"]+)['"]/g;
+  const reFromTable = /\.from\(\s*['"]([a-zA-Z0-9_\.]+)['"]\s*\)/g;
+  const reFuncFetch = /\/functions\/v1\/([a-zA-Z0-9\-_]+)/g;
+  const reFuncNameStr = /['"`]([a-zA-Z0-9\-_]+)['"`]/g;
 
-  // find function refs via fetch URLs
-  for (const m of s.matchAll(reFuncFetch)) fnRefs.add(m[1]);
-  // also catch explicit string mentions if preceded by functions/v1 var builds
-  if (/functions\/v1/.test(s)) {
-    for (const m of s.matchAll(reFuncNameStr)) {
-      const name = m[1];
-      if (fnDirs.has(name)) fnRefs.add(name);
+  for (const filePath of files) {
+    const source = read(filePath);
+    for (const match of source.matchAll(reCallbackData)) cbVals.add(match[1]);
+
+    const obj = source.match(reCBObject)?.[1];
+    if (obj) {
+      for (const match of obj.matchAll(reCBPair)) {
+        cbVals.add(match[2]);
+        cbDefs.add(match[2]);
+      }
+    }
+    for (const match of source.matchAll(reCBMapValue)) {
+      cbVals.add(match[1]);
+      cbDefs.add(match[1]);
+    }
+
+    for (const match of source.matchAll(reFromTable)) tableRefs.add(match[1]);
+    for (const match of source.matchAll(reFuncFetch)) fnRefs.add(match[1]);
+    if (/functions\/v1/.test(source)) {
+      for (const match of source.matchAll(reFuncNameStr)) {
+        const name = match[1];
+        if (fnDirs.has(name)) fnRefs.add(name);
+      }
     }
   }
+
+  const output = {
+    scanned_files: files.length,
+    edge_functions: {
+      present: [...fnDirs].sort(),
+      referenced: [...fnRefs].sort(),
+    },
+    callbacks: {
+      defined: [...cbDefs].sort(),
+      used_anywhere: [...cbVals].sort(),
+    },
+    tables: { referenced: [...tableRefs].sort() },
+    next_build_scripts: {
+      total: nextBuildScripts.length,
+      entries: nextBuildScripts
+        .slice()
+        .sort((a, b) =>
+          a.package_file === b.package_file
+            ? a.script.localeCompare(b.script)
+            : a.package_file.localeCompare(b.package_file)
+        ),
+      duplicates: duplicateNextBuilds,
+    },
+  };
+
+  fs.mkdirSync(outputDir, { recursive: true });
+  const destination = path.join(outputDir, "code_scan.json");
+  fs.writeFileSync(destination, JSON.stringify(output, null, 2));
+
+  return output;
 }
 
-// Output
-const out = {
-  scanned_files: files.length,
-  edge_functions: {
-    present: [...fnDirs].sort(),
-    referenced: [...fnRefs].sort(),
-  },
-  callbacks: { defined: [...cbDefs].sort(), used_anywhere: [...cbVals].sort() },
-  tables: { referenced: [...tableRefs].sort() },
-  next_build_scripts: {
-    total: nextBuildScripts.length,
-    entries: nextBuildScripts
-      .slice()
-      .sort((a, b) =>
-        a.package_file === b.package_file
-          ? a.script.localeCompare(b.script)
-          : a.package_file.localeCompare(b.package_file)
-      ),
-    duplicates: duplicateNextBuilds,
-  },
-};
-fs.mkdirSync(".audit", { recursive: true });
-fs.writeFileSync(".audit/code_scan.json", JSON.stringify(out, null, 2));
+if (
+  process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url
+) {
+  const result = scanCode();
+  console.log(`[audit] scanned ${result.scanned_files} files`);
+}

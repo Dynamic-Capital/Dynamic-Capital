@@ -4,8 +4,9 @@ import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
-const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_LIMIT = 5;
+const TOAST_REMOVE_DELAY = 1000;
+const TOAST_DEFAULT_DURATION = 5000;
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -13,6 +14,10 @@ type ToasterToast = ToastProps & {
   description?: React.ReactNode;
   action?: ToastActionElement;
 };
+
+type ToastInput =
+  & Omit<ToasterToast, "id" | "onOpenChange" | "open">
+  & { id?: string; duration?: number };
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -136,10 +141,9 @@ function dispatch(action: Action) {
   });
 }
 
-type Toast = Omit<ToasterToast, "id">;
-
-function toast({ ...props }: Toast) {
-  const id = genId();
+function toast({ id: providedId, duration, ...props }: ToastInput) {
+  const id = providedId ?? genId();
+  const resolvedDuration = duration ?? TOAST_DEFAULT_DURATION;
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -154,6 +158,7 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
+      duration: resolvedDuration,
       onOpenChange: (open) => {
         if (!open) dismiss();
       },
