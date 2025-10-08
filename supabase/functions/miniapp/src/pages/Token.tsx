@@ -5,6 +5,7 @@ import {
   BarChart3,
   BookOpen,
   Bot,
+  Check,
   ClipboardList,
   Copy,
   ExternalLink,
@@ -13,7 +14,6 @@ import {
   type LucideIcon,
   Network,
   RefreshCcw,
-  Repeat,
   Shield,
   Sparkles,
   Users,
@@ -147,24 +147,6 @@ const HOW_IT_WORKS_PILLARS = [
   },
 ] as const;
 
-const INVESTOR_MILESTONES = [
-  {
-    title: "KYC & accreditation sync",
-    description:
-      "Leverage Telegram identity, submitted docs, and compliance attestations to unlock investor dashboards.",
-  },
-  {
-    title: "Capital allocation briefing",
-    description:
-      "Review the treasury mix, active strategies, and projected cash flows before committing DCT.",
-  },
-  {
-    title: "Automated reporting",
-    description:
-      "Monthly statements deliver NAV, strategy attribution, and risk notes straight to your Mini App inbox.",
-  },
-] as const;
-
 const WHITEPAPER_RESOURCES = [
   {
     title: "Dynamic Capital TON Coin Whitepaper",
@@ -246,7 +228,7 @@ const DEX_OPTIONS = DCT_DEX_POOLS.map((pool) => ({
   swapUrl: pool.swapUrl,
   explorerUrl: pool.poolExplorerUrl,
   jettonWalletUrl: pool.jettonWalletExplorerUrl,
-})) as const;
+}));
 
 type SectionId =
   | "overview"
