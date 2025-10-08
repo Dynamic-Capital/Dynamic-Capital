@@ -24,16 +24,17 @@ Store the following key-value pairs in the TON DNS TXT record so integrators can
 auto-discover Dynamic Capital contracts and services when resolving
 `dynamiccapital.ton`:
 
-| Key               | Address / URL                                     | Description                    |
-| ----------------- | ------------------------------------------------- | ------------------------------ |
-| `jetton_master`   | `EQDSmz4R…ig6Wx_6y`                               | Dynamic Capital Token (DCT)    |
-| `treasury_wallet` | `UQD1zAJP…H_cNOK0G`                               | Treasury & mint authority      |
-| `stonfi_pool`     | `EQAyD7O8…5lfJPyfA`                               | STON.fi DCT/TON pool           |
-| `dedust_pool`     | `EQDTJ4lH…yrLumEFm`                               | DeDust DCT/TON vault           |
-| `dao_contract`    | `future DAO multisig`                             | Governance executor            |
-| `api_endpoint`    | `https://api.dynamiccapital.ton`                  | REST / Supabase gateway        |
-| `metadata`        | `https://dynamiccapital.ton/jetton-metadata.json` | Jetton metadata JSON (primary) |
-| `web`             | `https://dynamiccapital.ton`                      | Marketing & dashboard site     |
+| Key               | Address / URL                                      | Description                    |
+| ----------------- | -------------------------------------------------- | ------------------------------ |
+| `jetton_master`   | `EQDSmz4R…ig6Wx_6y`                                | Dynamic Capital Token (DCT)    |
+| `treasury_wallet` | `UQD1zAJP…H_cNOK0G`                                | Treasury & mint authority      |
+| `stonfi_pool`     | `EQAyD7O8…5lfJPyfA`                                | STON.fi DCT/TON pool           |
+| `wallet_v5r1`     | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm` | Jetton wallet (Wallet v5r1)    |
+| `dedust_pool`     | `EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI` | DeDust DCT/TON vault           |
+| `dao_contract`    | `future DAO multisig`                              | Governance executor            |
+| `api_endpoint`    | `https://api.dynamiccapital.ton`                   | REST / Supabase gateway        |
+| `metadata`        | `https://dynamiccapital.ton/jetton-metadata.json`  | Jetton metadata JSON (primary) |
+| `web`             | `https://dynamiccapital.ton`                       | Marketing & dashboard site     |
 
 ## Integration Touchpoints
 
@@ -66,7 +67,8 @@ auto-discover Dynamic Capital contracts and services when resolving
   "contracts": {
     "jetton_master": "EQDSmz4R...ig6Wx_6y",
     "stonfi_pool": "EQAyD7O8...5lfJPyfA",
-    "dedust_pool": "EQDTJ4lH...yrLumEFm",
+    "wallet_v5r1": "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
+    "dedust_pool": "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
     "treasury": "UQD1zAJP...H_cNOK0G"
   }
 }
@@ -92,7 +94,8 @@ Add the following entries to the TON DNS resolver:
 jetton_master=EQDSmz4R...ig6Wx_6y
 treasury_wallet=UQD1zAJP...H_cNOK0G
 stonfi_pool=EQAyD7O8...5lfJPyfA
-dedust_pool=EQDTJ4lH...yrLumEFm
+wallet_v5r1=EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm
+dedust_pool=EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI
 dao_contract=EQDAOxyz...daoAddr
 api=https://api.dynamiccapital.ton
 metadata=https://dynamiccapital.ton/jetton-metadata.json

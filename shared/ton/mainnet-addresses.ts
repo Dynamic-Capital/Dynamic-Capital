@@ -20,8 +20,11 @@ export const TON_MAINNET_DCT_TREASURY_WALLET =
 export const TON_MAINNET_STONFI_ROUTER =
   "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
 
-export const TON_MAINNET_DEDUST_DCT_TON_POOL =
+export const TON_MAINNET_DCT_WALLET_V5R1 =
   "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm";
+
+export const TON_MAINNET_DEDUST_DCT_TON_POOL =
+  "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI";
 
 export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
   {
@@ -57,6 +60,12 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     label: "STON.fi DCT/TON router",
     friendlyAddress: TON_MAINNET_STONFI_ROUTER,
     description: "Liquidity router used for treasury swaps and burns.",
+  },
+  {
+    key: "walletV5r1",
+    label: "DCT wallet (Wallet v5r1)",
+    friendlyAddress: TON_MAINNET_DCT_WALLET_V5R1,
+    description: "Jetton wallet contract deployed with wallet_v5r1 code.",
   },
   {
     key: "dedustDctTonPool",

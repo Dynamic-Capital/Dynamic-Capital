@@ -55,7 +55,7 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
     label: "Tonviewer → Dedust pool wallet",
     url:
-      "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
+      "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
   },
 ];
 

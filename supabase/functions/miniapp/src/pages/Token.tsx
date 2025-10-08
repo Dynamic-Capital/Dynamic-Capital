@@ -42,7 +42,7 @@ const STONFI_EXPLORER_URL =
   "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
 const DEDUST_POOL_URL = "https://dedust.io/swap/TON-DCT";
 const DEDUST_EXPLORER_URL =
-  "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm";
+  "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI";
 const TONKEEPER_UNIVERSAL_LINK =
   `https://app.tonkeeper.com/transfer/${DCT_TREASURY_ADDRESS}?jetton=${DCT_JETTON_ADDRESS}&text=${
     encodeURIComponent(
