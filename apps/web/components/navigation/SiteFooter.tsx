@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { schema, social } from "@/resources";
 
-import NAV_ITEMS from "./nav-items";
+import { NAV_ITEMS } from "./nav-items";
 
 const WORKSPACE_LINKS = NAV_ITEMS.slice(0, 4).map((item) => ({
   id: item.id,

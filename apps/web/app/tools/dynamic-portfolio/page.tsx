@@ -17,6 +17,7 @@ import { CheckoutCallout } from "@/components/dynamic-portfolio/home/CheckoutCal
 import { about, baseURL, person, toAbsoluteUrl } from "@/resources";
 import styles from "@/components/dynamic-portfolio/DynamicCapitalLandingPage.module.scss";
 import { cn } from "@/utils";
+import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
 
 const pageTitle = "Investor desk – Dynamic Capital";
 const pageDescription =
@@ -126,133 +127,129 @@ export const metadata = {
 
 export default function InvestorDeskPage() {
   return (
-    <Column
-      as="main"
-      fillWidth
-      gap="xl"
-      horizontal="center"
-      className={styles.page}
-    >
-      <Schema
-        as="webPage"
-        baseURL={baseURL}
-        path={pagePath}
-        title={pageTitle}
-        description={pageDescription}
-        image={`/api/og/generate?title=${encodeURIComponent(pageTitle)}`}
-        author={{
-          name: person.name,
-          url: `${baseURL}${about.path}`,
-          image: toAbsoluteUrl(baseURL, person.avatar),
-        }}
-      />
+    <ToolWorkspaceLayout routeId="dynamic-portfolio" contentClassName="pb-20">
+      <Column fillWidth gap="xl" horizontal="center" className={styles.page}>
+        <Schema
+          as="webPage"
+          baseURL={baseURL}
+          path={pagePath}
+          title={pageTitle}
+          description={pageDescription}
+          image={`/api/og/generate?title=${encodeURIComponent(pageTitle)}`}
+          author={{
+            name: person.name,
+            url: `${baseURL}${about.path}`,
+            image: toAbsoluteUrl(baseURL, person.avatar),
+          }}
+        />
 
-      <Section anchor="hero">
-        <Column gap="16" align="start">
-          <Tag size="s" prefixIcon="users">
-            Investor desk
-          </Tag>
-          <Heading variant="display-strong-s" wrap="balance">
-            Simple copy trading for investors and beginners
-          </Heading>
-          <Text
-            variant="body-default-l"
-            onBackground="neutral-weak"
-            wrap="balance"
-          >
-            Learn the desk in minutes, copy trades when ready, and withdraw on
-            your own schedule.
-          </Text>
-          <Row gap="12" s={{ direction: "column" }}>
-            <Button
-              size="m"
-              variant="secondary"
-              data-border="rounded"
-              prefixIcon="rocket"
-              href="/checkout"
+        <Section anchor="hero">
+          <Column gap="16" align="start">
+            <Tag size="s" prefixIcon="users">
+              Investor desk
+            </Tag>
+            <Heading variant="display-strong-s" wrap="balance">
+              Simple copy trading for investors and beginners
+            </Heading>
+            <Text
+              variant="body-default-l"
+              onBackground="neutral-weak"
+              wrap="balance"
             >
-              Start in checkout
-            </Button>
-            <Button
-              size="m"
-              variant="secondary"
-              data-border="rounded"
-              arrowIcon
-              href="#pricing"
-            >
-              View plans
-            </Button>
+              Learn the desk in minutes, copy trades when ready, and withdraw on
+              your own schedule.
+            </Text>
+            <Row gap="12" s={{ direction: "column" }}>
+              <Button
+                size="m"
+                variant="secondary"
+                data-border="rounded"
+                prefixIcon="rocket"
+                href="/checkout"
+              >
+                Start in checkout
+              </Button>
+              <Button
+                size="m"
+                variant="secondary"
+                data-border="rounded"
+                arrowIcon
+                href="#pricing"
+              >
+                View plans
+              </Button>
+            </Row>
+          </Column>
+          <Row gap="16" wrap>
+            {HIGHLIGHTS.map((item) => (
+              <HighlightCard
+                key={item.title}
+                {...item}
+              />
+            ))}
           </Row>
-        </Column>
-        <Row gap="16" wrap>
-          {HIGHLIGHTS.map((item) => (
-            <HighlightCard
-              key={item.title}
-              {...item}
-            />
-          ))}
-        </Row>
-      </Section>
+        </Section>
 
-      <Section
-        anchor="steps"
-        background="surface"
-        border="neutral-alpha-medium"
-      >
-        <Column gap="12">
-          <Heading variant="heading-strong-l">Three quick steps</Heading>
-          <Text
-            variant="body-default-m"
-            onBackground="neutral-weak"
-            wrap="balance"
-          >
-            A short path keeps traders, investors, and learners aligned.
-          </Text>
-        </Column>
-        <Row gap="16" wrap>
-          {QUICK_STEPS.map((item) => (
-            <Column
-              key={item.title}
-              gap="8"
-              flex={1}
-              minWidth={18}
-              background="neutral-alpha-weak"
-              border="neutral-alpha-medium"
-              radius="l"
-              padding="l"
+        <Section
+          anchor="steps"
+          background="surface"
+          border="neutral-alpha-medium"
+        >
+          <Column gap="12">
+            <Heading variant="heading-strong-l">Three quick steps</Heading>
+            <Text
+              variant="body-default-m"
+              onBackground="neutral-weak"
+              wrap="balance"
             >
-              <Text variant="body-default-s" onBackground="brand-medium">
-                Step {item.step}
-              </Text>
-              <Heading variant="heading-strong-s">{item.title}</Heading>
-              <Text variant="body-default-m" onBackground="neutral-weak">
-                {item.description}
-              </Text>
-            </Column>
-          ))}
-        </Row>
-      </Section>
+              A short path keeps traders, investors, and learners aligned.
+            </Text>
+          </Column>
+          <Row gap="16" wrap>
+            {QUICK_STEPS.map((item) => (
+              <Column
+                key={item.title}
+                gap="8"
+                flex={1}
+                minWidth={18}
+                background="neutral-alpha-weak"
+                border="neutral-alpha-medium"
+                radius="l"
+                padding="l"
+              >
+                <Text variant="body-default-s" onBackground="brand-medium">
+                  Step {item.step}
+                </Text>
+                <Heading variant="heading-strong-s">{item.title}</Heading>
+                <Text variant="body-default-m" onBackground="neutral-weak">
+                  {item.description}
+                </Text>
+              </Column>
+            ))}
+          </Row>
+        </Section>
 
-      <Section
-        anchor="pricing"
-        background="surface"
-        border="neutral-alpha-medium"
-      >
-        <Column gap="12">
-          <Heading variant="heading-strong-l">Pricing & packages</Heading>
-          <Text
-            variant="body-default-m"
-            onBackground="neutral-weak"
-            wrap="balance"
-          >
-            Plans adapt to the algorithms you follow. Recharge DCT whenever you
-            need more chat or automation time.
-          </Text>
-        </Column>
-        <VipPlansPricingSection />
-        <VipPackagesSection />
-        <CheckoutCallout />
-      </Section>
-    </Column>
+        <Section
+          anchor="pricing"
+          background="surface"
+          border="neutral-alpha-medium"
+        >
+          <Column gap="12">
+            <Heading variant="heading-strong-l">Pricing & packages</Heading>
+            <Text
+              variant="body-default-m"
+              onBackground="neutral-weak"
+              wrap="balance"
+            >
+              Plans adapt to the algorithms you follow. Recharge DCT whenever
+              you need more chat or automation time.
+            </Text>
+          </Column>
+          <VipPlansPricingSection />
+          <VipPackagesSection />
+          <CheckoutCallout />
+        </Section>
+      </Column>
+    </ToolWorkspaceLayout>
   );
 }

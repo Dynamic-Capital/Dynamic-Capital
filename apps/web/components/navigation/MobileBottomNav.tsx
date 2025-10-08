@@ -11,7 +11,7 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import NAV_ITEMS, { type NavItem } from "./nav-items";
+import { NAV_ITEMS, type NavItem } from "./nav-items";
 
 const navItems = NAV_ITEMS.filter((n) => n.showOnMobile);
 

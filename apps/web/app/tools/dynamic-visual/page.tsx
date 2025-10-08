@@ -1,6 +1,5 @@
-import { Column, Heading, Text } from "@/components/dynamic-ui-system";
-
 import DynamicVisualExplorer from "@/components/tools/DynamicVisualExplorer";
+import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
 
 export const metadata = {
   title: "Dynamic Visual Systems – Dynamic Capital",
@@ -10,22 +9,8 @@ export const metadata = {
 
 export default function DynamicVisualPage() {
   return (
-    <Column gap="40" paddingY="40" align="center" horizontal="center" fillWidth>
-      <Column maxWidth={36} gap="12" align="center" horizontal="center">
-        <Heading variant="display-strong-s" align="center">
-          Dynamic visual systems
-        </Heading>
-        <Text
-          variant="body-default-m"
-          onBackground="neutral-weak"
-          align="center"
-        >
-          Watch capital flows, routing guardrails, and liquidity adapters
-          animate in real time. Toggle scenarios to inspect how desk telemetry
-          responds as the network adapts.
-        </Text>
-      </Column>
+    <ToolWorkspaceLayout routeId="dynamic-visual">
       <DynamicVisualExplorer />
-    </Column>
+    </ToolWorkspaceLayout>
   );
 }

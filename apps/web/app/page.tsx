@@ -1,5 +1,5 @@
-import { LandingPageShell } from "@/components/landing/LandingPageShell";
+import { DynamicChatLanding } from "@/components/chat/DynamicChatLanding";
 
 export default function HomePage() {
-  return <LandingPageShell chromaBackgroundVariant="liquid" />;
+  return <DynamicChatLanding />;
 }

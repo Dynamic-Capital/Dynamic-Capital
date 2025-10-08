@@ -5,13 +5,11 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/utils";
 
-import NAV_ITEMS from "./nav-items";
+import { PRIMARY_NAV_ITEMS } from "./nav-items";
 
 interface DesktopNavProps {
   className?: string;
 }
-
-const PRIMARY_NAV = NAV_ITEMS.slice(0, 6);
 
 export function DesktopNav({ className }: DesktopNavProps) {
   const pathname = usePathname() ?? "/";
@@ -25,7 +23,7 @@ export function DesktopNav({ className }: DesktopNavProps) {
       role="navigation"
       aria-label="Main navigation"
     >
-      {PRIMARY_NAV.map((item) => {
+      {PRIMARY_NAV_ITEMS.map((item) => {
         const target = item.href ?? item.path;
         const isAnchorLink = target.includes("#");
         const active = isAnchorLink
