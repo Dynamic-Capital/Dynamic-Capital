@@ -33,14 +33,14 @@
         "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
         "provider": "DigitalOcean App Platform",
         "note": "Cloudflare reverse proxy bridging standard browsers to the TON Site origin",
-        "upstream": "https://dynamic-capital.vercel.app"
+        "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app/"
       },
       "fallback": {
         "host": "ton-gateway.dynamic-capital.lovable.app",
         "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
         "provider": "Lovable App Platform",
         "note": "Hot standby reverse proxy mirroring the DigitalOcean gateway",
-        "upstream": "https://dynamic-capital.vercel.app"
+        "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app/"
       }
     },
     "buttons": [
