@@ -14,6 +14,8 @@ export interface TokenConfig {
 }
 
 export interface ContractsConfig {
+  admin?: string;
+  treasury?: string;
   dexRouter?: string;
 }
 

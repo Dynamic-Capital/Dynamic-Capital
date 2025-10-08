@@ -44,8 +44,18 @@ async function main() {
 
   const config = await loadProjectConfig(projectRoot);
   const tokenConfig = config.token ?? {};
+  const contractsConfig = config.contracts ?? {};
   const jettonAddress = typeof tokenConfig.address === "string"
     ? tokenConfig.address
+    : "";
+  const adminAddress = typeof contractsConfig.admin === "string"
+    ? contractsConfig.admin
+    : "";
+  const treasuryAddress = typeof contractsConfig.treasury === "string"
+    ? contractsConfig.treasury
+    : "";
+  const dexRouterAddress = typeof contractsConfig.dexRouter === "string"
+    ? contractsConfig.dexRouter
     : "";
 
   const metadataInfo = await readJettonMetadata(projectRoot);
@@ -62,11 +72,25 @@ async function main() {
       image: metadata.image,
       external_url: metadata.external_url,
     },
+    governance: {
+      admin: adminAddress || null,
+      treasury: treasuryAddress || null,
+      dexRouter: dexRouterAddress || null,
+    },
     generatedAt: new Date().toISOString(),
     instructions: [
       "Upload this archive to https://tonviewer.com/verification when submitting the contract verification request.",
       "Cross-reference the metadata SHA-256 hash above with the hosted JSON served to Tonviewer/Tonkeeper.",
       "Attach governance evidence (timelock + multisig) in the support ticket alongside this bundle.",
+      adminAddress
+        ? `Confirm the admin multisig ${adminAddress} controls timelocked actions and matches the deployment parameters.`
+        : "Record the admin multisig address in config.yaml before packaging the bundle.",
+      treasuryAddress
+        ? `Verify the treasury destination ${treasuryAddress} aligns with the revenue split documentation.`
+        : "Record the treasury destination address in config.yaml before packaging the bundle.",
+      dexRouterAddress
+        ? `Ensure the primary DEX router ${dexRouterAddress} routes liquidity operations post-launch.`
+        : "Record the DEX router address in config.yaml before packaging the bundle.",
     ],
   };
 
@@ -77,11 +101,20 @@ async function main() {
     `- \`contracts/jetton/discoverable/\` — FunC master source plus import modules required for Tonviewer diffing.\n` +
     `- \`contracts/jetton/metadata.json\` — Frozen jetton metadata served to wallets and explorers.\n` +
     `- \`contracts/README.md\` — Deployment and governance notes for auditors.\n` +
-    `- \`manifest.json\` — Machine-readable summary with metadata checksums.\n\n` +
+    `- \`manifest.json\` — Machine-readable summary with metadata checksums and governance addresses.\n\n` +
     `## Submission checklist\n\n` +
     `1. Host \`metadata.json\` at the same URI configured in the on-chain content cell.\n` +
-    `2. Submit the archive through the Tonviewer verification portal and cite the multisig/timelock controls.\n` +
-    `3. After approval, refresh Tonviewer and Tonkeeper to confirm the \"Verified\" badge is displayed.\n`;
+    (adminAddress
+      ? `2. Confirm the admin multisig (${adminAddress}) is active and cited in the verification ticket.\n`
+      : "2. Update config.yaml with the admin multisig address before packaging this archive.\n") +
+    (treasuryAddress
+      ? `3. Cross-check the treasury destination (${treasuryAddress}) against the governance runbook.\n`
+      : "3. Update config.yaml with the treasury address before packaging this archive.\n") +
+    (dexRouterAddress
+      ? `4. Include the DEX router (${dexRouterAddress}) when documenting supported liquidity venues.\n`
+      : "4. Update config.yaml with the DEX router address before packaging this archive.\n") +
+    `5. Submit the archive through the Tonviewer verification portal and cite the multisig/timelock controls.\n` +
+    `6. After approval, refresh Tonviewer and Tonkeeper to confirm the \"Verified\" badge is displayed.\n`;
 
   await copyPathIntoBundle(
     projectRoot,

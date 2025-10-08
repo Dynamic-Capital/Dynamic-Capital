@@ -136,6 +136,7 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
+    "@ton-community/func-js": "^0.10.0",
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
     "dotenv": "^16.4.5",
@@ -146,6 +147,7 @@
     "png-to-ico": "^2.1.8",
     "sharp": "^0.33.5",
     "supabase": "^2.48.3",
+    "ton-contract-executor": "^0.8.4",
     "tsx": "^4.20.6",
     "vitest": "^3.2.4",
     "yaml": "^2.8.1"
