@@ -38,19 +38,19 @@ export const TON_MAINNET_DCT_TREASURY_TON_TRANSFER_LINK =
 export const TON_MAINNET_DCT_TREASURY_MEMO = DCT_TREASURY_TRANSFER_MEMO;
 
 export const TON_MAINNET_STONFI_ROUTER =
-  "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
+  "EQAyD7O8CvVdR8AEJcr96fHI1ifFq21S8QMt1czi5IfJPyfA";
 
 export const TON_MAINNET_DCT_WALLET_V5R1 =
   "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm";
 
 export const TON_MAINNET_STONFI_DCT_JETTON_WALLET =
-  "EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_";
+  "EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3";
 
 export const TON_MAINNET_DEDUST_DCT_JETTON_WALLET =
-  "EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm";
+  "EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz";
 
 export const TON_MAINNET_DEDUST_DCT_TON_POOL =
-  "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI";
+  "EQBlClPr9ttZJWYJoqBFTr58jeDPuuAsbbDjtZylHJtv-ygW";
 
 export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
   {
@@ -85,9 +85,10 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
   },
   {
     key: "stonfiRouter",
-    label: "STON.fi DCT/TON router",
+    label: "STON.fi DCT/TON router (v2)",
     friendlyAddress: TON_MAINNET_STONFI_ROUTER,
-    description: "Liquidity router used for treasury swaps and burns.",
+    description:
+      "Current STON.fi router powering the Dynamic Capital DCT/TON liquidity pair.",
   },
   {
     key: "stonfiDctJettonWallet",
@@ -104,10 +105,10 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
   },
   {
     key: "dedustDctTonPool",
-    label: "DeDust DCT/TON pool",
+    label: "DeDust DCT/TON vault",
     friendlyAddress: TON_MAINNET_DEDUST_DCT_TON_POOL,
     description:
-      "Primary DeDust pool holding Dynamic Capital TON-side liquidity reserves.",
+      "Vault contract securing the DeDust TON/DCT liquidity reserves for routing.",
   },
   {
     key: "dedustDctJettonWallet",

@@ -90,8 +90,8 @@ addresses so the link works regardless of which representation a wallet shows.
 | --------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tonscan   | Jetton overview      | [Friendly](https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [Raw](https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7) |
 | Tonviewer | Jetton overview      | [tonviewer.com/jetton/0:d29…96c7](https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7)                                                             |
-| STON.fi   | pTON/DCT pool wallet | [tonviewer.com/EQAx…0_MI](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI)                                                                                              |
-| Dedust    | TON/DCT pool wallet  | [tonviewer.com/EQAx…0_MI](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI)                                                                                              |
+| STON.fi   | DCT/TON router (v2)  | [tonviewer.com/EQAy…PyfA](https://tonviewer.com/EQAyD7O8CvVdR8AEJcr96fHI1ifFq21S8QMt1czi5IfJPyfA)                                                                                              |
+| Dedust    | TON/DCT vault        | [tonviewer.com/EQBl…-ygW](https://tonviewer.com/EQBlClPr9ttZJWYJoqBFTr58jeDPuuAsbbDjtZylHJtv-ygW)                                                                                              |
 
 ### Metadata guardrails
 

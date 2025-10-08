@@ -3,6 +3,6 @@ DeDust Liquidity Add — 2025-05-13
 - Execution window: 13:55–13:58 UTC
 - Transaction reference: DCT-DEDUST-2025-0513-A1
 - Assets supplied: 2,000,000 DCT + 120,000 USDT equivalent (40/60 TON/USDT mix post-balance)
-- Pool address: EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI
+- Pool address: EQBlClPr9ttZJWYJoqBFTr58jeDPuuAsbbDjtZylHJtv-ygW
 - Signers: Treasury Wallet A, Treasury Wallet C (2-of-3 multisig)
 - Notes: Routing weights adjusted to favor TON routes; screenshot archived in transparency workspace.

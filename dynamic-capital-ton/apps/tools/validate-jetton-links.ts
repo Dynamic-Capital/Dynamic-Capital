@@ -59,22 +59,22 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
     label: "Tonviewer → STON.fi pool wallet",
     url:
-      "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
+      "https://tonviewer.com/EQAyD7O8CvVdR8AEJcr96fHI1ifFq21S8QMt1czi5IfJPyfA",
   },
   {
     label: "Tonviewer → Dedust pool wallet",
     url:
-      "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+      "https://tonviewer.com/EQBlClPr9ttZJWYJoqBFTr58jeDPuuAsbbDjtZylHJtv-ygW",
   },
   {
     label: "Tonviewer → STON.fi DCT jetton wallet",
     url:
-      "https://tonviewer.com/EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_",
+      "https://tonviewer.com/EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3",
   },
   {
     label: "Tonviewer → Dedust DCT jetton wallet",
     url:
-      "https://tonviewer.com/EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm",
+      "https://tonviewer.com/EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
   },
 ];
 
