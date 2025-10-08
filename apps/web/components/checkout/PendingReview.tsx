@@ -25,14 +25,14 @@ export const PendingReview: React.FC<PendingReviewProps> = ({ paymentId }) => (
       <div className="text-sm text-muted-foreground">
         Payment ID: {paymentId}
       </div>
-      <Button variant="outline" size="sm" asChild>
-        <a
-          href={`/payment-status?payment_id=${paymentId}`}
-          className="flex items-center gap-2"
-        >
-          <FileText className="h-4 w-4" />
-          Check Status
-        </a>
+      <Button
+        variant="outline"
+        size="sm"
+        href={`/payment-status?payment_id=${paymentId}`}
+        className="flex items-center gap-2"
+      >
+        <FileText className="h-4 w-4" />
+        Check Status
       </Button>
     </div>
   </div>

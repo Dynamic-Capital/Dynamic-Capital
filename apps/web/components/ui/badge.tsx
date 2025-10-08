@@ -1,43 +1,91 @@
 "use client";
 
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 
+import { Tag } from "@/components/dynamic-ui-system";
+import type { TagProps } from "@/components/dynamic-ui-system/internal/components/Tag";
 import { cn } from "@/utils";
 
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        success:
-          "border-transparent bg-green-500 text-white hover:bg-green-600",
-        warning:
-          "border-transparent bg-yellow-500 text-white hover:bg-yellow-600",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
+type DynamicTagProps = React.ComponentPropsWithoutRef<typeof Tag>;
+
+type BadgeVariant =
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "outline"
+  | "success"
+  | "warning";
+
+const BADGE_STYLES: Record<BadgeVariant, {
+  background: TagProps["background"];
+  border?: TagProps["border"];
+  className?: string;
+}> = {
+  default: {
+    background: "brand-alpha-weak",
+    border: "brand-alpha-medium",
+    className: "text-brand-strong",
+  },
+  secondary: {
+    background: "neutral-alpha-weak",
+    border: "neutral-alpha-medium",
+    className: "text-foreground/80",
+  },
+  destructive: {
+    background: "danger-alpha-weak",
+    border: "danger-alpha-medium",
+    className: "text-danger-strong",
+  },
+  outline: {
+    background: "transparent",
+    border: "neutral-alpha-medium",
+    className: "text-foreground",
+  },
+  success: {
+    background: "success-alpha-weak",
+    border: "success-alpha-medium",
+    className: "text-success-strong",
+  },
+  warning: {
+    background: "warning-alpha-weak",
+    border: "warning-alpha-medium",
+    className: "text-warning-strong",
+  },
+};
+
+export interface BadgeProps
+  extends Omit<DynamicTagProps, "variant" | "size" | "background" | "border"> {
+  variant?: BadgeVariant;
+}
+
+const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
+  (
+    { variant = "default", className, children, padding, radius, ...props },
+    ref,
+  ) => {
+    const style = BADGE_STYLES[variant] ?? BADGE_STYLES.default;
+
+    return (
+      <Tag
+        ref={ref}
+        size="s"
+        radius={radius ?? "full"}
+        background={style.background}
+        border={style.border}
+        padding={padding ?? "8"}
+        className={cn(
+          "inline-flex items-center gap-2 font-semibold uppercase tracking-[0.24em] text-[10px]",
+          style.className,
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </Tag>
+    );
   },
 );
 
-export interface BadgeProps
-  extends
-    React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+Badge.displayName = "Badge";
 
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  );
-}
-
-export { Badge, badgeVariants };
+export { Badge };

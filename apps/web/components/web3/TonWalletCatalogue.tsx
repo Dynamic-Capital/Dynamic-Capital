@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import {
   Card,
   CardContent,
@@ -153,28 +151,24 @@ export function TonWalletCatalogue() {
               </CardContent>
               <CardFooter className="mt-auto flex flex-wrap gap-2 border-t border-border/60 bg-muted/30 px-6 py-4">
                 <Button
-                  asChild
                   size="sm"
                   variant="outline"
                   className="rounded-full"
+                  href={wallet.universalLink}
+                  target="_blank"
+                  rel="noreferrer"
                 >
-                  <Link
-                    href={wallet.universalLink}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open TonConnect
-                  </Link>
+                  Open TonConnect
                 </Button>
                 <Button
-                  asChild
                   size="sm"
                   variant="ghost"
                   className="rounded-full text-muted-foreground hover:text-primary"
+                  href={wallet.aboutUrl}
+                  target="_blank"
+                  rel="noreferrer"
                 >
-                  <Link href={wallet.aboutUrl} target="_blank" rel="noreferrer">
-                    Project site
-                  </Link>
+                  Project site
                 </Button>
               </CardFooter>
             </Card>
