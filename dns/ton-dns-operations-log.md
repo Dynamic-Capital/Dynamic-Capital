@@ -70,3 +70,18 @@ chronological order beneath this entry.
   on `/dynamiccapital.ton`. Left the resolver verification block in an `error`
   state until the TON bundle is redeployed (see
   `dns/https-gateway-verification-2025-10-08.md`).
+
+## 2025-10-10 – TON gateway restoration
+
+- **Origin redeploy** — Rebuilt the TON Site bundle from `apps/web` and
+  redeployed it to `dynamic-capital-qazf2.ondigitalocean.app`, clearing the 404
+  responses on `/dynamiccapital.ton`.
+- **Gateway verification** — Executed the HTTPS probes at 11:44–11:46 UTC and
+  observed `HTTP 200` from both
+  `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
+  and `https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`,
+  confirming the fallback path mirrors the healthy origin.
+- **Resolver update** — Flipped the `ton_site.verification.https.status` field
+  in `dns/dynamiccapital.ton.json` back to `ok` with the new timestamps and
+  committed the probe results in
+  `dns/https-gateway-verification-2025-10-08.md`.
