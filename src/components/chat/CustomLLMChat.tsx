@@ -24,7 +24,7 @@ export function CustomLLMChat({
   placeholder = "Type your message...",
 }: CustomLLMChatProps) {
   const [input, setInput] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollAnchorRef = useRef<HTMLDivElement>(null);
   
   const { messages, sendMessage, isLoading, error } = useCustomLLMChat({
     provider,
@@ -36,9 +36,14 @@ export function CustomLLMChat({
   });
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (!scrollAnchorRef.current) {
+      return;
     }
+
+    scrollAnchorRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
   }, [messages]);
 
   const handleSend = async () => {
@@ -58,7 +63,7 @@ export function CustomLLMChat({
 
   return (
     <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.map((message, index) => (
             <Card
@@ -90,6 +95,8 @@ export function CustomLLMChat({
               <div className="text-sm text-destructive">{error}</div>
             </Card>
           )}
+
+          <div ref={scrollAnchorRef} aria-hidden />
         </div>
       </ScrollArea>
 
