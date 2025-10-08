@@ -5,10 +5,15 @@ dynamic-capital.ondigitalocean.app. IN SOA ns1.digitalocean.com. hostmaster.dyna
 dynamic-capital.ondigitalocean.app. 1800 IN NS ns1.digitalocean.com.
 dynamic-capital.ondigitalocean.app. 1800 IN NS ns2.digitalocean.com.
 dynamic-capital.ondigitalocean.app. 1800 IN NS ns3.digitalocean.com.
-; Delegate apex and subdomains to Vercel-managed DNS targets
-dynamic-capital.ondigitalocean.app. 3600 IN CNAME 8f6be55f6b691414.vercel-dns-017.com.
+; Delegate the apex to Vercel's current anycast range
+dynamic-capital.ondigitalocean.app. 3600 IN A 216.198.79.1
+; Retain the legacy Vercel apex IP until their migration is fully complete
+dynamic-capital.ondigitalocean.app. 3600 IN A 76.76.21.21
+; Vercel manages the web and API subdomains via the provided CNAME target
 www                                    3600 IN CNAME 8f6be55f6b691414.vercel-dns-017.com.
 api                                    3600 IN CNAME 8f6be55f6b691414.vercel-dns-017.com.
-ton-gateway                            3600 IN CNAME 8f6be55f6b691414.vercel-dns-017.com.
+; Keep the TON gateway proxied through the Cloudflare anycast ingress
+ton-gateway                            3600 IN A 162.159.140.98
+ton-gateway                            3600 IN A 172.66.0.96
 
 _vercel                                300  IN TXT   "vc-domain-verify=dynamic-capital.ondigitalocean.app,9370ed1d989d60e8ab4c"
