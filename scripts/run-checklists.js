@@ -792,14 +792,42 @@ function resolveTask(
   return task;
 }
 
-async function runCommand(command) {
+async function runCommand(command, env, { forwardSignals = true } = {}) {
+  if (typeof command !== "string" || command.trim().length === 0) {
+    throw new Error("Cannot execute an empty command.");
+  }
+
   return new Promise((resolve, reject) => {
     const child = spawn(command, {
       shell: true,
       stdio: "inherit",
-      env: createSanitizedNpmEnv(),
+      env,
     });
+
+    const handledSignals = forwardSignals ? ["SIGINT", "SIGTERM"] : [];
+    let receivedSignal = null;
+
+    const cleanup = () => {
+      handledSignals.forEach((signal) => {
+        process.removeListener(signal, signalHandler);
+      });
+    };
+
+    const signalHandler = (signal) => {
+      receivedSignal = signal;
+      if (!child.killed) {
+        child.kill(signal);
+      }
+    };
+
+    handledSignals.forEach((signal) => {
+      process.on(signal, signalHandler);
+    });
+
     child.on("close", (code, signal) => {
+      cleanup();
+      const failureSignal = signal ?? receivedSignal;
+
       if (typeof code === "number" && code === 0) {
         resolve();
       } else if (typeof code === "number") {
@@ -807,15 +835,24 @@ async function runCommand(command) {
       } else {
         reject(
           new Error(
-            `Command terminated by signal ${signal ?? "unknown"}: ${command}`,
+            `Command terminated by signal ${
+              failureSignal ?? "unknown"
+            }: ${command}`,
           ),
         );
       }
     });
+
     child.on("error", (error) => {
+      cleanup();
       reject(error);
     });
   });
+}
+
+function createTaskRunner(baseEnv = createSanitizedNpmEnv()) {
+  const sharedEnv = Object.freeze({ ...baseEnv });
+  return (command, options) => runCommand(command, sharedEnv, options);
 }
 
 function mergeTask(target, source) {
@@ -990,6 +1027,7 @@ async function main() {
     writeJson(options.planExport, buildPlanExport(filteredTasks, options));
   }
 
+  const runTaskCommand = createTaskRunner(createSanitizedNpmEnv());
   const optionalFailures = [];
   const requiredFailures = [];
   const executionLog = [];
@@ -1001,7 +1039,7 @@ async function main() {
     const startedAt = new Date();
     try {
       // eslint-disable-next-line no-await-in-loop
-      await runCommand(task.command);
+      await runTaskCommand(task.command);
       console.log(`✅ Completed ${task.id}`);
       executionLog.push({
         id: task.id,
