@@ -206,9 +206,10 @@ _Directory: docs/mentorship/_
 
 _Directory: docs/onchain/_
 
-| Document                                       | Title                          | Summary                                                                                                                                                                               |
-| ---------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [jetton-minter.md](./onchain/jetton-minter.md) | DCT Jetton Minter Verification | This dossier captures the canonical on-chain references for the Dynamic Capital Token (DCT) jetton minter and records the evidence collected during the Tonstarter production review. |
+| Document                                                         | Title                                | Summary                                                                                                                                                                               |
+| ---------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [jetton-minter.md](./onchain/jetton-minter.md)                   | DCT Jetton Minter Verification       | This dossier captures the canonical on-chain references for the Dynamic Capital Token (DCT) jetton minter and records the evidence collected during the Tonstarter production review. |
+| [upstream-jetton-minter.md](./onchain/upstream-jetton-minter.md) | TON Upstream Jetton Minter Alignment | Tracks the official TON Foundation minter repository, outlines the review workflow for upstream security changes, and logs adoption decisions for auditors.                           |
 
 ## Tonstarter
 
