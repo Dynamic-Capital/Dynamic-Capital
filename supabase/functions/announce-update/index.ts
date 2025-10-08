@@ -1,5 +1,6 @@
 import { envOrSetting } from "../_shared/config.ts";
 import { registerHandler } from "../_shared/serve.ts";
+import { normalizeMiniAppUrl } from "../_shared/miniapp.ts";
 
 interface AnnouncePayload {
   version?: unknown;
@@ -15,37 +16,6 @@ interface TelegramResponse {
 const DEFAULT_VERSION = "v1.0";
 const DEFAULT_FEATURE = "Bug fixes and improvements";
 const DEFAULT_MINI_APP_URL = "https://mini.dynamic.capital/miniapp/";
-const PROTOCOL_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//;
-
-function ensureProtocol(value: string): string {
-  return PROTOCOL_PATTERN.test(value) ? value : `https://${value}`;
-}
-
-function normalizeMiniAppUrl(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-
-  const candidate = ensureProtocol(trimmed);
-
-  try {
-    const parsed = new URL(candidate);
-    const isHttps = parsed.protocol === "https:";
-    if (!parsed.pathname) {
-      parsed.pathname = "/";
-    } else if (
-      isHttps &&
-      !parsed.pathname.endsWith("/") &&
-      !parsed.search &&
-      !parsed.hash
-    ) {
-      parsed.pathname = `${parsed.pathname}/`;
-    }
-    return parsed.toString();
-  } catch (_error) {
-    return null;
-  }
-}
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
