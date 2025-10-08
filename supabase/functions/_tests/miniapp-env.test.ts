@@ -1,7 +1,10 @@
 (globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
   .__SUPABASE_SKIP_AUTO_SERVE__ = true;
 
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
 async function importMiniappModule() {
@@ -65,7 +68,9 @@ Deno.test("readMiniAppEnv falls back to function URL when needed", async () => {
   try {
     const { readMiniAppEnv } = await importMiniappModule();
     const result = await readMiniAppEnv();
-    assert(result.url?.startsWith("https://project.functions.supabase.co/miniapp"));
+    assert(
+      result.url?.startsWith("https://project.functions.supabase.co/miniapp"),
+    );
     assertEquals(result.ready, true);
   } finally {
     clearTestEnv();
