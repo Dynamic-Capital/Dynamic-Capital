@@ -161,15 +161,24 @@ export function TonkeeperDeepLinkButtons({
   return (
     <div className={cn("flex w-full flex-col items-center gap-2", className)}>
       <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
-        <Button asChild variant="brand" responsive fullWidth>
-          <a href={primaryLink} rel="noreferrer">
-            Open in Tonkeeper
-          </a>
+        <Button
+          href={primaryLink}
+          rel="noreferrer"
+          variant="brand"
+          responsive
+          fullWidth
+        >
+          Open in Tonkeeper
         </Button>
-        <Button asChild variant="outline" responsive fullWidth>
-          <a href={defaultLink} target="_blank" rel="noreferrer">
-            Try universal link
-          </a>
+        <Button
+          href={defaultLink}
+          target="_blank"
+          rel="noreferrer"
+          variant="outline"
+          responsive
+          fullWidth
+        >
+          Try universal link
         </Button>
       </div>
       <p className="text-center text-xs text-muted-foreground">

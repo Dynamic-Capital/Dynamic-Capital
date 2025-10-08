@@ -1,21 +1,24 @@
-import Link from "next/link";
+import {
+  Column,
+  Heading,
+  Row,
+  SmartLink,
+  Text,
+} from "@/components/dynamic-ui-system";
+import { dynamicBranding, schema, social } from "@/resources";
 
-import { schema, social } from "@/resources";
+import { type FooterLinkEntry, getFooterLinks } from "@/config/route-registry";
 
-import NAV_ITEMS from "./nav-items";
+const WORKSPACE_LINKS = getFooterLinks("workspace");
+const QUICK_LINKS = getFooterLinks("quick");
 
-const WORKSPACE_LINKS = NAV_ITEMS.slice(0, 4).map((item) => ({
-  id: item.id,
-  label: item.label,
-  href: item.href ?? item.path,
-}));
-
-const QUICK_LINKS = [
-  { label: "Multi-LLM studio", href: "/tools/multi-llm" },
-  { label: "Plans", href: "/plans" },
-  { label: "Support", href: "/support" },
-  { label: "Research", href: "/blog" },
-];
+const footerMotion = dynamicBranding.gradients.motion;
+const footerGlass = dynamicBranding.gradients.glass;
+const FOOTER_GRADIENT = footerMotion.backgroundDark;
+const FOOTER_SHADOW = footerGlass.motionShadowDark ??
+  "0 24px 96px hsl(var(--primary) / 0.18)";
+const FOOTER_BORDER = footerGlass.motionBorderDark ??
+  "hsl(var(--border) / 0.65)";
 
 const CONTACT_LINKS = social.filter((item) =>
   ["Telegram", "Email", "Phone"].includes(item.name)
@@ -23,93 +26,135 @@ const CONTACT_LINKS = social.filter((item) =>
 
 const isExternalLink = (href: string) => href.startsWith("http");
 
+const renderLink = (link: FooterLinkEntry) => (
+  <li key={link.id}>
+    <SmartLink
+      href={link.href}
+      unstyled
+      className="rounded-md px-1 py-0.5 text-sm text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      aria-label={`${link.label}. ${link.description}`}
+      data-footer-category={link.categoryId}
+    >
+      <Text as="span" variant="body-default-s" onBackground="neutral-weak">
+        {link.label}
+      </Text>
+    </SmartLink>
+  </li>
+);
+
 export function SiteFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border/60 bg-background/80">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-12">
-        <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-            Dynamic Capital
-          </p>
-          <h2 className="text-2xl font-semibold text-foreground">
-            Operate from a single, focused workspace.
-          </h2>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            Benchmark models, share context with your desk, and keep guardrails
-            in view without juggling dashboards. Everything you need for a
-            simple trading workflow lives here.
-          </p>
-        </div>
+    <footer
+      className="relative overflow-hidden border-t border-border/60 bg-background/90"
+      style={{ boxShadow: FOOTER_SHADOW }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60 mix-blend-plus-lighter"
+        style={{ backgroundImage: FOOTER_GRADIENT }}
+        aria-hidden
+      />
+      <div className="mx-auto w-full max-w-6xl px-4 py-12">
+        <Column gap="24">
+          <Column gap="12" maxWidth={96}>
+            <Text
+              as="span"
+              variant="label-default-xs"
+              className="uppercase tracking-[0.28em] text-muted-foreground"
+            >
+              Dynamic Capital
+            </Text>
+            <Heading variant="heading-strong-l">
+              Operate from a single, focused workspace.
+            </Heading>
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              Benchmark models, share context with your desk, and keep
+              guardrails in view without juggling dashboards. Everything you
+              need for a simple trading workflow lives here.
+            </Text>
+          </Column>
 
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Workspace
-            </h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              {WORKSPACE_LINKS.map((link) => (
-                <li key={link.id}>
-                  <Link
-                    href={link.href}
-                    className="transition-colors hover:text-primary"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <Column gap="12">
+              <Text
+                as="span"
+                variant="label-default-xs"
+                className="uppercase tracking-wide text-muted-foreground"
+              >
+                Workspace
+              </Text>
+              <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+                {WORKSPACE_LINKS.map(renderLink)}
+              </ul>
+            </Column>
+            <Column gap="12">
+              <Text
+                as="span"
+                variant="label-default-xs"
+                className="uppercase tracking-wide text-muted-foreground"
+              >
+                Quick links
+              </Text>
+              <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+                {QUICK_LINKS.map(renderLink)}
+              </ul>
+            </Column>
+            <Column gap="12">
+              <Text
+                as="span"
+                variant="label-default-xs"
+                className="uppercase tracking-wide text-muted-foreground"
+              >
+                Connect
+              </Text>
+              <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+                {CONTACT_LINKS.map((item) => (
+                  item.link
+                    ? (
+                      <li key={item.name}>
+                        <SmartLink
+                          href={item.link}
+                          unstyled
+                          className="rounded-md px-1 py-0.5 text-sm text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                          {...(isExternalLink(item.link)
+                            ? { target: "_blank", rel: "noreferrer" }
+                            : {})}
+                        >
+                          <Text
+                            as="span"
+                            variant="body-default-s"
+                            onBackground="neutral-weak"
+                          >
+                            {item.name}
+                          </Text>
+                        </SmartLink>
+                      </li>
+                    )
+                    : null
+                ))}
+              </ul>
+            </Column>
           </div>
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Quick links
-            </h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              {QUICK_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="transition-colors hover:text-primary"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Connect
-            </h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              {CONTACT_LINKS.map((item) => (
-                item.link
-                  ? (
-                    <li key={item.name}>
-                      <a
-                        href={item.link}
-                        className="transition-colors hover:text-primary"
-                        {...(isExternalLink(item.link)
-                          ? { target: "_blank", rel: "noreferrer" }
-                          : {})}
-                      >
-                        {item.name}
-                      </a>
-                    </li>
-                  )
-                  : null
-              ))}
-            </ul>
-          </div>
-        </div>
 
-        <div className="flex flex-col gap-2 border-t border-border/40 pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>© {currentYear} {schema.name}. All rights reserved.</p>
-          <p className="text-xs sm:text-sm">
-            Built for teams who prefer a straightforward, dependable desk.
-          </p>
-        </div>
+          <Row
+            wrap
+            gap="12"
+            className="border-t border-border/40 pt-6 text-sm text-muted-foreground"
+            style={{ borderColor: FOOTER_BORDER }}
+          >
+            <Text as="span" variant="body-default-s">
+              © {currentYear} {schema.name}. All rights reserved.
+            </Text>
+            <Text
+              as="span"
+              variant="body-default-xs"
+              onBackground="neutral-weak"
+            >
+              Built for teams who prefer a straightforward, dependable desk.
+            </Text>
+          </Row>
+        </Column>
       </div>
     </footer>
   );

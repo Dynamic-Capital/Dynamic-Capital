@@ -205,14 +205,14 @@ export function SupportView({ onBack }: SupportViewProps) {
                         <p className="text-sm text-muted-foreground break-all mb-3">
                           {link.url}
                         </p>
-                        <Button asChild variant="outline" size="sm">
-                          <a
-                            href={formatLinkHref(link.url)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Open channel
-                          </a>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          href={formatLinkHref(link.url)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open channel
                         </Button>
                       </div>
                     ))}

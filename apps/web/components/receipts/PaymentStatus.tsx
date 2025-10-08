@@ -283,8 +283,13 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
             </Button>
 
             {payment.webhook_data?.ocr && (
-              <Button variant="outline" size="sm" asChild>
-                <span className="flex items-center gap-2 cursor-default">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="cursor-default"
+              >
+                <span className="flex items-center gap-2">
                   <Receipt className="h-4 w-4" />
                   OCR Processed
                 </span>

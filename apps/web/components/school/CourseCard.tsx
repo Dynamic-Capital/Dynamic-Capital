@@ -110,10 +110,14 @@ export function CourseCard({
       </CardContent>
       <CardFooter className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <Button asChild variant="brand" size="sm">
-            <a href={course.startUrl} target="_blank" rel="noreferrer noopener">
-              Start course
-            </a>
+          <Button
+            variant="brand"
+            size="sm"
+            href={course.startUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Start course
           </Button>
           {canTrackProgress && course.totalLessons > 0 && (
             <span className="text-xs text-muted-foreground">

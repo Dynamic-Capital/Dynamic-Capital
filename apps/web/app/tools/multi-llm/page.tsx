@@ -1,7 +1,7 @@
-import { Column, Heading, Text } from "@/components/dynamic-ui-system";
+import { Column } from "@/components/dynamic-ui-system";
 
-import { AdminGate } from "@/components/admin/AdminGate";
 import { DynamicChat } from "@/components/tools/DynamicChat";
+import { AdminWorkspace } from "@/components/workspaces/AdminWorkspace";
 
 export const metadata = {
   title: "Dynamic Chat – Dynamic Capital",
@@ -11,31 +11,10 @@ export const metadata = {
 
 export default function DynamicChatToolPage() {
   return (
-    <AdminGate>
-      <Column
-        gap="32"
-        paddingY="40"
-        align="center"
-        horizontal="center"
-        fillWidth
-      >
-        <Column maxWidth={36} gap="12" align="center" horizontal="center">
-          <Heading variant="display-strong-s" align="center">
-            Dynamic Chat
-          </Heading>
-          <Text
-            variant="body-default-m"
-            onBackground="neutral-weak"
-            align="center"
-          >
-            Route prompts across configured providers to benchmark quality,
-            latency, and token usage within a shared workspace.
-          </Text>
-        </Column>
-        <Column maxWidth={64} fillWidth>
-          <DynamicChat />
-        </Column>
+    <AdminWorkspace routeId="multi-llm">
+      <Column maxWidth={64} fillWidth>
+        <DynamicChat />
       </Column>
-    </AdminGate>
+    </AdminWorkspace>
   );
 }

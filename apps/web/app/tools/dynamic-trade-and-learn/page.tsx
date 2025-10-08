@@ -1,6 +1,6 @@
-import { Column, Heading, Text } from "@/components/dynamic-ui-system";
-
+import { Column } from "@/components/dynamic-ui-system";
 import { DynamicTradeAndLearn } from "@/components/tools/DynamicTradeAndLearn";
+import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
 
 export const metadata = {
   title: "Dynamic Trade & Learn – Dynamic Capital",
@@ -10,24 +10,10 @@ export const metadata = {
 
 export default function DynamicTradeAndLearnPage() {
   return (
-    <Column gap="32" paddingY="40" align="center" horizontal="center" fillWidth>
-      <Column maxWidth={40} gap="12" align="center" horizontal="center">
-        <Heading variant="display-strong-s" align="center">
-          Dynamic trade &amp; learn
-        </Heading>
-        <Text
-          variant="body-default-m"
-          onBackground="neutral-weak"
-          align="center"
-        >
-          Pair institutional-grade execution tooling with structured learning
-          paths, practice labs, and mentor accountability in a single desk
-          workspace.
-        </Text>
-      </Column>
+    <ToolWorkspaceLayout routeId="dynamic-trade-and-learn">
       <Column maxWidth={96} fillWidth>
         <DynamicTradeAndLearn />
       </Column>
-    </Column>
+    </ToolWorkspaceLayout>
   );
 }

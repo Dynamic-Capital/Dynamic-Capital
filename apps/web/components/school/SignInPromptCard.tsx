@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,8 +33,8 @@ export function SignInPromptCard({ className }: SignInPromptCardProps) {
           We will save your lesson completions to your profile so you can pick
           up exactly where you left off.
         </p>
-        <Button asChild variant="brand">
-          <Link href="/login">Unlock tracking</Link>
+        <Button variant="brand" href="/login">
+          Unlock tracking
         </Button>
       </CardContent>
     </Card>
