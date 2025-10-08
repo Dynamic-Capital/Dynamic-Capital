@@ -1,56 +1,57 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Row, SmartLink, Text } from "@/components/dynamic-ui-system";
 import { cn } from "@/utils";
 
-import NAV_ITEMS from "./nav-items";
+import { PRIMARY_NAV_ITEMS } from "./nav-items";
 
 interface DesktopNavProps {
   className?: string;
 }
-
-const PRIMARY_NAV = NAV_ITEMS.slice(0, 6);
 
 export function DesktopNav({ className }: DesktopNavProps) {
   const pathname = usePathname() ?? "/";
 
   return (
     <nav
-      className={cn(
-        "hidden flex-1 flex-wrap items-center gap-2 md:flex",
-        className,
-      )}
+      className={cn("hidden flex-1 md:flex", className)}
       role="navigation"
       aria-label="Main navigation"
     >
-      {PRIMARY_NAV.map((item) => {
-        const target = item.href ?? item.path;
-        const isAnchorLink = target.includes("#");
-        const active = isAnchorLink
-          ? pathname === "/"
-          : target === "/"
-          ? pathname === "/"
-          : pathname.startsWith(item.path);
+      <Row gap="8" wrap className="w-full items-center justify-center">
+        {PRIMARY_NAV_ITEMS.map((item) => {
+          const target = item.href ?? item.path;
+          const isAnchorLink = target.includes("#");
+          const active = isAnchorLink
+            ? pathname === "/"
+            : target === "/"
+            ? pathname === "/"
+            : pathname.startsWith(item.path);
 
-        return (
-          <Link
-            key={item.id}
-            href={target}
-            aria-label={item.ariaLabel}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              active
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted/40 hover:text-primary",
-            )}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
+          return (
+            <SmartLink
+              key={item.id}
+              href={target}
+              aria-label={item.ariaLabel}
+              aria-current={active ? "page" : undefined}
+              selected={active}
+              className={cn(
+                "rounded-xl px-4 py-2 text-sm font-semibold uppercase tracking-[0.24em] transition",
+                active
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-primary",
+              )}
+              data-route-category={item.categoryId}
+            >
+              <Text as="span" variant="label-default-xs">
+                {item.label}
+              </Text>
+            </SmartLink>
+          );
+        })}
+      </Row>
     </nav>
   );
 }

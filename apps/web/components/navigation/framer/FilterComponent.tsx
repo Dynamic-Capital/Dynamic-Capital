@@ -1,44 +1,32 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect, useId, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronRight, Search, SlidersHorizontal } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ChevronRight } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Button as DynamicButton,
+  Card,
+  Column,
+  Heading,
+  Icon,
+  Input as DynamicInput,
+  Row,
+  Scroller,
+  SmartLink,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
+import {
+  ROUTE_CATEGORY_STYLES,
+  type RouteCategoryId,
+} from "@/config/route-registry";
 import { cn } from "@/utils";
 
 import type { NavItem } from "../nav-items";
 
-const NAV_ITEM_CATEGORY_LOOKUP: Record<string, CoreCategoryId> = {
-  overview: "foundations",
-  token: "foundations",
-  wallet: "foundations",
-  markets: "insights",
-  community: "community",
-  miniApp: "products",
-  api: "operations",
-  admin: "operations",
-  studio: "products",
-  "dynamic-portfolio": "products",
-  "dynamic-visual": "insights",
-  "ui-optimizer": "operations",
-  "dynamic-cli": "operations",
-  "market-review": "insights",
-  advantages: "community",
-};
-
-type CoreCategoryId =
-  | "foundations"
-  | "products"
-  | "insights"
-  | "operations"
-  | "community";
-type FilterCategoryId = "all" | CoreCategoryId;
+type FilterCategoryId = "all" | RouteCategoryId;
 
 interface FilterCategoryOption {
   id: FilterCategoryId;
@@ -48,42 +36,8 @@ interface FilterCategoryOption {
 
 interface EnhancedNavItem extends NavItem {
   href: string;
-  categoryId: CoreCategoryId;
-  categoryLabel: string;
   isActive: boolean;
 }
-
-const CATEGORY_CONFIG: Record<CoreCategoryId, {
-  label: string;
-  badgeClass: string;
-  indicatorClass: string;
-}> = {
-  foundations: {
-    label: "Foundations",
-    badgeClass: "border-transparent bg-emerald-500/15 text-emerald-200",
-    indicatorClass: "bg-emerald-400/80",
-  },
-  products: {
-    label: "Products",
-    badgeClass: "border-transparent bg-sky-500/15 text-sky-200",
-    indicatorClass: "bg-sky-400/80",
-  },
-  insights: {
-    label: "Insights",
-    badgeClass: "border-transparent bg-amber-500/15 text-amber-200",
-    indicatorClass: "bg-amber-400/80",
-  },
-  operations: {
-    label: "Operations",
-    badgeClass: "border-transparent bg-violet-500/15 text-violet-200",
-    indicatorClass: "bg-violet-400/80",
-  },
-  community: {
-    label: "Community",
-    badgeClass: "border-transparent bg-rose-500/15 text-rose-200",
-    indicatorClass: "bg-rose-400/80",
-  },
-};
 
 const CATEGORY_ORDER: FilterCategoryId[] = [
   "all",
@@ -93,10 +47,6 @@ const CATEGORY_ORDER: FilterCategoryId[] = [
   "operations",
   "community",
 ];
-
-const getCategoryIdForItem = (itemId: string): CoreCategoryId => {
-  return NAV_ITEM_CATEGORY_LOOKUP[itemId] ?? "products";
-};
 
 const isNavItemActive = (
   item: NavItem,
@@ -129,12 +79,31 @@ export interface FilterComponentProps {
   onItemSelect?: (item: NavItem) => void;
 }
 
-const FilterComponent: React.FC<FilterComponentProps> = ({
+const RESET_LABEL = "Reset filters";
+
+const defaultTitle = "Navigate anywhere faster";
+const defaultDescription =
+  "Search every Dynamic Capital surface and jump to the experience you need.";
+
+const NAVIGATION_BG =
+  "shadow-[0_24px_60px_-30px_rgba(15,23,42,0.75)] backdrop-blur-xl";
+
+const ACTIVE_CARD_STYLES =
+  "border-primary/60 bg-primary/10 shadow-[0_24px_80px_-40px_hsl(var(--primary)_/_0.45)]";
+const INACTIVE_CARD_STYLES =
+  "border-border/40 bg-background/70 hover:border-primary/40 hover:bg-background/80";
+
+const ACTIVE_CATEGORY_TAG = "border-transparent bg-primary/20 text-primary";
+const INACTIVE_CATEGORY_TAG =
+  "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground";
+
+const EMPTY_CARD_STYLES = "border-dashed border-border/70 bg-background/60";
+
+export const FilterComponent: React.FC<FilterComponentProps> = ({
   items,
   className,
-  title = "Navigate anywhere faster",
-  description =
-    "Search every Dynamic Capital surface and jump to the experience you need.",
+  title = defaultTitle,
+  description = defaultDescription,
   onItemSelect,
 }) => {
   const pathname = usePathname() ?? "/";
@@ -142,6 +111,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
   const [hash, setHash] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [activeCategory, setActiveCategory] = useState<FilterCategoryId>("all");
+  const searchInputId = useId();
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -163,21 +133,17 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
   const enhancedItems = useMemo<EnhancedNavItem[]>(() => {
     return items.map((item) => {
       const href = item.href ?? item.path;
-      const categoryId = getCategoryIdForItem(item.id);
-      const categoryLabel = CATEGORY_CONFIG[categoryId].label;
 
       return {
         ...item,
         href,
-        categoryId,
-        categoryLabel,
         isActive: isNavItemActive(item, pathname, hash),
       } satisfies EnhancedNavItem;
     });
   }, [hash, items, pathname]);
 
   const categories = useMemo<FilterCategoryOption[]>(() => {
-    const counts = enhancedItems.reduce<Record<CoreCategoryId, number>>(
+    const counts = enhancedItems.reduce<Record<RouteCategoryId, number>>(
       (accumulator, item) => {
         accumulator[item.categoryId] = (accumulator[item.categoryId] ?? 0) + 1;
         return accumulator;
@@ -200,7 +166,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
         } satisfies FilterCategoryOption;
       }
 
-      const config = CATEGORY_CONFIG[categoryId];
+      const config = ROUTE_CATEGORY_STYLES[categoryId];
       const count = counts[categoryId];
 
       if (count === 0) {
@@ -262,207 +228,262 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
         ease: "easeOut",
       }}
       className={cn(
-        "flex h-full flex-col gap-4 rounded-3xl border border-white/10 bg-background/95 p-6 shadow-[0_24px_60px_-30px_rgba(15,23,42,0.75)] backdrop-blur-xl",
+        "flex h-full flex-col gap-5 rounded-3xl border border-border/50 bg-background/95 p-6",
+        NAVIGATION_BG,
         className,
       )}
     >
-      <header className="flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-2">
-            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary/80">
-              <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
-              Filter navigation
-            </span>
-            <div>
-              <h2 className="text-xl font-semibold leading-tight text-foreground">
-                {title}
-              </h2>
-              {description && (
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {description}
-                </p>
-              )}
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleReset}
-            disabled={!hasActiveFilters}
-            className="self-start"
+      <Column gap="20">
+        <Column gap="16">
+          <Row
+            vertical="start"
+            horizontal="between"
+            wrap
+            gap="12"
+            className="gap-y-6"
           >
-            Reset
-          </Button>
-        </div>
-        <div className="flex flex-col gap-3">
-          <div className="relative">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <Input
+            <Column gap="8" maxWidth={72}>
+              <Row gap="8" vertical="center">
+                <Icon name="sparkle" size="s" aria-hidden />
+                <Text
+                  as="span"
+                  variant="label-default-xs"
+                  className="uppercase tracking-[0.28em] text-muted-foreground"
+                >
+                  Filter navigation
+                </Text>
+              </Row>
+              <Heading variant="heading-strong-m">{title}</Heading>
+              {description
+                ? (
+                  <Text
+                    variant="body-default-s"
+                    onBackground="neutral-weak"
+                  >
+                    {description}
+                  </Text>
+                )
+                : null}
+            </Column>
+            <DynamicButton
+              variant="tertiary"
+              size="s"
+              onClick={handleReset}
+              disabled={!hasActiveFilters}
+              aria-label={RESET_LABEL}
+            >
+              {RESET_LABEL}
+            </DynamicButton>
+          </Row>
+
+          <Column gap="12">
+            <DynamicInput
+              id={searchInputId}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search desks, products, or workflows"
               aria-label="Search navigation entries"
-              className="pl-9"
+              hasPrefix={<Icon name="search" size="s" aria-hidden />}
+              height="m"
             />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setActiveCategory(category.id)}
-                className={cn(
-                  "flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  activeCategory === category.id
-                    ? "border-primary/70 bg-primary/10 text-primary"
-                    : "border-border/60 text-muted-foreground hover:border-primary/40 hover:text-foreground",
-                )}
-                aria-pressed={activeCategory === category.id}
-              >
-                <span>{category.label}</span>
-                <span className="text-[10px] font-medium text-muted-foreground">
-                  {category.count}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
+            <Row gap="8" wrap>
+              {categories.map((category) => {
+                const isActive = activeCategory === category.id;
 
-      <div className="flex-1">
-        <ScrollArea className="h-full pr-2">
-          <AnimatePresence initial={false}>
-            {filteredItems.map((item) => {
-              const Icon = item.icon;
-              const categoryStyles = CATEGORY_CONFIG[item.categoryId];
-              return (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -12 }}
-                  transition={{
-                    duration: shouldReduceMotion ? 0 : 0.2,
-                    ease: "easeOut",
-                  }}
-                  className="mb-3 last:mb-0"
-                >
-                  <Link
-                    href={item.href}
-                    onClick={() => onItemSelect?.(item)}
+                return (
+                  <DynamicButton
+                    key={category.id}
+                    size="s"
+                    variant={isActive ? "primary" : "tertiary"}
+                    onClick={() => setActiveCategory(category.id)}
+                    aria-pressed={isActive}
                     className={cn(
-                      "group relative flex items-start gap-4 rounded-2xl border px-4 py-4 transition",
-                      item.isActive
-                        ? "border-primary/60 bg-primary/10"
-                        : "border-border/40 bg-card/40 hover:border-primary/40 hover:bg-card/60",
+                      "rounded-full px-4 py-1",
+                      isActive ? ACTIVE_CATEGORY_TAG : INACTIVE_CATEGORY_TAG,
                     )}
                   >
-                    <span
-                      className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-full text-foreground/90 transition group-hover:scale-105",
-                        item.isActive
-                          ? "bg-primary/20 text-primary"
-                          : "bg-muted text-muted-foreground",
-                      )}
+                    <Row gap="8" vertical="center">
+                      <Text as="span" variant="label-default-xs">
+                        {category.label}
+                      </Text>
+                      <Tag
+                        size="s"
+                        variant="neutral"
+                        className="px-2 py-0 text-[10px] font-medium"
+                      >
+                        {category.count}
+                      </Tag>
+                    </Row>
+                  </DynamicButton>
+                );
+              })}
+            </Row>
+          </Column>
+        </Column>
+
+        <div className="flex-1">
+          <Scroller direction="column" className="h-full gap-4 pr-2">
+            <AnimatePresence initial={false}>
+              {filteredItems.map((item) => {
+                const IconComponent = item.icon;
+                const categoryStyles = ROUTE_CATEGORY_STYLES[item.categoryId];
+
+                return (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -12 }}
+                    transition={{
+                      duration: shouldReduceMotion ? 0 : 0.2,
+                      ease: "easeOut",
+                    }}
+                  >
+                    <SmartLink
+                      href={item.href}
+                      unstyled
+                      className="group block"
+                      onClick={() => onItemSelect?.(item)}
+                      aria-label={`${item.label}. ${item.description}`}
                     >
-                      {Icon ? <Icon className="h-5 w-5" aria-hidden /> : null}
-                    </span>
-                    <div className="flex flex-1 flex-col gap-1 text-left">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-semibold text-foreground">
-                          {item.label}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "flex items-center gap-1 border-transparent px-2 py-0",
-                            categoryStyles.badgeClass,
-                          )}
-                        >
+                      <Card
+                        radius="xl"
+                        padding="16"
+                        gap="16"
+                        className={cn(
+                          "w-full items-start transition-all",
+                          item.isActive
+                            ? ACTIVE_CARD_STYLES
+                            : INACTIVE_CARD_STYLES,
+                        )}
+                      >
+                        <Row gap="16" className="w-full" vertical="start">
                           <span
                             className={cn(
-                              "h-1.5 w-1.5 rounded-full",
-                              categoryStyles.indicatorClass,
+                              "flex h-11 w-11 items-center justify-center rounded-full text-foreground/90 transition",
+                              item.isActive
+                                ? "bg-primary/20 text-primary"
+                                : "bg-muted text-muted-foreground",
                             )}
                             aria-hidden
-                          />
-                          {categoryStyles.label}
-                        </Badge>
-                        {item.isActive && (
-                          <span className="text-[11px] font-medium uppercase tracking-wide text-primary">
-                            Active
+                          >
+                            {IconComponent
+                              ? <IconComponent className="h-5 w-5" />
+                              : <Icon name="sparkle" size="s" />}
                           </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {item.description}
-                      </p>
-                      {item.step && (
-                        <span className="text-xs uppercase tracking-wide text-muted-foreground/80">
-                          {item.step}
-                        </span>
-                      )}
-                    </div>
-                    <ChevronRight
-                      className="mt-1 h-4 w-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-foreground"
-                      aria-hidden
-                    />
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                          <Column gap="8" className="flex-1 text-left">
+                            <Row gap="8" wrap className="items-center">
+                              <Heading variant="heading-strong-xs">
+                                {item.label}
+                              </Heading>
+                              <Tag
+                                size="s"
+                                className={cn(
+                                  "border px-2 py-0 text-[11px] font-semibold uppercase tracking-wide",
+                                  categoryStyles.badgeClass,
+                                )}
+                              >
+                                <span
+                                  className={cn(
+                                    "mr-1 inline-block h-1.5 w-1.5 rounded-full",
+                                    categoryStyles.indicatorClass,
+                                  )}
+                                  aria-hidden
+                                />
+                                {categoryStyles.label}
+                              </Tag>
+                              {item.isActive
+                                ? (
+                                  <Tag
+                                    size="s"
+                                    variant="gradient"
+                                    className="px-2 py-0 text-[11px] font-semibold uppercase tracking-wide"
+                                  >
+                                    Active
+                                  </Tag>
+                                )
+                                : null}
+                            </Row>
+                            <Text
+                              variant="body-default-s"
+                              onBackground="neutral-weak"
+                            >
+                              {item.description}
+                            </Text>
+                            {item.step
+                              ? (
+                                <Text
+                                  variant="label-default-xs"
+                                  className="uppercase tracking-[0.28em] text-muted-foreground/80"
+                                >
+                                  {item.step}
+                                </Text>
+                              )
+                              : null}
+                          </Column>
+                          <ChevronRight
+                            className="mt-1 h-4 w-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-foreground"
+                            aria-hidden
+                          />
+                        </Row>
+                      </Card>
+                    </SmartLink>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
 
-          {filteredItems.length === 0 && (
-            <motion.div
-              key="filter-empty"
-              initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
-              className="mt-6 flex h-40 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/70 text-center"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted/60">
-                <Search className="h-5 w-5 text-muted-foreground" aria-hidden />
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">
-                  No experiences found
-                </p>
-                <p className="mx-auto max-w-xs text-xs text-muted-foreground">
-                  Try a different keyword or switch categories to discover more
-                  of the Dynamic Capital platform.
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </ScrollArea>
-      </div>
+            {filteredItems.length === 0 && (
+              <motion.div
+                key="filter-empty"
+                initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+              >
+                <Card
+                  radius="xl"
+                  padding="20"
+                  gap="12"
+                  className={cn(
+                    "h-44 items-center justify-center text-center",
+                    EMPTY_CARD_STYLES,
+                  )}
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/60">
+                    <Icon name="search" size="m" aria-hidden />
+                  </span>
+                  <Column gap="8" className="max-w-xs">
+                    <Heading variant="heading-strong-xs">
+                      No experiences found
+                    </Heading>
+                    <Text variant="body-default-xs" onBackground="neutral-weak">
+                      Try a different keyword or switch categories to discover
+                      more of the Dynamic Capital platform.
+                    </Text>
+                  </Column>
+                </Card>
+              </motion.div>
+            )}
+          </Scroller>
+        </div>
 
-      <footer className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>
-          {filteredItems.length} {resultLabel}
-        </span>
-        {hasActiveFilters
-          ? (
-            <span className="text-muted-foreground/80">
-              Filters active
-            </span>
-          )
-          : (
-            <span className="text-muted-foreground/60">
-              Showing all destinations
-            </span>
-          )}
-      </footer>
+        <Row className="items-center justify-between border-t border-border/40 pt-4 text-xs text-muted-foreground">
+          <Text as="span" variant="label-default-xs">
+            {filteredItems.length} {resultLabel}
+          </Text>
+          <Text
+            as="span"
+            variant="label-default-xs"
+            onBackground="neutral-weak"
+          >
+            {hasActiveFilters ? "Filters active" : "Showing all destinations"}
+          </Text>
+        </Row>
+      </Column>
     </motion.section>
   );
 };
-
-FilterComponent.displayName = "NavigationFilter";
 
 export default FilterComponent;
