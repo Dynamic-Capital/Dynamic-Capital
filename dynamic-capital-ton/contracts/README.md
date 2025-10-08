@@ -32,12 +32,27 @@ Refer to `config.yaml` for the default deployment parameters. The pool allocator
 exposed by the master contract, so deploy it alongside the jetton and reuse the
 same multisig administrator when configuring the vault.
 
+## Governance addresses
+
+All governance addresses live in [`config.yaml`](../config.yaml) and should be
+kept in sync with production deployments. The friendly forms are base64url
+representations suitable for most wallets, while the raw column surfaces the
+`workchain:hash` pair that explorers expose in developer tooling.
+
+| Role          | Friendly address                                                                 | Raw (`workchain:hash`)                                                    | Tonviewer link                                                                 |
+| ------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Admin multisig | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38` | [tonviewer.com/EQD1z…NOPDD](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
+| Treasury wallet | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38` | [tonviewer.com/EQD1z…NOPDD](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
+| Primary DEX router | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | `0:779dcc815138d9500e449c5291e7f12738c23d575b5310000f6a253bd607384e` | [tonviewer.com/EQB3n…TiUt](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) |
+
 ### Discovery-compliant FunC master contract
 
 The `jetton/discoverable` folder ships a drop-in FunC master contract
 (`master.fc`) that mirrors the governance logic from the Tact version while
-exposing the Discovery wallet lookup interface. Compile it with the bundled
-imports:
+exposing the Discovery wallet lookup interface. The `get_discovery_data`
+getter returns the Discovery protocol version alongside the wallet code so
+indexers can confirm compatibility before calling `provide_wallet_address`.
+Compile it with the bundled imports:
 
 ```
 func -o build/discoverable-master.fif \
@@ -48,6 +63,21 @@ The helper modules under `jetton/discoverable/imports` wrap the shared standard
 library, opcodes, and wallet utilities already present in this repository. Use
 the same wallet code and content cells when migrating between the Tact and FunC
 variants to keep balances and metadata consistent.
+
+### FunC regression tests
+
+Compile-time regressions for the discoverable master are covered by a TypeScript
+test harness under `contracts/tests`. Install the repository dependencies and
+run the suite with:
+
+```
+npm install
+npx tsx dynamic-capital-ton/contracts/tests/discovery-getter.test.ts
+```
+
+The test compiles `master.fc`, boots it inside the TON contract executor, and
+asserts that `get_discovery_data` and `provide_wallet_address` respond with the
+expected payloads.
 
 ### Signing the discoverable contract
 
@@ -80,6 +110,15 @@ After submitting, monitor the explorer status with the CLI at
 against `metadata.json` and exits with non-zero codes if either the verification
 flag remains `none` or the hosted metadata drifts from the repository copy.
 
+### Tonkeeper verification workflow
+
+Tonkeeper displays an **Unverified Token** banner until the project submits the
+jetton metadata through their [`ton-assets` repository pull request
+process](https://tonkeeper.helpscoutdocs.com/article/127-tokennftverification).
+Fork the repository, add the Dynamic Capital Token YAML manifest under
+`jettons/`, and track any reviewer feedback directly on the pull request to keep
+the wallet status aligned with the explorers above.
+
 ## Explorer verification shortcuts
 
 Use the following canonical explorer pages to validate the on-chain jetton and
@@ -90,8 +129,8 @@ addresses so the link works regardless of which representation a wallet shows.
 | --------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tonscan   | Jetton overview      | [Friendly](https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [Raw](https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7) |
 | Tonviewer | Jetton overview      | [tonviewer.com/jetton/0:d29…96c7](https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7)                                                             |
-| STON.fi   | pTON/DCT pool wallet | [tonviewer.com/EQAx…0_MI](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI)                                                                                              |
-| Dedust    | TON/DCT pool wallet  | [tonviewer.com/EQAx…0_MI](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI)                                                                                              |
+| STON.fi   | pTON/DCT liquidity   | [Pool wallet](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) · [LP jetton](https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3) |
+| Dedust    | TON/DCT liquidity    | [Pool wallet](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI) · [LP jetton](https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98) |
 
 ### Metadata guardrails
 

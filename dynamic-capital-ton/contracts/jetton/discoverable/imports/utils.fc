@@ -2,3 +2,7 @@ int is_resolvable?(slice address) inline {
     int tag = address.preload_uint(2);
     return (tag == 2) | (tag == 3);
 }
+
+int equal_slices(slice a, slice b) inline {
+    return equal_slices_bits(a, b);
+}

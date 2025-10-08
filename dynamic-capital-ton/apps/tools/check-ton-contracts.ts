@@ -282,6 +282,20 @@ function friendlyToRawAddress(address: string | undefined): string | undefined {
   }
 }
 
+function formatGovernanceAddress(
+  label: string,
+  address: string | undefined,
+): string {
+  if (!address) {
+    return `${label}: (not configured)`;
+  }
+  const raw = friendlyToRawAddress(address);
+  if (raw) {
+    return `${label}: ${address} (raw ${raw})`;
+  }
+  return `${label}: ${address} (unrecognized format)`;
+}
+
 async function httpProbe(url: string): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
@@ -591,6 +605,11 @@ async function collectAccountStatuses(
 
 async function main() {
   const projectRoot = resolveProjectRoot(import.meta.url);
+  const projectConfig = await loadProjectConfig(projectRoot);
+  const contractsConfig = projectConfig.contracts ?? {};
+  const adminAddress = contractsConfig.admin;
+  const treasuryAddress = contractsConfig.treasury;
+  const dexRouterAddress = contractsConfig.dexRouter;
   const jettonSummary = await compareJettonMetadata(projectRoot);
   const dnsRecords = await parseDnsRecords(projectRoot);
   const tonapiStatus = await fetchTonapiStatus();
@@ -610,6 +629,22 @@ async function main() {
   console.log(
     `Tonviewer page: https://tonviewer.com/jetton/${jettonSummary.jettonAddress}\n`,
   );
+  console.log(formatGovernanceAddress("Admin multisig", adminAddress));
+  console.log(formatGovernanceAddress("Treasury wallet", treasuryAddress));
+  console.log(formatGovernanceAddress("Primary DEX router", dexRouterAddress));
+
+  const missingGovernance = [
+    adminAddress ? null : "admin",
+    treasuryAddress ? null : "treasury",
+    dexRouterAddress ? null : "dexRouter",
+  ].filter((entry): entry is string => entry !== null);
+  if (missingGovernance.length > 0) {
+    console.warn(
+      `\n⚠️ Missing governance addresses in config.yaml (contracts → ${missingGovernance.join(
+        ", ",
+      )}). Populate them before deploying.`,
+    );
+  }
 
   console.log("Metadata comparison:");
   console.table(jettonSummary.comparisons);

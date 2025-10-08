@@ -43,8 +43,10 @@ wallets.【F:dynamic-capital-ton/contracts/jetton/metadata.json†L1-L28】
    cite the jetton master address
    (`0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`).
 2. **Reference governance controls** by pointing reviewers to the timelock and
-   multisig description inside the packaged `contracts/README.md`. Mention that
-   the metadata hash included in `manifest.json` matches the hosted JSON.
+   multisig description inside the packaged `contracts/README.md`. Highlight the
+   Governance addresses table (admin multisig, treasury, and router in friendly
+   and raw formats) and mention that the metadata hash included in
+   `manifest.json` matches the hosted JSON.
 3. **Open a Tonkeeper asset ticket** (see
    [`docs/dct-tonkeeper-asset-verification.md`](../dct-tonkeeper-asset-verification.md))
    and include the same bundle so the wallet and explorer reviews stay in

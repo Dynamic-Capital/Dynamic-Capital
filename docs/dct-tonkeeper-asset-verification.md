@@ -23,7 +23,9 @@ matches the deployed jetton.
   file.【F:dynamic-capital-ton/contracts/jetton/metadata.json†L1-L28】
 - Governance and treasury structure from [`dynamic-capital-ton/config.yaml`]
   (operations multisig, guarded window, and cap
-  controls).【F:dynamic-capital-ton/config.yaml†L1-L31】
+  controls).【F:dynamic-capital-ton/config.yaml†L1-L31】 Reference the
+  governance address table in
+  [`dynamic-capital-ton/contracts/README.md`].【F:dynamic-capital-ton/contracts/README.md†L38-L57】
 - Public website references for Dynamic Capital Token, particularly
   `https://dynamic.capital/token` (Tonkeeper requests public-facing material to
   validate links).【F:apps/web/resources/token.ts†L182-L241】
