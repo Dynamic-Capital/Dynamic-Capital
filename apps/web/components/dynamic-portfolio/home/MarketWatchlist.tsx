@@ -127,7 +127,8 @@ type EquityFunctionResponse = {
   meta?: { lastUpdated?: string | null };
 };
 
-export const REFRESH_INTERVAL_MS = 60_000;
+export const REFRESH_INTERVAL_MS = 30_000;
+const BACKGROUND_REFRESH_INTERVAL_MS = 120_000;
 
 export const CATEGORY_DETAILS: Record<InstrumentCategory, CategoryVisual> = {
   Crypto: { icon: "sparkles", label: "Crypto currencies" },
@@ -972,6 +973,17 @@ export function useMarketWatchlistData({
   const inFlightRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [effectiveRefreshInterval, setEffectiveRefreshInterval] = useState(
+    () => {
+      if (refreshIntervalMs <= 0) {
+        return 0;
+      }
+      if (typeof document === "undefined" || !document.hidden) {
+        return refreshIntervalMs;
+      }
+      return Math.max(refreshIntervalMs, BACKGROUND_REFRESH_INTERVAL_MS);
+    },
+  );
 
   useEffect(
     () => () => {
@@ -1047,9 +1059,16 @@ export function useMarketWatchlistData({
 
     void performFetch();
 
+    if (effectiveRefreshInterval <= 0) {
+      intervalRef.current = null;
+      return () => {
+        abortControllerRef.current?.abort();
+      };
+    }
+
     const intervalId = setInterval(() => {
       void performFetch();
-    }, refreshIntervalMs);
+    }, effectiveRefreshInterval);
 
     intervalRef.current = intervalId;
 
@@ -1057,7 +1076,40 @@ export function useMarketWatchlistData({
       clearInterval(intervalId);
       intervalRef.current = null;
     };
-  }, [enabled, refreshIntervalMs, performFetch]);
+  }, [enabled, effectiveRefreshInterval, performFetch]);
+
+  useEffect(() => {
+    if (refreshIntervalMs <= 0) {
+      setEffectiveRefreshInterval(0);
+      return () => {};
+    }
+
+    const computeInterval = () => {
+      if (typeof document === "undefined" || !document.hidden) {
+        return refreshIntervalMs;
+      }
+      return Math.max(refreshIntervalMs, BACKGROUND_REFRESH_INTERVAL_MS);
+    };
+
+    setEffectiveRefreshInterval(computeInterval());
+
+    if (typeof document === "undefined") {
+      return () => {};
+    }
+
+    const handleVisibilityChange = () => {
+      setEffectiveRefreshInterval(computeInterval());
+      if (!document.hidden && enabled) {
+        void performFetch();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [enabled, performFetch, refreshIntervalMs]);
 
   const refresh = useCallback(async () => {
     await performFetch();
