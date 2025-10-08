@@ -13,7 +13,7 @@ import {
 import { Menu, X } from "lucide-react";
 
 import FilterComponent from "./framer/FilterComponent";
-import NAV_ITEMS from "./nav-items";
+import { NAV_ITEMS } from "./nav-items";
 
 export const MobileMenu: React.FC = () => {
   const [open, setOpen] = useState(false);
