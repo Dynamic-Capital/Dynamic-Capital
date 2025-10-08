@@ -28,10 +28,11 @@ import {
 } from "./PaymentOptions";
 import { CurrencySelector } from "./CurrencySelector";
 import { useCurrency } from "@/hooks/useCurrency";
-import { toast } from "sonner";
 import { callEdgeFunction, CRYPTO_CONFIG } from "@/config/supabase";
 import Image from "next/image";
 import { type PaymentMethodId } from "./paymentMethods";
+import { MiniWelcomeExperience } from "@/components/welcome/WelcomeExperience";
+import { useToast } from "@/hooks/useToast";
 
 interface Plan {
   id: string;
@@ -64,6 +65,10 @@ export default function CheckoutSection(
   const [step, setStep] = useState<"select" | "payment" | "instructions">(
     "select",
   );
+  const { toast: pushToast } = useToast();
+  const [activePromoCode, setActivePromoCode] = useState<string | null>(
+    promoCode ?? null,
+  );
 
   const isInTelegram = typeof window !== "undefined" && window.Telegram?.WebApp;
 
@@ -86,6 +91,52 @@ export default function CheckoutSection(
       .catch(() => setLoading(false));
   }, [selectedPlanId]);
 
+  useEffect(() => {
+    setActivePromoCode(promoCode ?? null);
+  }, [promoCode]);
+
+  type WelcomePlanKind = "monthly" | "lifetime" | "free";
+
+  const handleWelcomePlanSelect = (planId: string, kind: WelcomePlanKind) => {
+    if (kind === "free") {
+      setSelectedPlan(null);
+      setStep("payment");
+      pushToast({
+        title: "Free tour activated",
+        description: "Explore the experience without payment requirements.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const plan = plans.find((candidate) => candidate.id === planId);
+    if (!plan) {
+      pushToast({
+        title: "Plan unavailable",
+        description: "Please refresh or choose another plan option.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedPlan(plan);
+    setStep("payment");
+    pushToast({
+      title: `${plan.name} selected`,
+      description: "Review payment methods below to continue.",
+      duration: 3000,
+    });
+  };
+
+  const handlePromoApplied = (code: string) => {
+    setActivePromoCode(code);
+    pushToast({
+      title: "Promo code applied",
+      description: `${code} will be used during checkout.`,
+      duration: 3000,
+    });
+  };
+
   const getDisplayPrice = (plan: Plan) => {
     const basePrice = plan.price;
     if (currency === "MVR") {
@@ -97,6 +148,11 @@ export default function CheckoutSection(
   const handlePlanSelect = (plan: Plan) => {
     setSelectedPlan(plan);
     setStep("payment");
+    pushToast({
+      title: `${plan.name} selected`,
+      description: "Scroll down to choose your preferred payment method.",
+      duration: 3000,
+    });
   };
 
   const handleCheckout = async () => {
@@ -111,6 +167,7 @@ export default function CheckoutSection(
           method: paymentMethod,
           currency,
           amount: getDisplayPrice(selectedPlan),
+          promo_code: activePromoCode ?? undefined,
           initData: isInTelegram
             ? window.Telegram?.WebApp?.initData
             : undefined,
@@ -119,12 +176,24 @@ export default function CheckoutSection(
       if ((data as any)?.ok) {
         setPaymentInstructions((data as any).instructions);
         setStep("instructions");
-        toast.success("Payment initiated! Follow the instructions below.");
+        pushToast({
+          title: "Payment initiated",
+          description: "Follow the instructions below to complete your order.",
+          duration: 4000,
+        });
       } else {
-        toast.error((data as any)?.error || "Failed to initiate payment");
+        pushToast({
+          title: "Checkout failed",
+          description: (data as any)?.error || "Failed to initiate payment",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      toast.error("Failed to initiate checkout");
+      pushToast({
+        title: "Checkout error",
+        description: "Something went wrong while preparing payment.",
+        variant: "destructive",
+      });
     } finally {
       setInitiatingCheckout(false);
     }
@@ -132,7 +201,11 @@ export default function CheckoutSection(
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
+    pushToast({
+      title: "Copied",
+      description: "Details copied to your clipboard.",
+      duration: 2500,
+    });
   };
 
   const paymentOptionPresentation = useMemo<
@@ -190,17 +263,29 @@ export default function CheckoutSection(
 
   if (loading) {
     return (
-      <MotionCard variant="glass" animate={true}>
-        <CardContent className="p-6 text-center">
-          <div className="text-muted-foreground">Loading checkout...</div>
-        </CardContent>
-      </MotionCard>
+      <FadeInOnView>
+        <div className="space-y-6">
+          <MiniWelcomeExperience
+            onSelectPlan={handleWelcomePlanSelect}
+            onPromoApply={handlePromoApplied}
+          />
+          <MotionCard variant="glass" animate={true}>
+            <CardContent className="p-6 text-center">
+              <div className="text-muted-foreground">Loading checkout...</div>
+            </CardContent>
+          </MotionCard>
+        </div>
+      </FadeInOnView>
     );
   }
 
   return (
     <FadeInOnView>
       <div className="space-y-6">
+        <MiniWelcomeExperience
+          onSelectPlan={handleWelcomePlanSelect}
+          onPromoApply={handlePromoApplied}
+        />
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6 overflow-x-auto pb-2">
           {[
@@ -331,6 +416,11 @@ export default function CheckoutSection(
                   {currency === "MVR" ? "Rf" : "$"}
                   {getDisplayPrice(selectedPlan)} {currency}
                 </CardDescription>
+                {activePromoCode && (
+                  <Badge variant="secondary" className="mt-2 w-fit">
+                    Promo applied: {activePromoCode}
+                  </Badge>
+                )}
               </CardHeader>
               <CardContent className="space-y-6">
                 <PaymentOptions
@@ -382,6 +472,11 @@ export default function CheckoutSection(
                 <CardDescription>
                   Complete your payment using the details below
                 </CardDescription>
+                {activePromoCode && (
+                  <Badge variant="secondary" className="mt-2 w-fit">
+                    Promo applied: {activePromoCode}
+                  </Badge>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 {paymentInstructions.type === "bank_transfer" && (

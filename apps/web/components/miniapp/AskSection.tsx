@@ -15,7 +15,7 @@ import { Bot, Loader2, MessageSquare, Send } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 import { MicroButton, MicroInput } from "@/components/ui/micro-interactions";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import {
   staggerContainerVariants,

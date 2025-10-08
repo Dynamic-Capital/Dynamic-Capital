@@ -1,54 +1,86 @@
 import fs from "fs";
-import process from "node:process";
+import path from "path";
+import { pathToFileURL } from "url";
 
-const url = process.env.A_SUPABASE_URL;
-const key = process.env.A_SUPABASE_KEY;
-if (!url || !key) {
-  fs.writeFileSync(
-    ".audit/meta.json",
-    JSON.stringify(
-      { ok: false, error: "Missing A_SUPABASE_URL/A_SUPABASE_KEY" },
-      null,
-      2,
-    ),
-  );
-  process.exit(0);
-}
-
-async function r(path) {
-  const u = `${url.replace(/\/$/, "")}/rest/v1/${path}`;
-  const res = await fetch(u, {
+async function fetchJson(url, key) {
+  const response = await fetch(url, {
     headers: { apikey: key, Authorization: `Bearer ${key}` },
   });
-  if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
-  return res.json();
+  if (!response.ok) {
+    throw new Error(`GET ${url} -> ${response.status}`);
+  }
+  return response.json();
 }
 
-// pg_meta exposure
-let tables = [], indexes = [];
-try {
-  tables = await r("pg_meta.tables?select=schema,name");
-} catch {
-  console.warn("Failed to fetch pg_meta tables metadata");
-}
-try {
-  indexes = await r(
-    "pg_meta.indexes?select=schema,table,name,is_unique,is_primary,columns",
+export async function fetchSupabaseMetadata({
+  supabaseUrl = process.env.A_SUPABASE_URL,
+  supabaseKey = process.env.A_SUPABASE_KEY,
+  outputDir = path.join(process.cwd(), ".audit"),
+} = {}) {
+  if (!supabaseUrl || !supabaseKey) {
+    const meta = {
+      ok: false,
+      error: "Missing A_SUPABASE_URL/A_SUPABASE_KEY",
+    };
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(outputDir, "meta.json"),
+      JSON.stringify(meta, null, 2),
+    );
+    return meta;
+  }
+
+  const base = supabaseUrl.replace(/\/$/, "");
+
+  const result = { ok: true, tables: [], indexes: [] };
+
+  try {
+    const tables = await fetchJson(
+      `${base}/rest/v1/pg_meta.tables?select=schema,name`,
+      supabaseKey,
+    );
+    result.tables = tables
+      .filter((table) => table.schema === "public")
+      .map((table) => table.name)
+      .sort();
+  } catch (error) {
+    console.warn("Failed to fetch pg_meta tables metadata", error);
+  }
+
+  try {
+    const indexes = await fetchJson(
+      `${base}/rest/v1/pg_meta.indexes?select=schema,table,name,is_unique,is_primary,columns`,
+      supabaseKey,
+    );
+    result.indexes = indexes
+      .filter((index) => index.schema === "public")
+      .map((index) => ({
+        table: index.table,
+        name: index.name,
+        is_unique: Boolean(index.is_unique),
+        is_primary: Boolean(index.is_primary),
+        columns: index.columns,
+      }));
+  } catch (error) {
+    console.warn("Failed to fetch pg_meta indexes metadata", error);
+  }
+
+  fs.mkdirSync(outputDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(outputDir, "meta.json"),
+    JSON.stringify(result, null, 2),
   );
-} catch {
-  console.warn("Failed to fetch pg_meta indexes metadata");
+
+  return result;
 }
 
-const meta = {
-  ok: true,
-  tables: tables.filter((t) => t.schema === "public").map((t) => t.name).sort(),
-  indexes: indexes.filter((i) => i.schema === "public").map((i) => ({
-    table: i.table,
-    name: i.name,
-    is_unique: !!i.is_unique,
-    is_primary: !!i.is_primary,
-    columns: i.columns,
-  })),
-};
-
-fs.writeFileSync(".audit/meta.json", JSON.stringify(meta, null, 2));
+if (
+  process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url
+) {
+  fetchSupabaseMetadata().then((meta) => {
+    console.log(`metadata ok=${meta.ok}`);
+  }).catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
