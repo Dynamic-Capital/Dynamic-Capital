@@ -433,6 +433,7 @@ export interface VolatilityBucket {
   data: VolatilityBucketEntry[];
   formatValue?: (value: number | undefined) => string;
   valueLabel?: string;
+  emptyLabel?: string;
 }
 
 const defaultVolatilityFormatter = (value: number | undefined) => {
@@ -447,6 +448,7 @@ export function VolatilityBucketPanel({
   data,
   background,
   formatValue = defaultVolatilityFormatter,
+  emptyLabel = "No instruments available.",
 }: VolatilityBucket) {
   const headingId = `${
     title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
@@ -472,21 +474,27 @@ export function VolatilityBucketPanel({
         {title}
       </Tag>
       <Column as="ul" gap="12" fillWidth aria-labelledby={headingId}>
-        {data.map((item) => (
-          <Row key={item.id} as="li" horizontal="between" vertical="center">
-            <Column gap="4">
-              <Text variant="body-strong-s">{item.label}</Text>
-              {item.symbol
-                ? (
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {item.symbol}
-                  </Text>
-                )
-                : null}
-            </Column>
-            <Text variant="body-strong-s">{formatValue(item.value)}</Text>
-          </Row>
-        ))}
+        {data.length === 0
+          ? (
+            <Text as="li" variant="body-default-s" onBackground="neutral-weak">
+              {emptyLabel}
+            </Text>
+          )
+          : data.map((item) => (
+            <Row key={item.id} as="li" horizontal="between" vertical="center">
+              <Column gap="4">
+                <Text variant="body-strong-s">{item.label}</Text>
+                {item.symbol
+                  ? (
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      {item.symbol}
+                    </Text>
+                  )
+                  : null}
+              </Column>
+              <Text variant="body-strong-s">{formatValue(item.value)}</Text>
+            </Row>
+          ))}
       </Column>
     </Column>
   );
