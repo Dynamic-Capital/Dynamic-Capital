@@ -41,12 +41,12 @@ export default function QrCode({
     setDataUrl(null);
 
     QRCode.toDataURL(value, qrOptions)
-      .then((url) => {
+      .then((url: string) => {
         if (isMounted) {
           setDataUrl(url);
         }
       })
-      .catch((qrError) => {
+      .catch((qrError: unknown) => {
         console.error("Failed to generate QR code", qrError);
         if (isMounted) {
           setError("QR unavailable");
