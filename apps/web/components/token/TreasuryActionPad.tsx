@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, Copy } from "lucide-react";
 
@@ -25,6 +25,52 @@ import {
 } from "@shared/ton/dct-action-pad";
 
 import { shortenTonAddress } from "@/resources";
+
+async function copyValueToClipboard(value: string): Promise<boolean> {
+  if (
+    typeof navigator !== "undefined" &&
+    typeof navigator.clipboard?.writeText === "function"
+  ) {
+    await navigator.clipboard.writeText(value);
+    return true;
+  }
+
+  if (typeof document === "undefined") {
+    return false;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-9999px";
+  textarea.style.opacity = "0";
+
+  document.body.appendChild(textarea);
+
+  const selection = document.getSelection();
+  const previousRange = selection?.rangeCount ? selection.getRangeAt(0) : null;
+
+  textarea.select();
+
+  let copied = false;
+  try {
+    copied = typeof document.execCommand === "function"
+      ? document.execCommand("copy")
+      : false;
+  } catch {
+    copied = false;
+  }
+
+  document.body.removeChild(textarea);
+
+  if (previousRange && selection) {
+    selection.removeAllRanges();
+    selection.addRange(previousRange);
+  }
+
+  return copied;
+}
 
 type TreasuryActionPadProps = {
   pad: DctActionPadDefinition;
@@ -157,30 +203,39 @@ export function TreasuryActionPad({ pad }: TreasuryActionPadProps) {
     [pad.walletAddress],
   );
 
-  const handleCopy = async (field: DctCopyFieldDefinition) => {
-    try {
-      await navigator.clipboard.writeText(field.value);
-      if (resetTimerRef.current) {
-        clearTimeout(resetTimerRef.current);
+  const handleCopy = useCallback(
+    async (field: DctCopyFieldDefinition) => {
+      try {
+        const copied = await copyValueToClipboard(field.value);
+        if (!copied) {
+          throw new Error("Clipboard API not available");
+        }
+
+        if (resetTimerRef.current) {
+          clearTimeout(resetTimerRef.current);
+        }
+
+        setCopiedKey(field.key);
+        resetTimerRef.current = setTimeout(() => {
+          setCopiedKey(null);
+        }, 2000);
+
+        toast({
+          title: "Copied",
+          description: `${field.label} copied to clipboard.`,
+        });
+      } catch (error) {
+        console.error("[TreasuryActionPad] Copy failed", error);
+        toast({
+          title: "Copy not available",
+          description:
+            "Your browser blocked clipboard access. Please copy manually.",
+          variant: "destructive",
+        });
       }
-      setCopiedKey(field.key);
-      resetTimerRef.current = setTimeout(() => {
-        setCopiedKey(null);
-      }, 2000);
-      toast({
-        title: "Copied",
-        description: `${field.label} copied to clipboard.`,
-      });
-    } catch (error) {
-      console.error("[TreasuryActionPad] Copy failed", error);
-      toast({
-        title: "Copy not available",
-        description:
-          "Your browser blocked clipboard access. Please copy manually.",
-        variant: "destructive",
-      });
-    }
-  };
+    },
+    [toast],
+  );
 
   return (
     <Column

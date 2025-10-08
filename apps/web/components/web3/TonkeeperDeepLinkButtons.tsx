@@ -11,7 +11,7 @@ import {
   TON_STANDARD_SCHEME,
   TONKEEPER_UNIVERSAL_SCHEME,
   type TonkeeperTransferOptions,
-} from "../../../../shared/ton/tonkeeper";
+} from "@shared/ton/tonkeeper";
 
 type NumericLike = string | number | bigint | null | undefined;
 
