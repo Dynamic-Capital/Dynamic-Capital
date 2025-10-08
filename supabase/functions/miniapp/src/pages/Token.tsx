@@ -5,6 +5,7 @@ import {
   BarChart3,
   BookOpen,
   Bot,
+  Check,
   ClipboardList,
   Copy,
   ExternalLink,
@@ -77,8 +78,53 @@ const ACTION_ICON_MAP: Record<DctActionKey, LucideIcon> = {
   onboard: Users,
   deposit: ArrowDownToLine,
   withdraw: ArrowUpFromLine,
-  utilize: RefreshCcw,
+  utilize: Repeat,
 };
+
+const ACTION_KEYS: readonly DctActionKey[] = [
+  "onboard",
+  "deposit",
+  "withdraw",
+  "utilize",
+] as const;
+
+const createActionLookup = (
+  actions: readonly DctActionDefinition[],
+): Readonly<Record<DctActionKey, DctActionDefinition>> => {
+  const lookup = actions.reduce<
+    Partial<Record<DctActionKey, DctActionDefinition>>
+  >((accumulator, action) => {
+    if (accumulator[action.key]) {
+      throw new Error(
+        `Duplicate DCT action definition for key "${action.key}"`,
+      );
+    }
+
+    accumulator[action.key] = action;
+    return accumulator;
+  }, {});
+
+  const missingKeys = ACTION_KEYS.filter((key) => !lookup[key]);
+  if (missingKeys.length > 0) {
+    throw new Error(
+      `Missing DCT action definitions for keys: ${missingKeys.join(", ")}`,
+    );
+  }
+
+  return Object.freeze(
+    lookup as Record<DctActionKey, DctActionDefinition>,
+  );
+};
+
+const ACTION_DEFINITION_BY_KEY = createActionLookup(ACTION_PAD.actions);
+
+interface DexOption {
+  readonly name: string;
+  readonly description: string;
+  readonly swapUrl: string;
+  readonly explorerUrl: string;
+  readonly jettonWalletUrl: string;
+}
 
 const ONBOARDING_STEPS = [
   {
@@ -144,24 +190,6 @@ const HOW_IT_WORKS_PILLARS = [
       "Incident playbooks escalate to human control with one tap in Telegram.",
     ],
     icon: Shield,
-  },
-] as const;
-
-const INVESTOR_MILESTONES = [
-  {
-    title: "KYC & accreditation sync",
-    description:
-      "Leverage Telegram identity, submitted docs, and compliance attestations to unlock investor dashboards.",
-  },
-  {
-    title: "Capital allocation briefing",
-    description:
-      "Review the treasury mix, active strategies, and projected cash flows before committing DCT.",
-  },
-  {
-    title: "Automated reporting",
-    description:
-      "Monthly statements deliver NAV, strategy attribution, and risk notes straight to your Mini App inbox.",
   },
 ] as const;
 
@@ -240,13 +268,15 @@ const SECURITY_FEATURES = [
   },
 ] as const;
 
-const DEX_OPTIONS = DCT_DEX_POOLS.map((pool) => ({
-  name: pool.dex,
-  description: pool.description,
-  swapUrl: pool.swapUrl,
-  explorerUrl: pool.poolExplorerUrl,
-  jettonWalletUrl: pool.jettonWalletExplorerUrl,
-})) as const;
+const DEX_OPTIONS: readonly DexOption[] = Object.freeze(
+  DCT_DEX_POOLS.map((pool) => ({
+    name: pool.dex,
+    description: pool.description,
+    swapUrl: pool.swapUrl,
+    explorerUrl: pool.poolExplorerUrl,
+    jettonWalletUrl: pool.jettonWalletExplorerUrl,
+  })),
+);
 
 type SectionId =
   | "overview"
@@ -285,10 +315,7 @@ export default function Token() {
     ACTION_PAD.defaultActionKey,
   );
 
-  const activeActionDefinition = useMemo<DctActionDefinition | undefined>(
-    () => ACTION_PAD.actions.find((action) => action.key === activeAction),
-    [activeAction],
-  );
+  const activeActionDefinition = ACTION_DEFINITION_BY_KEY[activeAction];
 
   const handleCopyField = useCallback(
     async (label: string, value: string) => {
