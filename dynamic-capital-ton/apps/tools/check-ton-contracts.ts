@@ -574,7 +574,7 @@ async function fetchJettonWalletData(
     ? Cell.fromBase64(masterCellB64).beginParse().loadAddress()?.toString()
     : undefined;
 
-  return { balance: BigInt(0), owner, master };
+  return { owner, master };
 }
 
 async function verifyWalletOwnership(
