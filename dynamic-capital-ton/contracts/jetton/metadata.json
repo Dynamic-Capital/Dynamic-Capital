@@ -1,7 +1,7 @@
 {
   "name": "Dynamic Capital Token",
   "symbol": "DCT",
-  "description": "Dynamic Capital is a Web3-native financial ecosystem built on the TON blockchain, designed to empower traders, investors, and learners through automation, mentorship, and transparent revenue-sharing.\n\n🔹 Core Asset: DCT Token\n• Utility: VIP mentorship, staking, governance, fund pool access, NFT memberships\n• Tokenomics: 100M supply, deflationary tax (50% burn, 30% treasury, 20% liquidity)\n\n🔹 Treasury & Rewards\n• Revenue-backed public wallet fueling staking incentives, buybacks, and ecosystem growth\n\n🔹 Market Path\n• Price rollout: $0.02 (Private) → $0.05 (IDO) → $0.10 (Listing) → Target $1–$5 mid-term\n\n🔹 Governance & Security\n• DAO voting with a 48-hour guarded window for treasury actions and expansions\n• Audited smart contracts, monthly revenue reporting, and a public treasury address.\n\nDynamic Capital Foundation ensures ethical growth, transparency, and community ownership.",
+  "description": "Dynamic Capital is a Maldivian-born Web3 finance collective on TON that fuses quant automation, human mentorship, and transparent treasury governance.\n\n🔹 Core Asset: DCT Token\n• Utility: trading automation credits, mentorship tiers, governance, theme pass unlocks, liquidity incentives\n• Treasury streams: public multisig splitting subscription inflows 48% operations, 32% auto-invest, 20% buyback + burn\n• Market path: $0.02 (Private) → $0.05 (IDO) → $0.10 (Listing) with DAO-managed buybacks targeting $1–$5 mid-term\n\n🔹 Governance & Security\n• 48h timelocked multisig for treasury, router, and metadata changes\n• Monthly disclosures, on-chain supply proofs, and audit-tracked DNS records\n\nDynamic Capital Foundation maintains community-owned growth with verifiable on-chain telemetry.",
   "decimals": 9,
   "address": "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
   "image": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCTMark.png",
@@ -10,18 +10,27 @@
     "https://dynamiccapital.ton/token",
     "https://dynamic.capital/token",
     "https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
-    "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+    "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "https://app.ston.fi/swap?from=TON&to=DCT",
     "https://dedust.io/swap/TON-DCT",
     "https://meta.ston.fi/lp/v1/0:31876BC3DD431F36B176F692A5E96B0ECF1AEDEBFA76497ACD2F3661D6FBACD3.json",
     "https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata",
     "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+    "https://tonscan.org/address/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
     "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
+    "https://tonscan.org/address/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
     "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
+    "https://tonscan.org/address/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
     "https://tonviewer.com/EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3",
-    "https://tonviewer.com/EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz"
+    "https://tonscan.org/address/EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3",
+    "https://tonviewer.com/EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
+    "https://tonscan.org/address/EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
+    "https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
+    "https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
+    "https://tonviewer.com/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
+    "https://tonscan.org/address/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq"
   ],
   "attributes": [
     {
@@ -33,14 +42,18 @@
       "value": 9
     },
     {
-      "trait_type": "Deflationary tax",
-      "value": "50% burn / 30% treasury / 20% liquidity"
+      "trait_type": "Treasury split",
+      "value": "48% operations / 32% auto-invest / 20% buyback & burn"
     },
     {
       "trait_type": "Governance",
-      "value": "DAO voting with 48h guarded window"
+      "value": "Timelocked multisig + DAO votes (48h guard)"
+    },
+    {
+      "trait_type": "Treasury multisig",
+      "value": "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD"
     }
   ],
-  "version": "1.0",
+  "version": "1.1",
   "standard": "ton.jetton.v1"
 }
