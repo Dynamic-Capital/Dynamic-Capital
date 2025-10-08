@@ -56,8 +56,81 @@ const shorten = (value: string, visible = 6) =>
     ? value
     : `${value.slice(0, visible)}…${value.slice(-visible)}`;
 
-const STONFI_POOL = DCT_DEX_POOLS.find((pool) => pool.dex === "STON.fi");
-const DEDUST_POOL = DCT_DEX_POOLS.find((pool) => pool.dex === "DeDust");
+const STONFI_TON_POOL = DCT_DEX_POOLS.find(
+  (pool) => pool.dex === "STON.fi" && pool.pair === "DCT/TON",
+);
+const DEDUST_TON_POOL = DCT_DEX_POOLS.find(
+  (pool) => pool.dex === "DeDust" && pool.pair === "DCT/TON",
+);
+const DEDUST_USDT_POOL = DCT_DEX_POOLS.find(
+  (pool) => pool.dex === "DeDust" && pool.pair === "DCT/USDT",
+);
+
+const utilizeLinks: DctActionLinkDefinition[] = [];
+
+if (STONFI_TON_POOL) {
+  utilizeLinks.push({
+    label: "Swap on STON.fi",
+    href: STONFI_TON_POOL.swapUrl,
+    external: true,
+  });
+
+  if (STONFI_TON_POOL.poolExplorerUrl) {
+    utilizeLinks.push({
+      label: "STON.fi pool explorer",
+      href: STONFI_TON_POOL.poolExplorerUrl,
+      external: true,
+    });
+  }
+
+  if (STONFI_TON_POOL.jettonWalletExplorerUrl) {
+    utilizeLinks.push({
+      label: "STON.fi jetton wallet",
+      href: STONFI_TON_POOL.jettonWalletExplorerUrl,
+      external: true,
+    });
+  }
+}
+
+if (DEDUST_TON_POOL) {
+  utilizeLinks.push({
+    label: "Swap on DeDust",
+    href: DEDUST_TON_POOL.swapUrl,
+    external: true,
+  });
+
+  if (DEDUST_TON_POOL.poolExplorerUrl) {
+    utilizeLinks.push({
+      label: "DeDust pool explorer",
+      href: DEDUST_TON_POOL.poolExplorerUrl,
+      external: true,
+    });
+  }
+
+  if (DEDUST_TON_POOL.jettonWalletExplorerUrl) {
+    utilizeLinks.push({
+      label: "DeDust jetton wallet",
+      href: DEDUST_TON_POOL.jettonWalletExplorerUrl,
+      external: true,
+    });
+  }
+}
+
+if (DEDUST_USDT_POOL) {
+  utilizeLinks.push({
+    label: "Swap DCT/USDT on DeDust",
+    href: DEDUST_USDT_POOL.swapUrl,
+    external: true,
+  });
+}
+
+utilizeLinks.push({
+  label: "Tonviewer jetton master",
+  href: buildJettonExplorerUrl(TON_MAINNET_JETTON_MASTER),
+  external: true,
+});
+
+const UTILIZE_LINKS = Object.freeze(utilizeLinks) as readonly DctActionLinkDefinition[];
 
 export const DCT_ACTION_PAD = Object.freeze({
   alias: TON_MAINNET_DCT_TREASURY_ALIAS,
@@ -192,51 +265,7 @@ export const DCT_ACTION_PAD = Object.freeze({
         "Explorer links expose pool balances for reconciliation across Supabase and bots.",
         "Jetton wallet references align governance, automation scripts, and compliance checks.",
       ],
-      links: [
-        ...(STONFI_POOL
-          ? [
-            {
-              label: "Swap on STON.fi",
-              href: STONFI_POOL.swapUrl,
-              external: true,
-            },
-            {
-              label: "STON.fi pool explorer",
-              href: STONFI_POOL.poolExplorerUrl,
-              external: true,
-            },
-            {
-              label: "STON.fi jetton wallet",
-              href: STONFI_POOL.jettonWalletExplorerUrl,
-              external: true,
-            },
-          ]
-          : []),
-        ...(DEDUST_POOL
-          ? [
-            {
-              label: "Swap on DeDust",
-              href: DEDUST_POOL.swapUrl,
-              external: true,
-            },
-            {
-              label: "DeDust pool explorer",
-              href: DEDUST_POOL.poolExplorerUrl,
-              external: true,
-            },
-            {
-              label: "DeDust jetton wallet",
-              href: DEDUST_POOL.jettonWalletExplorerUrl,
-              external: true,
-            },
-          ]
-          : []),
-        {
-          label: "Tonviewer jetton master",
-          href: buildJettonExplorerUrl(TON_MAINNET_JETTON_MASTER),
-          external: true,
-        },
-      ],
+      links: UTILIZE_LINKS,
     },
   ],
 } satisfies DctActionPadDefinition);
