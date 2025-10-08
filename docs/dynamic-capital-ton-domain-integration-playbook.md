@@ -13,7 +13,8 @@ dApps, and explorers.
 - **Root Domain:** `dynamiccapital.ton`
 - **Token Symbol:** `DCT`
 - **Jetton Master:** `EQDSmz4R…ig6Wx_6y`
-- **Treasury Wallet:** `UQD1zAJP…H_cNOK0G`
+- **Treasury Wallet:** `dynamiccapital.ton` →
+  `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`
 
 > **Note:** Only the treasury wallet should have permission to update the
 > resolver record to preserve authoritative control.
@@ -26,9 +27,10 @@ auto-discover Dynamic Capital contracts and services when resolving
 
 | Key               | Address / URL                                      | Description                    |
 | ----------------- | -------------------------------------------------- | ------------------------------ |
-| `jetton_master`   | `EQDSmz4R…ig6Wx_6y`                                | Dynamic Capital Token (DCT)    |
-| `treasury_wallet` | `UQD1zAJP…H_cNOK0G`                                | Treasury & mint authority      |
-| `stonfi_pool`     | `EQAyD7O8…5lfJPyfA`                                | STON.fi DCT/TON pool           |
+| `ton_alias`       | `dynamiccapital.ton`                               | DNS alias resolving deposits   |
+| `jetton_master`   | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | Dynamic Capital Token (DCT)    |
+| `treasury_wallet` | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` | Treasury & mint authority      |
+| `stonfi_pool`     | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | STON.fi DCT/TON pool           |
 | `wallet_v5r1`     | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm` | Jetton wallet (Wallet v5r1)    |
 | `dedust_pool`     | `EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI` | DeDust DCT/TON vault           |
 | `dao_contract`    | `future DAO multisig`                              | Governance executor            |
@@ -65,11 +67,12 @@ auto-discover Dynamic Capital contracts and services when resolving
     "twitter": "https://x.com/dynamic_capital"
   },
   "contracts": {
-    "jetton_master": "EQDSmz4R...ig6Wx_6y",
-    "stonfi_pool": "EQAyD7O8...5lfJPyfA",
+    "ton_alias": "dynamiccapital.ton",
+    "jetton_master": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "stonfi_pool": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
     "wallet_v5r1": "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
     "dedust_pool": "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
-    "treasury": "UQD1zAJP...H_cNOK0G"
+    "treasury": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq"
   }
 }
 ```
@@ -91,9 +94,10 @@ auto-discover Dynamic Capital contracts and services when resolving
 Add the following entries to the TON DNS resolver:
 
 ```
-jetton_master=EQDSmz4R...ig6Wx_6y
-treasury_wallet=UQD1zAJP...H_cNOK0G
-stonfi_pool=EQAyD7O8...5lfJPyfA
+ton_alias=dynamiccapital.ton
+jetton_master=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+treasury_wallet=EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq
+stonfi_pool=EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt
 wallet_v5r1=EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm
 dedust_pool=EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI
 dao_contract=EQDAOxyz...daoAddr

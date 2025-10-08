@@ -2,16 +2,25 @@ import { mnemonicToPrivateKey, sign } from "ton-crypto";
 import { TonClient4 } from "ton";
 import axios from "axios";
 import { Buffer } from "node:buffer";
+import {
+  TON_MAINNET_DCT_TREASURY_ALIAS,
+  TON_MAINNET_DCT_TREASURY_WALLET,
+  TON_MAINNET_DCT_WALLET_V5R1,
+  TON_MAINNET_DEDUST_DCT_TON_POOL,
+  TON_MAINNET_JETTON_MASTER,
+  TON_MAINNET_STONFI_ROUTER,
+} from "../../../shared/ton/mainnet-addresses";
 
 const DOMAIN = "dynamiccapital.ton";
 const METADATA_URL = "https://dynamiccapital.ton/jetton-metadata.json";
 const RPC_ENDPOINT = "https://toncenter.com/api/v2/jsonRPC";
 const dnsRecord: Record<string, string> = {
-  jetton_master: "EQDSmz4R...ig6Wx_6y",
-  treasury_wallet: "UQD1zAJP...H_cNOK0G",
-  stonfi_pool: "EQAyD7O8...5lfJPyfA",
-  wallet_v5r1: "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
-  dedust_pool: "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+  ton_alias: TON_MAINNET_DCT_TREASURY_ALIAS,
+  jetton_master: TON_MAINNET_JETTON_MASTER,
+  treasury_wallet: TON_MAINNET_DCT_TREASURY_WALLET,
+  stonfi_pool: TON_MAINNET_STONFI_ROUTER,
+  wallet_v5r1: TON_MAINNET_DCT_WALLET_V5R1,
+  dedust_pool: TON_MAINNET_DEDUST_DCT_TON_POOL,
   dao_contract: "EQDAOxyz...daoAddr",
   metadata: METADATA_URL,
   api: "https://api.dynamiccapital.ton",

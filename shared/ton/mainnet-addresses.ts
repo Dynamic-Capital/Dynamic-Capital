@@ -3,6 +3,8 @@ export interface TonMainnetAccountDefinition {
   readonly label: string;
   readonly friendlyAddress: string;
   readonly description?: string;
+  readonly tonDns?: string;
+  readonly explorerUrl?: string;
 }
 
 export const TON_MAINNET_OPERATIONS_TREASURY =
@@ -14,8 +16,26 @@ export const TON_MAINNET_INTAKE_WALLET =
 export const TON_MAINNET_JETTON_MASTER =
   "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
 
+export const TON_MAINNET_DCT_TREASURY_ALIAS = "dynamiccapital.ton";
 export const TON_MAINNET_DCT_TREASURY_WALLET =
   "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
+
+const DCT_TREASURY_TRANSFER_MEMO = "Dynamic Capital DCT deposit";
+
+export const TON_MAINNET_DCT_TREASURY_TONVIEWER_URL =
+  `https://tonviewer.com/${TON_MAINNET_DCT_TREASURY_WALLET}`;
+
+export const TON_MAINNET_DCT_TREASURY_TONKEEPER_LINK =
+  `https://app.tonkeeper.com/transfer/${TON_MAINNET_DCT_TREASURY_ALIAS}` +
+  `?jetton=${TON_MAINNET_JETTON_MASTER}` +
+  `&text=${encodeURIComponent(DCT_TREASURY_TRANSFER_MEMO)}`;
+
+export const TON_MAINNET_DCT_TREASURY_TON_TRANSFER_LINK =
+  `ton://transfer/${TON_MAINNET_DCT_TREASURY_ALIAS}` +
+  `?jetton=${TON_MAINNET_JETTON_MASTER}` +
+  `&text=${encodeURIComponent(DCT_TREASURY_TRANSFER_MEMO)}`;
+
+export const TON_MAINNET_DCT_TREASURY_MEMO = DCT_TREASURY_TRANSFER_MEMO;
 
 export const TON_MAINNET_STONFI_ROUTER =
   "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
@@ -54,6 +74,8 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     friendlyAddress: TON_MAINNET_DCT_TREASURY_WALLET,
     description:
       "Primary treasury wallet holding circulating DCT for emissions and burns.",
+    tonDns: TON_MAINNET_DCT_TREASURY_ALIAS,
+    explorerUrl: TON_MAINNET_DCT_TREASURY_TONVIEWER_URL,
   },
   {
     key: "stonfiRouter",

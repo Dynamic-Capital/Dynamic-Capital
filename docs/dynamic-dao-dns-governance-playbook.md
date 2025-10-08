@@ -142,14 +142,15 @@ mirrors the canonical structure:
 {
   "domain": "dynamiccapital.ton",
   "records": {
-    "jetton_master": "EQDSmz4R...ig6Wx_6y",
-    "treasury_wallet": "UQD1zAJP...H_cN0K0G",
-    "stonfi_pool": "EQAyD7O8...5lfJPyfA",
+    "ton_alias": "dynamiccapital.ton",
+    "jetton_master": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "treasury_wallet": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
+    "stonfi_pool": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
     "wallet_v5r1": "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
     "dedust_pool": "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
     "dao_contract": "EQDAOxyz...daoAddr",
     "api": "https://api.dynamiccapital.ton",
-    "updated": "2025-10-07"
+    "updated": "2025-10-08"
   },
   "signatures": {
     "dao": "base64:abc123...",

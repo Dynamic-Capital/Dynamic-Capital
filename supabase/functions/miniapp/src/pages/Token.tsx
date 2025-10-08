@@ -33,11 +33,20 @@ import {
 import { Badge } from "../components/ui/badge";
 import QrCode from "../components/QrCode";
 import { cn } from "../lib/utils";
+import {
+  TON_MAINNET_DCT_TREASURY_ALIAS,
+  TON_MAINNET_DCT_TREASURY_MEMO,
+  TON_MAINNET_DCT_TREASURY_TON_TRANSFER_LINK,
+  TON_MAINNET_DCT_TREASURY_TONKEEPER_LINK,
+  TON_MAINNET_DCT_TREASURY_TONVIEWER_URL,
+  TON_MAINNET_DCT_TREASURY_WALLET,
+  TON_MAINNET_JETTON_MASTER,
+} from "../../../../../shared/ton/mainnet-addresses";
 
-const DCT_TREASURY_ALIAS = "dynamiccapital.ton";
-const DCT_TREASURY_ADDRESS = "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
-const DCT_TREASURY_URL = `https://tonviewer.com/${DCT_TREASURY_ADDRESS}`;
-const DCT_JETTON_ADDRESS = "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
+const DCT_TREASURY_ALIAS = TON_MAINNET_DCT_TREASURY_ALIAS;
+const DCT_TREASURY_ADDRESS = TON_MAINNET_DCT_TREASURY_WALLET;
+const DCT_TREASURY_URL = TON_MAINNET_DCT_TREASURY_TONVIEWER_URL;
+const DCT_JETTON_ADDRESS = TON_MAINNET_JETTON_MASTER;
 const DCT_JETTON_URL = `https://tonviewer.com/jetton/${DCT_JETTON_ADDRESS}`;
 const STONFI_POOL_URL = "https://app.ston.fi/swap?from=TON&to=DCT";
 const STONFI_EXPLORER_URL =
@@ -49,18 +58,9 @@ const OPERATIONS_TREASURY_ADDRESS =
   "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
 const OPERATIONS_TREASURY_URL =
   `https://tonviewer.com/${OPERATIONS_TREASURY_ADDRESS}`;
-const TONKEEPER_UNIVERSAL_LINK =
-  `https://app.tonkeeper.com/transfer/${DCT_TREASURY_ALIAS}?jetton=${DCT_JETTON_ADDRESS}&text=${
-    encodeURIComponent(
-      "Dynamic Capital DCT deposit",
-    )
-  }`;
-const TON_STANDARD_LINK =
-  `ton://transfer/${DCT_TREASURY_ALIAS}?jetton=${DCT_JETTON_ADDRESS}&text=${
-    encodeURIComponent(
-      "Dynamic Capital DCT deposit",
-    )
-  }`;
+const TONKEEPER_UNIVERSAL_LINK = TON_MAINNET_DCT_TREASURY_TONKEEPER_LINK;
+const TON_STANDARD_LINK = TON_MAINNET_DCT_TREASURY_TON_TRANSFER_LINK;
+const DCT_TREASURY_MEMO = TON_MAINNET_DCT_TREASURY_MEMO;
 
 const HERO_HIGHLIGHTS = [
   {
@@ -550,8 +550,9 @@ export default function Token() {
                 </Button>
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Treasury transfers remain auditable in Tonviewer. Include your
-                investor memo when prompted so reconciliation clears instantly.
+                TonConnect pre-fills "{DCT_TREASURY_MEMO}" as the memo. Append
+                your investor reference when prompted so reconciliation clears
+                instantly.
               </p>
             </CardContent>
           </Card>
