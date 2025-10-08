@@ -17,14 +17,16 @@ export type TonConnectManifest = {
 const DEFAULT_NETWORK: TonNetwork = "mainnet";
 export const TON_MANIFEST_PATH = "/api/tonconnect/manifest";
 const MANIFEST_ICON_PATH = "/icon-mark.svg";
-const PRIMARY_PRODUCTION_ORIGIN = "https://dynamic.capital";
+const PRIMARY_PRODUCTION_ORIGIN = "https://dynamiccapital.ton";
 const DIGITALOCEAN_ACTIVE_ORIGIN =
   "https://dynamic-capital-qazf2.ondigitalocean.app";
 const DIGITALOCEAN_LEGACY_ORIGIN = "https://dynamic-capital.ondigitalocean.app";
+const DYNAMIC_CAPITAL_FALLBACK_ORIGIN = "https://dynamic.capital";
 const PROD_FALLBACK_ORIGINS = [
   PRIMARY_PRODUCTION_ORIGIN,
   DIGITALOCEAN_ACTIVE_ORIGIN,
   DIGITALOCEAN_LEGACY_ORIGIN,
+  DYNAMIC_CAPITAL_FALLBACK_ORIGIN,
 ];
 const PROD_FALLBACK_ORIGIN = PROD_FALLBACK_ORIGINS[0];
 const PROD_MANIFEST_URL = new URL(

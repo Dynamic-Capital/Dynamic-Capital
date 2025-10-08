@@ -127,7 +127,7 @@ type NavItem = {
 };
 
 const TONCONNECT_MANIFEST_URL =
-  "https://dynamic.capital/tonconnect-manifest.json";
+  "https://dynamiccapital.ton/tonconnect-manifest.json";
 
 const SECTION_IDS: SectionId[] = [
   "overview",
