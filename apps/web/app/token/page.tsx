@@ -16,14 +16,70 @@ import {
 import { cn } from "@/utils";
 import { TreasuryActionPad } from "@/components/token/TreasuryActionPad";
 
-const normalizeBaseURL = (value: string) =>
-  value.endsWith("/") ? value.slice(0, -1) : value;
+const stripTrailingSlash = (value: string) => {
+  if (value === "/") return "/";
+  return value.replace(/\/+$/, "");
+};
 
-const tokenBaseURL = tokenDescriptor.externalUrl?.length
-  ? tokenDescriptor.externalUrl
-  : siteBaseURL;
-const normalizedBaseURL = normalizeBaseURL(tokenBaseURL);
-const tokenCanonicalUrl = `${normalizedBaseURL}${tokenContent.path}`;
+const normalizePathname = (value: string) => {
+  if (!value) return "/";
+  const withLeadingSlash = value.startsWith("/") ? value : `/${value}`;
+  if (withLeadingSlash === "/") {
+    return withLeadingSlash;
+  }
+  return withLeadingSlash.replace(/\/+$/, "");
+};
+
+const tokenPathname = normalizePathname(tokenContent.path);
+const fallbackBaseURL = stripTrailingSlash(siteBaseURL);
+const fallbackCanonicalUrl = `${fallbackBaseURL}${tokenPathname}`;
+
+const deriveTokenUrlConfig = () => {
+  const externalUrl = tokenDescriptor.externalUrl?.trim();
+  if (!externalUrl) {
+    return {
+      baseURL: fallbackBaseURL,
+      canonicalUrl: fallbackCanonicalUrl,
+    };
+  }
+
+  try {
+    const parsed = new URL(externalUrl);
+    const normalizedExternalPath = normalizePathname(parsed.pathname);
+
+    if (normalizedExternalPath === tokenPathname) {
+      return {
+        baseURL: stripTrailingSlash(parsed.origin),
+        canonicalUrl: parsed.toString(),
+      };
+    }
+
+    if (normalizedExternalPath.endsWith(tokenPathname)) {
+      const basePath = normalizedExternalPath.slice(
+        0,
+        normalizedExternalPath.length - tokenPathname.length,
+      );
+      const normalizedBasePath = basePath && basePath !== "/" ? basePath : "";
+      return {
+        baseURL: stripTrailingSlash(`${parsed.origin}${normalizedBasePath}`),
+        canonicalUrl: parsed.toString(),
+      };
+    }
+
+    return {
+      baseURL: stripTrailingSlash(parsed.origin),
+      canonicalUrl: `${stripTrailingSlash(parsed.origin)}${tokenPathname}`,
+    };
+  } catch {
+    return {
+      baseURL: fallbackBaseURL,
+      canonicalUrl: fallbackCanonicalUrl,
+    };
+  }
+};
+
+const { baseURL: normalizedBaseURL, canonicalUrl: tokenCanonicalUrl } =
+  deriveTokenUrlConfig();
 const schemaSameAs = Array.from(
   new Set([tokenCanonicalUrl, ...tokenContent.sameAs]),
 );
