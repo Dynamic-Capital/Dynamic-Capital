@@ -34,7 +34,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from statistics import fmean
 from typing import Any, Iterable, Mapping, Protocol, Sequence
 
@@ -200,6 +200,89 @@ def _ensure_datetime(value: Any, *, field: str) -> datetime:
     raise ValueError(f"Unsupported datetime type for {field}: {type(value)!r}")
 
 
+def _ensure_aware_datetime(value: Any, *, field: str) -> datetime:
+    """Normalise datetime values to timezone-aware UTC instances."""
+
+    timestamp = _ensure_datetime(value, field=field)
+    if timestamp.tzinfo is None:
+        return timestamp.replace(tzinfo=timezone.utc)
+    return timestamp
+
+
+def _normalise_pool_alias(
+    pair: str, *, mapping: Mapping[str, str], venue: str
+) -> str:
+    """Resolve human-friendly market aliases into pool addresses."""
+
+    candidate = pair.strip()
+    if not candidate:
+        raise ValueError(f"pair must be provided for {venue} markets")
+    if ":" in candidate or candidate.upper().startswith("EQ"):
+        return candidate
+    key = "".join(ch for ch in candidate if ch.isalnum()).upper()
+    resolved = mapping.get(key)
+    if not resolved:
+        raise ValueError(f"Unknown {venue} market alias: {pair}")
+    return resolved
+
+
+_STONFI_POOL_ALIASES: Mapping[str, str] = {
+    "PTONDCT": "0:31876BC3DD431F36B176F692A5E96B0ECF1AEDEBFA76497ACD2F3661D6FBACD3",
+}
+
+_DEDUST_POOL_ALIASES: Mapping[str, str] = {
+    "TONDCT": "0:D3278947B93E817536048A8F7D50C64D0BD873950F937E803D4C7AEFCAB2EE98",
+}
+
+
+def _stonfi_pool_address(pair: str) -> str:
+    return _normalise_pool_alias(pair, mapping=_STONFI_POOL_ALIASES, venue="STON.fi")
+
+
+def _dedust_pool_address(pair: str) -> str:
+    return _normalise_pool_alias(pair, mapping=_DEDUST_POOL_ALIASES, venue="DeDust")
+
+
+_INTERVAL_SECONDS: Mapping[str, int] = {
+    "1m": 60,
+    "5m": 300,
+    "15m": 900,
+    "30m": 1_800,
+    "1h": 3_600,
+    "4h": 14_400,
+    "1d": 86_400,
+}
+
+
+def _interval_to_timedelta(interval: str) -> timedelta:
+    seconds = _INTERVAL_SECONDS.get(interval.lower())
+    if seconds is None:
+        raise ValueError(f"Unsupported interval: {interval}")
+    return timedelta(seconds=seconds)
+
+
+def _extract_candle_value(
+    candle: Mapping[str, Any],
+    *,
+    field: str,
+    aliases: Sequence[str],
+    default: float = 0.0,
+) -> float:
+    for key in aliases:
+        if key in candle and candle[key] is not None:
+            return float(candle[key])
+    return float(default)
+
+
+def _extract_candle_time(
+    candle: Mapping[str, Any], *, field: str, aliases: Sequence[str]
+) -> datetime:
+    for key in aliases:
+        if key in candle and candle[key] is not None:
+            return _ensure_aware_datetime(candle[key], field=field)
+    raise ValueError(f"Missing candle timestamp: {field}")
+
+
 def _as_bool(value: Any, *, field: str) -> bool:
     if isinstance(value, bool):
         return value
@@ -334,34 +417,89 @@ class TonDataCollector:
     ) -> TonPricePoint:
         """Retrieve the latest candle for the requested pair."""
 
-        if venue.lower() == "stonfi":
+        venue_key = venue.lower()
+        if venue_key == "stonfi":
             base = self._base_urls["stonfi"]
-            payload = await self._request(
-                f"{base}/chart/candles",
-                params={"pair": pair, "resolution": interval, "limit": 1},
-            )
-            candle = payload["candles"][0]
-            start = _ensure_datetime(candle["time"], field="candles[0].time")
-            end = start
-        elif venue.lower() == "dedust":
+            pool_address = _stonfi_pool_address(pair)
+            delta = _interval_to_timedelta(interval)
+            end_ts = datetime.now(tz=timezone.utc).replace(microsecond=0)
+            start_ts = end_ts - delta
+            params = {
+                "since": start_ts.strftime("%Y-%m-%dT%H:%M:%S"),
+                "until": end_ts.strftime("%Y-%m-%dT%H:%M:%S"),
+                "pool_address": pool_address,
+            }
+            payload = await self._request(f"{base}/v1/stats/pool", params=params)
+            stats = payload.get("stats") or []
+            if not stats:
+                raise ValueError(f"STON.fi did not return stats for {pool_address}")
+            latest = stats[-1]
+            price = float(latest.get("last_price", 0.0))
+            volume = float(latest.get("base_volume", 0.0))
+            start = start_ts
+            end = end_ts
+        elif venue_key == "dedust":
             base = self._base_urls["dedust"]
+            pool_address = _dedust_pool_address(pair)
             payload = await self._request(
-                f"{base}/candles/{pair}", params={"resolution": interval, "limit": 1}
+                f"{base}/v2/pools/{pool_address}/candles",
+                params={"resolution": interval, "limit": 1},
             )
-            candle = payload["data"][0]
-            start = _ensure_datetime(candle["t"], field="candles[0].t")
-            end = _ensure_datetime(candle["t_close"], field="candles[0].t_close")
+            candles = payload.get("candles") or payload.get("data") or []
+            if not candles:
+                raise ValueError(f"DeDust did not return candles for {pool_address}")
+            candle = candles[-1]
+            open_price = _extract_candle_value(
+                candle,
+                field="open",
+                aliases=("open", "o", "priceOpen"),
+            )
+            high_price = _extract_candle_value(
+                candle,
+                field="high",
+                aliases=("high", "h", "priceHigh"),
+                default=open_price,
+            )
+            low_price = _extract_candle_value(
+                candle,
+                field="low",
+                aliases=("low", "l", "priceLow"),
+                default=open_price,
+            )
+            close_price = _extract_candle_value(
+                candle,
+                field="close",
+                aliases=("close", "c", "priceClose"),
+            )
+            volume = _extract_candle_value(
+                candle,
+                field="volume",
+                aliases=("volume", "v", "baseVolume"),
+            )
+            start = _extract_candle_time(
+                candle,
+                field="candles[0].time",
+                aliases=("time", "t", "timeStart", "start", "openTime"),
+            )
+            try:
+                end = _extract_candle_time(
+                    candle,
+                    field="candles[0].time_close",
+                    aliases=("timeClose", "t_close", "closeTime", "end"),
+                )
+            except ValueError:
+                end = start + _interval_to_timedelta(interval)
         else:
             raise ValueError(f"Unsupported venue for price data: {venue}")
 
         return TonPricePoint(
             venue=venue,
             pair=pair,
-            open_price=float(candle["o"]),
-            high_price=float(candle["h"]),
-            low_price=float(candle["l"]),
-            close_price=float(candle["c"]),
-            volume=float(candle.get("v", 0.0)),
+            open_price=open_price if venue_key == "dedust" else price,
+            high_price=high_price if venue_key == "dedust" else price,
+            low_price=low_price if venue_key == "dedust" else price,
+            close_price=close_price if venue_key == "dedust" else price,
+            volume=float(volume),
             start_time=start,
             end_time=end,
         )
@@ -500,28 +638,46 @@ class TonDataCollector:
         return tuple(actions)
 
     async def fetch_liquidity(self, *, venue: str, pair: str) -> TonLiquiditySnapshot:
-        if venue.lower() == "stonfi":
+        venue_key = venue.lower()
+        if venue_key == "stonfi":
             base = self._base_urls["stonfi"]
-            payload = await self._request(f"{base}/pool/{pair}")
-            pool = payload["pool"]
+            pool_address = _stonfi_pool_address(pair)
+            payload = await self._request(f"{base}/v1/pools/{pool_address}")
+            pool = payload.get("pool", payload)
+            ton_depth = float(pool.get("reserve0", 0.0))
+            quote_depth = float(pool.get("reserve1", 0.0))
+            fee_bps = float(pool.get("lp_fee", 0.0))
+            block_height = int(pool.get("last_transaction_lt", 0) or 0)
             return TonLiquiditySnapshot(
                 venue=venue,
                 pair=pair,
-                ton_depth=float(pool["ton_reserve"]),
-                quote_depth=float(pool["token_reserve"]),
-                fee_bps=float(pool.get("fee", 0.0)) * 10_000,
-                block_height=int(pool.get("block_last_updated", 0)),
+                ton_depth=ton_depth,
+                quote_depth=quote_depth,
+                fee_bps=fee_bps,
+                block_height=block_height,
             )
-        if venue.lower() == "dedust":
+        if venue_key == "dedust":
             base = self._base_urls["dedust"]
-            payload = await self._request(f"{base}/pools/{pair}")
+            pool_address = _dedust_pool_address(pair)
+            payload = await self._request(f"{base}/v2/pools/{pool_address}")
+            pool = payload.get("pool", payload)
+            reserves = pool.get("reserves") or ()
+            ton_depth = float(reserves[0]) if len(reserves) > 0 else 0.0
+            quote_depth = float(reserves[1]) if len(reserves) > 1 else 0.0
+            trade_fee = pool.get("tradeFee")
+            if isinstance(trade_fee, Mapping):
+                trade_fee_value = trade_fee.get("value") or trade_fee.get("percent")
+            else:
+                trade_fee_value = trade_fee
+            fee_bps = float(trade_fee_value or 0.0) * 100.0
+            block_height = int(pool.get("lt", 0) or 0)
             return TonLiquiditySnapshot(
                 venue=venue,
                 pair=pair,
-                ton_depth=float(payload["liquidity"]["base"]),
-                quote_depth=float(payload["liquidity"]["quote"]),
-                fee_bps=float(payload.get("fee", 0.0)) * 10_000,
-                block_height=int(payload.get("last_transaction_lt", 0)),
+                ton_depth=ton_depth,
+                quote_depth=quote_depth,
+                fee_bps=fee_bps,
+                block_height=block_height,
             )
         raise ValueError(f"Unsupported venue for liquidity data: {venue}")
 

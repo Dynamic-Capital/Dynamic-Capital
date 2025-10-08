@@ -40,6 +40,9 @@ export const TON_MAINNET_DCT_TREASURY_MEMO = DCT_TREASURY_TRANSFER_MEMO;
 export const TON_MAINNET_STONFI_ROUTER =
   "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
 
+export const TON_MAINNET_STONFI_DCT_TON_POOL =
+  "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI";
+
 export const TON_MAINNET_DCT_WALLET_V5R1 =
   "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm";
 
@@ -50,7 +53,7 @@ export const TON_MAINNET_DEDUST_DCT_JETTON_WALLET =
   "EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz";
 
 export const TON_MAINNET_DEDUST_DCT_TON_POOL =
-  "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI";
+  "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm";
 
 export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
   {
@@ -90,6 +93,13 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     description: "Liquidity router used for treasury swaps and burns.",
   },
   {
+    key: "stonfiDctTonPool",
+    label: "STON.fi DCT/TON pool",
+    friendlyAddress: TON_MAINNET_STONFI_DCT_TON_POOL,
+    description:
+      "Primary STON.fi liquidity pool pairing Proxy TON with the Dynamic Capital Token.",
+  },
+  {
     key: "stonfiDctJettonWallet",
     label: "STON.fi DCT jetton wallet",
     friendlyAddress: TON_MAINNET_STONFI_DCT_JETTON_WALLET,
@@ -107,7 +117,7 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     label: "DeDust DCT/TON pool",
     friendlyAddress: TON_MAINNET_DEDUST_DCT_TON_POOL,
     description:
-      "Primary DeDust pool holding Dynamic Capital TON-side liquidity reserves.",
+      "Canonical DeDust pool exposing DCT/TON liquidity for cross-venue routing.",
   },
   {
     key: "dedustDctJettonWallet",

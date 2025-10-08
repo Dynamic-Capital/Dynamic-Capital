@@ -2,7 +2,7 @@ import {
   TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
   TON_MAINNET_DEDUST_DCT_TON_POOL,
   TON_MAINNET_STONFI_DCT_JETTON_WALLET,
-  TON_MAINNET_STONFI_ROUTER,
+  TON_MAINNET_STONFI_DCT_TON_POOL,
 } from "./mainnet-addresses";
 
 const buildTonviewerAccountUrl = (address: string) =>
@@ -15,6 +15,7 @@ export interface DctDexPoolDefinition {
   readonly description: string;
   readonly poolAddress: string;
   readonly poolExplorerUrl: string;
+  readonly metadataUrl?: string;
   readonly jettonWalletAddress: string;
   readonly jettonWalletExplorerUrl: string;
 }
@@ -26,8 +27,10 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     swapUrl: "https://app.ston.fi/swap?from=TON&to=DCT",
     description:
       "Primary TON DEX route delivering deep DCT/TON liquidity for treasury operations and member swaps.",
-    poolAddress: TON_MAINNET_STONFI_ROUTER,
-    poolExplorerUrl: buildTonviewerAccountUrl(TON_MAINNET_STONFI_ROUTER),
+    poolAddress: TON_MAINNET_STONFI_DCT_TON_POOL,
+    poolExplorerUrl: buildTonviewerAccountUrl(TON_MAINNET_STONFI_DCT_TON_POOL),
+    metadataUrl:
+      "https://meta.ston.fi/lp/v1/0:31876BC3DD431F36B176F692A5E96B0ECF1AEDEBFA76497ACD2F3661D6FBACD3.json",
     jettonWalletAddress: TON_MAINNET_STONFI_DCT_JETTON_WALLET,
     jettonWalletExplorerUrl: buildTonviewerAccountUrl(
       TON_MAINNET_STONFI_DCT_JETTON_WALLET,
@@ -41,6 +44,8 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
       "Secondary routing venue leveraging DeDust's TON-native liquidity network for balanced execution.",
     poolAddress: TON_MAINNET_DEDUST_DCT_TON_POOL,
     poolExplorerUrl: buildTonviewerAccountUrl(TON_MAINNET_DEDUST_DCT_TON_POOL),
+    metadataUrl:
+      "https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata",
     jettonWalletAddress: TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
     jettonWalletExplorerUrl: buildTonviewerAccountUrl(
       TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
