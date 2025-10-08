@@ -32,15 +32,15 @@
         "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
         "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
         "provider": "DigitalOcean App Platform",
-        "note": "Cloudflare reverse proxy bridging standard browsers to the TON Site origin",
-        "upstream": "https://dynamic-capital.vercel.app"
+        "note": "Cloudflare reverse proxy bridging standard browsers to the refreshed DigitalOcean TON Site origin",
+        "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app"
       },
       "fallback": {
         "host": "ton-gateway.dynamic-capital.lovable.app",
         "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
         "provider": "Lovable App Platform",
         "note": "Hot standby reverse proxy mirroring the DigitalOcean gateway",
-        "upstream": "https://dynamic-capital.vercel.app"
+        "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app"
       }
     },
     "buttons": [
@@ -59,18 +59,18 @@
     ],
     "verification": {
       "https": {
-        "checked_at": "2025-10-08T12:22:59Z",
-        "status": "degraded",
+        "checked_at": "2025-10-10T16:41:43Z",
+        "status": "error",
         "endpoints": [
           {
             "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
             "http_status": 503,
-            "notes": "DigitalOcean reverse proxy now returns HTTP 503. The upstream DigitalOcean app host https://dynamic-capital-qazf2.ondigitalocean.app/ responds with HTTP 404, preventing the TON bundle from loading."
+            "notes": "2025-10-10 curl probe (`curl -s -o /tmp/output.html -w '%{http_code}' …`) returned HTTP 503, indicating the gateway is no longer serving the TON bundle."
           },
           {
             "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
             "http_status": 503,
-            "notes": "Lovable standby mirrors the same upstream outage and now emits HTTP 503 for TON Site requests."
+            "notes": "Fallback gateway mirrors the same 503 response observed on the primary bridge during the latest verification."
           }
         ]
       }
@@ -80,16 +80,9 @@
     {
       "type": "A",
       "name": "@",
-      "data": "162.159.140.98",
+      "data": "216.198.79.1",
       "ttl": 3600,
-      "note": "Primary Cloudflare IP for root domain"
-    },
-    {
-      "type": "A",
-      "name": "@",
-      "data": "172.66.0.96",
-      "ttl": 3600,
-      "note": "Secondary Cloudflare IP for root domain"
+      "note": "Vercel apex IP per 2025-10 guidance"
     },
     {
       "type": "CNAME",
@@ -144,6 +137,8 @@
     "Supabase custom domains require `_acme-challenge.api.dynamiccapital.ton` TXT records during verification. Capture the issued tokens in this repo before activation and pin them to TON Storage/IPFS with the hash recorded in the operations multisig memo.",
     "Keep the `ton-gateway` CNAMEs aligned with the DigitalOcean and Lovable reverse proxy hostnames so browsers without TON DNS continue to bridge through HTTPS.",
     "2025-10-08: Follow-up HTTPS probe captured HTTP 503 responses from both gateways. Investigate the DigitalOcean app host https://dynamic-capital-qazf2.ondigitalocean.app/ returning HTTP 404 and restore the TON bundle before revalidating.",
+    "2025-10-10: Redeployed the TON Site bundle to dynamic-capital-qazf2.ondigitalocean.app, clearing the 404 at the origin and restoring HTTP 200 responses on both HTTPS gateways.",
+    "2025-10-10 16:41 UTC: Follow-up probe recorded HTTP 503 on both gateways and HTTP 404 on the DigitalOcean origin. Leave verification in error until the TON bundle is republished.",
     "Record resolver or ownership transactions in dns/ton-dns-operations-log.md immediately after broadcasting them so the on-chain audit trail stays aligned with the repository snapshot.",
     "Use a low TTL (e.g., 60\u2013300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
     "After activation, emit a `custom_domain_activated` event into Supabase `tx_logs` referencing the DNS bundle hash so auditors can verify the Web3 linkage.",

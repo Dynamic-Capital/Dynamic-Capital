@@ -54,3 +54,51 @@ chronological order beneath this entry.
   mnemonic via `dns/wallets/provision_dns_wallet.py`, fund the wallet with at
   least 0.1 TON for fees, regenerate the TXT payloads if necessary, and rerun
   `toncli send --net mainnet ...` to record the transaction hash for this log.
+
+## 2025-10-09 – DNS remediation follow-up (incomplete)
+
+- **Resolver update draft** — Prepared a resolver payload replacing the
+  Cloudflare anycast `A` records with Vercel's apex IP `216.198.79.1` in
+  `dns/dynamiccapital.ton.json`. Change remains staged; defer on-chain
+  broadcast until Vercel confirms the apex is reachable.
+- **Vercel verification** — Added the `_vercel` TXT token to
+  `dns/dynamic-capital.ondigitalocean.app.zone`, but the apex CNAME approach was
+  invalid. Replaced it with Vercel's apex `A` record and legacy fallback IP; the
+  Vercel dashboard still shows the domain as unverified pending DNS propagation.
+- **Gateway probe** — `curl` checks at 16:28–16:31 UTC recorded `HTTP 503`
+  responses from both HTTPS bridges and `HTTP 404` from the DigitalOcean origin
+  on `/dynamiccapital.ton`. Left the resolver verification block in an `error`
+  state until the TON bundle is redeployed (see
+  `dns/https-gateway-verification-2025-10-08.md`).
+
+## 2025-10-10 – TON gateway restoration
+
+- **Origin redeploy** — Rebuilt the TON Site bundle from `apps/web` and
+  redeployed it to `dynamic-capital-qazf2.ondigitalocean.app`, clearing the 404
+  responses on `/dynamiccapital.ton`.
+- **Gateway verification** — Executed the HTTPS probes at 11:44–11:46 UTC and
+  observed `HTTP 200` from both
+  `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
+  and `https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`,
+  confirming the fallback path mirrors the healthy origin.
+- **Resolver update** — Flipped the `ton_site.verification.https.status` field
+  in `dns/dynamiccapital.ton.json` back to `ok` with the new timestamps and
+  committed the probe results in
+  `dns/https-gateway-verification-2025-10-08.md`.
+
+## 2025-10-10 – Gateway regression detected
+
+- **Symptom** — Routine verification at 16:41 UTC returned `HTTP 503` from both
+  HTTPS gateways while polling `/dynamiccapital.ton`. The primary Envoy edge
+  replied with a synthetic `200` header followed by the upstream `503` body.
+- **Origin check** — Direct request to
+  `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
+  responded with `HTTP 404`, indicating the TON bundle is no longer published on
+  the DigitalOcean origin.
+- **Repository updates** — Set `ton_site.verification.https.status` back to
+  `error` in `dns/dynamiccapital.ton.json` and refreshed
+  `dns/https-gateway-verification-2025-10-08.md` with the failing curl output so
+  the audit trail reflects the downtime.
+- **Next steps** — Rebuild and redeploy the TON site bundle, verify the origin
+  returns `HTTP 200`, then re-test the gateways before restoring the resolver
+  status to `ok`.
