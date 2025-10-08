@@ -51,6 +51,21 @@ library, opcodes, and wallet utilities already present in this repository. Use
 the same wallet code and content cells when migrating between the Tact and FunC
 variants to keep balances and metadata consistent.
 
+### FunC regression tests
+
+Compile-time regressions for the discoverable master are covered by a TypeScript
+test harness under `contracts/tests`. Install the repository dependencies and
+run the suite with:
+
+```
+npm install
+npx tsx dynamic-capital-ton/contracts/tests/discovery-getter.test.ts
+```
+
+The test compiles `master.fc`, boots it inside the TON contract executor, and
+asserts that `get_discovery_data` and `provide_wallet_address` respond with the
+expected payloads.
+
 ### Signing the discoverable contract
 
 Production deployments should be signed before broadcasting. Follow the
