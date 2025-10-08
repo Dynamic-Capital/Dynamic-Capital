@@ -25,23 +25,24 @@ Store the following key-value pairs in the TON DNS TXT record so integrators can
 auto-discover Dynamic Capital contracts and services when resolving
 `dynamiccapital.ton`:
 
-| Key                    | Address / URL                                                                   | Description                                           |
-| ---------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `ton_alias`            | `dynamiccapital.ton`                                                            | DNS alias resolving deposits                          |
-| `token_symbol`         | `DCT`                                                                           | Canonical ticker across wallets, pools, and exchanges |
-| `jetton_master`        | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                              | Dynamic Capital Token (DCT)                           |
-| `treasury_wallet`      | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`                              | Treasury & mint authority                             |
-| `stonfi_pool`          | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt`                              | STON.fi DCT/TON pool                                  |
-| `stonfi_jetton_wallet` | `EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_`                              | STON.fi jetton wallet for DCT                         |
-| `wallet_v5r1`          | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm`                              | Jetton wallet (Wallet v5r1)                           |
-| `dedust_pool`          | `EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI`                              | DeDust DCT/TON vault                                  |
-| `dedust_jetton_wallet` | `EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm`                              | DeDust jetton wallet for DCT                          |
-| `dao_contract`         | `future DAO multisig`                                                           | Governance executor                                   |
-| `jetton_tonviewer`     | `https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | Jetton explorer (Tonviewer)                           |
-| `jetton_tonscan`       | `https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`   | Jetton explorer (Tonscan)                             |
-| `api_endpoint`         | `https://api.dynamiccapital.ton`                                                | REST / Supabase gateway                               |
-| `metadata`             | `https://dynamiccapital.ton/jetton-metadata.json`                               | Jetton metadata JSON (primary)                        |
-| `web`                  | `https://dynamiccapital.ton`                                                    | Marketing & dashboard site                            |
+| Key                    | Address / URL                                                                   | Description                                               |
+| ---------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `ton_alias`            | `dynamiccapital.ton`                                                            | DNS alias resolving deposits                              |
+| `token_symbol`         | `DCT`                                                                           | Canonical ticker across wallets, pools, and exchanges     |
+| `jetton_master`        | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                              | Dynamic Capital Token (DCT)                               |
+| `treasury_wallet`      | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`                              | Treasury & mint authority                                 |
+| `stonfi_pool`          | `EQAyD7O8CvVdR8AEJcr96fHI1ifFq21S8QMt1czi5IfJPyfA`                              | STON.fi DCT/TON router (v2)                               |
+| `stonfi_jetton_wallet` | `EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3`                              | STON.fi jetton wallet for DCT                             |
+| `wallet_v5r1`          | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm`                              | Jetton wallet (Wallet v5r1)                               |
+| `dedust_pool`          | `EQBlClPr9ttZJWYJoqBFTr58jeDPuuAsbbDjtZylHJtv-ygW`                              | DeDust DCT/TON vault                                      |
+| `dedust_jetton_wallet` | `EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz`                              | DeDust jetton wallet for DCT                              |
+| `dao_contract`         | `future DAO multisig`                                                           | Governance executor                                       |
+| `jetton_tonviewer`     | `https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | Jetton explorer (Tonviewer)                               |
+| `jetton_tonscan`       | `https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`   | Jetton explorer (Tonscan)                                 |
+| `api_endpoint`         | `https://api.dynamiccapital.ton`                                                | REST / Supabase gateway                                   |
+| `metadata`             | `https://dynamiccapital.ton/jetton-metadata.json`                               | Jetton metadata JSON (primary)                            |
+| `metadata_fallback`    | `https://dynamic-capital.ondigitalocean.app/jetton-metadata.json`               | DigitalOcean-hosted mirror served via HTTPS reverse proxy |
+| `web`                  | `https://dynamiccapital.ton`                                                    | Marketing & dashboard site                                |
 
 ## Integration Touchpoints
 
@@ -60,7 +61,14 @@ auto-discover Dynamic Capital contracts and services when resolving
 
 - Reference `dynamiccapital.ton` as the metadata root instead of hardcoded IPFS
   links, falling back to IPFS mirrors only for redundancy.
-- Publish Jetton metadata at `https://dynamiccapital.ton/jetton-metadata.json`.
+- Publish Jetton metadata at `https://dynamiccapital.ton/jetton-metadata.json`
+  with the DigitalOcean reverse proxy mirror available at
+  `https://dynamic-capital.ondigitalocean.app/jetton-metadata.json` for wallets
+  that cannot resolve `.ton` origins.
+- Keep the Tonutils reverse proxy reachable at
+  `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton` so
+  browsers without TON DNS support can traverse the DigitalOcean gateway while
+  the on-chain resolver propagates updates.
 - Derive the STON.fi and DeDust jetton wallets from the master contract using
   `runGetMethod(get_wallet_address)` before broadcasting DNS updates so the
   resolver values match on-chain state.
@@ -83,11 +91,11 @@ auto-discover Dynamic Capital contracts and services when resolving
     "token_symbol": "DCT",
     "ton_alias": "dynamiccapital.ton",
     "jetton_master": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
-    "stonfi_pool": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
-    "stonfi_jetton_wallet": "EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_",
+    "stonfi_pool": "EQAyD7O8CvVdR8AEJcr96fHI1ifFq21S8QMt1czi5IfJPyfA",
+    "stonfi_jetton_wallet": "EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3",
     "wallet_v5r1": "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
-    "dedust_pool": "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
-    "dedust_jetton_wallet": "EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm",
+    "dedust_pool": "EQBlClPr9ttZJWYJoqBFTr58jeDPuuAsbbDjtZylHJtv-ygW",
+    "dedust_jetton_wallet": "EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
     "treasury": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq"
   }
 }
@@ -114,11 +122,11 @@ ton_alias=dynamiccapital.ton
 token_symbol=DCT
 jetton_master=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 treasury_wallet=EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq
-stonfi_pool=EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt
-stonfi_jetton_wallet=EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_
+stonfi_pool=EQAyD7O8CvVdR8AEJcr96fHI1ifFq21S8QMt1czi5IfJPyfA
+stonfi_jetton_wallet=EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3
 wallet_v5r1=EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm
-dedust_pool=EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI
-dedust_jetton_wallet=EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm
+dedust_pool=EQBlClPr9ttZJWYJoqBFTr58jeDPuuAsbbDjtZylHJtv-ygW
+dedust_jetton_wallet=EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz
 dao_contract=EQDAOxyz...daoAddr
 jetton_tonviewer=https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 jetton_tonscan=https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
@@ -140,6 +148,8 @@ dynamiccapital.ton
 │       └── dao-playbook.pdf
 ├── api.dynamiccapital.ton → Supabase Edge Functions
 └── mini.dynamiccapital.ton → Telegram mini-app
+    ↳ https://dynamic-capital.ondigitalocean.app/jetton-metadata.json (DigitalOcean DNS mirror)
+    ↳ https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton (reverse proxy bridge)
 ```
 
 ## Branding, Security, and Verification
@@ -166,7 +176,9 @@ checks are in place.
 
 ## Recommended Next Steps
 
-1. Host `jetton-metadata.json` under `dynamiccapital.ton` and mirror to IPFS.
+1. Host `jetton-metadata.json` under `dynamiccapital.ton`, mirror it to IPFS,
+   and keep the DigitalOcean proxy copy
+   (`https://dynamic-capital.ondigitalocean.app/jetton-metadata.json`) in sync.
 2. Populate the TON DNS resolver with the registry keys listed above.
 3. Verify Jetton metadata in Tonkeeper / Tonviewer so assets display the trusted
    issuer badge.

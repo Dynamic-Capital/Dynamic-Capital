@@ -25,7 +25,7 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     pair: "DCT/TON",
     swapUrl: "https://app.ston.fi/swap?from=TON&to=DCT",
     description:
-      "Primary TON DEX route delivering deep DCT/TON liquidity for treasury operations and member swaps.",
+      "Primary TON DEX route anchored to the upgraded STON.fi router (v2) for treasury operations and member swaps.",
     poolAddress: TON_MAINNET_STONFI_ROUTER,
     poolExplorerUrl: buildTonviewerAccountUrl(TON_MAINNET_STONFI_ROUTER),
     jettonWalletAddress: TON_MAINNET_STONFI_DCT_JETTON_WALLET,
@@ -38,7 +38,7 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     pair: "DCT/TON",
     swapUrl: "https://dedust.io/swap/TON-DCT",
     description:
-      "Secondary routing venue leveraging DeDust's TON-native liquidity network for balanced execution.",
+      "Secondary routing venue leveraging the DeDust vault contract that secures TON/DCT liquidity for balanced execution.",
     poolAddress: TON_MAINNET_DEDUST_DCT_TON_POOL,
     poolExplorerUrl: buildTonviewerAccountUrl(TON_MAINNET_DEDUST_DCT_TON_POOL),
     jettonWalletAddress: TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
