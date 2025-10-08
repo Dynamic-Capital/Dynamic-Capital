@@ -19,9 +19,10 @@ import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 interface AdminGateProps {
   children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
-export function AdminGate({ children }: AdminGateProps) {
+export function AdminGate({ children, fallback }: AdminGateProps) {
   const {
     isAdmin,
     initData,
@@ -156,6 +157,10 @@ export function AdminGate({ children }: AdminGateProps) {
       description: "Telegram initData copied to clipboard",
     });
   };
+
+  if (fallback) {
+    return <>{fallback}</>;
+  }
 
   return (
     <Column

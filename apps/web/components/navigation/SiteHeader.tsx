@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 import { DesktopNav } from "./DesktopNav";
 import { MobileMenu } from "./MobileMenu";
+import { RouteHintTrail } from "./RouteHintTrail";
 
 export function SiteHeader() {
   const { user, signOut } = useAuth();
@@ -99,6 +100,7 @@ export function SiteHeader() {
           </div>
         </div>
       </div>
+      <RouteHintTrail />
     </header>
   );
 }
