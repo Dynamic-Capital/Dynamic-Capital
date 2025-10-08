@@ -146,10 +146,17 @@ mirrors the canonical structure:
     "jetton_master": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "treasury_wallet": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
     "stonfi_pool": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
+    "stonfi_jetton_wallet": "EQCAQ_smdGxj3EaqLCmOuDHAw56Ys8X9jG16XwaISsyiL-6_",
     "wallet_v5r1": "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
     "dedust_pool": "EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+    "dedust_jetton_wallet": "EQDJZbKEVU0Grpni4bRnUkgaCHuTNJd4_aH58lvoYsidmBjm",
     "dao_contract": "EQDAOxyz...daoAddr",
+    "jetton_tonviewer": "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "jetton_tonscan": "https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "metadata": "https://dynamiccapital.ton/jetton-metadata.json",
     "api": "https://api.dynamiccapital.ton",
+    "manifest": "https://dynamiccapital.ton/tonconnect-manifest.json",
+    "docs": "https://dynamiccapital.ton/docs",
     "updated": "2025-10-08"
   },
   "signatures": {

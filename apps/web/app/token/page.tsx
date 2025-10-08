@@ -376,6 +376,22 @@ export default function TokenPage() {
                             </Text>
                           )
                           : null}
+                        {pool.jettonWalletUrl
+                          ? (
+                            <Text
+                              as="a"
+                              href={pool.jettonWalletUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              variant="label-default-s"
+                              onBackground="brand-medium"
+                              className="flex items-center gap-1"
+                            >
+                              View DCT jetton wallet
+                              <Icon name="arrowUpRight" />
+                            </Text>
+                          )
+                          : null}
                       </Column>
                     )
                     : null}

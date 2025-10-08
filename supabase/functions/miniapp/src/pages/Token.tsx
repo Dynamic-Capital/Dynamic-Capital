@@ -40,7 +40,9 @@ import {
   TON_MAINNET_DCT_TREASURY_TONKEEPER_LINK,
   TON_MAINNET_DCT_TREASURY_TONVIEWER_URL,
   TON_MAINNET_DCT_TREASURY_WALLET,
+  TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
   TON_MAINNET_JETTON_MASTER,
+  TON_MAINNET_STONFI_DCT_JETTON_WALLET,
 } from "../../../../../shared/ton/mainnet-addresses";
 
 const DCT_TREASURY_ALIAS = TON_MAINNET_DCT_TREASURY_ALIAS;
@@ -48,12 +50,17 @@ const DCT_TREASURY_ADDRESS = TON_MAINNET_DCT_TREASURY_WALLET;
 const DCT_TREASURY_URL = TON_MAINNET_DCT_TREASURY_TONVIEWER_URL;
 const DCT_JETTON_ADDRESS = TON_MAINNET_JETTON_MASTER;
 const DCT_JETTON_URL = `https://tonviewer.com/jetton/${DCT_JETTON_ADDRESS}`;
+const DCT_TONSCAN_URL = `https://tonscan.org/jetton/${DCT_JETTON_ADDRESS}`;
 const STONFI_POOL_URL = "https://app.ston.fi/swap?from=TON&to=DCT";
 const STONFI_EXPLORER_URL =
   "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt";
+const STONFI_JETTON_WALLET_URL =
+  `https://tonviewer.com/${TON_MAINNET_STONFI_DCT_JETTON_WALLET}`;
 const DEDUST_POOL_URL = "https://dedust.io/swap/TON-DCT";
 const DEDUST_EXPLORER_URL =
   "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI";
+const DEDUST_JETTON_WALLET_URL =
+  `https://tonviewer.com/${TON_MAINNET_DEDUST_DCT_JETTON_WALLET}`;
 const OPERATIONS_TREASURY_ADDRESS =
   "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
 const OPERATIONS_TREASURY_URL =
@@ -260,6 +267,7 @@ const DEX_OPTIONS = [
       "Route TON ↔︎ DCT swaps through the primary liquidity router used for treasury burns.",
     swapUrl: STONFI_POOL_URL,
     explorerUrl: STONFI_EXPLORER_URL,
+    jettonWalletUrl: STONFI_JETTON_WALLET_URL,
   },
   {
     name: "DeDust",
@@ -267,6 +275,7 @@ const DEX_OPTIONS = [
       "Tap the DCT/TON pool that backs Dynamic Capital's TON-side liquidity reserves.",
     swapUrl: DEDUST_POOL_URL,
     explorerUrl: DEDUST_EXPLORER_URL,
+    jettonWalletUrl: DEDUST_JETTON_WALLET_URL,
   },
 ] as const;
 
@@ -527,7 +536,7 @@ export default function Token() {
                   className="mt-4"
                 />
               </div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <Button
                   asChild
                   variant="outline"
@@ -546,6 +555,16 @@ export default function Token() {
                   <a href={DCT_JETTON_URL} target="_blank" rel="noreferrer">
                     <ExternalLink className="h-4 w-4" />
                     View jetton master
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="gap-2 text-sm"
+                >
+                  <a href={DCT_TONSCAN_URL} target="_blank" rel="noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                    View on Tonscan
                   </a>
                 </Button>
               </div>
@@ -659,7 +678,7 @@ export default function Token() {
                   <p className="text-sm text-muted-foreground">
                     {dex.description}
                   </p>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <Button asChild className="gap-2 text-sm">
                       <a href={dex.swapUrl} target="_blank" rel="noreferrer">
                         <RefreshCcw className="h-4 w-4" />
@@ -674,6 +693,20 @@ export default function Token() {
                       >
                         <ExternalLink className="h-4 w-4" />
                         View on Tonviewer
+                      </a>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="gap-2 text-sm"
+                    >
+                      <a
+                        href={dex.jettonWalletUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Jetton wallet
                       </a>
                     </Button>
                   </div>

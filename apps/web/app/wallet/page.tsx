@@ -108,10 +108,15 @@ const SUPPORTED_WALLETS = [
 ] as const;
 
 const DCT_TREASURY_ADDRESS = TON_MAINNET_DCT_TREASURY_WALLET;
-const DCT_TREASURY_URL = `https://tonviewer.com/${DCT_TREASURY_ADDRESS}`;
+const DCT_TREASURY_TONVIEWER_URL = tokenContent.treasuryWalletUrl;
+const DCT_TREASURY_TONSCAN_URL =
+  `https://tonscan.org/address/${DCT_TREASURY_ADDRESS}`;
 const DCT_JETTON_ADDRESS = tokenDescriptor.address ?? null;
-const DCT_JETTON_URL = DCT_JETTON_ADDRESS
+const DCT_JETTON_TONVIEWER_URL = DCT_JETTON_ADDRESS
   ? `https://tonviewer.com/jetton/${DCT_JETTON_ADDRESS}`
+  : null;
+const DCT_JETTON_TONSCAN_URL = DCT_JETTON_ADDRESS
+  ? `https://tonscan.org/jetton/${DCT_JETTON_ADDRESS}`
   : null;
 
 const STONFI_POOL = tokenContent.dexPools.find((pool) =>
@@ -124,6 +129,8 @@ const STONFI_SWAP_URL = STONFI_POOL?.url ??
 const DEDUST_SWAP_URL = DEDUST_POOL?.url ?? "https://dedust.io/swap/TON-DCT";
 const STONFI_EXPLORER_URL = STONFI_POOL?.explorerUrl ?? null;
 const DEDUST_EXPLORER_URL = DEDUST_POOL?.explorerUrl ?? null;
+const STONFI_JETTON_WALLET_URL = STONFI_POOL?.jettonWalletUrl ?? null;
+const DEDUST_JETTON_WALLET_URL = DEDUST_POOL?.jettonWalletUrl ?? null;
 
 function shortenTonAddress(address: string, visible = 6): string {
   if (!address) {
@@ -327,24 +334,50 @@ export default function WalletPage() {
                 </Text>
               </Row>
               <div className="flex flex-wrap gap-3">
-                <a
-                  href={DCT_TREASURY_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                >
-                  View treasury
-                  <Icon name="arrowUpRight" size="xs" />
-                </a>
-                {DCT_JETTON_URL
+                {DCT_TREASURY_TONVIEWER_URL
                   ? (
                     <a
-                      href={DCT_JETTON_URL}
+                      href={DCT_TREASURY_TONVIEWER_URL}
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
                     >
-                      View jetton master
+                      View treasury on Tonviewer
+                      <Icon name="arrowUpRight" size="xs" />
+                    </a>
+                  )
+                  : null}
+                <a
+                  href={DCT_TREASURY_TONSCAN_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                >
+                  View treasury on Tonscan
+                  <Icon name="arrowUpRight" size="xs" />
+                </a>
+                {DCT_JETTON_TONVIEWER_URL
+                  ? (
+                    <a
+                      href={DCT_JETTON_TONVIEWER_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                    >
+                      View jetton master on Tonviewer
+                      <Icon name="arrowUpRight" size="xs" />
+                    </a>
+                  )
+                  : null}
+                {DCT_JETTON_TONSCAN_URL
+                  ? (
+                    <a
+                      href={DCT_JETTON_TONSCAN_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                    >
+                      View jetton master on Tonscan
                       <Icon name="arrowUpRight" size="xs" />
                     </a>
                   )
@@ -474,6 +507,32 @@ export default function WalletPage() {
                     className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
                   >
                     DeDust pool explorer
+                    <Icon name="arrowUpRight" size="xs" />
+                  </a>
+                )
+                : null}
+              {STONFI_JETTON_WALLET_URL
+                ? (
+                  <a
+                    href={STONFI_JETTON_WALLET_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                  >
+                    STON.fi DCT jetton wallet
+                    <Icon name="arrowUpRight" size="xs" />
+                  </a>
+                )
+                : null}
+              {DEDUST_JETTON_WALLET_URL
+                ? (
+                  <a
+                    href={DEDUST_JETTON_WALLET_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                  >
+                    DeDust DCT jetton wallet
                     <Icon name="arrowUpRight" size="xs" />
                   </a>
                 )
