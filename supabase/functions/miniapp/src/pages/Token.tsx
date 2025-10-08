@@ -31,6 +31,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import QrCode from "../components/QrCode";
 import { cn } from "../lib/utils";
 
 const DCT_TREASURY_ADDRESS = "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
@@ -43,6 +44,10 @@ const STONFI_EXPLORER_URL =
 const DEDUST_POOL_URL = "https://dedust.io/swap/TON-DCT";
 const DEDUST_EXPLORER_URL =
   "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI";
+const OPERATIONS_TREASURY_ADDRESS =
+  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
+const OPERATIONS_TREASURY_URL =
+  `https://tonviewer.com/${OPERATIONS_TREASURY_ADDRESS}`;
 const TONKEEPER_UNIVERSAL_LINK =
   `https://app.tonkeeper.com/transfer/${DCT_TREASURY_ADDRESS}?jetton=${DCT_JETTON_ADDRESS}&text=${
     encodeURIComponent(
@@ -482,6 +487,11 @@ export default function Token() {
                     </a>
                   </Button>
                 </div>
+                <QrCode
+                  value={TON_STANDARD_LINK}
+                  caption="Scan to launch the deposit link in your TonConnect wallet."
+                  className="mt-4"
+                />
               </div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Button
@@ -523,7 +533,59 @@ export default function Token() {
                 Keep operations smooth by submitting requests ahead of time.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 pt-2">
+            <CardContent className="space-y-4 pt-2">
+              <div className="rounded-lg border border-border/40 bg-secondary/40 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Operations release wallet
+                </p>
+                <p className="mt-1 font-mono text-sm text-foreground">
+                  {shortenAddress(OPERATIONS_TREASURY_ADDRESS)}
+                </p>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Button
+                    variant="secondary"
+                    className="justify-start gap-2"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(
+                          OPERATIONS_TREASURY_ADDRESS,
+                        );
+                        setToast({
+                          type: "success",
+                          message: "Operations wallet copied",
+                        });
+                      } catch (error) {
+                        console.error(
+                          "Failed to copy operations wallet address",
+                          error,
+                        );
+                        setToast({
+                          type: "error",
+                          message: "Copy not available",
+                        });
+                      }
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy address
+                  </Button>
+                  <Button asChild variant="outline" className="gap-2 text-sm">
+                    <a
+                      href={OPERATIONS_TREASURY_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      View on TON Explorer
+                    </a>
+                  </Button>
+                </div>
+                <QrCode
+                  value={OPERATIONS_TREASURY_URL}
+                  caption="Scan to verify the operations wallet in Tonviewer."
+                  className="mt-4"
+                />
+              </div>
               {WITHDRAWAL_POINTS.map((point) => (
                 <div
                   key={point}
