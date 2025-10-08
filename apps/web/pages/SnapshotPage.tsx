@@ -15,7 +15,7 @@ import { cn } from "@/utils";
 import { AlertCircle, Pause, RefreshCcw, Wifi } from "lucide-react";
 import { useMemo, useState } from "react";
 
-const REFRESH_INTERVAL_MS = 90_000;
+const REFRESH_INTERVAL_MS = 30_000;
 
 export function SnapshotSection() {
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -79,7 +79,9 @@ export function SnapshotSection() {
               {statusBadge}
               <span>{timestampLabel}</span>
               <span>
-                Refresh cadence · {Math.round(REFRESH_INTERVAL_MS / 1000)}s
+                {`Refresh cadence · ${
+                  Math.round(REFRESH_INTERVAL_MS / 1000)
+                }s (2m when inactive)`}
               </span>
             </div>
           </div>
