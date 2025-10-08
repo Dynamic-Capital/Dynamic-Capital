@@ -45,14 +45,21 @@ This task matrix operationalizes the standardization plan for Dynamic Capital's 
 - **Task 7.3:** Establish a review workflow that pairs design, content, and engineering sign-offs before new pages ship.
 - **Task 7.4:** Reference Dynamic organizational playbooks and TON ecosystem guidelines within the documentation, linking to canonical blueprints for branding, compliance, and product language. *Acceptance:* Docs include deep links to required playbooks and highlight TON-specific compliance checkpoints.
 
+## 8. Dynamic Intelligence & Tokenized Trading Modules
+- **Task 8.1:** Stand up a shared intelligence services layer that exposes Dynamic AI, Dynamic AGI, and Dynamic AGS capabilities (strategy co-pilots, autonomous trading heuristics, safeguards) via standardized hooks for tool workspaces. *Acceptance:* `/tools/*` pages can opt into intelligence modules through a single provider import while respecting human oversight toggles.
+- **Task 8.2:** Architect Dynamic Trading Logic and the Dynamic Trading Algorithm as TON-first microservices that surface programmable strategies, parameter tuning, and simulation dashboards. *Acceptance:* Investor and admin routes can launch, pause, and audit algorithmic strategies using animated control cards with contextual tags.
+- **Task 8.3:** Integrate Dynamic Capital Token utilities (staking, governance, reward accrual) and Dynamic NFT trading rails into unified marketplace components with animated state changes and ton:// deep links. *Acceptance:* Users can traverse token and NFT experiences through the “one hint” navigation pattern with consistent tagging, motion, and TON wallet confirmation flows.
+
 ## Dependencies & Sequencing
 1. Complete the route registry (Task 1.1) before refactoring navigation (Task 1.2) and workspace layouts (Tasks 2.x, 4.x).
 2. Motion design tokens (Task 6.1) should precede layout refactors to avoid rework.
 3. Documentation updates (Tasks 7.x) follow after the functional changes stabilize.
+4. Dynamic intelligence and trading modules (Tasks 8.x) depend on the shared navigation, workspace, and motion systems to guarantee consistent interaction patterns.
 
 ## Success Metrics
 - Single source of truth for routes reduces navigation bugs (track through regression suite).
 - Time-to-ship for new tool pages decreases by >30% due to reusable layouts.
 - User testing confirms the “one hint” navigation cue is discoverable and animated cards convey affordances without overwhelming motion.
 - TON-integrated surfaces pass security and compliance reviews on first submission thanks to standardized providers and documented playbooks.
+- Dynamic intelligence services and tokenized trading modules achieve cross-route adoption with monitored guardrails, demonstrating human-aligned automation across AI, algorithmic, and NFT flows.
 
