@@ -1,4 +1,6 @@
 name: Metadata Audit
+permissions:
+  contents: read
 
 on:
   schedule:
