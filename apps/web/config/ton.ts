@@ -1,4 +1,8 @@
 import { optionalEnvVar } from "@/utils/env";
+import {
+  TON_MANIFEST_ORIGIN_CANDIDATES,
+  TON_MANIFEST_RESOURCE_PATH,
+} from "../../../shared/ton/manifest";
 
 export type TonNetwork = "mainnet" | "testnet";
 
@@ -17,20 +21,12 @@ export type TonConnectManifest = {
 const DEFAULT_NETWORK: TonNetwork = "mainnet";
 export const TON_MANIFEST_PATH = "/api/tonconnect/manifest";
 const MANIFEST_ICON_PATH = "/icon-mark.svg";
-const PRIMARY_PRODUCTION_ORIGIN = "https://dynamic.capital";
-const DIGITALOCEAN_ACTIVE_ORIGIN =
-  "https://dynamic-capital-qazf2.ondigitalocean.app";
-const DIGITALOCEAN_LEGACY_ORIGIN = "https://dynamic-capital.ondigitalocean.app";
-const PROD_FALLBACK_ORIGINS = [
-  PRIMARY_PRODUCTION_ORIGIN,
-  DIGITALOCEAN_ACTIVE_ORIGIN,
-  DIGITALOCEAN_LEGACY_ORIGIN,
-];
-const PROD_FALLBACK_ORIGIN = PROD_FALLBACK_ORIGINS[0];
-const PROD_MANIFEST_URL = new URL(
-  "/tonconnect-manifest.json",
-  PROD_FALLBACK_ORIGIN,
-).toString();
+const PRIMARY_PRODUCTION_ORIGIN = TON_MANIFEST_ORIGIN_CANDIDATES[0];
+const PROD_FALLBACK_ORIGINS = [...TON_MANIFEST_ORIGIN_CANDIDATES];
+const DEFAULT_SERVER_FALLBACK_ORIGIN =
+  PROD_FALLBACK_ORIGINS[PROD_FALLBACK_ORIGINS.length - 1];
+const CONNECTIVITY_CHECK_TIMEOUT_MS = 2_500;
+const PROD_MANIFEST_PATH = TON_MANIFEST_RESOURCE_PATH;
 const DEV_FALLBACK_ORIGIN = "http://localhost:3000";
 const APP_NAME = "Dynamic Capital";
 
@@ -99,10 +95,105 @@ export function resolveTonBaseUrl(): string {
       : undefined;
 
   if (nodeEnv === "production") {
-    return PROD_FALLBACK_ORIGIN;
+    return DEFAULT_SERVER_FALLBACK_ORIGIN;
   }
 
   return DEV_FALLBACK_ORIGIN;
+}
+
+function computeManifestUrl(origin: string): string {
+  return new URL(PROD_MANIFEST_PATH, origin).toString();
+}
+
+let resolvedProdOrigin: string | null = typeof window !== "undefined"
+  ? PRIMARY_PRODUCTION_ORIGIN
+  : null;
+let tonManifestUrlCache = computeManifestUrl(
+  resolvedProdOrigin ?? DEFAULT_SERVER_FALLBACK_ORIGIN,
+);
+let connectivityCheckPromise: Promise<string> | null = null;
+
+async function checkManifestConnectivity(origin: string): Promise<boolean> {
+  if (typeof fetch !== "function") {
+    return true;
+  }
+
+  const manifestUrl = computeManifestUrl(origin);
+  const controller = typeof AbortController !== "undefined"
+    ? new AbortController()
+    : null;
+  const timeoutId = controller
+    ? setTimeout(() => controller.abort(), CONNECTIVITY_CHECK_TIMEOUT_MS)
+    : null;
+
+  try {
+    const response = await fetch(manifestUrl, {
+      method: "HEAD",
+      signal: controller?.signal,
+      cache: "no-store",
+    });
+
+    if (response.ok) {
+      return true;
+    }
+
+    if (response.status === 405) {
+      const fallbackResponse = await fetch(manifestUrl, {
+        method: "GET",
+        signal: controller?.signal,
+        cache: "no-store",
+      });
+
+      return fallbackResponse.ok;
+    }
+
+    return false;
+  } catch {
+    return false;
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
+async function selectReachableProdOrigin(): Promise<string> {
+  for (const origin of PROD_FALLBACK_ORIGINS) {
+    const reachable = await checkManifestConnectivity(origin);
+    if (reachable) {
+      return origin;
+    }
+  }
+
+  return DEFAULT_SERVER_FALLBACK_ORIGIN;
+}
+
+function ensureConnectivityCheck(): void {
+  if (typeof window !== "undefined") {
+    return;
+  }
+
+  if (connectivityCheckPromise) {
+    return;
+  }
+
+  connectivityCheckPromise = selectReachableProdOrigin()
+    .then((origin) => {
+      resolvedProdOrigin = origin;
+      updateManifestUrlCache(origin);
+      return origin;
+    })
+    .catch((error) => {
+      if (typeof console !== "undefined" && error instanceof Error) {
+        console.warn(
+          "Unable to verify TON manifest connectivity; using fallback origin",
+          error.message,
+        );
+      }
+      resolvedProdOrigin = DEFAULT_SERVER_FALLBACK_ORIGIN;
+      updateManifestUrlCache(DEFAULT_SERVER_FALLBACK_ORIGIN);
+      return DEFAULT_SERVER_FALLBACK_ORIGIN;
+    });
 }
 
 export function resolveTonManifestUrl(baseUrl = resolveTonBaseUrl()): string {
@@ -135,7 +226,9 @@ export function resolveTonManifestUrl(baseUrl = resolveTonBaseUrl()): string {
     // If the base URL can't be parsed, fall through to the production default.
   }
 
-  return PROD_MANIFEST_URL;
+  ensureConnectivityCheck();
+
+  return tonManifestUrlCache;
 }
 
 export function createTonManifest(
@@ -148,12 +241,19 @@ export function createTonManifest(
   };
 }
 
-const TON_MANIFEST_URL = resolveTonManifestUrl();
-
-export const TON_CONFIG: TonConfig = Object.freeze({
+const tonConfig: TonConfig = {
   network: DEFAULT_NETWORK,
-  manifestUrl: TON_MANIFEST_URL,
-});
+  manifestUrl: tonManifestUrlCache,
+};
+
+function updateManifestUrlCache(origin: string): void {
+  tonManifestUrlCache = computeManifestUrl(origin);
+  tonConfig.manifestUrl = tonManifestUrlCache;
+}
+
+ensureConnectivityCheck();
+
+export const TON_CONFIG: TonConfig = tonConfig;
 
 export const TON_NETWORKS = {
   mainnet: {
