@@ -47,6 +47,7 @@ import {
   TONCONNECT_TWA_RETURN_URL,
 } from "../lib/config";
 import { THEME_MINT_PLANS, type ThemeMintPlan } from "../data/theme-mints";
+import { TON_MANIFEST_URL_CANDIDATES } from "../../../../shared/ton/manifest";
 
 type SectionId =
   | "overview"
@@ -126,8 +127,71 @@ type NavItem = {
   icon: (props: { active: boolean }) => JSX.Element;
 };
 
-const TONCONNECT_MANIFEST_URL =
-  "https://dynamiccapital.ton/tonconnect-manifest.json";
+function useTonConnectManifestUrl(): string {
+  const candidates = useMemo(
+    () => [...TON_MANIFEST_URL_CANDIDATES],
+    [],
+  );
+  const [manifestUrl, setManifestUrl] = useState<string>(
+    candidates[0] ?? "",
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkCandidates(): Promise<void> {
+      for (const candidate of candidates) {
+        const controller =
+          typeof AbortController !== "undefined"
+            ? new AbortController()
+            : null;
+        const timeoutId = controller
+          ? setTimeout(() => controller.abort(), 2_500)
+          : null;
+
+        try {
+          const headResponse = await fetch(candidate, {
+            method: "HEAD",
+            signal: controller?.signal ?? undefined,
+            cache: "no-store",
+          });
+
+          let reachable = headResponse.ok;
+
+          if (!reachable && headResponse.status === 405) {
+            const getResponse = await fetch(candidate, {
+              method: "GET",
+              signal: controller?.signal ?? undefined,
+              cache: "no-store",
+            });
+            reachable = getResponse.ok;
+          }
+
+          if (reachable) {
+            if (!cancelled) {
+              setManifestUrl(candidate);
+            }
+            return;
+          }
+        } catch {
+          // Ignore connectivity failures and continue to the next candidate.
+        } finally {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+        }
+      }
+    }
+
+    void checkCandidates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [candidates]);
+
+  return manifestUrl;
+}
 
 const SECTION_IDS: SectionId[] = [
   "overview",
@@ -2907,9 +2971,11 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export default function Page() {
+  const manifestUrl = useTonConnectManifestUrl();
+
   return (
     <TonConnectUIProvider
-      manifestUrl={TONCONNECT_MANIFEST_URL}
+      manifestUrl={manifestUrl}
       walletsListConfiguration={TONCONNECT_WALLETS_LIST_CONFIGURATION}
       actionsConfiguration={TONCONNECT_ACTIONS_CONFIGURATION}
     >
