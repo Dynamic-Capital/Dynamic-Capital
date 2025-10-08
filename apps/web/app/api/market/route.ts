@@ -16,6 +16,9 @@ const ALLOWED_CLASSES = new Set(
   ] as const,
 );
 
+const MAX_SYMBOLS_PER_REQUEST = 50;
+const CACHE_TTL_MS = 30_000;
+
 const isAllowedClass = (value: string): value is MarketClass =>
   ALLOWED_CLASSES.has(value as MarketClass);
 
@@ -44,6 +47,53 @@ interface MarketApiResponse {
   quotes: MarketQuote[];
   errors?: string[];
 }
+
+interface CachedMarketData {
+  quotes: MarketQuote[];
+  errors?: string[];
+}
+
+interface CacheEntry {
+  timestamp: number;
+  data: CachedMarketData;
+}
+
+const normalizeSymbol = (value: string) => value.trim().toLowerCase();
+
+const responseCache = new Map<string, CacheEntry>();
+const inFlightRequests = new Map<string, Promise<MarketApiResponse>>();
+
+const cloneCachedData = (data: CachedMarketData): CachedMarketData => ({
+  quotes: data.quotes.map((quote) => ({ ...quote })),
+  errors: data.errors ? [...data.errors] : undefined,
+});
+
+const buildCacheKey = (assetClass: MarketClass, symbols: string[]) =>
+  `${assetClass}:${symbols.map(normalizeSymbol).sort().join(",")}`;
+
+const canonicalizeSymbol = (symbol: string) =>
+  normalizeSymbol(symbol).replace(/[^a-z0-9]+/g, "");
+
+const getCachedResponse = (key: string): CachedMarketData | undefined => {
+  const entry = responseCache.get(key);
+  if (!entry) {
+    return undefined;
+  }
+
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    responseCache.delete(key);
+    return undefined;
+  }
+
+  return cloneCachedData(entry.data);
+};
+
+const setCachedResponse = (key: string, data: CachedMarketData) => {
+  responseCache.set(key, {
+    timestamp: Date.now(),
+    data: cloneCachedData(data),
+  });
+};
 
 const parseNumber = (value: unknown): number | undefined => {
   if (typeof value === "number") {
@@ -77,56 +127,107 @@ const toIsoTimestamp = (date: unknown, time: unknown): string | undefined => {
   return new Date(parsed).toISOString();
 };
 
-async function fetchStooqQuote(symbol: string): Promise<MarketQuote | null> {
+interface StooqBatchResult {
+  quotes: MarketQuote[];
+  missingSymbols: string[];
+}
+
+async function fetchStooqQuotes(
+  requestedSymbols: string[],
+): Promise<StooqBatchResult> {
+  if (requestedSymbols.length === 0) {
+    return { quotes: [], missingSymbols: [] };
+  }
+
   const url = `${STOOQ_ENDPOINT}?s=${
-    encodeURIComponent(symbol)
+    encodeURIComponent(requestedSymbols.join(","))
   }&${STOOQ_QUERY_PARAMS}`;
   const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) {
-    throw new Error(`Stooq request failed for ${symbol} (${response.status})`);
+    throw new Error(
+      `Stooq request failed for ${
+        requestedSymbols.join(", ")
+      } (${response.status})`,
+    );
   }
 
   const payload = await response.json() as {
     symbols?: Array<Record<string, unknown>>;
   };
 
-  const firstSymbol = payload.symbols?.[0];
-  if (!firstSymbol) {
-    return null;
+  const normalizedLookup = new Map<string, string>();
+  const canonicalLookup = new Map<string, string>();
+  for (const symbol of requestedSymbols) {
+    const normalized = normalizeSymbol(symbol);
+    if (!normalizedLookup.has(normalized)) {
+      normalizedLookup.set(normalized, symbol);
+    }
+    const canonical = canonicalizeSymbol(symbol);
+    if (!canonicalLookup.has(canonical)) {
+      canonicalLookup.set(canonical, symbol);
+    }
   }
 
-  const close = parseNumber(firstSymbol.close);
-  const open = parseNumber(firstSymbol.open);
-  const high = parseNumber(firstSymbol.high);
-  const low = parseNumber(firstSymbol.low);
-  const change = close !== undefined && open !== undefined
-    ? close - open
-    : undefined;
-  const changePercent = change !== undefined && open !== undefined && open !== 0
-    ? (change / open) * 100
-    : undefined;
+  const quotes: MarketQuote[] = [];
+  const matched = new Set<string>();
 
-  const volume = parseNumber(firstSymbol.volume);
-  const timestamp = toIsoTimestamp(firstSymbol.date, firstSymbol.time);
+  for (const item of payload.symbols ?? []) {
+    const sourceSymbol = typeof item.symbol === "string"
+      ? item.symbol
+      : undefined;
+    if (!sourceSymbol) {
+      continue;
+    }
 
-  const sourceSymbol = typeof firstSymbol.symbol === "string"
-    ? firstSymbol.symbol
-    : symbol.toUpperCase();
+    const normalizedSource = normalizeSymbol(sourceSymbol);
+    const canonicalSource = canonicalizeSymbol(sourceSymbol);
+    let requestSymbol = normalizedLookup.get(normalizedSource) ??
+      canonicalLookup.get(canonicalSource);
+    if (!requestSymbol) {
+      requestSymbol = requestedSymbols.find((symbol) => {
+        const normalized = normalizeSymbol(symbol);
+        return !matched.has(normalized);
+      }) ?? sourceSymbol;
+    }
+    const close = parseNumber(item.close);
+    const open = parseNumber(item.open);
+    const high = parseNumber(item.high);
+    const low = parseNumber(item.low);
+    const change = close !== undefined && open !== undefined
+      ? close - open
+      : undefined;
+    const changePercent =
+      change !== undefined && open !== undefined && open !== 0
+        ? (change / open) * 100
+        : undefined;
+    const volume = parseNumber(item.volume);
+    const timestamp = toIsoTimestamp(item.date, item.time);
+    const name = typeof item.name === "string" ? item.name : undefined;
 
-  return {
-    requestSymbol: symbol,
-    sourceSymbol,
-    source: "stooq",
-    last: close,
-    change,
-    changePercent,
-    high,
-    low,
-    open,
-    previousClose: open,
-    volume,
-    timestamp: timestamp ?? null,
-  };
+    matched.add(normalizeSymbol(requestSymbol));
+    quotes.push({
+      requestSymbol,
+      sourceSymbol,
+      source: "stooq",
+      name,
+      last: close,
+      change,
+      changePercent,
+      high,
+      low,
+      open,
+      previousClose: open,
+      volume,
+      timestamp: timestamp ?? null,
+    });
+  }
+
+  const missingSymbols = requestedSymbols.filter((symbol) => {
+    const normalized = normalizeSymbol(symbol);
+    return !matched.has(normalized);
+  });
+
+  return { quotes, missingSymbols };
 }
 
 async function fetchCoinGeckoQuotes(
@@ -188,48 +289,98 @@ async function loadQuotes(
   assetClass: MarketClass,
   symbols: string[],
 ): Promise<MarketApiResponse> {
-  const errors: string[] = [];
+  const trimmedSymbols = symbols.map((symbol) => symbol.trim()).filter(Boolean);
+  const uniqueSymbols: string[] = [];
+  const seen = new Set<string>();
 
-  if (assetClass === "crypto") {
+  for (const symbol of trimmedSymbols) {
+    const normalized = normalizeSymbol(symbol);
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      uniqueSymbols.push(symbol);
+    }
+  }
+
+  if (uniqueSymbols.length === 0) {
+    return {
+      class: assetClass,
+      quotes: [],
+      errors: ["No valid symbols supplied"],
+    } satisfies MarketApiResponse;
+  }
+
+  const cacheKey = buildCacheKey(assetClass, uniqueSymbols);
+  const cached = getCachedResponse(cacheKey);
+  if (cached) {
+    return { class: assetClass, ...cached } satisfies MarketApiResponse;
+  }
+
+  const inFlight = inFlightRequests.get(cacheKey);
+  if (inFlight) {
+    return inFlight;
+  }
+
+  const loader = (async (): Promise<MarketApiResponse> => {
+    const errors: string[] = [];
+
+    if (assetClass === "crypto") {
+      try {
+        const quotes = await fetchCoinGeckoQuotes(uniqueSymbols);
+        const response = {
+          class: assetClass,
+          quotes,
+        } satisfies MarketApiResponse;
+        setCachedResponse(cacheKey, { quotes });
+        return response;
+      } catch (error) {
+        errors.push(error instanceof Error ? error.message : String(error));
+        const response = {
+          class: assetClass,
+          quotes: [],
+          errors,
+        } satisfies MarketApiResponse;
+        return response;
+      }
+    }
+
     try {
-      const quotes = await fetchCoinGeckoQuotes(symbols);
-      return { class: assetClass, quotes };
+      const { quotes, missingSymbols } = await fetchStooqQuotes(uniqueSymbols);
+      if (missingSymbols.length > 0) {
+        errors.push(
+          `No market data for ${
+            missingSymbols.map((symbol) => symbol.toUpperCase()).join(", ")
+          }`,
+        );
+      }
+
+      const response = {
+        class: assetClass,
+        quotes,
+        errors: errors.length > 0 ? errors : undefined,
+      } satisfies MarketApiResponse;
+      setCachedResponse(cacheKey, {
+        quotes,
+        errors: errors.length > 0 ? [...errors] : undefined,
+      });
+      return response;
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
-      return { class: assetClass, quotes: [], errors };
+      const response = {
+        class: assetClass,
+        quotes: [],
+        errors,
+      } satisfies MarketApiResponse;
+      return response;
     }
+  })();
+
+  inFlightRequests.set(cacheKey, loader);
+
+  try {
+    return await loader;
+  } finally {
+    inFlightRequests.delete(cacheKey);
   }
-
-  const stooqRequests = await Promise.allSettled(
-    symbols.map(async (symbol) => {
-      try {
-        const quote = await fetchStooqQuote(symbol);
-        return quote;
-      } catch (error) {
-        errors.push(
-          error instanceof Error
-            ? error.message
-            : `Unknown error for ${symbol}`,
-        );
-        return null;
-      }
-    }),
-  );
-
-  const quotes: MarketQuote[] = [];
-  for (let index = 0; index < stooqRequests.length; index += 1) {
-    const result = stooqRequests[index];
-    const requestSymbol = symbols[index];
-    if (result.status === "fulfilled" && result.value) {
-      quotes.push({ ...result.value, requestSymbol });
-    }
-  }
-
-  return {
-    class: assetClass,
-    quotes,
-    errors: errors.length > 0 ? errors : undefined,
-  };
 }
 
 export async function GET(req: Request) {
@@ -260,6 +411,20 @@ export async function GET(req: Request) {
     if (symbols.length === 0) {
       return jsonResponse(
         { error: "At least one symbol is required" },
+        { status: 400 },
+        req,
+      );
+    }
+
+    const uniqueSymbolCount = new Set(
+      symbols.map((symbol) => normalizeSymbol(symbol)),
+    ).size;
+
+    if (uniqueSymbolCount > MAX_SYMBOLS_PER_REQUEST) {
+      return jsonResponse(
+        {
+          error: `Too many symbols requested (max ${MAX_SYMBOLS_PER_REQUEST})`,
+        },
         { status: 400 },
         req,
       );

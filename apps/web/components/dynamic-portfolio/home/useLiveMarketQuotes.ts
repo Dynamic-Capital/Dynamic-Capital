@@ -34,6 +34,54 @@ const REFRESH_INTERVAL_MS = 60_000;
 
 const normalizeSymbol = (symbol: string) => symbol.trim().toLowerCase();
 
+const areQuoteRecordsEqual = (
+  previous: Record<string, LiveMarketQuote>,
+  next: Record<string, LiveMarketQuote>,
+) => {
+  const previousKeys = Object.keys(previous);
+  const nextKeys = Object.keys(next);
+  if (previousKeys.length !== nextKeys.length) {
+    return false;
+  }
+
+  for (const key of previousKeys) {
+    const prevQuote = previous[key];
+    const nextQuote = next[key];
+    if (!nextQuote) {
+      return false;
+    }
+
+    if (
+      prevQuote.requestSymbol !== nextQuote.requestSymbol ||
+      prevQuote.sourceSymbol !== nextQuote.sourceSymbol ||
+      prevQuote.source !== nextQuote.source ||
+      (prevQuote.name ?? null) !== (nextQuote.name ?? null) ||
+      (prevQuote.last ?? null) !== (nextQuote.last ?? null) ||
+      (prevQuote.change ?? null) !== (nextQuote.change ?? null) ||
+      (prevQuote.changePercent ?? null) !== (nextQuote.changePercent ?? null) ||
+      (prevQuote.high ?? null) !== (nextQuote.high ?? null) ||
+      (prevQuote.low ?? null) !== (nextQuote.low ?? null) ||
+      (prevQuote.open ?? null) !== (nextQuote.open ?? null) ||
+      (prevQuote.previousClose ?? null) !== (nextQuote.previousClose ?? null) ||
+      (prevQuote.volume ?? null) !== (nextQuote.volume ?? null)
+    ) {
+      return false;
+    }
+
+    const prevTimestamp = prevQuote.timestamp
+      ? prevQuote.timestamp.getTime()
+      : null;
+    const nextTimestamp = nextQuote.timestamp
+      ? nextQuote.timestamp.getTime()
+      : null;
+    if (prevTimestamp !== nextTimestamp) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export interface UseLiveMarketQuotesOptions {
   assetClass: AssetClass;
   symbols: string[];
@@ -63,6 +111,31 @@ export function useLiveMarketQuotes(
   const abortControllerRef = useRef<AbortController | null>(null);
   const isMountedRef = useRef(true);
   const inFlightRef = useRef(false);
+  const latestQuotesRef = useRef<Record<string, LiveMarketQuote>>({});
+
+  const requestSymbols = useMemo(() => {
+    const deduped: string[] = [];
+    const seen = new Set<string>();
+    for (const symbol of symbols) {
+      const trimmed = symbol.trim();
+      if (!trimmed) {
+        continue;
+      }
+      const normalized = normalizeSymbol(trimmed);
+      if (seen.has(normalized)) {
+        continue;
+      }
+      seen.add(normalized);
+      deduped.push(trimmed);
+    }
+    return deduped;
+  }, [symbols]);
+
+  const symbolsKey = useMemo(
+    () =>
+      requestSymbols.map((symbol) => normalizeSymbol(symbol)).sort().join(","),
+    [requestSymbols],
+  );
 
   useEffect(() => {
     return () => {
@@ -72,7 +145,7 @@ export function useLiveMarketQuotes(
   }, []);
 
   const fetchQuotes = useCallback(async () => {
-    if (symbols.length === 0 || inFlightRef.current) {
+    if (requestSymbols.length === 0 || inFlightRef.current) {
       return;
     }
 
@@ -90,7 +163,7 @@ export function useLiveMarketQuotes(
     try {
       const params = new URLSearchParams({
         class: assetClass,
-        symbols: symbols.join(","),
+        symbols: requestSymbols.join(","),
       });
       const response = await fetch(`/api/market?${params.toString()}`, {
         cache: "no-store",
@@ -112,7 +185,10 @@ export function useLiveMarketQuotes(
       }
 
       if (isMountedRef.current) {
-        setQuotes(nextQuotes);
+        if (!areQuoteRecordsEqual(latestQuotesRef.current, nextQuotes)) {
+          latestQuotesRef.current = nextQuotes;
+          setQuotes(nextQuotes);
+        }
         setLastUpdated(new Date());
         setError(
           payload.errors && payload.errors.length > 0
@@ -144,7 +220,7 @@ export function useLiveMarketQuotes(
         setIsRefreshing(false);
       }
     }
-  }, [assetClass, symbols]);
+  }, [assetClass, requestSymbols, symbolsKey]);
 
   useEffect(() => {
     fetchQuotes();
