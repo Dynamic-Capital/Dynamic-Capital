@@ -7,7 +7,6 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import { AsciiShaderText } from "@/components/ui/AsciiShaderText";
 import { formatIsoTime } from "@/utils/isoFormat";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -20,6 +19,7 @@ import {
   InsightCard,
   MoversSection,
   MoversTable,
+  type MoversTableProps,
   StrengthMeterList,
   type TagBackground,
   VolatilityBucket,
@@ -157,7 +157,8 @@ const FX_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
   ).join(",")
 }`;
 
-const REFRESH_INTERVAL_MS = 60_000;
+const REFRESH_INTERVAL_MS = 30_000;
+const BACKGROUND_REFRESH_INTERVAL_MS = 120_000;
 
 const parseNumber = (value?: string): number | undefined => {
   if (!value) {
@@ -567,108 +568,6 @@ const loadCurrencySnapshot = async (
   };
 };
 
-const FALLBACK_TOP_GAINERS: TopMover[] = [
-  {
-    symbol: "EURNZD",
-    pair: "EUR/NZD",
-    changePercent: 0.12,
-    change: 0.0025,
-    pips: 25.0,
-    lastPrice: 2.02068,
-  },
-  {
-    symbol: "AUDNZD",
-    pair: "AUD/NZD",
-    changePercent: 0.12,
-    change: 0.00137,
-    pips: 13.7,
-    lastPrice: 1.13365,
-  },
-  {
-    symbol: "AUDUSD",
-    pair: "AUD/USD",
-    changePercent: 0.08,
-    change: 0.000525,
-    pips: 5.2,
-    lastPrice: 0.658875,
-  },
-  {
-    symbol: "GBPNZD",
-    pair: "GBP/NZD",
-    changePercent: 0.05,
-    change: 0.001255,
-    pips: 12.6,
-    lastPrice: 2.314215,
-  },
-  {
-    symbol: "AUDCAD",
-    pair: "AUD/CAD",
-    changePercent: 0.05,
-    change: 0.00048,
-    pips: 4.8,
-    lastPrice: 0.915295,
-  },
-];
-
-const FALLBACK_TOP_LOSERS: TopMover[] = [
-  {
-    symbol: "NZDJPY",
-    pair: "NZD/JPY",
-    changePercent: -0.17,
-    change: -0.151,
-    pips: -15.1,
-    lastPrice: 86.436,
-  },
-  {
-    symbol: "NZDCAD",
-    pair: "NZD/CAD",
-    changePercent: -0.12,
-    change: -0.000975,
-    pips: -9.7,
-    lastPrice: 0.807385,
-  },
-  {
-    symbol: "USDJPY",
-    pair: "USD/JPY",
-    changePercent: -0.11,
-    change: -0.17,
-    pips: -17.0,
-    lastPrice: 148.716,
-  },
-  {
-    symbol: "NZDCHF",
-    pair: "NZD/CHF",
-    changePercent: -0.1,
-    change: -0.000465,
-    pips: -4.6,
-    lastPrice: 0.461945,
-  },
-  {
-    symbol: "GBPJPY",
-    pair: "GBP/JPY",
-    changePercent: -0.09,
-    change: -0.171,
-    pips: -17.1,
-    lastPrice: 200.041,
-  },
-];
-
-const FALLBACK_MOST_VOLATILE_PAIRS: VolatilityPair[] = [
-  { symbol: "NZDJPY", pair: "NZD/JPY", rangePercent: 0.25 },
-  { symbol: "USDJPY", pair: "USD/JPY", rangePercent: 0.23 },
-  { symbol: "AUDUSD", pair: "AUD/USD", rangePercent: 0.21 },
-  { symbol: "AUDNZD", pair: "AUD/NZD", rangePercent: 0.2 },
-  { symbol: "GBPJPY", pair: "GBP/JPY", rangePercent: 0.2 },
-];
-
-const FALLBACK_LEAST_VOLATILE_PAIRS: VolatilityPair[] = [
-  { symbol: "EURCAD", pair: "EUR/CAD", rangePercent: 0.06 },
-  { symbol: "EURGBP", pair: "EUR/GBP", rangePercent: 0.06 },
-  { symbol: "USDCAD", pair: "USD/CAD", rangePercent: 0.07 },
-  { symbol: "GBPCAD", pair: "GBP/CAD", rangePercent: 0.08 },
-  { symbol: "EURUSD", pair: "EUR/USD", rangePercent: 0.1 },
-];
-
 const MOVERS_DISPLAY_METADATA = [
   { title: "Top gainers", tone: "brand-alpha-weak" },
   { title: "Top losers", tone: "danger-alpha-weak" },
@@ -692,17 +591,15 @@ export function FxMarketSnapshotSection() {
   const [volatilityMeter, setVolatilityMeter] = useState<CurrencyVolatility[]>(
     FALLBACK_VOLATILITY,
   );
-  const [topGainers, setTopGainers] = useState<TopMover[]>(
-    FALLBACK_TOP_GAINERS,
-  );
-  const [topLosers, setTopLosers] = useState<TopMover[]>(FALLBACK_TOP_LOSERS);
+  const [topGainers, setTopGainers] = useState<TopMover[]>([]);
+  const [topLosers, setTopLosers] = useState<TopMover[]>([]);
   const [mostVolatilePairs, setMostVolatilePairs] = useState<VolatilityPair[]>(
-    FALLBACK_MOST_VOLATILE_PAIRS,
+    [],
   );
   const [leastVolatilePairs, setLeastVolatilePairs] = useState<
     VolatilityPair[]
   >(
-    FALLBACK_LEAST_VOLATILE_PAIRS,
+    [],
   );
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isFetching, setIsFetching] = useState(false);
@@ -711,6 +608,14 @@ export function FxMarketSnapshotSection() {
   const isMountedRef = useRef(true);
   const inFlightRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [effectiveRefreshInterval, setEffectiveRefreshInterval] = useState(
+    () => {
+      if (typeof document === "undefined" || !document.hidden) {
+        return REFRESH_INTERVAL_MS;
+      }
+      return BACKGROUND_REFRESH_INTERVAL_MS;
+    },
+  );
 
   useEffect(
     () => () => {
@@ -743,26 +648,10 @@ export function FxMarketSnapshotSection() {
 
       setStrengthMeter(snapshot.strength);
       setVolatilityMeter(snapshot.volatility);
-      setTopGainers(
-        snapshot.topGainers.length > 0
-          ? snapshot.topGainers
-          : FALLBACK_TOP_GAINERS,
-      );
-      setTopLosers(
-        snapshot.topLosers.length > 0
-          ? snapshot.topLosers
-          : FALLBACK_TOP_LOSERS,
-      );
-      setMostVolatilePairs(
-        snapshot.mostVolatilePairs.length > 0
-          ? snapshot.mostVolatilePairs
-          : FALLBACK_MOST_VOLATILE_PAIRS,
-      );
-      setLeastVolatilePairs(
-        snapshot.leastVolatilePairs.length > 0
-          ? snapshot.leastVolatilePairs
-          : FALLBACK_LEAST_VOLATILE_PAIRS,
-      );
+      setTopGainers(snapshot.topGainers);
+      setTopLosers(snapshot.topLosers);
+      setMostVolatilePairs(snapshot.mostVolatilePairs);
+      setLeastVolatilePairs(snapshot.leastVolatilePairs);
       setLastUpdated(snapshot.lastUpdated ?? new Date());
       setError(null);
     } catch (snapshotError) {
@@ -789,17 +678,51 @@ export function FxMarketSnapshotSection() {
 
   useEffect(() => {
     refreshSnapshot();
+  }, [refreshSnapshot]);
+
+  useEffect(() => {
+    const computeInterval = () => {
+      if (typeof document === "undefined" || !document.hidden) {
+        return REFRESH_INTERVAL_MS;
+      }
+      return BACKGROUND_REFRESH_INTERVAL_MS;
+    };
+
+    setEffectiveRefreshInterval(computeInterval());
+
+    if (typeof document === "undefined") {
+      return () => {};
+    }
+
+    const handleVisibilityChange = () => {
+      setEffectiveRefreshInterval(computeInterval());
+      if (!document.hidden) {
+        void refreshSnapshot();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [refreshSnapshot]);
+
+  useEffect(() => {
+    if (effectiveRefreshInterval <= 0) {
+      return () => {};
+    }
 
     const interval = setInterval(() => {
       refreshSnapshot();
-    }, REFRESH_INTERVAL_MS);
+    }, effectiveRefreshInterval);
 
     return () => {
       clearInterval(interval);
     };
-  }, [refreshSnapshot]);
+  }, [effectiveRefreshInterval, refreshSnapshot]);
 
-  const moversSections = useMemo<MoversSection[]>(
+  const moversSections = useMemo<MoversTableProps[]>(
     () => [
       {
         title: MOVERS_DISPLAY_METADATA[0].title,
@@ -814,6 +737,7 @@ export function FxMarketSnapshotSection() {
           extra: item.pips,
           last: item.lastPrice,
         })),
+        emptyLabel: "Awaiting live FX gainers…",
       },
       {
         title: MOVERS_DISPLAY_METADATA[1].title,
@@ -828,6 +752,7 @@ export function FxMarketSnapshotSection() {
           extra: item.pips,
           last: item.lastPrice,
         })),
+        emptyLabel: "Awaiting live FX decliners…",
       },
     ],
     [topGainers, topLosers],
@@ -844,6 +769,7 @@ export function FxMarketSnapshotSection() {
           symbol: item.symbol,
           value: item.rangePercent,
         })),
+        emptyLabel: "Awaiting live FX volatility data…",
       },
       {
         title: VOLATILITY_DISPLAY_METADATA[1].title,
@@ -854,6 +780,7 @@ export function FxMarketSnapshotSection() {
           symbol: item.symbol,
           value: item.rangePercent,
         })),
+        emptyLabel: "Awaiting live FX volatility data…",
       },
     ],
     [leastVolatilePairs, mostVolatilePairs],
