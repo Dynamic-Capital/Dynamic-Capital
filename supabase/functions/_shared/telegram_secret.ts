@@ -92,8 +92,9 @@ export async function readDbWebhookSecret(
     return normalizeSecretValue(
       await getSetting<string | Uint8Array>("TELEGRAM_WEBHOOK_SECRET"),
     );
-  } catch {
-    return null;
+  } catch (error) {
+    console.error("[telegram] failed to read webhook secret", error);
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
 export async function expectedSecret(
@@ -146,7 +147,16 @@ export async function validateTelegramHeader(
   ) {
     return null;
   }
-  const exp = normalizeSecretValue(await expectedSecret());
+  let exp: string | null;
+  try {
+    exp = await expectedSecret();
+  } catch (error) {
+    console.error(
+      "[telegram] unable to resolve expected webhook secret",
+      error,
+    );
+    return unauth("secret lookup failure", req);
+  }
   if (!exp) {
     if (!missingSecretLogged) {
       missingSecretLogged = true;
