@@ -54,3 +54,20 @@ chronological order beneath this entry.
   mnemonic via `dns/wallets/provision_dns_wallet.py`, fund the wallet with at
   least 0.1 TON for fees, regenerate the TXT payloads if necessary, and rerun
   `toncli send --net mainnet ...` to record the transaction hash for this log.
+
+## 2025-10-09 – Vercel apex alignment and TON gateway restoration
+
+- **Resolver update draft** — Prepared a resolver payload replacing the
+  Cloudflare anycast `A` records with Vercel's apex IP `216.198.79.1` in
+  `dns/dynamiccapital.ton.json`. Staged the change for broadcast with the
+  `toncli` workflow documented in the runbook (broadcast pending maintenance
+  window sign-off).
+- **Vercel verification** — After publishing the `_vercel` TXT token and
+  `dynamic-capital` CNAME to the DigitalOcean zone, refreshed the Vercel domain
+  dashboard which now shows the project status as `Verified` and `Configured`.
+  Archived the confirmation screenshot in the shared ops vault (ref. ticket
+  `DC-215`).
+- **Gateway probe** — Re-deployed the `dynamic-capital-qazf2.ondigitalocean.app`
+  Next.js bundle and confirmed both HTTPS bridges return `HTTP 200` (see
+  `dns/https-gateway-verification-2025-10-08.md`). Updated the resolver
+  verification block accordingly.

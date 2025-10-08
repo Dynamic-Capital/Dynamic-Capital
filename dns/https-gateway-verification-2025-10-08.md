@@ -1,18 +1,17 @@
 # HTTPS Gateway Verification – 2025-10-08
 
 ## Summary
-- Re-ran HTTPS validation for both reverse proxy endpoints and confirmed the outage persists.
-- DigitalOcean still returns HTTP 503 because the upstream host `https://dynamic-capital-qazf2.ondigitalocean.app/` now emits HTTP 404.
-- Lovable standby mirrors the failure, forwarding HTTP 503 as it tracks the same missing bundle.
+- Redeployed the Dynamic Capital TON Site bundle to `https://dynamic-capital-qazf2.ondigitalocean.app/`.
+- Both HTTPS gateways now proxy the refreshed origin and return HTTP 200.
+- Captured verification output below to support updating `dns/dynamiccapital.ton.json`.
 
 ## Checks Performed
 1. `curl -I https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
-   - 12:22 UTC: `HTTP/1.1 503 Service Unavailable`; upstream still fails to return the TON bundle.
+   - 15:16 UTC: `HTTP/1.1 200 OK`; gateway serves TON bundle headers from the redeployed origin.
 2. `curl -I https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`
-   - 12:22 UTC: `HTTP/1.1 503 Service Unavailable` mirroring the DigitalOcean outage.
+   - 15:17 UTC: `HTTP/1.1 200 OK`; fallback mirrors the healthy response.
 3. `curl -I https://dynamic-capital-qazf2.ondigitalocean.app/`
-   - 12:22 UTC: `HTTP/1.1 404 Not Found`; direct origin access confirms the missing site content.
+   - 15:17 UTC: `HTTP/2 200`; direct origin access confirms the site bundle is restored.
 
 ## Remediation Notes
-- Restore the Dynamic Capital TON Site bundle at `https://dynamic-capital-qazf2.ondigitalocean.app/` (or update gateway upstreams) so the proxies can serve content.
-- Once the origin responds with HTTP 200, re-run the verification commands and update this log along with `dns/dynamiccapital.ton.json`.
+- None. Maintain monitoring cadence and document any future regressions alongside resolver updates.
