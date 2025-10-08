@@ -221,9 +221,17 @@ class DynamicQuantumEngine:
                 raise TypeError("pulse must be a QuantumPulse or mapping")
 
         overflow = max(0, len(self._pulses) + len(converted) - self._window)
-        for _ in range(overflow):
-            removed = self._pulses.popleft()
-            self._update_totals(removed, sign=-1.0)
+        if overflow:
+            existing_removals = min(len(self._pulses), overflow)
+            for _ in range(existing_removals):
+                removed = self._pulses.popleft()
+                self._update_totals(removed, sign=-1.0)
+            overflow -= existing_removals
+            if overflow:
+                if overflow >= len(converted):
+                    converted = []
+                else:
+                    converted = converted[overflow:]
 
         for pulse in converted:
             self._pulses.append(pulse)
