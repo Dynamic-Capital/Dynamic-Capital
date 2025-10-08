@@ -54,7 +54,25 @@
         "label": "Open (Fallback)",
         "uri": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton"
       }
-    ]
+    ],
+    "verification": {
+      "https": {
+        "checked_at": "2025-10-08T12:14:13Z",
+        "status": "degraded",
+        "endpoints": [
+          {
+            "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+            "http_status": 503,
+            "notes": "Envoy returned HTTP 503 after TLS handshake; origin behind the DigitalOcean gateway is unavailable."
+          },
+          {
+            "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
+            "http_status": 503,
+            "notes": "Lovable standby gateway proxies through Envoy but receives HTTP 503 from the upstream TON Site origin."
+          }
+        ]
+      }
+    }
   },
   "records": [
     {
@@ -123,6 +141,7 @@
     "Verify resolution through TON DNS tools before going live",
     "Supabase custom domains require `_acme-challenge.api.dynamiccapital.ton` TXT records during verification. Capture the issued tokens in this repo before activation and pin them to TON Storage/IPFS with the hash recorded in the operations multisig memo.",
     "Keep the `ton-gateway` CNAMEs aligned with the DigitalOcean and Lovable reverse proxy hostnames so browsers without TON DNS continue to bridge through HTTPS.",
+    "2025-10-08: HTTPS verification recorded HTTP 503 responses from both gateway hosts. Investigate the upstream TON Site origin and redeploy the reverse proxies once the dynamiccapital.ton content server is reachable.",
     "Record resolver or ownership transactions in dns/ton-dns-operations-log.md immediately after broadcasting them so the on-chain audit trail stays aligned with the repository snapshot.",
     "Use a low TTL (e.g., 60–300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
     "After activation, emit a `custom_domain_activated` event into Supabase `tx_logs` referencing the DNS bundle hash so auditors can verify the Web3 linkage.",
