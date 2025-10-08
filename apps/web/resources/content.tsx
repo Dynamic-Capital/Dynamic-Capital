@@ -8,8 +8,8 @@ import {
   Person,
   Social,
   Work,
-} from "@/resources/types";
-import { Line, Row, Text } from "@/components/dynamic-ui-system";
+} from "./types";
+import { Line, Row, Text } from "../components/dynamic-ui-system";
 import tzdata from "tzdata";
 
 import deskTimeZone from "../../../shared/time/desk-time-zone.json";

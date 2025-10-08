@@ -15,6 +15,7 @@ import {
   Star,
   TrendingUp,
   Users,
+  Wallet,
 } from "lucide-react";
 import TopBar from "../components/TopBar";
 
@@ -37,7 +38,7 @@ export default function Landing() {
           </h1>
           <p className="text-muted-foreground max-w-md mx-auto text-sm leading-relaxed">
             Join thousands of successful traders with exclusive market insights,
-            daily analysis, and premium investment opportunities.
+            daily analysis, and premium investment opportunities powered by DCT.
           </p>
         </div>
 
@@ -90,6 +91,22 @@ export default function Landing() {
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
                   Digital assets
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link to="/token" className="col-span-2">
+            <Card className="bg-gradient-to-r from-accent/20 to-primary/20 border-accent/40 hover:from-accent/30 hover:to-primary/30 transition-all">
+              <CardHeader className="text-center py-4">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Wallet className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-sm text-foreground">
+                    Dynamic Capital Token
+                  </CardTitle>
+                </div>
+                <CardDescription className="text-xs text-muted-foreground">
+                  Manage DCT deposits, withdrawals, and swaps
                 </CardDescription>
               </CardHeader>
             </Card>

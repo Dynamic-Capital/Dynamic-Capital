@@ -1,7 +1,4 @@
-import type {
-  NormalizedRouteDefinition,
-  RouteConfigValue,
-} from "@/resources/types";
+import type { NormalizedRouteDefinition, RouteConfigValue } from "./types";
 import { routes } from "./dynamic-ui.config";
 
 const normalizeRoutePath = (path: string): `/${string}` => {

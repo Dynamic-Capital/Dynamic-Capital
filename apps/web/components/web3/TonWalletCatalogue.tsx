@@ -91,8 +91,8 @@ export function TonWalletCatalogue() {
           </h3>
           <p className="text-sm text-muted-foreground">
             Wallet (Telegram), Tonkeeper, DeDust Wallet, STON.fi Wallet, Tonhub,
-            and MyTonWallet ship TonConnect deep links that work out of the box
-            with Dynamic Capital.
+            MyTonWallet, and Bitget Wallet ship TonConnect deep links that work
+            out of the box with Dynamic Capital.
           </p>
         </div>
         <p className="text-xs text-muted-foreground/80">
