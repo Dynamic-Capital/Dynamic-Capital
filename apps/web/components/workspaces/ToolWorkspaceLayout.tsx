@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 
 import {
@@ -12,7 +11,7 @@ import {
   Text,
 } from "@/components/dynamic-ui-system";
 import type { TagProps } from "@/components/dynamic-ui-system/internal/components/Tag";
-import { Button } from "@/components/ui/button";
+import { Button as DynamicButton } from "@/components/dynamic-ui-system";
 import {
   getRouteById,
   getWorkspaceMeta,
@@ -21,6 +20,7 @@ import {
   type WorkspaceMeta,
 } from "@/config/route-registry";
 import { cn } from "@/utils";
+import { LastMoveTicker } from "@/components/navigation/LastMoveTicker";
 
 interface ToolWorkspaceLayoutProps {
   routeId: RouteId;
@@ -28,6 +28,7 @@ interface ToolWorkspaceLayoutProps {
   commandBar?: ReactNode;
   className?: string;
   contentClassName?: string;
+  showLastMove?: boolean;
 }
 
 type WorkspaceTagTone = NonNullable<WorkspaceMeta["tags"]>[number]["tone"];
@@ -66,15 +67,14 @@ type LayoutTag = {
   tone?: WorkspaceTagTone;
 };
 
-function resolveActionVariant(emphasis: WorkspaceAction["emphasis"]):
-  | "default"
-  | "secondary"
-  | "ghost" {
+function resolveActionVariant(
+  emphasis: WorkspaceAction["emphasis"],
+): "primary" | "secondary" | "tertiary" {
   switch (emphasis) {
     case "primary":
-      return "default";
+      return "primary";
     case "ghost":
-      return "ghost";
+      return "tertiary";
     default:
       return "secondary";
   }
@@ -116,20 +116,19 @@ function renderHeroActions(actions: WorkspaceMeta["actions"]) {
   return (
     <Row gap="12" wrap>
       {actions.map((action) => (
-        <Button
+        <DynamicButton
           key={action.href}
-          asChild
-          size="sm"
+          size="s"
           variant={resolveActionVariant(action.emphasis)}
-          className="gap-2"
+          href={action.href}
         >
-          <Link href={action.href}>
+          <span className="flex items-center gap-2">
             {action.icon
               ? <action.icon className="h-4 w-4" aria-hidden />
               : null}
-            {action.label}
-          </Link>
-        </Button>
+            <span>{action.label}</span>
+          </span>
+        </DynamicButton>
       ))}
     </Row>
   );
@@ -141,6 +140,7 @@ export function ToolWorkspaceLayout({
   commandBar,
   className,
   contentClassName,
+  showLastMove = true,
 }: ToolWorkspaceLayoutProps) {
   const route = getRouteById(routeId);
   const meta = getWorkspaceMeta(routeId);
@@ -182,8 +182,15 @@ export function ToolWorkspaceLayout({
           </motion.div>
         </AnimatePresence>
       </div>
-      {commandBar
-        ? <div className="mx-auto w-full max-w-6xl px-4 pb-6">{commandBar}</div>
+      {commandBar || showLastMove
+        ? (
+          <div className="mx-auto w-full max-w-6xl px-4 pb-6">
+            <Column gap="16">
+              {commandBar ?? null}
+              {showLastMove ? <LastMoveTicker /> : null}
+            </Column>
+          </div>
+        )
         : null}
       <div
         className={cn("mx-auto w-full max-w-6xl px-4 pb-16", contentClassName)}
