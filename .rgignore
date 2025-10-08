@@ -1,0 +1,19 @@
+# Ignore generated assets and large data files with extremely long lines.
+# These files cause `rg` output to exceed the 4KB line limit enforced by the
+# execution environment when a match is printed, which previously crashed
+# shell sessions. Ignoring them keeps developer tooling usable without
+# affecting source coverage.
+
+# Generated static site snapshots
+_static/
+
+# Bundled assets for Supabase miniapp function
+supabase/functions/miniapp/static/assets/
+
+# Large corpora snapshots
+data/corpus/
+
+# Source maps and other one-line bundles
+*.map
+*.min.js
+*.min.css
