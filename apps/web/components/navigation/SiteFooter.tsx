@@ -1,21 +1,19 @@
 import Link from "next/link";
 
-import { schema, social } from "@/resources";
+import { dynamicBranding, schema, social } from "@/resources";
 
-import NAV_ITEMS from "./nav-items";
+import { type FooterLinkEntry, getFooterLinks } from "@/config/route-registry";
 
-const WORKSPACE_LINKS = NAV_ITEMS.slice(0, 4).map((item) => ({
-  id: item.id,
-  label: item.label,
-  href: item.href ?? item.path,
-}));
+const WORKSPACE_LINKS = getFooterLinks("workspace");
+const QUICK_LINKS = getFooterLinks("quick");
 
-const QUICK_LINKS = [
-  { label: "Multi-LLM studio", href: "/tools/multi-llm" },
-  { label: "Plans", href: "/plans" },
-  { label: "Support", href: "/support" },
-  { label: "Research", href: "/blog" },
-];
+const footerMotion = dynamicBranding.gradients.motion;
+const footerGlass = dynamicBranding.gradients.glass;
+const FOOTER_GRADIENT = footerMotion.backgroundDark;
+const FOOTER_SHADOW = footerGlass.motionShadowDark ??
+  "0 24px 96px hsl(var(--primary) / 0.18)";
+const FOOTER_BORDER = footerGlass.motionBorderDark ??
+  "hsl(var(--border) / 0.65)";
 
 const CONTACT_LINKS = social.filter((item) =>
   ["Telegram", "Email", "Phone"].includes(item.name)
@@ -23,11 +21,32 @@ const CONTACT_LINKS = social.filter((item) =>
 
 const isExternalLink = (href: string) => href.startsWith("http");
 
+const renderLink = (link: FooterLinkEntry) => (
+  <li key={link.id}>
+    <Link
+      href={link.href}
+      className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      aria-label={`${link.label}. ${link.description}`}
+      data-footer-category={link.categoryId}
+    >
+      {link.label}
+    </Link>
+  </li>
+);
+
 export function SiteFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border/60 bg-background/80">
+    <footer
+      className="relative overflow-hidden border-t border-border/60 bg-background/90"
+      style={{ boxShadow: FOOTER_SHADOW }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60 mix-blend-plus-lighter"
+        style={{ backgroundImage: FOOTER_GRADIENT }}
+        aria-hidden
+      />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-12">
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
@@ -49,16 +68,7 @@ export function SiteFooter() {
               Workspace
             </h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              {WORKSPACE_LINKS.map((link) => (
-                <li key={link.id}>
-                  <Link
-                    href={link.href}
-                    className="transition-colors hover:text-primary"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              {WORKSPACE_LINKS.map(renderLink)}
             </ul>
           </div>
           <div className="space-y-3">
@@ -66,16 +76,7 @@ export function SiteFooter() {
               Quick links
             </h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              {QUICK_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="transition-colors hover:text-primary"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              {QUICK_LINKS.map(renderLink)}
             </ul>
           </div>
           <div className="space-y-3">
@@ -89,7 +90,7 @@ export function SiteFooter() {
                     <li key={item.name}>
                       <a
                         href={item.link}
-                        className="transition-colors hover:text-primary"
+                        className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         {...(isExternalLink(item.link)
                           ? { target: "_blank", rel: "noreferrer" }
                           : {})}
@@ -104,7 +105,10 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-border/40 pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <div
+          className="flex flex-col gap-2 border-t border-border/40 pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
+          style={{ borderColor: FOOTER_BORDER }}
+        >
           <p>© {currentYear} {schema.name}. All rights reserved.</p>
           <p className="text-xs sm:text-sm">
             Built for teams who prefer a straightforward, dependable desk.

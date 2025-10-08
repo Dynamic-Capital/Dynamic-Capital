@@ -153,6 +153,12 @@ export const metadata: Metadata = {
   },
   description: brandingMetadata.description,
   keywords: brandingMetadata.keywords,
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: brandingMetadata.name,
+    statusBarStyle: "black-translucent",
+  },
   alternates: {
     canonical: resolvedMetadataBase?.toString() ?? SITE_URL,
   },

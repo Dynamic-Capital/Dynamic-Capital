@@ -12,33 +12,13 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/utils";
 
+import {
+  ROUTE_CATEGORY_STYLES,
+  type RouteCategoryId,
+} from "@/config/route-registry";
 import type { NavItem } from "../nav-items";
 
-const NAV_ITEM_CATEGORY_LOOKUP: Record<string, CoreCategoryId> = {
-  overview: "foundations",
-  token: "foundations",
-  wallet: "foundations",
-  markets: "insights",
-  community: "community",
-  miniApp: "products",
-  api: "operations",
-  admin: "operations",
-  studio: "products",
-  "dynamic-portfolio": "products",
-  "dynamic-visual": "insights",
-  "ui-optimizer": "operations",
-  "dynamic-cli": "operations",
-  "market-review": "insights",
-  advantages: "community",
-};
-
-type CoreCategoryId =
-  | "foundations"
-  | "products"
-  | "insights"
-  | "operations"
-  | "community";
-type FilterCategoryId = "all" | CoreCategoryId;
+type FilterCategoryId = "all" | RouteCategoryId;
 
 interface FilterCategoryOption {
   id: FilterCategoryId;
@@ -48,42 +28,8 @@ interface FilterCategoryOption {
 
 interface EnhancedNavItem extends NavItem {
   href: string;
-  categoryId: CoreCategoryId;
-  categoryLabel: string;
   isActive: boolean;
 }
-
-const CATEGORY_CONFIG: Record<CoreCategoryId, {
-  label: string;
-  badgeClass: string;
-  indicatorClass: string;
-}> = {
-  foundations: {
-    label: "Foundations",
-    badgeClass: "border-transparent bg-emerald-500/15 text-emerald-200",
-    indicatorClass: "bg-emerald-400/80",
-  },
-  products: {
-    label: "Products",
-    badgeClass: "border-transparent bg-sky-500/15 text-sky-200",
-    indicatorClass: "bg-sky-400/80",
-  },
-  insights: {
-    label: "Insights",
-    badgeClass: "border-transparent bg-amber-500/15 text-amber-200",
-    indicatorClass: "bg-amber-400/80",
-  },
-  operations: {
-    label: "Operations",
-    badgeClass: "border-transparent bg-violet-500/15 text-violet-200",
-    indicatorClass: "bg-violet-400/80",
-  },
-  community: {
-    label: "Community",
-    badgeClass: "border-transparent bg-rose-500/15 text-rose-200",
-    indicatorClass: "bg-rose-400/80",
-  },
-};
 
 const CATEGORY_ORDER: FilterCategoryId[] = [
   "all",
@@ -93,10 +39,6 @@ const CATEGORY_ORDER: FilterCategoryId[] = [
   "operations",
   "community",
 ];
-
-const getCategoryIdForItem = (itemId: string): CoreCategoryId => {
-  return NAV_ITEM_CATEGORY_LOOKUP[itemId] ?? "products";
-};
 
 const isNavItemActive = (
   item: NavItem,
@@ -163,21 +105,17 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
   const enhancedItems = useMemo<EnhancedNavItem[]>(() => {
     return items.map((item) => {
       const href = item.href ?? item.path;
-      const categoryId = getCategoryIdForItem(item.id);
-      const categoryLabel = CATEGORY_CONFIG[categoryId].label;
 
       return {
         ...item,
         href,
-        categoryId,
-        categoryLabel,
         isActive: isNavItemActive(item, pathname, hash),
       } satisfies EnhancedNavItem;
     });
   }, [hash, items, pathname]);
 
   const categories = useMemo<FilterCategoryOption[]>(() => {
-    const counts = enhancedItems.reduce<Record<CoreCategoryId, number>>(
+    const counts = enhancedItems.reduce<Record<RouteCategoryId, number>>(
       (accumulator, item) => {
         accumulator[item.categoryId] = (accumulator[item.categoryId] ?? 0) + 1;
         return accumulator;
@@ -200,7 +138,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
         } satisfies FilterCategoryOption;
       }
 
-      const config = CATEGORY_CONFIG[categoryId];
+      const config = ROUTE_CATEGORY_STYLES[categoryId];
       const count = counts[categoryId];
 
       if (count === 0) {
@@ -337,7 +275,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
           <AnimatePresence initial={false}>
             {filteredItems.map((item) => {
               const Icon = item.icon;
-              const categoryStyles = CATEGORY_CONFIG[item.categoryId];
+              const categoryStyles = ROUTE_CATEGORY_STYLES[item.categoryId];
               return (
                 <motion.div
                   key={item.id}

@@ -3,6 +3,7 @@ import path from "path";
 import nextPWA from "next-pwa";
 import bundleAnalyzer from "@next/bundle-analyzer";
 import createMDX from "@next/mdx";
+import runtimeCaching from "./config/pwa-runtime-caching.mjs";
 import commitEnvKeys from "./config/commit-env-keys.json" with { type: "json" };
 import localeConfig from "./config/locales.json" with { type: "json" };
 const __filename = fileURLToPath(import.meta.url);
@@ -365,6 +366,13 @@ if (nextConfig.output !== "export") {
 const withPWA = nextPWA({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  scope: "/",
+  fallbacks: {
+    document: "/offline.html",
+  },
+  runtimeCaching,
   maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
   buildExcludes: [/.*\.map$/],
 });

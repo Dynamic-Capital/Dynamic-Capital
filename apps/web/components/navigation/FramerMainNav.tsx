@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import MainComponent, { type MainNavItem } from "./framer/MainComponent";
-import NAV_ITEMS from "./nav-items";
+import { NAV_ITEMS } from "./nav-items";
 
 const ICON_NODES: Record<string, Array<[string, Record<string, string>]>> = {
   home: [
