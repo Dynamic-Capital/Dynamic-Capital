@@ -36,8 +36,10 @@ same multisig administrator when configuring the vault.
 
 The `jetton/discoverable` folder ships a drop-in FunC master contract
 (`master.fc`) that mirrors the governance logic from the Tact version while
-exposing the Discovery wallet lookup interface. Compile it with the bundled
-imports:
+exposing the Discovery wallet lookup interface. The `get_discovery_data`
+getter returns the Discovery protocol version alongside the wallet code so
+indexers can confirm compatibility before calling `provide_wallet_address`.
+Compile it with the bundled imports:
 
 ```
 func -o build/discoverable-master.fif \
