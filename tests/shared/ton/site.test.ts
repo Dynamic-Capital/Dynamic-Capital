@@ -6,8 +6,13 @@ import {
   resolveTonSiteUrl,
   TON_SITE_DOMAIN,
   TON_SITE_GATEWAY_BASE,
+  TON_SITE_GATEWAY_STANDBY_BASE,
   TON_SITE_GATEWAY_ORIGIN,
   TON_SITE_GATEWAY_URL,
+  TON_SITE_GATEWAY_CURL_URL,
+  TON_SITE_GATEWAY_PRIMARY_HOST,
+  TON_SITE_GATEWAY_STANDBY_HOST,
+  TON_SITE_GATEWAY_HOSTS,
   TON_SITE_ICON_URL,
   TON_SITE_SOCIAL_PREVIEW_URL,
 } from "../../../shared/ton/site";
@@ -18,12 +23,32 @@ describe("ton site gateway helpers", () => {
       TON_SITE_GATEWAY_BASE,
       "https://ton-gateway.dynamic-capital.ondigitalocean.app",
     );
+    assertEquals(
+      TON_SITE_GATEWAY_STANDBY_BASE,
+      "https://ton-gateway.dynamic-capital.lovable.app",
+    );
     assertEquals(TON_SITE_DOMAIN, "dynamiccapital.ton");
     assertEquals(
       TON_SITE_GATEWAY_ORIGIN,
       "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
     );
     assertEquals(TON_SITE_GATEWAY_URL, TON_SITE_GATEWAY_ORIGIN);
+    assertEquals(TON_SITE_GATEWAY_CURL_URL, TON_SITE_GATEWAY_URL);
+    assertEquals(
+      TON_SITE_GATEWAY_PRIMARY_HOST,
+      "ton-gateway.dynamic-capital.ondigitalocean.app",
+    );
+    assertEquals(
+      TON_SITE_GATEWAY_STANDBY_HOST,
+      "ton-gateway.dynamic-capital.lovable.app",
+    );
+    assertEquals(
+      [...TON_SITE_GATEWAY_HOSTS],
+      [
+        "ton-gateway.dynamic-capital.ondigitalocean.app",
+        "ton-gateway.dynamic-capital.lovable.app",
+      ],
+    );
     assertEquals(
       TON_SITE_ICON_URL,
       "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/icon.png",

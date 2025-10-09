@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildCorsHeaders, mergeVary } from "@/utils/http.ts";
-import { normalizeTonGatewayPath } from "@shared/ton/site";
+import {
+  normalizeTonGatewayPath,
+  TON_SITE_GATEWAY_HOSTS,
+} from "@shared/ton/site";
 
-const TON_GATEWAY_HOSTS = new Set([
-  "ton-gateway.dynamic-capital.ondigitalocean.app",
-  "ton-gateway.dynamic-capital.lovable.app",
-]);
+const TON_GATEWAY_HOSTS = new Set(TON_SITE_GATEWAY_HOSTS);
 
 const LEGACY_LOCALE_PREFIX = "/en";
 

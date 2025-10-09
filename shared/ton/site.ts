@@ -1,6 +1,18 @@
 export const TON_SITE_DOMAIN = "dynamiccapital.ton";
 export const TON_SITE_GATEWAY_BASE =
   "https://ton-gateway.dynamic-capital.ondigitalocean.app";
+export const TON_SITE_GATEWAY_STANDBY_BASE =
+  "https://ton-gateway.dynamic-capital.lovable.app";
+
+export const TON_SITE_GATEWAY_PRIMARY_HOST =
+  new URL(TON_SITE_GATEWAY_BASE).hostname;
+export const TON_SITE_GATEWAY_STANDBY_HOST =
+  new URL(TON_SITE_GATEWAY_STANDBY_BASE).hostname;
+
+export const TON_SITE_GATEWAY_HOSTS = [
+  TON_SITE_GATEWAY_PRIMARY_HOST,
+  TON_SITE_GATEWAY_STANDBY_HOST,
+] as const;
 
 export const TON_SITE_GATEWAY_ORIGIN = `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMAIN}`;
 
@@ -8,6 +20,11 @@ export const TON_SITE_GATEWAY_ORIGIN = `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMA
  * Canonical URL for the TON Site landing page routed through the public gateway.
  */
 export const TON_SITE_GATEWAY_URL = TON_SITE_GATEWAY_ORIGIN;
+
+/**
+ * Canonical URL used in `curl` health checks against the TON gateway.
+ */
+export const TON_SITE_GATEWAY_CURL_URL = TON_SITE_GATEWAY_URL;
 
 /**
  * Resolves a path relative to the TON Site gateway origin, ensuring duplicate
