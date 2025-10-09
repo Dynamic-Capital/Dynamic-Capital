@@ -78,6 +78,32 @@ const registerImpl: () => Promise<void> = (() => {
     "return import(specifier);",
   ) as <T>(specifier: string) => Promise<T>;
 
+  type ModuleWithPossibleDefault = Record<string, unknown> & {
+    default?: Record<string, unknown> | undefined;
+  };
+
+  function resolveModuleExport<T>(
+    module: ModuleWithPossibleDefault,
+    exportName: string,
+  ): T | undefined {
+    const directExport = module[exportName];
+    if (directExport !== undefined) {
+      return directExport as T;
+    }
+
+    const defaultExport = module.default;
+    if (
+      defaultExport &&
+      typeof defaultExport === "object" &&
+      exportName in defaultExport &&
+      defaultExport[exportName] !== undefined
+    ) {
+      return defaultExport[exportName] as T;
+    }
+
+    return undefined;
+  }
+
   const modulePaths = {
     exporterPrometheus: [
       "@opentelemetry",
@@ -234,15 +260,34 @@ const registerImpl: () => Promise<void> = (() => {
     let FetchInstrumentation:
       FetchInstrumentationModule["FetchInstrumentation"];
     try {
-      [
-        { registerInstrumentations },
-        { HttpInstrumentation },
-        { FetchInstrumentation },
+      const [
+        instrumentationModule,
+        httpInstrumentationModule,
+        fetchInstrumentationModule,
       ] = await Promise.all([
         loadInstrumentationModule(),
         loadHttpInstrumentationModule(),
         loadFetchInstrumentationModule(),
       ]);
+
+      registerInstrumentations = resolveModuleExport<
+        InstrumentationModule["registerInstrumentations"]
+      >(
+        instrumentationModule as ModuleWithPossibleDefault,
+        "registerInstrumentations",
+      )!;
+      HttpInstrumentation = resolveModuleExport<
+        HttpInstrumentationModule["HttpInstrumentation"]
+      >(
+        httpInstrumentationModule as ModuleWithPossibleDefault,
+        "HttpInstrumentation",
+      )!;
+      FetchInstrumentation = resolveModuleExport<
+        FetchInstrumentationModule["FetchInstrumentation"]
+      >(
+        fetchInstrumentationModule as ModuleWithPossibleDefault,
+        "FetchInstrumentation",
+      )!;
     } catch (error) {
       fallbackToExistingMeterProvider(
         "Failed to load OpenTelemetry instrumentation modules",
@@ -299,12 +344,25 @@ const registerImpl: () => Promise<void> = (() => {
 
     const { SemanticResourceAttributes } = semanticConventionsModule;
 
-    const metricsExports = metricsModule as Record<string, unknown>;
-    const meterProviderCtor = metricsExports["MeterProvider"];
-    const instrumentType = metricsExports["InstrumentType"];
-    const viewCtor = metricsExports["View"];
-    const explicitBucketHistogramAggregationCtor =
-      metricsExports["ExplicitBucketHistogramAggregation"];
+    const metricsExports = metricsModule as ModuleWithPossibleDefault;
+    const meterProviderCtor = resolveModuleExport<MeterProviderConstructor>(
+      metricsExports,
+      "MeterProvider",
+    );
+    const instrumentType = resolveModuleExport<InstrumentTypeLike>(
+      metricsExports,
+      "InstrumentType",
+    );
+    const viewCtor = resolveModuleExport<ViewConstructor>(
+      metricsExports,
+      "View",
+    );
+    const explicitBucketHistogramAggregationCtor = resolveModuleExport<
+      ExplicitBucketHistogramAggregationConstructor
+    >(
+      metricsExports,
+      "ExplicitBucketHistogramAggregation",
+    );
 
     if (
       typeof meterProviderCtor !== "function" ||
@@ -319,8 +377,11 @@ const registerImpl: () => Promise<void> = (() => {
       return;
     }
 
-    const resourceExports = resourcesModule as Record<string, unknown>;
-    const resourceCtor = resourceExports["Resource"];
+    const resourceExports = resourcesModule as ModuleWithPossibleDefault;
+    const resourceCtor = resolveModuleExport<ResourceConstructor>(
+      resourceExports,
+      "Resource",
+    );
 
     if (typeof resourceCtor !== "function") {
       fallbackToExistingMeterProvider(
