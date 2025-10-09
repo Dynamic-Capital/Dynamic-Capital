@@ -39,6 +39,7 @@ auto-discover Dynamic Capital contracts and services when resolving
 | `dao_contract`         | `future DAO multisig`                                                           | Governance executor                                   |
 | `jetton_tonviewer`     | `https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | Jetton explorer (Tonviewer)                           |
 | `jetton_tonscan`       | `https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`   | Jetton explorer (Tonscan)                             |
+| `jetton_dyor`          | `https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`        | Jetton intelligence profile (DYOR)                    |
 | `api_endpoint`         | `https://api.dynamiccapital.ton`                                                | REST / Supabase gateway                               |
 | `metadata`             | `https://dynamiccapital.ton/jetton-metadata.json`                               | Jetton metadata JSON (primary)                        |
 | `web`                  | `https://dynamiccapital.ton`                                                    | Marketing & dashboard site                            |
@@ -122,6 +123,7 @@ dedust_jetton_wallet=EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz
 dao_contract=EQDAOxyz...daoAddr
 jetton_tonviewer=https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 jetton_tonscan=https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+jetton_dyor=https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 api=https://api.dynamiccapital.ton
 metadata=https://dynamiccapital.ton/jetton-metadata.json
 ```

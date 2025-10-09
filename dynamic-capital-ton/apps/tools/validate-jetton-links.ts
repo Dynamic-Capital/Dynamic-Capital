@@ -49,6 +49,11 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
       "https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
   },
   {
+    label: "DYOR → token intelligence profile",
+    url:
+      "https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+  },
+  {
     label: "STON.fi → pTON/DCT pool",
     url: "https://app.ston.fi/swap?from=TON&to=DCT",
   },

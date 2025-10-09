@@ -125,12 +125,13 @@ Use the following canonical explorer pages to validate the on-chain jetton and
 liquidity pool wallets. Tonscan includes both the raw workchain and friendly
 addresses so the link works regardless of which representation a wallet shows.
 
-| Platform  | Scope                | Canonical link(s)                                                                                                                                                                              |
-| --------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tonscan   | Jetton overview      | [Friendly](https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [Raw](https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7) |
-| Tonviewer | Jetton overview      | [tonviewer.com/jetton/0:d29…96c7](https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7)                                                             |
-| STON.fi   | pTON/DCT liquidity   | [Pool wallet](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) · [LP jetton](https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3) |
-| Dedust    | TON/DCT liquidity    | [Pool wallet](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI) · [LP jetton](https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98) |
+| Platform  | Scope                      | Canonical link(s)                                                                                                    |
+| --------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Tonscan   | Jetton overview            | [Friendly](https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [Raw](https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7) |
+| Tonviewer | Jetton overview            | [tonviewer.com/jetton/0:d29…96c7](https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7)                                                             |
+| DYOR      | Token intelligence profile | [dyor.io/token/EQDS…Wx_6y](https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y)                                                        |
+| STON.fi   | pTON/DCT liquidity         | [Pool wallet](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) · [LP jetton](https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3) |
+| Dedust    | TON/DCT liquidity          | [Pool wallet](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI) · [LP jetton](https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98) |
 
 ### Metadata guardrails
 

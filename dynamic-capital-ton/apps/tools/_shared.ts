@@ -1,10 +1,6 @@
-import { parse } from "https://deno.land/std@0.224.0/yaml/mod.ts";
-import {
-  dirname,
-  fromFileUrl,
-  join,
-  resolve,
-} from "https://deno.land/std@0.224.0/path/mod.ts";
+import { parse } from "./deps/deno_std/yaml/mod.ts";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export interface TokenConfig {
   address?: string;
@@ -25,8 +21,8 @@ export interface ProjectConfig {
 }
 
 export function resolveProjectRoot(metaUrl: string): string {
-  const here = dirname(fromFileUrl(metaUrl));
-  return resolve(join(here, "..", ".."));
+  const here = dirname(fileURLToPath(metaUrl));
+  return resolve(here, "..", "..");
 }
 
 export async function loadProjectConfig(
