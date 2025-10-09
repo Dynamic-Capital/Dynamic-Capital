@@ -1,7 +1,41 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
 
-import { TonWalletButton } from "../TonWalletButton";
+const supabaseModule = vi.hoisted(() => {
+  const getUser = vi.fn();
+  const from = vi.fn();
+
+  return {
+    supabase: {
+      auth: { getUser },
+      from,
+    },
+    getUser,
+    from,
+  };
+});
+
+const toastModule = vi.hoisted(() => {
+  const success = vi.fn();
+  const error = vi.fn();
+
+  return {
+    toast: {
+      success: (...args: unknown[]) => success(...args),
+      error: (...args: unknown[]) => error(...args),
+    },
+    success,
+    error,
+  };
+});
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: supabaseModule.supabase,
+}));
+
+vi.mock("sonner", () => ({
+  toast: toastModule.toast,
+}));
 
 const ORIGINAL_FETCH = globalThis.fetch;
 
@@ -14,33 +48,28 @@ vi.mock("@tonconnect/ui-react", () => ({
   useTonAddress: () => mockAddress,
 }));
 
-const getUserMock = vi.fn();
-const fromMock = vi.fn();
-const toastSuccess = vi.fn();
-const toastError = vi.fn();
+const getUserMock = supabaseModule.getUser;
+const fromMock = supabaseModule.from;
+const toastSuccess = toastModule.success;
+const toastError = toastModule.error;
 
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    auth: { getUser: getUserMock },
-    from: fromMock,
-  },
-}));
+const loadComponent = async () =>
+  import("../TonWalletButton").then((module) => module.TonWalletButton);
 
-vi.mock("sonner", () => ({
-  toast: {
-    success: (...args: unknown[]) => toastSuccess(...args),
-    error: (...args: unknown[]) => toastError(...args),
-  },
-}));
+type TonWalletButtonComponent = Awaited<ReturnType<typeof loadComponent>>;
 
 describe("TonWalletButton", () => {
-  beforeEach(() => {
+  let TonWalletButton: TonWalletButtonComponent;
+
+  beforeEach(async () => {
     mockAddress = "";
     walletConnected = false;
     getUserMock.mockReset();
     fromMock.mockReset();
     toastSuccess.mockReset();
     toastError.mockReset();
+
+    TonWalletButton = await loadComponent();
   });
 
   afterEach(() => {
