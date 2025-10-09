@@ -90,6 +90,7 @@ type PlanOption = {
     dctAmount: number | null;
     updatedAt: string | null;
     snapshot: Record<string, unknown> | null;
+    snapshotSignature: string | null;
   };
 };
 
@@ -346,6 +347,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       dctAmount: null,
       updatedAt: null,
       snapshot: null,
+      snapshotSignature: null,
     },
   },
   {
@@ -367,6 +369,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       dctAmount: null,
       updatedAt: null,
       snapshot: null,
+      snapshotSignature: null,
     },
   },
   {
@@ -388,6 +391,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       dctAmount: null,
       updatedAt: null,
       snapshot: null,
+      snapshotSignature: null,
     },
   },
   {
@@ -409,6 +413,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       dctAmount: null,
       updatedAt: null,
       snapshot: null,
+      snapshotSignature: null,
     },
   },
 ];
@@ -674,6 +679,7 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
       : fallback.highlights;
 
     const snapshot = raw.performance_snapshot ?? null;
+    const snapshotSignature = serialiseSnapshot(snapshot);
     const tonAmount = coerceNumber(raw.ton_amount) ??
       coerceNumber(extractSnapshotNumber(snapshot, "ton_amount")) ??
       fallback.meta.tonAmount ?? null;
@@ -702,6 +708,7 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
         dctAmount,
         updatedAt: raw.last_priced_at ?? computedAt ?? fallback.meta.updatedAt,
         snapshot,
+        snapshotSignature,
       },
     });
   }
@@ -725,6 +732,21 @@ function formatAdjustmentLabel(key: string): string {
   return key
     .replace(/[_-]+/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function serialiseSnapshot(
+  snapshot: Record<string, unknown> | null,
+): string | null {
+  if (!snapshot) {
+    return null;
+  }
+
+  try {
+    return JSON.stringify(snapshot);
+  } catch (error) {
+    console.debug("[miniapp] Unable to serialise plan snapshot", error);
+    return null;
+  }
 }
 
 function arePlanOptionsEqual(a: PlanOption[], b: PlanOption[]): boolean {
@@ -762,15 +784,13 @@ function arePlanOptionsEqual(a: PlanOption[], b: PlanOption[]): boolean {
 
     const currentMeta = current.meta;
     const nextMeta = option.meta;
-    const snapshotsMatch = JSON.stringify(currentMeta.snapshot ?? null) ===
-      JSON.stringify(nextMeta.snapshot ?? null);
     if (
       currentMeta.currency !== nextMeta.currency ||
       currentMeta.amount !== nextMeta.amount ||
       currentMeta.tonAmount !== nextMeta.tonAmount ||
       currentMeta.dctAmount !== nextMeta.dctAmount ||
       currentMeta.updatedAt !== nextMeta.updatedAt ||
-      !snapshotsMatch
+      currentMeta.snapshotSignature !== nextMeta.snapshotSignature
     ) {
       return false;
     }
@@ -794,8 +814,8 @@ function resolvePlanUpdatedAt(options: PlanOption[]): string | undefined {
   for (const option of options) {
     const timestamp = option.meta.updatedAt;
     if (!timestamp) continue;
-    const parsed = Date.parse(timestamp);
-    if (!Number.isFinite(parsed)) continue;
+    const parsed = parseIsoTimestamp(timestamp);
+    if (parsed === null) continue;
     if (parsed > latestTimestamp) {
       latestTimestamp = parsed;
     }
@@ -822,12 +842,26 @@ const relativeTimeFormatter = typeof Intl !== "undefined" &&
   })
   : null;
 
-function formatRelativeTime(iso?: string): string {
+const isoTimestampCache = new Map<string, number | null>();
+
+function parseIsoTimestamp(iso?: string | null): number | null {
   if (!iso) {
-    return "just now";
+    return null;
   }
+
+  if (isoTimestampCache.has(iso)) {
+    return isoTimestampCache.get(iso) ?? null;
+  }
+
   const parsed = Date.parse(iso);
-  if (!Number.isFinite(parsed)) {
+  const normalized = Number.isFinite(parsed) ? parsed : null;
+  isoTimestampCache.set(iso, normalized);
+  return normalized;
+}
+
+function formatRelativeTime(iso?: string): string {
+  const parsed = parseIsoTimestamp(iso);
+  if (parsed === null) {
     return "just now";
   }
   const diffMs = Date.now() - parsed;
