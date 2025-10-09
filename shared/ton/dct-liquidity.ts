@@ -3,7 +3,7 @@ import {
   TON_MAINNET_DEDUST_DCT_TON_POOL,
   TON_MAINNET_STONFI_DCT_JETTON_WALLET,
   TON_MAINNET_STONFI_DCT_TON_POOL,
-} from "./mainnet-addresses";
+} from "./mainnet-addresses.ts";
 
 const buildTonviewerAccountUrl = (address: string) =>
   `https://tonviewer.com/${address}`;
@@ -18,6 +18,9 @@ export interface DctDexPoolDefinition {
   readonly metadataUrl?: string;
   readonly jettonWalletAddress: string;
   readonly jettonWalletExplorerUrl: string;
+  readonly lpJettonExplorerUrl?: string;
+  readonly dexScreenerId?: string;
+  readonly dexScreenerPairUrl?: string;
 }
 
 export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
@@ -35,6 +38,11 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     jettonWalletExplorerUrl: buildTonviewerAccountUrl(
       TON_MAINNET_STONFI_DCT_JETTON_WALLET,
     ),
+    lpJettonExplorerUrl:
+      "https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3",
+    dexScreenerId: "stonfi",
+    dexScreenerPairUrl:
+      `https://dexscreener.com/ton/${TON_MAINNET_STONFI_DCT_TON_POOL.toLowerCase()}`,
   },
   {
     dex: "DeDust",
@@ -50,5 +58,10 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     jettonWalletExplorerUrl: buildTonviewerAccountUrl(
       TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
     ),
+    lpJettonExplorerUrl:
+      "https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98",
+    dexScreenerId: "dedust",
+    dexScreenerPairUrl:
+      `https://dexscreener.com/ton/${TON_MAINNET_DEDUST_DCT_TON_POOL.toLowerCase()}`,
   },
 ]);

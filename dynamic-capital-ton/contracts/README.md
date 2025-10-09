@@ -138,7 +138,8 @@ addresses so the link works regardless of which representation a wallet shows.
 
 Run the validation script after editing `metadata.json` to ensure the `sameAs`
 block stays canonical and continues to reference the jetton, pool, and DEX
-routes without drift:
+routes without drift. The checker now also verifies the DEX Screener token API
+and fetches each swap/metadata endpoint to detect stale links:
 
 ```sh
 deno run -A dynamic-capital-ton/apps/tools/validate-jetton-links.ts

@@ -5,6 +5,8 @@ import {
   readJettonMetadata,
   resolveProjectRoot,
 } from "./_shared.ts";
+import { DCT_DEX_POOLS } from "../../../shared/ton/dct-liquidity.ts";
+import { TON_MAINNET_JETTON_MASTER } from "../../../shared/ton/mainnet-addresses.ts";
 
 interface RequiredLink {
   label: string;
@@ -19,6 +21,12 @@ interface ValidationIssue {
 
 type LoadedConfig = Awaited<ReturnType<typeof loadProjectConfig>>;
 
+const DCT_JETTON_MASTER_RAW =
+  "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7" as const;
+
+const DEX_SCREENER_TOKEN_URL =
+  `https://dexscreener.com/ton/${TON_MAINNET_JETTON_MASTER}` as const;
+
 const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
     label: "Dynamic Capital → token page",
@@ -30,83 +38,72 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
   },
   {
     label: "Tonviewer → jetton overview",
-    url:
-      "https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+    url: `https://tonviewer.com/jetton/${DCT_JETTON_MASTER_RAW}`,
   },
   {
     label: "Tonviewer → jetton overview (friendly)",
-    url:
-      "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    url: `https://tonviewer.com/jetton/${TON_MAINNET_JETTON_MASTER}`,
   },
   {
     label: "Tonscan → jetton overview (raw)",
-    url:
-      "https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+    url: `https://tonscan.org/jetton/${DCT_JETTON_MASTER_RAW}`,
   },
   {
     label: "Tonscan → jetton overview (friendly)",
-    url:
-      "https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    url: `https://tonscan.org/jetton/${TON_MAINNET_JETTON_MASTER}`,
   },
   {
     label: "DYOR → token intelligence profile",
-    url:
-      "https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    url: `https://dyor.io/token/${TON_MAINNET_JETTON_MASTER}`,
   },
   {
     label: "DEX Screener → token overview",
-    url:
-      "https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
-  },
-  {
-    label: "STON.fi → pTON/DCT pool",
-    url: "https://app.ston.fi/swap?from=TON&to=DCT",
-  },
-  {
-    label: "Dedust → TON/DCT pool",
-    url: "https://dedust.io/swap/TON-DCT",
-  },
-  {
-    label: "DEX Screener → STON.fi pair",
-    url:
-      "https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi",
-  },
-  {
-    label: "DEX Screener → DeDust pair",
-    url:
-      "https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm",
-  },
-  {
-    label: "Tonviewer → STON.fi LP jetton",
-    url:
-      "https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3",
-  },
-  {
-    label: "Tonviewer → STON.fi pool wallet",
-    url:
-      "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
-  },
-  {
-    label: "Tonviewer → Dedust pool wallet",
-    url:
-      "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
-  },
-  {
-    label: "Tonviewer → Dedust LP jetton",
-    url:
-      "https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98",
-  },
-  {
-    label: "Tonviewer → STON.fi DCT jetton wallet",
-    url:
-      "https://tonviewer.com/EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3",
-  },
-  {
-    label: "Tonviewer → Dedust DCT jetton wallet",
-    url:
-      "https://tonviewer.com/EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
+    url: DEX_SCREENER_TOKEN_URL,
   },
 ];
+
+const DEX_POOL_REQUIRED_LINKS: readonly RequiredLink[] = DCT_DEX_POOLS
+  .flatMap((pool) => {
+    const links: RequiredLink[] = [
+      { label: `${pool.dex} → swap interface`, url: pool.swapUrl },
+      { label: `${pool.dex} → pool (Tonviewer)`, url: pool.poolExplorerUrl },
+      {
+        label: `${pool.dex} → pool (Tonscan)`,
+        url: `https://tonscan.org/address/${pool.poolAddress}`,
+      },
+      {
+        label: `${pool.dex} → jetton wallet (Tonviewer)`,
+        url: pool.jettonWalletExplorerUrl,
+      },
+      {
+        label: `${pool.dex} → jetton wallet (Tonscan)`,
+        url: `https://tonscan.org/address/${pool.jettonWalletAddress}`,
+      },
+    ];
+
+    if (pool.metadataUrl) {
+      links.push({
+        label: `${pool.dex} → pool metadata`,
+        url: pool.metadataUrl,
+      });
+    }
+
+    if (pool.lpJettonExplorerUrl) {
+      links.push({
+        label: `${pool.dex} → LP jetton (Tonviewer)`,
+        url: pool.lpJettonExplorerUrl,
+      });
+    }
+
+    if (pool.dexScreenerPairUrl) {
+      links.push({
+        label: `DEX Screener → ${pool.dex} pair`,
+        url: pool.dexScreenerPairUrl,
+      });
+    }
+
+    return links;
+  }) as readonly RequiredLink[];
 
 const OPTIONAL_LINK_MATCHERS: readonly {
   label: string;
@@ -122,6 +119,8 @@ const OPTIONAL_LINK_MATCHERS: readonly {
     },
   },
 ];
+
+const NETWORK_TIMEOUT_MS = 8_000;
 
 function normalizeUrl(value: string): string {
   try {
@@ -147,6 +146,166 @@ function isHttpsUrl(value: string): boolean {
 
 function formatIssue(issue: ValidationIssue): string {
   return issue.detail ? `${issue.message}: ${issue.detail}` : issue.message;
+}
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit = {},
+  timeoutMs = NETWORK_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function validateDexScreenerPairs(
+  normalizedMap: Map<string, { url: string; index: number }>,
+  issues: ValidationIssue[],
+) {
+  const apiUrl =
+    `https://api.dexscreener.com/latest/dex/tokens/${TON_MAINNET_JETTON_MASTER}`;
+
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(apiUrl, {
+      headers: { Accept: "application/json" },
+    });
+  } catch (error) {
+    issues.push({
+      severity: "warning",
+      message: "Failed to query DEX Screener token API",
+      detail: error instanceof Error ? error.message : String(error),
+    });
+    return;
+  }
+
+  if (!response.ok) {
+    issues.push({
+      severity: "warning",
+      message: "DEX Screener token API returned non-success status",
+      detail: `${response.status} ${response.statusText}`,
+    });
+    return;
+  }
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    issues.push({
+      severity: "warning",
+      message: "Unable to parse DEX Screener API response",
+      detail: error instanceof Error ? error.message : String(error),
+    });
+    return;
+  }
+
+  const pairs = Array.isArray((payload as { pairs?: unknown }).pairs)
+    ? (payload as { pairs: unknown[] }).pairs
+    : [];
+
+  const pairLookup = new Map<string, { dexId?: string }>();
+  for (const entry of pairs) {
+    if (
+      entry && typeof entry === "object" &&
+      typeof (entry as { pairAddress?: unknown }).pairAddress === "string"
+    ) {
+      const pairAddress = (entry as { pairAddress: string }).pairAddress;
+      pairLookup.set(pairAddress.toUpperCase(), {
+        dexId: typeof (entry as { dexId?: unknown }).dexId === "string"
+          ? (entry as { dexId: string }).dexId.toLowerCase()
+          : undefined,
+      });
+    }
+  }
+
+  DCT_DEX_POOLS.forEach((pool) => {
+    if (!pool.dexScreenerId) {
+      return;
+    }
+
+    const normalizedAddress = pool.poolAddress.toUpperCase();
+    const expectation = pairLookup.get(normalizedAddress);
+    if (!expectation) {
+      issues.push({
+        severity: "error",
+        message: `DEX Screener token API missing ${pool.dex} pair`,
+        detail: pool.poolAddress,
+      });
+      return;
+    }
+
+    if (expectation.dexId !== pool.dexScreenerId.toLowerCase()) {
+      issues.push({
+        severity: "error",
+        message: `${pool.dex} pair reported unexpected dexId`,
+        detail: `expected=${pool.dexScreenerId} actual=${
+          expectation.dexId ?? "unknown"
+        }`,
+      });
+    }
+
+    if (pool.dexScreenerPairUrl) {
+      const normalizedPairUrl = normalizeUrl(pool.dexScreenerPairUrl);
+      if (!normalizedMap.has(normalizedPairUrl)) {
+        issues.push({
+          severity: "error",
+          message: `Missing DEX Screener pair link for ${pool.dex}`,
+          detail: pool.dexScreenerPairUrl,
+        });
+      }
+    }
+  });
+}
+
+async function verifyHttpEndpoints(issues: ValidationIssue[]) {
+  const endpoints: { label: string; url: string }[] = [
+    ...DCT_DEX_POOLS.flatMap((pool) => {
+      const list: { label: string; url: string }[] = [
+        { label: `${pool.dex} swap`, url: pool.swapUrl },
+      ];
+
+      if (pool.metadataUrl) {
+        list.push({ label: `${pool.dex} metadata`, url: pool.metadataUrl });
+      }
+
+      if (pool.dexScreenerPairUrl) {
+        list.push({
+          label: `${pool.dex} DEX Screener pair`,
+          url: pool.dexScreenerPairUrl,
+        });
+      }
+
+      return list;
+    }),
+    { label: "DEX Screener token overview", url: DEX_SCREENER_TOKEN_URL },
+  ];
+
+  for (const endpoint of endpoints) {
+    let response: Response;
+    try {
+      response = await fetchWithTimeout(endpoint.url, { method: "GET" });
+    } catch (error) {
+      issues.push({
+        severity: "warning",
+        message: `Failed to reach ${endpoint.label}`,
+        detail: error instanceof Error ? error.message : String(error),
+      });
+      continue;
+    }
+
+    if (response.status >= 500) {
+      issues.push({
+        severity: "warning",
+        message: `${endpoint.label} responded with ${response.status}`,
+        detail: endpoint.url,
+      });
+    }
+  }
 }
 
 async function main() {
@@ -291,7 +450,12 @@ async function main() {
     }
   }
 
-  const coverage = REQUIRED_LINKS.map((link) => ({
+  const combinedRequiredLinks = [
+    ...REQUIRED_LINKS,
+    ...DEX_POOL_REQUIRED_LINKS,
+  ];
+
+  const coverage = combinedRequiredLinks.map((link) => ({
     label: link.label,
     url: link.url,
     present: normalizedMap.has(normalizeUrl(link.url)) ? "✅" : "❌",
@@ -320,6 +484,9 @@ async function main() {
       });
     }
   });
+
+  await validateDexScreenerPairs(normalizedMap, issues);
+  await verifyHttpEndpoints(issues);
 
   console.log("Jetton metadata link coverage\n");
   console.table(coverage);
