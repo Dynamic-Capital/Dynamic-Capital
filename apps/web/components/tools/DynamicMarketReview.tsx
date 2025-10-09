@@ -21,49 +21,116 @@ import StocksMarketSnapshotSection from "@/components/dynamic-portfolio/home/Sto
 
 export function DynamicMarketReview() {
   return (
-    <Column gap="32" fillWidth maxWidth={96}>
-      <Column gap="24" align="start" id="dynamic-market-snapshot">
-        <Column gap="12" maxWidth={64}>
-          <Row gap="8" vertical="center" wrap>
-            <Heading variant="display-strong-s">
-              Dynamic market snapshot
-            </Heading>
-            <Tag size="s" background="neutral-alpha-weak" prefixIcon="clock">
-              Multi-asset desk view
-            </Tag>
-          </Row>
+    <Column
+      gap="40"
+      fillWidth
+      maxWidth={112}
+      paddingX="16"
+      paddingBottom="48"
+    >
+      <Column
+        gap="16"
+        padding="24"
+        radius="l"
+        border="neutral-alpha-weak"
+        background="surface"
+        shadow="s"
+        align="start"
+        id="dynamic-market-snapshot"
+      >
+        <Row gap="12" vertical="center" wrap>
+          <Heading variant="display-strong-s">Dynamic market snapshot</Heading>
+          <Tag size="s" background="neutral-alpha-weak" prefixIcon="clock">
+            Multi-asset desk view
+          </Tag>
+        </Row>
+        <Column gap="12" maxWidth={80}>
           <Text variant="body-default-l" onBackground="neutral-weak">
-            Live dashboard coverage for currencies, equities, commodities,
-            crypto, and global indices. Currency data updates automatically; the
-            additional sections provide ready-made scaffolding ahead of live
+            A calm, multi-asset briefing for FX, equities, commodities, crypto,
+            and indices. Currency telemetry is fully live today, while the
+            remaining desks deliver curated scaffolding ahead of the streaming
             feed rollout.
           </Text>
-        </Column>
-        <Column gap="32" fillWidth>
-          <FxMarketSnapshotSection />
-          <StocksMarketSnapshotSection />
-          <CommoditiesMarketSnapshotSection />
-          <IndicesMarketSnapshotSection />
-          <CryptoMarketSnapshotSection />
+          <Text variant="label-default-m" onBackground="neutral-medium">
+            The layout breathes with generous padding so it feels composed on
+            phones, tablets, ultrawide desks, and everything in between.
+          </Text>
         </Column>
       </Column>
-      <MarketWatchlist />
-      <Row gap="24" wrap fillWidth>
-        <Column flex={1} minWidth={32}>
-          <CurrencyStrengthSection />
+      <Column gap="32" fillWidth>
+        <Column
+          gap="24"
+          padding="24"
+          radius="l"
+          border="neutral-alpha-weak"
+          background="surface"
+          shadow="xs"
+          fillWidth
+        >
+          <Column gap="12" maxWidth={88}>
+            <Heading variant="heading-strong-m">Live asset coverage</Heading>
+            <Text variant="body-default-m" onBackground="neutral-weak">
+              Keep the FX cockpit beside the live watchlist on expansive
+              screens, then let them stack gracefully on tighter breakpoints
+              without losing breathing room.
+            </Text>
+          </Column>
+          <Row gap="24" wrap fillWidth vertical="stretch">
+            <Column flex={5} minWidth={64} fillWidth>
+              <FxMarketSnapshotSection />
+            </Column>
+            <Column flex={4} minWidth={48} fillWidth>
+              <MarketWatchlist />
+            </Column>
+          </Row>
+          <Row gap="24" wrap fillWidth vertical="stretch">
+            <Column flex={1} minWidth={56} fillWidth>
+              <StocksMarketSnapshotSection />
+            </Column>
+            <Column flex={1} minWidth={56} fillWidth>
+              <CommoditiesMarketSnapshotSection />
+            </Column>
+            <Column flex={1} minWidth={56} fillWidth>
+              <IndicesMarketSnapshotSection />
+            </Column>
+            <Column flex={1} minWidth={56} fillWidth>
+              <CryptoMarketSnapshotSection />
+            </Column>
+          </Row>
         </Column>
-        <Column flex={1} minWidth={32}>
-          <CommodityStrengthSection />
+        <Column
+          gap="24"
+          padding="24"
+          radius="l"
+          border="neutral-alpha-weak"
+          background="surface"
+          shadow="xs"
+          fillWidth
+        >
+          <Column gap="12" maxWidth={80}>
+            <Heading variant="heading-strong-m">Momentum heatmaps</Heading>
+            <Text variant="body-default-m" onBackground="neutral-weak">
+              Cross-asset strength tables share the same safe padding so quick
+              comparisons stay legible whether you are scanning on mobile or a
+              trading battlestation.
+            </Text>
+          </Column>
+          <Row gap="24" wrap fillWidth vertical="stretch">
+            <Column flex={1} minWidth={48} fillWidth>
+              <CurrencyStrengthSection />
+            </Column>
+            <Column flex={1} minWidth={48} fillWidth>
+              <CommodityStrengthSection />
+            </Column>
+            <Column flex={1} minWidth={48} fillWidth>
+              <IndexStrengthSection />
+            </Column>
+            <Column flex={1} minWidth={48} fillWidth>
+              <CryptoStrengthSection />
+            </Column>
+          </Row>
         </Column>
-      </Row>
-      <Row gap="24" wrap fillWidth>
-        <Column flex={1} minWidth={32}>
-          <IndexStrengthSection />
-        </Column>
-        <Column flex={1} minWidth={32}>
-          <CryptoStrengthSection />
-        </Column>
-      </Row>
+      </Column>
     </Column>
   );
 }

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useMemo } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRight,
   Brain,
-  LifeBuoy,
-  NotebookPen,
-  Route,
+  GraduationCap,
+  MessageSquareText,
+  PieChart,
+  Radar,
   ShieldCheck,
   Timer,
 } from "lucide-react";
@@ -27,6 +29,7 @@ import { VisuallyHidden } from "@/components/ui/accessibility-utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
 import { AdminGate } from "@/components/admin/AdminGate";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 
 const DynamicChat = dynamic(
   () => import("@/components/tools/DynamicChat").then((mod) => mod.DynamicChat),
@@ -85,6 +88,57 @@ type WorkflowAction = {
   icon: LucideIcon;
 };
 
+type AuditStatus = "ready" | "attention" | "issue" | "loading";
+
+type AuditItem = {
+  label: string;
+  summary: string;
+  detail?: string;
+  href?: string;
+  status: AuditStatus;
+  statusLabel?: string;
+  actionLabel?: string;
+};
+
+type AuditGroup = {
+  id: string;
+  title: string;
+  description: string;
+  items: AuditItem[];
+};
+
+type PlatformSupportCategory = {
+  id: string;
+  title: string;
+  items: { label: string; status: string }[];
+};
+
+const STATUS_VARIANTS: Record<
+  AuditStatus,
+  { label: string; className: string; dotClass: string }
+> = {
+  ready: {
+    label: "Live",
+    className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+    dotClass: "bg-emerald-400",
+  },
+  attention: {
+    label: "Needs attention",
+    className: "border-amber-500/30 bg-amber-500/10 text-amber-400",
+    dotClass: "bg-amber-400",
+  },
+  issue: {
+    label: "Issue",
+    className: "border-rose-500/30 bg-rose-500/10 text-rose-400",
+    dotClass: "bg-rose-400",
+  },
+  loading: {
+    label: "Loading",
+    className: "border-sky-500/25 bg-sky-500/10 text-sky-400",
+    dotClass: "bg-sky-400",
+  },
+};
+
 const SESSION_SUMMARY: SessionSummary[] = [
   {
     label: "Automation copilots",
@@ -108,22 +162,62 @@ const SESSION_SUMMARY: SessionSummary[] = [
 
 const WORKFLOW_ACTIONS: WorkflowAction[] = [
   {
-    label: "Open automation routes",
-    description: "Dispatch copilots or pause flows across desk accounts.",
+    label: "Chat workspace",
+    description:
+      "Launch the live copilot lane with session transcripts and guardrails.",
+    href: "#chat-workspace",
+    icon: MessageSquareText,
+  },
+  {
+    label: "Market review",
+    description:
+      "Open the market intelligence feed and replace hardcoded snapshots.",
+    href: "/tools/dynamic-market-review",
+    icon: Radar,
+  },
+  {
+    label: "Investor desk",
+    description:
+      "Balance allocations, readiness, and approvals before trading.",
     href: "/tools/dynamic-portfolio",
-    icon: Route,
+    icon: PieChart,
   },
   {
-    label: "Sync desk handbook",
-    description: "Keep operations and compliance guardrails aligned.",
-    href: "/work",
-    icon: NotebookPen,
+    label: "Trade & learn",
+    description:
+      "Review playbooks, lessons, and automation recipes side-by-side.",
+    href: "/tools/dynamic-trade-and-learn",
+    icon: GraduationCap,
+  },
+];
+
+const PLATFORM_SUPPORT: PlatformSupportCategory[] = [
+  {
+    id: "devices",
+    title: "Devices",
+    items: [
+      { label: "Desktop & laptop", status: "Full control" },
+      { label: "Tablet", status: "Optimised layouts" },
+      { label: "Mobile", status: "Chat-first" },
+    ],
   },
   {
-    label: "Escalate to TON desk",
-    description: "Engage human oversight for sensitive automation moves.",
-    href: "/support",
-    icon: LifeBuoy,
+    id: "screens",
+    title: "Screen widths",
+    items: [
+      { label: "≥1440px", status: "Command center" },
+      { label: "1024–1439px", status: "Desk ready" },
+      { label: "≤768px", status: "Mini app mode" },
+    ],
+  },
+  {
+    id: "os",
+    title: "Operating systems",
+    items: [
+      { label: "macOS & Windows", status: "Verified" },
+      { label: "iOS & iPadOS", status: "Optimised" },
+      { label: "Android", status: "Optimised" },
+    ],
   },
 ];
 
@@ -315,7 +409,321 @@ function LoadingPanel({
   );
 }
 
+function AuditStatusBadge({
+  status,
+  label,
+}: {
+  status: AuditStatus;
+  label?: string;
+}) {
+  const variant = STATUS_VARIANTS[status];
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${variant.className}`}
+    >
+      <span
+        className={`h-2 w-2 rounded-full ${variant.dotClass} ${
+          status === "loading" ? "animate-pulse" : ""
+        }`}
+        aria-hidden
+      />
+      {label ?? variant.label}
+    </span>
+  );
+}
+
+function AuditItemRow({ item }: { item: AuditItem }) {
+  const isExternal = item.href ? item.href.startsWith("http") : false;
+
+  return (
+    <li className="list-none rounded-2xl border border-border/60 bg-background/90 p-4 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">{item.label}</p>
+          <p className="text-xs text-muted-foreground">{item.summary}</p>
+          {item.detail
+            ? <p className="text-xs text-muted-foreground/80">{item.detail}</p>
+            : null}
+        </div>
+        <AuditStatusBadge status={item.status} label={item.statusLabel} />
+      </div>
+      {item.href
+        ? (
+          <div className="mt-3">
+            <DynamicButton
+              size="s"
+              variant="tertiary"
+              href={item.href}
+              suffixIcon={isExternal ? "arrowUpRight" : undefined}
+              target={isExternal ? "_blank" : undefined}
+              rel={isExternal ? "noreferrer noopener" : undefined}
+            >
+              {item.actionLabel ?? "Open"}
+            </DynamicButton>
+          </div>
+        )
+        : null}
+    </li>
+  );
+}
+
+function AuditGroupSection({ group }: { group: AuditGroup }) {
+  return (
+    <section
+      key={group.id}
+      aria-labelledby={`audit-${group.id}-heading`}
+      className="space-y-4"
+    >
+      <div className="space-y-1">
+        <Heading id={`audit-${group.id}-heading`} variant="heading-strong-xs">
+          {group.title}
+        </Heading>
+        <Text variant="body-default-xs" onBackground="neutral-weak">
+          {group.description}
+        </Text>
+      </div>
+      <ul className="space-y-3">
+        {group.items.map((item) => (
+          <AuditItemRow key={`${group.id}-${item.label}`} item={item} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function AuditOverview({ groups }: { groups: AuditGroup[] }) {
+  return (
+    <Card
+      as="section"
+      padding="24"
+      radius="xl"
+      gap="20"
+      className="border border-border/60 bg-background/90 shadow-lg shadow-primary/10"
+      aria-labelledby="workspace-audit-heading"
+    >
+      <Column gap="16">
+        <Column gap="8">
+          <Heading id="workspace-audit-heading" variant="heading-strong-s">
+            Workspace audit
+          </Heading>
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            Prioritise UX fixes, live data wiring, and guardrails before the
+            next trading session.
+          </Text>
+        </Column>
+        <Column gap="16">
+          {groups.map((group) => (
+            <AuditGroupSection key={group.id} group={group} />
+          ))}
+        </Column>
+      </Column>
+    </Card>
+  );
+}
+
+function DeviceSupportCard() {
+  return (
+    <Card
+      as="section"
+      padding="24"
+      radius="xl"
+      gap="16"
+      className="border border-border/60 bg-background/90 shadow-lg shadow-primary/10"
+      aria-labelledby="device-support-heading"
+    >
+      <Column gap="16">
+        <Column gap="8">
+          <Heading id="device-support-heading" variant="heading-strong-s">
+            Device, screen, and OS support
+          </Heading>
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            Operators can shift between desktop, tablet, and mobile hardware
+            without losing workspace guardrails.
+          </Text>
+        </Column>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {PLATFORM_SUPPORT.map((category) => (
+            <div
+              key={category.id}
+              className="rounded-2xl border border-border/50 bg-background/80 p-4 shadow-sm"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                {category.title}
+              </p>
+              <ul className="mt-3 space-y-2">
+                {category.items.map((item) => (
+                  <li
+                    key={item.label}
+                    className="flex items-center justify-between gap-2 text-sm text-muted-foreground"
+                  >
+                    <span className="font-medium text-foreground">
+                      {item.label}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {item.status}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Column>
+    </Card>
+  );
+}
+
 export function DynamicChatLanding() {
+  const {
+    loading: plansLoading,
+    error: plansError,
+    hasData: plansHasData,
+  } = useSubscriptionPlans();
+
+  const quickLinkAuditItems = useMemo<AuditItem[]>(() => {
+    const status: AuditStatus = plansLoading
+      ? "loading"
+      : plansError
+      ? "issue"
+      : plansHasData
+      ? "ready"
+      : "attention";
+
+    const vipDetail = plansError
+      ? `Supabase Edge: ${plansError}`
+      : plansHasData
+      ? "Dynamic pricing available for TON checkout."
+      : "Run vip-dynamic-pricing to publish fresh packages.";
+
+    const vipItem: AuditItem = {
+      label: "VIP plans",
+      summary: plansLoading
+        ? "Checking membership packages."
+        : plansError
+        ? "VIP plans failed to load — investigate the pricing service."
+        : plansHasData
+        ? "Live pricing synced from Supabase."
+        : "Awaiting the next pricing sync window.",
+      detail: vipDetail,
+      href: "/plans",
+      status,
+      statusLabel: status === "ready"
+        ? "Live"
+        : status === "issue"
+        ? "Offline"
+        : status === "loading"
+        ? "Loading"
+        : "Pending",
+      actionLabel: "Review plans",
+    };
+
+    return [
+      vipItem,
+      {
+        label: "Dynamic token",
+        summary:
+          "Tokenomics brief and staking walkthrough remain up to date for the TON community.",
+        detail:
+          "Governance, treasury, and staking docs publish alongside each TON update.",
+        href: "/token",
+        status: "ready",
+        statusLabel: "Live",
+        actionLabel: "Open token page",
+      },
+      {
+        label: "Support",
+        summary:
+          "Concierge desk responds in under two minutes during trading hours.",
+        detail:
+          "Escalations route to Telegram with audit logging and human oversight.",
+        href: "/support",
+        status: "ready",
+        statusLabel: "Live",
+        actionLabel: "Contact support",
+      },
+    ];
+  }, [plansError, plansHasData, plansLoading]);
+
+  const auditGroups = useMemo<AuditGroup[]>(() => [
+    {
+      id: "workspace",
+      title: "Workspace",
+      description:
+        "Review each lane before inviting traders into a live session.",
+      items: [
+        {
+          label: "Chat",
+          summary:
+            "Interface still mirrors developer scaffolding — align with familiar messenger patterns.",
+          detail:
+            "Adopt avatars, message grouping, and quick actions similar to Copilot, ChatGPT, or Grok.",
+          href: "#chat-workspace",
+          status: "attention",
+          statusLabel: "Needs polish",
+          actionLabel: "Review chat UX",
+        },
+        {
+          label: "Market review",
+          summary:
+            "Module renders static notes; wire it to live telemetry and filtering tools.",
+          detail:
+            "Replace hardcoded summaries with streamed data and sort/filter controls for clarity.",
+          href: "/tools/dynamic-market-review",
+          status: "issue",
+          statusLabel: "Fix data",
+          actionLabel: "Open market review",
+        },
+        {
+          label: "Investor desk",
+          summary:
+            "Portfolio allocations, readiness gates, and TON insights load without issues.",
+          detail:
+            "Continue monitoring guardrails before executing automation moves.",
+          href: "/tools/dynamic-portfolio",
+          status: "ready",
+          statusLabel: "Live",
+          actionLabel: "Open investor desk",
+        },
+        {
+          label: "Trade & learn",
+          summary:
+            "Education hub exists but lacks progress tracking or interactive flows.",
+          detail:
+            "Add milestones, quizzes, or playbook tracking to accelerate onboarding.",
+          href: "/tools/dynamic-trade-and-learn",
+          status: "attention",
+          statusLabel: "Improve",
+          actionLabel: "Review trade & learn",
+        },
+      ],
+    },
+    {
+      id: "quick-links",
+      title: "Quick links",
+      description: "Surface critical shortcuts for membership and docs.",
+      items: quickLinkAuditItems,
+    },
+    {
+      id: "connect",
+      title: "Connect",
+      description: "Keep concierge support one tap away.",
+      items: [
+        {
+          label: "Telegram",
+          summary:
+            "Primary concierge and automation escalation lane is available around the clock.",
+          detail:
+            "Mini app exposes signals, VIP sync, and desk analytics for operators.",
+          href: "https://t.me/DynamicCapitalBot",
+          status: "ready",
+          statusLabel: "Live",
+          actionLabel: "Open Telegram",
+        },
+      ],
+    },
+  ], [quickLinkAuditItems]);
+
   return (
     <ToolWorkspaceLayout
       routeId="dynamic-chat-hub"
@@ -328,6 +736,7 @@ export function DynamicChatLanding() {
           className="rounded-[32px] border border-border/50 bg-background/85 p-4 shadow-xl shadow-primary/10 backdrop-blur"
         >
           <section
+            id="chat-workspace"
             aria-labelledby="dynamic-chat-overview-heading"
             className="relative overflow-hidden rounded-3xl border border-primary/20 bg-background/90 p-6 sm:p-8"
           >
@@ -474,6 +883,10 @@ export function DynamicChatLanding() {
               })}
             </ul>
           </nav>
+          <Column gap="12">
+            <AuditOverview groups={auditGroups} />
+            <DeviceSupportCard />
+          </Column>
         </Column>
         <Column gap="20">
           <Card
@@ -529,6 +942,7 @@ export function DynamicChatLanding() {
             radius="xl"
             className="overflow-hidden border border-neutral-alpha-medium shadow-lg shadow-primary/10"
             aria-labelledby="dynamic-market-snapshot"
+            id="market-review"
           >
             <DynamicMarketReview />
           </Card>
