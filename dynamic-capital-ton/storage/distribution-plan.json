@@ -1,0 +1,43 @@
+{
+  "controllerWallet": "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
+  "jettonMaster": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+  "totalSupply": 100000000,
+  "decimals": 9,
+  "tonEndpoint": "https://toncenter.com/api/v2/jsonRPC",
+  "tonFee": "0.25",
+  "mnemonicEnv": "DCT_CONTROLLER_MNEMONIC",
+  "tonApiKeyEnv": "TONCENTER_API_KEY",
+  "batchSize": 2,
+  "targets": [
+    {
+      "label": "Public ecosystem vault",
+      "address": "EQ_public_sale_or_ops_vault_replace_me",
+      "percent": 50,
+      "note": "DCT Public 50%"
+    },
+    {
+      "label": "Treasury multisig jetton wallet",
+      "address": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
+      "percent": 20,
+      "note": "DCT Treasury 20%"
+    },
+    {
+      "label": "Team vesting hub",
+      "address": "EQ_team_or_multi_vesting_hub_replace_me",
+      "percent": 15,
+      "note": "DCT Team+Advisors 15% (to vesting hub)"
+    },
+    {
+      "label": "Staking rewards streamer",
+      "address": "EQ_rewards_streamer_replace_me",
+      "percent": 10,
+      "note": "DCT Staking 10%"
+    },
+    {
+      "label": "Liquidity manager",
+      "address": "EQ_liquidity_manager_replace_me",
+      "percent": 5,
+      "note": "DCT Liquidity 5%"
+    }
+  ]
+}
