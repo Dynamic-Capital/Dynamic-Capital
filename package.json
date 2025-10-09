@@ -127,7 +127,7 @@
     "@upstash/redis": "^1.35.4",
     "@web3-onboard/common": "^2.4.2",
     "@web3-onboard/core": "^2.24.1",
-    "axios": ">=0.30.2",
+    "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "compressorjs": "^1.2.1",
     "framer-motion": "^12.23.22",
@@ -143,7 +143,6 @@
     "prismjs": "^1.30.0",
     "recharts": "^3.2.1",
     "sonner": "^2.0.7",
-    "ton": "^13.9.0",
     "ton-core": "^0.53.0",
     "ton-crypto": "^3.2.0",
     "undici": "^6.22.0"
@@ -165,7 +164,7 @@
     "tsx": "^4.20.6",
     "vitest": "^3.2.4",
     "yaml": "^2.8.1",
-    "axios": ">=0.30.2"
+    "axios": "^1.12.2"
   },
   "overrides": {
     "esbuild": "^0.25.10",
@@ -212,6 +211,7 @@
         "crypto-es": "^3.1.2",
         "nanoid": "^5.1.6"
       }
-    }
+    },
+    "axios": "^1.12.2"
   }
 }

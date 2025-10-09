@@ -44,7 +44,7 @@
       "npm:@types/react@^19.1.12": "npm:@types/react@19.1.12",
       "npm:@vitejs/plugin-react-swc@^4.0.1": "npm:@vitejs/plugin-react-swc@4.0.1_vite@7.1.5__@types+node@22.18.1__picomatch@4.0.3_@types+node@22.18.1",
       "npm:autoprefixer@^10.4.21": "npm:autoprefixer@10.4.21_postcss@8.5.6",
-      "npm:axios@^1.11.0": "npm:axios@1.11.0",
+      "npm:axios@^1.12.2": "npm:axios@1.12.2",
       "npm:class-variance-authority@^0.7.1": "npm:class-variance-authority@0.7.1",
       "npm:clsx@^2.1.1": "npm:clsx@2.1.1",
       "npm:cmdk@^1.0.0": "npm:cmdk@1.1.1_react@19.1.1_react-dom@19.1.1__react@19.1.1_@types+react@19.1.12_@types+react-dom@19.1.9__@types+react@19.1.12",
@@ -2327,10 +2327,10 @@
           "postcss-value-parser": "postcss-value-parser@4.2.0"
         }
       },
-      "axios@1.11.0": {
-        "integrity": "sha512-1Lx3WLFQWm3ooKDYZD1eXmoGO9fxYQjrycfHFC8P0sCfQVXyROp0p9PFWBehewBOdCwHc+f/b8I0fMto5eSfwA==",
+      "axios@1.12.2": {
+        "integrity": "sha512-vMJzPewAlRyOgxV2dU0Cuz2O8zzzx9VYtbJOaBgXFeLc4IV/Eg50n4LowmehOOR61S8ZMpc2K5Sa7g6A4jfkUw==",
         "dependencies": {
-          "follow-redirects": "follow-redirects@1.15.11",
+          "follow-redirects": "follow-redirects@1.15.6",
           "form-data": "form-data@4.0.4",
           "proxy-from-env": "proxy-from-env@1.1.0"
         }
@@ -3021,8 +3021,8 @@
         "integrity": "sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==",
         "dependencies": {}
       },
-      "follow-redirects@1.15.11": {
-        "integrity": "sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==",
+      "follow-redirects@1.15.6": {
+        "integrity": "sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==",
         "dependencies": {}
       },
       "foreground-child@3.3.1": {
