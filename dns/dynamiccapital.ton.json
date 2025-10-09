@@ -84,14 +84,21 @@
       "name": "pay",
       "data": "dynamiccapital.ton",
       "ttl": 300,
-      "note": "Browser landing for payment flows; mirrors the root site while TON wallets resolve the alias natively"
+      "note": "Mirrors the root payment landing page; TON wallets fetch metadata from _pay.dynamiccapital.ton"
     },
     {
-      "type": "CNAME",
+      "type": "A",
       "name": "ton-gateway",
-      "data": "ton-gateway.dynamic-capital.ondigitalocean.app",
+      "data": "162.159.140.98",
       "ttl": 300,
-      "note": "Primary reverse proxy fronting the DigitalOcean TON Site origin"
+      "note": "DigitalOcean TON Site static IP (primary)"
+    },
+    {
+      "type": "A",
+      "name": "ton-gateway",
+      "data": "172.66.0.96",
+      "ttl": 300,
+      "note": "DigitalOcean TON Site static IP (secondary)"
     },
     {
       "type": "CNAME",
@@ -116,10 +123,10 @@
     },
     {
       "type": "TXT",
-      "name": "pay",
+      "name": "_pay",
       "data": "wallet=EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
       "ttl": 300,
-      "note": "Treasury payment alias so pay.dynamiccapital.ton resolves to the DCT treasury wallet inside TON DNS"
+      "note": "Treasury payment alias advertised via _pay.dynamiccapital.ton to avoid colliding with the CNAME record"
     }
   ],
   "wallet_aliases": [
