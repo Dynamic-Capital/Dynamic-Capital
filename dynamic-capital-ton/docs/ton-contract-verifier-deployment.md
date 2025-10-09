@@ -1,35 +1,54 @@
 # TON Contract Verifier Deployment Playbook
 
-## Overview
+This runbook captures everything the Dynamic Capital engineering team needs to
+own the TON Contract Verifier experience—from cloning the upstream UI to hosting
+a reproducible build that serves Dynamic Capital Token bundles.
 
-Dynamic Capital relies on the open source
-[TON Contract Verifier UI](https://github.com/ton-blockchain/verifier) to
-surface on-chain proofs for FunC/Tact smart contracts and to publish new source
-bundles. This runbook explains how to clone, configure, and host the upstream
-Vite application so it can be consumed by the Supabase `verify-payment` Edge
-Function as part of the treasury reconciliation workflow.
+## Table of contents
 
-## Prerequisites
+- [Activation checklist](#activation-checklist)
+- [Environment and tooling](#environment-and-tooling)
+- [Repository strategy](#repository-strategy)
+- [Local development workflow](#local-development-workflow)
+- [Optimized build pipeline](#optimized-build-pipeline)
+- [Publishing static artifacts](#publishing-static-artifacts)
+- [Dynamic Capital Token bundles](#dynamic-capital-token-bundles)
+- [Supabase integration](#supabase-integration)
+- [Upstream maintenance cadence](#upstream-maintenance-cadence)
 
-- Node.js 18+ and npm 9+ (matching the upstream `package.json`).
-- Access to a TON verifier ID registered in the Sources Registry.
-- Backend compilation endpoints from a trusted
-  [contract-verifier-backend](https://github.com/ton-community/contract-verifier-backend)
-  deployment or proxy.
+## Activation checklist
 
-## Environment variables
+Before touching code, confirm the following prerequisites:
 
-The verifier UI is configured entirely through Vite's build-time environment
-variables. Create a `.env.local` file in the repository root and populate the
-table below.
+1. **Accounts and access**
+   - GitHub organization permissions to create the
+     [`dynamiccapital/verifier`](https://github.com/dynamiccapital/verifier)
+     fork.
+   - Sources Registry verifier ID with Dynamic Capital governance approval.
+   - Access to the trusted
+     [contract-verifier-backend](https://github.com/ton-community/contract-verifier-backend)
+     deployment (production + testnet) or an internal proxy cluster.
+2. **Toolchain**
+   - Node.js **18.x** (LTS) and npm **9.x**; install via
+     [fnm](https://github.com/Schniz/fnm) or [volta](https://volta.sh/) to lock
+     versions per project.
+   - `toncli` for FunC/Tact compilation (`pip install toncli`).
+   - `zip` command line tools for packaging bundles.
+3. **Secrets management**
+   - Populate `.env.local` with read-only credentials; keep write-capable keys in
+     your secrets manager (1Password, AWS Secrets Manager, etc.).
 
-| Variable                                                  | Description                                                        |
-| --------------------------------------------------------- | ------------------------------------------------------------------ |
-| `VITE_VERIFIER_ID`                                        | Verifier identifier registered on-chain.                           |
-| `VITE_SOURCES_REGISTRY` / `VITE_SOURCES_REGISTRY_TESTNET` | Mainnet and testnet Sources Registry addresses.                    |
-| `VITE_BACKEND_URL` / `VITE_BACKEND_URL_TESTNET`           | Comma-separated list of backend compilation endpoints per network. |
+## Environment and tooling
 
-Example `.env.local` template:
+The Vite UI reads build-time environment variables only. Create
+`verifier/.env.local` with the template below and share a scrubbed copy in the
+1Password vault so new maintainers can bootstrap quickly.
+
+| Variable                                                  | Description                                                 |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| `VITE_VERIFIER_ID`                                        | On-chain verifier identifier registered to Dynamic Capital. |
+| `VITE_SOURCES_REGISTRY` / `VITE_SOURCES_REGISTRY_TESTNET` | Mainnet and testnet registry addresses.                     |
+| `VITE_BACKEND_URL` / `VITE_BACKEND_URL_TESTNET`           | Comma-separated compilation endpoints per network.          |
 
 ```bash
 VITE_VERIFIER_ID=dynamic-capital
@@ -39,15 +58,13 @@ VITE_BACKEND_URL=https://verifier-backend.dynamic.capital/api
 VITE_BACKEND_URL_TESTNET=https://verifier-backend-testnet.dynamic.capital/api
 ```
 
-Placeholders left empty are ignored by the app at runtime, so keep unset values
-blank instead of deleting the key.
+Unfilled values should remain blank to keep the keys discoverable inside the
+build output.
 
-## Fork and sync the verifier codebase
+## Repository strategy
 
-Dynamic Capital maintains its own fork of the upstream verifier so we can host
-custom branding, environment defaults, and pre-built Dynamic Capital Token
-bundles. Create the fork under the `dynamiccapital` organization (or your
-personal GitHub namespace during staging) and wire the remotes as follows:
+Dynamic Capital tracks the upstream project via a long-lived fork that carries
+branding, environment defaults, and pre-built bundles.
 
 ```bash
 git clone git@github.com:dynamiccapital/verifier.git
@@ -55,114 +72,170 @@ cd verifier
 git remote add upstream https://github.com/ton-blockchain/verifier.git
 ```
 
-Use the fork's default branch for any UI tweaks or configuration committed to
-source control. To stay current with upstream fixes, periodically pull from the
-`upstream` remote and fast-forward merge into `main` before cutting a release
-branch for deployment:
+- Keep **`main`** fast-forwardable with `upstream/main` to reduce merge debt.
+- Land Dynamic Capital customizations on feature branches and rebase before
+  merging into `main`.
+- Cut release branches (for example, `release/2024-06-ton-verifier`) for every
+  production deployment so you can hotfix without blocking new work.
+
+### Syncing with upstream
 
 ```bash
 git fetch upstream
 git checkout main
 git merge --ff-only upstream/main
+npm install # refresh the lockfile if upstream bumped dependencies
 ```
 
-Push the updated branch back to GitHub so GitHub Actions (or your preferred CI)
-can produce the static build artifacts for hosting.
+Push the fast-forward commit so CI can regenerate build artifacts immediately.
 
-## Local development
+## Local development workflow
 
-1. Clone the upstream repository and install dependencies:
+1. **Install dependencies**
    ```bash
    git clone https://github.com/ton-blockchain/verifier.git
    cd verifier
    npm install
+   cp ../secrets/verifier.env .env.local # or manually populate variables
    ```
-2. Copy `.env.local` into the project root and adjust the values for your
-   verifier ID, registry, and backend endpoints.
-3. Launch the development server:
+2. **Run the dev server**
    ```bash
    npm run dev
    ```
-   The UI defaults to `http://localhost:5173`; update the port via Vite config
-   if required.
-4. Build a production snapshot when ready to deploy:
+   The Vite preview listens on `http://localhost:5173` by default. Override the
+   port through the `--port` flag if necessary.
+3. **Lint before committing**
+   ```bash
+   npm run lint
+   npm run typecheck
+   npm run test # optional, executes UI component smoke tests
+   ```
+4. **Smoke test production output**
    ```bash
    npm run build
-   npm run preview # optional smoke test
+   npm run preview
    ```
+   Inspect bundle sizes using Vite's output and flag regressions over 200 kB.
 
-The static artifacts under `dist/` can be deployed to any CDN or static host
-(Cloudflare Pages, Vercel, DigitalOcean, etc.). Pin the build output to
-decentralized storage (TON Storage or IPFS) to preserve an immutable checksum
-for auditors before uploading to the host.
+## Optimized build pipeline
 
-## Uploading static builds from the fork
+Use GitHub Actions to keep builds reproducible. The workflow below installs the
+correct Node version, caches npm modules, builds the static assets, and uploads
+an artifact for deployment.
 
-To keep the deployment reproducible, publish the `dist/` output from your fork
-to a dedicated branch (for example, `gh-pages`) or artifact repository after
-each release build:
+```yaml
+name: build-verifier
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+      - run: npm run lint && npm run typecheck
+      - run: npm run build
+        env:
+          VITE_VERIFIER_ID: ${{ secrets.VITE_VERIFIER_ID }}
+          VITE_SOURCES_REGISTRY: ${{ secrets.VITE_SOURCES_REGISTRY }}
+          VITE_SOURCES_REGISTRY_TESTNET: ${{ secrets.VITE_SOURCES_REGISTRY_TESTNET }}
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_BACKEND_URL_TESTNET: ${{ secrets.VITE_BACKEND_URL_TESTNET }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ton-verifier-dist
+          path: dist
+```
+
+Key optimizations:
+
+- `npm ci` ensures deterministic dependency installs.
+- Cache hits keep build times under one minute after the first run.
+- Environment variables flow from GitHub Secrets, eliminating plaintext copies.
+
+## Publishing static artifacts
+
+Two common hosting patterns are supported:
+
+1. **GitHub Pages / Cloudflare Pages**
+   - Push the `dist/` directory to a `gh-pages` branch via CI or manually.
+   - For GitHub Pages, enable the Pages deployment on the repository settings.
+2. **Object storage CDN (S3, R2, Backblaze B2)**
+   - Upload the `dist/` contents as immutable versioned objects.
+   - Configure `verifier.dynamic.capital` DNS to point at the CDN distribution.
+
+Manual publication snippet (use sparingly—CI should own this):
 
 ```bash
 npm run build
-git switch --orphan gh-pages
-rm -rf .github src tests # remove source-only directories from the orphan branch
-cp -R dist/* .
-git add .
-git commit -m "chore: publish verifier build"
-git push -f origin gh-pages
+rm -rf publish && mkdir publish
+cp -R dist/* publish/
+cd publish
+zip -r ../verifier-dist.zip .
 ```
 
-If you prefer GitHub Actions, configure the workflow to upload the Vite build as
-a Pages deployment or release asset so the Supabase function always fetches the
-latest verified UI. Document the resulting CDN URL in the repository README and
-update DNS so `verifier.dynamic.capital` resolves to the published build.
+Keep hashes of the `verifier-dist.zip` artifact in the release notes so auditors
+can confirm integrity.
 
-## Preparing Dynamic Capital Token verification bundles
+## Dynamic Capital Token bundles
 
-The fork should include pre-generated source bundles for the Dynamic Capital
-Token (DCT) jetton master and wallet contracts so auditors can reproduce on-chain
-code hashes without rebuilding Tact locally:
+Deliver pre-built jetton master + wallet bundles in the fork under
+`static/artifacts/` to guarantee byte-for-byte parity with on-chain deployments.
 
-1. Compile the contracts from `dynamic-capital-ton/contracts/jetton` using the
-   canonical `config.yaml` parameters:
+1. **Compile contracts**
    ```bash
-   toncli build --config config.yaml --output ./artifacts
+   cd dynamic-capital-ton/contracts/jetton
+   toncli build --config ../../config.yaml --output ./artifacts
    ```
-2. Package the generated `.boc`, `.tvc`, and source `.tact` files into ZIP
-   archives that follow the verifier's naming convention (for example,
-   `dynamic-capital-jetton-master.zip` and `dynamic-capital-jetton-wallet.zip`).
-3. Commit the archives to the fork under `static/artifacts/` so the hosted UI can
-   surface "Download bundle" links alongside the verified contract metadata.
-4. After deploying the updated UI, submit each bundle to the Sources Registry via
-   the verifier UI to mark the on-chain Dynamic Capital Token contracts as
-   `verified`.
+2. **Assemble bundles**
+   ```bash
+   cd artifacts
+   zip dynamic-capital-jetton-master.zip master.boc master.tvc ../src/master.tact
+   zip dynamic-capital-jetton-wallet.zip wallet.boc wallet.tvc ../src/wallet.tact
+   ```
+3. **Publish inside the fork**
+   - Commit the ZIP archives under `static/artifacts/`.
+   - Reference them in the UI so "Download bundle" buttons appear for auditors.
+4. **Register with the Sources Registry**
+   - Upload each ZIP via the hosted verifier.
+   - Confirm the registry marks the contracts as `verified` before announcing the
+     release.
 
-Rebuild the bundles whenever the contracts change and update the published ZIP
-files in the fork so users always receive byte-for-byte identical artifacts to
-the versions registered on-chain.
+Rebuild bundles whenever contract code or compiler flags change and rotate the
+release tag accordingly.
 
-## Linking to Supabase verification
+## Supabase integration
 
-Expose the hosted verifier under a stable HTTPS URL and set the
-`TON_VERIFIER_URL` environment variable for the Supabase `verify-payment`
-function. The Edge Function will POST `txHash`, `wallet`, and `amountTon` to the
-configured endpoint before falling back to TonAPI if the verifier responds with
-`verdict: "unknown"` or `verified: null`.
+Expose the hosted verifier URL and configure the Supabase Edge Function in
+`supabase/functions/verify-payment/index.ts`:
 
-Optional `TON_VERIFIER_TOKEN` support allows you to secure the verifier endpoint
-with a bearer token—the function automatically prepends `Bearer` if the secret
-does not already include the prefix. On successful responses (`verified: true`),
-the function records the reported TON amount, response metadata, and the
-declared data source for downstream auditing (see
-`supabase/functions/verify-payment/index.ts`).
+```env
+TON_VERIFIER_URL=https://verifier.dynamic.capital
+TON_VERIFIER_TOKEN=prod-ton-verifier-rw-token
+```
 
-## Keeping parity with upstream releases
+The function records TON payment confirmations only when the verifier responds
+with `verified: true`. Keep the token scoped to read-only endpoints if possible
+and rotate every quarter.
 
-- Track upstream `verifier` releases for UI changes and new FunC compiler
-  binaries. When the upstream project adds a new compiler version, replicate the
-  dependency entry (for example, `"func-js-bin-0.4.x"`) in your fork and
-  redeploy the backend configuration to expose the compiler.
-- Re-run `npm install && npm run build` after pulling upstream changes to ensure
-  the pinned lockfile incorporates the new asset versions.
-- Document any local patches applied to the UI so auditors can compare your
-  deployment against the official repository.
+## Upstream maintenance cadence
+
+- Watch the upstream repository for tagged releases and FunC compiler updates.
+- When upstream adds a compiler binary (for example `func-js-bin-0.4.x`), mirror
+  the dependency in your fork and update backend configuration to expose the new
+  compiler.
+- Run `npm ci && npm run build` before merging upstream changes to ensure the
+  lockfile and static assets stay in sync.
+- Document any local patches in the fork's `CHANGELOG.md` so auditors can review
+  deviations from the official project.
+
