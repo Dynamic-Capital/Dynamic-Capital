@@ -48,6 +48,7 @@ import {
 } from "../lib/config";
 import { THEME_MINT_PLANS, type ThemeMintPlan } from "../data/theme-mints";
 import { TON_MANIFEST_RESOURCE_PATH, TON_MANIFEST_URL_CANDIDATES } from "@shared/ton/manifest";
+import { TON_MANIFEST_FALLBACK_DATA_URL } from "../lib/ton-manifest-inline";
 import { resolveTonManifestUrl } from "../lib/ton-manifest-resolver";
 
 type SectionId =
@@ -135,7 +136,10 @@ type TonConnectManifestState = {
   retry: () => void;
 };
 
-const TON_MANIFEST_ERROR_MESSAGE =
+const TON_MANIFEST_FALLBACK_MESSAGE =
+  "We’re using a bundled TON Connect manifest because the live manifest is unreachable. Wallet availability may be limited until the connection is restored.";
+
+const TON_MANIFEST_FATAL_MESSAGE =
   "We couldn’t reach the TON Connect manifest. Please check your connection and try again.";
 
 function useTonConnectManifestUrl(): TonConnectManifestState {
@@ -181,9 +185,9 @@ function useTonConnectManifestUrl(): TonConnectManifestState {
         }
 
         setState({
-          manifestUrl: null,
+          manifestUrl: TON_MANIFEST_FALLBACK_DATA_URL,
           resolving: false,
-          error: TON_MANIFEST_ERROR_MESSAGE,
+          error: TON_MANIFEST_FALLBACK_MESSAGE,
         });
       } catch (error) {
         if (cancelled) {
@@ -192,9 +196,9 @@ function useTonConnectManifestUrl(): TonConnectManifestState {
 
         console.error("Failed to resolve TON Connect manifest", error);
         setState({
-          manifestUrl: null,
+          manifestUrl: TON_MANIFEST_FALLBACK_DATA_URL,
           resolving: false,
-          error: TON_MANIFEST_ERROR_MESSAGE,
+          error: TON_MANIFEST_FALLBACK_MESSAGE,
         });
       }
     }
@@ -3006,7 +3010,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function Page() {
   const { manifestUrl, resolving, error, retry } = useTonConnectManifestUrl();
 
-  if (resolving) {
+  if (resolving && !manifestUrl) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black text-sm text-white">
         <span className="animate-pulse">Resolving TON Connect manifest…</span>
@@ -3014,11 +3018,11 @@ export default function Page() {
     );
   }
 
-  if (error || !manifestUrl) {
+  if (!manifestUrl) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-sm text-white">
         <div className="space-y-6">
-          <p>{error ?? TON_MANIFEST_ERROR_MESSAGE}</p>
+          <p>{TON_MANIFEST_FATAL_MESSAGE}</p>
           <button
             type="button"
             onClick={retry}
@@ -3031,13 +3035,48 @@ export default function Page() {
     );
   }
 
+  const manifestUrlForProvider = manifestUrl ?? TON_MANIFEST_FALLBACK_DATA_URL;
+
   return (
-    <TonConnectUIProvider
-      manifestUrl={manifestUrl}
-      walletsListConfiguration={TONCONNECT_WALLETS_LIST_CONFIGURATION}
-      actionsConfiguration={TONCONNECT_ACTIONS_CONFIGURATION}
-    >
-      <HomeInner />
-    </TonConnectUIProvider>
+    <>
+      {error ? (
+        <TonManifestFallbackBanner message={error} onRetry={retry} />
+      ) : null}
+      <TonConnectUIProvider
+        manifestUrl={manifestUrlForProvider}
+        walletsListConfiguration={TONCONNECT_WALLETS_LIST_CONFIGURATION}
+        actionsConfiguration={TONCONNECT_ACTIONS_CONFIGURATION}
+      >
+        <HomeInner />
+      </TonConnectUIProvider>
+    </>
+  );
+}
+
+function TonManifestFallbackBanner({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4">
+      <div className="pointer-events-auto flex max-w-md items-start gap-3 rounded-3xl bg-white/10 px-4 py-3 text-left text-xs text-white shadow-lg backdrop-blur">
+        <div className="space-y-1">
+          <p className="font-medium">{message}</p>
+          <p className="text-white/70">
+            We’ll keep trying in the background. You can also manually retry now.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white/30"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
   );
 }
