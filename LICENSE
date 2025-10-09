@@ -1,13 +1,31 @@
-Copyright (c) 2024 Dynamic Capital. All rights reserved.
+Dynamic Capital Proprietary License
+===================================
 
-This repository and the contents within are proprietary to Dynamic Capital, Inc.
-and may not be copied, modified, distributed, sublicensed, or used for any
-commercial or non-commercial purpose without prior written permission from
-Dynamic Capital, Inc.
+Copyright (c) 2024 Dynamic Capital
 
-You may review the source solely for evaluation or integration with Dynamic
-Capital services. Any other use is prohibited.
+All rights reserved. This repository and its contents are proprietary to Dynamic
+Capital ("Dynamic"). By accessing or using the code, assets, or documentation in
+this repository you agree to the following terms.
 
-Third-party software included in this project remains the property of the
-respective copyright holders and is provided under their own licenses as noted
-in docs/legal/THIRD_PARTY_LICENSES.md.
+1. **Limited Right to Review.** You may view the source solely for internal
+   evaluation or integration with Dynamic services that you are authorized to
+   use. No other rights are granted.
+2. **No Redistribution.** You may not copy, modify, merge, publish, distribute,
+   sublicense, sell, or otherwise make the materials available to any third
+   party without prior written permission from Dynamic.
+3. **No Production Use.** Running the software in production or derivative
+   offerings is prohibited unless covered by a separate, written agreement with
+   Dynamic.
+4. **Confidentiality.** Treat all materials in this repository as confidential.
+   Do not disclose or discuss implementation details, architecture, or business
+   logic with unauthorized parties.
+5. **Third-Party Components.** Third-party software included in this project
+   remains the property of its respective copyright holders and is provided
+   under their own licenses as documented in `docs/legal/THIRD_PARTY_LICENSES.md`.
+6. **Termination.** Dynamic may revoke your access at any time. Upon notice you
+   must destroy all copies of repository materials in your possession.
+7. **No Warranty.** The repository is provided "as is" without warranty of any
+   kind. Dynamic is not liable for any damages arising from its use.
+
+For licensing inquiries contact
+[legal@DynamicCapital.ton](mailto:legal@DynamicCapital.ton).
