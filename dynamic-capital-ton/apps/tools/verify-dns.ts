@@ -4,14 +4,16 @@ import { Address, Cell, beginCell } from "@ton/core";
 import { mnemonicToPrivateKey, sign } from "ton-crypto";
 import {
   TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
+  TON_MAINNET_DEDUST_DCT_TON_POOL,
   TON_MAINNET_DCT_TREASURY_ALIAS,
   TON_MAINNET_DCT_TREASURY_WALLET,
   TON_MAINNET_DCT_WALLET_V5R1,
-  TON_MAINNET_DEDUST_DCT_TON_POOL,
   TON_MAINNET_JETTON_MASTER,
   TON_MAINNET_STONFI_DCT_JETTON_WALLET,
+  TON_MAINNET_STONFI_DCT_TON_POOL,
   TON_MAINNET_STONFI_ROUTER,
 } from "../../../shared/ton/mainnet-addresses";
+import { DCT_DEX_POOLS } from "../../../shared/ton/dct-liquidity";
 
 type JettonMetadata = {
   readonly name?: string;
@@ -25,6 +27,9 @@ const TON_VIEWER_JETTON_URL =
   `https://tonviewer.com/jetton/${TON_MAINNET_JETTON_MASTER}`;
 const TONSCAN_JETTON_URL =
   `https://tonscan.org/jetton/${TON_MAINNET_JETTON_MASTER}`;
+const DYOR_JETTON_URL = `https://dyor.io/token/${TON_MAINNET_JETTON_MASTER}`;
+const DEX_SCREENER_TOKEN_URL =
+  `https://dexscreener.com/ton/${TON_MAINNET_JETTON_MASTER}`;
 
 async function fetchJettonWallet(ownerFriendly: string): Promise<string> {
   const ownerAddress = Address.parse(ownerFriendly);
@@ -120,23 +125,44 @@ async function main() {
     metadata.symbol,
   );
 
+  const stonfiPool = DCT_DEX_POOLS.find((pool) => pool.dex === "STON.fi");
+  const dedustPool = DCT_DEX_POOLS.find((pool) => pool.dex === "DeDust");
+
+  if (!stonfiPool || !stonfiPool.metadataUrl || !stonfiPool.dexScreenerPairUrl) {
+    throw new Error("Missing STON.fi pool metadata configuration");
+  }
+
+  if (!dedustPool || !dedustPool.metadataUrl || !dedustPool.dexScreenerPairUrl) {
+    throw new Error("Missing DeDust pool metadata configuration");
+  }
+
   const dnsRecord: Record<string, string> = {
     ton_alias: TON_MAINNET_DCT_TREASURY_ALIAS,
     token_symbol: metadata.symbol,
     jetton_master: TON_MAINNET_JETTON_MASTER,
     treasury_wallet: TON_MAINNET_DCT_TREASURY_WALLET,
-    stonfi_pool: TON_MAINNET_STONFI_ROUTER,
+    stonfi_pool: stonfiPool.poolAddress,
+    stonfi_pool_metadata: stonfiPool.metadataUrl,
     stonfi_jetton_wallet: TON_MAINNET_STONFI_DCT_JETTON_WALLET,
     wallet_v5r1: TON_MAINNET_DCT_WALLET_V5R1,
-    dedust_pool: TON_MAINNET_DEDUST_DCT_TON_POOL,
+    dedust_pool: dedustPool.poolAddress,
+    dedust_pool_metadata: dedustPool.metadataUrl,
     dedust_jetton_wallet: TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
     jetton_tonviewer: TON_VIEWER_JETTON_URL,
     jetton_tonscan: TONSCAN_JETTON_URL,
+    jetton_dyor: DYOR_JETTON_URL,
     dao_contract: "EQDAOxyz...daoAddr",
     metadata: METADATA_URL,
+    metadata_fallback: "https://dynamic.capital/jetton-metadata.json",
     api: "https://api.dynamiccapital.ton",
+    api_fallback: "https://dynamic.capital/api",
     manifest: "https://dynamiccapital.ton/tonconnect-manifest.json",
+    manifest_fallback: "https://dynamic.capital/tonconnect-manifest.json",
     docs: "https://dynamiccapital.ton/docs",
+    docs_fallback: "https://dynamic.capital/docs",
+    dexscreener_token: DEX_SCREENER_TOKEN_URL,
+    dexscreener_stonfi: stonfiPool.dexScreenerPairUrl,
+    dexscreener_dedust: dedustPool.dexScreenerPairUrl,
   };
 
   const [stonfiWallet, dedustWallet] = await Promise.all([
