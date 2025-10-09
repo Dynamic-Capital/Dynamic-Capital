@@ -12,7 +12,12 @@ import {
   internal,
   toNano,
 } from "npm:@ton/core";
-import { JettonMaster, TonClient, WalletContractV4 } from "npm:@ton/ton";
+import {
+  JettonMaster,
+  JettonWallet,
+  TonClient,
+  WalletContractV4,
+} from "npm:@ton/ton";
 import { mnemonicToPrivateKey } from "npm:@ton/crypto";
 
 import { resolveProjectRoot } from "./_shared.ts";
@@ -41,6 +46,8 @@ interface DistributionPlanConfig {
   mnemonicEnv?: string;
   tonApiKeyEnv?: string;
   batchSize?: number;
+  seqnoTimeoutMs?: number;
+  seqnoPollIntervalMs?: number;
   targets: DistributionTargetConfig[];
 }
 
@@ -53,6 +60,8 @@ interface CliOptions {
   "api-key"?: string;
   dryRun?: boolean;
   "batch-size"?: number;
+  "seqno-timeout"?: number;
+  "seqno-poll"?: number;
 }
 
 interface DistributionEntry {
@@ -88,6 +97,8 @@ function readCliOptions(): CliOptions {
       "mnemonic-file",
       "api-key",
       "batch-size",
+      "seqno-timeout",
+      "seqno-poll",
     ],
     boolean: ["dry-run"],
     alias: {
@@ -99,6 +110,8 @@ function readCliOptions(): CliOptions {
       "api-key": "k",
       "dry-run": "n",
       "batch-size": "b",
+      "seqno-timeout": "t",
+      "seqno-poll": "p",
     },
   });
 
@@ -118,6 +131,12 @@ function readCliOptions(): CliOptions {
     dryRun: Boolean(parsed["dry-run"]),
     "batch-size": typeof parsed["batch-size"] === "string"
       ? Number.parseInt(parsed["batch-size"], 10)
+      : undefined,
+    "seqno-timeout": typeof parsed["seqno-timeout"] === "string"
+      ? Number.parseInt(parsed["seqno-timeout"], 10)
+      : undefined,
+    "seqno-poll": typeof parsed["seqno-poll"] === "string"
+      ? Number.parseInt(parsed["seqno-poll"], 10)
       : undefined,
   };
 }
@@ -168,13 +187,13 @@ function toBigInt(value: number | string, label: string): bigint {
   throw new Error(`${label} must be provided`);
 }
 
-function formatAmount(amount: bigint, decimals: bigint): string {
-  const whole = amount / decimals;
-  const fraction = amount % decimals;
+function formatAmount(amount: bigint, factor: bigint): string {
+  const whole = amount / factor;
+  const fraction = amount % factor;
   if (fraction === 0n) {
     return whole.toString();
   }
-  const fractionStr = (decimals + fraction).toString().slice(1).replace(/0+$/, "");
+  const fractionStr = (factor + fraction).toString().slice(1).replace(/0+$/, "");
   return `${whole.toString()}.${fractionStr}`;
 }
 
@@ -220,15 +239,19 @@ async function waitForSeqno(
   pollIntervalMs: number,
 ): Promise<number> {
   const start = Date.now();
+  let current = await wallet.getSeqno();
+  if (current >= expectedSeqno) {
+    return current;
+  }
   while (Date.now() - start < timeoutMs) {
-    const current = await wallet.getSeqno();
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    current = await wallet.getSeqno();
     if (current >= expectedSeqno) {
       return current;
     }
-    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
   }
   throw new Error(
-    `Timed out waiting for wallet seqno ${expectedSeqno} (last observed ${await wallet.getSeqno()})`,
+    `Timed out waiting for wallet seqno ${expectedSeqno} (last observed ${current})`,
   );
 }
 
@@ -322,7 +345,7 @@ function chunkDistributions(
   return batches;
 }
 
-function printDistributionSummary(entries: DistributionEntry[], decimals: bigint) {
+function printDistributionSummary(entries: DistributionEntry[], factor: bigint) {
   const rows = entries.map((entry) => ({
     Label: entry.label,
     Address: entry.address.toString(),
@@ -333,8 +356,60 @@ function printDistributionSummary(entries: DistributionEntry[], decimals: bigint
   console.table(rows);
   const total = entries.reduce((acc, entry) => acc + entry.amount, 0n);
   console.log(
-    `Total allocated: ${formatAmount(total, decimals)} tokens (atomic ${total.toString()})`,
+    `Total allocated: ${formatAmount(total, factor)} tokens (atomic ${total.toString()})`,
   );
+}
+
+function assertUniqueTargets(entries: DistributionEntry[]): void {
+  const seenAddresses = new Map<string, string>();
+  const seenLabels = new Map<string, string>();
+  for (const entry of entries) {
+    const addressKey = entry.address.toString();
+    const existingAddress = seenAddresses.get(addressKey);
+    if (existingAddress) {
+      throw new Error(
+        `Duplicate distribution address detected for "${entry.label}" and "${existingAddress}"`,
+      );
+    }
+    seenAddresses.set(addressKey, entry.label);
+
+    const normalizedLabel = entry.label.trim().toLowerCase();
+    const existingLabel = seenLabels.get(normalizedLabel);
+    if (existingLabel) {
+      throw new Error(
+        `Duplicate distribution label detected: "${entry.label}" conflicts with "${existingLabel}"`,
+      );
+    }
+    seenLabels.set(normalizedLabel, entry.label);
+  }
+}
+
+function resolveSeqnoTiming(
+  options: CliOptions,
+  plan: DistributionPlanConfig,
+): { timeoutMs: number; pollIntervalMs: number } {
+  const timeoutMs = options["seqno-timeout"] ?? plan.seqnoTimeoutMs ?? 120_000;
+  const pollIntervalMs = options["seqno-poll"] ?? plan.seqnoPollIntervalMs ?? 750;
+
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    throw new Error("seqno timeout must be a positive integer (milliseconds)");
+  }
+
+  if (!Number.isFinite(pollIntervalMs) || pollIntervalMs <= 0) {
+    throw new Error("seqno poll interval must be a positive integer (milliseconds)");
+  }
+
+  if (!Number.isInteger(timeoutMs) || !Number.isInteger(pollIntervalMs)) {
+    throw new Error("seqno timing values must be whole milliseconds");
+  }
+
+  if (pollIntervalMs > timeoutMs) {
+    throw new Error(
+      "seqno poll interval cannot exceed the overall timeout",
+    );
+  }
+
+  return { timeoutMs, pollIntervalMs };
 }
 
 function normalizeMnemonicWords(value: string): string[] {
@@ -405,6 +480,7 @@ async function main() {
   const factor = 10n ** decimals;
 
   const entries = computeDistributionEntries(plan, decimals, factor);
+  assertUniqueTargets(entries);
   printDistributionSummary(entries, factor);
 
   if (options.dryRun) {
@@ -447,6 +523,9 @@ async function main() {
   const controllerJettonWalletAddress = await master.getWalletAddress(
     controllerWalletAddress,
   );
+  const controllerJettonWallet = client.open(
+    JettonWallet.create(controllerJettonWalletAddress),
+  );
 
   const desiredBatchSize = options["batch-size"] ?? plan.batchSize ?? 1;
   if (!Number.isInteger(desiredBatchSize) || desiredBatchSize <= 0) {
@@ -455,6 +534,57 @@ async function main() {
 
   const initialSeqno = await wallet.getSeqno();
   const batches = chunkDistributions(entries, desiredBatchSize, initialSeqno);
+
+  const { timeoutMs, pollIntervalMs } = resolveSeqnoTiming(options, plan);
+
+  const totalTonBudget = entries.reduce(
+    (acc, entry) => acc + entry.tonAmount,
+    0n,
+  );
+
+  const tonBalance = await client.getBalance(controllerWalletAddress);
+  if (tonBalance < totalTonBudget) {
+    throw new Error(
+      `Controller wallet lacks TON for fees: balance ${formatAmount(tonBalance, 1_000_000_000n)} < required ${formatAmount(totalTonBudget, 1_000_000_000n)}`,
+    );
+  }
+
+  const minimumTonBuffer = toNano("0.05");
+  const tonSurplus = tonBalance - totalTonBudget;
+  if (tonSurplus < minimumTonBuffer) {
+    console.warn(
+      `Warning: TON balance buffer (${formatAmount(tonSurplus, 1_000_000_000n)} TON) is below recommended reserve (${formatAmount(minimumTonBuffer, 1_000_000_000n)} TON). Consider topping up fees before broadcasting.`,
+    );
+  }
+
+  const jettonBalance = await controllerJettonWallet.getBalance();
+  const totalAtomic = entries.reduce((acc, entry) => acc + entry.amount, 0n);
+  if (jettonBalance < totalAtomic) {
+    throw new Error(
+      `Controller jetton wallet lacks tokens: balance ${jettonBalance.toString()} < required ${totalAtomic.toString()}`,
+    );
+  }
+
+  const jettonData = await master.getJettonData();
+  if (jettonData.totalSupply < totalAtomic) {
+    throw new Error(
+      `Jetton total supply ${jettonData.totalSupply.toString()} is below required allocation ${totalAtomic.toString()}`,
+    );
+  }
+
+  console.log(
+    `TON fee budget: ${formatAmount(totalTonBudget, 1_000_000_000n)} TON (wallet balance ${formatAmount(tonBalance, 1_000_000_000n)} TON)`,
+  );
+  console.log(
+    `Jetton balance: ${formatAmount(jettonBalance, factor)} tokens (required ${formatAmount(totalAtomic, factor)})`,
+  );
+
+  const jettonSurplus = jettonBalance - totalAtomic;
+  if (jettonSurplus > 0n) {
+    console.log(
+      `Controller jetton wallet surplus after distribution: ${formatAmount(jettonSurplus, factor)} tokens`,
+    );
+  }
 
   console.log(
     `Submitting ${entries.length} transfers across ${batches.length} seqno steps starting from ${initialSeqno} using endpoint ${endpoint}`,
@@ -492,7 +622,7 @@ async function main() {
       );
     }
 
-    await waitForSeqno(wallet, batch.seqno + 1, 120_000, 1_500);
+    await waitForSeqno(wallet, batch.seqno + 1, timeoutMs, pollIntervalMs);
   }
 
   console.log("✅ Distribution submitted. Publish tx hashes for transparency.");

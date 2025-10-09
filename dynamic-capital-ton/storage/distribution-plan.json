@@ -8,6 +8,8 @@
   "mnemonicEnv": "DCT_CONTROLLER_MNEMONIC",
   "tonApiKeyEnv": "TONCENTER_API_KEY",
   "batchSize": 2,
+  "seqnoTimeoutMs": 180000,
+  "seqnoPollIntervalMs": 750,
   "targets": [
     {
       "label": "Public ecosystem vault",
