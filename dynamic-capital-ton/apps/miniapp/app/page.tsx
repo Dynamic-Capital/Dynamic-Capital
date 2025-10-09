@@ -76,6 +76,23 @@ type TelegramGlobal = {
   };
 };
 
+type SnapshotAdjustment = {
+  key: string;
+  value: number;
+};
+
+type NormalizedPlanSnapshot = {
+  computedAt: string | null;
+  basePrice: number | null;
+  dynamicPrice: number | null;
+  displayPrice: number | null;
+  tonAmount: number | null;
+  dctAmount: number | null;
+  tonRate: number | null;
+  deltaPercent: number | null;
+  adjustments: SnapshotAdjustment[];
+};
+
 type PlanOption = {
   id: Plan;
   name: string;
@@ -89,7 +106,7 @@ type PlanOption = {
     tonAmount: number | null;
     dctAmount: number | null;
     updatedAt: string | null;
-    snapshot: Record<string, unknown> | null;
+    snapshot: NormalizedPlanSnapshot | null;
     snapshotSignature: string | null;
   };
 };
@@ -504,40 +521,6 @@ function coerceNumber(value: unknown): number | null {
   return null;
 }
 
-function extractSnapshotNumber(
-  snapshot: Record<string, unknown> | null | undefined,
-  key: string,
-): number | string | null {
-  if (!snapshot) return null;
-  const value = snapshot[key];
-  return typeof value === "number" || typeof value === "string"
-    ? value
-    : null;
-}
-
-function extractSnapshotString(
-  snapshot: Record<string, unknown> | null | undefined,
-  key: string,
-): string | null {
-  if (!snapshot) return null;
-  const value = snapshot[key];
-  return typeof value === "string" && value.trim().length > 0
-    ? value
-    : null;
-}
-
-type NormalizedPlanSnapshot = {
-  computedAt: string | null;
-  basePrice: number | null;
-  dynamicPrice: number | null;
-  displayPrice: number | null;
-  tonAmount: number | null;
-  dctAmount: number | null;
-  tonRate: number | null;
-  deltaPercent: number | null;
-  adjustments: Array<{ key: string; value: number }>;
-};
-
 function normalisePlanSnapshot(
   raw: unknown,
 ): NormalizedPlanSnapshot | null {
@@ -561,14 +544,18 @@ function normalisePlanSnapshot(
       !Array.isArray(record.adjustments)
     ? Object.entries(record.adjustments as Record<string, unknown>)
       .map(([key, value]) => ({ key, value: coerceNumber(value) }))
-      .filter((item): item is { key: string; value: number } =>
-        typeof item.value === "number"
-      )
+      .filter((item): item is SnapshotAdjustment => typeof item.value === "number")
       .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
     : [];
 
+  const computedAtCandidate = record.computed_at ?? record.computedAt;
+  const computedAt = typeof computedAtCandidate === "string" &&
+      computedAtCandidate.trim().length > 0
+    ? computedAtCandidate
+    : null;
+
   return {
-    computedAt: extractSnapshotString(record, "computed_at"),
+    computedAt,
     basePrice: coerceNumber(record.base_price),
     dynamicPrice: coerceNumber(record.dynamic_price),
     displayPrice: coerceNumber(record.display_price),
@@ -680,12 +667,16 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
 
     const snapshot = raw.performance_snapshot ?? null;
     const snapshotSignature = serialiseSnapshot(snapshot);
+    const normalizedSnapshot = resolvePlanSnapshot(
+      snapshot,
+      snapshotSignature,
+    );
     const tonAmount = coerceNumber(raw.ton_amount) ??
-      coerceNumber(extractSnapshotNumber(snapshot, "ton_amount")) ??
+      normalizedSnapshot?.tonAmount ??
       fallback.meta.tonAmount ?? null;
     const dctAmount = coerceNumber(raw.dct_amount) ??
-      coerceNumber(extractSnapshotNumber(snapshot, "dct_amount"));
-    const computedAt = extractSnapshotString(snapshot, "computed_at");
+      normalizedSnapshot?.dctAmount ?? null;
+    const computedAt = normalizedSnapshot?.computedAt ?? null;
     const cadence = isLifetime
       ? "Lifetime access"
       : duration >= 12 && duration % 12 === 0
@@ -707,7 +698,7 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
         tonAmount,
         dctAmount,
         updatedAt: raw.last_priced_at ?? computedAt ?? fallback.meta.updatedAt,
-        snapshot,
+        snapshot: normalizedSnapshot,
         snapshotSignature,
       },
     });
@@ -747,6 +738,76 @@ function serialiseSnapshot(
     console.debug("[miniapp] Unable to serialise plan snapshot", error);
     return null;
   }
+}
+
+const PLAN_SNAPSHOT_CACHE_LIMIT = 32;
+const planSnapshotCache = new Map<string, NormalizedPlanSnapshot | null>();
+
+function resolvePlanSnapshot(
+  snapshot: Record<string, unknown> | null,
+  signature: string | null,
+): NormalizedPlanSnapshot | null {
+  if (!snapshot) {
+    return null;
+  }
+
+  if (signature && planSnapshotCache.has(signature)) {
+    return planSnapshotCache.get(signature) ?? null;
+  }
+
+  const normalized = normalisePlanSnapshot(snapshot);
+
+  if (signature) {
+    if (!planSnapshotCache.has(signature) &&
+      planSnapshotCache.size >= PLAN_SNAPSHOT_CACHE_LIMIT) {
+      const oldestKey = planSnapshotCache.keys().next().value;
+      if (typeof oldestKey === "string") {
+        planSnapshotCache.delete(oldestKey);
+      }
+    }
+    planSnapshotCache.set(signature, normalized);
+  }
+
+  return normalized;
+}
+
+function areNormalizedSnapshotsEqual(
+  a: NormalizedPlanSnapshot | null,
+  b: NormalizedPlanSnapshot | null,
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return !a && !b;
+  }
+
+  if (
+    a.computedAt !== b.computedAt ||
+    a.basePrice !== b.basePrice ||
+    a.dynamicPrice !== b.dynamicPrice ||
+    a.displayPrice !== b.displayPrice ||
+    a.tonAmount !== b.tonAmount ||
+    a.dctAmount !== b.dctAmount ||
+    a.tonRate !== b.tonRate ||
+    a.deltaPercent !== b.deltaPercent
+  ) {
+    return false;
+  }
+
+  if (a.adjustments.length !== b.adjustments.length) {
+    return false;
+  }
+
+  for (let index = 0; index < a.adjustments.length; index += 1) {
+    const current = a.adjustments[index];
+    const next = b.adjustments[index];
+    if (current.key !== next.key || current.value !== next.value) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function arePlanOptionsEqual(a: PlanOption[], b: PlanOption[]): boolean {
@@ -790,7 +851,9 @@ function arePlanOptionsEqual(a: PlanOption[], b: PlanOption[]): boolean {
       currentMeta.tonAmount !== nextMeta.tonAmount ||
       currentMeta.dctAmount !== nextMeta.dctAmount ||
       currentMeta.updatedAt !== nextMeta.updatedAt ||
-      currentMeta.snapshotSignature !== nextMeta.snapshotSignature
+      currentMeta.snapshotSignature !== nextMeta.snapshotSignature ||
+      (currentMeta.snapshotSignature === null &&
+        !areNormalizedSnapshotsEqual(currentMeta.snapshot, nextMeta.snapshot))
     ) {
       return false;
     }
@@ -842,6 +905,7 @@ const relativeTimeFormatter = typeof Intl !== "undefined" &&
   })
   : null;
 
+const ISO_TIMESTAMP_CACHE_LIMIT = 128;
 const isoTimestampCache = new Map<string, number | null>();
 
 function parseIsoTimestamp(iso?: string | null): number | null {
@@ -855,6 +919,13 @@ function parseIsoTimestamp(iso?: string | null): number | null {
 
   const parsed = Date.parse(iso);
   const normalized = Number.isFinite(parsed) ? parsed : null;
+  if (!isoTimestampCache.has(iso) &&
+    isoTimestampCache.size >= ISO_TIMESTAMP_CACHE_LIMIT) {
+    const oldestKey = isoTimestampCache.keys().next().value;
+    if (typeof oldestKey === "string") {
+      isoTimestampCache.delete(oldestKey);
+    }
+  }
   isoTimestampCache.set(iso, normalized);
   return normalized;
 }
@@ -1253,15 +1324,10 @@ function HomeInner() {
     const updatedAt = selectedPlan?.meta.updatedAt;
     return updatedAt ? formatRelativeTime(updatedAt) : null;
   }, [selectedPlan?.meta.updatedAt]);
-  const planSnapshot = useMemo(() => {
-    const snapshot = selectedPlan?.meta.snapshot;
-
-    if (!snapshot) {
-      return null;
-    }
-
-    return normalisePlanSnapshot(snapshot);
-  }, [selectedPlan?.meta.snapshot]);
+  const planSnapshot = useMemo(
+    () => selectedPlan?.meta.snapshot ?? null,
+    [selectedPlan?.meta.snapshot],
+  );
   const planSnapshotCurrency = useMemo(
     () => selectedPlan?.meta.currency ?? null,
     [selectedPlan?.meta.currency],
