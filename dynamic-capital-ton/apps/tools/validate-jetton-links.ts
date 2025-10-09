@@ -62,6 +62,16 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
     url: "https://dedust.io/swap/TON-DCT",
   },
   {
+    label: "DEX Screener → STON.fi pair",
+    url:
+      "https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi",
+  },
+  {
+    label: "DEX Screener → DeDust pair",
+    url:
+      "https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm",
+  },
+  {
     label: "Tonviewer → STON.fi LP jetton",
     url:
       "https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3",
@@ -69,12 +79,12 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
     label: "Tonviewer → STON.fi pool wallet",
     url:
-      "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
+      "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
   },
   {
     label: "Tonviewer → Dedust pool wallet",
     url:
-      "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+      "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
   },
   {
     label: "Tonviewer → Dedust LP jetton",
