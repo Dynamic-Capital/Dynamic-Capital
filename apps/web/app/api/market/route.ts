@@ -1,4 +1,8 @@
 import { withApiMetrics } from "@/observability/server-metrics.ts";
+import {
+  DCT_SYMBOL_CANONICALS,
+  fetchDctMarketSnapshot,
+} from "@/services/dct-price.ts";
 import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +28,7 @@ const isAllowedClass = (value: string): value is MarketClass =>
 
 type MarketClass = typeof ALLOWED_CLASSES extends Set<infer T> ? T : never;
 
-type MarketSource = "stooq" | "coingecko" | "awesomeapi";
+type MarketSource = "stooq" | "coingecko" | "awesomeapi" | "dexscreener";
 
 interface MarketQuote {
   requestSymbol: string;
@@ -73,6 +77,15 @@ const buildCacheKey = (assetClass: MarketClass, symbols: string[]) =>
 
 const canonicalizeSymbol = (symbol: string) =>
   normalizeSymbol(symbol).replace(/[^a-z0-9]+/g, "");
+
+const isDctSymbol = (symbol: string): boolean => {
+  const canonical = canonicalizeSymbol(symbol);
+  if (!canonical) return false;
+  if (DCT_SYMBOL_CANONICALS.has(canonical)) {
+    return true;
+  }
+  return false;
+};
 
 const getCachedResponse = (key: string): CachedMarketData | undefined => {
   const entry = responseCache.get(key);
@@ -285,6 +298,72 @@ async function fetchCoinGeckoQuotes(
   });
 }
 
+const normaliseErrorMessage = (reason: unknown): string => {
+  if (reason instanceof Error) {
+    return reason.message;
+  }
+  if (typeof reason === "string" && reason.trim()) {
+    return reason.trim();
+  }
+  return "Unknown error";
+};
+
+async function fetchCryptoQuotes(symbols: string[]): Promise<CachedMarketData> {
+  const quotes: MarketQuote[] = [];
+  const errors: string[] = [];
+
+  const dctSymbols: string[] = [];
+  const otherSymbols: string[] = [];
+
+  for (const symbol of symbols) {
+    if (isDctSymbol(symbol)) {
+      dctSymbols.push(symbol);
+    } else {
+      otherSymbols.push(symbol);
+    }
+  }
+
+  if (dctSymbols.length > 0) {
+    try {
+      const snapshot = await fetchDctMarketSnapshot();
+      const dctQuotes = dctSymbols.map<MarketQuote>((requestSymbol) => ({
+        requestSymbol,
+        sourceSymbol: snapshot.sourceSymbol,
+        source: "dexscreener",
+        name: snapshot.name,
+        last: snapshot.price,
+        change: snapshot.change,
+        changePercent: snapshot.changePercent,
+        high: null,
+        low: null,
+        open: null,
+        previousClose: snapshot.previousClose,
+        volume: snapshot.volume24h,
+        timestamp: snapshot.timestamp,
+      }));
+      quotes.push(...dctQuotes);
+    } catch (error) {
+      errors.push(
+        `DCT market data unavailable: ${normaliseErrorMessage(error)}`,
+      );
+    }
+  }
+
+  if (otherSymbols.length > 0) {
+    try {
+      const cgQuotes = await fetchCoinGeckoQuotes(otherSymbols);
+      quotes.push(...cgQuotes);
+    } catch (error) {
+      errors.push(normaliseErrorMessage(error));
+    }
+  }
+
+  return {
+    quotes,
+    errors: errors.length > 0 ? errors : undefined,
+  } satisfies CachedMarketData;
+}
+
 async function loadQuotes(
   assetClass: MarketClass,
   symbols: string[],
@@ -324,23 +403,13 @@ async function loadQuotes(
     const errors: string[] = [];
 
     if (assetClass === "crypto") {
-      try {
-        const quotes = await fetchCoinGeckoQuotes(uniqueSymbols);
-        const response = {
-          class: assetClass,
-          quotes,
-        } satisfies MarketApiResponse;
-        setCachedResponse(cacheKey, { quotes });
-        return response;
-      } catch (error) {
-        errors.push(error instanceof Error ? error.message : String(error));
-        const response = {
-          class: assetClass,
-          quotes: [],
-          errors,
-        } satisfies MarketApiResponse;
-        return response;
-      }
+      const cryptoData = await fetchCryptoQuotes(uniqueSymbols);
+      setCachedResponse(cacheKey, cryptoData);
+      return {
+        class: assetClass,
+        quotes: cryptoData.quotes,
+        errors: cryptoData.errors,
+      } satisfies MarketApiResponse;
     }
 
     try {
