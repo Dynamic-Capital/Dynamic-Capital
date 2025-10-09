@@ -36,11 +36,24 @@ function hex(buffer: ArrayBuffer): string {
     .join("");
 }
 
+function coerceNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
 async function verifySignature(
   body: string,
   signature: string,
   secret: string,
-) {
+): Promise<boolean> {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
     "raw",
@@ -51,7 +64,7 @@ async function verifySignature(
   );
   const sig = await crypto.subtle.sign("HMAC", key, enc.encode(body));
   const digest = hex(sig);
-  return timingSafeEqual(digest, signature);
+  return timingSafeEqual(digest, signature.toLowerCase());
 }
 
 function normalizeStatus(
@@ -94,7 +107,8 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   const secret = getEnv("PAYMENT_WEBHOOK_SECRET");
-  const signature = (req.headers.get(SIGNATURE_HEADER) || "").trim();
+  const signature = (req.headers.get(SIGNATURE_HEADER) || "").trim()
+    .toLowerCase();
   const rawBody = await req.text();
 
   if (!signature || !(await verifySignature(rawBody, signature, secret))) {
@@ -113,8 +127,8 @@ export async function handler(req: Request): Promise<Response> {
 
   const supa = createClient("service");
 
-  let paymentId = data.payment_id || null;
-  let paymentProviderId = data.external_id || null;
+  let paymentId = data.payment_id ? String(data.payment_id) : null;
+  let paymentProviderId = data.external_id ? String(data.external_id) : null;
 
   let paymentRow: {
     id: string;
@@ -199,8 +213,9 @@ export async function handler(req: Request): Promise<Response> {
     updates.status = resolvedStatus;
   }
 
-  if (typeof data.amount === "number" && Number.isFinite(data.amount)) {
-    updates.amount = Number(data.amount);
+  const normalizedAmount = coerceNumber(data.amount);
+  if (normalizedAmount !== null) {
+    updates.amount = Number(normalizedAmount.toFixed(2));
   }
 
   if (typeof data.currency === "string" && data.currency.trim()) {

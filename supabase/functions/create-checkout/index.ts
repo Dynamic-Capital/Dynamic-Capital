@@ -29,6 +29,19 @@ type CheckoutInstructions =
   | { type: "bank_transfer"; banks: BankAccount[]; note?: string | null }
   | { type: "crypto"; address: string; note: string };
 
+function coerceNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
 function sanitizeCurrency(input?: string | null): string | undefined {
   if (!input) return undefined;
   const trimmed = input.trim();
@@ -172,10 +185,8 @@ export async function handler(req: Request): Promise<Response> {
     return json({ ok: false, error: "plan_not_found" }, 404, {}, req);
   }
 
-  const basePrice = Number(plan.price ?? 0);
-  const dynamicPrice = typeof plan.dynamic_price_usdt === "number"
-    ? Number(plan.dynamic_price_usdt)
-    : null;
+  const basePrice = coerceNumber(plan.price) ?? 0;
+  const dynamicPrice = coerceNumber(plan.dynamic_price_usdt);
   const { price: defaultPrice, dynamicApplied } = resolveDisplayPrice(
     basePrice,
     dynamicPrice,
