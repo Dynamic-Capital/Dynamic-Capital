@@ -16,6 +16,9 @@
     "jetton_tonviewer": "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "jetton_tonscan": "https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "jetton_dyor": "https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "dexscreener_token": "https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "dexscreener_stonfi": "https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi",
+    "dexscreener_dedust": "https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm",
     "metadata": "https://dynamiccapital.ton/jetton-metadata.json",
     "metadata_fallback": "https://dynamic.capital/jetton-metadata.json",
     "api": "https://api.dynamiccapital.ton",
@@ -24,7 +27,7 @@
     "manifest_fallback": "https://dynamic.capital/tonconnect-manifest.json",
     "docs": "https://dynamiccapital.ton/docs",
     "docs_fallback": "https://dynamic.capital/docs",
-    "updated": "2025-10-10"
+    "updated": "2025-10-09"
   },
   "signatures": {
     "dao": "base64:abc123...",
