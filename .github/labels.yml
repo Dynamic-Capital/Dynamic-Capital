@@ -1,9 +1,57 @@
+- name: bug
+  color: D73A4A
+  description: Something isn't working
+- name: codex
+  color: 5319E7
+  description: ""
 - name: content
   color: 0E8A16
   description: Content changes
+- name: dependencies
+  color: 0366D6
+  description: Pull requests that update a dependency file
+- name: documentation
+  color: 0075CA
+  description: Improvements or additions to documentation
+- name: duplicate
+  color: CFD3D7
+  description: This issue or pull request already exists
+- name: enhancement
+  color: A2EEEF
+  description: New feature or request
+- name: github_actions
+  color: 000000
+  description: Pull requests that update GitHub Actions code
+- name: 'good first issue'
+  color: 7057FF
+  description: Good for newcomers
+- name: 'help wanted'
+  color: 008672
+  description: Extra attention is needed
+- name: invalid
+  color: E4E669
+  description: This doesn't seem right
+- name: javascript
+  color: F1E05A
+  description: Pull requests that update javascript code
 - name: needs-sources
   color: B60205
   description: Missing or unverifiable sources
 - name: no-fakes
   color: B60205
   description: Contains placeholders/fakes
+- name: python
+  color: 3572A5
+  description: Pull requests that update python code
+- name: question
+  color: D876E3
+  description: Further information is requested
+- name: Stale
+  color: C5DEF5
+  description: Mark pull requests with no recent activity
+- name: 'ui:needs-interactivity'
+  color: FFD33D
+  description: Add components/animations
+- name: wontfix
+  color: 000000
+  description: This will not be worked on
