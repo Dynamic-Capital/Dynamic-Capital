@@ -14,7 +14,17 @@ export const TON_SITE_GATEWAY_HOSTS = [
   TON_SITE_GATEWAY_STANDBY_HOST,
 ] as const;
 
-export const TON_SITE_GATEWAY_ORIGIN = `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMAIN}`;
+function trimTrailingSlash(input: string): string {
+  return input.endsWith("/") ? input.slice(0, -1) : input;
+}
+
+export function resolveTonSiteGatewayOrigin(base: string): string {
+  return `${trimTrailingSlash(base)}/${TON_SITE_DOMAIN}`;
+}
+
+export const TON_SITE_GATEWAY_ORIGIN = resolveTonSiteGatewayOrigin(
+  TON_SITE_GATEWAY_BASE,
+);
 
 /**
  * Canonical URL for the TON Site landing page routed through the public gateway.
@@ -68,6 +78,23 @@ export const TON_SITE_ICON_URL = resolveTonSiteUrl("icon.png");
 export const TON_SITE_SOCIAL_PREVIEW_URL = resolveTonSiteUrl(
   "social/social-preview.svg",
 );
+
+const TON_SITE_GATEWAY_BASE_BY_HOST = new Map<string, string>([
+  [TON_SITE_GATEWAY_PRIMARY_HOST, TON_SITE_GATEWAY_BASE],
+  [TON_SITE_GATEWAY_STANDBY_HOST, TON_SITE_GATEWAY_STANDBY_BASE],
+]);
+
+export function resolveTonSiteGatewayBaseForHost(
+  host: string | null | undefined,
+): string {
+  if (!host) return TON_SITE_GATEWAY_BASE;
+
+  const normalized = host.trim().toLowerCase();
+  if (!normalized) return TON_SITE_GATEWAY_BASE;
+
+  const hostname = normalized.split(":")[0];
+  return TON_SITE_GATEWAY_BASE_BY_HOST.get(hostname) ?? TON_SITE_GATEWAY_BASE;
+}
 
 /**
  * Normalises request paths received through the TON gateway so they can be

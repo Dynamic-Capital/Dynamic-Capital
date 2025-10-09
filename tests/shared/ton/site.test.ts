@@ -6,13 +6,15 @@ import {
   resolveTonSiteUrl,
   TON_SITE_DOMAIN,
   TON_SITE_GATEWAY_BASE,
-  TON_SITE_GATEWAY_STANDBY_BASE,
   TON_SITE_GATEWAY_ORIGIN,
   TON_SITE_GATEWAY_URL,
   TON_SITE_GATEWAY_CURL_URL,
   TON_SITE_GATEWAY_PRIMARY_HOST,
   TON_SITE_GATEWAY_STANDBY_HOST,
   TON_SITE_GATEWAY_HOSTS,
+  TON_SITE_GATEWAY_STANDBY_BASE,
+  resolveTonSiteGatewayOrigin,
+  resolveTonSiteGatewayBaseForHost,
   TON_SITE_ICON_URL,
   TON_SITE_SOCIAL_PREVIEW_URL,
 } from "../../../shared/ton/site";
@@ -162,6 +164,43 @@ describe("ton site gateway helpers", () => {
     for (const { input, expected } of cases) {
       it(`normalises ${JSON.stringify(input)} -> ${JSON.stringify(expected)}`, () => {
         assertEquals(normalizeTonGatewayPath(input), expected);
+      });
+    }
+  });
+
+  describe("resolveTonSiteGatewayOrigin", () => {
+    it("normalises different gateway bases", () => {
+      assertEquals(
+        resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_BASE),
+        TON_SITE_GATEWAY_ORIGIN,
+      );
+      assertEquals(
+        resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_STANDBY_BASE),
+        "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
+      );
+    });
+  });
+
+  describe("resolveTonSiteGatewayBaseForHost", () => {
+    const cases: Array<{ host: string | null | undefined; expected: string }> = [
+      { host: undefined, expected: TON_SITE_GATEWAY_BASE },
+      { host: null, expected: TON_SITE_GATEWAY_BASE },
+      { host: "", expected: TON_SITE_GATEWAY_BASE },
+      { host: "   ", expected: TON_SITE_GATEWAY_BASE },
+      { host: TON_SITE_GATEWAY_PRIMARY_HOST, expected: TON_SITE_GATEWAY_BASE },
+      { host: `${TON_SITE_GATEWAY_PRIMARY_HOST}:443`, expected: TON_SITE_GATEWAY_BASE },
+      { host: TON_SITE_GATEWAY_PRIMARY_HOST.toUpperCase(), expected: TON_SITE_GATEWAY_BASE },
+      { host: TON_SITE_GATEWAY_STANDBY_HOST, expected: TON_SITE_GATEWAY_STANDBY_BASE },
+      {
+        host: ` ${TON_SITE_GATEWAY_STANDBY_HOST}:8443 `,
+        expected: TON_SITE_GATEWAY_STANDBY_BASE,
+      },
+      { host: "unknown.example.com", expected: TON_SITE_GATEWAY_BASE },
+    ];
+
+    for (const { host, expected } of cases) {
+      it(`maps ${JSON.stringify(host)} -> ${expected}`, () => {
+        assertEquals(resolveTonSiteGatewayBaseForHost(host), expected);
       });
     }
   });
