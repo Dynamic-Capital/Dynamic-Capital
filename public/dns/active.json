@@ -15,6 +15,7 @@
     "dao_contract": "EQDAOxyz...daoAddr",
     "jetton_tonviewer": "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "jetton_tonscan": "https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "jetton_dyor": "https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "metadata": "https://dynamiccapital.ton/jetton-metadata.json",
     "metadata_fallback": "https://dynamic.capital/jetton-metadata.json",
     "api": "https://api.dynamiccapital.ton",
