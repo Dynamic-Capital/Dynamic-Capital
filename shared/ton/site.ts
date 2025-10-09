@@ -102,6 +102,25 @@ export function normalizeTonGatewayPath(pathname: string | undefined): string {
   }
   working = collapsed;
 
+  const hadTrailingSlash = working.length > 1 && working.endsWith("/");
+
+  // Strip self-referential `.` segments and reject any `..` traversal attempts
+  // before removing the tenant prefix so callers cannot escape the TON site
+  // namespace.
+  const sanitizedSegments: string[] = [];
+  for (const segment of working.split("/")) {
+    if (!segment || segment === ".") continue;
+    if (segment === "..") {
+      return "";
+    }
+    sanitizedSegments.push(segment);
+  }
+
+  working = sanitizedSegments.length ? `/${sanitizedSegments.join("/")}` : "/";
+  if (hadTrailingSlash && working !== "/") {
+    working = `${working}/`;
+  }
+
   if (working === "/") {
     return "";
   }

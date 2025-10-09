@@ -139,6 +139,10 @@ describe("ton site gateway helpers", () => {
         expected: "/icon.png",
       },
       {
+        input: `/${TON_SITE_DOMAIN}/./icon.png`,
+        expected: "/icon.png",
+      },
+      {
         input: `${TON_SITE_DOMAIN}/icon.png`,
         expected: "/icon.png",
       },
@@ -146,8 +150,13 @@ describe("ton site gateway helpers", () => {
         input: `/${TON_SITE_DOMAIN}//nested//asset`,
         expected: "/nested/asset",
       },
+      {
+        input: `/${TON_SITE_DOMAIN}/../etc/passwd`,
+        expected: "",
+      },
       { input: "/favicon.ico", expected: "/favicon.ico" },
       { input: "favicon.ico", expected: "/favicon.ico" },
+      { input: "../favicon.ico", expected: "" },
     ];
 
     for (const { input, expected } of cases) {
