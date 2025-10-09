@@ -47,7 +47,8 @@ import {
   TONCONNECT_TWA_RETURN_URL,
 } from "../lib/config";
 import { THEME_MINT_PLANS, type ThemeMintPlan } from "../data/theme-mints";
-import { TON_MANIFEST_URL_CANDIDATES } from "../../../../shared/ton/manifest";
+import { TON_MANIFEST_RESOURCE_PATH, TON_MANIFEST_URL_CANDIDATES } from "@shared/ton/manifest";
+import { resolveTonManifestUrl } from "../lib/ton-manifest-resolver";
 
 type SectionId =
   | "overview"
@@ -127,59 +128,74 @@ type NavItem = {
   icon: (props: { active: boolean }) => JSX.Element;
 };
 
-function useTonConnectManifestUrl(): string {
-  const candidates = useMemo(
-    () => [...TON_MANIFEST_URL_CANDIDATES],
-    [],
-  );
-  const [manifestUrl, setManifestUrl] = useState<string>(
-    candidates[0] ?? "",
-  );
+type TonConnectManifestState = {
+  manifestUrl: string | null;
+  resolving: boolean;
+  error: string | null;
+  retry: () => void;
+};
+
+const TON_MANIFEST_ERROR_MESSAGE =
+  "We couldn’t reach the TON Connect manifest. Please check your connection and try again.";
+
+function useTonConnectManifestUrl(): TonConnectManifestState {
+  const [state, setState] = useState<Omit<TonConnectManifestState, "retry">>({
+    manifestUrl: null,
+    resolving: true,
+    error: null,
+  });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
     async function checkCandidates(): Promise<void> {
-      for (const candidate of candidates) {
-        const controller =
-          typeof AbortController !== "undefined"
-            ? new AbortController()
-            : null;
-        const timeoutId = controller
-          ? setTimeout(() => controller.abort(), 2_500)
-          : null;
+      const manifestCandidates = Array.from(
+        new Set(
+          [
+            ...(typeof window !== "undefined"
+              ? [
+                  new URL(
+                    TON_MANIFEST_RESOURCE_PATH,
+                    window.location.origin,
+                  ).toString(),
+                ]
+              : []),
+            ...TON_MANIFEST_URL_CANDIDATES,
+          ],
+        ),
+      );
 
-        try {
-          const headResponse = await fetch(candidate, {
-            method: "HEAD",
-            signal: controller?.signal ?? undefined,
-            cache: "no-store",
-          });
+      try {
+        const resolved = await resolveTonManifestUrl({
+          candidates: manifestCandidates,
+        });
 
-          let reachable = headResponse.ok;
-
-          if (!reachable && headResponse.status === 405) {
-            const getResponse = await fetch(candidate, {
-              method: "GET",
-              signal: controller?.signal ?? undefined,
-              cache: "no-store",
-            });
-            reachable = getResponse.ok;
-          }
-
-          if (reachable) {
-            if (!cancelled) {
-              setManifestUrl(candidate);
-            }
-            return;
-          }
-        } catch {
-          // Ignore connectivity failures and continue to the next candidate.
-        } finally {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
+        if (cancelled) {
+          return;
         }
+
+        if (resolved) {
+          setState({ manifestUrl: resolved, resolving: false, error: null });
+          return;
+        }
+
+        setState({
+          manifestUrl: null,
+          resolving: false,
+          error: TON_MANIFEST_ERROR_MESSAGE,
+        });
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        console.error("Failed to resolve TON Connect manifest", error);
+        setState({
+          manifestUrl: null,
+          resolving: false,
+          error: TON_MANIFEST_ERROR_MESSAGE,
+        });
       }
     }
 
@@ -188,9 +204,26 @@ function useTonConnectManifestUrl(): string {
     return () => {
       cancelled = true;
     };
-  }, [candidates]);
+  }, [attempt]);
 
-  return manifestUrl;
+  const retry = useCallback(() => {
+    setState((previous) => ({
+      manifestUrl: previous.manifestUrl,
+      resolving: true,
+      error: null,
+    }));
+    setAttempt((value) => value + 1);
+  }, []);
+
+  return useMemo(
+    () => ({
+      manifestUrl: state.manifestUrl,
+      resolving: state.resolving,
+      error: state.error,
+      retry,
+    }),
+    [state.error, state.manifestUrl, state.resolving, retry],
+  );
 }
 
 const SECTION_IDS: SectionId[] = [
@@ -2971,7 +3004,32 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export default function Page() {
-  const manifestUrl = useTonConnectManifestUrl();
+  const { manifestUrl, resolving, error, retry } = useTonConnectManifestUrl();
+
+  if (resolving) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black text-sm text-white">
+        <span className="animate-pulse">Resolving TON Connect manifest…</span>
+      </div>
+    );
+  }
+
+  if (error || !manifestUrl) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-sm text-white">
+        <div className="space-y-6">
+          <p>{error ?? TON_MANIFEST_ERROR_MESSAGE}</p>
+          <button
+            type="button"
+            onClick={retry}
+            className="rounded-full bg-white/10 px-4 py-2 font-medium text-white transition hover:bg-white/20"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <TonConnectUIProvider
