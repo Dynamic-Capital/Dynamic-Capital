@@ -3,6 +3,7 @@ import {
   bigserial,
   boolean,
   date,
+  index,
   integer,
   jsonb,
   numeric,
@@ -103,7 +104,13 @@ export const marketNews = pgTable("market_news", {
   actual: text("actual"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull()
     .defaultNow(),
-});
+}, (table) => ({
+  eventTimeIdx: index("market_news_event_time_idx").on(table.eventTime),
+  sourceEventTimeIdx: index("market_news_source_event_time_idx").on(
+    table.source,
+    table.eventTime,
+  ),
+}));
 
 export type MarketNews = typeof marketNews.$inferSelect;
 export type NewMarketNews = typeof marketNews.$inferInsert;
@@ -125,7 +132,13 @@ export const sentiment = pgTable("sentiment", {
   }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull()
     .defaultNow(),
-});
+}, (table) => ({
+  sourceSymbolKey: uniqueIndex("sentiment_source_symbol_key").on(
+    table.source,
+    table.symbol,
+  ),
+  createdAtIdx: index("sentiment_created_at_idx").on(table.createdAt),
+}));
 
 export type Sentiment = typeof sentiment.$inferSelect;
 export type NewSentiment = typeof sentiment.$inferInsert;
