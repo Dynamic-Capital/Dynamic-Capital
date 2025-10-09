@@ -49,6 +49,12 @@ auto-discover Dynamic Capital contracts and services when resolving
 | `metadata`             | `https://dynamiccapital.ton/jetton-metadata.json`                                                            | Jetton metadata JSON (primary)                        |
 | `web`                  | `https://dynamiccapital.ton`                                                                                 | Marketing & dashboard site                            |
 
+### Payment Subdomain Routing
+
+| Subdomain | Purpose | Target | DNS Type(s) | Execution Notes |
+| --------- | ------- | ------ | ----------- | ---------------- |
+| `pay.dynamiccapital.ton` | Treasury deposit alias for TON and DCT settlements. | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` | TON DNS `wallet` category + HTTPS `CNAME`/`TXT` pair | 1) Run `python dns/toncli_build_dns_update.py dns/dynamiccapital.ton.json --categories wallet --wallet-address EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`. 2) Broadcast the generated payload with `toncli send`. 3) Commit resolver tx hash to `dns/ton-dns-operations-log.md`. The JSON snapshot keeps the CNAME/TXT records aligned so browsers mirror the root site while wallets resolve the alias natively.【F:shared/ton/mainnet-addresses.ts†L14-L40】【F:dns/dynamiccapital.ton.json†L67-L130】【F:dns/toncli_build_dns_update.py†L77-L133】
+
 ## Integration Touchpoints
 
 ### Web, Mini Apps, and Wallet Auth

@@ -22,24 +22,17 @@
   "ton_site": {
     "adnl_address": "0:65f3bcd1730c1cdde82a75b0331ee8b5c28203f1ab1e7467347ae7b937feb239",
     "public_key_base64": "P1btEo7VrgH2gt1Y+IgcorLye7tjyY0jD+3xZLqIDT4=",
-    "generated": {
-      "command": "npm run ton:generate-adnl",
-      "timestamp": "2025-10-02T21:08:41Z",
-      "note": "ADNL derived from Ed25519 key pair for TON Site certificate provisioning"
-    },
     "gateways": {
       "primary": {
         "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
         "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
         "provider": "DigitalOcean App Platform",
-        "note": "Cloudflare reverse proxy bridging standard browsers to the refreshed DigitalOcean TON Site origin",
         "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app"
       },
       "fallback": {
         "host": "ton-gateway.dynamic-capital.lovable.app",
         "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
         "provider": "Lovable App Platform",
-        "note": "Hot standby reverse proxy mirroring the DigitalOcean gateway",
         "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app"
       }
     },
@@ -59,20 +52,8 @@
     ],
     "verification": {
       "https": {
-        "checked_at": "2025-10-10T16:41:43Z",
-        "status": "error",
-        "endpoints": [
-          {
-            "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-            "http_status": 503,
-            "notes": "2025-10-10 curl probe (`curl -s -o /tmp/output.html -w '%{http_code}' …`) returned HTTP 503, indicating the gateway is no longer serving the TON bundle."
-          },
-          {
-            "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
-            "http_status": 503,
-            "notes": "Fallback gateway mirrors the same 503 response observed on the primary bridge during the latest verification."
-          }
-        ]
+        "status": "pending",
+        "notes": "Re-run curl probes after redeploying the TON Site bundle to both gateways."
       }
     }
   },
@@ -82,7 +63,7 @@
       "name": "@",
       "data": "216.198.79.1",
       "ttl": 3600,
-      "note": "Vercel apex IP per 2025-10 guidance"
+      "note": "Vercel apex IP per 2024 guidance"
     },
     {
       "type": "CNAME",
@@ -96,7 +77,14 @@
       "name": "api",
       "data": "qeejuomcapbdlhnjqjcc.supabase.co",
       "ttl": 300,
-      "note": "Routes API traffic to the live Supabase project ref"
+      "note": "Routes API traffic to the Supabase project"
+    },
+    {
+      "type": "CNAME",
+      "name": "pay",
+      "data": "dynamiccapital.ton",
+      "ttl": 300,
+      "note": "Browser landing for payment flows; mirrors the root site while TON wallets resolve the alias natively and read wallet metadata from _pay.dynamiccapital.ton"
     },
     {
       "type": "CNAME",
@@ -125,26 +113,30 @@
       "data": "mailbox=support@dynamiccapital.ton",
       "ttl": 3600,
       "note": "Customer support mailbox alias advertised through TON DNS"
+    },
+    {
+      "type": "TXT",
+      "name": "_pay",
+      "data": "wallet=EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
+      "ttl": 300,
+      "note": "Treasury payment alias advertised via _pay.dynamiccapital.ton to avoid colliding with the CNAME record"
+    }
+  ],
+  "wallet_aliases": [
+    {
+      "domain": "pay.dynamiccapital.ton",
+      "wallet_address": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
+      "purpose": "Treasury deposit alias (DCT + TON)",
+      "toncli_categories": ["wallet"],
+      "toncli_command": "python dns/toncli_build_dns_update.py dns/dynamiccapital.ton.json --categories wallet --wallet-address EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
+      "notes": "Confirm address from shared/ton/mainnet-addresses.ts before broadcasting"
     }
   ],
   "notes": [
-    "TON DNS uses blockchain-based resolution via smart contracts",
-    "Records must be set through TON DNS resolver contract",
-    "Register domain at TON DNS marketplace (e.g., dns.ton.org)",
-    "Update resolver_contract address after deployment",
-    "TON Site ADNL 0:65f3bcd1730c1cdde82a75b0331ee8b5c28203f1ab1e7467347ae7b937feb239 (see ton_site.public_key_base64)",
-    "Verify resolution through TON DNS tools before going live",
-    "Supabase custom domains require `_acme-challenge.api.dynamiccapital.ton` TXT records during verification. Capture the issued tokens in this repo before activation and pin them to TON Storage/IPFS with the hash recorded in the operations multisig memo.",
-    "Keep the `ton-gateway` CNAMEs aligned with the DigitalOcean and Lovable reverse proxy hostnames so browsers without TON DNS continue to bridge through HTTPS.",
-    "2025-10-08: Follow-up HTTPS probe captured HTTP 503 responses from both gateways. Investigate the DigitalOcean app host https://dynamic-capital-qazf2.ondigitalocean.app/ returning HTTP 404 and restore the TON bundle before revalidating.",
-    "2025-10-10: Redeployed the TON Site bundle to dynamic-capital-qazf2.ondigitalocean.app, clearing the 404 at the origin and restoring HTTP 200 responses on both HTTPS gateways.",
-    "2025-10-10 16:41 UTC: Follow-up probe recorded HTTP 503 on both gateways and HTTP 404 on the DigitalOcean origin. Leave verification in error until the TON bundle is republished.",
-    "Record resolver or ownership transactions in dns/ton-dns-operations-log.md immediately after broadcasting them so the on-chain audit trail stays aligned with the repository snapshot.",
-    "Use a low TTL (e.g., 60\u2013300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
-    "After activation, emit a `custom_domain_activated` event into Supabase `tx_logs` referencing the DNS bundle hash so auditors can verify the Web3 linkage.",
-    "Desktop browsers without a TON resolver will show `DNS_PROBE_FINISHED_NXDOMAIN`; direct them to https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton (or the ton.site backup) or install a TON DNS wallet extension to regain access.",
-    "Treat https://dynamiccapital.ton as the canonical production surface; keep the DigitalOcean, Lovable, and Vercel hosts warm as failover origins and document rollovers in Supabase `tx_logs`.",
-    "2025-09-30: Auction fill-up executed (event 96ac854938b992f71f33827dac42a7aa9e302539fc55347e006f6eee74dc0d89) adding 0.024137527 TON to the resolver after fees; schedule the next renewal reminder for August 2026.",
-    "When Supabase issues a fresh ACME token, stage it under dns/operations/acme/ with the block height, then update the TXT record here and commit the hash reference to the multisig memo."
+    "Manage TON DNS records via the resolver contract to keep on-chain state authoritative.",
+    "Verify updates with toncli and Tonviewer before announcing changes.",
+    "Track operational transactions in dns/ton-dns-operations-log.md to preserve the audit trail.",
+    "Maintain short TTLs (300s) until new endpoints have active TLS, then raise them for stability.",
+    "Keep DigitalOcean and Lovable gateways aligned so non-TON browsers retain HTTPS access."
   ]
 }
