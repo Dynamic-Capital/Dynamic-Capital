@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 
-const TON_SITE_HOST = "dynamiccapital.ton";
-const TON_SITE_GATEWAY_TARGET = "https://ton.site";
-const TON_SITE_BASE = `${TON_SITE_GATEWAY_TARGET}/${TON_SITE_HOST}`;
+import {
+  resolveTonSiteGatewayBaseForHost,
+  resolveTonSiteGatewayOrigin,
+} from "@shared/ton/site";
 const PROXY_HEADER = "x-dynamic-ton-gateway";
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
@@ -19,10 +20,11 @@ export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 function buildUpstreamUrl(
+  tonSiteBase: string,
   pathSegments: string[] | undefined,
   searchParams: string,
 ): URL {
-  const upstream = new URL(TON_SITE_BASE);
+  const upstream = new URL(tonSiteBase);
   const sanitizedSegments = (pathSegments ?? [])
     .map((segment) => segment.trim())
     .filter(Boolean)
@@ -41,7 +43,7 @@ function buildUpstreamUrl(
   return upstream;
 }
 
-function filterRequestHeaders(headers: Headers): Headers {
+function filterRequestHeaders(headers: Headers, gatewayHost: string): Headers {
   const filtered = new Headers();
 
   for (const [key, value] of headers.entries()) {
@@ -52,11 +54,15 @@ function filterRequestHeaders(headers: Headers): Headers {
   }
 
   filtered.set("accept-encoding", "gzip, deflate, br");
-  filtered.set("host", new URL(TON_SITE_BASE).host);
+  filtered.set("host", gatewayHost);
   return filtered;
 }
 
-function filterResponseHeaders(headers: Headers, req: NextRequest): Headers {
+function filterResponseHeaders(
+  headers: Headers,
+  req: NextRequest,
+  tonSiteBase: string,
+): Headers {
   const filtered = new Headers();
   const origin = req.nextUrl.origin;
 
@@ -65,7 +71,7 @@ function filterResponseHeaders(headers: Headers, req: NextRequest): Headers {
     if (HOP_BY_HOP_HEADERS.has(lower)) continue;
 
     if (lower === "location") {
-      const rewritten = rewriteLocation(value, origin);
+      const rewritten = rewriteLocation(value, origin, tonSiteBase);
       filtered.set(key, rewritten);
       continue;
     }
@@ -78,12 +84,17 @@ function filterResponseHeaders(headers: Headers, req: NextRequest): Headers {
   return filtered;
 }
 
-function rewriteLocation(location: string, origin: string): string {
+function rewriteLocation(
+  location: string,
+  origin: string,
+  tonSiteBase: string,
+): string {
   try {
-    const target = new URL(location, TON_SITE_BASE + "/");
-    const basePath = new URL(TON_SITE_BASE).pathname;
+    const tonSiteBaseUrl = new URL(tonSiteBase);
+    const target = new URL(location, tonSiteBaseUrl.toString() + "/");
+    const basePath = tonSiteBaseUrl.pathname;
     if (
-      target.origin === new URL(TON_SITE_BASE).origin &&
+      target.origin === tonSiteBaseUrl.origin &&
       target.pathname.startsWith(basePath)
     ) {
       const relative = target.pathname.slice(basePath.length) || "/";
@@ -118,15 +129,26 @@ async function proxyTonSite(
     });
   }
 
-  const upstreamUrl = buildUpstreamUrl(params.path, req.nextUrl.search);
+  const gatewayBase = resolveTonSiteGatewayBaseForHost(req.headers.get("host"));
+  const tonSiteBase = resolveTonSiteGatewayOrigin(gatewayBase);
+  const gatewayHost = new URL(gatewayBase).host;
+  const upstreamUrl = buildUpstreamUrl(
+    tonSiteBase,
+    params.path,
+    req.nextUrl.search,
+  );
   const upstreamResponse = await fetch(upstreamUrl, {
     method: req.method,
-    headers: filterRequestHeaders(req.headers),
+    headers: filterRequestHeaders(req.headers, gatewayHost),
     redirect: "manual",
     cache: "no-store",
   });
 
-  const responseHeaders = filterResponseHeaders(upstreamResponse.headers, req);
+  const responseHeaders = filterResponseHeaders(
+    upstreamResponse.headers,
+    req,
+    tonSiteBase,
+  );
   return new Response(
     req.method === "HEAD" ? null : upstreamResponse.body,
     {

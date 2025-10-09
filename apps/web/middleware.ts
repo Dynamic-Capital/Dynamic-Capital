@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildCorsHeaders, mergeVary } from "@/utils/http.ts";
+import {
+  normalizeTonGatewayPath,
+  TON_SITE_GATEWAY_HOSTS,
+} from "@shared/ton/site";
 
-const TON_GATEWAY_HOSTS = new Set([
-  "ton-gateway.dynamic-capital.ondigitalocean.app",
-  "ton-gateway.dynamic-capital.lovable.app",
-]);
+const TON_GATEWAY_HOSTS = new Set(TON_SITE_GATEWAY_HOSTS);
 
 const LEGACY_LOCALE_PREFIX = "/en";
 
@@ -40,8 +41,8 @@ export function middleware(req: NextRequest) {
 
   if (TON_GATEWAY_HOSTS.has(host) && !pathname.startsWith("/ton-site")) {
     const rewritten = req.nextUrl.clone();
-    const suffix = pathname === "/" ? "" : pathname;
-    rewritten.pathname = `/ton-site${suffix}`;
+    const suffix = normalizeTonGatewayPath(pathname);
+    rewritten.pathname = suffix ? `/ton-site${suffix}` : "/ton-site";
     return NextResponse.rewrite(rewritten);
   }
 
