@@ -2,6 +2,7 @@ import { describe, it } from "std/testing/bdd.ts";
 import { assertEquals } from "std/assert/mod.ts";
 
 import {
+  normalizeTonGatewayPath,
   resolveTonSiteUrl,
   TON_SITE_DOMAIN,
   TON_SITE_GATEWAY_BASE,
@@ -95,6 +96,38 @@ describe("ton site gateway helpers", () => {
     for (const testCase of cases) {
       it(testCase.name, () => {
         assertEquals(resolveTonSiteUrl(...testCase.args), testCase.expected);
+      });
+    }
+  });
+
+  describe("normalizeTonGatewayPath", () => {
+    const cases: Array<{ input: string | undefined; expected: string }> = [
+      { input: undefined, expected: "" },
+      { input: "/", expected: "" },
+      { input: "", expected: "" },
+      { input: "   ", expected: "" },
+      { input: `/${TON_SITE_DOMAIN}`, expected: "" },
+      { input: `/${TON_SITE_DOMAIN}/`, expected: "" },
+      { input: `/${TON_SITE_DOMAIN}//`, expected: "" },
+      {
+        input: `/${TON_SITE_DOMAIN}/icon.png`,
+        expected: "/icon.png",
+      },
+      {
+        input: `${TON_SITE_DOMAIN}/icon.png`,
+        expected: "/icon.png",
+      },
+      {
+        input: `/${TON_SITE_DOMAIN}//nested//asset`,
+        expected: "/nested/asset",
+      },
+      { input: "/favicon.ico", expected: "/favicon.ico" },
+      { input: "favicon.ico", expected: "/favicon.ico" },
+    ];
+
+    for (const { input, expected } of cases) {
+      it(`normalises ${JSON.stringify(input)} -> ${JSON.stringify(expected)}`, () => {
+        assertEquals(normalizeTonGatewayPath(input), expected);
       });
     }
   });

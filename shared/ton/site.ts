@@ -51,3 +51,56 @@ export const TON_SITE_ICON_URL = resolveTonSiteUrl("icon.png");
 export const TON_SITE_SOCIAL_PREVIEW_URL = resolveTonSiteUrl(
   "social/social-preview.svg",
 );
+
+/**
+ * Normalises request paths received through the TON gateway so they can be
+ * safely appended to the `/ton-site` edge route without duplicating the
+ * `dynamiccapital.ton` prefix. The gateway forwards requests such as
+ * `/dynamiccapital.ton`, `/dynamiccapital.ton/icon.png`, or root `/`, and we
+ * need to collapse these into the relative suffix expected by the upstream
+ * resolver.
+ */
+export function normalizeTonGatewayPath(pathname: string | undefined): string {
+  if (!pathname) return "";
+
+  let working = pathname.trim();
+  if (!working) return "";
+
+  if (!working.startsWith("/")) {
+    working = `/${working}`;
+  }
+
+  // Collapse duplicate slashes to avoid accidental directory traversal when we
+  // strip the host prefix.
+  let collapsed = "";
+  let lastWasSlash = false;
+  for (const char of working) {
+    if (char === "/") {
+      if (lastWasSlash) continue;
+      lastWasSlash = true;
+    } else {
+      lastWasSlash = false;
+    }
+    collapsed += char;
+  }
+  working = collapsed;
+
+  if (working === "/") {
+    return "";
+  }
+
+  const gatewayPrefix = `/${TON_SITE_DOMAIN}`;
+  if (working === gatewayPrefix || working === `${gatewayPrefix}/`) {
+    return "";
+  }
+
+  if (working.startsWith(`${gatewayPrefix}/`)) {
+    const remainder = working.slice(gatewayPrefix.length);
+    if (!remainder || remainder === "/") {
+      return "";
+    }
+    return remainder.startsWith("/") ? remainder : `/${remainder}`;
+  }
+
+  return working;
+}
