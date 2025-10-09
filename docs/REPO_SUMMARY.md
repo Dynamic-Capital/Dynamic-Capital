@@ -61,6 +61,7 @@
 | build-miniapp               | supabase/functions/build-miniapp/index.ts               | Yes            |
 | chatgpt-proxy               | supabase/functions/chatgpt-proxy/index.ts               | Yes            |
 | checkout-init               | supabase/functions/checkout-init/index.ts               | Yes            |
+| create-checkout             | supabase/functions/create-checkout/index.ts             | Yes            |
 | cleanup-old-receipts        | supabase/functions/cleanup-old-receipts/index.ts        | Yes            |
 | cleanup-old-sessions        | supabase/functions/cleanup-old-sessions/index.ts        | Yes            |
 | cleanup-old-webhook-updates | supabase/functions/cleanup-old-webhook-updates/index.ts | Yes            |
@@ -80,6 +81,7 @@
 | openai-webhook              | supabase/functions/openai-webhook/index.ts              | Yes            |
 | ops-health                  | supabase/functions/ops-health/index.ts                  | Yes            |
 | payments-auto-review        | supabase/functions/payments-auto-review/index.ts        | Yes            |
+| payment-webhook             | supabase/functions/payment-webhook/index.ts             | Yes            |
 | plans                       | supabase/functions/plans/index.ts                       | Yes            |
 | private-pool-deposit        | supabase/functions/private-pool-deposit/index.ts        | Yes            |
 | private-pool-settle-cycle   | supabase/functions/private-pool-settle-cycle/index.ts   | Yes            |

@@ -23,33 +23,35 @@
     - [1. Telegram Bot (`/telegram-bot`)](#1-telegram-bot-telegram-bot)
     - [2. Analytics Data (`/analytics-data`)](#2-analytics-data-analytics-data)
     - [3. AI FAQ Assistant (`/ai-faq-assistant`)](#3-ai-faq-assistant-ai-faq-assistant)
-    - [4. Checkout Init (`/checkout-init`)](#4-checkout-init-checkout-init)
-    - [5. Intent (`/intent`)](#5-intent-intent)
-    - [6. Plans (`/plans`)](#6-plans-plans)
-    - [7. Promo Validate (`/promo-validate`)](#7-promo-validate-promo-validate)
-    - [8. Active Promos (`/active-promos`)](#8-active-promos-active-promos)
-    - [9. Subscription Status (`/subscription-status`)](#9-subscription-status-subscription-status)
-    - [10. Crypto Txid (`/crypto-txid`)](#10-crypto-txid-crypto-txid)
-    - [11. Admin Session (`/admin-session`)](#11-admin-session-admin-session)
-    - [12. Admin Bans (`/admin-bans`)](#12-admin-bans-admin-bans)
-    - [13. Admin Logs (`/admin-logs`)](#13-admin-logs-admin-logs)
-    - [14. Admin Act On Payment (`/admin-act-on-payment`)](#14-admin-act-on-payment-admin-act-on-payment)
-    - [15. Admin List Pending (`/admin-list-pending`)](#15-admin-list-pending-admin-list-pending)
-    - [16. Admin Check (`/admin-check`)](#16-admin-check-admin-check)
-    - [17. Bot Status Check (`/bot-status-check`)](#17-bot-status-check-bot-status-check)
-    - [18. Rotate Webhook Secret (`/rotate-webhook-secret`)](#18-rotate-webhook-secret-rotate-webhook-secret)
-    - [19. Rotate Admin Secret (`/rotate-admin-secret`)](#19-rotate-admin-secret-rotate-admin-secret)
-    - [20. Reset Bot (`/reset-bot`)](#20-reset-bot-reset-bot)
-    - [21. Broadcast Dispatch (`/broadcast-dispatch`)](#21-broadcast-dispatch-broadcast-dispatch)
-    - [22. Build Miniapp (`/build-miniapp`)](#22-build-miniapp-build-miniapp)
-    - [23. Upload Miniapp HTML (`/upload-miniapp-html`)](#23-upload-miniapp-html-upload-miniapp-html)
-    - [24. Web App Health (`/web-app-health`)](#24-web-app-health-web-app-health)
-    - [25. Miniapp Health (`/miniapp-health`)](#25-miniapp-health-miniapp-health)
-    - [26. Theme Get (`/theme-get`)](#26-theme-get-theme-get)
-    - [27. Theme Save (`/theme-save`)](#27-theme-save-theme-save)
-    - [28. Content Batch (`/content-batch`)](#28-content-batch-content-batch)
-    - [29. Miniapp (`/miniapp`)](#29-miniapp-miniapp)
-    - [30. Verify Initdata (`/verify-initdata`)](#30-verify-initdata-verify-initdata)
+    - [4. Create Checkout (`/create-checkout`)](#4-create-checkout-create-checkout)
+    - [5. Checkout Init (`/checkout-init`)](#5-checkout-init-checkout-init)
+    - [6. Intent (`/intent`)](#6-intent-intent)
+    - [7. Plans (`/plans`)](#7-plans-plans)
+    - [8. Promo Validate (`/promo-validate`)](#8-promo-validate-promo-validate)
+    - [9. Active Promos (`/active-promos`)](#9-active-promos-active-promos)
+    - [10. Subscription Status (`/subscription-status`)](#10-subscription-status-subscription-status)
+    - [11. Crypto Txid (`/crypto-txid`)](#11-crypto-txid-crypto-txid)
+    - [12. Admin Session (`/admin-session`)](#12-admin-session-admin-session)
+    - [13. Admin Bans (`/admin-bans`)](#13-admin-bans-admin-bans)
+    - [14. Admin Logs (`/admin-logs`)](#14-admin-logs-admin-logs)
+    - [15. Admin Act On Payment (`/admin-act-on-payment`)](#15-admin-act-on-payment-admin-act-on-payment)
+    - [16. Admin List Pending (`/admin-list-pending`)](#16-admin-list-pending-admin-list-pending)
+    - [17. Admin Check (`/admin-check`)](#17-admin-check-admin-check)
+    - [18. Bot Status Check (`/bot-status-check`)](#18-bot-status-check-bot-status-check)
+    - [19. Rotate Webhook Secret (`/rotate-webhook-secret`)](#19-rotate-webhook-secret-rotate-webhook-secret)
+    - [20. Rotate Admin Secret (`/rotate-admin-secret`)](#20-rotate-admin-secret-rotate-admin-secret)
+    - [21. Reset Bot (`/reset-bot`)](#21-reset-bot-reset-bot)
+    - [22. Broadcast Dispatch (`/broadcast-dispatch`)](#22-broadcast-dispatch-broadcast-dispatch)
+    - [23. Build Miniapp (`/build-miniapp`)](#23-build-miniapp-build-miniapp)
+    - [24. Upload Miniapp HTML (`/upload-miniapp-html`)](#24-upload-miniapp-html-upload-miniapp-html)
+    - [25. Web App Health (`/web-app-health`)](#25-web-app-health-web-app-health)
+    - [26. Miniapp Health (`/miniapp-health`)](#26-miniapp-health-miniapp-health)
+    - [27. Theme Get (`/theme-get`)](#27-theme-get-theme-get)
+    - [28. Theme Save (`/theme-save`)](#28-theme-save-theme-save)
+    - [29. Content Batch (`/content-batch`)](#29-content-batch-content-batch)
+    - [30. Miniapp (`/miniapp`)](#30-miniapp-miniapp)
+    - [31. Verify Initdata (`/verify-initdata`)](#31-verify-initdata-verify-initdata)
+    - [32. Payment Webhook (`/payment-webhook`)](#32-payment-webhook-payment-webhook)
 - [🤖 Bot Commands](#bot-commands)
   - [User Commands](#user-commands)
     - [`/start`](#start)
@@ -266,7 +268,34 @@ interface FAQResponse {
 }
 ```
 
-#### 4. Checkout Init (`/checkout-init`)
+#### 4. Create Checkout (`/create-checkout`)
+
+Programmatically start a checkout flow, returning pricing snapshots and payment
+instructions for the selected plan.
+
+```http
+POST /functions/v1/create-checkout
+Authorization: Bearer <token> or Telegram initData
+Content-Type: application/json
+
+{
+  "plan_id": "uuid",
+  "method": "bank_transfer",
+  "currency": "USD",
+  "metadata": { "source": "web" }
+}
+
+Response:
+{
+  "payment_id": "123",
+  "plan": { "id": "uuid", "amount": 549, "currency": "USD" },
+  "instructions": {}
+}
+```
+
+Auth: User token or valid Telegram init data.
+
+#### 5. Checkout Init (`/checkout-init`)
 
 Initialize a new payment for a subscription plan.
 
@@ -289,7 +318,7 @@ Response:
 
 Auth: User token or valid Telegram init data.
 
-#### 5. Intent (`/intent`)
+#### 6. Intent (`/intent`)
 
 Create a bank or crypto payment intent.
 
@@ -308,7 +337,7 @@ Response:
 
 Auth: Telegram init data required.
 
-#### 6. Plans (`/plans`)
+#### 7. Plans (`/plans`)
 
 Fetch available subscription plans.
 
@@ -323,7 +352,7 @@ Response:
 
 Auth: None.
 
-#### 7. Promo Validate (`/promo-validate`)
+#### 8. Promo Validate (`/promo-validate`)
 
 Validate a promotion code.
 
@@ -339,7 +368,7 @@ Response:
 
 Auth: None.
 
-#### 8. Active Promos (`/active-promos`)
+#### 9. Active Promos (`/active-promos`)
 
 List all active promotion codes.
 
@@ -354,7 +383,7 @@ Response:
 
 Auth: None.
 
-#### 9. Subscription Status (`/subscription-status`)
+#### 10. Subscription Status (`/subscription-status`)
 
 Check a user's current subscription.
 
@@ -370,7 +399,7 @@ Response:
 
 Auth: Bearer token required.
 
-#### 10. Crypto Txid (`/crypto-txid`)
+#### 11. Crypto Txid (`/crypto-txid`)
 
 Validate a submitted crypto transaction ID.
 
@@ -386,7 +415,7 @@ Response:
 
 Auth: None.
 
-#### 11. Admin Session (`/admin-session`)
+#### 12. Admin Session (`/admin-session`)
 
 Generate an admin JWT session token.
 
@@ -402,7 +431,7 @@ Response:
 
 Auth: Telegram init data from admin user.
 
-#### 12. Admin Bans (`/admin-bans`)
+#### 13. Admin Bans (`/admin-bans`)
 
 Manage banned users.
 
@@ -418,7 +447,7 @@ Response:
 
 Auth: Telegram init data from admin user.
 
-#### 13. Admin Logs (`/admin-logs`)
+#### 14. Admin Logs (`/admin-logs`)
 
 Retrieve administrative action logs.
 
@@ -434,7 +463,7 @@ Response:
 
 Auth: Telegram init data from admin user.
 
-#### 14. Admin Act On Payment (`/admin-act-on-payment`)
+#### 15. Admin Act On Payment (`/admin-act-on-payment`)
 
 Approve or reject a pending payment.
 
@@ -454,7 +483,7 @@ Response:
 
 Auth: Telegram init data from admin user.
 
-#### 15. Admin List Pending (`/admin-list-pending`)
+#### 16. Admin List Pending (`/admin-list-pending`)
 
 List payments awaiting review.
 
@@ -470,7 +499,7 @@ Response:
 
 Auth: Telegram init data from admin user.
 
-#### 16. Admin Check (`/admin-check`)
+#### 17. Admin Check (`/admin-check`)
 
 Verify admin status for a user.
 
@@ -486,7 +515,7 @@ Response:
 
 Auth: Telegram init data required.
 
-#### 17. Bot Status Check (`/bot-status-check`)
+#### 18. Bot Status Check (`/bot-status-check`)
 
 Report bot uptime and version.
 
@@ -499,7 +528,7 @@ Response:
 
 Auth: None.
 
-#### 18. Rotate Webhook Secret (`/rotate-webhook-secret`)
+#### 19. Rotate Webhook Secret (`/rotate-webhook-secret`)
 
 Rotate the Telegram webhook secret token.
 
@@ -513,7 +542,7 @@ Response:
 
 Auth: `X-Admin-Secret` header required.
 
-#### 19. Rotate Admin Secret (`/rotate-admin-secret`)
+#### 20. Rotate Admin Secret (`/rotate-admin-secret`)
 
 Generate a new admin API secret.
 
@@ -527,7 +556,7 @@ Response:
 
 Auth: `X-Admin-Secret` header required.
 
-#### 20. Reset Bot (`/reset-bot`)
+#### 21. Reset Bot (`/reset-bot`)
 
 Reset the bot's runtime state.
 
@@ -541,7 +570,7 @@ Response:
 
 Auth: `X-Admin-Secret` header required.
 
-#### 21. Broadcast Dispatch (`/broadcast-dispatch`)
+#### 22. Broadcast Dispatch (`/broadcast-dispatch`)
 
 Send a broadcast message to users.
 
@@ -558,7 +587,7 @@ Response:
 
 Auth: `X-Admin-Secret` header required.
 
-#### 22. Build Miniapp (`/build-miniapp`)
+#### 23. Build Miniapp (`/build-miniapp`)
 
 Build the Telegram Mini App assets.
 
@@ -572,7 +601,7 @@ Response:
 
 Auth: `X-Admin-Secret` header required.
 
-#### 23. Upload Miniapp HTML (`/upload-miniapp-html`)
+#### 24. Upload Miniapp HTML (`/upload-miniapp-html`)
 
 Upload built Mini App HTML to storage.
 
@@ -586,7 +615,7 @@ Response:
 
 Auth: `X-Admin-Secret` header required.
 
-#### 24. Web App Health (`/web-app-health`)
+#### 25. Web App Health (`/web-app-health`)
 
 Health check for the web dashboard.
 
@@ -599,7 +628,7 @@ Response:
 
 Auth: None.
 
-#### 25. Miniapp Health (`/miniapp-health`)
+#### 26. Miniapp Health (`/miniapp-health`)
 
 Health check for the Mini App.
 
@@ -612,7 +641,7 @@ Response:
 
 Auth: None.
 
-#### 26. Theme Get (`/theme-get`)
+#### 27. Theme Get (`/theme-get`)
 
 Retrieve the persisted theme preference for the signed-in user. The edge
 function decodes the Supabase JWT, loads the `theme:<uid>` record from
@@ -633,7 +662,7 @@ Response:
 
 Auth: Bearer token required.
 
-#### 27. Theme Save (`/theme-save`)
+#### 28. Theme Save (`/theme-save`)
 
 Persist a new theme preference for the signed-in user. The handler uses the
 service role (if available) or anon key to upsert the `theme:<uid>` record in
@@ -656,7 +685,7 @@ Response:
 
 Auth: Bearer token required.
 
-#### 28. Content Batch (`/content-batch`)
+#### 29. Content Batch (`/content-batch`)
 
 Fetch multiple content entries at once.
 
@@ -672,7 +701,7 @@ Response:
 
 Auth: None.
 
-#### 29. Miniapp (`/miniapp`)
+#### 30. Miniapp (`/miniapp`)
 
 Serve the Telegram Mini App configuration.
 
@@ -685,7 +714,7 @@ Response:
 
 Auth: None.
 
-#### 30. Verify Initdata (`/verify-initdata`)
+#### 31. Verify Initdata (`/verify-initdata`)
 
 Verify and decode Telegram `initData` payloads.
 
@@ -700,6 +729,32 @@ Response:
 ```
 
 Auth: None.
+
+#### 32. Payment Webhook (`/payment-webhook`)
+
+Verify signed payment notifications and update the associated payment record.
+
+```http
+POST /functions/v1/payment-webhook
+X-Payment-Signature: <hex hmac>
+Content-Type: application/json
+
+{
+  "type": "payment.completed",
+  "data": {
+    "payment_id": "123",
+    "external_id": "gw_456",
+    "amount": 549,
+    "currency": "USD"
+  }
+}
+
+Response:
+{ "ok": true, "payment_id": "123", "status": "completed" }
+```
+
+Auth: HMAC signature using `PAYMENT_WEBHOOK_SECRET` in the `X-Payment-Signature`
+header.
 
 ---
 

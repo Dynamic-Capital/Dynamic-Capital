@@ -110,9 +110,10 @@ web console can bootstrap without querying Supabase.
 
 ## Crypto
 
-| Key                  | Purpose                                 | Required | Example                              | Used in                       |
-| -------------------- | --------------------------------------- | -------- | ------------------------------------ | ----------------------------- |
-| `USDT_TRC20_ADDRESS` | TRC20 wallet address for USDT deposits. | Yes      | `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` | `apps/web/config/supabase.ts` |
+| Key                      | Purpose                                                      | Required       | Example                              | Used in                                       |
+| ------------------------ | ------------------------------------------------------------ | -------------- | ------------------------------------ | --------------------------------------------- |
+| `USDT_TRC20_ADDRESS`     | TRC20 wallet address for USDT deposits.                      | Yes            | `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` | `apps/web/config/supabase.ts`                 |
+| `PAYMENT_WEBHOOK_SECRET` | HMAC secret used to verify `/payment-webhook` notifications. | Yes (webhooks) | `whsec_example`                      | `supabase/functions/payment-webhook/index.ts` |
 
 Additional crypto keys:
 
