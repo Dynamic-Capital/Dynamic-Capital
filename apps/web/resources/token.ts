@@ -122,7 +122,11 @@ const jettonMetadataSchema = z
   })
   .passthrough();
 
-const tokenMetadata = jettonMetadataSchema.parse(jettonMetadata);
+const parsedJettonMetadata = Object.freeze(
+  jettonMetadataSchema.parse(jettonMetadata),
+);
+
+export const tokenJettonMetadata = parsedJettonMetadata;
 
 const TGE_CIRCULATING_SUPPLY = 13_000_000;
 const TGE_MARKET_CAP_USD = 13_000_000;
@@ -245,7 +249,9 @@ type TokenDescriptor = {
   image?: string;
 };
 
-const normalizedTokenAddress = normalizeTonAddress(tokenMetadata.address);
+const normalizedTokenAddress = normalizeTonAddress(
+  parsedJettonMetadata.address,
+);
 
 function assertInvariant(
   condition: unknown,
@@ -257,14 +263,14 @@ function assertInvariant(
 }
 
 const tokenDescriptor = {
-  name: tokenMetadata.name,
-  symbol: tokenMetadata.symbol,
-  description: tokenMetadata.description,
-  decimals: tokenMetadata.decimals,
+  name: parsedJettonMetadata.name,
+  symbol: parsedJettonMetadata.symbol,
+  description: parsedJettonMetadata.description,
+  decimals: parsedJettonMetadata.decimals,
   maxSupply: 100_000_000,
-  externalUrl: tokenMetadata.external_url,
+  externalUrl: parsedJettonMetadata.external_url,
   address: normalizedTokenAddress,
-  image: tokenMetadata.image,
+  image: parsedJettonMetadata.image,
 } satisfies TokenDescriptor;
 
 assertInvariant(
@@ -403,7 +409,7 @@ const tokenDexPools = Object.freeze(
 ) as readonly DexPool[];
 
 const tokenSameAs = uniqueStrings([
-  ...(tokenMetadata.sameAs ?? []),
+  ...(parsedJettonMetadata.sameAs ?? []),
   tokenDescriptor.externalUrl,
   ...tokenDexPools.map((pool) => pool.url),
   ...tokenDexPools.map((pool) => pool.explorerUrl),

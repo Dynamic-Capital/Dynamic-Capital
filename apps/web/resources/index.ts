@@ -49,4 +49,5 @@ export {
   shortenTonAddress,
   tokenContent,
   tokenDescriptor,
+  tokenJettonMetadata,
 } from "./token";

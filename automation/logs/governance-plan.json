@@ -1,0 +1,76 @@
+{
+  "generatedAt": "2025-10-08T23:32:50.859Z",
+  "label": null,
+  "automation": "governance",
+  "includeOptional": false,
+  "checklists": [
+    "dai",
+    "dagi",
+    "build-implementation"
+  ],
+  "tasks": [
+    {
+      "id": "dai-architecture-tests",
+      "label": "Run DAI architecture tests (pytest dai_architecture/tests)",
+      "optional": false,
+      "command": "pytest dai_architecture/tests",
+      "sources": [
+        "dai"
+      ],
+      "docs": [
+        "docs/dai-dagi-dags-implementation-checklist.md",
+        "docs/dynamic-ai-overview.md#5-operational-checklist"
+      ],
+      "notes": [
+        "Validates Phase 1–4 routing, residency, and governance guards for Dynamic AI."
+      ]
+    },
+    {
+      "id": "dynamic-ai-tests",
+      "label": "Run Dynamic AI persona and fusion tests (pytest tests/intelligence/ai_apps tests_python/test_dynamic_ai_phase3.py)",
+      "optional": false,
+      "command": "pytest tests/intelligence/ai_apps tests_python/test_dynamic_ai_phase3.py",
+      "sources": [
+        "dai"
+      ],
+      "docs": [
+        "docs/dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai",
+        "docs/dynamic-ai-overview.md#5-operational-checklist"
+      ],
+      "notes": [
+        "Covers persona chaining, fusion logic, and planning outputs for DAI."
+      ]
+    },
+    {
+      "id": "dynamic-agi-tests",
+      "label": "Run Dynamic AGI oversight tests (pytest tests/intelligence/agi)",
+      "optional": false,
+      "command": "pytest tests/intelligence/agi",
+      "sources": [
+        "dagi"
+      ],
+      "docs": [
+        "docs/dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-agi-dagi",
+        "docs/dynamic-agi-modular-framework.md"
+      ],
+      "notes": [
+        "Exercises DAGI self-improvement, mentorship, and orchestration diagnostics."
+      ]
+    },
+    {
+      "id": "automated-trading-build-report",
+      "label": "Summarize automated trading build checklist (node scripts/checklists/automated-trading-build.mjs)",
+      "optional": false,
+      "command": "node scripts/checklists/automated-trading-build.mjs",
+      "sources": [
+        "build-implementation"
+      ],
+      "docs": [
+        "docs/automated-trading-checklist.md"
+      ],
+      "notes": [
+        "Parses the automated trading build checklist and reports completion status per section."
+      ]
+    }
+  ]
+}
