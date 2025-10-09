@@ -1112,6 +1112,25 @@ export type RouteId = (typeof ROUTE_DEFINITIONS)[number]["id"];
 
 const ROUTE_DEFINITION_LIST = ROUTE_DEFINITIONS as readonly RouteDefinition[];
 
+const ROUTE_DEFINITION_BY_ID = new Map<RouteId, RouteDefinition>();
+const ROUTE_DEFINITION_BY_PATH = new Map<string, RouteDefinition>();
+const ROUTE_MATCHER_INDEX: Array<{
+  matcher: RegExp;
+  definition: RouteDefinition;
+}> = [];
+
+for (const definition of ROUTE_DEFINITION_LIST) {
+  const routeId = definition.id as RouteId;
+  ROUTE_DEFINITION_BY_ID.set(routeId, definition);
+  ROUTE_DEFINITION_BY_PATH.set(definition.path, definition);
+  for (const matcher of definition.matchers ?? []) {
+    ROUTE_MATCHER_INDEX.push({
+      matcher: new RegExp(matcher),
+      definition,
+    });
+  }
+}
+
 const brandingPalette = dynamicBranding.palette;
 const heroGradientBase = dynamicBranding.gradients.hero;
 
@@ -1223,37 +1242,17 @@ function resolveStep(index: number): string {
   return `Hint ${index + 1}`;
 }
 
-export function getRouteDefinitions(): readonly RouteDefinition[] {
-  return ROUTE_DEFINITION_LIST;
-}
-
-export function getRouteById(id: RouteId): RouteDefinition | undefined {
-  return ROUTE_DEFINITION_LIST.find((definition) => definition.id === id);
-}
-
-export function findRouteByPath(pathname: string): RouteDefinition | undefined {
-  const normalized = pathname === "" ? "/" : pathname;
-  return ROUTE_DEFINITION_LIST.find((definition) => {
-    if (definition.path === normalized) {
-      return true;
-    }
-    return definition.matchers?.some((matcher) => matcher.test(normalized));
-  });
-}
-
-export function getNavigationEntries(): NavigationEntry[] {
+function buildNavigationEntries(): NavigationEntry[] {
   const explicitPrimary: NavigationEntry[] = [];
 
-  const definitions = ROUTE_DEFINITION_LIST;
-
   PRIMARY_NAV_SEQUENCE.forEach((routeId, index) => {
-    const definition = getRouteById(routeId);
+    const definition = ROUTE_DEFINITION_BY_ID.get(routeId);
     if (!definition?.nav) {
       return;
     }
 
     explicitPrimary.push({
-      id: definition.id as RouteId,
+      id: routeId,
       step: resolveStep(index),
       label: definition.shortLabel ?? definition.label,
       description: definition.description,
@@ -1272,7 +1271,7 @@ export function getNavigationEntries(): NavigationEntry[] {
 
   const primaryIds = new Set(PRIMARY_NAV_SEQUENCE);
 
-  const navEnabled = definitions.filter((
+  const navEnabled = ROUTE_DEFINITION_LIST.filter((
     definition,
   ): definition is RouteDefinition & {
     nav: NonNullable<RouteDefinition["nav"]>;
@@ -1314,6 +1313,37 @@ export function getNavigationEntries(): NavigationEntry[] {
     }
     return a.order - b.order;
   });
+}
+
+const NAVIGATION_ENTRIES = buildNavigationEntries();
+
+export function getRouteDefinitions(): readonly RouteDefinition[] {
+  return ROUTE_DEFINITION_LIST;
+}
+
+export function getRouteById(id: RouteId): RouteDefinition | undefined {
+  return ROUTE_DEFINITION_BY_ID.get(id);
+}
+
+export function findRouteByPath(pathname: string): RouteDefinition | undefined {
+  const normalized = pathname === "" ? "/" : pathname;
+  const directMatch = ROUTE_DEFINITION_BY_PATH.get(normalized);
+  if (directMatch) {
+    return directMatch;
+  }
+
+  for (const { matcher, definition } of ROUTE_MATCHER_INDEX) {
+    matcher.lastIndex = 0;
+    if (matcher.test(normalized)) {
+      return definition;
+    }
+  }
+
+  return undefined;
+}
+
+export function getNavigationEntries(): NavigationEntry[] {
+  return NAVIGATION_ENTRIES;
 }
 
 export interface CommandBarItem {
