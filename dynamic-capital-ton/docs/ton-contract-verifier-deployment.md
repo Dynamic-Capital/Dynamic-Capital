@@ -123,7 +123,9 @@ Push the fast-forward commit so CI can regenerate build artifacts immediately.
 
 Use GitHub Actions to keep builds reproducible. The workflow below installs the
 correct Node version, caches npm modules, builds the static assets, and uploads
-an artifact for deployment.
+an artifact for deployment. A ready-to-run workflow lives at
+`.github/workflows/ton-verifier-build.yml` and wraps the automation script added
+in this repository.
 
 ```yaml
 name: build-verifier
@@ -158,6 +160,29 @@ jobs:
           name: ton-verifier-dist
           path: dist
 ```
+
+### Using the repository workflow
+
+The checked-in workflow wires GitHub Secrets directly into the
+`dynamic-capital-ton/apps/tools/build-ton-verifier.ts` automation. Set the
+following secrets in `dynamiccapital/dynamic-capital` before enabling the job:
+
+| Secret name                   | Purpose                                                      |
+| ----------------------------- | ------------------------------------------------------------ |
+| `VITE_VERIFIER_ID`            | Default verifier identifier injected into `.env.local`.      |
+| `VITE_SOURCES_REGISTRY`       | Mainnet Sources Registry address.                            |
+| `VITE_SOURCES_REGISTRY_TESTNET` | Testnet Sources Registry address.                           |
+| `VITE_BACKEND_URL`            | Production verifier backend endpoint.                        |
+| `VITE_BACKEND_URL_TESTNET`    | Testnet verifier backend endpoint.                           |
+| `TON_VERIFIER_REMOTE`         | Optional override for the Git remote (defaults to upstream). |
+| `TON_VERIFIER_REF`            | Optional branch, tag, or commit to build.                    |
+
+If you prefer managing environment keys through a checked-in file, upload a
+path via the `TON_VERIFIER_ENV_FILE` secret that points to an encrypted
+artifact or storage bucket. The workflow exports all configured secrets before
+invoking the Deno script, which produces `ton-verifier-dist.zip`, the raw `dist`
+directory, and a `build-info.json` manifest. Both the ZIP and folder snapshot
+are published as build artifacts for downstream deployment tooling.
 
 Key optimizations:
 

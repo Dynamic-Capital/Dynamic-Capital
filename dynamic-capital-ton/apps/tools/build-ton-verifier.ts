@@ -136,22 +136,49 @@ async function ensureRepository(
       "clone",
       "--depth",
       "1",
-      "--branch",
-      ref,
+      "--no-single-branch",
       remote,
       repositoryDir,
     ]);
-  } else {
-    await runCommand(["git", "fetch", "origin"], { cwd: repositoryDir });
   }
 
-  await runCommand(["git", "checkout", ref], { cwd: repositoryDir });
+  await runCommand(["git", "fetch", "origin"], { cwd: repositoryDir });
+  const fetchRefResult = await runCommand([
+    "git",
+    "fetch",
+    "origin",
+    ref,
+  ], { cwd: repositoryDir, allowFailure: true });
+  if (fetchRefResult.code !== 0) {
+    console.warn(
+      `Warning: could not fetch ref ${ref} from origin. Proceeding with local checkout if available.`,
+    );
+  }
+
+  const checkoutResult = await runCommand([
+    "git",
+    "checkout",
+    ref,
+  ], { cwd: repositoryDir, allowFailure: true });
+  if (checkoutResult.code !== 0) {
+    throw new Error(
+      `Unable to checkout ${ref} in ${repositoryDir}. Ensure the ref exists locally or remotely.`,
+    );
+  }
+
+  const remoteRefResult = await runCommand([
+    "git",
+    "rev-parse",
+    "--verify",
+    `origin/${ref}`,
+  ], { cwd: repositoryDir, allowFailure: true });
+  const resetTarget = remoteRefResult.code === 0 ? `origin/${ref}` : ref;
   await runCommand([
     "git",
     "reset",
     "--hard",
-    `origin/${ref}`,
-  ], { cwd: repositoryDir, allowFailure: true });
+    resetTarget,
+  ], { cwd: repositoryDir });
   await runCommand(["git", "clean", "-fdx"], { cwd: repositoryDir });
 }
 
