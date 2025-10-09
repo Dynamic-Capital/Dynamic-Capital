@@ -165,6 +165,14 @@ async function main() {
     dexscreener_dedust: dedustPool.dexScreenerPairUrl,
   };
 
+  if (stonfiPool.geckoTerminalPoolUrl) {
+    dnsRecord.geckoterminal_stonfi = stonfiPool.geckoTerminalPoolUrl;
+  }
+
+  if (dedustPool.geckoTerminalPoolUrl) {
+    dnsRecord.geckoterminal_dedust = dedustPool.geckoTerminalPoolUrl;
+  }
+
   const [stonfiWallet, dedustWallet] = await Promise.all([
     fetchJettonWallet(TON_MAINNET_STONFI_ROUTER),
     fetchJettonWallet(TON_MAINNET_DEDUST_DCT_TON_POOL),

@@ -102,6 +102,13 @@ const DEX_POOL_REQUIRED_LINKS: readonly RequiredLink[] = DCT_DEX_POOLS
       });
     }
 
+    if (pool.geckoTerminalPoolUrl) {
+      links.push({
+        label: `${pool.dex} → pool (GeckoTerminal)`,
+        url: pool.geckoTerminalPoolUrl,
+      });
+    }
+
     return links;
   }) as readonly RequiredLink[];
 

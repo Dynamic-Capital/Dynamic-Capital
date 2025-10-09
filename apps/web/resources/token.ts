@@ -194,6 +194,7 @@ type DexPool = {
   explorerUrl?: string;
   jettonWalletUrl?: string;
   metadataUrl?: string;
+  geckoTerminalUrl?: string;
 };
 
 type SupplySplit = {
@@ -405,6 +406,7 @@ const tokenDexPools = Object.freeze(
     explorerUrl: pool.poolExplorerUrl,
     jettonWalletUrl: pool.jettonWalletExplorerUrl,
     metadataUrl: pool.metadataUrl,
+    geckoTerminalUrl: pool.geckoTerminalPoolUrl,
   } satisfies DexPool)),
 ) as readonly DexPool[];
 
@@ -415,6 +417,7 @@ const tokenSameAs = uniqueStrings([
   ...tokenDexPools.map((pool) => pool.explorerUrl),
   ...tokenDexPools.map((pool) => pool.jettonWalletUrl),
   ...tokenDexPools.map((pool) => pool.metadataUrl),
+  ...tokenDexPools.map((pool) => pool.geckoTerminalUrl),
   tokenJettonExplorerUrl,
 ]);
 
