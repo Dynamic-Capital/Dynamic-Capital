@@ -80,3 +80,55 @@ test("dispatchAudience forwards payload and tallies outcomes", async () => {
     assertDeepEqual(call.payload, basePayload);
   });
 });
+
+test("shouldSyncMiniApp honors boolean override and channel heuristics", async () => {
+  const { shouldSyncMiniApp } = await freshImport(
+    new URL(
+      "../supabase/functions/broadcast-dispatch/index.ts",
+      import.meta.url,
+    ),
+  );
+
+  assertEqual(shouldSyncMiniApp(null), true, "null target defaults to sync");
+  assertEqual(
+    shouldSyncMiniApp({ syncMiniApp: false, channels: ["miniapp"] }),
+    false,
+    "explicit boolean override wins",
+  );
+  assertEqual(
+    shouldSyncMiniApp({ channels: ["telegram", "web"] }),
+    true,
+    "web channel requires sync",
+  );
+  assertEqual(
+    shouldSyncMiniApp({ channels: "telegram, telegram" }),
+    false,
+    "all-telegram string is treated as telegram-only",
+  );
+  assertEqual(
+    shouldSyncMiniApp({ type: "internal" }),
+    false,
+    "internal broadcasts should stay telegram-only",
+  );
+});
+
+test("extractAnnouncementText pulls human-readable text from payloads", async () => {
+  const { extractAnnouncementText } = await freshImport(
+    new URL(
+      "../supabase/functions/broadcast-dispatch/index.ts",
+      import.meta.url,
+    ),
+  );
+
+  assertEqual(extractAnnouncementText(null), null);
+  assertEqual(
+    extractAnnouncementText("   Alpha drop incoming  "),
+    "Alpha drop incoming",
+  );
+
+  const jsonWithCaption = JSON.stringify({ caption: "Trade ready" });
+  assertEqual(extractAnnouncementText(jsonWithCaption), "Trade ready");
+
+  const jsonWithFallback = JSON.stringify({ count: 2 });
+  assertEqual(extractAnnouncementText(jsonWithFallback), jsonWithFallback);
+});
