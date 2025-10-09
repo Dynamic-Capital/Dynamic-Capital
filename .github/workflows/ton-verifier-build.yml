@@ -1,0 +1,66 @@
+name: ton-verifier-build
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "dynamic-capital-ton/**"
+      - ".github/workflows/ton-verifier-build.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build TON verifier bundle
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      VITE_VERIFIER_ID: ${{ secrets.VITE_VERIFIER_ID }}
+      VITE_SOURCES_REGISTRY: ${{ secrets.VITE_SOURCES_REGISTRY }}
+      VITE_SOURCES_REGISTRY_TESTNET: ${{ secrets.VITE_SOURCES_REGISTRY_TESTNET }}
+      VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+      VITE_BACKEND_URL_TESTNET: ${{ secrets.VITE_BACKEND_URL_TESTNET }}
+      TON_VERIFIER_REMOTE: ${{ secrets.TON_VERIFIER_REMOTE }}
+      TON_VERIFIER_REF: ${{ secrets.TON_VERIFIER_REF }}
+      TON_VERIFIER_ENV_FILE: ${{ secrets.TON_VERIFIER_ENV_FILE }}
+      DENO_TLS_CA_STORE: system
+      DENO_NO_UPDATE_CHECK: "1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Build TON Contract Verifier
+        run: |
+          $(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/build-ton-verifier.ts
+
+      - name: Upload verifier artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ton-verifier-dist
+          path: |
+            dynamic-capital-ton/build/verifier/ton-verifier-dist.zip
+            dynamic-capital-ton/build/verifier/build-info.json
+          if-no-files-found: error
+
+      - name: Upload dist folder snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: ton-verifier-dist-folder
+          path: dynamic-capital-ton/build/verifier/dist
+          if-no-files-found: error
