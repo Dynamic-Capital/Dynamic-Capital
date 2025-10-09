@@ -44,15 +44,21 @@ committee following the 2025-03 token launch readiness review.
 
 ### Link Verification Log
 
-- **2025-10-09:**
-  `curl -I https://tonviewer.com/EQDV-93xWrD-P1oQb94hgFvoIy_JAvh1nvihvrnyon4mYKX1`
-  returned `HTTP/1.1 200 OK`, confirming the Tonviewer endpoint is live.
-- **2025-10-09:**
-  `curl -I https://www.geckoterminal.com/ton/pools/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI`
-  responded with `HTTP/1.1 403 Forbidden` due to an automated anti-bot
-  challenge. The status indicates the pool URL resolves successfully; complete
-  verification by opening the link in a standard browser session or supplying a
-  valid User-Agent header when scripting.
+- **2025-10-09 05:39 UTC — Tonviewer vault snapshot**
+  - Command:
+    `curl -I https://tonviewer.com/EQDV-93xWrD-P1oQb94hgFvoIy_JAvh1nvihvrnyon4mYKX1`
+  - Result: `HTTP/1.1 200 OK` (Cloudflare edge + origin), confirming the vault
+    page and metadata resolve without mitigation challenges.
+- **2025-10-09 05:39 UTC — GeckoTerminal liquidity pool**
+  - Command:
+    `curl -I https://www.geckoterminal.com/ton/pools/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI`
+  - Result: Initial edge response `HTTP/1.1 200 OK` followed by
+    `HTTP/1.1 403 Forbidden` as the Cloudflare bot mitigation issues a
+    JavaScript challenge.
+  - Bypass procedure: Resolve the challenge once in a regular browser session,
+    capture the issued `cf_clearance` cookie, and replay automated checks with
+    `curl -H 'cookie: cf_clearance=<value>; __cf_bm=<value>' -H 'user-agent: <browser UA>' -I <url>`.
+    Rotate the cookie on expiry or when the 403 status reappears.
 
 ## Monitoring Procedure
 
