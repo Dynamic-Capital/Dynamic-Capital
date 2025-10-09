@@ -13,6 +13,7 @@ a reproducible build that serves Dynamic Capital Token bundles.
 - [Optimized build pipeline](#optimized-build-pipeline)
 - [Publishing static artifacts](#publishing-static-artifacts)
 - [Dynamic Capital Token bundles](#dynamic-capital-token-bundles)
+- [End-to-end verification procedure](#end-to-end-verification-procedure)
 - [Supabase integration](#supabase-integration)
 - [Upstream maintenance cadence](#upstream-maintenance-cadence)
 
@@ -213,6 +214,52 @@ Deliver pre-built jetton master + wallet bundles in the fork under
 
 Rebuild bundles whenever contract code or compiler flags change and rotate the
 release tag accordingly.
+
+## End-to-end verification procedure
+
+Follow this checklist whenever you need to (re)verify the Dynamic Capital
+Token contracts on mainnet or testnet. Treat every verification as an auditable
+event—capture the command output and store it in the release ticket.
+
+1. **Confirm on-chain references**
+   - Note the master and wallet contract addresses from the latest deployment.
+   - Record the exact FunC/Tact compiler versions used for the build (available
+     inside `artifacts/metadata.json`).
+   - Fetch the on-chain code cell hash with `toncli inspect --address <ADDR>` and
+     compare it against the locally compiled `.boc` files.
+2. **Upload bundles via the hosted verifier**
+   - Visit `https://verifier.dynamic.capital` and authenticate with your
+     read/write token.
+   - Select **Jetton** → **Dynamic Capital Token** from the preset list (wired in
+     by referencing `static/artifacts/` in the forked UI).
+   - Provide the target network (mainnet or testnet), contract address, and the
+     ZIP archive generated in [Dynamic Capital Token bundles](#dynamic-capital-token-bundles).
+   - Submit the verification job and wait for the "Verified" banner.
+3. **Cross-check through the API**
+   - Call the backend directly to capture an immutable audit log:
+
+     ```bash
+     curl -X POST "${VITE_BACKEND_URL}/verify" \
+       -H "Content-Type: application/json" \
+       -H "Authorization: Bearer ${TON_VERIFIER_TOKEN}" \
+       -d '{
+         "network": "mainnet",
+         "address": "<MASTER_CONTRACT_ADDR>",
+         "bundleUrl": "https://verifier.dynamic.capital/static/artifacts/dynamic-capital-jetton-master.zip"
+       }'
+     ```
+
+     Swap `network` and `bundleUrl` for the wallet contract and for testnet as
+     required. Archive the JSON response in the release ticket.
+4. **Register verification state**
+   - In the Sources Registry UI, confirm the contracts transitioned to the
+     `verified` state with the expected build hash.
+   - Update the Dynamic Capital changelog with links to the registry entries and
+     attach the saved API responses.
+5. **Monitor Supabase events**
+   - Trigger a nominal payment that should be gated by verification.
+   - Inspect the `verify-payment` Edge Function logs to ensure the `verified`
+     flag was consumed before the payment was marked settled.
 
 ## Supabase integration
 
