@@ -21,6 +21,7 @@ export interface DctDexPoolDefinition {
   readonly lpJettonExplorerUrl?: string;
   readonly dexScreenerId?: string;
   readonly dexScreenerPairUrl?: string;
+  readonly geckoTerminalPoolUrl?: string;
 }
 
 export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
@@ -43,6 +44,8 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     dexScreenerId: "stonfi",
     dexScreenerPairUrl:
       `https://dexscreener.com/ton/${TON_MAINNET_STONFI_DCT_TON_POOL.toLowerCase()}`,
+    geckoTerminalPoolUrl:
+      "https://www.geckoterminal.com/ton/pools/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
   },
   {
     dex: "DeDust",

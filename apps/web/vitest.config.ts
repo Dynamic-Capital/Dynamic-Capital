@@ -9,6 +9,7 @@ const config = {
   resolve: {
     alias: {
       "@": path.resolve(dirname, "./"),
+      "@shared": path.resolve(dirname, "../../shared"),
     },
   },
   test: {

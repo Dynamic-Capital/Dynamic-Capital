@@ -124,6 +124,7 @@ interface DexOption {
   readonly swapUrl: string;
   readonly explorerUrl: string;
   readonly jettonWalletUrl: string;
+  readonly geckoTerminalUrl?: string;
 }
 
 const ONBOARDING_STEPS = [
@@ -275,6 +276,7 @@ const DEX_OPTIONS: readonly DexOption[] = Object.freeze(
     swapUrl: pool.swapUrl,
     explorerUrl: pool.poolExplorerUrl,
     jettonWalletUrl: pool.jettonWalletExplorerUrl,
+    geckoTerminalUrl: pool.geckoTerminalPoolUrl,
   })),
 );
 
