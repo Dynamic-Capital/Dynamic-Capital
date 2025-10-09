@@ -42,6 +42,18 @@ committee following the 2025-03 token launch readiness review.
   - Use pool TVL and DCT/TON pricing to estimate market impact of tranche
     releases
 
+### Link Verification Log
+
+- **2025-10-09:**
+  `curl -I https://tonviewer.com/EQDV-93xWrD-P1oQb94hgFvoIy_JAvh1nvihvrnyon4mYKX1`
+  returned `HTTP/1.1 200 OK`, confirming the Tonviewer endpoint is live.
+- **2025-10-09:**
+  `curl -I https://www.geckoterminal.com/ton/pools/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI`
+  responded with `HTTP/1.1 403 Forbidden` due to an automated anti-bot
+  challenge. The status indicates the pool URL resolves successfully; complete
+  verification by opening the link in a standard browser session or supplying a
+  valid User-Agent header when scripting.
+
 ## Monitoring Procedure
 
 1. **Pre-unlock audit**
