@@ -12,6 +12,7 @@ a reproducible build that serves Dynamic Capital Token bundles.
 - [Local development workflow](#local-development-workflow)
 - [Optimized build pipeline](#optimized-build-pipeline)
 - [Publishing static artifacts](#publishing-static-artifacts)
+- [Automated verifier build](#automated-verifier-build)
 - [Dynamic Capital Token bundles](#dynamic-capital-token-bundles)
 - [End-to-end verification procedure](#end-to-end-verification-procedure)
 - [Supabase integration](#supabase-integration)
@@ -163,6 +164,47 @@ Key optimizations:
 - `npm ci` ensures deterministic dependency installs.
 - Cache hits keep build times under one minute after the first run.
 - Environment variables flow from GitHub Secrets, eliminating plaintext copies.
+
+## Automated verifier build
+
+For local or release builds, run the Deno tool
+`dynamic-capital-ton/apps/tools/build-ton-verifier.ts`. It clones (or refreshes)
+the verifier repository, applies your environment defaults, executes
+`npm ci && npm run lint && npm run typecheck && npm run build`, and packages the
+Vite output into a reproducible ZIP.
+
+```bash
+export VITE_VERIFIER_ID=dynamic-capital
+export VITE_SOURCES_REGISTRY=EQD-BJSVUJviud_Qv7Ymfd3qzXdrmV525e3YDzWQoHIAiInL
+export VITE_SOURCES_REGISTRY_TESTNET=EQAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+export VITE_BACKEND_URL=https://verifier-backend.dynamic.capital/api
+export VITE_BACKEND_URL_TESTNET=https://verifier-backend-testnet.dynamic.capital/api
+
+$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/build-ton-verifier.ts
+```
+
+Outputs are written under `dynamic-capital-ton/build/verifier/`:
+
+- `repo/` — working tree for the fork or upstream repository.
+- `dist/` — clean copy of the generated static assets.
+- `ton-verifier-dist.zip` — zipped bundle ready for CDN upload or CI release
+  attachment.
+- `build-info.json` — commit, artifact hash, and environment summary for the
+  build.
+
+### Configuration knobs
+
+- `TON_VERIFIER_REMOTE` — override the Git remote (defaults to the upstream
+  project). Point this at `git@github.com:dynamiccapital/verifier.git` when
+  building the Dynamic Capital fork.
+- `TON_VERIFIER_REF` — branch, tag, or commit hash to checkout (defaults to
+  `main`).
+- `TON_VERIFIER_ENV_FILE` — path to a `.env`-style file whose values take
+  precedence over shell exports. Useful for reproducible release builds.
+
+Unset environment keys remain blank in `.env.local`, so the Vite bundle exposes
+discoverable placeholders. The script surfaces missing keys before building so
+you can inject them or confirm they should remain empty.
 
 ## Publishing static artifacts
 
