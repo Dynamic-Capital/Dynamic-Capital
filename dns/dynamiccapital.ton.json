@@ -84,7 +84,7 @@
       "name": "pay",
       "data": "dynamiccapital.ton",
       "ttl": 300,
-      "note": "Browser landing for payment flows; mirrors the root site while TON wallets resolve the alias natively"
+      "note": "Browser landing for payment flows; mirrors the root site while TON wallets resolve the alias natively and read wallet metadata from _pay.dynamiccapital.ton"
     },
     {
       "type": "CNAME",
@@ -116,10 +116,10 @@
     },
     {
       "type": "TXT",
-      "name": "pay",
+      "name": "_pay",
       "data": "wallet=EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
       "ttl": 300,
-      "note": "Treasury payment alias so pay.dynamiccapital.ton resolves to the DCT treasury wallet inside TON DNS"
+      "note": "Treasury payment alias advertised via _pay.dynamiccapital.ton to avoid colliding with the CNAME record"
     }
   ],
   "wallet_aliases": [
