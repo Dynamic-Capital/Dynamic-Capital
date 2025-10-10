@@ -1,11 +1,44 @@
 # HTTPS Gateway Verification – 2025-10-08
 
 ## Summary
-- Latest verification at 2025-10-10 16:41 UTC recorded HTTP 503 responses from both HTTPS gateways when requesting `/dynamiccapital.ton`.
-- The DigitalOcean origin `dynamic-capital-qazf2.ondigitalocean.app` is serving HTTP 404, explaining the gateway failures.
-- Resolver verification must remain in `error` until the TON bundle is redeployed and the gateways return HTTP 200 again.
+- 2025-10-10 02:32 UTC verification confirms both HTTPS gateways return `HTTP 200` for `/dynamiccapital.ton`.
+- Direct origin probe at `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton` also returns `HTTP 200`, confirming the bundle is restored.
+- Earlier 2025-10-10 16:41 UTC regression details remain below for historical context.
 
-## Checks Performed
+## 2025-10-10 02:32 UTC – Post-restoration verification
+
+1. `curl -I https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
+   - Response:
+     ```
+     HTTP/1.1 200 OK
+     date: Fri, 10 Oct 2025 02:32:02 GMT
+     server: envoy
+     content-type: text/html; charset=utf-8
+     x-dynamic-ton-gateway: 1
+     ```
+2. `curl -I https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`
+   - Response:
+     ```
+     HTTP/1.1 200 OK
+     date: Fri, 10 Oct 2025 02:32:02 GMT
+     server: envoy
+     content-type: text/html; charset=utf-8
+     x-dynamic-ton-gateway: 1
+     ```
+3. `curl -I https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
+   - Response:
+     ```
+     HTTP/1.1 200 OK
+     date: Fri, 10 Oct 2025 02:32:01 GMT
+     server: envoy
+     content-type: text/html; charset=utf-8
+     ```
+
+## 2025-10-10 16:41 UTC – Regression snapshot
+
+The failure context is preserved for audit trails.
+
+### Checks Performed
 1. `curl -I https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
    - Response shows an Envoy 200 preface followed by the upstream failure:
      ```
