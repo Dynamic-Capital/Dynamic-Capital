@@ -2,11 +2,18 @@
 
 ## ✅ Completed Actions
 
-### 1. Database Security Fixes
+### 1. Database Security Fixes ✅ COMPLETED
 - ✅ Created `tx_logs` table with RLS policies for audit trail
 - ✅ Secured `education_enrollments` table (GDPR compliance)
 - ✅ Secured `user_sessions` table (prevents unauthorized access)
 - ✅ Fixed build error in `lorentzian-eval` function
+- ✅ **NEW:** Moved all extensions to dedicated `extensions` schema
+- ✅ **NEW:** Tightened anonymous access on 42 tables
+- ✅ **NEW:** Added performance indexes on security-critical columns
+- ✅ **NEW:** Created security helper functions to prevent RLS recursion
+- ✅ **NEW:** Enabled comprehensive audit logging
+
+**See:** `docs/SECURITY_HARDENING.md` for complete details
 
 ### 2. Webhook Helper Function
 - ✅ Created `/functions/v1/fix-telegram-webhook` edge function
