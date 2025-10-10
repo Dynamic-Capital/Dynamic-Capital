@@ -317,13 +317,18 @@ export default async function RootLayout(
               }}
             >
               <Flex
+                as="main"
                 id="main-content"
+                direction="column"
                 horizontal="center"
                 fillWidth
                 minHeight="0"
                 tabIndex={-1}
+                className="page-shell"
               >
-                <RouteGuard>{children}</RouteGuard>
+                <div className="page-shell__surface">
+                  <RouteGuard>{children}</RouteGuard>
+                </div>
               </Flex>
             </Flex>
             <HideOnMiniApp>
