@@ -320,37 +320,55 @@ export type SafeError = {
   name?: string;
 };
 
+const MAX_SAFE_ERROR_LENGTH = 512;
+
+const sanitizeErrorText = (value: unknown): string | undefined => {
+  if (typeof value !== "string") return undefined;
+
+  const trimmed = value.replace(/\u0000/g, "").trim();
+  if (!trimmed) return undefined;
+
+  const firstLine = trimmed.split(/[\r\n\u2028\u2029]/, 1)[0] ?? "";
+  const normalized = firstLine.slice(0, MAX_SAFE_ERROR_LENGTH).trim();
+
+  return normalized || undefined;
+};
+
+const sanitizeErrorMessage = (value: unknown): string => {
+  const sanitized = sanitizeErrorText(value);
+  return sanitized ?? "Unexpected error";
+};
+
+const sanitizeErrorName = (value: unknown): string | undefined => {
+  const sanitized = sanitizeErrorText(value);
+  if (!sanitized || sanitized === "Error") return undefined;
+  return sanitized;
+};
+
 export const toSafeError = (error: unknown): SafeError => {
   if (error instanceof Error) {
-    const message = error.message?.trim();
-    const name = error.name?.trim();
+    const name = sanitizeErrorName(error.name);
     return {
-      message: message || "Unexpected error",
-      ...(name && name !== "Error" ? { name } : {}),
+      message: sanitizeErrorMessage(error.message),
+      ...(name ? { name } : {}),
     };
   }
 
   if (typeof error === "string") {
-    const message = error.trim();
-    return { message: message || "Unexpected error" };
+    return { message: sanitizeErrorMessage(error) };
   }
 
   if (error && typeof error === "object") {
     const candidate = error as { message?: unknown; name?: unknown };
-    const message =
-      typeof candidate.message === "string" && candidate.message.trim()
-        ? candidate.message.trim()
-        : "Unexpected error";
-    const name = typeof candidate.name === "string" && candidate.name.trim()
-      ? candidate.name.trim()
-      : undefined;
+    const message = sanitizeErrorMessage(candidate.message);
+    const name = sanitizeErrorName(candidate.name);
     return {
       message,
-      ...(name && name !== "Error" ? { name } : {}),
+      ...(name ? { name } : {}),
     };
   }
 
-  return { message: String(error ?? "Unexpected error") };
+  return { message: sanitizeErrorMessage(String(error ?? "Unexpected error")) };
 };
 
 export const internalError = (
