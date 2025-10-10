@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import {
   Button,
@@ -16,8 +16,8 @@ import { VipPackagesSection } from "@/components/dynamic-portfolio/home/VipPacka
 import { CheckoutCallout } from "@/components/dynamic-portfolio/home/CheckoutCallout";
 import { about, baseURL, person, toAbsoluteUrl } from "@/resources";
 import styles from "@/components/dynamic-portfolio/DynamicCapitalLandingPage.module.scss";
-import { cn } from "@/utils";
 import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
+import { DeskSection } from "@/components/workspaces/DeskSection";
 
 const pageTitle = "Investor desk – Dynamic Capital";
 const pageDescription =
@@ -118,35 +118,6 @@ const QUICK_STEPS = [
       "Follow the pool, copy trades, or study the plays at your pace.",
   },
 ];
-
-type ColumnBackground = ComponentProps<typeof Column>["background"];
-type ColumnBorder = ComponentProps<typeof Column>["border"];
-
-interface SectionProps {
-  children: ReactNode;
-  background?: ColumnBackground;
-  border?: ColumnBorder;
-  anchor?: string;
-}
-
-function Section({ children, background, border, anchor }: SectionProps) {
-  return (
-    <Column
-      as="section"
-      id={anchor}
-      data-section-anchor={anchor}
-      fillWidth
-      background={background}
-      border={border}
-      radius="l"
-      padding="xl"
-      gap="24"
-      className={cn(styles.section, styles.sectionCompact)}
-    >
-      {children}
-    </Column>
-  );
-}
 
 function HighlightCard({
   icon,
@@ -293,7 +264,7 @@ export default function InvestorDeskPage() {
           }}
         />
 
-        <Section anchor="hero">
+        <DeskSection anchor="hero" width="compact">
           <Row
             gap="24"
             align="start"
@@ -369,12 +340,13 @@ export default function InvestorDeskPage() {
               />
             ))}
           </Row>
-        </Section>
+        </DeskSection>
 
-        <Section
+        <DeskSection
           anchor="steps"
           background="surface"
           border="neutral-alpha-medium"
+          width="compact"
         >
           <Column gap="12">
             <Heading variant="heading-strong-l">Three quick steps</Heading>
@@ -408,12 +380,13 @@ export default function InvestorDeskPage() {
               </Column>
             ))}
           </Row>
-        </Section>
+        </DeskSection>
 
-        <Section
+        <DeskSection
           anchor="pricing"
           background="surface"
           border="neutral-alpha-medium"
+          width="compact"
         >
           <Column gap="12">
             <Heading variant="heading-strong-l">Pricing & packages</Heading>
@@ -429,12 +402,13 @@ export default function InvestorDeskPage() {
           <VipPlansPricingSection />
           <VipPackagesSection />
           <CheckoutCallout />
-        </Section>
+        </DeskSection>
 
-        <Section
+        <DeskSection
           anchor="support"
           background="neutral-alpha-weak"
           border="neutral-alpha-medium"
+          width="compact"
         >
           <Column gap="12">
             <Heading variant="heading-strong-l">
@@ -454,7 +428,7 @@ export default function InvestorDeskPage() {
               <SupportCard key={channel.title} {...channel} />
             ))}
           </Row>
-        </Section>
+        </DeskSection>
       </Column>
     </ToolWorkspaceLayout>
   );

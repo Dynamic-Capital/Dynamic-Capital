@@ -13,6 +13,7 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+import { DeskSection } from "@/components/workspaces/DeskSection";
 
 const CANVAS_BASE_SIZE = { width: 720, height: 360 } as const;
 
@@ -827,123 +828,143 @@ export function DynamicVisualExplorer() {
 
   return (
     <Column gap="32" fillWidth>
-      <Column gap="8">
-        <Text variant="label-default-s" onBackground="neutral-weak">
-          Choose a desk system
-        </Text>
-        <SegmentedControl
-          buttons={SCENARIOS.map((item) => ({
-            label: item.label,
-            value: item.id,
-          }))}
-          onToggle={(value) => setSelectedScenarioId(value)}
-          selected={scenario.id}
-          aria-label="Select visualization scenario"
-        />
-      </Column>
-
-      <Card
-        direction="column"
-        gap="16"
-        padding="24"
-        radius="l"
+      <DeskSection
+        anchor="visual"
         background="surface"
-        border="neutral-alpha-weak"
-        shadow="m"
-        className="relative overflow-hidden"
+        border="neutral-alpha-medium"
+        shadow="l"
+        width="wide"
       >
-        <Column gap="12" align="start">
-          <Tag background="brand-alpha-weak" size="s">
-            {scenario.title}
-          </Tag>
-          <Text variant="body-default-m" onBackground="neutral-weak">
-            {scenario.description}
-          </Text>
-        </Column>
+        <Column gap="16">
+          <Column gap="8">
+            <Text variant="label-default-s" onBackground="neutral-weak">
+              Choose a desk system
+            </Text>
+            <SegmentedControl
+              buttons={SCENARIOS.map((item) => ({
+                label: item.label,
+                value: item.id,
+              }))}
+              onToggle={(value) => setSelectedScenarioId(value)}
+              selected={scenario.id}
+              aria-label="Select visualization scenario"
+            />
+          </Column>
 
-        <div
-          ref={containerRef}
-          className="relative w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950/80 via-slate-900/70 to-slate-900/40"
-        >
-          <canvas
-            ref={canvasRef}
-            className="h-full w-full"
-            role="img"
-            aria-label={scenario.title}
-          />
-          <div className="pointer-events-none absolute inset-0">
-            {positionedNodes.map((node) => (
-              <div
-                key={node.id}
-                className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2"
-                style={{ left: `${node.x}px`, top: `${node.y}px` }}
-              >
-                <Tag
-                  background={NODE_TAG_VARIANTS[node.tone]}
-                  size="s"
-                  className="backdrop-blur"
-                >
-                  {node.label}
-                </Tag>
-                <Text
-                  variant="body-default-xs"
-                  onBackground="neutral-weak"
-                  align="center"
-                  className="max-w-[160px] text-slate-200/70"
-                >
-                  {node.caption}
-                </Text>
+          <Card
+            direction="column"
+            gap="16"
+            padding="24"
+            radius="l"
+            background="surface"
+            border="neutral-alpha-weak"
+            shadow="m"
+            className="relative overflow-hidden"
+          >
+            <Column gap="12" align="start">
+              <Tag background="brand-alpha-weak" size="s">
+                {scenario.title}
+              </Tag>
+              <Text variant="body-default-m" onBackground="neutral-weak">
+                {scenario.description}
+              </Text>
+            </Column>
+
+            <div
+              ref={containerRef}
+              className="relative w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950/80 via-slate-900/70 to-slate-900/40"
+            >
+              <canvas
+                ref={canvasRef}
+                className="h-full w-full"
+                role="img"
+                aria-label={scenario.title}
+              />
+              <div className="pointer-events-none absolute inset-0">
+                {positionedNodes.map((node) => (
+                  <div
+                    key={node.id}
+                    className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2"
+                    style={{ left: `${node.x}px`, top: `${node.y}px` }}
+                  >
+                    <Tag
+                      background={NODE_TAG_VARIANTS[node.tone]}
+                      size="s"
+                      className="backdrop-blur"
+                    >
+                      {node.label}
+                    </Tag>
+                    <Text
+                      variant="body-default-xs"
+                      onBackground="neutral-weak"
+                      align="center"
+                      className="max-w-[160px] text-slate-200/70"
+                    >
+                      {node.caption}
+                    </Text>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </Card>
+            </div>
+          </Card>
+        </Column>
+      </DeskSection>
 
-      <Column gap="20" fillWidth>
-        <Heading variant="heading-strong-m">Desk telemetry</Heading>
-        <Row gap="16" wrap fillWidth>
-          {scenario.metrics.map((metric) => {
-            const sentiment = METRIC_SENTIMENT_VARIANTS[metric.sentiment];
-            const formattedChange = `${
-              metric.change >= 0 ? "+" : ""
-            }${metric.change}${metric.changeUnit}`;
+      <DeskSection
+        anchor="telemetry"
+        background="surface"
+        border="neutral-alpha-medium"
+        width="wide"
+      >
+        <Column gap="20" fillWidth>
+          <Heading variant="heading-strong-m">Desk telemetry</Heading>
+          <Row gap="16" wrap fillWidth>
+            {scenario.metrics.map((metric) => {
+              const sentiment = METRIC_SENTIMENT_VARIANTS[metric.sentiment];
+              const formattedChange = `${
+                metric.change >= 0 ? "+" : ""
+              }${metric.change}${metric.changeUnit}`;
 
-            return (
-              <Card
-                key={metric.id}
-                direction="column"
-                gap="8"
-                padding="20"
-                radius="m"
-                background="surface"
-                border="neutral-alpha-medium"
-                className="min-w-[220px] flex-1"
-              >
-                <Row gap="8" vertical="center">
-                  <Text variant="label-default-s" onBackground="neutral-medium">
-                    {metric.label}
-                  </Text>
-                  <Tag background={sentiment.background} size="s">
-                    {sentiment.label}
-                  </Tag>
-                </Row>
-                <Heading variant="display-strong-s">{metric.value}</Heading>
-                <Text variant="body-default-s" onBackground="neutral-medium">
-                  {formattedChange}
-                </Text>
-                <Line background="neutral-alpha-weak" />
-                <Text
-                  variant="body-default-xs"
-                  onBackground="neutral-weak"
-                  className="max-w-[220px]"
+              return (
+                <Card
+                  key={metric.id}
+                  direction="column"
+                  gap="8"
+                  padding="20"
+                  radius="m"
+                  background="surface"
+                  border="neutral-alpha-medium"
+                  className="min-w-[220px] flex-1"
                 >
-                  {metric.caption}
-                </Text>
-              </Card>
-            );
-          })}
-        </Row>
-      </Column>
+                  <Row gap="8" vertical="center">
+                    <Text
+                      variant="label-default-s"
+                      onBackground="neutral-medium"
+                    >
+                      {metric.label}
+                    </Text>
+                    <Tag background={sentiment.background} size="s">
+                      {sentiment.label}
+                    </Tag>
+                  </Row>
+                  <Heading variant="display-strong-s">{metric.value}</Heading>
+                  <Text variant="body-default-s" onBackground="neutral-medium">
+                    {formattedChange}
+                  </Text>
+                  <Line background="neutral-alpha-weak" />
+                  <Text
+                    variant="body-default-xs"
+                    onBackground="neutral-weak"
+                    className="max-w-[220px]"
+                  >
+                    {metric.caption}
+                  </Text>
+                </Card>
+              );
+            })}
+          </Row>
+        </Column>
+      </DeskSection>
     </Column>
   );
 }

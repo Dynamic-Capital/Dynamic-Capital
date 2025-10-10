@@ -14,6 +14,7 @@ import { SignalsWidget } from "@/components/trading/SignalsWidget";
 import { StrengthMeter } from "@/components/trading/StrengthMeter";
 import { WalletCard } from "@/components/trading/WalletCard";
 import { Card } from "@/components/ui/card";
+import { DeskSection } from "@/components/workspaces/DeskSection";
 
 interface ProgressMetric {
   id: string;
@@ -240,14 +241,7 @@ function Checklist({ items }: { items: string[] }) {
 
 function WorkspaceHero() {
   return (
-    <Column
-      gap="16"
-      background="surface"
-      border="neutral-alpha-medium"
-      radius="l"
-      padding="xl"
-      shadow="l"
-    >
+    <Column gap="16">
       <Row gap="12" vertical="center" wrap>
         <Heading variant="display-strong-xs">
           Trade execution meets mentorship
@@ -393,14 +387,7 @@ function ReviewCadenceStack() {
 
 function AccountabilitySection() {
   return (
-    <Column
-      gap="20"
-      background="surface"
-      border="neutral-alpha-medium"
-      radius="l"
-      padding="xl"
-      shadow="m"
-    >
+    <Column gap="20">
       <SectionHeader
         title="Accountability cadence"
         description="Keep every trader aligned with shared objectives and transparent follow-ups."
@@ -446,20 +433,65 @@ function ResourceLinksSection() {
 export function DynamicTradeAndLearn() {
   return (
     <Column gap="32" fillWidth>
-      <WorkspaceHero />
-      <ReadinessSection />
-      <CadenceSection
-        title="Learning tracks"
-        description="Progress through structured playbooks that layer risk discipline, execution mastery, and automation fluency."
-        items={LEARNING_TRACKS}
-      />
-      <CadenceSection
-        title="Practice labs"
-        description="Convert insights into repetition with labs that mix automation, guided rehearsal, and live mentor feedback."
-        items={PRACTICE_LABS}
-      />
-      <AccountabilitySection />
-      <ResourceLinksSection />
+      <DeskSection
+        anchor="hero"
+        background="surface"
+        border="neutral-alpha-medium"
+        shadow="l"
+        width="compact"
+      >
+        <WorkspaceHero />
+      </DeskSection>
+      <DeskSection
+        anchor="readiness"
+        background="surface"
+        border="neutral-alpha-medium"
+        shadow="s"
+        width="wide"
+      >
+        <ReadinessSection />
+      </DeskSection>
+      <DeskSection
+        anchor="learning-tracks"
+        background="neutral-alpha-weak"
+        border="neutral-alpha-medium"
+        width="compact"
+      >
+        <CadenceSection
+          title="Learning tracks"
+          description="Progress through structured playbooks that layer risk discipline, execution mastery, and automation fluency."
+          items={LEARNING_TRACKS}
+        />
+      </DeskSection>
+      <DeskSection
+        anchor="practice-labs"
+        background="neutral-alpha-weak"
+        border="neutral-alpha-medium"
+        width="compact"
+      >
+        <CadenceSection
+          title="Practice labs"
+          description="Convert insights into repetition with labs that mix automation, guided rehearsal, and live mentor feedback."
+          items={PRACTICE_LABS}
+        />
+      </DeskSection>
+      <DeskSection
+        anchor="accountability"
+        background="surface"
+        border="neutral-alpha-medium"
+        shadow="s"
+        width="compact"
+      >
+        <AccountabilitySection />
+      </DeskSection>
+      <DeskSection
+        anchor="resources"
+        background="surface"
+        border="neutral-alpha-medium"
+        width="wide"
+      >
+        <ResourceLinksSection />
+      </DeskSection>
     </Column>
   );
 }
