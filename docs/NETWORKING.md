@@ -63,6 +63,9 @@ following guidance to expose the services and control access.
    the domain, raise the TTL to your steady-state value, and update OAuth
    callbacks, Telegram Mini App origins, and edge-function allow lists to
    reference `https://api.dynamiccapital.ton` alongside the legacy host.
+   - Export `EXTRA_CA_CERT_DATA` (or point `EXTRA_CA_CERT` at a PEM bundle) in
+     Supabase so edge functions can trust the gateway-issued certificate when
+     fetching `https://dynamiccapital.ton` via the new TLS helper.
 6. **Stream telemetry to the Web3 graph.** Emit a `custom_domain_activated`
    event to the Supabase `tx_logs` table, hash the DNS bundle, and publish the
    hash to the TON multisig memo so downstream analytics can verify the Web2 ↔

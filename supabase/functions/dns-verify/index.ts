@@ -1,5 +1,9 @@
 import { createClient } from "../_shared/client.ts";
 import { registerHandler } from "../_shared/serve.ts";
+import {
+  createHttpClientWithEnvCa,
+  type HttpClientContext,
+} from "../_shared/tls.ts";
 
 const JSON_HEADERS = { "content-type": "application/json" };
 const DEFAULT_SOURCE_URL = "https://dynamiccapital.ton/dns-records.json";
@@ -101,6 +105,8 @@ function collectDifferences(
 }
 
 export const handler = registerHandler(async (req) => {
+  let tlsContext: HttpClientContext | null = null;
+
   let body: VerifyRequest | null = null;
   if (req.method === "POST") {
     try {
@@ -148,8 +154,10 @@ export const handler = registerHandler(async (req) => {
 
   let remoteRecord: unknown;
   try {
+    tlsContext = await createHttpClientWithEnvCa();
     const response = await fetch(sourceUrl, {
       headers: { accept: "application/json" },
+      client: tlsContext?.client,
     });
     if (!response.ok) {
       return jsonResponse({
@@ -164,6 +172,8 @@ export const handler = registerHandler(async (req) => {
       { ok: false, message: "Failed to fetch DNS record" },
       502,
     );
+  } finally {
+    tlsContext?.client.close();
   }
 
   const actualRecord = normalise(remoteRecord);
