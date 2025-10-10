@@ -421,6 +421,111 @@ Deno.test("rejects subscription when TON transfer goes to different wallet", asy
   assertEquals(fetchCalls.length, 1);
 });
 
+Deno.test("skips burn phase when burn allocation is zero", async () => {
+  const request = new Request(
+    "https://example/functions/process-subscription",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        telegram_id: "7777",
+        plan: "vip_bronze",
+        tx_hash: "0xsomething",
+      }),
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+
+  const { client: supabaseStub, state } = createSupabaseStub(
+    {
+      operations_pct: 70,
+      autoinvest_pct: 30,
+      buyback_burn_pct: 0,
+      min_ops_pct: 60,
+      max_ops_pct: 80,
+      min_invest_pct: 20,
+      max_invest_pct: 40,
+      min_burn_pct: 0,
+      max_burn_pct: 10,
+      ops_treasury: "EQOPS",
+      dct_master: "EQMASTER",
+      dex_router: "EQROUTER",
+    },
+    {
+      user: { id: "user-3" },
+      wallet: { address: "EQLINKED" },
+    },
+  );
+
+  const fetchStub: typeof fetch = (input, init) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url.includes("/transactions/")) {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify(
+            tonIndexerResponse([
+              tonIndexerTransaction({
+                hash: "0xsomething",
+                destination: "EQOPS",
+                source: "EQLINKED",
+                amount: 1_200_000_000,
+              }),
+            ]),
+          ),
+          { status: 200 },
+        ),
+      );
+    }
+
+    if (url.includes("api.telegram.org")) {
+      return Promise.resolve(new Response("ok", { status: 200 }));
+    }
+
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  const swapCalls: Array<
+    Parameters<NonNullable<HandlerDependencies["dexSwap"]>>[0]
+  > = [];
+  const dexStub: NonNullable<HandlerDependencies["dexSwap"]> = async (
+    options,
+  ) => {
+    swapCalls.push(options);
+    const ton = Number(Math.max(options.tonAmount, 0).toFixed(9));
+    return {
+      tonAmount: ton,
+      dctAmount: Number((ton * options.tonToDctRate).toFixed(9)),
+      effectiveRate: options.tonToDctRate,
+    };
+  };
+
+  const burnStub: NonNullable<HandlerDependencies["burn"]> = async () => {
+    throw new Error("Burn phase should not execute");
+  };
+
+  const response = await handler(request, {
+    supabase: supabaseStub as HandlerDependencies["supabase"],
+    fetch: fetchStub,
+    dexSwap: dexStub,
+    burn: burnStub,
+  });
+
+  assertEquals(response.status, 200);
+  assertEquals(swapCalls.length, 1);
+  assertAlmostEquals(swapCalls[0].tonAmount, 0.36, 1e-9);
+  assertEquals(state.subscriptions.length, 1);
+  assertEquals(state.txLogs.length, 4);
+  const burnLog = state.txLogs.find((entry) =>
+    (entry as { kind?: string }).kind === "burn"
+  ) as { amount?: number } | undefined;
+  assert(burnLog);
+  assertAlmostEquals(Number(burnLog?.amount ?? 999), 0, 1e-9);
+});
+
 Deno.test("verifyTonPayment fails closed when indexer URL is missing", async () => {
   const original = Deno.env.get("TON_INDEXER_URL");
   try {
@@ -648,6 +753,12 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
 
   const notifications: Array<string> = [];
   const fetchCalls: Array<string> = [];
+  const swapCalls: Array<
+    Parameters<NonNullable<HandlerDependencies["dexSwap"]>>[0]
+  > = [];
+  const burnCalls: Array<
+    Parameters<NonNullable<HandlerDependencies["burn"]>>[0]
+  > = [];
   const fetchStub: typeof fetch = (input, init) => {
     const url = typeof input === "string"
       ? input
@@ -690,9 +801,31 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
     throw new Error(`Unexpected fetch call: ${url}`);
   };
 
+  const dexStub: NonNullable<HandlerDependencies["dexSwap"]> = async (
+    options,
+  ) => {
+    swapCalls.push(options);
+    const rate = options.tonToDctRate;
+    const ton = Number(Math.max(options.tonAmount, 0).toFixed(9));
+    return {
+      tonAmount: ton,
+      dctAmount: Number((ton * rate).toFixed(9)),
+      effectiveRate: rate,
+    };
+  };
+
+  const burnStub: NonNullable<HandlerDependencies["burn"]> = async (
+    options,
+  ) => {
+    burnCalls.push(options);
+    return { ok: true, txHash: "burn-hash" };
+  };
+
   const response = await handler(request, {
     supabase: supabaseStub as HandlerDependencies["supabase"],
     fetch: fetchStub,
+    dexSwap: dexStub,
+    burn: burnStub,
   });
 
   assertEquals(response.status, 200);
@@ -700,9 +833,52 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
   assertEquals(state.subscriptions.length, 1);
   assertEquals(state.stakes.length, 1);
   assertEquals(state.txLogs.length, 4);
+  assertEquals(swapCalls.length, 2);
+  assertAlmostEquals(swapCalls[0].tonAmount, 0.36, 1e-9);
+  assertAlmostEquals(swapCalls[0].tonToDctRate, 100, 1e-9);
+  assertAlmostEquals(swapCalls[1].tonAmount, 0.12, 1e-9);
+  assertAlmostEquals(swapCalls[1].tonToDctRate, 100, 1e-9);
+  assertEquals(burnCalls.length, 1);
+  assertAlmostEquals(burnCalls[0].amount, 12, 1e-9);
+  assertAlmostEquals(burnCalls[0].tonAmount ?? 0, 0.12, 1e-9);
 
   const payload = await response.json();
   assertEquals(payload.ok, true);
   assertEquals(Math.abs(payload.ton_paid - 1.2) < 1e-6, true);
   assertEquals(notifications.length, 1);
+
+  const insertedSubscription = state.subscriptions[0] as Record<
+    string,
+    unknown
+  >;
+  assertAlmostEquals(
+    Number(insertedSubscription.ton_paid ?? 0),
+    1.2,
+    1e-9,
+  );
+  assertAlmostEquals(
+    Number(insertedSubscription.dct_bought ?? 0),
+    36,
+    1e-9,
+  );
+  assertAlmostEquals(
+    Number(insertedSubscription.dct_burned ?? 0),
+    12,
+    1e-9,
+  );
+
+  const buybackLog = state.txLogs.find((entry) =>
+    (entry as { kind?: string }).kind === "buyback"
+  ) as { meta?: Record<string, unknown> } | undefined;
+  assert(buybackLog && buybackLog.meta);
+  assertAlmostEquals(Number(buybackLog.meta?.dctOut ?? 0), 36, 1e-9);
+  assertAlmostEquals(Number(buybackLog.meta?.rate ?? 0), 100, 1e-9);
+
+  const burnLog = state.txLogs.find((entry) =>
+    (entry as { kind?: string }).kind === "burn"
+  ) as { meta?: Record<string, unknown> } | undefined;
+  assert(burnLog && burnLog.meta);
+  assertAlmostEquals(Number(burnLog.meta?.tonSpent ?? 0), 0.12, 1e-9);
+  assertAlmostEquals(Number(burnLog.meta?.rate ?? 0), 100, 1e-9);
+  assertEquals(burnLog.meta?.txHash, "burn-hash");
 });
