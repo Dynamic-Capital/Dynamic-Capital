@@ -104,9 +104,17 @@ keep the TON surfaces aligned with the broader platform roadmap.
 
 1. Build the Mini App bundle with `npm run build:miniapp`; artifacts land in
    `apps/miniapp/.next` and can be exported for static hosting.
-2. Transform the output into a static directory using `next export` or the
-   `scripts/build-miniapp.sh` helper so it can be uploaded via TON Storage.
-3. Version the exported hash in Supabase (e.g., `tx_logs` with
+2. Stage the TON Site assets with `npm run ton:build-site-predeploy`. The
+   command snapshots the paths declared in
+   `dynamic-capital-ton/storage/manifest.json`, computes the SHA-256 expected by
+   the verification scripts, and writes upload-ready directories plus
+   `SUMMARY.md` guidance under `dynamic-capital-ton/storage/predeploy/`. If the
+   computed hash differs from the manifest, reconcile the value in both the
+   manifest and `docs/ton-storage-pins.md` after uploading the refreshed bundle.
+3. Transform any remaining dynamic output into a static directory using
+   `next export` or the `scripts/build-miniapp.sh` helper so it can be uploaded
+   via TON Storage.
+4. Version the exported hash in Supabase (e.g., `tx_logs` with
    `kind =
    'ton_site_publish'`) to keep provenance between commits and
    on-chain uploads.
