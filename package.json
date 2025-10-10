@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "npm run build:web && npm run build:landing",
-    "build:all": "npm run build && npm run build:miniapp",
+    "build:all": "node scripts/build-all.mjs",
     "build:tooling": "node scripts/build-tooling.mjs",
     "build:landing": "node scripts/npm-safe.mjs -w apps/landing run build",
     "build:web": "node scripts/npm-safe.mjs -w apps/web run build",
