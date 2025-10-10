@@ -18,6 +18,25 @@ keep the TON surfaces aligned with the broader platform roadmap.
 | Mini App TON manifest      | [dynamic-capital-ton/apps/miniapp/public/tonconnect-manifest.json](../dynamic-capital-ton/apps/miniapp/public/tonconnect-manifest.json) | Declares wallet metadata so TON Connect clients can authorize the Mini App.                                                                  |
 | Wallet scripting reference | [docs/ton-wallet-quickstart.md](./ton-wallet-quickstart.md)                                                                             | Sample code that demonstrates connecting to RPC endpoints, generating mnemonics, and instantiating TON wallets.                              |
 
+### TON Connect library map
+
+- **`@tonconnect/ui`** — Base UI kit that renders wallet lists, connect buttons,
+  and modal flows. It powers the shared components consumed by React and
+  non-React clients alike, and anchors the styling conventions we mirror in Mini
+  Apps.
+- **`@tonconnect/ui-react`** — React bindings we use in the web dashboard and
+  Mini App to wire wallet state into hooks like `useTonAddress`. It wraps the
+  base UI widgets with idiomatic React contexts so we can control bridge URLs,
+  storage, and reactivity without bespoke plumbing.
+- **`@tonconnect/sdk`** — Low-level TypeScript SDK that drives signature
+  requests, manifest validation, and session persistence in edge functions and
+  bots. Use it when building server-side integrations or custom clients that
+  need direct access to the protocol primitives without UI concerns.
+- **`@tonconnect/protocol`** — Type definitions for TON Connect payloads
+  (connect requests, bridge messages, device info). Import these models to keep
+  Supabase edge functions, tests, and automation strictly typed against the
+  official spec as the protocol evolves.
+
 ### Tooling & environment prerequisites
 
 - **Node.js 20+ with pnpm** — matches the monorepo engine requirements and is
