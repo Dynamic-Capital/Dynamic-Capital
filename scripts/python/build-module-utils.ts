@@ -2,6 +2,28 @@ import { access, readdir } from "node:fs/promises";
 import { constants as fsConstants } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
+const DIRECTORY_EXCLUSIONS = new Set([
+  ".git",
+  "node_modules",
+  ".venv",
+  "__pycache__",
+  "dist",
+  "build",
+  "dynamic_build_stub",
+]);
+
+function shouldSkipDirectory(name: string): boolean {
+  if (DIRECTORY_EXCLUSIONS.has(name)) {
+    return true;
+  }
+
+  if (name.startsWith(".")) {
+    return true;
+  }
+
+  return false;
+}
+
 export interface PackageInfo {
   name: string;
   path: string;
@@ -34,27 +56,42 @@ export async function listCandidatePackages(
   prefix: string,
 ): Promise<PackageInfo[]> {
   const absoluteRoot = resolve(root);
-  const entries = await readdir(absoluteRoot, { withFileTypes: true });
   const candidates: PackageInfo[] = [];
+  const visited = new Set<string>();
 
-  for (const entry of entries) {
-    if (!entry.isDirectory()) {
-      continue;
+  async function traverse(currentPath: string): Promise<void> {
+    const entries = await readdir(currentPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+      if (!entry.isDirectory()) {
+        continue;
+      }
+
+      if (shouldSkipDirectory(entry.name)) {
+        continue;
+      }
+
+      const resolvedPath = join(currentPath, entry.name);
+      if (visited.has(resolvedPath)) {
+        continue;
+      }
+      visited.add(resolvedPath);
+
+      if (entry.name.startsWith(prefix)) {
+        const initPath = join(resolvedPath, "__init__.py");
+        if (await pathExists(initPath)) {
+          candidates.push({ name: entry.name, path: resolvedPath });
+          // Continue walking to catch nested packages if they exist.
+        }
+      }
+
+      await traverse(resolvedPath);
     }
-
-    if (!entry.name.startsWith(prefix)) {
-      continue;
-    }
-
-    const packagePath = join(absoluteRoot, entry.name);
-    if (!(await pathExists(join(packagePath, "__init__.py")))) {
-      continue;
-    }
-
-    candidates.push({ name: entry.name, path: packagePath });
   }
 
-  return candidates;
+  await traverse(absoluteRoot);
+
+  return candidates.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function findMissingBuildModules(

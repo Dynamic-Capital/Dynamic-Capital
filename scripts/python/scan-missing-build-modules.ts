@@ -14,6 +14,8 @@ interface CliOptions {
   root: string;
   prefix: string;
   json: boolean;
+  packages: string[];
+  failOnMissing: boolean;
 }
 
 function parseArgs(argv: string[]): CliOptions {
@@ -21,6 +23,8 @@ function parseArgs(argv: string[]): CliOptions {
     root: resolve(dirname(fileURLToPath(import.meta.url)), "..", ".."),
     prefix: DEFAULT_PREFIX,
     json: false,
+    packages: [],
+    failOnMissing: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -48,6 +52,21 @@ function parseArgs(argv: string[]): CliOptions {
 
     if (value === "--json") {
       options.json = true;
+      continue;
+    }
+
+    if (value === "--package" || value === "-p") {
+      const next = argv[index + 1];
+      if (!next) {
+        throw new Error("--package flag requires a package name");
+      }
+      options.packages.push(next);
+      index += 1;
+      continue;
+    }
+
+    if (value === "--fail-on-missing") {
+      options.failOnMissing = true;
       continue;
     }
 
@@ -91,7 +110,24 @@ async function main(): Promise<void> {
       options.root,
       options.prefix,
     );
-    const missing = await findMissingBuildModules(candidates, options.root);
+    const filteredCandidates = options.packages.length === 0
+      ? candidates
+      : candidates.filter((pkg) => options.packages.includes(pkg.name));
+
+    const missingSelections = options.packages.filter((name) =>
+      !candidates.some((pkg) => pkg.name === name)
+    );
+
+    if (missingSelections.length > 0) {
+      console.warn(
+        `Requested packages not found: ${missingSelections.join(", ")}`,
+      );
+    }
+
+    const missing = await findMissingBuildModules(
+      filteredCandidates,
+      options.root,
+    );
 
     if (options.json) {
       const normalized = missing.map((item) => ({
@@ -102,10 +138,16 @@ async function main(): Promise<void> {
       console.log(
         JSON.stringify({ root: options.root, missing: normalized }, null, 2),
       );
+      if (options.failOnMissing && missing.length > 0) {
+        process.exitCode = 1;
+      }
       return;
     }
 
     printHumanReport(options.root, missing);
+    if (options.failOnMissing && missing.length > 0) {
+      process.exitCode = 1;
+    }
   } catch (error) {
     console.error("Failed to scan for build modules:");
     console.error(error instanceof Error ? error.message : error);
