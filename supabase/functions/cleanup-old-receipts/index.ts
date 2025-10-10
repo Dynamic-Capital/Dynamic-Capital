@@ -146,7 +146,7 @@ export const handler = registerHandler(async (req) => {
     const safeError = toSafeError(error);
     logStep("ERROR in cleanup", { message: safeError.message, reference });
 
-    return internalError(error, {
+    return internalError(safeError, {
       req,
       message: "Cleanup failed.",
       extra: { success: false },

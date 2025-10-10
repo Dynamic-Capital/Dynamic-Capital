@@ -128,7 +128,7 @@ export const handler = registerHandler(async (req) => {
   } catch (error) {
     const safeError = toSafeError(error);
     console.error("Feature flag configuration error", safeError);
-    return internalError(error, {
+    return internalError(safeError, {
       req,
       message: "Failed to process configuration request.",
       safeError,

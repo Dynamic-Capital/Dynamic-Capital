@@ -36,10 +36,25 @@ async function callTelegram(
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/${method}`;
   try {
     const safePayload = { ...payload };
-    let originalText: string | undefined;
-    if (typeof safePayload.text === "string") {
-      originalText = safePayload.text;
+    const originalContent: {
+      text?: string;
+      caption?: string;
+    } = {};
+
+    const parseMode = typeof safePayload.parse_mode === "string"
+      ? safePayload.parse_mode
+      : undefined;
+    const shouldSanitizeMarkdown = !retryWithPlainText &&
+      parseMode === "MarkdownV2";
+
+    if (shouldSanitizeMarkdown && typeof safePayload.text === "string") {
+      originalContent.text = safePayload.text;
       safePayload.text = sanitizeMarkdown(safePayload.text);
+    }
+
+    if (shouldSanitizeMarkdown && typeof safePayload.caption === "string") {
+      originalContent.caption = safePayload.caption;
+      safePayload.caption = sanitizeMarkdown(safePayload.caption);
     }
 
     const response = await fetch(url, {
@@ -54,12 +69,15 @@ async function callTelegram(
       // If markdown parsing failed and we haven't retried yet, try with plain text
       if (
         errorData.includes("can't parse entities") && !retryWithPlainText &&
-        payload.parse_mode === "MarkdownV2"
+        parseMode === "MarkdownV2"
       ) {
         console.log("Retrying with plain text due to markdown parsing error");
         const plainPayload = {
           ...payload,
-          text: originalText ?? payload.text,
+          ...(originalContent.text ? { text: originalContent.text } : {}),
+          ...(originalContent.caption
+            ? { caption: originalContent.caption }
+            : {}),
           parse_mode: undefined,
         };
         return callTelegram(method, plainPayload, true);

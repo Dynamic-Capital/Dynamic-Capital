@@ -35,7 +35,7 @@ export const handler = registerHandler(async (req) => {
       `Failed to cleanup webhook updates [${reference}]`,
       safeError,
     );
-    return internalError(error, {
+    return internalError(safeError, {
       req,
       message: "Cleanup failed.",
       extra: { success: false },
