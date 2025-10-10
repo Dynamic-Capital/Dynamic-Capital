@@ -11,6 +11,28 @@ type TelemetryState = {
   prometheusExporter?: PrometheusExporter;
 };
 
+type ResourceInstance = {
+  merge: (other: ResourceInstance) => ResourceInstance;
+};
+
+type ResourceConstructor = {
+  new (attributes?: Record<string, unknown>): ResourceInstance;
+  default: () => ResourceInstance;
+};
+
+type SDKMetricsModuleShape = {
+  MeterProvider: new (...args: unknown[]) => MeterProvider;
+  InstrumentType: Record<string, unknown>;
+  ExplicitBucketHistogramAggregation: new (...args: unknown[]) => unknown;
+  View: new (...args: unknown[]) => unknown;
+};
+
+type ResourcesModuleShape = { Resource: ResourceConstructor };
+
+type SemanticConventionsModuleShape = {
+  SemanticResourceAttributes: Record<string, string>;
+};
+
 type SentryFacade = {
   init?: (options: Record<string, unknown>) => void;
   getCurrentHub?: () => { getClient?: () => unknown } | undefined;
@@ -26,6 +48,48 @@ const telemetryState = globalTelemetryState.__dynamicCapitalTelemetry;
 
 let getPrometheusExporterImpl: () => Promise<PrometheusExporter | undefined> =
   async () => undefined;
+
+function isSDKMetricsModule(
+  module: unknown,
+): module is SDKMetricsModuleShape {
+  if (!module || typeof module !== "object") {
+    return false;
+  }
+
+  const candidate = module as Record<string, unknown>;
+
+  return (
+    typeof candidate.MeterProvider === "function" &&
+    typeof candidate.InstrumentType === "object" &&
+    typeof candidate.View === "function" &&
+    typeof candidate.ExplicitBucketHistogramAggregation === "function"
+  );
+}
+
+function isResourcesModule(module: unknown): module is ResourcesModuleShape {
+  if (!module || typeof module !== "object") {
+    return false;
+  }
+
+  const candidate = module as Record<string, unknown>;
+  const resource = candidate.Resource as ResourceConstructor | undefined;
+
+  return (
+    typeof resource === "function" &&
+    typeof resource.default === "function"
+  );
+}
+
+function isSemanticConventionsModule(
+  module: unknown,
+): module is SemanticConventionsModuleShape {
+  return (
+    !!module &&
+    typeof module === "object" &&
+    typeof (module as Record<string, unknown>).SemanticResourceAttributes ===
+      "object"
+  );
+}
 
 const registerImpl: () => Promise<void> = (() => {
   if (process.env.NEXT_RUNTIME === "edge") {
@@ -213,20 +277,44 @@ const registerImpl: () => Promise<void> = (() => {
       ],
     });
 
-    const [
-      {
-        ExplicitBucketHistogramAggregation,
-        InstrumentType,
-        MeterProvider: SDKMeterProvider,
-        View,
-      },
-      { Resource },
-      { SemanticResourceAttributes },
-    ] = await Promise.all([
-      loadSDKMetricsModule(),
-      loadResourcesModule(),
-      loadSemanticConventionsModule(),
-    ]);
+    const [sdkMetricsModule, resourcesModule, semanticConventionsModule] =
+      await Promise.all([
+        loadSDKMetricsModule(),
+        loadResourcesModule(),
+        loadSemanticConventionsModule(),
+      ]);
+
+    if (!isSDKMetricsModule(sdkMetricsModule)) {
+      if (!isProduction) {
+        console.warn("[telemetry] SDK metrics module missing expected exports");
+      }
+      return;
+    }
+
+    if (!isResourcesModule(resourcesModule)) {
+      if (!isProduction) {
+        console.warn("[telemetry] Resources module missing expected exports");
+      }
+      return;
+    }
+
+    if (!isSemanticConventionsModule(semanticConventionsModule)) {
+      if (!isProduction) {
+        console.warn(
+          "[telemetry] Semantic conventions module missing expected exports",
+        );
+      }
+      return;
+    }
+
+    const {
+      ExplicitBucketHistogramAggregation,
+      InstrumentType,
+      MeterProvider: SDKMeterProvider,
+      View,
+    } = sdkMetricsModule;
+    const { Resource } = resourcesModule;
+    const { SemanticResourceAttributes } = semanticConventionsModule;
 
     const resource = Resource.default().merge(
       new Resource({
