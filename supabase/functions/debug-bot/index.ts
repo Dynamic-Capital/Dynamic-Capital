@@ -115,7 +115,7 @@ export const handler = registerHandler(async (req) => {
   } catch (error) {
     const safeError = toSafeError(error);
     logger.error("🚨 Debug error:", safeError);
-    return internalError(safeError.message, {
+    return internalError(error, {
       req,
       message: "Failed to execute debug inspection.",
       extra: {
@@ -123,6 +123,7 @@ export const handler = registerHandler(async (req) => {
         timestamp: new Date().toISOString(),
       },
       headers: { ...corsHeaders, "Content-Type": "application/json" },
+      safeError,
     });
   }
 });

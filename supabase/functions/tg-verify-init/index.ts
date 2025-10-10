@@ -66,8 +66,9 @@ async function handler(req: Request): Promise<Response> {
   } catch (error) {
     const safeError = toSafeError(error);
     console.error("Failed to initialize Telegram verification", safeError);
-    return internalError(safeError.message, {
+    return internalError(error, {
       message: "Failed to initialize verification session.",
+      safeError,
     });
   }
 }

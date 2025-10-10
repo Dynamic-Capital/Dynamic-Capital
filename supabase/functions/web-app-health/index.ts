@@ -6,7 +6,7 @@ import {
   healthResponse,
   measureHealthCheck,
 } from "../_shared/health.ts";
-import { toSafeError } from "../_shared/http.ts";
+import { createErrorReference, toSafeError } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 
 export async function handler(req: Request): Promise<Response> {
@@ -102,7 +102,7 @@ export async function handler(req: Request): Promise<Response> {
 
     return healthResponse(health, req, ["GET"]);
   } catch (error) {
-    const reference = crypto.randomUUID();
+    const reference = createErrorReference();
     const safeError = toSafeError(error);
     console.error(`web-app-health failure [${reference}]`, safeError);
     const fallback = buildHealthReport([

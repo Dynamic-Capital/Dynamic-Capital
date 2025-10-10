@@ -58,8 +58,9 @@ export async function handler(req: Request): Promise<Response> {
   } catch (error) {
     const safeError = toSafeError(error);
     console.error("Failed to persist theme preference", safeError);
-    return internalError(safeError.message, {
+    return internalError(error, {
       message: "Unable to persist theme preference.",
+      safeError,
     });
   }
 }

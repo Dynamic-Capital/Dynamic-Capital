@@ -304,12 +304,15 @@ const nextErrorReference = () => {
   return `err-${Date.now().toString(36)}-${errorReferenceCounter}`;
 };
 
+export const createErrorReference = () => nextErrorReference();
+
 type InternalErrorOptions = {
   req?: Request;
   message?: string;
   extra?: Record<string, unknown>;
   headers?: HeadersInit;
   reference?: string;
+  safeError?: SafeError;
 };
 
 export type SafeError = {
@@ -355,7 +358,7 @@ export const internalError = (
   options: InternalErrorOptions = {},
 ) => {
   const reference = options.reference ?? nextErrorReference();
-  const safeError = toSafeError(error);
+  const safeError = options.safeError ?? toSafeError(error);
   console.error(`[internal-error:${reference}]`, safeError);
   const { req, message = "Internal server error", extra, headers } = options;
   return jsonResponse(

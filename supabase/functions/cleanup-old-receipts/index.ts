@@ -1,5 +1,9 @@
 import { createClient } from "../_shared/client.ts";
-import { internalError, toSafeError } from "../_shared/http.ts";
+import {
+  createErrorReference,
+  internalError,
+  toSafeError,
+} from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
@@ -138,16 +142,17 @@ export const handler = registerHandler(async (req) => {
       },
     );
   } catch (error) {
-    const reference = crypto.randomUUID();
+    const reference = createErrorReference();
     const safeError = toSafeError(error);
     logStep("ERROR in cleanup", { message: safeError.message, reference });
 
-    return internalError(safeError.message, {
+    return internalError(error, {
       req,
       message: "Cleanup failed.",
       extra: { success: false },
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       reference,
+      safeError,
     });
   }
 });
