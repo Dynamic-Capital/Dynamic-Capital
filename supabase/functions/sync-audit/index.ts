@@ -1,3 +1,4 @@
+import { registerHandler } from "../_shared/serve.ts";
 // supabase/functions/sync-audit/index.ts
 // Audits bot/miniapp linkage and optionally fixes drift.
 
@@ -192,6 +193,6 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-Deno.serve(handler);
+registerHandler(handler);
 
 export default handler;

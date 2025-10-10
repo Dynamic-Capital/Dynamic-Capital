@@ -1,7 +1,6 @@
 // Lorentzian Eval Edge Function
 // Deploy with: supabase functions deploy lorentzian-eval --allow-import
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // Removed problematic pickle import - function disabled until proper parser available
 
@@ -10,6 +9,7 @@ import {
   computeVolatility,
   deriveFibonacciAnchors,
 } from "../_shared/sl_tp.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -159,7 +159,7 @@ async function getLatestModelPath(): Promise<string> {
 
 async function loadModel(): Promise<LorentzianModel> {
   throw new Error(
-    "Model loading temporarily disabled - pickle parser requires --allow-import flag. Deploy with: supabase functions deploy lorentzian-eval --allow-import"
+    "Model loading temporarily disabled - pickle parser requires --allow-import flag. Deploy with: supabase functions deploy lorentzian-eval --allow-import",
   );
 }
 
@@ -191,7 +191,7 @@ function evaluateSignal(model: LorentzianModel, prices: number[]) {
   return { signal, confidence, score: z };
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   try {
     if (req.method !== "POST") {
       return jsonResponse({ error: "Method not allowed" }, 405);
@@ -273,3 +273,5 @@ serve(async (req) => {
     }, 500);
   }
 });
+
+export default handler;

@@ -2,6 +2,7 @@ import { bad, mna, ok, unauth } from "../_shared/http.ts";
 import { recomputeVipForUser } from "../_shared/vip_sync.ts";
 import { createClient } from "../_shared/client.ts";
 import { optionalEnv } from "../_shared/env.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const ADMIN_SECRET = optionalEnv("ADMIN_API_SECRET");
 
@@ -73,6 +74,4 @@ async function handler(req: Request): Promise<Response> {
 }
 
 export default handler;
-if (import.meta.main) {
-  Deno.serve(handler);
-}
+registerHandler(handler);

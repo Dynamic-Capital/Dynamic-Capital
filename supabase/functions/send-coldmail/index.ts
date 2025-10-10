@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { registerHandler } from "../_shared/serve.ts";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -300,7 +300,7 @@ async function claimLead(lead: Lead): Promise<boolean> {
   return Boolean(data?.id);
 }
 
-serve(async () => {
+export const handler = registerHandler(async () => {
   const { data: leads, error: leadErr } = await supabase
     .from("leads")
     .select("*")
@@ -340,3 +340,5 @@ serve(async () => {
     },
   );
 });
+
+export default handler;

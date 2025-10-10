@@ -11,6 +11,7 @@ import {
   getFormattedVipPackages,
   getVipPackages,
 } from "./database-utils.ts";
+import { registerHandler } from "../_shared/serve.ts";
 import { createClient } from "../_shared/client.ts";
 type SupabaseClient = ReturnType<typeof createClient>;
 import {
@@ -2139,6 +2140,4 @@ export async function serveWebhook(req: Request): Promise<Response> {
 
 export { answerCallbackQuery, editMessage, sendMessage };
 export default serveWebhook;
-if (import.meta.main) {
-  Deno.serve(serveWebhook);
-}
+registerHandler(serveWebhook);

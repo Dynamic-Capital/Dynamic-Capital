@@ -1,5 +1,5 @@
+import { registerHandler } from "../_shared/serve.ts";
 // >>> DC BLOCK: theme-save-core (start)
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { internalError, toSafeError } from "../_shared/http.ts";
 import { optionalEnv, requireEnv } from "../_shared/env.ts";
 
@@ -65,7 +65,7 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;
 // <<< DC BLOCK: theme-save-core (end)

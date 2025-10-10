@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { optionalEnv } from "../_shared/env.ts";
 import { bad, ok } from "../_shared/http.ts";
 import { RealtimeClient } from "https://raw.githubusercontent.com/openai/openai-realtime-api-beta/refs/heads/main/lib/client.js";
+import { registerHandler } from "../_shared/serve.ts";
 
 type Timer = ReturnType<typeof setInterval>;
 
@@ -262,6 +262,4 @@ async function handler(req: Request) {
 
 export default handler;
 
-if (import.meta.main && typeof Deno !== "undefined") {
-  serve(handler);
-}
+registerHandler(handler);

@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
 import { createClient } from "../_shared/client.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
 const supabase = createClient("service");
@@ -208,6 +208,4 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
 
 export default handler;
 
-if (import.meta.main) {
-  serve(handler);
-}
+registerHandler(handler);

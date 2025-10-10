@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { getEnv } from "../_shared/env.ts";
 import { createLogger } from "../_shared/logger.ts";
 import { json, mna } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,7 +75,7 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 addEventListener("beforeunload", () => {
   stopKeepAlive();

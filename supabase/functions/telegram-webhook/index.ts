@@ -4,6 +4,7 @@ import { createLogger } from "../_shared/logger.ts";
 import { envOrSetting, getContent } from "../_shared/config.ts";
 import { readMiniAppEnv } from "../_shared/miniapp.ts";
 import { createClient } from "../_shared/client.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 interface TelegramMessage {
   text?: string;
@@ -233,12 +234,5 @@ export async function handler(req: Request): Promise<Response> {
 }
 
 // Start the HTTP server when run as a standalone script in Deno.
+registerHandler(handler);
 export default handler;
-if (import.meta.main && typeof Deno !== "undefined") {
-  // Use a dynamic import so the module can also be loaded in Node tests
-  // where the Deno standard library is unavailable.
-  const { serve } = await import(
-    "https://deno.land/std@0.224.0/http/server.ts"
-  );
-  serve(handler);
-}

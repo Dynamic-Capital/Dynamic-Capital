@@ -1,10 +1,10 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { need, optionalEnv } from "../_shared/env.ts";
 import { mna, ok, oops } from "../_shared/http.ts";
 import {
   cloneTelegramAllowedUpdates,
   ensureWebhookSecret,
 } from "../_shared/telegram_secret.ts";
+import { registerHandler } from "../_shared/serve.ts";
 import { createClient } from "../_shared/client.ts";
 import { version } from "../_shared/version.ts";
 import { telegramWebhookUrl } from "../_shared/edge.ts";
@@ -95,6 +95,6 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;

@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std/http/server.ts";
 import { verifyMessage } from "https://esm.sh/@tonconnect/sdk@2"; // or use ton-crypto Ed25519 verify
+import { registerHandler } from "../_shared/serve.ts";
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   try {
     const dnsUrl = "https://dynamiccapital.ton/dns-records.txt";
     const dnsTxt = await fetch(dnsUrl).then((r) => r.text());
@@ -34,3 +34,5 @@ serve(async (req) => {
     });
   }
 });
+
+export default handler;

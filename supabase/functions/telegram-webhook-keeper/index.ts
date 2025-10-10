@@ -4,6 +4,7 @@ import {
   cloneTelegramAllowedUpdates,
   expectedSecret,
 } from "../_shared/telegram_secret.ts";
+import { registerHandler } from "../_shared/serve.ts";
 import { envOrSetting } from "../_shared/config.ts";
 import { telegramWebhookUrl } from "../_shared/edge.ts";
 
@@ -117,8 +118,5 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) {
-  Deno.serve(handler);
-}
-
+registerHandler(handler);
 export default handler;

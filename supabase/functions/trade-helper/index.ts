@@ -1,8 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
 import { json, mna } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
 
@@ -123,6 +123,6 @@ Remember to keep this educational and include proper risk disclaimers.`;
   }
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;

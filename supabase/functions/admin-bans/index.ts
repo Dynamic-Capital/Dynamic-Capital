@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { isAdmin, verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { bad, mna, ok, unauth } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 export async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
@@ -56,6 +56,6 @@ export async function handler(req: Request): Promise<Response> {
   return bad("Bad Request");
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;

@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { bad, methodNotAllowed, ok, oops } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 interface TrafficEvent {
   path: string;
@@ -88,5 +88,5 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 export default handler;

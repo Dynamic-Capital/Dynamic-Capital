@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { getEnv } from "../_shared/env.ts";
 import { bad, mna, ok, unauth } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 function hex(buffer: ArrayBuffer): string {
   return Array.from(new Uint8Array(buffer))
@@ -67,6 +67,4 @@ async function handler(req: Request) {
 
 export default handler;
 
-if (import.meta.main && typeof Deno !== "undefined") {
-  serve(handler);
-}
+registerHandler(handler);
