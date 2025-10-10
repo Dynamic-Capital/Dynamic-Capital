@@ -5,6 +5,7 @@ import { mnemonicToPrivateKey, sign } from "ton-crypto";
 import {
   TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
   TON_MAINNET_DEDUST_DCT_TON_POOL,
+  TON_MAINNET_DAO_MULTISIG,
   TON_MAINNET_DCT_TREASURY_ALIAS,
   TON_MAINNET_DCT_TREASURY_WALLET,
   TON_MAINNET_DCT_WALLET_V5R1,
@@ -152,7 +153,7 @@ async function main() {
     jetton_tonviewer: TON_VIEWER_JETTON_URL,
     jetton_tonscan: TONSCAN_JETTON_URL,
     jetton_dyor: DYOR_JETTON_URL,
-    dao_contract: "EQDAOxyz...daoAddr",
+    dao_contract: TON_MAINNET_DAO_MULTISIG,
     metadata: METADATA_URL,
     metadata_fallback: "https://dynamic.capital/jetton-metadata.json",
     api: "https://api.dynamiccapital.ton",

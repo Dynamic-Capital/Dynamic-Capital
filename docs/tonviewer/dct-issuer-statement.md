@@ -5,7 +5,7 @@
 Dynamic Capital attests that the Dynamic Capital Token (DCT) is the official
 governance and utility token for the Dynamic Capital ecosystem. The token
 contract resides at
-`0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7` on the TON
+`0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38` on the TON
 blockchain.
 
 ## Token Details

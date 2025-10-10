@@ -29,7 +29,7 @@ filters.
 ```bash
 curl -s "https://toncenter.com/api/v3/actions" \
   --get \
-  --data-urlencode "account=EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD" \
+  --data-urlencode "account=UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G" \
   --data-urlencode "limit=10" \
   --data-urlencode "sort=desc"
 ```
@@ -43,7 +43,7 @@ from dynamic_ton.data_pipeline import TonDataCollector
 async def main() -> None:
     collector = TonDataCollector()
     actions = await collector.fetch_account_actions(
-        account="EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
+        account="UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
         limit=10,
         include_accounts=True,
     )
