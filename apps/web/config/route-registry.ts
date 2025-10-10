@@ -225,20 +225,26 @@ const ROUTE_DEFINITIONS = [
         "Sync portfolios, automate withdrawals, and steer allocations across Dynamic Capital strategies.",
     },
     workspace: {
-      eyebrow: "Dynamic desk",
-      title: "Investor portfolio workspace",
+      eyebrow: "Investor desk",
+      title: "Copy trading & mentorship workspace",
       description:
-        "Monitor allocations, readiness criteria, and TON settlement flows for every connected strategy.",
+        "Choose automation or guided learning, keep risk guardrails visible, and withdraw on your own schedule.",
       tags: [
-        { label: "Portfolio", tone: "accent" },
-        { label: "Automation", tone: "neutral" },
+        { label: "Automation guardrails", tone: "neutral" },
+        { label: "Mentor support", tone: "accent" },
       ],
       actions: [
         {
-          label: "Open VIP plans",
+          label: "Start in checkout",
+          href: "/checkout",
+          icon: LogIn,
+          emphasis: "primary",
+        },
+        {
+          label: "View pricing",
           href: "/plans",
           icon: Star,
-          emphasis: "secondary",
+          emphasis: "ghost",
         },
       ],
     },
@@ -258,6 +264,7 @@ const ROUTE_DEFINITIONS = [
     },
     footer: [
       { group: "workspace", order: 3 },
+      { group: "quick", order: 4 },
     ],
   },
   {

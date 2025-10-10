@@ -1,0 +1,21 @@
+.section {
+  --section-width: min(64rem, 100%);
+  --section-gap: clamp(1.75rem, 3.5vw, 2.5rem);
+
+  width: 100%;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+  max-width: var(--section-width);
+}
+
+.sectionWide {
+  --section-width: min(72rem, 100%);
+  --section-gap: clamp(2rem, 3.5vw, 3rem);
+}
+
+.sectionCompact {
+  --section-width: min(60rem, 100%);
+  --section-gap: clamp(1.5rem, 3vw, 2.25rem);
+}
