@@ -109,7 +109,16 @@ export function DynamicAIChat({
   );
   const [isLoadingPlaybook, setIsLoadingPlaybook] = useState(false);
   const messageIdsRef = useRef<Set<string>>(new Set());
+  const loadRequestRef = useRef(0);
+  const messagesRef = useRef<DisplayMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (sessionId && sessionId !== activeSessionId) {
@@ -156,7 +165,23 @@ export function DynamicAIChat({
     scrollToBottom();
   }, [messages.length, scrollToBottom]);
 
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  const createTempId = useCallback(() => {
+    if (
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ) {
+      return crypto.randomUUID();
+    }
+
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }, []);
+
   const loadMessages = useCallback(async (targetSession: string) => {
+    const requestId = loadRequestRef.current + 1;
+    loadRequestRef.current = requestId;
     try {
       setIsHistoryLoading(true);
       const { data, error } = await supabase
@@ -176,13 +201,20 @@ export function DynamicAIChat({
         created_at: entry.created_at as string,
       }));
 
+      if (loadRequestRef.current !== requestId) {
+        return;
+      }
+
       messageIdsRef.current = new Set(ordered.map((item) => item.id));
+      messagesRef.current = ordered;
       setMessages(ordered);
     } catch (error) {
       console.error("Failed to load chat history", error);
       toast.error("Unable to load chat history");
     } finally {
-      setIsHistoryLoading(false);
+      if (loadRequestRef.current === requestId) {
+        setIsHistoryLoading(false);
+      }
     }
   }, []);
 
@@ -191,6 +223,7 @@ export function DynamicAIChat({
       void loadMessages(activeSessionId);
     } else {
       setMessages([]);
+      messagesRef.current = [];
       messageIdsRef.current.clear();
     }
   }, [activeSessionId, loadMessages]);
@@ -225,10 +258,20 @@ export function DynamicAIChat({
   }, []);
 
   const handleRealtimeUpdate = useCallback((updated: ChatMessage) => {
-    messageIdsRef.current.add(updated.id);
-    setMessages((previous) =>
-      previous.map((msg) => msg.id === updated.id ? { ...updated } : msg)
-    );
+    if (!messageIdsRef.current.has(updated.id)) {
+      messageIdsRef.current.add(updated.id);
+    }
+
+    setMessages((previous) => {
+      const exists = previous.some((msg) => msg.id === updated.id);
+      if (!exists) {
+        return previous;
+      }
+
+      return previous.map((msg) =>
+        msg.id === updated.id ? { ...msg, ...updated } : msg
+      );
+    });
   }, []);
 
   const handleRealtimeDelete = useCallback((removed: ChatMessage) => {
@@ -251,7 +294,7 @@ export function DynamicAIChat({
     if (service !== "ags") return;
     if (agsPlaybook || isLoadingPlaybook) return;
 
-    const controller = new AbortController();
+    let isActive = true;
 
     const fetchPlaybook = async () => {
       try {
@@ -267,19 +310,26 @@ export function DynamicAIChat({
           },
         );
         if (error) throw error;
-        if (!data) return;
+        if (!data || !isMountedRef.current || !isActive) return;
         setAgsPlaybook(data as AgsPlaybookHighlight);
       } catch (error) {
         console.error("Failed to load AGS playbook", error);
         toast.error("Unable to load AGS playbook context");
       } finally {
-        setIsLoadingPlaybook(false);
+        if (isActive && isMountedRef.current) {
+          setIsLoadingPlaybook(false);
+        }
       }
     };
 
     void fetchPlaybook();
 
-    return () => controller.abort();
+    return () => {
+      isActive = false;
+      if (isMountedRef.current) {
+        setIsLoadingPlaybook(false);
+      }
+    };
   }, [service, agsPlaybook, isLoadingPlaybook]);
 
   const handleServiceChange = useCallback((value: string) => {
@@ -292,6 +342,10 @@ export function DynamicAIChat({
   }, [isPresenceTracking, updatePresence]);
 
   const sendMessage = useCallback(async () => {
+    if (isSending) {
+      return;
+    }
+
     if (!user) {
       toast.error("Please sign in to chat");
       return;
@@ -300,11 +354,11 @@ export function DynamicAIChat({
     const trimmed = input.trim();
     if (!trimmed) return;
 
-    const historyPayload = messages
+    const historyPayload = messagesRef.current
       .filter((msg) => !msg.pending && !msg.id.startsWith("temp-"))
       .map((msg) => ({ role: msg.role, content: msg.content }));
 
-    const optimisticId = `temp-${crypto.randomUUID()}`;
+    const optimisticId = `temp-${createTempId()}`;
     const timestamp = new Date().toISOString();
 
     const optimisticMessage: DisplayMessage = {
@@ -370,7 +424,7 @@ export function DynamicAIChat({
       }
 
       if (payload?.message && !fetchedNewSession) {
-        const assistantTempId = `temp-${crypto.randomUUID()}`;
+        const assistantTempId = `temp-${createTempId()}`;
         const assistantMessage: DisplayMessage = {
           id: assistantTempId,
           session_id: payload.session_id ?? activeSessionId ?? "pending",
@@ -409,7 +463,6 @@ export function DynamicAIChat({
   }, [
     user,
     input,
-    messages,
     activeSessionId,
     service,
     isPresenceTracking,
@@ -417,6 +470,8 @@ export function DynamicAIChat({
     presenceMetadata,
     onSessionChange,
     loadMessages,
+    createTempId,
+    isSending,
   ]);
 
   const handleInputKeyDown = useCallback(

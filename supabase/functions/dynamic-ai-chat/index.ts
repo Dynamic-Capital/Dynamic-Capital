@@ -18,7 +18,10 @@ const corsHeaders = {
 };
 
 const LOVABLE_ENDPOINT = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const LOVABLE_TIMEOUT_MS = 45_000;
 const MAX_HISTORY = 12;
+const MAX_MESSAGE_LENGTH = 8_192;
+const MAX_SESSION_TITLE_LENGTH = 80;
 
 type ServiceName = "ai" | "agi" | "ags";
 
@@ -107,6 +110,23 @@ function sanitiseHistory(history: ChatMessage[] = []): ChatMessage[] {
     .slice(-MAX_HISTORY);
 }
 
+function serialiseMetadata(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  try {
+    const cloned = JSON.parse(JSON.stringify(value));
+    if (!cloned || typeof cloned !== "object" || Array.isArray(cloned)) {
+      return null;
+    }
+
+    return cloned as Record<string, unknown>;
+  } catch (_error) {
+    return null;
+  }
+}
+
 registerHandler(async (req: Request): Promise<Response> => {
   const logger = createLogger({
     function: "dynamic-ai-chat",
@@ -153,22 +173,49 @@ registerHandler(async (req: Request): Promise<Response> => {
       });
     }
 
-    const body = await req.json() as ChatRequestBody;
-    const message = body.message?.trim();
-    if (!message) {
+    let body: ChatRequestBody;
+    try {
+      body = await req.json() as ChatRequestBody;
+    } catch (error) {
+      logger.error("Invalid JSON payload", error);
+      return new Response(JSON.stringify({ error: "Invalid JSON payload" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const rawMessage = typeof body.message === "string"
+      ? body.message.trim()
+      : "";
+    if (!rawMessage) {
       return new Response(JSON.stringify({ error: "Message is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const rawService = body.service?.toLowerCase?.() as ServiceName | undefined;
+    const message = rawMessage.slice(0, MAX_MESSAGE_LENGTH);
+    if (rawMessage.length > message.length) {
+      logger.warn("Message truncated to max length", {
+        provided: rawMessage.length,
+        max: MAX_MESSAGE_LENGTH,
+      });
+    }
+
+    const rawService = typeof body.service === "string"
+      ? body.service.toLowerCase()
+      : undefined;
     const service: ServiceName = rawService && rawService in SERVICE_CONFIGS
       ? rawService
       : "agi";
 
-    const history = sanitiseHistory(body.history);
-    const language = body.language?.trim();
+    const history = sanitiseHistory(
+      Array.isArray(body.history) ? body.history : [],
+    );
+    const language = typeof body.language === "string"
+      ? body.language.trim()
+      : undefined;
+    const metadataPayload = serialiseMetadata(body.metadata);
 
     logger.info("Processing chat request", {
       service,
@@ -179,11 +226,15 @@ registerHandler(async (req: Request): Promise<Response> => {
     let sessionId = body.session_id;
     if (!sessionId) {
       const titlePrefix = service.toUpperCase();
+      const sessionTitle = `${titlePrefix}: ${message}`
+        .slice(0, MAX_SESSION_TITLE_LENGTH)
+        .replace(/\s+/g, " ")
+        .trim();
       const { data: newSession, error: sessionError } = await supabase
         .from("chat_sessions")
         .insert({
           user_id: user.id,
-          title: `${titlePrefix}: ${message.slice(0, 48)}`,
+          title: sessionTitle,
         })
         .select()
         .single();
@@ -202,11 +253,13 @@ registerHandler(async (req: Request): Promise<Response> => {
       sessionId = newSession.id;
     }
 
+    const config = SERVICE_CONFIGS[service];
+
     const userMessageMetadata = {
       service,
       language,
       source: "dynamic-ai-chat",
-      ...(body.metadata ?? {}),
+      ...(metadataPayload ?? {}),
     } as Record<string, unknown>;
 
     const { error: userMessageError } = await supabase.from("chat_messages")
@@ -219,9 +272,36 @@ registerHandler(async (req: Request): Promise<Response> => {
 
     if (userMessageError) {
       logger.error("Failed to store user message", userMessageError);
+      const persistenceLog: AiServiceLogValues = {
+        user_id: user.id,
+        session_id: sessionId,
+        service_name: service,
+        status: "error",
+        latency_ms: Math.round(performance.now() - startedAt),
+        model: config.model,
+        request_payload: {
+          service,
+          language,
+          history_count: history.length,
+        },
+        response_payload: null,
+        error_message: "Unable to persist user message",
+        tokens_in: null,
+        tokens_out: null,
+        metadata: { ...config.metadata, ...(metadataPayload ?? {}) },
+      };
+
+      await recordAiServiceLog(supabase, logger, persistenceLog);
+
+      return new Response(
+        JSON.stringify({ error: "Unable to persist user message" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
-    const config = SERVICE_CONFIGS[service];
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
 
     if (!lovableApiKey) {
@@ -249,18 +329,68 @@ registerHandler(async (req: Request): Promise<Response> => {
 
     logger.info("Calling Lovable AI Gateway", { service, model: config.model });
 
-    const response = await fetch(LOVABLE_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), LOVABLE_TIMEOUT_MS);
+
+    let response: Response;
+    try {
+      response = await fetch(LOVABLE_ENDPOINT, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: config.model,
+          temperature: config.temperature,
+          messages: aiMessages,
+        }),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      clearTimeout(timeout);
+      logger.error("Lovable gateway request failed", error);
+
+      const errorLog: AiServiceLogValues = {
+        user_id: user.id,
+        session_id: sessionId,
+        service_name: service,
+        status: "error",
+        latency_ms: Math.round(performance.now() - startedAt),
         model: config.model,
-        temperature: config.temperature,
-        messages: aiMessages,
-      }),
-    });
+        request_payload: {
+          service,
+          language,
+          history_count: history.length,
+        },
+        response_payload: null,
+        error_message: error instanceof Error ? error.message : String(error),
+        tokens_in: null,
+        tokens_out: null,
+        metadata: { ...config.metadata, ...(metadataPayload ?? {}) },
+      };
+
+      await recordAiServiceLog(supabase, logger, errorLog);
+
+      const status =
+        error instanceof DOMException && error.name === "AbortError"
+          ? 504
+          : 502;
+
+      return new Response(
+        JSON.stringify({
+          error: status === 504
+            ? "AI service timeout"
+            : "AI service unavailable",
+        }),
+        {
+          status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const latencyMs = Math.round(performance.now() - startedAt);
 
@@ -287,7 +417,7 @@ registerHandler(async (req: Request): Promise<Response> => {
         error_message: errorText,
         tokens_in: null,
         tokens_out: null,
-        metadata: config.metadata,
+        metadata: { ...config.metadata, ...(metadataPayload ?? {}) },
       };
 
       await recordAiServiceLog(supabase, logger, errorLog);
@@ -304,9 +434,52 @@ registerHandler(async (req: Request): Promise<Response> => {
       );
     }
 
-    const data = await response.json();
-    const assistantMessage = data.choices?.[0]?.message?.content ||
-      data.response || "No response from AI";
+    const rawResponseText = await response.text();
+    let data: Record<string, unknown>;
+    try {
+      data = JSON.parse(rawResponseText) as Record<string, unknown>;
+    } catch (error) {
+      logger.error("Failed to parse AI response JSON", error, rawResponseText);
+
+      const parseLog: AiServiceLogValues = {
+        user_id: user.id,
+        session_id: sessionId,
+        service_name: service,
+        status: "error",
+        latency_ms: latencyMs,
+        model: config.model,
+        request_payload: {
+          service,
+          language,
+          history_count: history.length,
+        },
+        response_payload: { raw: rawResponseText },
+        error_message: "Invalid JSON response from AI gateway",
+        tokens_in: null,
+        tokens_out: null,
+        metadata: { ...config.metadata, ...(metadataPayload ?? {}) },
+      };
+
+      await recordAiServiceLog(supabase, logger, parseLog);
+
+      return new Response(
+        JSON.stringify({ error: "Invalid response from AI service" }),
+        {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const choices = data.choices as
+      | Array<{ message?: { content?: string } }>
+      | undefined;
+    const assistantContent = choices?.[0]?.message?.content ??
+      (typeof data.response === "string" ? data.response : null);
+    const assistantMessage = typeof assistantContent === "string" &&
+        assistantContent.trim().length > 0
+      ? assistantContent.trim()
+      : "No response from AI";
 
     const { error: assistantError } = await supabase.from("chat_messages")
       .insert({
@@ -315,18 +488,47 @@ registerHandler(async (req: Request): Promise<Response> => {
         content: assistantMessage,
         metadata: {
           service,
-          model: data.model ?? config.model,
+          model: (data.model as string | undefined) ?? config.model,
           usage: data.usage,
           source: "dynamic-ai-chat",
           ...config.metadata,
+          ...(metadataPayload ?? {}),
         },
       });
 
     if (assistantError) {
       logger.error("Failed to persist assistant message", assistantError);
+      const assistantLog: AiServiceLogValues = {
+        user_id: user.id,
+        session_id: sessionId,
+        service_name: service,
+        status: "error",
+        latency_ms: latencyMs,
+        model: (data.model as string | undefined) ?? config.model,
+        request_payload: {
+          service,
+          language,
+          history_count: history.length,
+        },
+        response_payload: { message: assistantMessage },
+        error_message: "Unable to persist assistant message",
+        tokens_in: usage.prompt_tokens ?? usage.input_tokens ?? null,
+        tokens_out: usage.completion_tokens ?? usage.output_tokens ?? null,
+        metadata: { ...config.metadata, ...(metadataPayload ?? {}) },
+      };
+
+      await recordAiServiceLog(supabase, logger, assistantLog);
+
+      return new Response(
+        JSON.stringify({ error: "Unable to persist assistant message" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
-    const usage = data.usage ?? {};
+    const usage = (data.usage as Record<string, unknown> | undefined) ?? {};
 
     const successLog: AiServiceLogValues = {
       user_id: user.id,
@@ -334,7 +536,7 @@ registerHandler(async (req: Request): Promise<Response> => {
       service_name: service,
       status: "success",
       latency_ms: latencyMs,
-      model: data.model ?? config.model,
+      model: (data.model as string | undefined) ?? config.model,
       request_payload: {
         service,
         language,
@@ -346,7 +548,7 @@ registerHandler(async (req: Request): Promise<Response> => {
       },
       tokens_in: usage.prompt_tokens ?? usage.input_tokens ?? null,
       tokens_out: usage.completion_tokens ?? usage.output_tokens ?? null,
-      metadata: config.metadata,
+      metadata: { ...config.metadata, ...(metadataPayload ?? {}) },
     };
 
     const logId = await recordAiServiceLog(supabase, logger, successLog);
@@ -364,7 +566,7 @@ registerHandler(async (req: Request): Promise<Response> => {
         message: assistantMessage,
         usage,
         metadata: {
-          model: data.model ?? config.model,
+          model: (data.model as string | undefined) ?? config.model,
           log_id: logId,
         },
       }),
