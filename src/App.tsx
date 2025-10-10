@@ -18,7 +18,11 @@ import { MarketSection } from "@/pages/MarketPage";
 import { SnapshotSection } from "@/pages/SnapshotPage";
 import { WalletSection } from "~/pages/Web3Page";
 import { ChatSection } from "@/pages/ChatPage";
-import { LayoutDashboard, TrendingUp, Camera, Wallet, MessageSquare } from "lucide-react";
+import AGIChat from "./pages/AGIChat";
+import AIAnalytics from "./pages/AIAnalytics";
+import MemoryRetrieval from "./pages/MemoryRetrieval";
+import ProceduresRouting from "./pages/ProceduresRouting";
+import { LayoutDashboard, TrendingUp, Camera, Wallet, MessageSquare, Sparkles, Activity, Database, GitBranch } from "lucide-react";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -26,6 +30,13 @@ const NAV_ITEMS = [
   { id: "snapshot", label: "Snapshot", icon: Camera },
   { id: "wallet", label: "Web3", icon: Wallet },
   { id: "chat", label: "Chat", icon: MessageSquare },
+];
+
+const AI_NAV_ITEMS = [
+  { path: "/agi-chat", label: "AGI Chat", icon: Sparkles },
+  { path: "/analytics", label: "Analytics", icon: Activity },
+  { path: "/memory", label: "Memory", icon: Database },
+  { path: "/procedures", label: "Procedures", icon: GitBranch },
 ];
 
 function getScrollBehavior(): ScrollBehavior {
@@ -143,6 +154,18 @@ function SiteHeader() {
                 {label}
               </Link>
             ))}
+            <div className="border-l pl-6 ml-2 flex gap-6">
+              {AI_NAV_ITEMS.map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary"
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </Link>
+              ))}
+            </div>
           </nav>
         </div>
       </div>
@@ -165,6 +188,10 @@ function App() {
               <Route path="/web3" element={<Navigate to="/#wallet" replace />} />
               <Route path="/chat" element={<Navigate to="/#chat" replace />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/agi-chat" element={<AGIChat />} />
+              <Route path="/analytics" element={<AIAnalytics />} />
+              <Route path="/memory" element={<MemoryRetrieval />} />
+              <Route path="/procedures" element={<ProceduresRouting />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>

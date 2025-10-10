@@ -12,7 +12,7 @@ interface ChatMessage {
 }
 
 interface UseDynamicRealtimeOptions {
-  sessionId: string;
+  sessionId?: string;
   onMessage?: (message: ChatMessage) => void;
   onError?: (error: Error) => void;
 }
