@@ -1,4 +1,4 @@
-import { internalError } from "../_shared/http.ts";
+import { internalError, toSafeError } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import {
   getConfig,
@@ -126,11 +126,9 @@ export const handler = registerHandler(async (req) => {
         return json({ error: "invalid action" }, 400);
     }
   } catch (error) {
-    const safeError = error instanceof Error
-      ? { name: error.name, message: error.message }
-      : { message: String(error) };
+    const safeError = toSafeError(error);
     console.error("Feature flag configuration error", safeError);
-    return internalError(error, {
+    return internalError(safeError.message, {
       req,
       message: "Failed to process configuration request.",
     });

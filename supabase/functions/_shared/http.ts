@@ -312,14 +312,50 @@ type InternalErrorOptions = {
   reference?: string;
 };
 
+export type SafeError = {
+  message: string;
+  name?: string;
+};
+
+export const toSafeError = (error: unknown): SafeError => {
+  if (error instanceof Error) {
+    const message = error.message?.trim();
+    const name = error.name?.trim();
+    return {
+      message: message || "Unexpected error",
+      ...(name && name !== "Error" ? { name } : {}),
+    };
+  }
+
+  if (typeof error === "string") {
+    const message = error.trim();
+    return { message: message || "Unexpected error" };
+  }
+
+  if (error && typeof error === "object") {
+    const candidate = error as { message?: unknown; name?: unknown };
+    const message =
+      typeof candidate.message === "string" && candidate.message.trim()
+        ? candidate.message.trim()
+        : "Unexpected error";
+    const name = typeof candidate.name === "string" && candidate.name.trim()
+      ? candidate.name.trim()
+      : undefined;
+    return {
+      message,
+      ...(name && name !== "Error" ? { name } : {}),
+    };
+  }
+
+  return { message: String(error ?? "Unexpected error") };
+};
+
 export const internalError = (
   error: unknown,
   options: InternalErrorOptions = {},
 ) => {
   const reference = options.reference ?? nextErrorReference();
-  const safeError = error instanceof Error
-    ? { name: error.name, message: error.message }
-    : { message: String(error) };
+  const safeError = toSafeError(error);
   console.error(`[internal-error:${reference}]`, safeError);
   const { req, message = "Internal server error", extra, headers } = options;
   return jsonResponse(
