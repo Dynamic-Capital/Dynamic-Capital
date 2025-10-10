@@ -21,6 +21,74 @@
 - Long-form marketing copy dominates key pages without progressive disclosure,
   making it hard for newcomers to extract next steps quickly.
 
+## Latest Change Review — October 2025
+
+### 1. Navigation dataset refresh
+
+- **Finding:** The new route registry hardcodes primary ordering inside
+  `PRIMARY_NAV_SEQUENCE`, so adding a nav item requires touching both the route
+  definition and the sequencing array. In practice, secondary surfaces (for
+  example new tools) silently fall out of the mobile nav because they never get
+  sequenced.【F:apps/web/config/route-registry.ts†L1234-L1289】 **Improvement:**
+  Derive ordering directly from each route's `nav.order`, using the registry as
+  the single source of truth, and fall back to alphabetical ordering when no
+  explicit rank is provided.
+- **Finding:** The generated `step` label defaults to "Hint N" for every entry
+  and is rendered verbatim in the mobile bottom bar, so users see "Hint 1, Hint
+  2…" instead of meaningful actions like "Chat" or "Markets". The term also gets
+  voiced by screen readers before the actual link text, increasing
+  confusion.【F:apps/web/config/route-registry.ts†L1234-L1289】【F:apps/web/components/navigation/MobileBottomNav.tsx†L138-L166】
+  **Improvement:** Replace the generic counter with purposeful helper text (for
+  example "Start", "Markets", "Desk"), or hide it entirely on compact
+  navigation.
+
+### 2. Route hint trail legibility
+
+- **Finding:** Route hints render their lead tag in all caps with 0.24em letter
+  spacing on an 11px font, which fails WCAG readability guidelines on smaller
+  breakpoints and blurs once the glassmorphism backdrop
+  activates.【F:apps/web/components/navigation/RouteHintTrail.tsx†L36-L51】
+  **Improvement:** Swap to sentence-case 13–14px text, remove forced tracking,
+  and let the background token adapt to high-contrast mode.
+- **Finding:** Only the first three tags are displayed in the trail with no
+  overflow indicator, so critical context (for example "Automation" or
+  "Mentorship") disappears on routes that carry more than three
+  labels.【F:apps/web/components/navigation/RouteHintTrail.tsx†L28-L49】
+  **Improvement:** Introduce a "+N" badge or horizontal scroller that reveals
+  the remaining tags on focus/hover.
+
+### 3. TON miniapp live plan pricing
+
+- **Finding:** When the live pricing sync fails, the miniapp prints the raw
+  error string from Supabase straight into the alert, exposing internal stack
+  hints and confusing traders who only need recovery
+  guidance.【F:dynamic-capital-ton/apps/miniapp/app/page.tsx†L2023-L2045】
+  **Improvement:** Map failures to human-readable status copy ("Live pricing is
+  offline, retrying in 30s") and log the original error to console or a
+  telemetry sink instead.
+- **Finding:** The plan snapshot trims adjustment factors to the first four
+  entries with no disclosure, so larger repricing mixes hide funding tweaks that
+  risk/compliance teams expect to
+  audit.【F:dynamic-capital-ton/apps/miniapp/app/page.tsx†L2816-L2864】
+  **Improvement:** Add a "View full adjustment log" expander or collapse the
+  list with a clear "+N additional" counter.
+
+### 4. Theme minting console
+
+- **Finding:** Each mint card surfaces a raw content URI string without
+  affordances to copy or open it, forcing operators to long-press and hope their
+  browser surfaces context
+  actions.【F:dynamic-capital-ton/apps/miniapp/app/page.tsx†L2291-L2308】
+  **Improvement:** Render the URI as a tappable link with a "Copy" icon button
+  and label whether it points to IPFS, Arweave, or Ton Storage.
+- **Finding:** After a mint completes, the call-to-action remains in the
+  viewport with the label "Mint scheduled" but no success badge, so it's unclear
+  whether operators can safely move to the next card or need to await further
+  confirmation.【F:dynamic-capital-ton/apps/miniapp/app/page.tsx†L2316-L2338】
+  **Improvement:** Swap the button for a non-interactive success pill, surface
+  the completion timestamp alongside the helper text, and auto-focus the next
+  actionable mint.
+
 ## Detailed Findings & Improvements
 
 ### 1. Global navigation & layout
