@@ -46,15 +46,28 @@
     "buttons": [
       {
         "label": "Manage",
-        "uri": "https://dns.tonkeeper.com/manage?v=0:038f473650b2d1641bd09563eb8c99f1e84e5c72eb0fb8fdc534a4430f14c1b5"
+        "uri": "https://dns.tonkeeper.com/manage?v=0:038f473650b2d1641bd09563eb8c99f1e84e5c72eb0fb8fdc534a4430f14c1b5",
+        "note": "Tonkeeper DNS manager for ownership and resolver configuration"
       },
       {
-        "label": "Open (Gateway)",
-        "uri": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton"
+        "label": "Open TON Site",
+        "uri": "ton://dynamiccapital.ton",
+        "note": "Native TON DNS entrypoint for wallets and TON-enabled browsers"
       },
       {
-        "label": "Open (Fallback)",
-        "uri": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton"
+        "label": "Open Gateway",
+        "uri": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+        "note": "Primary HTTPS bridge for legacy browsers"
+      },
+      {
+        "label": "Open Fallback Gateway",
+        "uri": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
+        "note": "Lovable-operated failover bridge"
+      },
+      {
+        "label": "Operations Log",
+        "uri": "https://github.com/dynamic-labs/Dynamic-Capital/blob/main/dns/ton-dns-operations-log.md",
+        "note": "End-to-end change history and recovery steps"
       }
     ],
     "verification": {
@@ -74,6 +87,65 @@
           }
         ]
       }
+    },
+    "access_points": {
+      "native": {
+        "type": "ton_dns",
+        "endpoint": "dynamiccapital.ton",
+        "status": "operational",
+        "last_verified": "2025-10-10T02:32:02Z",
+        "notes": "Primary resolution path for TON wallets and extensions"
+      },
+      "https": [
+        {
+          "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
+          "status": "operational",
+          "last_verified": "2025-10-10T02:32:02Z",
+          "depends_on": "https://dynamic-capital-qazf2.ondigitalocean.app",
+          "notes": "Bridges standard browsers into the TON Site via Cloudflare"
+        },
+        {
+          "host": "ton-gateway.dynamic-capital.lovable.app",
+          "status": "operational",
+          "last_verified": "2025-10-10T02:32:02Z",
+          "depends_on": "https://dynamic-capital-qazf2.ondigitalocean.app",
+          "notes": "Hot standby mirror served from Lovable infrastructure"
+        }
+      ],
+      "origin": {
+        "host": "dynamic-capital-qazf2.ondigitalocean.app",
+        "platform": "DigitalOcean App Platform",
+        "status": "operational",
+        "last_redeploy": "2025-10-10T02:00:00Z",
+        "notes": "Authoritative TON Site bundle; keep synchronized with the repo build artifacts"
+      }
+    },
+    "monitoring": {
+      "synthetic_probes": [
+        {
+          "name": "Primary HTTPS Gateway",
+          "endpoint": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+          "cadence": "5m",
+          "alert_policy": "#dynamiccapital-ton-site"
+        },
+        {
+          "name": "Fallback HTTPS Gateway",
+          "endpoint": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
+          "cadence": "5m",
+          "alert_policy": "#dynamiccapital-ton-site"
+        }
+      ],
+      "runbooks": [
+        {
+          "name": "TON DNS Operations",
+          "uri": "https://github.com/dynamic-labs/Dynamic-Capital/blob/main/dns/toncli-dns-runbook.md"
+        },
+        {
+          "name": "TON Site Gateway Recovery",
+          "uri": "https://github.com/dynamic-labs/Dynamic-Capital/blob/main/dns/https-gateway-verification-2025-10-08.md"
+        }
+      ],
+      "last_successful_probe": "2025-10-10T02:32:02Z"
     }
   },
   "records": [
@@ -162,12 +234,14 @@
     "2025-10-10 16:41 UTC: Follow-up probe recorded HTTP 503 on both gateways and HTTP 404 on the DigitalOcean origin. Leave verification in error until the TON bundle is republished.",
     "2025-10-10 02:32 UTC: Post-restoration probes confirmed HTTP 200 on the origin and both gateways; automation restored the resolver verification status to ok.",
     "Record resolver or ownership transactions in dns/ton-dns-operations-log.md immediately after broadcasting them so the on-chain audit trail stays aligned with the repository snapshot.",
-    "Use a low TTL (e.g., 60\u2013300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
+    "Use a low TTL (e.g., 60–300 seconds) on the API CNAME until the Supabase certificate is issued, then raise it for stability.",
     "After activation, emit a `custom_domain_activated` event into Supabase `tx_logs` referencing the DNS bundle hash so auditors can verify the Web3 linkage.",
     "Desktop browsers without a TON resolver will show `DNS_PROBE_FINISHED_NXDOMAIN`; direct them to https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton (or the ton.site backup) or install a TON DNS wallet extension to regain access.",
     "Before announcing pay.dynamiccapital.ton, broadcast the TON DNS `wallet` category pointing at the treasury wallet (EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq) so wallet UIs resolve the alias without fallback.",
     "Treat https://dynamiccapital.ton as the canonical production surface; keep the DigitalOcean, Lovable, and Vercel hosts warm as failover origins and document rollovers in Supabase `tx_logs`.",
     "2025-09-30: Auction fill-up executed (event 96ac854938b992f71f33827dac42a7aa9e302539fc55347e006f6eee74dc0d89) adding 0.024137527 TON to the resolver after fees; schedule the next renewal reminder for August 2026.",
-    "When Supabase issues a fresh ACME token, stage it under dns/operations/acme/ with the block height, then update the TXT record here and commit the hash reference to the multisig memo."
+    "When Supabase issues a fresh ACME token, stage it under dns/operations/acme/ with the block height, then update the TXT record here and commit the hash reference to the multisig memo.",
+    "Monitor synthetic probe alerts in #dynamiccapital-ton-site and pause announcements if the gateways report HTTP errors.",
+    "When redeploying the DigitalOcean origin, update ton_site.monitoring.last_successful_probe with the timestamp from the observability dashboard."
   ]
 }
