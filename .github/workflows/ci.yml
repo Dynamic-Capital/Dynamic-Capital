@@ -21,18 +21,27 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DENO_TLS_CA_STORE: system
+      NPM_CONFIG_AUDIT: "false"
+      NPM_CONFIG_FUND: "false"
+      NPM_CONFIG_PROGRESS: "false"
+      NPM_CONFIG_UPDATE_NOTIFIER: "false"
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
+      - name: Setup Node runtime
+        id: setup-node
+        uses: ./.github/actions/setup-runtimes
         with:
+          enable-node: "true"
           node-version: "20"
-          cache: "npm"
+          node-cache: npm
+          node-cache-dependency-path: |
+            package-lock.json
+            naming-engine/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --no-audit --prefer-offline
 
       - id: script-flags
         name: Detect npm scripts
@@ -42,38 +51,67 @@ jobs:
           echo "lint=$(npm pkg get scripts.lint | tr -d '"')" >> "$GITHUB_OUTPUT"
           echo "test=$(npm pkg get scripts.test | tr -d '"')" >> "$GITHUB_OUTPUT"
 
+      - name: Setup Deno runtime
+        if: steps.script-flags.outputs.test != 'undefined'
+        id: setup-deno
+        uses: ./.github/actions/setup-runtimes
+        with:
+          enable-deno: "true"
+          deno-version: v1.x
+          deno-cache-key: ${{ format('{0}-deno-{1}', runner.os, hashFiles('deno.lock')) }}
+          deno-cache-restore-keys: |
+            ${{ format('{0}-deno-', runner.os) }}
+
       - name: Build
         if: steps.script-flags.outputs.build != 'undefined'
-        run: npm run build 2>&1 | tee build.log
+        run: |
+          set -euo pipefail
+          npm run build 2>&1 | tee build.log
 
       - name: Typecheck
         if: steps.script-flags.outputs.typecheck != 'undefined'
-        run: npm run typecheck 2>&1 | tee typecheck.log
+        run: |
+          set -euo pipefail
+          npm run typecheck 2>&1 | tee typecheck.log
 
       - name: Lint
         if: steps.script-flags.outputs.lint != 'undefined'
-        run: npm run lint 2>&1 | tee lint.log
-
-      - name: Setup Deno
-        if: steps.script-flags.outputs.test != 'undefined'
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: v1.x
-
-      - name: Cache Deno dependencies
-        if: steps.script-flags.outputs.test != 'undefined'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/deno
-            ~/.deno
-          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-deno-
+        run: |
+          set -euo pipefail
+          npm run lint 2>&1 | tee lint.log
 
       - name: Test
         if: steps.script-flags.outputs.test != 'undefined'
-        run: npm run test 2>&1 | tee test.log
+        run: |
+          set -euo pipefail
+          npm run test 2>&1 | tee test.log
+
+      - name: Dependency cache summary
+        if: ${{ always() }}
+        env:
+          NODE_CACHE_HIT: ${{ steps.setup-node.outputs.node-cache-hit }}
+          DENO_CACHE_HIT: ${{ steps.setup-deno.outputs.deno-cache-hit }}
+        run: |
+          summary_file="${GITHUB_STEP_SUMMARY:-}"
+          if [ -n "${summary_file}" ]; then
+            {
+              echo "### Dependency cache status";
+              echo "- Node cache hit: \`${NODE_CACHE_HIT:-false}\`";
+              echo "- Deno cache hit: \`${DENO_CACHE_HIT:-n/a}\`";
+            } >> "${summary_file}"
+          fi
+
+      - name: Upload CI diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          if-no-files-found: ignore
+          path: |
+            build.log
+            typecheck.log
+            lint.log
+            test.log
 
   python-tests:
     name: Python GPT regression tests
@@ -82,23 +120,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup Python runtime
+        id: setup-python
+        uses: ./.github/actions/setup-runtimes
         with:
+          enable-python: "true"
           python-version: "3.11"
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('tests_python/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          python-cache: pip
+          python-cache-dependency-path: tests_python/requirements.txt
 
       - name: Install Python test requirements
         run: |
           python -m pip install --upgrade pip
           pip install -r tests_python/requirements.txt
+
+      - name: Python dependency cache summary
+        if: ${{ always() }}
+        env:
+          PIP_CACHE_HIT: ${{ steps.setup-python.outputs.python-cache-hit }}
+        run: |
+          summary_file="${GITHUB_STEP_SUMMARY:-}"
+          if [ -n "${summary_file}" ]; then
+            {
+              echo "### Python cache status";
+              echo "- Pip cache hit: \`${PIP_CACHE_HIT:-false}\`";
+            } >> "${summary_file}"
+          fi
 
       - name: Run GPT regression suite
         run: pytest tests_python/test_dynamic_gpt_model.py
