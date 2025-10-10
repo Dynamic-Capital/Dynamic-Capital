@@ -1,5 +1,8 @@
 import { assertEquals, assertExists } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import nacl from "https://esm.sh/tweetnacl@1.0.3";
+const { beginCell, storeStateInit } = await import(
+  "https://esm.sh/@ton/core@0.62.0"
+);
 
 Deno.env.set("SUPABASE_URL", "https://example.supabase.co");
 Deno.env.set("SUPABASE_SERVICE_KEY", "service-key");
@@ -226,6 +229,20 @@ function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+function createWalletStateInitBase64(publicKey: Uint8Array): string {
+  const data = beginCell()
+    .storeUint(0, 32)
+    .storeUint(0, 32)
+    .storeBuffer(publicKey)
+    .storeBit(0)
+    .endCell();
+  const stateInitCell = beginCell().store(storeStateInit({ data })).endCell();
+  const boc = stateInitCell.toBoc({ idx: false });
+  const bytes = boc instanceof Uint8Array ? boc : new Uint8Array(boc);
+  const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
+  return btoa(binary);
+}
+
 async function createProofPayload({
   keyPair,
   address,
@@ -305,6 +322,56 @@ Deno.test("verifies ton_proof and links wallet", async () => {
   const result = await response.json() as Record<string, unknown>;
   assertEquals(result.ok, true);
   assertEquals(result.address, rawAddress);
+});
+
+Deno.test("derives wallet public key from state init when missing", async () => {
+  const state: SupabaseState = {
+    sessions: [{
+      id: "session-derive",
+      telegram_id: "654",
+      payload: "derive-challenge",
+      expires_at: new Date(Date.now() + 60_000).toISOString(),
+      verified_at: null,
+      wallet_address: null,
+      wallet_public_key: null,
+      proof_timestamp: null,
+      wallet_app_name: null,
+      proof_signature: null,
+      created_at: new Date().toISOString(),
+    }],
+    users: [],
+    wallets: [],
+    userSeq: 0,
+    walletSeq: 0,
+  };
+
+  const keyPair = nacl.sign.keyPair();
+  const rawAddress = "0:abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd";
+  const proof = await createProofPayload({
+    keyPair,
+    address: rawAddress,
+    payload: "derive-challenge",
+    domainValue: "dynamiccapital.ton",
+  });
+
+  const response = await handler(
+    new Request("https://example/functions/ton-connect-session", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        telegram_id: "654",
+        address: rawAddress,
+        walletStateInit: createWalletStateInitBase64(keyPair.publicKey),
+        proof,
+      }),
+    }),
+    { supabase: createSupabaseStub(state) },
+  );
+
+  assertEquals(response.status, 200);
+  assertEquals(state.wallets.length, 1);
+  assertEquals(state.wallets[0]?.public_key, bytesToHex(keyPair.publicKey));
+  assertEquals(state.sessions[0].wallet_public_key, bytesToHex(keyPair.publicKey));
 });
 
 Deno.test("rejects proofs from unauthorized domains", async () => {

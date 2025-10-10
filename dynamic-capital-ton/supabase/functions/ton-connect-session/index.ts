@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { Cell, loadStateInit } from "https://esm.sh/@ton/core@0.62.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import nacl from "https://esm.sh/tweetnacl@1.0.3";
 
@@ -178,6 +179,80 @@ function decodeBase64(value: string): Uint8Array {
   return bytes;
 }
 
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function derivePublicKeyFromStateInit(stateInitRaw: string): Uint8Array | null {
+  const trimmed = stateInitRaw.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const root = Cell.fromBase64(trimmed);
+    const stateInit = loadStateInit(root.beginParse());
+    const dataCell = stateInit.data;
+    if (!dataCell) {
+      return null;
+    }
+
+    const extract = (candidate: typeof dataCell): Uint8Array | null => {
+      const inspectSlice = candidate.beginParse();
+
+      const readWithOffsets = () => {
+        try {
+          const slice = inspectSlice.clone(true);
+          if (slice.remainingBits >= 64) {
+            slice.loadUint(32);
+            slice.loadUint(32);
+          }
+          if (slice.remainingBits >= 256) {
+            const key = slice.loadBuffer(32);
+            return new Uint8Array(key);
+          }
+        } catch {}
+        return null;
+      };
+
+      const readRaw = () => {
+        try {
+          const slice = inspectSlice.clone(true);
+          if (slice.remainingBits >= 256) {
+            const key = slice.loadBuffer(32);
+            return new Uint8Array(key);
+          }
+        } catch {}
+        return null;
+      };
+
+      return readWithOffsets() ?? readRaw();
+    };
+
+    const candidates = [dataCell, ...dataCell.refs];
+    for (const candidate of candidates) {
+      const key = extract(candidate);
+      if (key) {
+        return key;
+      }
+      for (const ref of candidate.refs) {
+        const nested = extract(ref);
+        if (nested) {
+          return nested;
+        }
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error(
+      "[ton-connect-session] Failed to derive public key from wallet state init",
+      error,
+    );
+    return null;
+  }
+}
+
 async function sha256(data: Uint8Array): Promise<Uint8Array> {
   const digest = await crypto.subtle.digest("SHA-256", data);
   return new Uint8Array(digest);
@@ -339,17 +414,34 @@ async function handleVerify(
     return badRequest("Invalid proof signature encoding");
   }
 
-  const publicKeyHex = (body.publicKey ?? "").trim();
-  if (!publicKeyHex) {
-    return badRequest("Wallet public key is required for verification");
+  const rawPublicKey = (body.publicKey ?? "").trim();
+  const walletStateInit = typeof body.walletStateInit === "string"
+    ? body.walletStateInit.trim()
+    : "";
+
+  let publicKey: Uint8Array | null = null;
+  let publicKeyHexLower: string | null = null;
+
+  if (rawPublicKey) {
+    try {
+      publicKeyHexLower = rawPublicKey.toLowerCase();
+      publicKey = hexToBytes(publicKeyHexLower);
+    } catch (error) {
+      console.error("[ton-connect-session] Invalid public key", error);
+      return badRequest("Invalid wallet public key");
+    }
   }
 
-  let publicKey: Uint8Array;
-  try {
-    publicKey = hexToBytes(publicKeyHex.toLowerCase());
-  } catch (error) {
-    console.error("[ton-connect-session] Invalid public key", error);
-    return badRequest("Invalid wallet public key");
+  if (!publicKey && walletStateInit) {
+    const derivedKey = derivePublicKeyFromStateInit(walletStateInit);
+    if (derivedKey) {
+      publicKey = derivedKey;
+      publicKeyHexLower = bytesToHex(derivedKey);
+    }
+  }
+
+  if (!publicKey || !publicKeyHexLower) {
+    return badRequest("Wallet public key is required for verification");
   }
 
   const { data: session, error: sessionError } = await deps.supabase
@@ -426,8 +518,6 @@ async function handleVerify(
     console.error("[ton-connect-session] Failed to fetch existing wallet", existingWalletError);
     return internal("Unable to load existing wallet link");
   }
-
-  const publicKeyHexLower = publicKeyHex.toLowerCase();
 
   if (existingWallet?.id) {
     const { error: updateError } = await deps.supabase
