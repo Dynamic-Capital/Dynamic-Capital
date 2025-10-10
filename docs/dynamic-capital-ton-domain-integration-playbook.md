@@ -49,6 +49,7 @@ auto-discover Dynamic Capital contracts and services when resolving
 | `dexscreener_token`                                                                               | `https://dexscreener.com/ton/UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G`                               | Unified token analytics hub (DEX Screener)                                       |
 | `dexscreener_stonfi`                                                                              | `https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi`                               | STON.fi pair analytics (DEX Screener)                                            |
 | `dexscreener_dedust`                                                                              | `https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm`                               | DeDust pair analytics (DEX Screener)                                             |
+| `x1000_token`                                                                                     | `https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                              | Token intelligence & alerts (X1000 Finance)                                      |
 | `api_endpoint`                                                                                    | `https://api.dynamiccapital.ton`                                                                             | REST / Supabase gateway                                                          |
 | `metadata`                                                                                        | `https://dynamiccapital.ton/jetton-metadata.json`                                                            | Jetton metadata JSON (primary)                                                   |
 | `web`                                                                                             | `https://dynamiccapital.ton`                                                                                 | Marketing & dashboard site                                                       |
@@ -146,6 +147,7 @@ jetton_dyor=https://dyor.io/token/UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK
 dexscreener_token=https://dexscreener.com/ton/UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G
 dexscreener_stonfi=https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi
 dexscreener_dedust=https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm
+x1000_token=https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 api=https://api.dynamiccapital.ton
 api_fallback=https://dynamic.capital/api
 metadata=https://dynamiccapital.ton/jetton-metadata.json
