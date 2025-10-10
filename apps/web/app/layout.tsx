@@ -7,6 +7,7 @@ import "./globals.css";
 import "@/lib/env";
 
 import classNames from "classnames";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import {
   Background,
   Column,
@@ -326,6 +327,7 @@ export default async function RootLayout(
             </HideOnMiniApp>
           </Column>
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
