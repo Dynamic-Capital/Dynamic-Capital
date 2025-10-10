@@ -159,7 +159,7 @@ async function getLatestModelPath(): Promise<string> {
 
 async function loadModel(): Promise<LorentzianModel> {
   throw new Error(
-    "Model loading temporarily disabled - pickle parser requires --allow-import flag. Deploy with: supabase functions deploy lorentzian-eval --allow-import"
+    "Model loading temporarily disabled - pickle parser requires --allow-import flag. Deploy with: supabase functions deploy lorentzian-eval --allow-import",
   );
 }
 

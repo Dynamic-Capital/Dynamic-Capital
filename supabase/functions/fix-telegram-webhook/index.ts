@@ -1,11 +1,15 @@
 import { requireEnv } from "../_shared/env.ts";
-import { expectedSecret, TELEGRAM_ALLOWED_UPDATES_JSON } from "../_shared/telegram_secret.ts";
+import {
+  expectedSecret,
+  TELEGRAM_ALLOWED_UPDATES_JSON,
+} from "../_shared/telegram_secret.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { json } from "../_shared/http.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 export const handler = registerHandler(async (req) => {
@@ -15,7 +19,7 @@ export const handler = registerHandler(async (req) => {
 
   try {
     const { TELEGRAM_BOT_TOKEN, SUPABASE_URL } = requireEnv(
-      ["TELEGRAM_BOT_TOKEN", "SUPABASE_URL"] as const
+      ["TELEGRAM_BOT_TOKEN", "SUPABASE_URL"] as const,
     );
 
     const secret = await expectedSecret();
@@ -23,7 +27,7 @@ export const handler = registerHandler(async (req) => {
       return json(
         { error: "TELEGRAM_WEBHOOK_SECRET not configured" },
         500,
-        corsHeaders
+        corsHeaders,
       );
     }
 
@@ -31,14 +35,14 @@ export const handler = registerHandler(async (req) => {
 
     // Step 1: Get current webhook info
     const infoRes = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo`
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo`,
     );
     const currentInfo = await infoRes.json();
 
     // Step 2: Delete existing webhook
     await fetch(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook`,
-      { method: "POST" }
+      { method: "POST" },
     );
 
     // Step 3: Set new webhook with correct secret
@@ -53,14 +57,14 @@ export const handler = registerHandler(async (req) => {
           allowed_updates: JSON.parse(TELEGRAM_ALLOWED_UPDATES_JSON),
           drop_pending_updates: true,
         }),
-      }
+      },
     );
 
     const setResult = await setRes.json();
 
     // Step 4: Verify new webhook
     const verifyRes = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo`
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo`,
     );
     const newInfo = await verifyRes.json();
 
@@ -75,14 +79,14 @@ export const handler = registerHandler(async (req) => {
           : `❌ Failed: ${setResult.description}`,
       },
       setResult.ok ? 200 : 500,
-      corsHeaders
+      corsHeaders,
     );
   } catch (error) {
     console.error("Error fixing webhook:", error);
     return json(
       { error: error instanceof Error ? error.message : String(error) },
       500,
-      corsHeaders
+      corsHeaders,
     );
   }
 });

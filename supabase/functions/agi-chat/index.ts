@@ -1,6 +1,10 @@
 import { registerHandler } from "../_shared/serve.ts";
 import { createClient } from "../_shared/client.ts";
 import { createLogger } from "../_shared/logger.ts";
+import {
+  type AiServiceLogValues,
+  recordAiServiceLog,
+} from "../_shared/ai-service-log.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,6 +34,7 @@ registerHandler(async (req: Request): Promise<Response> => {
   }
 
   try {
+    const startedAt = performance.now();
     const supabase = createClient("service");
 
     // Get authenticated user
@@ -143,6 +148,30 @@ registerHandler(async (req: Request): Promise<Response> => {
     if (!agiResponse.ok) {
       const errorText = await agiResponse.text();
       logger.error("AGI API error:", agiResponse.status, errorText);
+
+      const errorLog: AiServiceLogValues = {
+        user_id: user.id,
+        session_id: sessionId,
+        service_name: "agi",
+        status: "error",
+        latency_ms: Math.round(performance.now() - startedAt),
+        model: "google/gemini-2.5-flash",
+        request_payload: {
+          service: "agi",
+          history_count: history.length,
+        },
+        response_payload: {
+          status: agiResponse.status,
+          error: errorText,
+        },
+        error_message: errorText,
+        tokens_in: null,
+        tokens_out: null,
+        metadata: { provider: "lovable", domain: "dynamic-agi" },
+      };
+
+      await recordAiServiceLog(supabase, logger, errorLog);
+
       return new Response(
         JSON.stringify({ error: "AGI service error", details: errorText }),
         {
@@ -170,13 +199,35 @@ registerHandler(async (req: Request): Promise<Response> => {
       logger.error("Failed to save assistant message:", assistantMsgError);
     }
 
-    logger.info("Chat completed successfully");
+    const usage = agiData.usage ?? {};
+
+    const logId = await recordAiServiceLog(supabase, logger, {
+      user_id: user.id,
+      session_id: sessionId,
+      service_name: "agi",
+      status: "success",
+      latency_ms: Math.round(performance.now() - startedAt),
+      model: agiData.model ?? "google/gemini-2.5-flash",
+      request_payload: {
+        service: "agi",
+        history_count: history.length,
+      },
+      response_payload: {
+        message: assistantMessage,
+        raw: agiData,
+      },
+      tokens_in: usage.prompt_tokens ?? usage.input_tokens ?? null,
+      tokens_out: usage.completion_tokens ?? usage.output_tokens ?? null,
+      metadata: { provider: "lovable", domain: "dynamic-agi" },
+    });
+
+    logger.info("Chat completed successfully", { log_id: logId });
 
     return new Response(
       JSON.stringify({
         session_id: sessionId,
         message: assistantMessage,
-        metadata: agiData.usage,
+        metadata: { ...usage, log_id: logId },
       }),
       {
         status: 200,

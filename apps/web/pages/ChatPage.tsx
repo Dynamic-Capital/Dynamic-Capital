@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { DynamicAGIChat } from "@/components/chat/DynamicAGIChat";
+import { DynamicAIChat } from "@/components/chat/DynamicAIChat";
+import { AIUsageDashboard } from "@/components/chat/AIUsageDashboard";
 import { Card } from "@/components/ui/card";
 
 export function ChatSection() {
@@ -8,19 +9,24 @@ export function ChatSection() {
   return (
     <section id="chat" className="py-16">
       <div className="container mx-auto px-4">
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold">Dynamic AGI Chat</h2>
-          <p className="mt-2 text-muted-foreground">
-            Your intelligent trading assistant powered by Dynamic AGI
-          </p>
+        <div className="mb-6 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 className="text-3xl font-bold">Dynamic AI Command Center</h2>
+            <p className="mt-1 text-muted-foreground">
+              Coordinate AI, AGI, and AGS copilots with realtime telemetry.
+            </p>
+          </div>
         </div>
 
-        <Card className="h-[calc(100vh-16rem)]">
-          <DynamicAGIChat
-            sessionId={sessionId}
-            onSessionChange={setSessionId}
-          />
-        </Card>
+        <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+          <Card className="h-[calc(100vh-16rem)]">
+            <DynamicAIChat
+              sessionId={sessionId}
+              onSessionChange={setSessionId}
+            />
+          </Card>
+          <AIUsageDashboard />
+        </div>
       </div>
     </section>
   );

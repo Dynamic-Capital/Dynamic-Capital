@@ -63,7 +63,8 @@ choosing a targeted run or governance sweep.
   automation tasks, and optional runners so teams can stage the correct
   pipelines without guesswork.【c74812†L8-L106】
 - Surfaces three automation bundles (`governance`, `readiness`, `full`) to
-  streamline multi-checklist execution ahead of leadership reviews.【c74812†L107-L123】
+  streamline multi-checklist execution ahead of leadership
+  reviews.【c74812†L107-L123】
 - Lists every reusable task in the library, clarifying which scripts the
   automation engine will invoke during composite runs.【c74812†L124-L151】
 

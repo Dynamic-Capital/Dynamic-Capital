@@ -1,24 +1,24 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+"use client";
 
-interface UserPresence {
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
+
+export interface UserPresence {
   user_id: string;
   username?: string;
-  status: 'online' | 'idle' | 'offline';
+  status: "online" | "idle" | "offline";
   online_at: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-interface PresenceState {
-  [key: string]: UserPresence[];
-}
+type PresenceState = Record<string, UserPresence[]>;
 
 interface UseDynamicPresenceOptions {
-  roomId: string;
-  userId: string;
+  roomId?: string | null;
+  userId?: string | null;
   username?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   onJoin?: (user: UserPresence) => void;
   onLeave?: (user: UserPresence) => void;
 }
@@ -29,102 +29,109 @@ export function useDynamicPresence({
   username,
   metadata = {},
   onJoin,
-  onLeave
+  onLeave,
 }: UseDynamicPresenceOptions) {
   const [presenceState, setPresenceState] = useState<PresenceState>({});
   const [onlineUsers, setOnlineUsers] = useState<UserPresence[]>([]);
   const [isTracking, setIsTracking] = useState(false);
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
+  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!roomId || !userId) return;
+    if (!roomId || !userId) {
+      return () => {};
+    }
 
     const presenceChannel = supabase.channel(`presence-${roomId}`);
 
     presenceChannel
-      .on('presence', { event: 'sync' }, () => {
+      .on("presence", { event: "sync" }, () => {
         const state = presenceChannel.presenceState<UserPresence>();
-        console.log('[Presence] Sync:', state);
         setPresenceState(state);
-        
-        // Flatten presence state to array of users
         const users = Object.values(state).flat();
         setOnlineUsers(users);
       })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('[Presence] User joined:', key, newPresences);
-        newPresences.forEach(presence => onJoin?.(presence as unknown as UserPresence));
+      .on("presence", { event: "join" }, ({ newPresences }) => {
+        newPresences.forEach((presence) =>
+          onJoin?.(presence as unknown as UserPresence)
+        );
       })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('[Presence] User left:', key, leftPresences);
-        leftPresences.forEach(presence => onLeave?.(presence as unknown as UserPresence));
+      .on("presence", { event: "leave" }, ({ leftPresences }) => {
+        leftPresences.forEach((presence) =>
+          onLeave?.(presence as unknown as UserPresence)
+        );
       })
       .subscribe(async (status) => {
-        console.log('[Presence] Channel status:', status);
-        
-        if (status === 'SUBSCRIBED') {
+        if (status === "SUBSCRIBED") {
           const userStatus: UserPresence = {
             user_id: userId,
             username,
-            status: 'online',
+            status: "online",
             online_at: new Date().toISOString(),
-            metadata
+            metadata,
           };
 
           const trackStatus = await presenceChannel.track(userStatus);
-          console.log('[Presence] Track status:', trackStatus);
-          setIsTracking(trackStatus === 'ok');
+          setIsTracking(trackStatus === "ok");
         }
       });
 
     setChannel(presenceChannel);
 
-    // Update status periodically (heartbeat)
-    const heartbeatInterval = setInterval(async () => {
-      if (presenceChannel) {
-        await presenceChannel.track({
-          user_id: userId,
-          username,
-          status: 'online',
-          online_at: new Date().toISOString(),
-          metadata
-        });
-      }
-    }, 30000); // 30 seconds
+    heartbeatRef.current = setInterval(async () => {
+      await presenceChannel.track({
+        user_id: userId,
+        username,
+        status: "online",
+        online_at: new Date().toISOString(),
+        metadata,
+      });
+    }, 30_000);
 
     return () => {
-      console.log('[Presence] Cleaning up channel');
-      clearInterval(heartbeatInterval);
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
+        heartbeatRef.current = null;
+      }
       supabase.removeChannel(presenceChannel);
       setIsTracking(false);
+      setChannel(null);
+      setPresenceState({});
+      setOnlineUsers([]);
     };
   }, [roomId, userId, username, metadata, onJoin, onLeave]);
 
-  const updatePresence = async (updates: Partial<UserPresence>) => {
-    if (!channel || !isTracking) return;
+  const updatePresence = useCallback(async (
+    updates: Partial<UserPresence>,
+  ) => {
+    if (!channel || !isTracking || !userId) return;
 
     const userStatus: UserPresence = {
       user_id: userId,
       username,
-      status: 'online',
+      status: "online",
       online_at: new Date().toISOString(),
       metadata,
-      ...updates
+      ...updates,
     };
 
     await channel.track(userStatus);
-  };
+  }, [channel, isTracking, metadata, userId, username]);
 
-  const setStatus = (status: 'online' | 'idle' | 'offline') => {
-    updatePresence({ status });
-  };
+  const setStatus = useCallback((status: "online" | "idle" | "offline") => {
+    void updatePresence({ status });
+  }, [updatePresence]);
 
-  return {
+  const value = useMemo(() => ({
     presenceState,
     onlineUsers,
     isTracking,
     channel,
+  }), [presenceState, onlineUsers, isTracking, channel]);
+
+  return {
+    ...value,
     updatePresence,
-    setStatus
+    setStatus,
   };
 }
