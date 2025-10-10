@@ -182,7 +182,9 @@ async function main() {
     console.log("Mint payload (base64):", boc);
     console.log("Parameters:");
     console.log(`  Jetton master: ${summary.jettonMaster}`);
-    console.log("  Send TON: 0 (attach payload only)");
+    console.log(
+      `  Send TON: ${summary.forwardTonReadable} TON + ~0.01-0.02 TON for fees`,
+    );
     console.log(`  Destination jetton wallet: ${summary.destination}`);
     console.log(`  Response destination: ${summary.response}`);
     console.log(`  Amount (DCT): ${formattedAmount}`);
