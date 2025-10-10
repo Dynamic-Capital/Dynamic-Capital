@@ -96,9 +96,11 @@ const formatDuration = (milliseconds) => {
   return `${minutes}m ${remainingSeconds.toFixed(0)}s`;
 };
 
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+
 const runScript = (script) =>
   new Promise((resolve, reject) => {
-    const child = spawn("npm", ["run", script], {
+    const child = spawn(npmCommand, ["run", script], {
       cwd: ROOT_DIR,
       stdio: "inherit",
       env: process.env,
