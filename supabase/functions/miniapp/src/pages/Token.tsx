@@ -530,8 +530,9 @@ export default function Token() {
                               <div className="flex flex-col items-center gap-2">
                                 <QrCode value={ACTION_PAD.qrLink} size={180} />
                                 <p className="text-center text-xs text-muted-foreground">
-                                  Scan to launch the {ACTION_PAD.alias}{" "}
-                                  deposit link in your TonConnect wallet.
+                                  Scan to copy the non-bounceable treasury
+                                  wallet address into supported TonConnect
+                                  flows.
                                 </p>
                               </div>
                             )
