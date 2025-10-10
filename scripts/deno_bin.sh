@@ -45,4 +45,9 @@ if ! command -v deno >/dev/null 2>&1; then
   cmd="${BIN_PATH}"
 fi
 
-echo "env DENO_TLS_CA_STORE=system ${cmd}"
+extra_env="DENO_TLS_CA_STORE=system"
+if [ "${ALLOW_DENO_PACKAGE_JSON:-}" != "1" ]; then
+  extra_env="DENO_NO_PACKAGE_JSON=1 ${extra_env}"
+fi
+
+echo "env ${extra_env} ${cmd}"

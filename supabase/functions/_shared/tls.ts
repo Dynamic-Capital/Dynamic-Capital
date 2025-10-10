@@ -3,6 +3,16 @@ export type HttpClientContext = {
   description: string;
 };
 
+type HttpClientOptions = Deno.CreateHttpClientOptions & {
+  caData?: string;
+  proxy?: { url: string };
+};
+
+type PreparedHttpClient = {
+  options: HttpClientOptions;
+  description: string;
+};
+
 const INLINE_CERT_ENV_KEYS = [
   "TELEGRAM_CA_CERT_DATA",
   "TELEGRAM_CA_BUNDLE_DATA",
@@ -30,6 +40,51 @@ const HTTPS_PROXY_ENV_KEYS = [
 ];
 
 const TLS_STORE_TARGET = "system,mozilla";
+
+let cachedResolvedKey: string | null = null;
+let cachedResolvedConfig: PreparedHttpClient | null = null;
+let pendingKey: string | null = null;
+let pendingConfig: Promise<PreparedHttpClient | null> | null = null;
+
+function getEnvValue(key: string): string {
+  const value = Deno.env.get(key);
+  return value ? value.trim() : "";
+}
+
+function canonicalizeTlsStore(value: string | null | undefined): string {
+  const entries = value
+    ? value.split(",").map((entry) => entry.trim()).filter(Boolean)
+    : [];
+  if (!entries.includes("system")) {
+    entries.push("system");
+  }
+  if (!entries.includes("mozilla")) {
+    entries.push("mozilla");
+  }
+  if (entries.length === 0) {
+    return TLS_STORE_TARGET;
+  }
+  return entries.join(",");
+}
+
+function computeConfigKey(): string {
+  const segments: string[] = [];
+  for (const key of INLINE_CERT_ENV_KEYS) {
+    segments.push(`${key}=${getEnvValue(key)}`);
+  }
+  for (const key of PATH_CERT_ENV_KEYS) {
+    segments.push(`${key}=${getEnvValue(key)}`);
+  }
+  for (const key of HTTPS_PROXY_ENV_KEYS) {
+    segments.push(`${key}=${getEnvValue(key)}`);
+  }
+  segments.push(
+    `DENO_TLS_CA_STORE=${
+      canonicalizeTlsStore(Deno.env.get("DENO_TLS_CA_STORE"))
+    }`,
+  );
+  return segments.join("|");
+}
 
 function expandPathList(value: string | undefined | null): string[] {
   if (!value) return [];
@@ -140,6 +195,54 @@ function resolveProxy(): { url: string; description: string } | null {
 export async function createHttpClientWithEnvCa(): Promise<
   HttpClientContext | null
 > {
+  const key = computeConfigKey();
+
+  if (cachedResolvedKey === key) {
+    const config = cachedResolvedConfig;
+    if (!config) return null;
+    return {
+      client: Deno.createHttpClient(config.options),
+      description: config.description,
+    };
+  }
+
+  if (pendingConfig && pendingKey === key) {
+    const config = await pendingConfig;
+    if (!config) return null;
+    return {
+      client: Deno.createHttpClient(config.options),
+      description: config.description,
+    };
+  }
+
+  pendingKey = key;
+  pendingConfig = loadAndCacheConfig(key);
+  const config = await pendingConfig;
+  if (!config) return null;
+
+  return {
+    client: Deno.createHttpClient(config.options),
+    description: config.description,
+  };
+}
+
+async function loadAndCacheConfig(
+  key: string,
+): Promise<PreparedHttpClient | null> {
+  try {
+    const config = await prepareHttpClientConfig();
+    cachedResolvedKey = key;
+    cachedResolvedConfig = config;
+    return config;
+  } finally {
+    if (pendingKey === key) {
+      pendingKey = null;
+      pendingConfig = null;
+    }
+  }
+}
+
+async function prepareHttpClientConfig(): Promise<PreparedHttpClient | null> {
   const bundles = await collectCertificateBundles();
   const proxy = resolveProxy();
   const tlsStore = ensureTlsStore();
@@ -152,10 +255,13 @@ export async function createHttpClientWithEnvCa(): Promise<
     ? `${bundles.map((segment) => segment.data).join("\n")}\n`
     : undefined;
 
-  const client = Deno.createHttpClient({
-    caData: combined,
-    proxy: proxy ? { url: proxy.url } : undefined,
-  });
+  const options: HttpClientOptions = {};
+  if (combined) {
+    options.caData = combined;
+  }
+  if (proxy) {
+    options.proxy = { url: proxy.url };
+  }
 
   const description = [
     bundles.map((segment) => segment.description).join(", ") || null,
@@ -163,8 +269,12 @@ export async function createHttpClientWithEnvCa(): Promise<
     proxy?.description ?? null,
   ].filter(Boolean).join(", ");
 
-  return {
-    client,
-    description,
-  };
+  return { options, description };
+}
+
+export function resetHttpClientCache(): void {
+  cachedResolvedKey = null;
+  cachedResolvedConfig = null;
+  pendingKey = null;
+  pendingConfig = null;
 }
