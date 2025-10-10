@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import { performance } from "node:perf_hooks";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import os from "node:os";
+import { setTimeout as delay } from "node:timers/promises";
 import { parseArgs } from "node:util";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -20,13 +23,34 @@ const targets = [
 ];
 
 const {
-  values: { skip = [], only = [] },
+  values: {
+    skip = [],
+    only = [],
+    concurrency: rawConcurrency,
+    sequential = false,
+    "continue-on-error": continueOnError = false,
+    "dry-run": dryRun = false,
+    "list-targets": listTargets = false,
+  },
 } = parseArgs({
   options: {
     skip: { type: "string", multiple: true },
     only: { type: "string", multiple: true },
+    concurrency: { type: "string" },
+    sequential: { type: "boolean" },
+    "continue-on-error": { type: "boolean" },
+    "dry-run": { type: "boolean" },
+    "list-targets": { type: "boolean" },
   },
 });
+
+if (listTargets) {
+  console.log("Available build targets:\n");
+  for (const target of targets) {
+    console.log(`• ${target.name} — ${target.label}`);
+  }
+  process.exit(0);
+}
 
 const normalizedSkip = new Set(skip.map((value) => value.toLowerCase()));
 const normalizedOnly = new Set(only.map((value) => value.toLowerCase()));
@@ -53,6 +77,25 @@ if (activeTargets.length === 0) {
   process.exit(1);
 }
 
+const formatDuration = (milliseconds) => {
+  if (!Number.isFinite(milliseconds)) {
+    return "unknown";
+  }
+
+  if (milliseconds < 1000) {
+    return `${milliseconds.toFixed(0)}ms`;
+  }
+
+  const seconds = milliseconds / 1000;
+  if (seconds < 60) {
+    return `${seconds.toFixed(1)}s`;
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds - minutes * 60;
+  return `${minutes}m ${remainingSeconds.toFixed(0)}s`;
+};
+
 const runScript = (script) =>
   new Promise((resolve, reject) => {
     const child = spawn("npm", ["run", script], {
@@ -74,17 +117,144 @@ const runScript = (script) =>
     });
   });
 
-const runAll = async () => {
-  for (const target of activeTargets) {
-    console.log(`\n🚀 Building ${target.label} (${target.name})...`);
-    await runScript(target.script);
-    console.log(`✅ Finished ${target.label}.`);
+const detectParallelism = () => {
+  const available = typeof os.availableParallelism === "function"
+    ? os.availableParallelism()
+    : os.cpus()?.length ?? 1;
+  return Math.max(1, Math.min(available, 4));
+};
+
+const parsedConcurrency = (() => {
+  if (sequential) {
+    return 1;
+  }
+  if (rawConcurrency === undefined) {
+    return detectParallelism();
   }
 
-  const summary = activeTargets.map(({ label }) => `• ${label}`).join("\n");
+  const parsed = Number.parseInt(rawConcurrency, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    console.warn(
+      `⚠️  Ignoring invalid --concurrency value "${rawConcurrency}". Using sequential execution instead.`,
+    );
+    return 1;
+  }
+  return parsed;
+})();
+
+const concurrency = Math.max(1, parsedConcurrency);
+
+if (dryRun) {
+  console.log("Dry-run mode: no build commands will be executed.\n");
+  console.log("Planned build order:");
+  activeTargets.forEach((target, index) => {
+    console.log(
+      ` ${
+        index + 1
+      }. ${target.label} (${target.name}) → npm run ${target.script}`,
+    );
+  });
   console.log(
-    `\nAll selected build targets completed successfully:\n${summary}`,
+    `\nExecution strategy: ${
+      concurrency === 1
+        ? "sequential"
+        : `parallel with up to ${concurrency} concurrent tasks`
+    }.`,
   );
+  process.exit(0);
+}
+
+const runAll = async () => {
+  const statuses = new Map();
+  let encounteredError = false;
+  let completed = 0;
+
+  const queue = [...activeTargets];
+
+  const nextTarget = () => queue.shift();
+
+  const worker = async (workerId) => {
+    while (true) {
+      if (encounteredError && !continueOnError) {
+        return;
+      }
+
+      const target = nextTarget();
+      if (!target) {
+        return;
+      }
+
+      const start = performance.now();
+      statuses.set(target.name, { status: "running", startedAt: start });
+
+      console.log(
+        `\n🚀 [worker ${workerId}] Building ${target.label} (${target.name})...`,
+      );
+
+      try {
+        await runScript(target.script);
+        const duration = performance.now() - start;
+        statuses.set(target.name, { status: "success", duration });
+        completed += 1;
+        console.log(
+          `✅ Completed ${target.label} in ${
+            formatDuration(duration)
+          } (${completed}/${activeTargets.length}).`,
+        );
+      } catch (error) {
+        const duration = performance.now() - start;
+        statuses.set(target.name, { status: "failed", duration, error });
+        encounteredError = true;
+        console.error(
+          `❌ ${target.label} failed after ${formatDuration(duration)}: ${
+            error instanceof Error ? error.message : error
+          }.`,
+        );
+        if (!continueOnError) {
+          return;
+        }
+      }
+
+      if (queue.length > 0 && concurrency > 1) {
+        // Small delay to reduce log interleaving when multiple workers start simultaneously.
+        await delay(10);
+      }
+    }
+  };
+
+  const workers = Array.from(
+    { length: concurrency },
+    (_, index) => worker(index + 1),
+  );
+  await Promise.all(workers);
+
+  const summaryLines = activeTargets.map((target) => {
+    const result = statuses.get(target.name);
+    if (!result) {
+      return `• ${target.label} — not started`;
+    }
+
+    const duration = formatDuration(result.duration ?? NaN);
+
+    switch (result.status) {
+      case "success":
+        return `• ✅ ${target.label} (${duration})`;
+      case "failed": {
+        const message = result.error instanceof Error
+          ? result.error.message
+          : String(result.error ?? "unknown error");
+        return `• ❌ ${target.label} (${duration}) — ${message}`;
+      }
+      default:
+        return `• ⏳ ${target.label}`;
+    }
+  });
+
+  console.log("\nBuild summary:\n" + summaryLines.join("\n"));
+
+  if (encounteredError && !continueOnError) {
+    throw new Error("One or more build targets failed.");
+  }
 };
 
 runAll().catch((error) => {
