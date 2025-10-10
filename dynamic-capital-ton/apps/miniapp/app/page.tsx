@@ -32,7 +32,15 @@ import {
   type Plan,
   processTonMiniAppSubscription,
   deriveTonTransactionHash,
+  requestTonProofChallenge,
+  type TonProofPayload,
+  type TonProofChallenge,
 } from "../lib/ton-miniapp-helper";
+import {
+  computeTonProofRefreshDelay,
+  deriveTonProofUiState,
+  type TonProofState,
+} from "../lib/ton-proof-state";
 
 import type {
   LiveIntelSnapshot,
@@ -1259,6 +1267,14 @@ function HomeInner() {
   const [mintingStates, setMintingStates] = useState<Record<number, MintingPlanState>>(
     createDefaultMintingState,
   );
+  const [tonProofChallenge, setTonProofChallenge] = useState<
+    TonProofChallenge | null
+  >(null);
+  const [tonProofState, setTonProofState] = useState<TonProofState>({
+    status: "idle",
+  });
+  const [tonProof, setTonProof] = useState<TonProofPayload | null>(null);
+  const [walletVerified, setWalletVerified] = useState(false);
   const telegramId = useTelegramId();
   const liveIntel = useLiveIntel();
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -1267,6 +1283,8 @@ function HomeInner() {
     tonConnectThemeSource,
   );
   const mintingProgressTimers = useRef<Record<number, number>>({});
+  const tonProofRequestInFlight = useRef(false);
+  const lastChallengeTelegramIdRef = useRef<string | null>(null);
 
   const updatePlanSyncStatus = useCallback(
     (updater: (previous: PlanSyncStatus) => PlanSyncStatus) => {
@@ -1277,6 +1295,118 @@ function HomeInner() {
     },
     [],
   );
+
+  const refreshTonProofChallenge = useCallback(async () => {
+    if (!tonConnectUI || !telegramId || tonProofRequestInFlight.current) {
+      return;
+    }
+    tonProofRequestInFlight.current = true;
+    setWalletVerified(false);
+    setTonProof(null);
+    try {
+      tonConnectUI.setConnectRequestParameters?.({ state: "loading" });
+      setTonProofState({ status: "loading" });
+      const result = await requestTonProofChallenge({ telegramId });
+      if (!result.ok) {
+        setTonProofState({ status: "error", error: result.error });
+        tonConnectUI.setConnectRequestParameters?.(null);
+        return;
+      }
+      setTonProofChallenge(result.challenge);
+      setTonProofState({ status: "ready" });
+      lastChallengeTelegramIdRef.current = telegramId;
+      tonConnectUI.setConnectRequestParameters?.({
+        state: "ready",
+        value: { tonProof: result.challenge.payload },
+      });
+    } catch (error) {
+      console.error("[miniapp] Failed to request TON proof challenge", error);
+      setTonProofState({
+        status: "error",
+        error: "Unable to prepare TON wallet verification. Retry shortly.",
+      });
+      tonConnectUI.setConnectRequestParameters?.(null);
+    } finally {
+      tonProofRequestInFlight.current = false;
+    }
+  }, [telegramId, tonConnectUI]);
+
+  useEffect(() => {
+    if (!tonConnectUI || !telegramId) {
+      return;
+    }
+    if (lastChallengeTelegramIdRef.current === telegramId) {
+      return;
+    }
+    void refreshTonProofChallenge();
+  }, [tonConnectUI, telegramId, refreshTonProofChallenge]);
+
+  useEffect(() => {
+    if (!tonProofChallenge) {
+      return;
+    }
+
+    const delay = computeTonProofRefreshDelay({
+      expiresAt: tonProofChallenge.expires_at,
+      now: Date.now(),
+      walletVerified,
+    });
+
+    if (delay === null) {
+      return;
+    }
+
+    if (delay <= 0) {
+      void refreshTonProofChallenge();
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void refreshTonProofChallenge();
+    }, delay);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [tonProofChallenge, walletVerified, refreshTonProofChallenge]);
+
+  useEffect(() => {
+    if (!tonConnectUI) {
+      setTonProof(null);
+      setWalletVerified(false);
+      setTonProofState({ status: "idle" });
+      tonProofRequestInFlight.current = false;
+      return;
+    }
+    const unsubscribe = tonConnectUI.onStatusChange((walletInfo) => {
+      if (walletInfo?.connectItems?.tonProof &&
+        "proof" in walletInfo.connectItems.tonProof) {
+        setTonProof(walletInfo.connectItems.tonProof.proof);
+        setTonProofState((previous) => {
+          if (previous.status === "verified") {
+            return previous;
+          }
+          if (previous.status === "ready") {
+            return previous;
+          }
+          return { status: "ready" };
+        });
+      } else {
+        setTonProof(null);
+      }
+      if (!walletInfo) {
+        setWalletVerified(false);
+        setTonProofState({ status: "idle" });
+        setTonProofChallenge(null);
+        lastChallengeTelegramIdRef.current = null;
+        tonProofRequestInFlight.current = false;
+        tonConnectUI.setConnectRequestParameters?.(null);
+      }
+    });
+    return () => {
+      unsubscribe?.();
+    };
+  }, [tonConnectUI]);
 
   const selectedPlan = useMemo(
     () => planOptions.find((option) => option.id === plan),
@@ -1337,6 +1467,19 @@ function HomeInner() {
 
   const themeOptions = themeState.availableThemes;
   const walletConnected = Boolean(walletAddress);
+  const tonProofUi = useMemo(
+    () =>
+      deriveTonProofUiState({
+        state: tonProofState,
+        hasWallet: walletConnected,
+        hasProof: Boolean(tonProof),
+        walletVerified,
+      }),
+    [tonProofState, walletConnected, tonProof, walletVerified],
+  );
+  const handleTonProofRetry = useCallback(() => {
+    void refreshTonProofChallenge();
+  }, [refreshTonProofChallenge]);
   const isThemeBusy = themeState.isLoading || themeState.isApplying;
   const themeEmptyCopy = walletConnected
     ? "When a Theme NFT is detected it will appear here with the option to preview and apply it instantly."
@@ -1729,12 +1872,28 @@ function HomeInner() {
       return;
     }
 
+    if (!tonProof) {
+      setStatusMessage(
+        "Wallet verification is not ready yet. Reconnect your TON wallet and try again.",
+      );
+      if (tonProofState.status !== "loading") {
+        void refreshTonProofChallenge();
+      }
+      return;
+    }
+
     setIsLinking(true);
     setStatusMessage(null);
 
     const result = await linkTonMiniAppWallet({
       telegramId,
-      wallet: currentWallet,
+      wallet: {
+        address: currentWallet.address ?? null,
+        publicKey: currentWallet.publicKey ?? null,
+        walletStateInit: currentWallet.walletStateInit ?? null,
+      },
+      proof: tonProof,
+      walletAppName: tonConnectUI.wallet?.device?.appName ?? null,
     });
 
     setIsLinking(false);
@@ -1745,9 +1904,17 @@ function HomeInner() {
         result.error ??
           "Unable to link your wallet right now. Please retry in a few moments.",
       );
+      setWalletVerified(false);
+      if (result.status === 401 || result.status === 400) {
+        void refreshTonProofChallenge();
+      }
       return;
     }
 
+    setWalletVerified(true);
+    setTonProofState({ status: "verified" });
+    setTonProofChallenge(null);
+    tonConnectUI.setConnectRequestParameters?.(null);
     setStatusMessage("Wallet linked successfully. Desk access unlocked.");
   }
 
@@ -1759,6 +1926,16 @@ function HomeInner() {
     const currentWallet = tonConnectUI.account;
     if (!currentWallet) {
       setStatusMessage("Connect a TON wallet to continue.");
+      return;
+    }
+
+    if (!walletVerified) {
+      setStatusMessage(
+        "Verify your TON wallet with the desk before starting a subscription.",
+      );
+      if (tonProofState.status !== "ready") {
+        void refreshTonProofChallenge();
+      }
       return;
     }
 
@@ -1941,10 +2118,40 @@ function HomeInner() {
             <button
               className="button button-secondary"
               onClick={linkWallet}
-              disabled={isLinking || !wallet}
+              disabled={isLinking || tonProofUi.linkDisabled}
             >
-              {isLinking ? "Linking…" : "Link wallet to desk"}
+              {walletVerified
+                ? "Wallet verified"
+                : isLinking
+                ? "Linking…"
+                : "Link wallet to desk"}
             </button>
+          </div>
+
+          <div
+            className={`ton-proof-status ton-proof-status--${tonProofUi.variant}`}
+            role="status"
+            aria-live="polite"
+          >
+            <span className="ton-proof-status__indicator" aria-hidden />
+            <div className="ton-proof-status__content">
+              <p className="ton-proof-status__title">{tonProofUi.title}</p>
+              {tonProofUi.description && (
+                <p className="ton-proof-status__description">
+                  {tonProofUi.description}
+                </p>
+              )}
+            </div>
+            {tonProofUi.showRetry && (
+              <button
+                type="button"
+                className="ton-proof-status__action"
+                onClick={handleTonProofRetry}
+                disabled={tonProofUi.retryDisabled}
+              >
+                Retry
+              </button>
+            )}
           </div>
 
           {activePlanVisual.tagline && (
@@ -2151,10 +2358,15 @@ function HomeInner() {
             <button
               className="button button-primary"
               onClick={startSubscription}
-              disabled={isProcessing}
+              disabled={isProcessing || !walletVerified}
             >
               {isProcessing ? "Submitting…" : "Start auto-invest"}
             </button>
+            {!walletVerified && (
+              <p className="plan-actions__hint">
+                Verify your TON wallet above to unlock auto-invest routing.
+              </p>
+            )}
             {txHash && (
               <p className="plan-hash">Latest transaction request: {txHash}</p>
             )}

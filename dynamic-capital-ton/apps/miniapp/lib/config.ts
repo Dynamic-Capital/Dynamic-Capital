@@ -9,6 +9,20 @@ const TWA_RETURN_URL_ENV_KEYS = [
   "NEXT_PUBLIC_MINIAPP_RETURN_URL",
 ];
 
+const TONCONNECT_MANIFEST_URL_ENV_KEYS = [
+  "NEXT_PUBLIC_TONCONNECT_MANIFEST_URL",
+  "TONCONNECT_MANIFEST_URL",
+  "NEXT_PUBLIC_TON_MANIFEST_URL",
+  "TON_MANIFEST_URL",
+];
+
+const TONCONNECT_BRIDGE_URL_ENV_KEYS = [
+  "NEXT_PUBLIC_TONCONNECT_BRIDGE_URL",
+  "TONCONNECT_BRIDGE_URL",
+  "NEXT_PUBLIC_TON_BRIDGE_URL",
+  "TON_BRIDGE_URL",
+];
+
 function normalizeEnvString(value: unknown): string | undefined {
   if (typeof value !== "string") {
     return undefined;
@@ -45,4 +59,22 @@ export const DYNAMIC_TON_API_USER_ID =
 
 export const TONCONNECT_TWA_RETURN_URL = pickFirstEnv(
   TWA_RETURN_URL_ENV_KEYS,
+);
+
+/**
+ * Optional override for the published TON Connect manifest URL.
+ * Use to force the mini-app to present a specific manifest host when
+ * deploying ephemeral or staging builds.
+ */
+export const TONCONNECT_MANIFEST_URL_OVERRIDE = pickFirstEnv(
+  TONCONNECT_MANIFEST_URL_ENV_KEYS,
+);
+
+/**
+ * Optional override for the preferred TON Connect bridge endpoint. When set,
+ * supported wallets will prefer this bridge while retaining their native
+ * injected/js bridge fallbacks.
+ */
+export const TONCONNECT_BRIDGE_URL_OVERRIDE = pickFirstEnv(
+  TONCONNECT_BRIDGE_URL_ENV_KEYS,
 );
