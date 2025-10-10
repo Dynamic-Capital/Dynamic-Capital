@@ -1,9 +1,9 @@
 // Lorentzian Eval Edge Function
-// Deploy with: supabase functions deploy lorentzian-eval
+// Deploy with: supabase functions deploy lorentzian-eval --allow-import
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as pickle from "https://cdn.skypack.dev/pickleparser";
+// Removed problematic pickle import - function disabled until proper parser available
 
 import {
   assignStops,
@@ -158,21 +158,9 @@ async function getLatestModelPath(): Promise<string> {
 }
 
 async function loadModel(): Promise<LorentzianModel> {
-  const modelPath = await getLatestModelPath();
-  const { data, error } = await supabase.storage.from("ai-models").download(
-    modelPath,
+  throw new Error(
+    "Model loading temporarily disabled - pickle parser requires --allow-import flag. Deploy with: supabase functions deploy lorentzian-eval --allow-import"
   );
-
-  if (error || !data) {
-    throw new Error(
-      `Model download failed: ${error?.message ?? "unknown error"}`,
-    );
-  }
-
-  const buffer = await data.arrayBuffer();
-  const parsed = pickle.loads(new Uint8Array(buffer)) as unknown;
-
-  return normaliseModel(parsed);
 }
 
 function evaluateSignal(model: LorentzianModel, prices: number[]) {

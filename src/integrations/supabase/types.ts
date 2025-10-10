@@ -20,7 +20,7 @@ export type Database = {
           created_by: string | null
           expires_at: string | null
           id: string
-          reason: string | null
+          reason: string[] | null
           telegram_id: string
         }
         Insert: {
@@ -28,7 +28,7 @@ export type Database = {
           created_by?: string | null
           expires_at?: string | null
           id?: string
-          reason?: string | null
+          reason?: string[] | null
           telegram_id: string
         }
         Update: {
@@ -36,7 +36,7 @@ export type Database = {
           created_by?: string | null
           expires_at?: string | null
           id?: string
-          reason?: string | null
+          reason?: string[] | null
           telegram_id?: string
         }
         Relationships: []
@@ -633,6 +633,33 @@ export type Database = {
         }
         Relationships: []
       }
+      domain_resolution_cache: {
+        Row: {
+          cached_at: string | null
+          domain: string
+          expires_at: string | null
+          site_url: string | null
+          storage_url: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          cached_at?: string | null
+          domain: string
+          expires_at?: string | null
+          site_url?: string | null
+          storage_url?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          cached_at?: string | null
+          domain?: string
+          expires_at?: string | null
+          site_url?: string | null
+          storage_url?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
       education_categories: {
         Row: {
           created_at: string
@@ -843,6 +870,155 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_campaigns: {
+        Row: {
+          body_html: string
+          body_text: string | null
+          bounced_count: number | null
+          clicked_count: number | null
+          created_at: string
+          created_by: string | null
+          from_email: string
+          from_name: string
+          id: string
+          name: string
+          opened_count: number | null
+          scheduled_at: string | null
+          sent_count: number | null
+          status: string
+          subject: string
+          total_recipients: number | null
+          updated_at: string
+        }
+        Insert: {
+          body_html: string
+          body_text?: string | null
+          bounced_count?: number | null
+          clicked_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          from_email?: string
+          from_name?: string
+          id?: string
+          name: string
+          opened_count?: number | null
+          scheduled_at?: string | null
+          sent_count?: number | null
+          status?: string
+          subject: string
+          total_recipients?: number | null
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          body_text?: string | null
+          bounced_count?: number | null
+          clicked_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          from_email?: string
+          from_name?: string
+          id?: string
+          name?: string
+          opened_count?: number | null
+          scheduled_at?: string | null
+          sent_count?: number | null
+          status?: string
+          subject?: string
+          total_recipients?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_recipients: {
+        Row: {
+          campaign_id: string
+          clicked_at: string | null
+          created_at: string
+          custom_fields: Json | null
+          email: string
+          error_message: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          opened_at: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          campaign_id: string
+          clicked_at?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email: string
+          error_message?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          campaign_id?: string
+          clicked_at?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string
+          error_message?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          body_html: string
+          body_text: string | null
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body_html: string
+          body_text?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          body_text?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       enrollment_audit_log: {
         Row: {
@@ -1099,6 +1275,8 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           display_name: string | null
+          domain_verified: boolean | null
+          domain_verified_at: string | null
           email: string | null
           first_name: string | null
           id: string
@@ -1107,6 +1285,7 @@ export type Database = {
           phone: string | null
           role: string | null
           telegram_id: string | null
+          ton_domain: string | null
           ton_wallet_address: string | null
           updated_at: string | null
           username: string | null
@@ -1115,6 +1294,8 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           display_name?: string | null
+          domain_verified?: boolean | null
+          domain_verified_at?: string | null
           email?: string | null
           first_name?: string | null
           id: string
@@ -1123,6 +1304,7 @@ export type Database = {
           phone?: string | null
           role?: string | null
           telegram_id?: string | null
+          ton_domain?: string | null
           ton_wallet_address?: string | null
           updated_at?: string | null
           username?: string | null
@@ -1131,6 +1313,8 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           display_name?: string | null
+          domain_verified?: boolean | null
+          domain_verified_at?: string | null
           email?: string | null
           first_name?: string | null
           id?: string
@@ -1139,6 +1323,7 @@ export type Database = {
           phone?: string | null
           role?: string | null
           telegram_id?: string | null
+          ton_domain?: string | null
           ton_wallet_address?: string | null
           updated_at?: string | null
           username?: string | null
@@ -1293,6 +1478,60 @@ export type Database = {
           },
         ]
       }
+      subdomain_claims: {
+        Row: {
+          created_at: string | null
+          id: string
+          rejection_reason: string | null
+          requested_subdomain: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          telegram_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          rejection_reason?: string | null
+          requested_subdomain: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          telegram_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          rejection_reason?: string | null
+          requested_subdomain?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          telegram_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subdomain_claims_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subdomain_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_audit_log: {
         Row: {
           action_type: string
@@ -1367,6 +1606,136 @@ export type Database = {
           name?: string
           price?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ton_subdomains: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          full_domain: string
+          id: string
+          last_resolved: string | null
+          subdomain: string
+          updated_at: string | null
+          user_id: string | null
+          verified: boolean | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          full_domain: string
+          id?: string
+          last_resolved?: string | null
+          subdomain: string
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          full_domain?: string
+          id?: string
+          last_resolved?: string | null
+          subdomain?: string
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_subdomains_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ton_transactions: {
+        Row: {
+          amount: string
+          comment: string | null
+          confirmed_at: string | null
+          created_at: string | null
+          fee: string | null
+          from_address: string
+          id: string
+          purpose: string | null
+          status: string | null
+          to_address: string
+          transaction_hash: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: string
+          comment?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          fee?: string | null
+          from_address: string
+          id?: string
+          purpose?: string | null
+          status?: string | null
+          to_address: string
+          transaction_hash: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: string
+          comment?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          fee?: string | null
+          from_address?: string
+          id?: string
+          purpose?: string | null
+          status?: string | null
+          to_address?: string
+          transaction_hash?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tx_logs: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          severity: string | null
+          telegram_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          severity?: string | null
+          telegram_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          severity?: string | null
+          telegram_user_id?: string | null
         }
         Relationships: []
       }
