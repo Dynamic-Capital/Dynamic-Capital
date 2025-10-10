@@ -102,6 +102,15 @@ chronological order beneath this entry.
   committed the probe results in
   `dns/https-gateway-verification-2025-10-08.md`.
 
+## 2025-10-11 – Vercel apex delegation finalized
+
+- **DNS change** — Removed the legacy `76.76.21.21` fallback from
+  `dns/dynamic-capital.ondigitalocean.app.zone`, leaving the apex `A` record
+  solely pointed at Vercel's anycast IP `216.198.79.1`.
+- **Verification** — `dig dynamic-capital.ondigitalocean.app A +short` now
+  returns only `216.198.79.1`, aligning with the Vercel dashboard guidance and
+  confirming propagation of the updated record.
+
 ## 2025-10-10 – Gateway regression detected
 
 - **Symptom** — Routine verification at 16:41 UTC returned `HTTP 503` from both
