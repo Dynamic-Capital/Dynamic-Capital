@@ -154,6 +154,7 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@ton-community/func-js": "^0.10.0",
+    "func-js-bin-0.4.3": "npm:@ton-community/func-js-bin@^0.4.3",
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
     "dotenv": "^16.4.5",
