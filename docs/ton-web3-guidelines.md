@@ -18,6 +18,47 @@ keep the TON surfaces aligned with the broader platform roadmap.
 | Mini App TON manifest      | [dynamic-capital-ton/apps/miniapp/public/tonconnect-manifest.json](../dynamic-capital-ton/apps/miniapp/public/tonconnect-manifest.json) | Declares wallet metadata so TON Connect clients can authorize the Mini App.                                                                  |
 | Wallet scripting reference | [docs/ton-wallet-quickstart.md](./ton-wallet-quickstart.md)                                                                             | Sample code that demonstrates connecting to RPC endpoints, generating mnemonics, and instantiating TON wallets.                              |
 
+### TON Connect library map
+
+- **`@tonconnect/ui`** — Base UI kit that renders wallet lists, connect buttons,
+  and modal flows. It powers the shared components consumed by React and
+  non-React clients alike, and anchors the styling conventions we mirror in Mini
+  Apps.
+- **`@tonconnect/ui-react`** — React bindings we use in the web dashboard and
+  Mini App to wire wallet state into hooks like `useTonAddress`. It wraps the
+  base UI widgets with idiomatic React contexts so we can control bridge URLs,
+  storage, and reactivity without bespoke plumbing.
+- **`@tonconnect/sdk`** — Low-level TypeScript SDK that drives signature
+  requests, manifest validation, and session persistence in edge functions and
+  bots. Use it when building server-side integrations or custom clients that
+  need direct access to the protocol primitives without UI concerns.
+- **`@tonconnect/protocol`** — Type definitions for TON Connect payloads
+  (connect requests, bridge messages, device info). Import these models to keep
+  Supabase edge functions, tests, and automation strictly typed against the
+  official spec as the protocol evolves.
+- **`@tonconnect/isomorphic-fetch` & `@tonconnect/isomorphic-eventsource`** —
+  Polyfills that the SDK relies on when running inside Supabase edge functions
+  or other non-browser runtimes. Add them when building custom bridges so
+  reconnect logic and long-polling stay stable across environments.
+
+### Core TON runtime packages
+
+- **`@ton/core`** — Primary bundle for Cells, BOCs, and serialization helpers.
+  Use it in modern TypeScript targets (Mini App, bots, tooling) so compiler
+  output stays tree-shakeable.
+- **`@ton/ton`** — High-level client used by the Mini App and background jobs to
+  talk to lite servers. Prefer this wrapper when you need wallet-friendly APIs
+  like `openWalletFromAddress` alongside request batching.
+- **`ton-core` & `ton-crypto`** — Legacy CommonJS builds required by a few
+  scripts and Supabase functions that predate the scoped packages. Keep them
+  pinned and isolated to server-only contexts to avoid duplicating bundle size
+  on the client.
+
+> **Optimization tip:** When importing from the scoped packages, target specific
+> entry points (e.g., `@ton/core/dist/stack`) instead of `export *` barrels.
+> This keeps tree-shaking effective and prevents the legacy `ton-core` fallback
+> from leaking into browser bundles.
+
 ### Tooling & environment prerequisites
 
 - **Node.js 20+ with pnpm** — matches the monorepo engine requirements and is
