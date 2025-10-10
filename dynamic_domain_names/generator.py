@@ -9,6 +9,8 @@ from statistics import fmean
 import re
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
+from ._tld_registry import is_known_tld
+
 __all__ = [
     "DomainSeed",
     "DomainPolicy",
@@ -58,6 +60,8 @@ def _normalise_tlds(tlds: Sequence[str]) -> tuple[str, ...]:
             continue
         if not cleaned.startswith("."):
             cleaned = f".{cleaned}"
+        if not is_known_tld(cleaned):
+            raise ValueError(f"domain has a non recognized TLD: {cleaned}")
         if cleaned not in seen:
             seen.add(cleaned)
             ordered.append(cleaned)
