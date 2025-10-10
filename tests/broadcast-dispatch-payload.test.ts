@@ -5,6 +5,9 @@ import {
 } from "node:assert/strict";
 import { freshImport } from "./utils/freshImport.ts";
 
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 test("buildTelegramPayload falls back to text for plain strings", async () => {
   const { buildTelegramPayload } = await freshImport(
     new URL(

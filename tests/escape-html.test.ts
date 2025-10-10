@@ -3,6 +3,9 @@ import { equal as assertEquals } from "node:assert/strict";
 import { freshImport } from "./utils/freshImport.ts";
 import process from "node:process";
 
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 interface SupaMockState {
   tables: Record<string, unknown>;
 }

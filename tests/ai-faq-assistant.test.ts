@@ -2,6 +2,9 @@ import test from "node:test";
 import { equal as assertEquals } from "node:assert/strict";
 import { freshImport } from "./utils/freshImport.ts";
 
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 const loadHandler = async () => {
   Deno.env.set("OPENAI_API_KEY", "test-key");
   Deno.env.set("SUPABASE_URL", "https://test.supabase.co");
