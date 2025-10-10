@@ -1,8 +1,18 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/utils";
+
+const useIsomorphicLayoutEffect = typeof window !== "undefined"
+  ? useLayoutEffect
+  : useEffect;
 
 interface AutoSizingContainerProps {
   children: React.ReactNode;
@@ -25,65 +35,97 @@ export function AutoSizingContainer({
     "auto",
   );
   const containerRef = useRef<HTMLDivElement>(null);
+  const frameIdRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (!responsive) {
+  const updateHeight = useCallback(() => {
+    if (typeof window === "undefined") {
       return;
     }
 
-    let frameId: number | null = null;
-    let resizeObserver: ResizeObserver | null = null;
+    const element = containerRef.current;
+    if (!element) {
+      return;
+    }
 
-    const updateHeight = () => {
-      if (!containerRef.current) {
-        return;
+    const rect = element.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const buffer = 20;
+    const availableHeight = Math.max(0, viewportHeight - rect.top - buffer);
+
+    const hasMaxHeight = typeof maxHeight === "number";
+    const safeMin = hasMaxHeight ? Math.min(minHeight, maxHeight) : minHeight;
+    const safeMax = hasMaxHeight
+      ? Math.max(maxHeight, safeMin)
+      : Number.POSITIVE_INFINITY;
+
+    const constrainedHeight = Math.min(
+      safeMax,
+      Math.max(availableHeight, safeMin),
+    );
+
+    setContainerHeight((previous) =>
+      previous === constrainedHeight ? previous : constrainedHeight
+    );
+  }, [maxHeight, minHeight]);
+
+  const scheduleUpdate = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (frameIdRef.current) {
+      cancelAnimationFrame(frameIdRef.current);
+    }
+
+    frameIdRef.current = window.requestAnimationFrame(() => {
+      frameIdRef.current = null;
+      updateHeight();
+    });
+  }, [updateHeight]);
+
+  useEffect(() => {
+    if (!responsive) {
+      if (frameIdRef.current) {
+        cancelAnimationFrame(frameIdRef.current);
+        frameIdRef.current = null;
       }
+      setContainerHeight("auto");
+      return;
+    }
 
-      const rect = containerRef.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const availableHeight = viewportHeight - rect.top - 20; // 20px buffer
-
-      const calculatedHeight = Math.max(
-        minHeight,
-        maxHeight ? Math.min(availableHeight, maxHeight) : availableHeight,
-      );
-
-      setContainerHeight(calculatedHeight);
-    };
-
-    const scheduleUpdate = () => {
-      if (frameId) {
-        cancelAnimationFrame(frameId);
-      }
-      frameId = window.requestAnimationFrame(updateHeight);
-    };
+    if (typeof window === "undefined") {
+      return;
+    }
 
     scheduleUpdate();
 
-    window.addEventListener("resize", scheduleUpdate);
-    window.addEventListener("orientationchange", scheduleUpdate);
+    const handleResize = () => scheduleUpdate();
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+
+    let resizeObserver: ResizeObserver | null = null;
 
     if (typeof ResizeObserver !== "undefined") {
-      resizeObserver = new ResizeObserver(scheduleUpdate);
+      resizeObserver = new ResizeObserver(() => scheduleUpdate());
       const element = containerRef.current;
-      const parent = element?.parentElement;
       if (element) {
         resizeObserver.observe(element);
-      }
-      if (parent) {
-        resizeObserver.observe(parent);
+        if (element.parentElement) {
+          resizeObserver.observe(element.parentElement);
+        }
       }
     }
 
     return () => {
-      if (frameId) {
-        cancelAnimationFrame(frameId);
+      if (frameIdRef.current) {
+        cancelAnimationFrame(frameIdRef.current);
+        frameIdRef.current = null;
       }
-      window.removeEventListener("resize", scheduleUpdate);
-      window.removeEventListener("orientationchange", scheduleUpdate);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
       resizeObserver?.disconnect();
     };
-  }, [responsive, minHeight, maxHeight]);
+  }, [responsive, scheduleUpdate]);
 
   if (animate) {
     return (
@@ -92,8 +134,8 @@ export function AutoSizingContainer({
         className={cn("overflow-auto", className)}
         style={{
           height: responsive ? containerHeight : "auto",
-          minHeight: minHeight || undefined,
-          maxHeight: maxHeight || undefined,
+          minHeight: typeof minHeight === "number" ? minHeight : undefined,
+          maxHeight: typeof maxHeight === "number" ? maxHeight : undefined,
         }}
         layout
         transition={{
@@ -114,8 +156,8 @@ export function AutoSizingContainer({
       className={cn("overflow-auto", className)}
       style={{
         height: responsive ? containerHeight : "auto",
-        minHeight: minHeight || undefined,
-        maxHeight: maxHeight || undefined,
+        minHeight: typeof minHeight === "number" ? minHeight : undefined,
+        maxHeight: typeof maxHeight === "number" ? maxHeight : undefined,
       }}
     >
       {children}
@@ -144,55 +186,90 @@ export function AutoSizingGrid({
 }: AutoSizingGridProps) {
   const [columns, setColumns] = useState(1);
   const gridRef = useRef<HTMLDivElement>(null);
+  const gridFrameIdRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (!responsive) {
+  const updateColumns = useCallback(() => {
+    const element = gridRef.current;
+    if (!element) {
       return;
     }
 
-    let frameId: number | null = null;
+    const width = element.clientWidth;
+    if (width <= 0) {
+      return;
+    }
+
+    const safeGap = Math.max(0, gap);
+    const safeMinItemWidth = Math.max(1, minItemWidth);
+    const safeMaxColumns = Math.max(1, maxColumns);
+
+    const usableWidth = Math.max(0, width - safeGap);
+    const rawColumns = Math.floor(
+      (usableWidth + safeGap) / (safeMinItemWidth + safeGap),
+    );
+    const nextColumns = Math.min(
+      safeMaxColumns,
+      Math.max(1, rawColumns),
+    );
+
+    setColumns((current) => (current === nextColumns ? current : nextColumns));
+  }, [gap, maxColumns, minItemWidth]);
+
+  const scheduleColumnUpdate = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (gridFrameIdRef.current) {
+      cancelAnimationFrame(gridFrameIdRef.current);
+    }
+
+    gridFrameIdRef.current = window.requestAnimationFrame(() => {
+      gridFrameIdRef.current = null;
+      updateColumns();
+    });
+  }, [updateColumns]);
+
+  useEffect(() => {
+    if (!responsive) {
+      if (gridFrameIdRef.current) {
+        cancelAnimationFrame(gridFrameIdRef.current);
+        gridFrameIdRef.current = null;
+      }
+      return;
+    }
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    scheduleColumnUpdate();
+
+    const handleResize = () => scheduleColumnUpdate();
+    window.addEventListener("resize", handleResize);
+
     let resizeObserver: ResizeObserver | null = null;
 
-    const updateColumns = () => {
-      if (!gridRef.current) {
-        return;
-      }
-
-      const containerWidth = gridRef.current.offsetWidth;
-      const availableWidth = containerWidth - gap;
-      const calculatedColumns = Math.floor(
-        availableWidth / (minItemWidth + gap),
-      );
-      const finalColumns = Math.min(Math.max(1, calculatedColumns), maxColumns);
-      setColumns(finalColumns);
-    };
-
-    const scheduleUpdate = () => {
-      if (frameId) {
-        cancelAnimationFrame(frameId);
-      }
-      frameId = window.requestAnimationFrame(updateColumns);
-    };
-
-    scheduleUpdate();
-    window.addEventListener("resize", scheduleUpdate);
-
-    if (typeof ResizeObserver !== "undefined" && gridRef.current) {
-      resizeObserver = new ResizeObserver(scheduleUpdate);
-      resizeObserver.observe(gridRef.current);
-      if (gridRef.current.parentElement) {
-        resizeObserver.observe(gridRef.current.parentElement);
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => scheduleColumnUpdate());
+      const element = gridRef.current;
+      if (element) {
+        resizeObserver.observe(element);
+        if (element.parentElement) {
+          resizeObserver.observe(element.parentElement);
+        }
       }
     }
 
     return () => {
-      if (frameId) {
-        cancelAnimationFrame(frameId);
+      if (gridFrameIdRef.current) {
+        cancelAnimationFrame(gridFrameIdRef.current);
+        gridFrameIdRef.current = null;
       }
-      window.removeEventListener("resize", scheduleUpdate);
+      window.removeEventListener("resize", handleResize);
       resizeObserver?.disconnect();
     };
-  }, [responsive, minItemWidth, maxColumns, gap]);
+  }, [responsive, scheduleColumnUpdate]);
 
   return (
     <motion.div
@@ -260,63 +337,125 @@ export function AutoSizingText({
 }: AutoSizingTextProps) {
   const [fontSize, setFontSize] = useState(maxSize);
   const textRef = useRef<HTMLDivElement>(null);
+  const textFrameIdRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    let frameId: number | null = null;
+  const adjustFontSize = useCallback(() => {
+    const container = containerRef?.current ?? textRef.current?.parentElement;
+    const textElement = textRef.current;
+
+    if (!container || !textElement) {
+      return;
+    }
+
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
+    if (containerWidth <= 0) {
+      return;
+    }
+
+    const lowerBound = Math.max(1, Math.min(minSize, maxSize));
+    const upperBound = Math.max(lowerBound, Math.max(minSize, maxSize));
+
+    let bestFit = lowerBound;
+    let low = lowerBound;
+    let high = upperBound;
+
+    const fits = (size: number) => {
+      textElement.style.fontSize = `${size}px`;
+
+      const fitsWidth = textElement.scrollWidth <= containerWidth;
+      const fitsHeight = containerHeight === 0
+        ? true
+        : textElement.scrollHeight <= containerHeight;
+
+      return fitsWidth && fitsHeight;
+    };
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+
+      if (fits(mid)) {
+        bestFit = mid;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    textElement.style.fontSize = `${bestFit}px`;
+    setFontSize((current) => (current === bestFit ? current : bestFit));
+  }, [containerRef, maxSize, minSize]);
+
+  const scheduleAdjust = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (textFrameIdRef.current) {
+      cancelAnimationFrame(textFrameIdRef.current);
+    }
+
+    textFrameIdRef.current = window.requestAnimationFrame(() => {
+      textFrameIdRef.current = null;
+      adjustFontSize();
+    });
+  }, [adjustFontSize]);
+
+  useIsomorphicLayoutEffect(() => {
+    let isCancelled = false;
+
+    const runAdjust = () => {
+      if (!isCancelled) {
+        scheduleAdjust();
+      }
+    };
+
+    runAdjust();
+
+    if (typeof document !== "undefined") {
+      const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+      fonts?.ready
+        .then(() => {
+          if (!isCancelled) {
+            scheduleAdjust();
+          }
+        })
+        .catch(() => {
+          /* ignore font loading errors */
+        });
+    }
+
+    if (typeof window === "undefined") {
+      return () => {
+        isCancelled = true;
+      };
+    }
+
+    const handleResize = () => runAdjust();
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+
     let resizeObserver: ResizeObserver | null = null;
-
-    const adjustFontSize = () => {
-      const container = containerRef?.current || textRef.current?.parentElement;
-      const textElement = textRef.current;
-
-      if (container && textElement) {
-        let currentSize = maxSize;
-        textElement.style.fontSize = `${currentSize}px`;
-
-        while (
-          (textElement.scrollWidth > container.offsetWidth ||
-            textElement.scrollHeight > container.offsetHeight) &&
-          currentSize > minSize
-        ) {
-          currentSize -= 1;
-          textElement.style.fontSize = `${currentSize}px`;
-        }
-
-        setFontSize(currentSize);
-      }
-    };
-
-    const scheduleAdjust = () => {
-      if (frameId) {
-        cancelAnimationFrame(frameId);
-      }
-      frameId = window.requestAnimationFrame(adjustFontSize);
-    };
-
-    scheduleAdjust();
-    window.addEventListener("resize", scheduleAdjust);
-    window.addEventListener("orientationchange", scheduleAdjust);
-
-    const container = containerRef?.current || textRef.current?.parentElement;
     if (typeof ResizeObserver !== "undefined") {
-      resizeObserver = new ResizeObserver(scheduleAdjust);
+      resizeObserver = new ResizeObserver(() => runAdjust());
+      const container = containerRef?.current ?? textRef.current?.parentElement;
       if (container) {
         resizeObserver.observe(container);
-      }
-      if (textRef.current) {
-        resizeObserver.observe(textRef.current);
       }
     }
 
     return () => {
-      if (frameId) {
-        cancelAnimationFrame(frameId);
+      isCancelled = true;
+      if (textFrameIdRef.current) {
+        cancelAnimationFrame(textFrameIdRef.current);
+        textFrameIdRef.current = null;
       }
-      window.removeEventListener("resize", scheduleAdjust);
-      window.removeEventListener("orientationchange", scheduleAdjust);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
       resizeObserver?.disconnect();
     };
-  }, [minSize, maxSize, containerRef, children]);
+  }, [scheduleAdjust, containerRef, children]);
 
   return (
     <div
