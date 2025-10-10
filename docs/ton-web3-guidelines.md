@@ -36,6 +36,28 @@ keep the TON surfaces aligned with the broader platform roadmap.
   (connect requests, bridge messages, device info). Import these models to keep
   Supabase edge functions, tests, and automation strictly typed against the
   official spec as the protocol evolves.
+- **`@tonconnect/isomorphic-fetch` & `@tonconnect/isomorphic-eventsource`** —
+  Polyfills that the SDK relies on when running inside Supabase edge functions
+  or other non-browser runtimes. Add them when building custom bridges so
+  reconnect logic and long-polling stay stable across environments.
+
+### Core TON runtime packages
+
+- **`@ton/core`** — Primary bundle for Cells, BOCs, and serialization helpers.
+  Use it in modern TypeScript targets (Mini App, bots, tooling) so compiler
+  output stays tree-shakeable.
+- **`@ton/ton`** — High-level client used by the Mini App and background jobs to
+  talk to lite servers. Prefer this wrapper when you need wallet-friendly APIs
+  like `openWalletFromAddress` alongside request batching.
+- **`ton-core` & `ton-crypto`** — Legacy CommonJS builds required by a few
+  scripts and Supabase functions that predate the scoped packages. Keep them
+  pinned and isolated to server-only contexts to avoid duplicating bundle size
+  on the client.
+
+> **Optimization tip:** When importing from the scoped packages, target specific
+> entry points (e.g., `@ton/core/dist/stack`) instead of `export *` barrels.
+> This keeps tree-shaking effective and prevents the legacy `ton-core` fallback
+> from leaking into browser bundles.
 
 ### Tooling & environment prerequisites
 
