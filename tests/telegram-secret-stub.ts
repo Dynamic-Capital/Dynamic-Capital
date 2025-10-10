@@ -1,10 +1,12 @@
-const TELEGRAM_ALLOWED_UPDATES = Object.freeze([
-  "message",
-  "callback_query",
-  "inline_query",
-  "chat_member",
-  "my_chat_member",
-] as const);
+const TELEGRAM_ALLOWED_UPDATES = Object.freeze(
+  [
+    "message",
+    "callback_query",
+    "inline_query",
+    "chat_member",
+    "my_chat_member",
+  ] as const,
+);
 
 export type TelegramAllowedUpdate = typeof TELEGRAM_ALLOWED_UPDATES[number];
 
@@ -39,8 +41,31 @@ export function validateTelegramHeader(
   }
 
   const got = normalize(req.headers.get("x-telegram-bot-api-secret-token"));
-  if (!got || got !== exp) {
-    return Promise.resolve(new Response("Unauthorized", { status: 401 }));
+  const ignore = (detail: "missing" | "mismatch") => {
+    console.warn(
+      `[telegram] invalid webhook secret (${detail}); ignoring request`,
+    );
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        ignored: true,
+        reason: "invalid_webhook_secret",
+        detail,
+      }),
+      {
+        status: 200,
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+        },
+      },
+    );
+  };
+
+  if (!got) {
+    return Promise.resolve(ignore("missing"));
+  }
+  if (got !== exp) {
+    return Promise.resolve(ignore("mismatch"));
   }
   return Promise.resolve(null);
 }
