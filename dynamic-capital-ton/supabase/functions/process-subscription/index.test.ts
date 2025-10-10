@@ -72,8 +72,15 @@ Deno.env.set("ANNOUNCE_CHAT_ID", "chat-id");
 Deno.env.set("APP_URL", "https://app.example");
 Deno.env.set("TON_INDEXER_URL", "https://indexer.example");
 Deno.env.set("TON_USD_OVERRIDE", "2");
+Deno.env.set(
+  "TON_API",
+  "AGFAVSYGPVXSIHAAAAANNVTJYPDH64YFBMMNWPYIC22NNRO6IPSXP2HGYITLCWWWOSLTFOY",
+);
 
 const { handler, verifyTonPayment } = await import("./index.ts");
+const { fetchTonUsdRate } = await import(
+  "../../../../supabase/functions/_shared/pricing.ts"
+);
 type HandlerDependencies = NonNullable<Parameters<typeof handler>[1]>;
 
 type AppConfigRow = {
@@ -1037,3 +1044,42 @@ Deno.test("fetches live TON rate when snapshot omits ton amount", async () => {
     }
   }
 });
+
+Deno.test(
+  "fetchTonUsdRate attaches Authorization header when TON_API is configured",
+  async () => {
+    const previousOverride = Deno.env.get("TON_USD_OVERRIDE");
+    if (previousOverride) {
+      Deno.env.delete("TON_USD_OVERRIDE");
+    }
+
+    try {
+      const response = await fetchTonUsdRate((_, init) => {
+        const headers = new Headers(init?.headers);
+        assertEquals(
+          headers.get("Authorization"),
+          "Bearer AGFAVSYGPVXSIHAAAAANNVTJYPDH64YFBMMNWPYIC22NNRO6IPSXP2HGYITLCWWWOSLTFOY",
+        );
+        assertEquals(headers.get("accept"), "application/json");
+
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              rates: { TON: { prices: { USD: 2.75 } } },
+            }),
+            { status: 200 },
+          ),
+        );
+      });
+
+      assertEquals(response.source, "tonapi");
+      assertAlmostEquals(response.rate ?? 0, 2.75, 1e-9);
+    } finally {
+      if (previousOverride) {
+        Deno.env.set("TON_USD_OVERRIDE", previousOverride);
+      } else {
+        Deno.env.delete("TON_USD_OVERRIDE");
+      }
+    }
+  },
+);
