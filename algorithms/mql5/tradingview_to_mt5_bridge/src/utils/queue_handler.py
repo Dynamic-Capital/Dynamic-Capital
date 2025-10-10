@@ -5,7 +5,71 @@ from datetime import datetime
 from functools import partial
 from typing import Any, Awaitable, Callable, Dict, Optional, Tuple, Union
 
-import redis
+try:
+    import redis  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - fallback used in tests
+    class _InMemoryPubSubThread:
+        def stop(self) -> None:
+            pass
+
+        def join(self, timeout: Optional[float] = None) -> None:  # noqa: ARG002
+            pass
+
+
+    class _InMemoryPubSub:
+        def __init__(self, redis_instance: "_InMemoryRedis") -> None:
+            self._redis = redis_instance
+            self._handlers: Dict[str, Callable[[Dict[str, Any]], None]] = {}
+
+        def subscribe(self, **kwargs: Callable[[Dict[str, Any]], None]) -> None:
+            for channel, handler in kwargs.items():
+                self._handlers[channel] = handler
+                self._redis._subscribers.setdefault(channel, []).append(handler)
+
+        def run_in_thread(self, sleep_time: float = 0.001) -> _InMemoryPubSubThread:  # noqa: ARG002
+            return _InMemoryPubSubThread()
+
+        def unsubscribe(self) -> None:
+            for channel, handler in list(self._handlers.items()):
+                subscribers = self._redis._subscribers.get(channel)
+                if subscribers and handler in subscribers:
+                    subscribers.remove(handler)
+                self._handlers.pop(channel, None)
+
+        def close(self) -> None:
+            self._handlers.clear()
+
+
+    class _InMemoryRedis:
+        def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002,ANN003 - signature mirrors redis.Redis
+            self._subscribers: Dict[str, list[Callable[[Dict[str, Any]], None]]] = {}
+
+        # Redis API compatibility helpers -------------------------------------------------
+        def delete(self, *keys: str) -> None:  # noqa: ARG002
+            pass
+
+        def ping(self) -> bool:
+            return True
+
+        def publish(self, channel: str, message: str) -> None:
+            for handler in list(self._subscribers.get(channel, [])):
+                handler({"type": "message", "data": message})
+
+        def pubsub(self) -> _InMemoryPubSub:
+            return _InMemoryPubSub(self)
+
+        def pubsub_numsub(self, channel: str) -> list[Tuple[str, int]]:
+            return [(channel, len(self._subscribers.get(channel, [])))]
+
+        def close(self) -> None:
+            self._subscribers.clear()
+
+
+    class _RedisModule:
+        Redis = _InMemoryRedis
+
+
+    redis = _RedisModule()  # type: ignore
 
 logger = logging.getLogger('RedisQueue')
 

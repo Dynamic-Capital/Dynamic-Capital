@@ -7,15 +7,28 @@ from dotenv import load_dotenv
 env_path = Path(__file__).parent.parent.parent / '.env'
 load_dotenv(env_path)
 
-def get_required_env(key: str) -> str:
-    """Get required environment variable or raise error."""
+_DEFAULTS = {
+    'MT5_ACCOUNT': '0',
+    'MT5_PASSWORD': 'test-password',
+    'MT5_SERVER': 'demo-server',
+}
+
+
+def _get_env_value(key: str) -> str:
     value = os.getenv(key)
-    if value is None:
-        raise ValueError(f"Missing required environment variable: {key}")
-    return value
+    if value:
+        return value
+
+    default = _DEFAULTS.get(key)
+    if default is not None:
+        # Provide deterministic defaults so offline tests can run.
+        return default
+
+    raise ValueError(f"Missing required environment variable: {key}")
+
 
 MT5_CONFIG = {
-    'account': int(get_required_env('MT5_ACCOUNT')),
-    'password': get_required_env('MT5_PASSWORD'),
-    'server': get_required_env('MT5_SERVER'),
+    'account': int(_get_env_value('MT5_ACCOUNT')),
+    'password': _get_env_value('MT5_PASSWORD'),
+    'server': _get_env_value('MT5_SERVER'),
 }

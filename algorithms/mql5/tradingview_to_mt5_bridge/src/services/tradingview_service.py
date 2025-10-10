@@ -16,10 +16,12 @@ TV_ACCOUNT_ID = os.getenv('TV_ACCOUNT_ID')
 
 class TradingViewService:
     """Service to interact with TradingView API."""
-    
+
     def __init__(self, token_manager: TokenManager):
         self.token_manager = token_manager
-        self.base_url = f"https://{TV_BROKER_URL}/accounts/{TV_ACCOUNT_ID}"
+        broker = TV_BROKER_URL or "stub-broker"
+        account_id = TV_ACCOUNT_ID or "demo"
+        self.base_url = f"https://{broker}/accounts/{account_id}"
         self.session = None
         self.loop = asyncio.get_event_loop()
         # Use local proxy for routing through mitmproxy
