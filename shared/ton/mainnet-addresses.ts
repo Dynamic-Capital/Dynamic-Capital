@@ -10,6 +10,8 @@ export interface TonMainnetAccountDefinition {
 export const TON_MAINNET_OPERATIONS_TREASURY =
   "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
 
+export const TON_MAINNET_DAO_MULTISIG = TON_MAINNET_OPERATIONS_TREASURY;
+
 export const TON_MAINNET_INTAKE_WALLET =
   "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
 
@@ -64,6 +66,13 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     friendlyAddress: TON_MAINNET_OPERATIONS_TREASURY,
     description:
       "Primary multisig tracked in Supabase dct_app_config.operations_wallet.",
+  },
+  {
+    key: "daoMultisig",
+    label: "DAO governance multisig",
+    friendlyAddress: TON_MAINNET_DAO_MULTISIG,
+    description:
+      "Interim DAO executor mirroring the operations treasury until the dedicated DAO wallet is deployed.",
   },
   {
     key: "intakeWallet",
