@@ -127,4 +127,5 @@ client or toncenter API:
 
 - [TON Contract Verifier UI repository](https://github.com/ton-blockchain/verifier)
 - [TON Contract Verifier backend](https://github.com/ton-community/contract-verifier-backend)
+- [TON Contract Verifier backend runbook](./ton-contract-verifier-backend.md)
 - [TON Sources Registry contracts](https://github.com/ton-community/contract-verifier-contracts)
