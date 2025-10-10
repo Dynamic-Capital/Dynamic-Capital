@@ -23,6 +23,7 @@ import { SiteFooter } from "@/components/navigation/SiteFooter";
 import { SkipToContent } from "@/components/navigation/SkipToContent";
 import { HideOnMiniApp } from "@/components/navigation/HideOnMiniApp";
 import { dynamicBranding, dynamicUI } from "@/resources";
+import { PageShell } from "@/components/layout/PageShell";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
 const THEME_SCRIPT_ID = "theme-init";
@@ -316,20 +317,9 @@ export default async function RootLayout(
                 paddingBottom: "4rem",
               }}
             >
-              <Flex
-                as="main"
-                id="main-content"
-                direction="column"
-                horizontal="center"
-                fillWidth
-                minHeight="0"
-                tabIndex={-1}
-                className="page-shell"
-              >
-                <div className="page-shell__surface">
-                  <RouteGuard>{children}</RouteGuard>
-                </div>
-              </Flex>
+              <PageShell>
+                <RouteGuard>{children}</RouteGuard>
+              </PageShell>
             </Flex>
             <HideOnMiniApp>
               <SiteFooter />

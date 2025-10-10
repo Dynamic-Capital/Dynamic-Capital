@@ -222,7 +222,11 @@ export function ToolWorkspaceLayout({
       {commandBar || showLastMove
         ? (
           <div className="mx-auto w-full max-w-6xl px-4 pb-6 text-center">
-            <Column gap="16" horizontal="center" className="w-full">
+            <Column
+              gap="16"
+              horizontal="center"
+              className="w-full text-left sm:text-center"
+            >
               {commandBar ?? null}
               {showLastMove ? <LastMoveTicker /> : null}
             </Column>
@@ -231,7 +235,7 @@ export function ToolWorkspaceLayout({
         : null}
       <div
         className={cn(
-          "mx-auto w-full max-w-6xl px-4 pb-16 text-center space-y-16",
+          "mx-auto w-full max-w-6xl px-4 pb-16 space-y-16",
           contentClassName,
         )}
       >
