@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 import { access, cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { setTimeout as delay } from "node:timers/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createSanitizedNpmEnv } from "./utils/npm-env.mjs";
@@ -13,6 +14,21 @@ const staticDir = join(repoRoot, "_static");
 const backupDir = join(repoRoot, "_static.backup");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
+
+const nextArtifactPaths = [
+  join(webWorkspace, ".next", "server", "middleware-manifest.json"),
+  join(
+    webWorkspace,
+    ".next",
+    "standalone",
+    "apps",
+    "web",
+    "server.js",
+  ),
+];
+
+const ARTIFACT_WAIT_TIMEOUT_MS = 360_000;
+const ARTIFACT_WAIT_POLL_MS = 5_000;
 
 const timeSyncOutcome = syncDeskClock({ logger: console });
 if (!timeSyncOutcome.ok) {
@@ -174,6 +190,27 @@ async function writeFallbackHtml() {
   await writeFile(join(staticDir, "404.html"), notFound, "utf8");
 }
 
+async function waitForNextArtifacts({
+  timeoutMs = ARTIFACT_WAIT_TIMEOUT_MS,
+  pollMs = ARTIFACT_WAIT_POLL_MS,
+} = {}) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const checks = await Promise.all(
+      nextArtifactPaths.map((artifact) => pathExists(artifact)),
+    );
+
+    if (checks.every(Boolean)) {
+      return true;
+    }
+
+    await delay(pollMs);
+  }
+
+  return false;
+}
+
 async function runCopyStatic({ copyOnly, extraEnv = {} }) {
   if (copyOnly) {
     return runCommand(npmCommand, ["run", "copy-static"], {
@@ -206,7 +243,29 @@ async function main() {
     console.warn(
       "⚠️  Copy-only snapshot refresh failed. Attempting full rebuild via Next.js…",
     );
-    status = await runCopyStatic({ copyOnly: false });
+    console.info(
+      "ℹ️  Waiting up to 6 minutes for the parallel Next.js web build to produce export artifacts...",
+    );
+    const artifactsAvailable = await waitForNextArtifacts();
+
+    if (artifactsAvailable) {
+      console.info(
+        "ℹ️  Detected fresh Next.js build output. Retrying snapshot capture before triggering a rebuild.",
+      );
+      status = await runCopyStatic({
+        copyOnly: true,
+        extraEnv: {
+          SKIP_NEXT_BUILD: "1",
+        },
+      });
+    }
+
+    if (status !== 0) {
+      console.warn(
+        "⚠️  Next.js web build artifacts still unavailable; running a dedicated rebuild for the landing snapshot.",
+      );
+      status = await runCopyStatic({ copyOnly: false });
+    }
   }
 
   const snapshotPresent = await landingSnapshotExists();
