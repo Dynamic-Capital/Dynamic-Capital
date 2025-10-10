@@ -43,6 +43,35 @@ const HIGHLIGHTS = [
   },
 ];
 
+const HERO_POINTS = [
+  "Automation guardrails pause copy trading if risk targets are breached.",
+  "Live commentary, trade notes, and archived plays keep you oriented.",
+  "Switch between guided learning and autopilot without losing progress.",
+];
+
+const HERO_PATHS = [
+  {
+    icon: "rocket" as const,
+    title: "Automation autopilot",
+    description:
+      "Link a broker once, define risk per trade, and let our mentors steer execution for you.",
+    bullets: [
+      "Mirror vetted trades with built-in drawdown controls",
+      "Route exits to decentralized withdrawals when targets hit",
+    ],
+  },
+  {
+    icon: "book" as const,
+    title: "Guided learning mode",
+    description:
+      "Study each play with annotated breakdowns, market context, and community office hours.",
+    bullets: [
+      "Replay previous sessions and bookmark insight threads",
+      "Graduate to automation when you are confident in the flows",
+    ],
+  },
+];
+
 const QUICK_STEPS = [
   {
     step: "1",
@@ -120,6 +149,63 @@ function HighlightCard({
   );
 }
 
+function ChecklistItem({ children }: { children: ReactNode }) {
+  return (
+    <Row as="li" gap="8" align="center">
+      <Icon name="check" onBackground="brand-medium" />
+      <Text variant="body-default-m" onBackground="neutral-weak" wrap="balance">
+        {children}
+      </Text>
+    </Row>
+  );
+}
+
+function PathCard({
+  icon,
+  title,
+  description,
+  bullets,
+}: {
+  icon: string;
+  title: string;
+  description: string;
+  bullets: string[];
+}) {
+  return (
+    <Column
+      gap="12"
+      background="neutral-alpha-weak"
+      border="neutral-alpha-medium"
+      radius="l"
+      padding="l"
+      flex={1}
+      minWidth={18}
+    >
+      <Row gap="8" align="center">
+        <Icon name={icon} onBackground="brand-medium" />
+        <Heading variant="heading-strong-s">{title}</Heading>
+      </Row>
+      <Text variant="body-default-m" onBackground="neutral-weak" wrap="balance">
+        {description}
+      </Text>
+      <Column as="ul" gap="8" align="start">
+        {bullets.map((bullet) => (
+          <Row as="li" key={bullet} gap="8" align="center">
+            <Icon name="arrowRight" onBackground="brand-medium" />
+            <Text
+              variant="body-default-s"
+              onBackground="neutral-weak"
+              wrap="balance"
+            >
+              {bullet}
+            </Text>
+          </Row>
+        ))}
+      </Column>
+    </Column>
+  );
+}
+
 export const metadata = {
   title: pageTitle,
   description: pageDescription,
@@ -144,42 +230,73 @@ export default function InvestorDeskPage() {
         />
 
         <Section anchor="hero">
-          <Column gap="16" align="start">
-            <Tag size="s" prefixIcon="users">
-              Investor desk
-            </Tag>
-            <Heading variant="display-strong-s" wrap="balance">
-              Simple copy trading for investors and beginners
-            </Heading>
-            <Text
-              variant="body-default-l"
-              onBackground="neutral-weak"
-              wrap="balance"
-            >
-              Learn the desk in minutes, copy trades when ready, and withdraw on
-              your own schedule.
-            </Text>
-            <Row gap="12" s={{ direction: "column" }}>
-              <Button
-                size="m"
-                variant="secondary"
-                data-border="rounded"
-                prefixIcon="rocket"
-                href="/checkout"
+          <Row
+            gap="24"
+            align="start"
+            s={{ direction: "column", gap: "16", align: "stretch" }}
+          >
+            <Column gap="16" align="start" flex={1}>
+              <Tag size="s" prefixIcon="users">
+                Investor desk
+              </Tag>
+              <Heading variant="display-strong-s" wrap="balance">
+                Simple copy trading for investors and beginners
+              </Heading>
+              <Text
+                variant="body-default-l"
+                onBackground="neutral-weak"
+                wrap="balance"
               >
-                Start in checkout
-              </Button>
-              <Button
-                size="m"
-                variant="secondary"
-                data-border="rounded"
-                arrowIcon
-                href="#pricing"
-              >
-                View plans
-              </Button>
-            </Row>
-          </Column>
+                Learn the desk in minutes, copy trades when ready, and withdraw
+                on your own schedule.
+              </Text>
+              <Column as="ul" gap="8" align="start">
+                {HERO_POINTS.map((point) => (
+                  <ChecklistItem key={point}>{point}</ChecklistItem>
+                ))}
+              </Column>
+              <Row gap="12" s={{ direction: "column" }}>
+                <Button
+                  size="m"
+                  variant="secondary"
+                  data-border="rounded"
+                  prefixIcon="rocket"
+                  href="/checkout"
+                >
+                  Start in checkout
+                </Button>
+                <Button
+                  size="m"
+                  variant="secondary"
+                  data-border="rounded"
+                  arrowIcon
+                  href="#pricing"
+                >
+                  View plans
+                </Button>
+              </Row>
+            </Column>
+            <Column gap="16" flex={1} align="start" minWidth={20}>
+              <Column gap="8" align="start">
+                <Heading variant="heading-strong-m">
+                  Choose how you operate
+                </Heading>
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                  wrap="balance"
+                >
+                  Decide between automation and guided learning with tools that
+                  adapt to your trading confidence.
+                </Text>
+              </Column>
+              <Row gap="12" wrap>
+                {HERO_PATHS.map((path) => (
+                  <PathCard key={path.title} {...path} />
+                ))}
+              </Row>
+            </Column>
+          </Row>
           <Row gap="16" wrap>
             {HIGHLIGHTS.map((item) => (
               <HighlightCard
