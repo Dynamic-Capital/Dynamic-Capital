@@ -162,17 +162,26 @@ def _normalise_status(value: str | None) -> str:
     return _STATUS_NORMALISATION.get(key, "unknown")
 
 
-def _extract_requirements(route: GatewayRoute | None) -> tuple[set[str], set[str]]:
-    regions: set[str] = set()
-    protocols: set[str] = set()
-    if route is None:
-        return regions, protocols
-    for tag in route.tags:
+def _derive_affinity(tags: Sequence[str]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    regions: list[str] = []
+    region_seen: set[str] = set()
+    protocols: list[str] = []
+    protocol_seen: set[str] = set()
+
+    for tag in tags:
         if tag.startswith("region:"):
-            regions.add(tag.split("region:", 1)[1])
+            region = _normalise_region(tag.split("region:", 1)[1])
+            if region not in region_seen:
+                region_seen.add(region)
+                regions.append(region)
         elif tag.startswith("protocol:"):
-            protocols.add(tag.split("protocol:", 1)[1])
-    return regions, protocols
+            protocol_tag = tag.split("protocol:", 1)[1]
+            for protocol in _normalise_protocols((protocol_tag,)):
+                if protocol not in protocol_seen:
+                    protocol_seen.add(protocol)
+                    protocols.append(protocol)
+
+    return tuple(regions), tuple(protocols)
 
 
 # ---------------------------------------------------------------------------
@@ -219,6 +228,8 @@ class GatewayRoute:
     auth_required: bool = True
     latency_budget_ms: int = 1500
     tags: tuple[str, ...] = field(default_factory=tuple)
+    region_affinity: tuple[str, ...] = field(init=False, repr=False)
+    protocol_affinity: tuple[str, ...] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         self.name = _normalise_identifier(self.name)
@@ -227,6 +238,7 @@ class GatewayRoute:
         self.auth_required = bool(self.auth_required)
         self.latency_budget_ms = max(50, int(self.latency_budget_ms))
         self.tags = _normalise_tags(self.tags)
+        self.region_affinity, self.protocol_affinity = _derive_affinity(self.tags)
 
     def as_dict(self) -> Mapping[str, object]:
         return {
@@ -358,7 +370,7 @@ class DynamicGatewayEngine:
     # ------------------------------------------------------------------
     # Planning helpers
 
-    def _endpoint_score(self, endpoint: GatewayEndpoint) -> tuple[int, float, float, str]:
+    def _endpoint_score(self, endpoint: GatewayEndpoint) -> tuple[int, float, float, float, str]:
         health = self._health.get(endpoint.identifier)
         status_priority = _STATUS_PRIORITY[health.status] if health else _STATUS_PRIORITY["unknown"]
         availability = health.availability if health else 0.0
@@ -378,11 +390,16 @@ class DynamicGatewayEngine:
         endpoints.sort(key=self._endpoint_score)
         return endpoints
 
-    def _plan_for_route(self, route: GatewayRoute) -> tuple[str, ...]:
-        ordered = self._sorted_endpoints()
-        required_regions, required_protocols = _extract_requirements(route)
+    def _plan_for_route(
+        self,
+        route: GatewayRoute,
+        ordered_endpoints: Sequence[GatewayEndpoint],
+    ) -> tuple[tuple[str, ...], bool]:
+        required_regions = set(route.region_affinity)
+        required_protocols = set(route.protocol_affinity)
         plan: list[str] = []
-        for endpoint in ordered:
+
+        for endpoint in ordered_endpoints:
             health = self._health.get(endpoint.identifier)
             if health and health.status == "offline":
                 continue
@@ -391,15 +408,17 @@ class DynamicGatewayEngine:
             if required_protocols and not required_protocols.intersection(endpoint.protocols):
                 continue
             plan.append(endpoint.identifier)
+
+        used_fallback = False
         if not plan:
+            used_fallback = True
             # If strict requirements left the plan empty, fall back to the
-            # best available endpoints regardless of affinity.
-            for endpoint in ordered:
-                health = self._health.get(endpoint.identifier)
-                if health and health.status == "offline":
-                    continue
-                plan.append(endpoint.identifier)
-        return tuple(plan)
+            # best endpoints regardless of affinity or health status.
+            for endpoint in ordered_endpoints:
+                if endpoint.identifier not in plan:
+                    plan.append(endpoint.identifier)
+
+        return tuple(plan), used_fallback
 
     def compose_snapshot(self) -> GatewaySnapshot:
         generated_at = _utcnow()
@@ -408,6 +427,7 @@ class DynamicGatewayEngine:
         offline: list[str] = []
         availabilities: list[float] = []
 
+        ordered_endpoints = self._sorted_endpoints()
         for endpoint in self._endpoints.values():
             health = self._health.get(endpoint.identifier)
             if health is None:
@@ -433,8 +453,18 @@ class DynamicGatewayEngine:
             overall_availability = 0.0
 
         route_plans: dict[str, tuple[str, ...]] = {}
+        fallback_routes: list[str] = []
+        offline_only_routes: list[str] = []
         for route in self._routes.values():
-            route_plans[route.name] = self._plan_for_route(route)
+            plan, used_fallback = self._plan_for_route(route, ordered_endpoints)
+            route_plans[route.name] = plan
+            if used_fallback:
+                fallback_routes.append(route.name)
+                if plan and all(
+                    (health is not None and health.status == "offline")
+                    for health in (self._health.get(endpoint_id) for endpoint_id in plan)
+                ):
+                    offline_only_routes.append(route.name)
 
         notes: MutableMapping[str, object] = {
             "overall_availability": overall_availability,
@@ -443,6 +473,10 @@ class DynamicGatewayEngine:
         }
         if availabilities:
             notes["active_ratio"] = round(len(active) / len(self._endpoints), 4)
+        if fallback_routes:
+            notes["fallback_routes"] = tuple(sorted(fallback_routes))
+        if offline_only_routes:
+            notes["offline_only_routes"] = tuple(sorted(offline_only_routes))
 
         return GatewaySnapshot(
             generated_at=generated_at,

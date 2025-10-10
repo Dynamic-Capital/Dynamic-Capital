@@ -71,6 +71,7 @@ def test_gateway_engine_routes_prefer_online_endpoints():
     assert pytest.approx(notes["overall_availability"], rel=1e-6) == 0.85
     assert notes["endpoint_count"] == 2
     assert "active_ratio" in notes
+    assert "fallback_routes" not in notes
 
 
 def test_gateway_engine_fallback_when_requirements_filter_everything():
@@ -95,6 +96,18 @@ def test_gateway_engine_fallback_when_requirements_filter_everything():
     snapshot = engine.compose_snapshot()
     plan = snapshot.routes["backoffice"]
     assert plan == ("edge-sg",)
+    assert snapshot.notes["fallback_routes"] == ("backoffice",)
+    assert "offline_only_routes" not in snapshot.notes
+
+
+def test_gateway_route_affinity_is_cached_and_normalised():
+    route = GatewayRoute(
+        name="Admin Portal",
+        upstream="https://internal.dynamic/admin",
+        tags=("Region:US-East", "region:US-east", "protocol:HTTPS", "protocol:http"),
+    )
+    assert route.region_affinity == ("us-east",)
+    assert route.protocol_affinity == ("https", "http")
 
 
 def test_gateway_health_serialisation_includes_iso_timestamp():
@@ -103,3 +116,22 @@ def test_gateway_health_serialisation_includes_iso_timestamp():
     assert payload["status"] == "online"
     assert re.match(r"^edge-us$", payload["endpoint_id"])
     assert payload["checked_at"].endswith("+00:00")
+
+
+def test_gateway_engine_marks_routes_offline_when_everything_is_down():
+    engine = DynamicGatewayEngine()
+    offline = GatewayEndpoint(
+        identifier="edge-down",
+        url="https://edge-down.dynamic.gateway",
+        region="us-west",
+    )
+    engine.register_endpoint(offline)
+    engine.register_route(GatewayRoute(name="status", upstream="https://status"))
+    engine.record_health(
+        GatewayHealth(endpoint_id="edge-down", status="offline", availability=0.0)
+    )
+
+    snapshot = engine.compose_snapshot()
+    assert snapshot.routes["status"] == ("edge-down",)
+    assert snapshot.notes["fallback_routes"] == ("status",)
+    assert snapshot.notes["offline_only_routes"] == ("status",)
