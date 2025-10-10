@@ -24,6 +24,15 @@ declare module "@tonconnect/ui-react" {
 
   export type UIWallet = TonConnectUIWallet;
 
+  export interface TonConnectUI {
+    openModal: (options?: unknown) => void;
+    closeModal: () => void;
+    onStatusChange: (
+      callback: (wallet: TonWallet | null) => void,
+    ) => void | (() => void) | Promise<void | (() => void)>;
+    setConnectRequestParameters?: (params: unknown) => void;
+  }
+
   export type ReturnStrategy = "back" | "none" | `${string}://${string}`;
 
   export interface ActionConfiguration {
@@ -51,4 +60,5 @@ declare module "@tonconnect/ui-react" {
 
   export function useTonAddress(): string | null;
   export function useTonWallet(): TonWallet | null;
+  export function useTonConnectUI(): [TonConnectUI | null, unknown?];
 }

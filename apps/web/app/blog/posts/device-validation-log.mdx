@@ -1,0 +1,62 @@
+---
+title: "Responsive device validation log"
+summary: "Documentation and screenshots that back the Dynamic Chat workspace across desktop, tablet, and mobile sessions."
+publishedAt: "2025-02-14"
+tag: "Release notes"
+image: "https://your-project-ref.supabase.co/storage/v1/object/public/dynamic-portfolio/images/gallery/horizontal-3.jpg"
+---
+
+Keeping members confident means proving the workspace holds up on every screen. This log captures the latest regression run, manual QA notes, and responsive screenshots that underpin the readiness signals shown on the landing page.
+
+## Validation checklist
+
+- Desktop, tablet, and mobile views were exercised on 2025-02-14 ahead of the London open.
+- Regression coverage focused on Dynamic Chat launch, workspace navigation, and concierge escalation pathways.
+- Manual QA fills the gap until automated visual smoke tests are wired to CI for the mini app shell.
+
+### Desktop regression run
+<a id="desktop-validation" />
+
+- `npm run typecheck` and `npm run lint` both passed on Ventura 14.4 and Windows 11 test beds after the chat workspace updates.
+- Session transcripts, role tagging, and command bar shortcuts responded within the 120 ms median latency window.
+- See the [detailed checklist replay](/tools/dynamic-portfolio) for the guardrail scenarios exercised during the run.
+
+### Desk replay coverage
+<a id="desktop-replay" />
+
+- 1280 px and 1366 px widths were validated using recorded QA sessions to confirm column stacking and audit cards remain legible.
+- Supportive evidence: the trading desk replay stored in Notion mirrors the screenshots below and is linked for internal auditors.
+- Upcoming work: wire replay exports into Percy so delta diffs catch regressions without manual review.
+
+### Wide monitor capture
+<a id="wide-monitor" />
+
+![Dynamic Chat on an ultrawide monitor](https://your-project-ref.supabase.co/storage/v1/object/public/dynamic-portfolio/images/gallery/horizontal-1.jpg)
+
+- Ultrawide view preserves the command center layout with breathing room for the audit and device cards.
+- Hover interactions were confirmed with trackpad and mouse input to ensure cards stay discoverable.
+
+### Tablet review kit
+<a id="tablet-review" />
+
+![Dynamic Chat on a Retina iPad](https://your-project-ref.supabase.co/storage/v1/object/public/dynamic-portfolio/images/gallery/vertical-2.jpg)
+
+- Stage Manager plus Safari delivered consistent spacing; no overflow was detected on 11‑inch and 12.9‑inch iPads.
+- Touch targets remain above the 44 px guideline for audit actions and quick links.
+- Screenshot set archived in the QA folder backs these observations until automated checks ship.
+
+### Mobile session notes
+<a id="mobile-session" />
+
+![Dynamic mini app workspace](https://your-project-ref.supabase.co/storage/v1/object/public/dynamic-portfolio/images/gallery/vertical-3.jpg)
+
+- Telegram mini app remains the primary mobile experience; the responsive web shell is in guided beta with concierge-led onboarding.
+- Authentication and signal streaming were tested on Pixel 8 and Galaxy S24 devices; telemetry hooks are being added next.
+- Members needing instant access can DM the concierge for the beta opt-in link.
+
+### Mini app follow-ups
+<a id="mini-app" />
+
+- Smoke automation is scheduled to cover receipt uploads, pricing refresh prompts, and signal acknowledgements inside the mini app.
+- Until automation lands, daily manual spot checks confirm copy, latency, and escalation flows remain within guardrails.
+- Progress will be posted here after the telemetry wiring is live.

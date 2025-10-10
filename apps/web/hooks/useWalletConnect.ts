@@ -6,7 +6,7 @@ import { getOnboard } from "@/integrations/web3-onboard";
 
 type WalletTrigger = (options?: unknown) => void;
 
-type WalletConnectOptions = {
+export type WalletConnectOptions = {
   planId?: string;
 };
 
@@ -45,31 +45,36 @@ function triggerLegacyWalletModal(
 export function useWalletConnect() {
   const openFallback = useCallback((options?: WalletConnectOptions) => {
     if (typeof window === "undefined") {
-      return;
+      return false;
     }
 
     const globalWindow = window as WalletAwareWindow;
     const handled = triggerLegacyWalletModal(globalWindow, options);
 
-    if (!handled) {
-      const event = new CustomEvent("wallet-connect:open", {
-        detail: options ?? {},
-      });
-      window.dispatchEvent(event);
+    if (handled) {
+      return true;
     }
+
+    const event = new CustomEvent<WalletConnectOptions | undefined>(
+      "wallet-connect:open",
+      {
+        detail: options ?? {},
+      },
+    );
+
+    return window.dispatchEvent(event);
   }, []);
 
   return useCallback(
-    async (options?: WalletConnectOptions) => {
+    async (options?: WalletConnectOptions): Promise<boolean> => {
       if (typeof window === "undefined") {
-        return;
+        return false;
       }
 
       const onboard = await getOnboard();
 
       if (!onboard) {
-        openFallback(options);
-        return;
+        return openFallback(options);
       }
 
       try {
@@ -82,12 +87,18 @@ export function useWalletConnect() {
             address: primaryAccount.address,
             planId: options?.planId,
           });
-        } else if (!wallets.length) {
+          return true;
+        }
+
+        if (!wallets.length) {
           console.info("[useWalletConnect] Wallet selection was dismissed");
         }
+
+        return wallets.length > 0;
       } catch (error) {
         console.error("[useWalletConnect] Wallet connection failed", error);
         openFallback(options);
+        return false;
       }
     },
     [openFallback],

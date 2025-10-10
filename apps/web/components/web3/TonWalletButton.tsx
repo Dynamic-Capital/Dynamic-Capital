@@ -3,15 +3,28 @@
 import {
   TonConnectButton,
   useTonAddress,
+  useTonConnectUI,
   useTonWallet,
 } from "@tonconnect/ui-react";
 import { useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { WalletConnectOptions } from "@/hooks/useWalletConnect";
+
+type TonConnectLike = {
+  openModal: () => void;
+};
+
+type TonConnectAwareWindow = typeof window & {
+  TonConnectUI?: TonConnectLike;
+  tonConnectUI?: TonConnectLike;
+  openTonConnectModal?: () => void;
+};
 
 export function TonWalletButton() {
   const wallet = useTonWallet();
   const address = useTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
 
   const lastSavedAddressRef = useRef<string | null>(null);
   const lastAttemptedAddressRef = useRef<string | null>(null);
@@ -98,6 +111,48 @@ export function TonWalletButton() {
     lastAttemptedAddressRef.current = address;
     void saveTonAddress(address);
   }, [wallet, address, saveTonAddress]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !tonConnectUI) {
+      return;
+    }
+
+    if (typeof tonConnectUI.openModal !== "function") {
+      return;
+    }
+
+    const globalWindow = window as TonConnectAwareWindow;
+
+    const handleWalletConnectOpen = (event: Event) => {
+      const detail = (event as CustomEvent<WalletConnectOptions | undefined>)
+        .detail;
+      console.debug("[TonWallet] Opening TonConnect modal", detail ?? {});
+      tonConnectUI.openModal();
+    };
+
+    const openModal = () => tonConnectUI.openModal();
+
+    globalWindow.tonConnectUI = tonConnectUI;
+    globalWindow.TonConnectUI = tonConnectUI;
+    globalWindow.openTonConnectModal = openModal;
+    window.addEventListener("wallet-connect:open", handleWalletConnectOpen);
+
+    return () => {
+      window.removeEventListener(
+        "wallet-connect:open",
+        handleWalletConnectOpen,
+      );
+      if (globalWindow.openTonConnectModal === openModal) {
+        delete globalWindow.openTonConnectModal;
+      }
+      if (globalWindow.tonConnectUI === tonConnectUI) {
+        delete globalWindow.tonConnectUI;
+      }
+      if (globalWindow.TonConnectUI === tonConnectUI) {
+        delete globalWindow.TonConnectUI;
+      }
+    };
+  }, [tonConnectUI]);
 
   return (
     <div className="flex items-center gap-2">

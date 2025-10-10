@@ -5,8 +5,9 @@ import { TonWalletButton } from "./TonWalletButton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getOnboard } from "@/integrations/web3-onboard";
+import { useWalletConnect } from "@/hooks/useWalletConnect";
 import { TONCONNECT_RECOMMENDED_WALLETS } from "@shared/ton/tonconnect-wallets";
+import { useTonAddress } from "@tonconnect/ui-react";
 
 const TON_WALLET_PREVIEW = TONCONNECT_RECOMMENDED_WALLETS.map((wallet) => ({
   appName: wallet.appName,
@@ -15,22 +16,26 @@ const TON_WALLET_PREVIEW = TONCONNECT_RECOMMENDED_WALLETS.map((wallet) => ({
 }));
 
 export function UnifiedWalletConnect() {
+  const connectWallet = useWalletConnect();
   const [evmConnected, setEvmConnected] = useState(false);
+  const tonAddress = useTonAddress();
+  const tonConnected = Boolean(tonAddress);
 
   const handleEvmConnect = async () => {
     try {
-      const onboard = await getOnboard();
-      if (!onboard) {
-        console.error("[UnifiedWallet] Web3-Onboard not initialized");
-        return;
-      }
-
-      const wallets = await onboard.connectWallet();
-      setEvmConnected(wallets.length > 0);
+      const connected = await connectWallet();
+      setEvmConnected(connected);
     } catch (error) {
       console.error("[UnifiedWallet] EVM connection failed:", error);
     }
   };
+
+  const tonStatusClass = tonConnected
+    ? "text-emerald-500"
+    : "text-muted-foreground";
+  const evmStatusClass = evmConnected
+    ? "text-emerald-500"
+    : "text-muted-foreground";
 
   return (
     <Card className="p-6">
@@ -43,6 +48,14 @@ export function UnifiedWalletConnect() {
         </TabsList>
 
         <TabsContent value="ton" className="space-y-4 pt-4">
+          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-4 py-2">
+            <span className="text-sm font-medium text-foreground/80">
+              TON wallet status
+            </span>
+            <span className={`text-xs font-semibold ${tonStatusClass}`}>
+              {tonConnected ? "Connected" : "Not connected"}
+            </span>
+          </div>
           <div className="flex flex-wrap items-center justify-center gap-4 rounded-xl border border-border/60 bg-muted/30 p-4">
             {TON_WALLET_PREVIEW.map((wallet) => (
               <div
@@ -71,6 +84,14 @@ export function UnifiedWalletConnect() {
         </TabsContent>
 
         <TabsContent value="evm" className="space-y-4 pt-4">
+          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-4 py-2">
+            <span className="text-sm font-medium text-foreground/80">
+              EVM wallet status
+            </span>
+            <span className={`text-xs font-semibold ${evmStatusClass}`}>
+              {evmConnected ? "Connected" : "Not connected"}
+            </span>
+          </div>
           <div className="text-sm text-muted-foreground mb-2">
             Connect MetaMask, Bitget Wallet, or other EVM wallets
           </div>

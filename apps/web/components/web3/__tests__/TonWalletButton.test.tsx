@@ -29,6 +29,28 @@ const toastModule = vi.hoisted(() => {
   };
 });
 
+const tonConnectModule = vi.hoisted(() => {
+  const openModal = vi.fn();
+  const closeModal = vi.fn();
+  const onStatusChange = vi.fn();
+
+  const instance = {
+    openModal,
+    closeModal,
+    onStatusChange,
+  };
+
+  const useTonConnectUI = vi.fn(() => [instance] as const);
+
+  return {
+    openModal,
+    closeModal,
+    onStatusChange,
+    instance,
+    useTonConnectUI,
+  };
+});
+
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: supabaseModule.supabase,
 }));
@@ -46,6 +68,7 @@ vi.mock("@tonconnect/ui-react", () => ({
   TonConnectButton: () => <div data-testid="ton-connect" />,
   useTonWallet: () => (walletConnected ? {} : null),
   useTonAddress: () => mockAddress,
+  useTonConnectUI: tonConnectModule.useTonConnectUI,
 }));
 
 const getUserMock = supabaseModule.getUser;
@@ -68,6 +91,12 @@ describe("TonWalletButton", () => {
     fromMock.mockReset();
     toastSuccess.mockReset();
     toastError.mockReset();
+    tonConnectModule.openModal.mockReset();
+    tonConnectModule.closeModal.mockReset();
+    tonConnectModule.onStatusChange.mockReset();
+    tonConnectModule.useTonConnectUI.mockReturnValue([
+      tonConnectModule.instance,
+    ]);
 
     TonWalletButton = await loadComponent();
   });
@@ -138,5 +167,19 @@ describe("TonWalletButton", () => {
     });
     expect(toastSuccess).not.toHaveBeenCalled();
     expect(fromMock).not.toHaveBeenCalled();
+  });
+
+  it("opens TonConnect modal via wallet-connect event", async () => {
+    render(<TonWalletButton />);
+
+    const event = new CustomEvent("wallet-connect:open", {
+      detail: { planId: "vip" },
+    });
+
+    window.dispatchEvent(event);
+
+    await waitFor(() => {
+      expect(tonConnectModule.openModal).toHaveBeenCalled();
+    });
   });
 });
