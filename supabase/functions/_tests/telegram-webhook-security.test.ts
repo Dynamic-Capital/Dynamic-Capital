@@ -1,7 +1,10 @@
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 import { assertEquals } from "std/testing/asserts.ts";
 import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
-Deno.test("telegram-webhook rejects requests without secret", async () => {
+Deno.test("telegram-webhook ignores requests without secret", async () => {
   setTestEnv({ TELEGRAM_WEBHOOK_SECRET: "s3cr3t" });
   const { default: handler } = await import("../telegram-webhook/index.ts");
   const req = new Request("https://example.com/telegram-webhook", {
@@ -9,7 +12,10 @@ Deno.test("telegram-webhook rejects requests without secret", async () => {
     body: "{}",
   });
   const res = await handler(req);
-  assertEquals(res.status, 401);
+  assertEquals(res.status, 200);
+  const payload = await res.json();
+  assertEquals(payload.ignored, true);
+  assertEquals(payload.detail, "missing");
   clearTestEnv();
 });
 

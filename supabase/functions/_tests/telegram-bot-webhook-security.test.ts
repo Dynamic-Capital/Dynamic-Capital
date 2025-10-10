@@ -2,7 +2,7 @@ import { assertEquals, assertStrictEquals } from "std/testing/asserts.ts";
 import { __setGetSetting, getSetting } from "../_shared/config.ts";
 import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
-Deno.test("rejects requests without secret and preserves CORS", async () => {
+Deno.test("ignores requests without secret and preserves CORS", async () => {
   setTestEnv({
     TELEGRAM_WEBHOOK_SECRET: "s3cr3t",
     ALLOWED_ORIGINS: "*",
@@ -18,7 +18,10 @@ Deno.test("rejects requests without secret and preserves CORS", async () => {
     "../_shared/telegram_secret.ts"
   );
   const res = await validateTelegramHeader(req);
-  assertEquals(res?.status, 401);
+  assertEquals(res?.status, 200);
+  const payload = res ? await res.json() : null;
+  assertEquals(payload?.ignored, true);
+  assertEquals(payload?.detail, "missing");
   assertStrictEquals(res?.headers.get("access-control-allow-origin"), "*");
 
   clearTestEnv();

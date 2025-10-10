@@ -1,5 +1,5 @@
 import { maybe, optionalEnv } from "./env.ts";
-import { unauth } from "./http.ts";
+import { jsonResponse, unauth } from "./http.ts";
 import { getSetting } from "./config.ts";
 
 const TELEGRAM_ALLOWED_UPDATES_BASE = [
@@ -169,8 +169,28 @@ export async function validateTelegramHeader(
   const got = normalizeSecretValue(
     req.headers.get("x-telegram-bot-api-secret-token"),
   );
-  if (!got || !timingSafeEqual(got, exp)) {
-    return unauth("bad secret", req);
+
+  const ignore = (detail: "missing" | "mismatch") => {
+    console.warn(
+      `[telegram] invalid webhook secret (${detail}); ignoring request`,
+    );
+    return jsonResponse(
+      {
+        ok: true,
+        ignored: true,
+        reason: "invalid_webhook_secret",
+        detail,
+      },
+      { status: 200 },
+      req,
+    );
+  };
+
+  if (!got) {
+    return ignore("missing");
+  }
+  if (!timingSafeEqual(got, exp)) {
+    return ignore("mismatch");
   }
   return null;
 }
