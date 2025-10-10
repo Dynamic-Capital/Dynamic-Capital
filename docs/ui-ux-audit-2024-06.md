@@ -89,6 +89,56 @@
   the completion timestamp alongside the helper text, and auto-focus the next
   actionable mint.
 
+### 5. TON site gateway resilience
+
+- **Finding:** The new `/ton-site` edge route simply streams upstream responses
+  (including 503s) without a branded fallback, so visitors hit raw gateway
+  errors when the DigitalOcean origin goes down—as already recorded in the
+  latest DNS verification log.【F:apps/web/app/ton-site/[[...path]]/route.ts†L116-L159】【F:dns/dynamiccapital.ton.json†L52-L75】
+  **Improvement:** Detect non-2xx statuses in the proxy, render a friendly
+  outage page with retry guidance, and log the incident to analytics before
+  surfacing the raw response.
+- **Finding:** Marketing CTAs like “Invest now” point straight to
+  `resolveTonSiteUrl("app")`, so a gateway outage instantly breaks the primary
+  conversion path with no status banner or alternate
+  channel.【F:apps/web/components/landing/MultiLlmLandingPage.tsx†L56-L60】【F:apps/web/components/landing/MultiLlmLandingPage.tsx†L561-L589】【F:shared/ton/site.ts†L1-L75】
+  **Improvement:** Gate external CTAs behind a lightweight uptime check (or
+  cached status from the health feed) and present fallback options—Telegram
+  concierge, email—whenever the TON bundle is offline.
+
+### 6. Landing quick navigation regressions
+
+- **Finding:** The hero “Learn more” button still links to `#academy`, but that
+  anchor no longer exists in the home navigation config, so the action just
+  flashes the hash without scrolling
+  anywhere.【F:apps/web/components/landing/MultiLlmLandingPage.tsx†L56-L60】【F:apps/web/components/landing/MultiLlmLandingPage.tsx†L590-L603】【F:apps/web/components/landing/home-navigation-config.ts†L16-L60】
+  **Improvement:** Re-point the CTA to a live section (`#dct-token` or
+  `#investor-mini-app`) or restore a matching Academy block so the jump actually
+  lands.
+- **Finding:** The refreshed TradingView cards only swap the iframe for a
+  single-line error string when the script fails, leaving an empty chart shell
+  with no data or follow-up
+  guidance.【F:apps/web/components/landing/MultiLlmLandingPage.tsx†L338-L440】
+  **Improvement:** Pair the failure state with timestamped snapshot data, a
+  “View on TradingView.com” link, or a status badge so users still understand
+  market direction when embeds are unavailable.
+
+### 7. System health communication
+
+- **Finding:** The System Health card now exposes raw Supabase error messages
+  (for example `JWT expired` or edge stack traces) directly to operators whenever
+  the edge function call
+  fails.【F:apps/web/components/ui/system-health.tsx†L566-L583】 **Improvement:**
+  Map internal errors to operator-friendly guidance, retain the technical
+  payload in logs/console, and summarize next steps (retry, check Supabase
+  status) inside the alert.
+- **Finding:** When the overall status is “healthy”, the widget disappears
+  entirely (`return null`), so teams lose the timestamp of the last check until
+  something breaks—undermining confidence in always-on monitoring.【F:apps/web/components/ui/system-health.tsx†L520-L584】
+  **Improvement:** Keep a minimized “All clear” card with the latest check time
+  and a manual refresh button so stakeholders can confirm coverage even during
+  calm periods.
+
 ## Detailed Findings & Improvements
 
 ### 1. Global navigation & layout
