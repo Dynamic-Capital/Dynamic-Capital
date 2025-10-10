@@ -102,6 +102,27 @@ chronological order beneath this entry.
   committed the probe results in
   `dns/https-gateway-verification-2025-10-08.md`.
 
+## 2025-10-12 – Revert apex to Vercel 76.76.21.21
+
+- **Trigger** — Monitoring confirmed `https://dynamic-capital-qazf2.ondigitalocean.app/`
+  still responds `HTTP 404`, indicating the application bundle has not been
+  published to the DigitalOcean origin that feeds the Vercel project.
+- **DNS change** — Restored the apex `A` record in
+  `dns/dynamic-capital.ondigitalocean.app.zone` to the documented Vercel
+  anycast IP `76.76.21.21` while the origin deployment is triaged.
+- **Follow-up** — Coordinate with the web team to republish the Vercel project
+  and confirm a `200` response from the origin before attempting any further DNS
+  consolidation.
+
+## 2025-10-11 – Vercel apex delegation finalized
+
+- **DNS change** — Removed the legacy `76.76.21.21` fallback from
+  `dns/dynamic-capital.ondigitalocean.app.zone`, leaving the apex `A` record
+  solely pointed at Vercel's anycast IP `216.198.79.1`.
+- **Verification** — `dig dynamic-capital.ondigitalocean.app A +short` now
+  returns only `216.198.79.1`, aligning with the Vercel dashboard guidance and
+  confirming propagation of the updated record.
+
 ## 2025-10-10 – Gateway regression detected
 
 - **Symptom** — Routine verification at 16:41 UTC returned `HTTP 503` from both
