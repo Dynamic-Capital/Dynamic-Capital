@@ -18,20 +18,54 @@ export function registerHandler(
     return handler;
   }
 
-  if (typeof Deno?.serve === "function") {
-    if (options) {
+  const attemptServe = () => {
+    if (typeof Deno?.serve === "function") {
+      if (options) {
+        return (Deno.serve as unknown as (
+          opts: Deno.ServeInit,
+          handler: EdgeHandler,
+        ) => unknown)(
+          options as Deno.ServeInit,
+          handler,
+        );
+      }
+
+      return (Deno.serve as unknown as (handler: EdgeHandler) => unknown)(
+        handler,
+      );
+    }
+
+    return serve(handler, options as ServeInit | undefined);
+  };
+
+  try {
+    attemptServe();
+  } catch (error) {
+    const addrInUse = typeof Deno !== "undefined" &&
+      error instanceof Deno.errors.AddrInUse;
+    const portAlreadySpecified = typeof options === "object" &&
+      options !== null && "port" in options;
+
+    if (!addrInUse || portAlreadySpecified) {
+      throw error;
+    }
+
+    const fallbackOptions = {
+      ...(typeof options === "object" && options !== null ? options : {}),
+      port: 0,
+    } satisfies ServeOptions;
+
+    if (typeof Deno?.serve === "function") {
       (Deno.serve as unknown as (
         opts: Deno.ServeInit,
         handler: EdgeHandler,
       ) => unknown)(
-        options as Deno.ServeInit,
+        fallbackOptions as Deno.ServeInit,
         handler,
       );
     } else {
-      (Deno.serve as unknown as (handler: EdgeHandler) => unknown)(handler);
+      serve(handler, fallbackOptions as ServeInit);
     }
-  } else {
-    serve(handler, options as ServeInit | undefined);
   }
   return handler;
 }
