@@ -19,6 +19,8 @@ export const TON_MAINNET_JETTON_MASTER =
 export const TON_MAINNET_DCT_TREASURY_ALIAS = "dynamiccapital.ton";
 export const TON_MAINNET_DCT_TREASURY_WALLET =
   "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
+export const TON_MAINNET_DCT_TREASURY_WALLET_NON_BOUNCEABLE =
+  "UQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdnidWv";
 
 const DCT_TREASURY_TRANSFER_MEMO = "Dynamic Capital DCT deposit";
 

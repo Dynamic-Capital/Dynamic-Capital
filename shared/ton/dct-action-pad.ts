@@ -1,10 +1,11 @@
 import {
   TON_MAINNET_DCT_TREASURY_ALIAS,
   TON_MAINNET_DCT_TREASURY_MEMO,
-  TON_MAINNET_DCT_TREASURY_TONKEEPER_LINK,
   TON_MAINNET_DCT_TREASURY_TON_TRANSFER_LINK,
+  TON_MAINNET_DCT_TREASURY_TONKEEPER_LINK,
   TON_MAINNET_DCT_TREASURY_TONVIEWER_URL,
   TON_MAINNET_DCT_TREASURY_WALLET,
+  TON_MAINNET_DCT_TREASURY_WALLET_NON_BOUNCEABLE,
   TON_MAINNET_JETTON_MASTER,
 } from "./mainnet-addresses";
 import { DCT_DEX_POOLS } from "./dct-liquidity";
@@ -59,38 +60,50 @@ const shorten = (value: string, visible = 6) =>
 const STONFI_POOL = DCT_DEX_POOLS.find((pool) => pool.dex === "STON.fi");
 const DEDUST_POOL = DCT_DEX_POOLS.find((pool) => pool.dex === "DeDust");
 
-export const DCT_ACTION_PAD = Object.freeze({
+const DCT_ACTION_PAD_DEFINITION = {
   alias: TON_MAINNET_DCT_TREASURY_ALIAS,
   memo: TON_MAINNET_DCT_TREASURY_MEMO,
   walletAddress: TON_MAINNET_DCT_TREASURY_WALLET,
   tonkeeperUniversalLink: TON_MAINNET_DCT_TREASURY_TONKEEPER_LINK,
   tonTransferLink: TON_MAINNET_DCT_TREASURY_TON_TRANSFER_LINK,
   jettonMasterAddress: TON_MAINNET_JETTON_MASTER,
-  qrLink: TON_MAINNET_DCT_TREASURY_TONKEEPER_LINK,
+  qrLink: TON_MAINNET_DCT_TREASURY_WALLET_NON_BOUNCEABLE,
   copyFields: [
     {
       key: "alias",
       label: "TON alias",
       value: TON_MAINNET_DCT_TREASURY_ALIAS,
-      helper: "Works across Tonkeeper, Wallet, DeDust, STON.fi, Tonhub, and Bitget wallets.",
+      helper:
+        "Works across Tonkeeper, Wallet, DeDust, STON.fi, Tonhub, and Bitget wallets.",
     },
     {
       key: "wallet",
       label: "Treasury wallet",
       value: TON_MAINNET_DCT_TREASURY_WALLET,
-      helper: `Resolves to ${shorten(TON_MAINNET_DCT_TREASURY_WALLET)} for explorer verification.`,
+      helper: `Resolves to ${
+        shorten(TON_MAINNET_DCT_TREASURY_WALLET)
+      } for explorer verification.`,
+    },
+    {
+      key: "wallet-non-bounceable",
+      label: "Treasury wallet (non-bounceable)",
+      value: TON_MAINNET_DCT_TREASURY_WALLET_NON_BOUNCEABLE,
+      helper:
+        "Use when wallets require non-bounceable formats or for QR scanning workflows.",
     },
     {
       key: "memo",
       label: "Memo",
       value: TON_MAINNET_DCT_TREASURY_MEMO,
-      helper: "Include for manual DCT transfers so compliance reconciles deposits instantly.",
+      helper:
+        "Include for manual DCT transfers so compliance reconciles deposits instantly.",
     },
     {
       key: "ton-uri",
       label: "ton:// URI",
       value: TON_MAINNET_DCT_TREASURY_TON_TRANSFER_LINK,
-      helper: "Universal TonConnect payload for wallets that support ton:// deep links.",
+      helper:
+        "Universal TonConnect payload for wallets that support ton:// deep links.",
     },
   ],
   defaultActionKey: "onboard",
@@ -239,4 +252,6 @@ export const DCT_ACTION_PAD = Object.freeze({
       ],
     },
   ],
-} satisfies DctActionPadDefinition);
+} satisfies DctActionPadDefinition;
+
+export const DCT_ACTION_PAD = Object.freeze(DCT_ACTION_PAD_DEFINITION);
