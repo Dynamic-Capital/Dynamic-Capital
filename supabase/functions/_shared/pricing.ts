@@ -1,4 +1,4 @@
-import { optionalEnv } from "./env.ts";
+import { maybe, optionalEnv } from "./env.ts";
 
 export interface TonRateResult {
   rate: number | null;
@@ -33,9 +33,22 @@ export async function fetchTonUsdRate(
   }
 
   try {
+    const tonApiToken = maybe("TON_API") ??
+      maybe("TON_API_KEY") ??
+      maybe("TON_API_TOKEN");
+    const headers: Record<string, string> = { accept: "application/json" };
+
+    if (tonApiToken) {
+      const normalized = tonApiToken.startsWith("Bearer ") ||
+          tonApiToken.startsWith("bearer ")
+        ? tonApiToken
+        : `Bearer ${tonApiToken}`;
+      headers.Authorization = normalized;
+    }
+
     const response = await fetchFn(
       "https://tonapi.io/v2/rates?tokens=ton",
-      { headers: { "accept": "application/json" } },
+      { headers },
     );
     if (!response.ok) {
       throw new Error(`tonapi returned ${response.status}`);
