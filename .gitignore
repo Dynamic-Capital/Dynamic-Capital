@@ -15,6 +15,7 @@ node_modules/
 out/
 dist/
 dist-ssr/
+apps/web/public/_next/
 _static/*
 !_static/404.html
 !_static/index.html
