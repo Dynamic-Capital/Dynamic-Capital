@@ -1,5 +1,9 @@
 import { createClient } from "../_shared/client.ts";
-import { internalError } from "../_shared/http.ts";
+import {
+  createErrorReference,
+  internalError,
+  toSafeError,
+} from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
@@ -221,9 +225,12 @@ export const handler = registerHandler(async (req) => {
       status: 200,
     });
   } catch (error) {
-    const reference = crypto.randomUUID();
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in analytics-data", { message: errorMessage, reference });
+    const reference = createErrorReference();
+    const safeError = toSafeError(error);
+    logStep("ERROR in analytics-data", {
+      message: safeError.message,
+      reference,
+    });
 
     return internalError(error, {
       req,
@@ -237,6 +244,7 @@ export const handler = registerHandler(async (req) => {
       },
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       reference,
+      safeError,
     });
   }
 });

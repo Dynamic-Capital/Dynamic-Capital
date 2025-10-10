@@ -51,6 +51,7 @@ export default defineConfig(async ({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "apps/web"),
+        "@shared": path.resolve(__dirname, "shared"),
         "~": path.resolve(__dirname, "src"),
         "next/font/google": path.resolve(
           __dirname,

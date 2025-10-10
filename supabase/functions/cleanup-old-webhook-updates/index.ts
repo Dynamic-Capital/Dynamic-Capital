@@ -1,5 +1,9 @@
 import { createClient } from "../_shared/client.ts";
-import { internalError } from "../_shared/http.ts";
+import {
+  createErrorReference,
+  internalError,
+  toSafeError,
+} from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
@@ -25,10 +29,8 @@ export const handler = registerHandler(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
-    const reference = crypto.randomUUID();
-    const safeError = error instanceof Error
-      ? { name: error.name, message: error.message }
-      : { message: String(error) };
+    const reference = createErrorReference();
+    const safeError = toSafeError(error);
     console.error(
       `Failed to cleanup webhook updates [${reference}]`,
       safeError,
@@ -39,6 +41,7 @@ export const handler = registerHandler(async (req) => {
       extra: { success: false },
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       reference,
+      safeError,
     });
   }
 });

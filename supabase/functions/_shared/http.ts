@@ -304,12 +304,71 @@ const nextErrorReference = () => {
   return `err-${Date.now().toString(36)}-${errorReferenceCounter}`;
 };
 
+export const createErrorReference = () => nextErrorReference();
+
 type InternalErrorOptions = {
   req?: Request;
   message?: string;
   extra?: Record<string, unknown>;
   headers?: HeadersInit;
   reference?: string;
+  safeError?: SafeError;
+};
+
+export type SafeError = {
+  message: string;
+  name?: string;
+};
+
+const MAX_SAFE_ERROR_LENGTH = 512;
+
+const sanitizeErrorText = (value: unknown): string | undefined => {
+  if (typeof value !== "string") return undefined;
+
+  const trimmed = value.replace(/\u0000/g, "").trim();
+  if (!trimmed) return undefined;
+
+  const firstLine = trimmed.split(/[\r\n\u2028\u2029]/, 1)[0] ?? "";
+  const normalized = firstLine.slice(0, MAX_SAFE_ERROR_LENGTH).trim();
+
+  return normalized || undefined;
+};
+
+const sanitizeErrorMessage = (value: unknown): string => {
+  const sanitized = sanitizeErrorText(value);
+  return sanitized ?? "Unexpected error";
+};
+
+const sanitizeErrorName = (value: unknown): string | undefined => {
+  const sanitized = sanitizeErrorText(value);
+  if (!sanitized || sanitized === "Error") return undefined;
+  return sanitized;
+};
+
+export const toSafeError = (error: unknown): SafeError => {
+  if (error instanceof Error) {
+    const name = sanitizeErrorName(error.name);
+    return {
+      message: sanitizeErrorMessage(error.message),
+      ...(name ? { name } : {}),
+    };
+  }
+
+  if (typeof error === "string") {
+    return { message: sanitizeErrorMessage(error) };
+  }
+
+  if (error && typeof error === "object") {
+    const candidate = error as { message?: unknown; name?: unknown };
+    const message = sanitizeErrorMessage(candidate.message);
+    const name = sanitizeErrorName(candidate.name);
+    return {
+      message,
+      ...(name ? { name } : {}),
+    };
+  }
+
+  return { message: sanitizeErrorMessage(String(error ?? "Unexpected error")) };
 };
 
 export const internalError = (
@@ -317,9 +376,7 @@ export const internalError = (
   options: InternalErrorOptions = {},
 ) => {
   const reference = options.reference ?? nextErrorReference();
-  const safeError = error instanceof Error
-    ? { name: error.name, message: error.message }
-    : { message: String(error) };
+  const safeError = options.safeError ?? toSafeError(error);
   console.error(`[internal-error:${reference}]`, safeError);
   const { req, message = "Internal server error", extra, headers } = options;
   return jsonResponse(
