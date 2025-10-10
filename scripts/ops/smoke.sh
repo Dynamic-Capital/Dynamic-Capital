@@ -30,7 +30,9 @@ check() {
 
 check GET /telegram-bot/version 200
 check GET /telegram-bot 405
-check POST /telegram-bot 401
+# Without a valid webhook secret header the bot should ignore the request but
+# still return 200 to keep Telegram from retrying indefinitely.
+check POST /telegram-bot 200
 check GET /miniapp/version 200
 check HEAD /miniapp 200
 check GET /miniapp/foo 404
