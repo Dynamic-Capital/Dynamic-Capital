@@ -118,3 +118,18 @@ chronological order beneath this entry.
 - **Next steps** — Rebuild and redeploy the TON site bundle, verify the origin
   returns `HTTP 200`, then re-test the gateways before restoring the resolver
   status to `ok`.
+
+## 2025-02-14 – TON Foundation gateway promoted
+
+- **Context** — The self-hosted DigitalOcean and Lovable reverse proxies remain
+  offline, but the public TON Foundation gateway consistently serves
+  `dynamiccapital.ton`.
+- **DNS updates** — Updated `dns/dynamiccapital.ton.json` so the TON Foundation
+  endpoint is recorded under `ton_site.gateways.foundation` with `status =
+  operational`, while the legacy gateways are marked `status = offline`.
+- **Tooling** — Switched `shared/ton/site.ts` and dependent helpers to default to
+  `https://ton.site/dynamiccapital.ton`, keeping the self-hosted proxies as
+  legacy fallbacks.
+- **Runbooks** — Refreshed `docs/ton-site-gateway-access.md` and operational
+  checklists to direct browsers to the TON Foundation bridge first and capture
+  redeploy steps for the legacy gateways.

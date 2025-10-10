@@ -23,9 +23,10 @@ The `NEXT_PUBLIC_SUPABASE_*` values enable live subscription plan updates inside
 the Mini App by connecting directly to Supabase Realtime.
 
 > **Note:** When testing in browsers without native TON DNS support, use the
-> public gateway URL (`https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`) instead of the raw
-> `.ton` origin. The helper constants in `shared/ton/site.ts` and the
-> [gateway guide](../../../docs/ton-site-gateway-access.md) keep the URLs aligned.
+> TON Foundation gateway (`https://ton.site/dynamiccapital.ton`) instead of the
+> raw `.ton` origin. The helper constants in `shared/ton/site.ts` and the
+> [gateway guide](../../../docs/ton-site-gateway-access.md) keep the URLs aligned
+> and list legacy self-hosted proxies.
 
 ## Key scripts
 

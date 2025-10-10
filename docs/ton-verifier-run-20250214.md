@@ -23,8 +23,9 @@
 
 ## Follow-ups
 
-- Investigate 503 responses from alternate TON Site gateways
-  (`ton-gateway.dynamic-capital.ondigitalocean.app`, `tonsite.io`,
-  `resolve.tonapi.io`, `toncdn.io`, `tonsite.link`).
+- Investigate 503 responses from legacy self-hosted TON Site gateways
+  (`ton-gateway.dynamic-capital.ondigitalocean.app`,
+  `ton-gateway.dynamic-capital.lovable.app`) and confirm if redeployments are
+  required.
 - Monitor uptime of the primary `ton.site` gateway and confirm the `/lander`
   redirect chain remains expected.

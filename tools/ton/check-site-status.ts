@@ -14,6 +14,7 @@ import {
   TON_SITE_GATEWAY_BASE,
   TON_SITE_GATEWAY_ORIGIN,
   TON_SITE_GATEWAY_URL,
+  TON_SITE_GATEWAY_STANDBY_BASE,
 } from "../../shared/ton/site";
 
 interface ProbeResult {
@@ -42,14 +43,16 @@ const GATEWAY_FAILURE_INDICATORS = [
   "error",
 ];
 
-const defaultGatewayBases = [
+const defaultGatewayBases = Array.from(new Set([
   TON_SITE_GATEWAY_BASE,
+  TON_SITE_GATEWAY_STANDBY_BASE,
+  "https://ton-gateway.dynamic-capital.lovable.app",
   "https://tonsite.io",
   "https://resolve.tonapi.io",
   "https://toncdn.io",
   "https://tonsite.link",
   "https://ton.site",
-];
+]));
 
 interface CliOptions {
   timeoutMs: number;

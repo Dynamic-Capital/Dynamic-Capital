@@ -3,21 +3,17 @@
 Dynamic Capital serves the Telegram Mini App bundle through a TON Site. Install
 and operate the gateway with the Tonutils Reverse Proxy helper outlined in
 [docs/tonutils-reverse-proxy.md](./tonutils-reverse-proxy.md) to keep the HTTPS
-fallback online. Native TON wallets resolve `.ton` domains directly, but
-traditional browsers now have a first-party reverse proxy at
-<https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton>.
-When standard DNS resolvers do not recognise `dynamiccapital.ton` (for example
-Chrome reporting `DNS_PROBE_FINISHED_NXDOMAIN`), open the reverse proxy URL to
-continue testing without special extensions. The legacy public gateways (such as
-[ton.site](https://ton.site)) remain available as tertiary fallbacks.
+fallback online. Native TON wallets resolve `.ton` domains directly, while
+traditional browsers should now start with the official TON Foundation bridge at
+<https://ton.site/dynamiccapital.ton>. Our self-hosted gateways on
+DigitalOcean/Lovable remain documented below but are currently offline pending a
+redeploy.
 
 ## Quick remediation when browsers show NXDOMAIN
 
-1. **Confirm the gateway is online.** Open
-   <https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton>
-   in any modern browser. The reverse proxy terminates TLS on Cloudflare and
-   relays traffic to the TON Site over HTTPS so no wallet integration is
-   required.
+1. **Confirm the gateway is online.** Open <https://ton.site/dynamiccapital.ton>
+   in any modern browser. The TON Foundation bridge terminates TLS and relays
+   traffic to the TON Site so no wallet integration is required.
 2. **Install a TON DNS resolver extension if you want native `.ton` support.**
    Wallet extensions such as
    [MyTonWallet for Chrome](https://chromewebstore.google.com/detail/mytonwallet/abogkplpencnmaiffledhjgobkeeflka)
@@ -31,14 +27,16 @@ continue testing without special extensions. The legacy public gateways (such as
 
 ## Gateway endpoints
 
-| Purpose         | URL                                                                                                 |
-| --------------- | --------------------------------------------------------------------------------------------------- |
-| Primary gateway | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton                           |
-| Icon            | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/icon.png                  |
-| Social preview  | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/social/social-preview.svg |
+| Purpose              | URL                                                                       | Notes                                            |
+| -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
+| Primary gateway      | https://ton.site/dynamiccapital.ton                                       | TON Foundation-operated HTTPS bridge             |
+| Icon                 | https://ton.site/dynamiccapital.ton/icon.png                              | Served from the same gateway                     |
+| Social preview       | https://ton.site/dynamiccapital.ton/social/social-preview.svg             | Served from the same gateway                     |
+| Legacy DO proxy      | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton | Currently offline; keep for historical reference |
+| Legacy Lovable proxy | https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton        | Currently offline; reinstated after redeploy     |
 
-Keep <https://ton.site/dynamiccapital.ton> bookmarked as a backup in case the
-first-party proxy is undergoing maintenance.
+When the self-hosted gateways come back online, update `shared/ton/site.ts` and
+`dns/dynamiccapital.ton.json` to promote them back to primary/standby roles.
 
 Link helpers inside the repository now point to these gateway URLs. Publishing
 flows should continue to treat `dynamiccapital.ton` as the canonical domain;

@@ -9,6 +9,7 @@ project_id = "qeejuomcapbdlhnjqjcc"
     "https://dynamic.capital",
     "https://dynamiccapital.ton",
     "https://www.dynamiccapital.ton",
+    "https://ton.site",
     "https://dynamic-capital-qazf2.ondigitalocean.app",
     "https://dynamic-capital.ondigitalocean.app",
     "https://dynamic-capital.vercel.app",
@@ -21,7 +22,7 @@ project_id = "qeejuomcapbdlhnjqjcc"
   [functions.env]
     SITE_URL = "https://dynamic.capital"
     NEXT_PUBLIC_SITE_URL = "https://dynamic.capital"
-    ALLOWED_ORIGINS = "https://dynamic.capital,https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,https://ton-gateway.dynamic-capital.ondigitalocean.app,https://ton-gateway.dynamic-capital.lovable.app"
+    ALLOWED_ORIGINS = "https://dynamic.capital,https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://ton.site,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,https://ton-gateway.dynamic-capital.ondigitalocean.app,https://ton-gateway.dynamic-capital.lovable.app"
     MINIAPP_ORIGIN = "https://dynamic.capital"
     TELEGRAM_WEBHOOK_URL = "https://dynamic.capital/webhook"
 

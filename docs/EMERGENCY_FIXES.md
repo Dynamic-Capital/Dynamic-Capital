@@ -3,6 +3,7 @@
 ## ✅ Completed Actions
 
 ### 1. Database Security Fixes ✅ COMPLETED
+
 - ✅ Created `tx_logs` table with RLS policies for audit trail
 - ✅ Secured `education_enrollments` table (GDPR compliance)
 - ✅ Secured `user_sessions` table (prevents unauthorized access)
@@ -16,6 +17,7 @@
 **See:** `docs/SECURITY_HARDENING.md` for complete details
 
 ### 2. Webhook Helper Function
+
 - ✅ Created `/functions/v1/fix-telegram-webhook` edge function
 - This function automates webhook setup with correct secret
 
@@ -24,18 +26,22 @@
 ### Fix Telegram Bot Webhook (5 minutes)
 
 **Option A: Use the Helper Function**
+
 ```bash
 curl -X POST "https://qeejuomcapbdlhnjqjcc.supabase.co/functions/v1/fix-telegram-webhook"
 ```
 
 **Option B: Manual Setup**
+
 1. Get the webhook secret:
+
 ```sql
 SELECT setting_value FROM bot_settings 
 WHERE setting_key = 'TELEGRAM_WEBHOOK_SECRET';
 ```
 
 2. Set the webhook:
+
 ```bash
 curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" \
   -d "url=https://qeejuomcapbdlhnjqjcc.supabase.co/functions/v1/telegram-bot" \
@@ -44,6 +50,7 @@ curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" \
 ```
 
 3. Test:
+
 ```bash
 # Send a message to your bot in Telegram
 # Check logs: https://supabase.com/dashboard/project/qeejuomcapbdlhnjqjcc/functions/telegram-bot/logs
@@ -56,12 +63,14 @@ curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" \
 ### Restore TON Site (15 minutes)
 
 **Prerequisites:**
+
 - DigitalOcean account with access to `dynamic-capital-qazf2`
 - Git push access OR `doctl` CLI configured
 
 **Steps:**
 
 1. **Build the TON Site bundle:**
+
 ```bash
 cd apps/web
 npm install
@@ -69,6 +78,7 @@ npm run build
 ```
 
 2. **Verify build output:**
+
 ```bash
 # Check that /ton-site routes are included
 ls -la .next/standalone/apps/web/app/ton-site/
@@ -77,11 +87,13 @@ ls -la .next/standalone/apps/web/app/ton-site/
 3. **Deploy to DigitalOcean:**
 
 **Via Dashboard:**
+
 - Go to DigitalOcean Apps → dynamic-capital-qazf2
 - Click "Deploy" (triggers rebuild from latest Git commit)
 - Wait for deployment to complete (~5 minutes)
 
 **Via Git Push:**
+
 ```bash
 git add .
 git commit -m "Restore TON Site bundle"
@@ -90,26 +102,29 @@ git push origin main
 ```
 
 **Via doctl CLI:**
+
 ```bash
 doctl apps create-deployment <APP_ID>
 ```
 
 4. **Verify deployment:**
+
 ```bash
 # Test origin
 curl -I https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton
 # Expected: HTTP/1.1 200 OK
 
-# Test primary gateway
-curl -I https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton
-# Expected: HTTP/1.1 200 OK
+# Test public TON Foundation gateway
+curl -I https://ton.site/dynamiccapital.ton
+# Expected: HTTP/2 200
 
-# Test fallback gateway
+# Optional: test legacy self-hosted proxies once redeployed
+curl -I https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton
 curl -I https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton
-# Expected: HTTP/1.1 200 OK
 ```
 
 5. **Update DNS status:**
+
 ```bash
 # Update dns/dynamiccapital.ton.json
 # Set ton_site.verification.https.status to "ok"
@@ -123,6 +138,7 @@ curl -I https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton
 ## 🔍 Verification Commands
 
 ### Check Telegram Bot Health
+
 ```bash
 # Get webhook info
 curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
@@ -134,10 +150,12 @@ curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
 ```
 
 ### Check TON Site Health
+
 ```bash
-# Check all endpoints
+# Check active and legacy endpoints
 for url in \
   "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton" \
+  "https://ton.site/dynamiccapital.ton" \
   "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton" \
   "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton"
 do
@@ -161,15 +179,18 @@ done
 ## 🚨 Troubleshooting
 
 ### Telegram Bot Still Returns 401
-**Cause:** Secret mismatch  
+
+**Cause:** Secret mismatch\
 **Fix:** Verify secret in `bot_settings` table matches what you set in Telegram
 
 ### TON Site Returns 404
-**Cause:** Bundle not deployed or routes missing  
+
+**Cause:** Bundle not deployed or routes missing\
 **Fix:** Rebuild with `npm run build` and redeploy
 
 ### TON Site Returns 503
-**Cause:** Origin server down  
+
+**Cause:** Origin server down\
 **Fix:** Check DigitalOcean App Platform status
 
 ---

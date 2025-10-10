@@ -28,12 +28,11 @@ following guidance to expose the services and control access.
   blockchain-based resolution (see
   [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) for
   configuration). TON DNS requires registration through the TON DNS marketplace
-  and resolver contract deployment. Expose
-  `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton` as
-  the browser fallback so desktop users without a TON resolver can continue
-  testing the Mini App (documented in
-  [`docs/ton-site-gateway-access.md`](./ton-site-gateway-access.md)). Keep the
-  public ton.site gateway bookmarked as a secondary fallback.
+  and resolver contract deployment. Point browsers without TON support to
+  `https://ton.site/dynamiccapital.ton` first, then rotate back to the
+  self-hosted DigitalOcean or Lovable gateways after redeploying them
+  (documented in
+  [`docs/ton-site-gateway-access.md`](./ton-site-gateway-access.md)).
 - The resolver contract for `dynamiccapital.ton` is
   `EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo` (verified via
   [TON Contract Verifier](https://verifier.ton.org/EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo)).

@@ -118,9 +118,9 @@ WantedBy=multi-user.target
 ## Verification checklist
 
 1. Resolve `dynamiccapital.ton` via a TON-enabled browser or wallet.
-2. Load
-   `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
-   to confirm the reverse proxy fallback path is live.
+2. Load `https://ton.site/dynamiccapital.ton` to confirm the primary
+   Foundation-operated gateway is live. Use the legacy DigitalOcean or Lovable
+   proxies only after redeploying them.
 3. Run `node scripts/verify/ton_site.mjs` and check the `tonsite_gateway` probe
    passes.
 4. Record the ADNL address and transaction hash in Supabase `tx_logs`
