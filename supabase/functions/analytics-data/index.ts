@@ -232,7 +232,7 @@ export const handler = registerHandler(async (req) => {
       reference,
     });
 
-    return internalError(error, {
+    return internalError(safeError, {
       req,
       message: "Failed to generate analytics data.",
       extra: {

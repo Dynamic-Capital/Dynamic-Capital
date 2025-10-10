@@ -9,10 +9,24 @@ const TELEGRAM_API_ORIGIN = "https://api.telegram.org";
 
 const isTelegramApiRequest = (input: Request | string | URL): boolean => {
   try {
-    const parsed = input instanceof Request
-      ? new URL(input.url)
-      : new URL(String(input));
-    return parsed.origin === TELEGRAM_API_ORIGIN;
+    if (input instanceof Request) {
+      const parsed = new URL(input.url);
+      return parsed.origin === TELEGRAM_API_ORIGIN;
+    }
+
+    if (input instanceof URL) {
+      return input.origin === TELEGRAM_API_ORIGIN;
+    }
+
+    if (typeof input === "string") {
+      const trimmed = input.trim();
+      if (!trimmed) return false;
+
+      const parsed = new URL(trimmed);
+      return parsed.origin === TELEGRAM_API_ORIGIN;
+    }
+
+    return false;
   } catch {
     return false;
   }

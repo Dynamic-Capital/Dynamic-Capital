@@ -115,7 +115,7 @@ export const handler = registerHandler(async (req) => {
   } catch (error) {
     const safeError = toSafeError(error);
     logger.error("🚨 Debug error:", safeError);
-    return internalError(error, {
+    return internalError(safeError, {
       req,
       message: "Failed to execute debug inspection.",
       extra: {
