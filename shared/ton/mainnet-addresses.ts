@@ -21,6 +21,9 @@ export const TON_MAINNET_INTAKE_WALLET = TON_MAINNET_PRIMARY_MULTISIG;
 export const TON_MAINNET_JETTON_MASTER =
   "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
 
+export const TON_MAINNET_DAO_MULTISIG_EXPLORER_URL =
+  "https://explorer.toncoin.org/account?account=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
+
 export const TON_MAINNET_DCT_TREASURY_ALIAS = "dynamiccapital.ton";
 export const TON_MAINNET_DCT_TREASURY_WALLET =
   "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
@@ -76,6 +79,7 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     friendlyAddress: TON_MAINNET_DAO_MULTISIG,
     description:
       "Dedicated DAO executor responsible for governance proposals and resolver updates.",
+    explorerUrl: TON_MAINNET_DAO_MULTISIG_EXPLORER_URL,
   },
   {
     key: "intakeWallet",

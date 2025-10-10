@@ -608,6 +608,9 @@ async function main() {
       if (account.description) {
         console.log(`  Note:     ${account.description}`);
       }
+      if (account.explorerUrl) {
+        console.log(`  Explorer: ${account.explorerUrl}`);
+      }
       if (account.ok) {
         console.log(`  State:    ${account.state ?? "unknown"}`);
         if (account.balanceDisplay) {
