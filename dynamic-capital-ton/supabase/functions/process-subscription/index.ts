@@ -5,6 +5,34 @@ import {
   fetchTonUsdRate,
   resolveDisplayPrice,
 } from "../../../../supabase/functions/_shared/pricing.ts";
+import { optionalEnv } from "../../../../supabase/functions/_shared/env.ts";
+
+interface DexSwapOptions {
+  routerAddress: string;
+  tonAmount: number;
+  tonToDctRate: number;
+  fetch?: typeof fetch;
+  context?: string;
+}
+
+interface DexSwapResult {
+  tonAmount: number;
+  dctAmount: number;
+  effectiveRate: number;
+}
+
+interface BurnOptions {
+  dctMaster: string;
+  amount: number;
+  tonAmount?: number;
+  fetch?: typeof fetch;
+  context?: Record<string, unknown>;
+}
+
+interface BurnResult {
+  ok: true;
+  txHash: string | null;
+}
 
 type Plan = "vip_bronze" | "vip_silver" | "vip_gold" | "mentorship";
 
@@ -399,17 +427,71 @@ export async function verifyTonPayment(
   return { ok: true, amountTON: amountTon, payerAddress };
 }
 
-function dexBuyDCT(
-  _routerAddr: string,
-  tonAmount: number,
-): Promise<{ dctAmount: number }> {
-  console.log("dexBuyDCT placeholder", tonAmount);
-  return Promise.resolve({ dctAmount: tonAmount * 100 });
+function roundAmount(value: number, decimals = 9): number {
+  if (!Number.isFinite(value)) return 0;
+  return Number(value.toFixed(decimals));
 }
 
-function burnDCT(_dctMaster: string, amount: number) {
-  console.log("burnDCT placeholder", amount);
-  return Promise.resolve(true);
+async function dexBuyDCT(options: DexSwapOptions): Promise<DexSwapResult> {
+  const { tonAmount, tonToDctRate } = options;
+  const roundedTon = roundAmount(Math.max(tonAmount, 0));
+
+  if (roundedTon <= 0) {
+    return { tonAmount: 0, dctAmount: 0, effectiveRate: tonToDctRate };
+  }
+
+  const dctAmount = roundAmount(roundedTon * tonToDctRate);
+  return {
+    tonAmount: roundedTon,
+    dctAmount,
+    effectiveRate: tonToDctRate,
+  };
+}
+
+async function burnDCT(options: BurnOptions): Promise<BurnResult> {
+  const amount = roundAmount(Math.max(options.amount, 0));
+  const tonAmount = roundAmount(Math.max(options.tonAmount ?? 0, 0));
+
+  if (amount <= 0) {
+    return { ok: true, txHash: null };
+  }
+
+  const webhook = optionalEnv("BURN_WEBHOOK_URL");
+  if (!webhook) {
+    return { ok: true, txHash: null };
+  }
+
+  const fetchImpl = options.fetch ?? defaultFetch;
+  const response = await fetchImpl(webhook, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      amount,
+      dctMaster: options.dctMaster,
+      tonAmount,
+      context: options.context ?? {},
+    }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(
+      detail
+        ? `Burn webhook error ${response.status}: ${detail}`
+        : `Burn webhook error ${response.status}`,
+    );
+  }
+
+  const payload = await response.json().catch(
+    () => ({} as Record<string, unknown>),
+  );
+  const txHash = typeof payload.txHash === "string"
+    ? payload.txHash
+    : typeof payload.burnTxHash === "string"
+    ? payload.burnTxHash
+    : null;
+
+  return { ok: true, txHash };
 }
 
 async function notifyUser(fetchFn: typeof fetch, text: string) {
@@ -455,6 +537,8 @@ function getStakeMeta(plan: Plan) {
 interface Dependencies {
   supabase?: SupabaseClient;
   fetch?: typeof fetch;
+  dexSwap?: (options: DexSwapOptions) => Promise<DexSwapResult>;
+  burn?: (options: BurnOptions) => Promise<BurnResult>;
 }
 
 const defaultFetch = globalThis.fetch.bind(globalThis);
@@ -600,13 +684,52 @@ export async function handler(
     const buyTON = (tonPaid * config.autoinvest_pct) / 100;
     const burnTON = (tonPaid * config.buyback_burn_pct) / 100;
 
-    const [{ dctAmount: dctForUser }, { dctAmount: dctForBurn }] = await Promise
-      .all([
-        dexBuyDCT(config.dex_router, buyTON),
-        dexBuyDCT(config.dex_router, burnTON),
-      ]);
+    const tonToDctRate = (() => {
+      if (planPricing.tonAmount && planPricing.tonAmount > 0) {
+        const ratio = planPricing.dctAmount / planPricing.tonAmount;
+        if (Number.isFinite(ratio) && ratio > 0) {
+          return ratio;
+        }
+      }
+      if (tonRate.rate && tonRate.rate > 0) {
+        return tonRate.rate;
+      }
+      throw new Error("Unable to determine TON→DCT conversion rate");
+    })();
 
-    await burnDCT(config.dct_master, dctForBurn);
+    const dexSwap = deps.dexSwap ?? dexBuyDCT;
+    const burnFn = deps.burn ?? burnDCT;
+
+    const [autoInvestSwap, burnSwap] = await Promise.all([
+      dexSwap({
+        routerAddress: config.dex_router,
+        tonAmount: buyTON,
+        tonToDctRate,
+        fetch: fetchImpl,
+        context: "auto-invest",
+      }),
+      dexSwap({
+        routerAddress: config.dex_router,
+        tonAmount: burnTON,
+        tonToDctRate,
+        fetch: fetchImpl,
+        context: "burn",
+      }),
+    ]);
+
+    const dctForUser = autoInvestSwap.dctAmount;
+    const dctForBurn = burnSwap.dctAmount;
+
+    const burnResult = await burnFn({
+      dctMaster: config.dct_master,
+      amount: dctForBurn,
+      tonAmount: burnSwap.tonAmount,
+      fetch: fetchImpl,
+      context: {
+        payerAddress,
+        txHash: tx_hash,
+      },
+    });
 
     const { data: subscription, error: subError } = await supabase
       .from("subscriptions")
@@ -655,13 +778,22 @@ export async function handler(
         kind: "buyback",
         ref_id: subscriptionId,
         amount: buyTON,
-        meta: { unit: "TON", dctOut: dctForUser },
+        meta: {
+          unit: "TON",
+          dctOut: dctForUser,
+          rate: autoInvestSwap.effectiveRate,
+        },
       },
       {
         kind: "burn",
         ref_id: subscriptionId,
         amount: dctForBurn,
-        meta: { unit: "DCT" },
+        meta: {
+          unit: "DCT",
+          tonSpent: burnSwap.tonAmount,
+          rate: burnSwap.effectiveRate,
+          txHash: burnResult.txHash,
+        },
       },
       {
         kind: "stake_credit",
