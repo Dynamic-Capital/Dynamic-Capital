@@ -21,6 +21,12 @@ const nextStandalone = join(
   "web",
   "server.js",
 );
+const nextMiddlewareManifest = join(
+  root,
+  ".next",
+  "server",
+  "middleware-manifest.json",
+);
 const publicDir = join(root, "public");
 // Copy build output to a repository-level `_static` directory so the site can be
 // served as a regular static site (e.g. on DigitalOcean).
@@ -59,6 +65,55 @@ async function exists(path: string) {
     return true;
   } catch {
     return false;
+  }
+}
+
+type EnsureBuildArtifactsOptions = {
+  allowBuild?: boolean;
+};
+
+async function ensureBuildArtifacts(
+  options: EnsureBuildArtifactsOptions = {},
+) {
+  const { allowBuild = false } = options;
+
+  const hasStandalone = await exists(nextStandalone);
+  const hasMiddlewareManifest = await exists(nextMiddlewareManifest);
+
+  if (hasStandalone && hasMiddlewareManifest) {
+    return;
+  }
+
+  const canRunBuild = allowBuild && process.env.SKIP_NEXT_BUILD !== "1";
+
+  if (!hasMiddlewareManifest && canRunBuild) {
+    console.warn(
+      "⚠️  Next.js build artifacts missing; running `next build` before snapshot capture.",
+    );
+    await runNextBuild();
+
+    if (await exists(nextStandalone) && await exists(nextMiddlewareManifest)) {
+      return;
+    }
+  }
+
+  const missingArtifacts: string[] = [];
+  if (!hasStandalone) {
+    missingArtifacts.push(
+      ".next/standalone/apps/web/server.js",
+    );
+  }
+  if (!hasMiddlewareManifest) {
+    missingArtifacts.push(
+      ".next/server/middleware-manifest.json",
+    );
+  }
+
+  if (missingArtifacts.length > 0) {
+    throw new Error(
+      `Next.js build outputs missing: ${missingArtifacts.join(", ")}. Run ` +
+        "`next build` before executing the static snapshot task.",
+    );
   }
 }
 
@@ -307,6 +362,7 @@ async function copyAssets() {
     await cp(publicDir, destRoot, { recursive: true });
   }
 
+  await ensureBuildArtifacts({ allowBuild: copyOnly });
   await startServerAndCapture();
 
   const wellKnownDir = join(destRoot, ".well-known");
