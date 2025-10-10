@@ -9,6 +9,10 @@ export const DNS_RECORD_SOURCES = [
 const TREASURY_PUBKEY = Deno.env.get("TREASURY_PUBKEY") ??
   "<treasury_pubkey_here>";
 
+const textEncoder = new TextEncoder();
+let cachedKeyHex: string | null = null;
+let cachedCryptoKey: CryptoKey | null = null;
+
 if (TREASURY_PUBKEY.startsWith("<")) {
   console.warn(
     "Set the TREASURY_PUBKEY environment variable to enable verification.",
@@ -88,7 +92,7 @@ function hexToUint8Array(hex: string): Uint8Array<ArrayBuffer> {
 }
 
 function base64ToUint8Array(value: string): Uint8Array<ArrayBuffer> {
-  const binary = atob(value);
+  const binary = atob(value.trim());
   const result = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) {
     result[i] = binary.charCodeAt(i);
@@ -104,20 +108,27 @@ async function verifySignature(
   if (!publicKeyHex || publicKeyHex.startsWith("<")) return false;
 
   try {
-    const encoder = new TextEncoder();
-    const messageBytes = encoder.encode(JSON.stringify(record));
+    const messageBytes = textEncoder.encode(JSON.stringify(record));
     const signatureBytes = base64ToUint8Array(signatureBase64);
     const publicKeyBytes = hexToUint8Array(publicKeyHex);
 
     if (publicKeyBytes.length !== 32) return false;
 
-    const key = await crypto.subtle.importKey(
-      "raw",
-      publicKeyBytes,
-      { name: "Ed25519" },
-      false,
-      ["verify"],
-    );
+    let key = cachedCryptoKey;
+    const normalizedHex = publicKeyHex.trim().toLowerCase();
+    if (!key || cachedKeyHex !== normalizedHex) {
+      key = await crypto.subtle.importKey(
+        "raw",
+        publicKeyBytes,
+        { name: "Ed25519" },
+        false,
+        ["verify"],
+      );
+      cachedCryptoKey = key;
+      cachedKeyHex = normalizedHex;
+    }
+
+    if (!key) return false;
 
     return await crypto.subtle.verify(
       "Ed25519",
