@@ -223,8 +223,47 @@ registerHandler(async (req: Request): Promise<Response> => {
       language,
     });
 
-    let sessionId = body.session_id;
-    if (!sessionId) {
+    let sessionId = typeof body.session_id === "string"
+      ? body.session_id.trim()
+      : undefined;
+
+    if (sessionId && sessionId.length > 0) {
+      const { data: existingSession, error: sessionLookupError } = await supabase
+        .from("chat_sessions")
+        .select("id, user_id")
+        .eq("id", sessionId)
+        .maybeSingle();
+
+      if (sessionLookupError) {
+        logger.error("Failed to verify chat session ownership", {
+          error: sessionLookupError,
+          session_id: sessionId,
+        });
+
+        return new Response(
+          JSON.stringify({ error: "Unable to verify chat session" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      if (!existingSession || existingSession.user_id !== user.id) {
+        logger.warn("Unauthorized chat session access attempt", {
+          session_id: sessionId,
+          user_id: user.id,
+        });
+
+        return new Response(
+          JSON.stringify({ error: "Invalid chat session" }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+    } else {
       const titlePrefix = service.toUpperCase();
       const sessionTitle = `${titlePrefix}: ${message}`
         .slice(0, MAX_SESSION_TITLE_LENGTH)
