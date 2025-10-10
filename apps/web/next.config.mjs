@@ -256,6 +256,7 @@ const modularizeImportRules = {};
 const nextConfig = {
   output: "standalone",
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
+  outputFileTracingRoot: path.join(__dirname, "../.."),
   experimental: {
     optimizePackageImports,
   },
