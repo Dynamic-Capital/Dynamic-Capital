@@ -845,6 +845,9 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
   const payload = await response.json();
   assertEquals(payload.ok, true);
   assertEquals(Math.abs(payload.ton_paid - 1.2) < 1e-6, true);
+  assertEquals(payload.ton_rate?.source, "plan_snapshot");
+  assertAlmostEquals(Number(payload.ton_rate?.rate ?? 0), 100, 1e-6);
+  assert(fetchCalls.every((url) => !url.includes("tonapi.io")));
   assertEquals(notifications.length, 1);
 
   const insertedSubscription = state.subscriptions[0] as Record<
@@ -881,4 +884,156 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
   assertAlmostEquals(Number(burnLog.meta?.tonSpent ?? 0), 0.12, 1e-9);
   assertAlmostEquals(Number(burnLog.meta?.rate ?? 0), 100, 1e-9);
   assertEquals(burnLog.meta?.txHash, "burn-hash");
+});
+
+Deno.test("fetches live TON rate when snapshot omits ton amount", async () => {
+  const originalOverride = Deno.env.get("TON_USD_OVERRIDE");
+  try {
+    if (originalOverride) {
+      Deno.env.delete("TON_USD_OVERRIDE");
+    }
+
+    const request = new Request(
+      "https://example/functions/process-subscription",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          telegram_id: "2468",
+          plan: "vip_bronze",
+          tx_hash: "0xlive",
+        }),
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    const { client: supabaseStub, state } = createSupabaseStub(
+      {
+        operations_pct: 55,
+        autoinvest_pct: 35,
+        buyback_burn_pct: 10,
+        min_ops_pct: 40,
+        max_ops_pct: 75,
+        min_invest_pct: 15,
+        max_invest_pct: 45,
+        min_burn_pct: 5,
+        max_burn_pct: 20,
+        ops_treasury: "EQOPS",
+        dct_master: "EQMASTER",
+        dex_router: "EQROUTER",
+      },
+      {
+        user: { id: "user-live" },
+        wallet: { address: "EQLIVE" },
+        planPricing: {
+          vip_bronze: {
+            price: 150,
+            currency: "USD",
+            dynamic_price_usdt: null,
+            pricing_formula: null,
+            last_priced_at: "2024-01-01T00:00:00.000Z",
+            performance_snapshot: null,
+          },
+        },
+      },
+    );
+
+    const fetchCalls: Array<string> = [];
+    const fetchStub: typeof fetch = (input, init) => {
+      const url = typeof input === "string"
+        ? input
+        : input instanceof URL
+        ? input.toString()
+        : input.url;
+      fetchCalls.push(url);
+
+      if (url.includes("/transactions/")) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify(
+              tonIndexerResponse([
+                tonIndexerTransaction({
+                  hash: "LIVEPAY",
+                  destination: "EQOPS",
+                  source: "EQLIVE",
+                  amount: 1_500_000_000,
+                }),
+              ]),
+            ),
+            { status: 200 },
+          ),
+        );
+      }
+
+      if (url.includes("tonapi.io")) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              rates: {
+                TON: { prices: { USD: 100 } },
+                ton: { prices: { usd: 100 } },
+              },
+            }),
+            { status: 200 },
+          ),
+        );
+      }
+
+      if (url.includes("api.telegram.org")) {
+        return Promise.resolve(new Response("ok", { status: 200 }));
+      }
+
+      throw new Error(`Unexpected fetch call: ${url}`);
+    };
+
+    const swapCalls: Array<
+      Parameters<NonNullable<HandlerDependencies["dexSwap"]>>[0]
+    > = [];
+    const dexStub: NonNullable<HandlerDependencies["dexSwap"]> = async (
+      options,
+    ) => {
+      swapCalls.push(options);
+      const ton = Number(Math.max(options.tonAmount, 0).toFixed(9));
+      return {
+        tonAmount: ton,
+        dctAmount: Number((ton * options.tonToDctRate).toFixed(9)),
+        effectiveRate: options.tonToDctRate,
+      };
+    };
+
+    const burnCalls: Array<
+      Parameters<NonNullable<HandlerDependencies["burn"]>>[0]
+    > = [];
+    const burnStub: NonNullable<HandlerDependencies["burn"]> = async (
+      options,
+    ) => {
+      burnCalls.push(options);
+      return { ok: true, txHash: "burn-live" };
+    };
+
+    const response = await handler(request, {
+      supabase: supabaseStub as HandlerDependencies["supabase"],
+      fetch: fetchStub,
+      dexSwap: dexStub,
+      burn: burnStub,
+    });
+
+    assertEquals(response.status, 200);
+    const payload = await response.json();
+    assertEquals(payload.ok, true);
+    assertAlmostEquals(payload.ton_expected, 1.5, 1e-6);
+    assertEquals(payload.ton_rate?.source, "tonapi");
+    assertAlmostEquals(Number(payload.ton_rate?.rate ?? 0), 100, 1e-6);
+    const tonapiCalls = fetchCalls.filter((url) => url.includes("tonapi.io"));
+    assertEquals(tonapiCalls.length, 1);
+    assert(fetchCalls.some((url) => url.includes("/transactions/")));
+    assertEquals(state.subscriptions.length, 1);
+    assertEquals(swapCalls.length, 2);
+    assertEquals(burnCalls.length, 1);
+  } finally {
+    if (originalOverride) {
+      Deno.env.set("TON_USD_OVERRIDE", originalOverride);
+    } else {
+      Deno.env.delete("TON_USD_OVERRIDE");
+    }
+  }
 });

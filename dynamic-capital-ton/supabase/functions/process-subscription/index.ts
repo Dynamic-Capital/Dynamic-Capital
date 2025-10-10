@@ -4,6 +4,7 @@ import {
   calculateTonAmount,
   fetchTonUsdRate,
   resolveDisplayPrice,
+  type TonRateResult,
 } from "../../../../supabase/functions/_shared/pricing.ts";
 import { optionalEnv } from "../../../../supabase/functions/_shared/env.ts";
 
@@ -276,7 +277,6 @@ function pickTonAmount(
 async function fetchPlanPricing(
   supabase: SupabaseClient,
   planId: string,
-  tonRate: number | null,
 ): Promise<PlanPricing> {
   const planFields = [
     "id",
@@ -313,7 +313,7 @@ async function fetchPlanPricing(
   const snapshotDct = snapshot && typeof snapshot.dct_amount === "number"
     ? snapshot.dct_amount
     : null;
-  const tonAmount = snapshotTon ?? calculateTonAmount(displayPrice, tonRate);
+  const tonAmount = snapshotTon;
   const dctAmount = snapshotDct ?? calculateDctAmount(displayPrice);
 
   return {
@@ -661,27 +661,63 @@ export async function handler(
     );
     assertPercentSum(config);
 
-    const tonRate = await fetchTonUsdRate(fetchImpl);
-    const planPricing = await fetchPlanPricing(supabase, plan, tonRate.rate);
+    const planPricing = await fetchPlanPricing(supabase, plan);
 
     if (planPricing.currency !== "USD" && planPricing.currency !== "USDT") {
       throw new Error(`Unsupported currency ${planPricing.currency}`);
     }
 
-    if (planPricing.tonAmount === null) {
-      const message = {
-        ok: false,
-        error: "TON pricing temporarily unavailable. Please retry shortly.",
-      };
-      return new Response(JSON.stringify(message), {
-        status: 503,
-        headers: { "Content-Type": "application/json" },
-      });
+    let tonRate: TonRateResult | null = null;
+    let expectedTonAmount = planPricing.tonAmount;
+
+    if (expectedTonAmount && Number.isFinite(expectedTonAmount)) {
+      const derivedUsdRate = planPricing.displayPrice / expectedTonAmount;
+      if (Number.isFinite(derivedUsdRate) && derivedUsdRate > 0) {
+        tonRate = {
+          rate: Number(derivedUsdRate.toFixed(6)),
+          source: "plan_snapshot",
+          fetchedAt: planPricing.lastPricedAt ?? new Date().toISOString(),
+        };
+      }
     }
 
-    const expectedTonAmount = planPricing.tonAmount;
+    if (!expectedTonAmount || expectedTonAmount <= 0) {
+      const fetchedRate = await fetchTonUsdRate(fetchImpl);
+      tonRate = fetchedRate;
+      if (!fetchedRate.rate || fetchedRate.rate <= 0) {
+        const message = {
+          ok: false,
+          error: "TON pricing temporarily unavailable. Please retry shortly.",
+        } as const;
+        return new Response(JSON.stringify(message), {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
 
-    if (!Number.isFinite(expectedTonAmount) || expectedTonAmount <= 0) {
+      expectedTonAmount = calculateTonAmount(
+        planPricing.displayPrice,
+        fetchedRate.rate,
+      );
+
+      if (!expectedTonAmount || expectedTonAmount <= 0) {
+        const message = {
+          ok: false,
+          error: "TON pricing temporarily unavailable. Please retry shortly.",
+        } as const;
+        return new Response(JSON.stringify(message), {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    } else if (!tonRate) {
+      tonRate = await fetchTonUsdRate(fetchImpl);
+    }
+
+    if (
+      !expectedTonAmount || !Number.isFinite(expectedTonAmount) ||
+      expectedTonAmount <= 0
+    ) {
       throw new Error("Unable to determine TON price for plan");
     }
 
@@ -757,15 +793,21 @@ export async function handler(
     const buyTON = splits.autoInvest;
     const burnTON = splits.burn;
 
+    const tonRatePayload: TonRateResult = tonRate ?? {
+      rate: null,
+      source: "unavailable",
+      fetchedAt: new Date().toISOString(),
+    };
+
     const tonToDctRate = (() => {
-      if (planPricing.tonAmount && planPricing.tonAmount > 0) {
-        const ratio = planPricing.dctAmount / planPricing.tonAmount;
+      if (expectedTonAmount && expectedTonAmount > 0) {
+        const ratio = planPricing.dctAmount / expectedTonAmount;
         if (Number.isFinite(ratio) && ratio > 0) {
-          return ratio;
+          return Number(ratio.toFixed(6));
         }
       }
-      if (tonRate.rate && tonRate.rate > 0) {
-        return tonRate.rate;
+      if (tonRatePayload.rate && tonRatePayload.rate > 0) {
+        return tonRatePayload.rate;
       }
       throw new Error("Unable to determine TON→DCT conversion rate");
     })();
@@ -935,7 +977,7 @@ export async function handler(
         ton_paid: tonPaid,
         dct_auto_invest: dctForUser,
         dct_burned: dctForBurn,
-        ton_rate: tonRate,
+        ton_rate: tonRatePayload,
       }),
       {
         status: 200,
