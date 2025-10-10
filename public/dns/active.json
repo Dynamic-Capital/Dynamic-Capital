@@ -20,6 +20,7 @@
     "dexscreener_token": "https://dexscreener.com/ton/UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
     "dexscreener_stonfi": "https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi",
     "dexscreener_dedust": "https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm",
+    "x1000_token": "https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "geckoterminal_stonfi": "https://www.geckoterminal.com/ton/pools/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
     "metadata": "https://dynamiccapital.ton/jetton-metadata.json",
     "metadata_fallback": "https://dynamic.capital/jetton-metadata.json",
@@ -29,7 +30,7 @@
     "manifest_fallback": "https://dynamic.capital/tonconnect-manifest.json",
     "docs": "https://dynamiccapital.ton/docs",
     "docs_fallback": "https://dynamic.capital/docs",
-    "updated": "2025-10-10T20:34:21Z"
+    "updated": "2025-01-21T00:00:00Z"
   },
   "signatures": {
     "dao": "base64:abc123...",

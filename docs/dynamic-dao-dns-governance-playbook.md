@@ -162,6 +162,7 @@ mirrors the canonical structure:
     "dexscreener_token": "https://dexscreener.com/ton/UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
     "dexscreener_stonfi": "https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi",
     "dexscreener_dedust": "https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm",
+    "x1000_token": "https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "metadata": "https://dynamiccapital.ton/jetton-metadata.json",
     "metadata_fallback": "https://dynamic.capital/jetton-metadata.json",
     "api": "https://api.dynamiccapital.ton",

@@ -31,6 +31,8 @@ const TONSCAN_JETTON_URL =
 const DYOR_JETTON_URL = `https://dyor.io/token/${TON_MAINNET_JETTON_MASTER}`;
 const DEX_SCREENER_TOKEN_URL =
   `https://dexscreener.com/ton/${TON_MAINNET_JETTON_MASTER}`;
+const X1000_TOKEN_URL =
+  `https://x1000.finance/tokens/${TON_MAINNET_DAO_MULTISIG}`;
 
 async function fetchJettonWallet(ownerFriendly: string): Promise<string> {
   const ownerAddress = Address.parse(ownerFriendly);
@@ -165,6 +167,7 @@ async function main() {
     dexscreener_token: DEX_SCREENER_TOKEN_URL,
     dexscreener_stonfi: stonfiPool.dexScreenerPairUrl,
     dexscreener_dedust: dedustPool.dexScreenerPairUrl,
+    x1000_token: X1000_TOKEN_URL,
   };
 
   if (stonfiPool.geckoTerminalPoolUrl) {

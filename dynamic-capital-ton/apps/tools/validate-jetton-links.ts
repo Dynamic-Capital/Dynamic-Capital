@@ -6,7 +6,10 @@ import {
   resolveProjectRoot,
 } from "./_shared.ts";
 import { DCT_DEX_POOLS } from "../../../shared/ton/dct-liquidity.ts";
-import { TON_MAINNET_JETTON_MASTER } from "../../../shared/ton/mainnet-addresses.ts";
+import {
+  TON_MAINNET_DAO_MULTISIG,
+  TON_MAINNET_JETTON_MASTER,
+} from "../../../shared/ton/mainnet-addresses.ts";
 
 interface RequiredLink {
   label: string;
@@ -26,6 +29,8 @@ const DCT_JETTON_MASTER_RAW =
 
 const DEX_SCREENER_TOKEN_URL =
   `https://dexscreener.com/ton/${TON_MAINNET_JETTON_MASTER}` as const;
+const X1000_TOKEN_URL =
+  `https://x1000.finance/tokens/${TON_MAINNET_DAO_MULTISIG}` as const;
 
 const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
@@ -59,6 +64,10 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
     label: "DEX Screener → token overview",
     url: DEX_SCREENER_TOKEN_URL,
+  },
+  {
+    label: "X1000 Finance → token overview",
+    url: X1000_TOKEN_URL,
   },
 ];
 
