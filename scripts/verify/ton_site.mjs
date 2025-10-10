@@ -319,12 +319,13 @@ const gatewayBases = rawGatewayList
   .filter(Boolean);
 
 const defaultGatewayBases = [
+  "https://ton.site",
   "https://ton-gateway.dynamic-capital.ondigitalocean.app",
+  "https://ton-gateway.dynamic-capital.lovable.app",
   "https://tonsite.io",
   "https://resolve.tonapi.io",
   "https://toncdn.io",
   "https://tonsite.link",
-  "https://ton.site",
 ];
 
 const candidateGateways = gatewayBases.length > 0

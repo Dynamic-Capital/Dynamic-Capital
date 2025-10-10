@@ -90,10 +90,11 @@ the authenticated Mini App dashboard, while Supabase handles storage,
 authentication, and real-time orchestration.
 
 > **Browser fallback:** Standard DNS resolvers cannot resolve `.ton` domains and
-> may return `DNS_PROBE_FINISHED_NXDOMAIN`. Use the public gateway at
-> <https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton>
-> or install a TON-enabled wallet extension (for example, MyTonWallet) to access
-> production content hosted at `DynamicCapital.ton`.
+> may return `DNS_PROBE_FINISHED_NXDOMAIN`. Use the TON Foundation gateway at
+> <https://ton.site/dynamiccapital.ton> or install a TON-enabled wallet
+> extension (for example, MyTonWallet) to access production content hosted at
+> `DynamicCapital.ton`. Legacy self-hosted proxies remain documented for
+> redeployments.
 
 ## What's New
 

@@ -39,8 +39,9 @@ const BUILD_CONFIG = {
 
 const TON_DOMAINS = {
   primary: "dynamiccapital.ton",
-  gateway: "ton-gateway.dynamic-capital.ondigitalocean.app",
-  gatewayFallback: "ton-gateway.dynamic-capital.lovable.app",
+  gateway: "ton.site",
+  gatewayFallback: "ton-gateway.dynamic-capital.ondigitalocean.app",
+  legacyGateway: "ton-gateway.dynamic-capital.lovable.app",
 };
 
 console.log("🚀 Dynamic Capital TON Web3 App - Unified Build");
@@ -48,6 +49,7 @@ console.log("Platform:", BUILD_CONFIG.platform);
 console.log("Environment:", process.env.NODE_ENV || "production");
 console.log("TON Primary Domain:", TON_DOMAINS.primary);
 console.log("TON Gateway:", TON_DOMAINS.gateway);
+console.log("TON Legacy Gateway:", TON_DOMAINS.gatewayFallback);
 
 // Detect build platform
 function detectPlatform() {
@@ -102,6 +104,7 @@ function configureBranding() {
       defaults.add(`https://www.${TON_DOMAINS.primary}`);
       defaults.add(`https://${TON_DOMAINS.gateway}`);
       defaults.add(`https://${TON_DOMAINS.gatewayFallback}`);
+      defaults.add(`https://${TON_DOMAINS.legacyGateway}`);
 
       return Array.from(defaults).join(",");
     },
