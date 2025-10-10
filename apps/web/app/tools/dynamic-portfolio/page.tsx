@@ -72,6 +72,33 @@ const HERO_PATHS = [
   },
 ];
 
+const SUPPORT_CHANNELS = [
+  {
+    icon: "users" as const,
+    title: "Mentor walkthroughs",
+    description:
+      "Schedule a concierge session to see automation guardrails and guided learning flows in action.",
+    href: "/work/projects/mentor-suite",
+    cta: "Book orientation",
+  },
+  {
+    icon: "sparkles" as const,
+    title: "Automation briefings",
+    description:
+      "Review the latest copy-trading playbooks, risk thresholds, and decentralized withdrawal templates.",
+    href: "/blog/posts/automation-bridge",
+    cta: "Read the briefing",
+  },
+  {
+    icon: "shield" as const,
+    title: "Desk readiness checklist",
+    description:
+      "Confirm funding, broker links, and mentor escalation paths before you enable live mirroring.",
+    href: "/blog/posts/device-validation-log",
+    cta: "Open checklist",
+  },
+];
+
 const QUICK_STEPS = [
   {
     step: "1",
@@ -202,6 +229,43 @@ function PathCard({
           </Row>
         ))}
       </Column>
+    </Column>
+  );
+}
+
+function SupportCard({
+  icon,
+  title,
+  description,
+  href,
+  cta,
+}: (typeof SUPPORT_CHANNELS)[number]) {
+  return (
+    <Column
+      gap="12"
+      background="surface"
+      border="neutral-alpha-medium"
+      radius="l"
+      padding="l"
+      flex={1}
+      minWidth={18}
+    >
+      <Row gap="8" align="center">
+        <Icon name={icon} onBackground="brand-medium" />
+        <Heading variant="heading-strong-s">{title}</Heading>
+      </Row>
+      <Text variant="body-default-m" onBackground="neutral-weak" wrap="balance">
+        {description}
+      </Text>
+      <Button
+        size="s"
+        variant="tertiary"
+        arrowIcon
+        data-border="rounded"
+        href={href}
+      >
+        {cta}
+      </Button>
     </Column>
   );
 }
@@ -365,6 +429,31 @@ export default function InvestorDeskPage() {
           <VipPlansPricingSection />
           <VipPackagesSection />
           <CheckoutCallout />
+        </Section>
+
+        <Section
+          anchor="support"
+          background="neutral-alpha-weak"
+          border="neutral-alpha-medium"
+        >
+          <Column gap="12">
+            <Heading variant="heading-strong-l">
+              Stay close to the desk
+            </Heading>
+            <Text
+              variant="body-default-m"
+              onBackground="neutral-weak"
+              wrap="balance"
+            >
+              Keep orientation tight with mentor walk-throughs, automation
+              briefs, and readiness checks tailored to investor desks.
+            </Text>
+          </Column>
+          <Row gap="16" wrap>
+            {SUPPORT_CHANNELS.map((channel) => (
+              <SupportCard key={channel.title} {...channel} />
+            ))}
+          </Row>
         </Section>
       </Column>
     </ToolWorkspaceLayout>
