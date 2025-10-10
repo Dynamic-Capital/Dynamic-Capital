@@ -1,5 +1,5 @@
 import { optionalEnv } from "../_shared/env.ts";
-import { internalError } from "../_shared/http.ts";
+import { internalError, toSafeError } from "../_shared/http.ts";
 import { createLogger } from "../_shared/logger.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
@@ -113,9 +113,7 @@ export const handler = registerHandler(async (req) => {
       },
     );
   } catch (error) {
-    const safeError = error instanceof Error
-      ? { name: error.name, message: error.message }
-      : { message: String(error) };
+    const safeError = toSafeError(error);
     logger.error("🚨 Debug error:", safeError);
     return internalError(error, {
       req,
@@ -125,6 +123,7 @@ export const handler = registerHandler(async (req) => {
         timestamp: new Date().toISOString(),
       },
       headers: { ...corsHeaders, "Content-Type": "application/json" },
+      safeError,
     });
   }
 });
