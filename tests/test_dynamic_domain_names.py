@@ -1,3 +1,5 @@
+import pytest
+
 from dynamic_domain_names import (
     DomainName,
     DomainPolicy,
@@ -45,6 +47,13 @@ def test_domain_policy_constraints() -> None:
     assert policy.prefixes == ("go", "try")
     assert policy.suffixes == ("hq", "labs")
     assert policy.prefers("FLOW") is True
+
+
+def test_domain_policy_rejects_unknown_tlds() -> None:
+    with pytest.raises(ValueError) as excinfo:
+        DomainPolicy(tlds=(".corp",))
+
+    assert "non recognized TLD" in str(excinfo.value)
 
 
 def test_generate_dynamic_domains_prefers_reserved_terms() -> None:
