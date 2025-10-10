@@ -96,6 +96,7 @@
     "ton:predeploy-verify": "tsx tools/ton/predeploy-verify.ts",
     "ton:site-status": "tsx tools/ton/check-site-status.ts",
     "ton:mainnet-status": "tsx tools/ton/check-mainnet-status.ts",
+    "ton:build-site-predeploy": "tsx tools/ton/build-site-predeploy.ts",
     "ton:build-verifier": "$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/build-ton-verifier.ts"
   },
   "dependencies": {
