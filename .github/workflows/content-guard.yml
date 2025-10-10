@@ -16,7 +16,7 @@ jobs:
           git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
           git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD > changed.txt
           cat changed.txt
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: "npm"
