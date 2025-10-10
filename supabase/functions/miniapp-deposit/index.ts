@@ -1,5 +1,6 @@
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { bad, mna, ok, unauth } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 export async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") return mna();
@@ -16,8 +17,5 @@ export async function handler(req: Request): Promise<Response> {
   const intent_id = crypto.randomUUID();
   return ok({ intent_id, amount });
 }
-if (import.meta.main) {
-  Deno.serve(handler);
-}
-
+registerHandler(handler);
 export default handler;

@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
 import { calcFinalAmount } from "../_shared/promo.ts";
 import { bad, json, mna, ok } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -159,6 +159,6 @@ export async function handler(req: Request): Promise<Response> {
   );
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;

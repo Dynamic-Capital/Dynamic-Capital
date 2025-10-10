@@ -1,5 +1,5 @@
+import { registerHandler } from "../_shared/serve.ts";
 // >>> DC BLOCK: theme-get-core (start)
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { getSetting } from "../_shared/config.ts";
 
 function parseToken(bearer: string | undefined) {
@@ -26,7 +26,7 @@ export async function handler(req: Request): Promise<Response> {
   });
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;
 // <<< DC BLOCK: theme-get-core (end)

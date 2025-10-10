@@ -2,6 +2,7 @@ import React from "npm:react@18.3.1";
 import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 import { Resend } from "npm:resend@4.0.0";
 import { renderAsync } from "npm:@react-email/components@0.0.22";
+import { registerHandler } from "../_shared/serve.ts";
 import MagicLinkEmail from "./_templates/magic-link.tsx";
 
 interface SendEmailUser {
@@ -40,7 +41,7 @@ const defaultFromAddress = Deno.env.get("SEND_EMAIL_FROM") ??
 const defaultSubject = Deno.env.get("SEND_EMAIL_SUBJECT") ??
   "Supa Custom MagicLink!";
 
-Deno.serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method !== "POST") {
     return new Response("not allowed", { status: 400 });
   }
@@ -110,3 +111,5 @@ Deno.serve(async (req) => {
     headers: responseHeaders,
   });
 });
+
+export default handler;

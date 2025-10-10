@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import {
   buildHealthReport,
@@ -6,6 +5,7 @@ import {
   healthResponse,
   measureHealthCheck,
 } from "../_shared/health.ts";
+import { registerHandler } from "../_shared/serve.ts";
 import { createErrorReference, toSafeError } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 
@@ -118,5 +118,5 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 export default handler;

@@ -1,10 +1,10 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient, createClientForRequest } from "../_shared/client.ts";
 import { corsHeaders, json, mna, oops } from "../_shared/http.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { version } from "../_shared/version.ts";
 import { getContent, getCryptoDepositAddress } from "../_shared/config.ts";
 import { resolveDisplayPrice } from "../_shared/pricing.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 interface CheckoutRequest {
   plan_id?: string;
@@ -293,8 +293,5 @@ export async function handler(req: Request): Promise<Response> {
   );
 }
 
-if (import.meta.main) {
-  serve(handler);
-}
-
+registerHandler(handler);
 export default handler;

@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { json, mna, oops } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -102,8 +102,5 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) {
-  serve(handler);
-}
-
+registerHandler(handler);
 export default handler;

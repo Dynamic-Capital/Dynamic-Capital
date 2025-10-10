@@ -1,9 +1,9 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient, createClientForRequest } from "../_shared/client.ts";
 import { bad, json, mna, oops } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { getCryptoDepositAddress } from "../_shared/config.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -161,6 +161,6 @@ export async function handler(req: Request): Promise<Response> {
   );
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;

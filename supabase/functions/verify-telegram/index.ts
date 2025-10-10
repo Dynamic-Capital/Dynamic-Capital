@@ -1,5 +1,6 @@
 import { optionalEnv } from "../_shared/env.ts";
 import { bad, json, mna, ok, oops } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const allowList = new Set(
   (Deno.env.get("MINIAPP_ORIGIN") || "")
@@ -140,6 +141,4 @@ export default async function handler(req: Request) {
   }
 }
 
-if (import.meta.main) {
-  Deno.serve(handler);
-}
+registerHandler(handler);

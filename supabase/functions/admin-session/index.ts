@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { isAdmin, verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { bad, mna, ok, unauth } from "../_shared/http.ts";
 import { envOrSetting } from "../_shared/config.ts";
 import { signHS256 } from "../_shared/jwt.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 export async function handler(req: Request): Promise<Response> {
   const corsHeaders = {
@@ -75,6 +75,6 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;

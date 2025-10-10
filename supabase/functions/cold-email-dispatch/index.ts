@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { createLogger } from "../_shared/logger.ts";
 import { corsHeaders, json, mna, oops } from "../_shared/http.ts";
 import { optionalEnv, requireEnv } from "../_shared/env.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 type LeadStatus = "new" | "processing" | "sent" | "error" | string;
 
@@ -410,7 +410,7 @@ async function handler(req: Request): Promise<Response> {
   }
 }
 
-serve(handler);
+registerHandler(handler);
 
 export { handler };
 export type { DispatchResult, EventRow, LeadRow, TemplateRow };

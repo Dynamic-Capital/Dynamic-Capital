@@ -1,3 +1,4 @@
+import { registerHandler } from "../_shared/serve.ts";
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { mna, nf } from "../_shared/http.ts";
@@ -545,10 +546,6 @@ export async function handler(req: Request): Promise<Response> {
   return withSecurity(nf("Not Found"));
 }
 
-if (import.meta.main) {
-  if (typeof Deno !== "undefined" && "serve" in Deno) {
-    Deno.serve(handler);
-  }
-}
+registerHandler(handler);
 
 export default handler;

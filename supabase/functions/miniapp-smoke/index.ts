@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { json, mna } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
+import { registerHandler } from "../_shared/serve.ts";
 const must = (k: string) =>
   Deno.env.get(k) || (() => {
     throw new Error(`Missing ${k}`);
@@ -89,6 +89,6 @@ export async function handler(req: Request): Promise<Response> {
   return json(checks, checks.ok ? 200 : 500);
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;

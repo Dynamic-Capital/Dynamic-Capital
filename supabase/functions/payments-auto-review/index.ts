@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { mna, ok, oops } from "../_shared/http.ts";
 import { envOrSetting } from "../_shared/config.ts";
 import { functionUrl } from "../_shared/edge.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const need = (k: string) =>
   Deno.env.get(k) || (() => {
@@ -197,6 +197,6 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;

@@ -308,6 +308,4 @@ export const handler = registerHandler(async (req) => {
 
 export default handler;
 
-if (import.meta.main) {
-  Deno.serve(handler);
-}
+registerHandler(handler);

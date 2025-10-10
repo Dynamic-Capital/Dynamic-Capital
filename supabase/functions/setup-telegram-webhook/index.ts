@@ -1,9 +1,9 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
 import {
   cloneTelegramAllowedUpdates,
   expectedSecret,
 } from "../_shared/telegram_secret.ts";
+import { registerHandler } from "../_shared/serve.ts";
 import { json, mna } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 
@@ -114,6 +114,6 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) serve(handler);
+registerHandler(handler);
 
 export default handler;
