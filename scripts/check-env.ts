@@ -45,7 +45,11 @@ if (!NEXT_PUBLIC_SITE_URL) {
   assignPlaceholder("NEXT_PUBLIC_SITE_URL", publicSiteUrl);
 }
 
-const resolvedMiniappOrigin = MINIAPP_ORIGIN ?? canonicalSiteUrl;
+const defaultMiniappOrigins = Array.from(
+  new Set([canonicalSiteUrl, "https://dynamiccapital.ton", "https://t.me"]),
+).join(",");
+
+const resolvedMiniappOrigin = MINIAPP_ORIGIN ?? defaultMiniappOrigins;
 
 if (!MINIAPP_ORIGIN) {
   assignPlaceholder("MINIAPP_ORIGIN", resolvedMiniappOrigin);

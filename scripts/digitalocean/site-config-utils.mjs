@@ -1,10 +1,12 @@
 import { URL } from "node:url";
 
 export const PRIMARY_PRODUCTION_ORIGIN = "https://dynamic.capital";
+export const TON_ALIAS_ORIGIN = "https://dynamiccapital.ton";
 export const DIGITALOCEAN_ACTIVE_ORIGIN =
   "https://dynamic-capital-qazf2.ondigitalocean.app";
 export const DIGITALOCEAN_LEGACY_ORIGIN =
   "https://dynamic-capital.ondigitalocean.app";
+export const TELEGRAM_WEB_APP_ORIGIN = "https://t.me";
 
 function safeParseHost(origin) {
   if (!origin) return undefined;
@@ -28,13 +30,16 @@ const DIGITALOCEAN_ACTIVE_HOST = safeParseHost(DIGITALOCEAN_ACTIVE_ORIGIN);
 const DIGITALOCEAN_LEGACY_HOST = safeParseHost(DIGITALOCEAN_LEGACY_ORIGIN);
 
 export const PRODUCTION_ALLOWED_ORIGINS = [
-  "https://dynamiccapital.ton",
+  TON_ALIAS_ORIGIN,
   "https://www.dynamiccapital.ton",
   PRIMARY_PRODUCTION_ORIGIN,
   DIGITALOCEAN_ACTIVE_ORIGIN,
   DIGITALOCEAN_LEGACY_ORIGIN,
+  "https://dynamic-capital-git-dynamic-capital-a2ae79-the-project-archive.vercel.app",
+  "https://dynamic-capital-kp5fqeegn-the-project-archive.vercel.app",
   "https://dynamic-capital.vercel.app",
   "https://dynamic-capital.lovable.app",
+  TELEGRAM_WEB_APP_ORIGIN,
 ];
 
 const DEFAULT_DOMAIN_ALIASES = [
@@ -298,6 +303,9 @@ export function normalizeAppSpec({
   const parsedSiteUrl = parseSiteUrl(siteUrl);
   const canonicalSiteUrl = parsedSiteUrl.toString().replace(/\/$/, "");
   const canonicalOrigin = parsedSiteUrl.origin;
+  const miniappOrigins = Array.from(
+    new Set([canonicalOrigin, TON_ALIAS_ORIGIN, TELEGRAM_WEB_APP_ORIGIN]),
+  ).join(",");
   const canonicalWebhookUrl = new URL("/webhook", canonicalOrigin).toString();
   const finalDomain = domain ?? parsedSiteUrl.host;
   const finalZone = zone ?? finalDomain;
@@ -343,7 +351,7 @@ export function normalizeAppSpec({
   upsertEnv(
     spec.envs,
     "MINIAPP_ORIGIN",
-    canonicalOrigin,
+    miniappOrigins,
     "RUN_AND_BUILD_TIME",
     changes,
     globalContext,
@@ -415,7 +423,7 @@ export function normalizeAppSpec({
       upsertEnv(
         component.envs,
         "MINIAPP_ORIGIN",
-        canonicalOrigin,
+        miniappOrigins,
         "RUN_AND_BUILD_TIME",
         changes,
         componentContext,

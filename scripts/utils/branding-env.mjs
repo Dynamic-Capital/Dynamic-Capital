@@ -5,6 +5,7 @@ export const DIGITALOCEAN_ACTIVE_ORIGIN =
   "https://dynamic-capital-qazf2.ondigitalocean.app";
 export const DIGITALOCEAN_LEGACY_ORIGIN =
   "https://dynamic-capital.ondigitalocean.app";
+export const TELEGRAM_WEB_APP_ORIGIN = "https://t.me";
 
 export const PRODUCTION_ALLOWED_ORIGIN_LIST = [
   TON_ALIAS_ORIGIN,
@@ -12,8 +13,11 @@ export const PRODUCTION_ALLOWED_ORIGIN_LIST = [
   PRIMARY_PRODUCTION_ORIGIN,
   DIGITALOCEAN_ACTIVE_ORIGIN,
   DIGITALOCEAN_LEGACY_ORIGIN,
+  "https://dynamic-capital-git-dynamic-capital-a2ae79-the-project-archive.vercel.app",
+  "https://dynamic-capital-kp5fqeegn-the-project-archive.vercel.app",
   "https://dynamic-capital.vercel.app",
   "https://dynamic-capital.lovable.app",
+  TELEGRAM_WEB_APP_ORIGIN,
 ];
 
 export const PRODUCTION_ALLOWED_ORIGINS = PRODUCTION_ALLOWED_ORIGIN_LIST.join(
@@ -187,7 +191,16 @@ export function applyBrandingEnvDefaults({
 
   recordDefault("SITE_URL", resolvedOrigin);
   recordDefault("NEXT_PUBLIC_SITE_URL", env.SITE_URL);
-  recordDefault("MINIAPP_ORIGIN", env.SITE_URL);
+
+  const resolvedSiteOrigin = env.SITE_URL ?? resolvedOrigin;
+  const miniappDefaults = Array.from(
+    new Set(
+      [resolvedSiteOrigin, TON_ALIAS_ORIGIN, TELEGRAM_WEB_APP_ORIGIN].filter(
+        Boolean,
+      ),
+    ),
+  ).join(",");
+  recordDefault("MINIAPP_ORIGIN", miniappDefaults);
 
   const allowedOriginsValue = typeof allowedOrigins === "function"
     ? allowedOrigins({ env, resolvedOrigin, fallbackOrigin })
