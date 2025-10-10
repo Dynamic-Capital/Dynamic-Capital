@@ -68,6 +68,7 @@
     "env:validate": "tsx scripts/env/validate.ts",
     "env:sync": "tsx scripts/env/sync.ts",
     "env:report": "tsx scripts/env/report.ts",
+    "scan:build-modules": "tsx scripts/python/scan-missing-build-modules.ts",
     "scan:checklists": "tsx scripts/scan-checklists.ts",
     "crawlers:install": "node scripts/install-crawlers.mjs",
     "do:sync-site": "node scripts/digitalocean/sync-site-config.mjs",
