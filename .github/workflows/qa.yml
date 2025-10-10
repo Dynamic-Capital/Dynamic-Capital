@@ -13,31 +13,26 @@ jobs:
   deno-tests:
     runs-on: ubuntu-latest
     outputs:
-      deno_cache_hit: ${{ steps.deno-cache-telemetry.outputs.cache_hit }}
+      deno_cache_hit: ${{ steps.setup-deno.outputs.deno-cache-hit }}
     steps:
       - uses: actions/checkout@v5
-      - uses: denoland/setup-deno@v1
-        with: { deno-version: v1.x }
-      - name: Cache Deno dependencies
-        id: deno-cache
-        uses: actions/cache@v4
+      - name: Setup Deno runtime
+        id: setup-deno
+        uses: ./.github/actions/setup-runtimes
         with:
-          path: |
-            ~/.cache/deno
-            ~/.deno
-          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock', 'deno.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}-
-            ${{ runner.os }}-deno-
+          enable-deno: "true"
+          deno-version: v1.x
+          deno-cache-key: ${{ format('{0}-deno-{1}', runner.os, hashFiles('deno.lock', 'deno.json')) }}
+          deno-cache-restore-keys: |
+            ${{ format('{0}-deno-{1}-', runner.os, hashFiles('deno.lock')) }}
+            ${{ format('{0}-deno-', runner.os) }}
       - name: Report Deno cache status
         if: ${{ always() }}
-        id: deno-cache-telemetry
         env:
-          CACHE_HIT: ${{ steps.deno-cache.outputs.cache-hit }}
+          CACHE_HIT: ${{ steps.setup-deno.outputs.deno-cache-hit }}
         run: |
           cache_hit="${CACHE_HIT:-false}"
           echo "QA deno cache hit: ${cache_hit}"
-          echo "cache_hit=${cache_hit}" >> "$GITHUB_OUTPUT"
           summary_file="${GITHUB_STEP_SUMMARY:-}"
           if [ -n "${summary_file}" ]; then
             {

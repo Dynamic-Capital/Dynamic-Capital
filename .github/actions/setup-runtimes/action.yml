@@ -1,0 +1,105 @@
+name: Setup project runtimes
+description: Configure Node, Deno, and Python with shared caching defaults for CI pipelines.
+inputs:
+  enable-node:
+    description: "Set to 'true' to install Node.js using actions/setup-node."
+    required: false
+    default: 'false'
+  node-version:
+    description: Node.js version to install when enable-node is true.
+    required: false
+    default: '20'
+  node-cache:
+    description: Cache strategy to pass to actions/setup-node.
+    required: false
+    default: npm
+  node-cache-dependency-path:
+    description: Newline-separated list of package-lock files for dependency caching.
+    required: false
+    default: package-lock.json
+  enable-deno:
+    description: "Set to 'true' to install Deno and hydrate its cache."
+    required: false
+    default: 'false'
+  deno-version:
+    description: Deno version to install when enable-deno is true.
+    required: false
+    default: v1.x
+  deno-cache-paths:
+    description: Paths to persist for the Deno cache.
+    required: false
+    default: |
+      ~/.cache/deno
+      ~/.deno
+  deno-cache-key:
+    description: Key for actions/cache when persisting the Deno cache. Leave blank to skip caching.
+    required: false
+    default: ''
+  deno-cache-restore-keys:
+    description: Restore keys for the Deno cache.
+    required: false
+    default: ''
+  enable-python:
+    description: "Set to 'true' to install Python using actions/setup-python."
+    required: false
+    default: 'false'
+  python-version:
+    description: Python version to install when enable-python is true.
+    required: false
+    default: '3.11'
+  python-cache:
+    description: Cache backend for actions/setup-python.
+    required: false
+    default: pip
+  python-cache-dependency-path:
+    description: File used to seed the pip cache key. Leave blank to skip caching.
+    required: false
+    default: ''
+outputs:
+  node-version:
+    description: Installed Node.js version.
+    value: ${{ steps.setup-node.outputs['node-version'] || '' }}
+  node-cache-hit:
+    description: Whether the Node.js dependency cache was restored.
+    value: ${{ steps.setup-node.outputs['cache-hit'] || '' }}
+  deno-cache-hit:
+    description: Whether the Deno cache was restored.
+    value: ${{ steps.deno-cache.outputs['cache-hit'] || '' }}
+  python-version:
+    description: Installed Python version.
+    value: ${{ steps.setup-python.outputs['python-version'] || '' }}
+  python-cache-hit:
+    description: Whether the pip cache was restored.
+    value: ${{ steps.setup-python.outputs['cache-hit'] || '' }}
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      if: ${{ inputs.enable-node == 'true' }}
+      id: setup-node
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.node-cache }}
+        cache-dependency-path: ${{ inputs.node-cache-dependency-path }}
+    - name: Setup Python
+      if: ${{ inputs.enable-python == 'true' }}
+      id: setup-python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: ${{ inputs.python-cache }}
+        cache-dependency-path: ${{ inputs.python-cache-dependency-path }}
+    - name: Setup Deno
+      if: ${{ inputs.enable-deno == 'true' }}
+      uses: denoland/setup-deno@v1
+      with:
+        deno-version: ${{ inputs.deno-version }}
+    - name: Cache Deno dependencies
+      if: ${{ inputs.enable-deno == 'true' && inputs.deno-cache-key != '' }}
+      id: deno-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.deno-cache-paths }}
+        key: ${{ inputs.deno-cache-key }}
+        restore-keys: ${{ inputs.deno-cache-restore-keys }}
