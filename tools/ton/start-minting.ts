@@ -7,6 +7,8 @@ const DECIMALS = 9n;
 const DEFAULT_FORWARD_TON = "0.05";
 const TREASURY_MULTISIG_ADDRESS = "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq";
 const JETTON_MASTER_ADDRESS = "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
+const GAS_BUFFER_MIN = toNano("0.01");
+const GAS_BUFFER_MAX = toNano("0.02");
 
 const HELP_TEXT = `Usage: npm run ton:start-minting -- [options]\n\nOptions:\n  --amount <value>           DCT amount to mint (e.g. 125000 or 12.5).\n  --nano-amount <value>      Raw nano DCT amount (overrides --amount).\n  --destination <address>    Destination wallet address that will receive the minted jettons.\n  --response <address>       Optional response destination (defaults to destination).\n  --forward-ton <value>      TON value forwarded to the jetton wallet (default: ${DEFAULT_FORWARD_TON}).\n  --comment <text>           Optional comment forwarded to the jetton wallet.\n  --query-id <value>         64-bit query id (default: current unix timestamp).\n  --master <address>         Jetton master contract address (default: ${JETTON_MASTER_ADDRESS}).\n  --save-boc <path>          Persist the binary BOC payload to the provided path.\n  --json                     Output a JSON summary instead of human readable logs.\n  --help                     Show this message.\n\nDefaults:\n  Treasury multisig: ${TREASURY_MULTISIG_ADDRESS}\n  Jetton master:    ${JETTON_MASTER_ADDRESS}\n`;
 
@@ -162,6 +164,8 @@ async function main() {
 
   const boc = body.endCell().toBoc({ idx: false }).toString("base64");
   const formattedAmount = formatNanoAmount(amount, DECIMALS);
+  const sendTonMin = forwardTon + GAS_BUFFER_MIN;
+  const sendTonMax = forwardTon + GAS_BUFFER_MAX;
 
   const summary = {
     boc,
@@ -172,6 +176,10 @@ async function main() {
     formattedAmount,
     forwardTon: forwardTon.toString(),
     forwardTonReadable: formatNanoAmount(forwardTon, 9n),
+    sendTonMin: sendTonMin.toString(),
+    sendTonMinReadable: formatNanoAmount(sendTonMin, 9n),
+    sendTonMax: sendTonMax.toString(),
+    sendTonMaxReadable: formatNanoAmount(sendTonMax, 9n),
     queryId: queryId.toString(),
     comment: options.comment ?? null,
   };
@@ -183,7 +191,7 @@ async function main() {
     console.log("Parameters:");
     console.log(`  Jetton master: ${summary.jettonMaster}`);
     console.log(
-      `  Send TON: ${summary.forwardTonReadable} TON + ~0.01-0.02 TON for fees`,
+      `  Send TON: ${summary.forwardTonReadable} TON forwarded + 0.01–0.02 TON for fees (enter ${summary.sendTonMinReadable}-${summary.sendTonMaxReadable} TON)`,
     );
     console.log(`  Destination jetton wallet: ${summary.destination}`);
     console.log(`  Response destination: ${summary.response}`);
