@@ -1,41 +1,66 @@
 import logging
 import os
 from pathlib import Path
+from typing import Dict, Optional
 
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-env_path = Path(__file__).parent.parent.parent / '.env'
+env_path = Path(__file__).parent.parent.parent / ".env"
 load_dotenv(env_path)
 
 logger = logging.getLogger(__name__)
 
-def get_env_var(key: str) -> str:
-    """Get environment variable with proper error handling."""
-    value = os.getenv(key)
-    if value is None:
-        raise ValueError(f"Missing required environment variable: {key}")
-    return value
 
-# Database configuration with required environment variables
-DB_CONFIG = {
-    'host': get_env_var('DB_HOST'),
-    'port': get_env_var('DB_PORT'),
-    'database': get_env_var('DB_NAME'),
-    'user': get_env_var('DB_USER'),
-    'password': get_env_var('DB_PASSWORD')
-}
+def _load_db_config() -> Optional[Dict[str, str]]:
+    """Load database configuration from environment variables."""
+    keys = ["DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_PASSWORD"]
+    config: Dict[str, str] = {}
+    missing = []
 
-# Construct database URL with retry parameters
-DATABASE_URL = (
-    f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}"
-    f"@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
-    "?connect_timeout=10"  # Add connection timeout
-)
+    for key in keys:
+        value = os.getenv(key)
+        if value:
+            config[key.lower().replace("db_", "")] = value
+        else:
+            missing.append(key)
+
+    if missing:
+        logger.warning(
+            "Missing database environment variables: %s. Falling back to local SQLite database.",
+            ", ".join(missing),
+        )
+        return None
+
+    return config
+
+
+def _build_sqlite_url() -> str:
+    """Create a persistent SQLite database URL for local development/tests."""
+    data_dir = Path(__file__).resolve().parent.parent / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    sqlite_path = data_dir / "trading_bridge.sqlite"
+    return f"sqlite:///{sqlite_path}"
+
+
+def _build_postgres_url(config: Dict[str, str]) -> str:
+    """Construct a PostgreSQL connection string from configuration values."""
+    return (
+        f"postgresql://{config['user']}:{config['password']}"
+        f"@{config['host']}:{config['port']}/{config['name']}"
+        "?connect_timeout=10"
+    )
+
+
+_db_config = _load_db_config()
+if _db_config is not None:
+    DATABASE_URL = _build_postgres_url(_db_config)
+else:
+    DATABASE_URL = _build_sqlite_url()
 
 # Log connection details (excluding sensitive info)
 logger.info("Database Connection Details:")
-logger.info(f"Host: {DB_CONFIG['host']}")
-logger.info(f"Port: {DB_CONFIG['port']}")
-logger.info(f"Database: {DB_CONFIG['database']}")
-logger.info(f"User: {DB_CONFIG['user']}")
+if _db_config is not None:
+    logger.info("Using PostgreSQL backend at %s:%s/%s", _db_config["host"], _db_config["port"], _db_config["name"])
+else:
+    logger.info("Using local SQLite backend at %s", DATABASE_URL)

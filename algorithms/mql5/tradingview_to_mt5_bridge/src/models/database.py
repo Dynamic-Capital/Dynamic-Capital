@@ -2,11 +2,23 @@ import logging
 import time
 from datetime import datetime
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Integer, Numeric,
-                        String, Text, create_engine, text)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    create_engine,
+    text,
+)
+from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import QueuePool, StaticPool
 
 from src.config.database import DATABASE_URL
 
@@ -17,14 +29,29 @@ def create_db_engine(retries=5, delay=2):
     """Create database engine with retry logic."""
     for attempt in range(retries):
         try:
-            engine = create_engine(
-                DATABASE_URL,
-                pool_size=20,
-                max_overflow=10,
-                pool_timeout=30,
-                pool_recycle=1800,
-                pool_pre_ping=True  # Add connection health check
-            )
+            url = make_url(DATABASE_URL)
+            engine_kwargs = {}
+
+            if url.get_backend_name() == "sqlite":
+                engine_kwargs.update(
+                    connect_args={"check_same_thread": False},
+                    poolclass=StaticPool,
+                )
+            else:
+                engine_kwargs.update(
+                    poolclass=QueuePool,
+                    pool_size=20,
+                    max_overflow=10,
+                    pool_timeout=30,
+                    pool_recycle=1800,
+                    pool_pre_ping=True,
+                    connect_args={
+                        "connect_timeout": 10,
+                        "application_name": "TradingView Copier",
+                    },
+                )
+
+            engine = create_engine(DATABASE_URL, **engine_kwargs)
             # Test connection using proper SQLAlchemy syntax
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))

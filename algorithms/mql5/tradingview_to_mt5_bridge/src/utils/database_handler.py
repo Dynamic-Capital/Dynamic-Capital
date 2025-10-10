@@ -1,18 +1,16 @@
-# utils/database_handler.py
-
 import asyncio
 import logging
-import os
 import traceback
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine, text, update
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import QueuePool, StaticPool
 
+from src.config.database import DATABASE_URL
 from src.models.database import Trade
 
 logger = logging.getLogger('DatabaseHandler')
@@ -20,29 +18,32 @@ logger = logging.getLogger('DatabaseHandler')
 class DatabaseHandler:
     def __init__(self):
         try:
-            # Load environment variables
-            load_dotenv()
-            
-            # Construct database URL
-            db_url = (
-                f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@"
-                f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-            )
-            
+            self.database_url = DATABASE_URL
+            url = make_url(self.database_url)
+
+            engine_kwargs: Dict[str, Any] = {}
+
+            if url.get_backend_name() == "sqlite":
+                engine_kwargs.update(
+                    connect_args={"check_same_thread": False},
+                    poolclass=StaticPool,
+                )
+            else:
+                engine_kwargs.update(
+                    poolclass=QueuePool,
+                    pool_size=20,
+                    max_overflow=10,
+                    pool_timeout=30,
+                    pool_recycle=1800,
+                    pool_pre_ping=True,
+                    connect_args={
+                        "connect_timeout": 10,
+                        "application_name": "TradingView Copier",
+                    },
+                )
+
             # Create engine with connection pooling
-            self.engine = create_engine(
-                db_url,
-                poolclass=QueuePool,
-                pool_size=20,
-                max_overflow=10,
-                pool_timeout=30,
-                pool_recycle=1800,
-                pool_pre_ping=True,
-                connect_args={
-                    "connect_timeout": 10,
-                    "application_name": "TradingView Copier"
-                }
-            )
+            self.engine = create_engine(self.database_url, **engine_kwargs)
             
             # Create scoped session factory
             self.SessionLocal = scoped_session(
