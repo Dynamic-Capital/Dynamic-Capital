@@ -155,7 +155,7 @@ mirrors the canonical structure:
     "dedust_pool": "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
     "dedust_pool_metadata": "https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata",
     "dedust_jetton_wallet": "EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
-    "dao_contract": "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
+    "dao_contract": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "jetton_tonviewer": "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "jetton_tonscan": "https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "jetton_dyor": "https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
