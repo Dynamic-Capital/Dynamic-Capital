@@ -167,3 +167,24 @@ export function normalizeTonGatewayPath(pathname: string | undefined): string {
 
   return working;
 }
+
+export function isTonSitePath(
+  pathname: string | null | undefined,
+): boolean {
+  if (!pathname) return false;
+
+  const trimmed = pathname.trim();
+  if (!trimmed) return false;
+
+  const withLeadingSlash = trimmed.startsWith("/")
+    ? trimmed
+    : `/${trimmed}`;
+  const normalized = withLeadingSlash.toLowerCase();
+  const prefix = `/${TON_SITE_DOMAIN}`;
+
+  if (normalized === prefix) {
+    return true;
+  }
+
+  return normalized.startsWith(`${prefix}/`);
+}

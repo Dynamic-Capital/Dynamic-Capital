@@ -2,6 +2,7 @@ import { describe, it } from "std/testing/bdd.ts";
 import { assertEquals } from "std/assert/mod.ts";
 
 import {
+  isTonSitePath,
   normalizeTonGatewayPath,
   resolveTonSiteUrl,
   TON_SITE_DOMAIN,
@@ -164,6 +165,41 @@ describe("ton site gateway helpers", () => {
     for (const { input, expected } of cases) {
       it(`normalises ${JSON.stringify(input)} -> ${JSON.stringify(expected)}`, () => {
         assertEquals(normalizeTonGatewayPath(input), expected);
+      });
+    }
+  });
+
+  describe("isTonSitePath", () => {
+    const positiveCases = [
+      `/${TON_SITE_DOMAIN}`,
+      `/${TON_SITE_DOMAIN}/`,
+      `/${TON_SITE_DOMAIN}/icon.png`,
+      `/${TON_SITE_DOMAIN}//nested//asset`,
+      `${TON_SITE_DOMAIN}`,
+      ` ${TON_SITE_DOMAIN}/docs `,
+    ];
+
+    for (const input of positiveCases) {
+      it(`recognises TON site path ${JSON.stringify(input)}`, () => {
+        assertEquals(isTonSitePath(input), true);
+      });
+    }
+
+    const negativeCases = [
+      undefined,
+      null,
+      "",
+      "   ",
+      "/",
+      "/ton-site",
+      "/dynamiccapital.tonic",
+      "/dynamiccapital.tonx/path",
+      "other/path",
+    ];
+
+    for (const input of negativeCases) {
+      it(`rejects non-TON site path ${JSON.stringify(input)}`, () => {
+        assertEquals(isTonSitePath(input as string | null | undefined), false);
       });
     }
   });
