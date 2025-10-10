@@ -27,31 +27,62 @@ export function AutoSizingContainer({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!responsive) {
+      return;
+    }
+
+    let frameId: number | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+
     const updateHeight = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const availableHeight = viewportHeight - rect.top - 20; // 20px buffer
-
-        const calculatedHeight = Math.max(
-          minHeight,
-          maxHeight ? Math.min(availableHeight, maxHeight) : availableHeight,
-        );
-
-        setContainerHeight(calculatedHeight);
+      if (!containerRef.current) {
+        return;
       }
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const availableHeight = viewportHeight - rect.top - 20; // 20px buffer
+
+      const calculatedHeight = Math.max(
+        minHeight,
+        maxHeight ? Math.min(availableHeight, maxHeight) : availableHeight,
+      );
+
+      setContainerHeight(calculatedHeight);
     };
 
-    if (responsive) {
-      updateHeight();
-      window.addEventListener("resize", updateHeight);
-      window.addEventListener("orientationchange", updateHeight);
+    const scheduleUpdate = () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+      frameId = window.requestAnimationFrame(updateHeight);
+    };
 
-      return () => {
-        window.removeEventListener("resize", updateHeight);
-        window.removeEventListener("orientationchange", updateHeight);
-      };
+    scheduleUpdate();
+
+    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("orientationchange", scheduleUpdate);
+
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(scheduleUpdate);
+      const element = containerRef.current;
+      const parent = element?.parentElement;
+      if (element) {
+        resizeObserver.observe(element);
+      }
+      if (parent) {
+        resizeObserver.observe(parent);
+      }
     }
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener("resize", scheduleUpdate);
+      window.removeEventListener("orientationchange", scheduleUpdate);
+      resizeObserver?.disconnect();
+    };
   }, [responsive, minHeight, maxHeight]);
 
   if (animate) {
@@ -115,26 +146,52 @@ export function AutoSizingGrid({
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!responsive) {
+      return;
+    }
+
+    let frameId: number | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+
     const updateColumns = () => {
-      if (gridRef.current && responsive) {
-        const containerWidth = gridRef.current.offsetWidth;
-        const availableWidth = containerWidth - gap;
-        const calculatedColumns = Math.floor(
-          availableWidth / (minItemWidth + gap),
-        );
-        const finalColumns = Math.min(
-          Math.max(1, calculatedColumns),
-          maxColumns,
-        );
-        setColumns(finalColumns);
+      if (!gridRef.current) {
+        return;
       }
+
+      const containerWidth = gridRef.current.offsetWidth;
+      const availableWidth = containerWidth - gap;
+      const calculatedColumns = Math.floor(
+        availableWidth / (minItemWidth + gap),
+      );
+      const finalColumns = Math.min(Math.max(1, calculatedColumns), maxColumns);
+      setColumns(finalColumns);
     };
 
-    updateColumns();
-    if (responsive) {
-      window.addEventListener("resize", updateColumns);
-      return () => window.removeEventListener("resize", updateColumns);
+    const scheduleUpdate = () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+      frameId = window.requestAnimationFrame(updateColumns);
+    };
+
+    scheduleUpdate();
+    window.addEventListener("resize", scheduleUpdate);
+
+    if (typeof ResizeObserver !== "undefined" && gridRef.current) {
+      resizeObserver = new ResizeObserver(scheduleUpdate);
+      resizeObserver.observe(gridRef.current);
+      if (gridRef.current.parentElement) {
+        resizeObserver.observe(gridRef.current.parentElement);
+      }
     }
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener("resize", scheduleUpdate);
+      resizeObserver?.disconnect();
+    };
   }, [responsive, minItemWidth, maxColumns, gap]);
 
   return (
@@ -205,6 +262,9 @@ export function AutoSizingText({
   const textRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let frameId: number | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+
     const adjustFontSize = () => {
       const container = containerRef?.current || textRef.current?.parentElement;
       const textElement = textRef.current;
@@ -226,9 +286,36 @@ export function AutoSizingText({
       }
     };
 
-    adjustFontSize();
-    window.addEventListener("resize", adjustFontSize);
-    return () => window.removeEventListener("resize", adjustFontSize);
+    const scheduleAdjust = () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+      frameId = window.requestAnimationFrame(adjustFontSize);
+    };
+
+    scheduleAdjust();
+    window.addEventListener("resize", scheduleAdjust);
+    window.addEventListener("orientationchange", scheduleAdjust);
+
+    const container = containerRef?.current || textRef.current?.parentElement;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(scheduleAdjust);
+      if (container) {
+        resizeObserver.observe(container);
+      }
+      if (textRef.current) {
+        resizeObserver.observe(textRef.current);
+      }
+    }
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener("resize", scheduleAdjust);
+      window.removeEventListener("orientationchange", scheduleAdjust);
+      resizeObserver?.disconnect();
+    };
   }, [minSize, maxSize, containerRef, children]);
 
   return (
