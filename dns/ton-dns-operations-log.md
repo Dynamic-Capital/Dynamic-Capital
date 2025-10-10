@@ -71,6 +71,22 @@ chronological order beneath this entry.
   state until the TON bundle is redeployed (see
   `dns/https-gateway-verification-2025-10-08.md`).
 
+## 2025-10-10 – TON gateway restoration confirmed
+
+- **Timestamp** — 2025-10-10 02:32 UTC verification block executed after the
+  redeploy to the DigitalOcean origin.
+- **Deployment details** — TON Site bundle rebuilt from `apps/web` and deployed
+  by Quantum Finance AGI (GitHub Actions assist). Deployment commit: pending
+  (update with merge commit hash once this change lands on `main`).
+- **Gateway verification** — `curl -I` against both
+  `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
+  and `https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`
+  returned `HTTP 200` with the refreshed bundle, matching the direct origin
+  probe at `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`.
+- **Root cause recap** — Earlier regression stemmed from the TON bundle being
+  removed from the DigitalOcean origin. Restoring the bundle resolved the 404
+  and cleared the downstream 503 responses.
+
 ## 2025-10-10 – TON gateway restoration
 
 - **Origin redeploy** — Rebuilt the TON Site bundle from `apps/web` and

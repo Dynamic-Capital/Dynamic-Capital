@@ -1,0 +1,30 @@
+name: TON Site Gateway Status
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm ci
+      - name: Gateway health probe
+        run: |
+          npm run ton:site-status -- --domain dynamiccapital.ton | tee ton-site-status.log
+      - name: Append status summary
+        run: |
+          {
+            echo "### Gateway status";
+            echo;
+            cat ton-site-status.log;
+          } >> "$GITHUB_STEP_SUMMARY"

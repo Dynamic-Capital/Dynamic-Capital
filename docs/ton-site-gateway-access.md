@@ -57,3 +57,21 @@ gateway always serves the latest content.
 Document any anomalies (gateway downtime, stale caches) in Supabase `tx_logs`
 and rotate to an alternate gateway if required. The helper constants exposed in
 `shared/ton/site.ts` allow quick updates when a new gateway is promoted.
+
+## Monitoring and alerting
+
+- **Automated sweeps.** The GitHub Action defined in
+  `.github/workflows/ton-site-status.yml` runs on a 30-minute cron and executes
+  `npm run ton:site-status -- --domain dynamiccapital.ton`. Each run posts a
+  summary to the workflow log so operators can confirm latency and status codes
+  for both gateways.
+- **Supabase alerting.** Configure the Supabase edge function
+  `ton_gateway_alert` (see `supabase/functions`) to listen for failed workflow
+  webhooks or failed health checks. Trigger Discord/Telegram notifications when
+  any gateway returns a non-200 response for two consecutive sweeps.
+- **Uptime ledger.** Store every health check result in the `tx_logs` table with
+  structured payloads (`status`, `latency_ms`, `gateway_host`). This keeps the
+  blockchain-facing audit log aligned with operational telemetry.
+- **Escalation.** When the GitHub Action records repeated failures, open an
+  incident in the operations playbook and follow the emergency restoration
+  runbook outlined in `docs/ton-site-deployment.md`.
