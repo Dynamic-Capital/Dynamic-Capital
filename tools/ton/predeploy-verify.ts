@@ -4,7 +4,7 @@ import { join, resolve } from "node:path";
 import process from "node:process";
 import { clearTimeout as clearTimer, setTimeout as startTimer } from "node:timers";
 import { setTimeout as delay } from "node:timers/promises";
-import { fetch } from "undici";
+import { fetch, ProxyAgent, setGlobalDispatcher } from "undici";
 
 import { TON_SITE_DOMAIN } from "../../shared/ton/site";
 
@@ -42,6 +42,24 @@ const REQUIRED_ASSET_PATHS = [
 ] as const;
 
 type RequiredAssetPath = (typeof REQUIRED_ASSET_PATHS)[number];
+
+function configureProxy(): void {
+  const proxyUrl =
+    process.env.HTTPS_PROXY ??
+    process.env.https_proxy ??
+    process.env.HTTP_PROXY ??
+    process.env.http_proxy;
+
+  if (!proxyUrl) return;
+
+  try {
+    const agent = new ProxyAgent(proxyUrl);
+    setGlobalDispatcher(agent);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.warn(`⚠️  Failed to configure proxy agent (${reason}). Proceeding without proxy.`);
+  }
+}
 
 function parseArgs(argv: string[]): CliOptions {
   const defaults: CliOptions = {
@@ -236,6 +254,7 @@ async function ensureOriginHealthy(
 }
 
 async function main(): Promise<void> {
+  configureProxy();
   const options = parseArgs(process.argv.slice(2));
   const config = await readConfig(options.configPath);
   const domain = String(config?.domain ?? TON_SITE_DOMAIN);
