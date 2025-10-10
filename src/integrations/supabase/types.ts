@@ -77,6 +77,68 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_service_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          endpoint: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          request_data: Json | null
+          response_data: Json | null
+          service_type: string
+          session_id: string | null
+          status_code: number | null
+          telegram_user_id: string | null
+          tokens_used: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          request_data?: Json | null
+          response_data?: Json | null
+          service_type: string
+          session_id?: string | null
+          status_code?: number | null
+          telegram_user_id?: string | null
+          tokens_used?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          request_data?: Json | null
+          response_data?: Json | null
+          service_type?: string
+          session_id?: string | null
+          status_code?: number | null
+          telegram_user_id?: string | null
+          tokens_used?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_service_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auto_reply_templates: {
         Row: {
           conditions: Json | null
@@ -2057,6 +2119,10 @@ export type Database = {
           schema_name: unknown
         }[]
       }
+      check_user_is_admin: {
+        Args: { check_user_id: string }
+        Returns: boolean
+      }
       cleanup_old_media_files: {
         Args: { cleanup_days?: number }
         Returns: Json
@@ -2185,6 +2251,10 @@ export type Database = {
       update_daily_analytics: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      user_owns_telegram_id: {
+        Args: { check_telegram_id: string; check_user_id: string }
+        Returns: boolean
       }
       validate_promo_code: {
         Args: { p_code: string; p_telegram_user_id: string }
