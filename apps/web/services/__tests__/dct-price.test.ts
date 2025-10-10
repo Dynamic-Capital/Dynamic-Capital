@@ -94,7 +94,7 @@ describe("DCT symbol canonical set", () => {
     expect(DCT_SYMBOL_CANONICALS.has("dctton")).toBe(true);
     expect(
       DCT_SYMBOL_CANONICALS.has(
-        canonicalize("EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y"),
+        canonicalize("UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G"),
       ),
     ).toBe(true);
   });

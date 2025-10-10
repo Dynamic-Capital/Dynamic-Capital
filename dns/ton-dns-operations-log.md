@@ -13,7 +13,7 @@ preparing governance packets or multisig memos.
   `96ac854938b992f71f33827dac42a7aa9e302539fc55347e006f6eee74dc0d89`, lt
   `62087400000001`) primed the workflow with 0.06614679 TON of gas funding.
 - **Owner wallet dispatch** — The operations wallet `dynamiccapital.ton`
-  (`EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`) signed
+  (`UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G`) signed
   `wallet_signed_internal_v5_r1` (hash `d829586188e485a86cdb87e158cba478be555e3dfe2d1420ededbbdfd7f1f1b8`,
   lt `62087400000003`). It forwarded 0.063213057 TON to the domain NFT contract
   with query `1759260783`, designating the same wallet as the new owner.

@@ -7,11 +7,16 @@ export interface TonMainnetAccountDefinition {
   readonly explorerUrl?: string;
 }
 
-export const TON_MAINNET_OPERATIONS_TREASURY =
-  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
+export const TON_MAINNET_PRIMARY_MULTISIG =
+  "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G";
 
-export const TON_MAINNET_INTAKE_WALLET =
-  "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD";
+export const TON_MAINNET_OPERATIONS_TREASURY =
+  TON_MAINNET_PRIMARY_MULTISIG;
+
+export const TON_MAINNET_DAO_MULTISIG =
+  "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
+
+export const TON_MAINNET_INTAKE_WALLET = TON_MAINNET_PRIMARY_MULTISIG;
 
 export const TON_MAINNET_JETTON_MASTER =
   "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
@@ -64,6 +69,13 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     friendlyAddress: TON_MAINNET_OPERATIONS_TREASURY,
     description:
       "Primary multisig tracked in Supabase dct_app_config.operations_wallet.",
+  },
+  {
+    key: "daoMultisig",
+    label: "DAO governance multisig",
+    friendlyAddress: TON_MAINNET_DAO_MULTISIG,
+    description:
+      "Dedicated DAO executor responsible for governance proposals and resolver updates.",
   },
   {
     key: "intakeWallet",

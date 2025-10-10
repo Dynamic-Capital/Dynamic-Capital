@@ -34,7 +34,7 @@ All secret material lives under `build/` or `keys/` and is ignored via
 
 1. Run `toncli build` to confirm the wallet compiles with the restored keys.
 2. Use `toncli wallet` to print the bounceable address and confirm it matches the
-   resolver owner account (`EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`).
+   resolver owner account (`UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G`).
 3. Execute the DNS payload broadcast described in
    [`dns/toncli-dns-runbook.md`](../../toncli-dns-runbook.md) and record the resulting
    transaction hash in [`dns/ton-dns-operations-log.md`](../../ton-dns-operations-log.md).

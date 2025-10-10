@@ -121,8 +121,8 @@ insert into app_config (id, operations_pct, autoinvest_pct, buyback_burn_pct,
                         min_burn_pct, max_burn_pct, ops_treasury, dct_master, dex_router)
 values (1, 60, 30, 10, 40, 75, 15, 45, 5, 20,
         -- Tonstarter mainnet addresses.
-        'EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD',
-        'EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y',
+        'UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G',
+        'UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G',
         'EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt')
 on conflict (id) do update set
   operations_pct = excluded.operations_pct,

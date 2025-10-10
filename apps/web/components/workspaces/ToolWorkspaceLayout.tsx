@@ -92,7 +92,7 @@ function renderHeroTags(tags: WorkspaceMeta["tags"], fallbackTags: string[]) {
   }
 
   return (
-    <Row gap="8" wrap>
+    <Row gap="8" wrap horizontal="center">
       {content.map((tag) => {
         const toneProps = tag.tone ? TAG_TONE_PROPS[tag.tone] : undefined;
         return (
@@ -116,7 +116,7 @@ function renderHeroActions(actions: WorkspaceMeta["actions"]) {
   }
 
   return (
-    <Row gap="12" wrap>
+    <Row gap="12" wrap horizontal="center">
       {actions.map((action) => (
         <DynamicButton
           key={action.href}
@@ -162,18 +162,24 @@ export function ToolWorkspaceLayout({
   const fallbackTags = route?.tags ?? [];
 
   return (
-    <section className={cn("w-full", className)}>
-      <div className="mx-auto w-full max-w-6xl px-4">
+    <section
+      className={cn(
+        "w-full flex flex-col items-center gap-16",
+        className,
+      )}
+    >
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-4 text-center sm:px-6 lg:px-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={routeId}
+            className="flex w-full flex-col items-center text-center"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
           >
             <div
-              className="relative overflow-hidden rounded-3xl border border-border/60 bg-background/85 p-10 shadow-xl backdrop-blur"
+              className="relative flex w-full flex-col items-center overflow-hidden rounded-[2.5rem] border border-border/60 bg-background/85 p-10 text-center shadow-xl backdrop-blur lg:p-14"
               style={{ boxShadow: heroShadow }}
               data-route-category={route?.categoryId ?? "workspace"}
             >
@@ -182,18 +188,26 @@ export function ToolWorkspaceLayout({
                 style={{ backgroundImage: heroGradient }}
                 aria-hidden
               />
-              <div className="relative z-10">
-                <Column gap="20" paddingY="32">
-                  <Column gap="12" maxWidth={72}>
+              <div className="relative z-10 flex w-full flex-col items-center gap-12">
+                <Column gap="20" paddingY="32" horizontal="center">
+                  <Column gap="12" maxWidth={72} horizontal="center">
                     <Text
                       as="span"
                       variant="label-default-s"
                       className="uppercase tracking-[0.28em] text-xs text-muted-foreground"
+                      align="center"
                     >
                       {heroEyebrow}
                     </Text>
-                    <Heading variant="display-strong-s">{heroTitle}</Heading>
-                    <Text variant="body-default-m" onBackground="neutral-weak">
+                    <Heading variant="display-strong-s" align="center">
+                      {heroTitle}
+                    </Heading>
+                    <Text
+                      variant="body-default-m"
+                      onBackground="neutral-weak"
+                      align="center"
+                      wrap="balance"
+                    >
                       {heroDescription}
                     </Text>
                     {renderHeroTags(meta?.tags, fallbackTags)}
@@ -207,8 +221,12 @@ export function ToolWorkspaceLayout({
       </div>
       {commandBar || showLastMove
         ? (
-          <div className="mx-auto w-full max-w-6xl px-4 pb-6">
-            <Column gap="16">
+          <div className="mx-auto w-full max-w-6xl px-4 pb-6 text-center">
+            <Column
+              gap="16"
+              horizontal="center"
+              className="w-full text-left sm:text-center"
+            >
               {commandBar ?? null}
               {showLastMove ? <LastMoveTicker /> : null}
             </Column>
@@ -216,7 +234,10 @@ export function ToolWorkspaceLayout({
         )
         : null}
       <div
-        className={cn("mx-auto w-full max-w-6xl px-4 pb-16", contentClassName)}
+        className={cn(
+          "mx-auto w-full max-w-6xl px-4 pb-16 space-y-16",
+          contentClassName,
+        )}
       >
         {children}
       </div>

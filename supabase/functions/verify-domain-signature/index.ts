@@ -16,7 +16,7 @@ export const handler = registerHandler(async (req) => {
     const pubkeyHex = Deno.env.get("TREASURY_PUBKEY_HEX")!;
     const verified = await verifyMessage(pubkeyHex, msg, sig);
 
-    const validJetton = lines.jetton_master?.startsWith("EQDSmz4R");
+    const validJetton = lines.jetton_master?.startsWith("UQD1zAJP");
     const validDomain = dnsUrl.includes("dynamiccapital.ton");
 
     return new Response(

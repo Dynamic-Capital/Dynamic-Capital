@@ -6,9 +6,9 @@
 - **Execution Command:**
   `$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/check-tonviewer-status.ts`
 - **Jetton Address:**
-  `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`
+  `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38`
 - **Tonviewer Page:**
-  https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7
+  https://tonviewer.com/jetton/0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38
 - **Local Metadata Path:** dynamic-capital-ton/contracts/jetton/metadata.json
 - **Local Metadata SHA-256:**
   `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4`
@@ -22,7 +22,7 @@
 | Symbol         | DCT                                                                                                     | DCT                                                                                                     | ✅    |
 | Decimals       | 9                                                                                                       | 9                                                                                                       | ✅    |
 | Image URL      | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCT-Mark.svg) | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCT-Mark.svg) | ✅    |
-| Jetton Address | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`                                    | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`                                    | ✅    |
+| Jetton Address | `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38`                                    | `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38`                                    | ✅    |
 
 ## Network Metrics
 
