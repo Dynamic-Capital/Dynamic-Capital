@@ -15,6 +15,8 @@ dApps, and explorers.
 - **Jetton Master:** `EQDSmz4R…ig6Wx_6y`
 - **Treasury Wallet:** `dynamiccapital.ton` →
   `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`
+- **Root Wallet Alias:** `dynamiccapital.ton` wallet record →
+  `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`
 
 > **Note:** Only the treasury wallet should have permission to update the
 > resolver record to preserve authoritative control.
@@ -28,6 +30,8 @@ auto-discover Dynamic Capital contracts and services when resolving
 | Key                    | Address / URL                                                                                                | Description                                           |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
 | `ton_alias`            | `dynamiccapital.ton`                                                                                         | DNS alias resolving deposits                          |
+| `root_wallet`          | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`
+        | Root domain wallet alias pointing `dynamiccapital.ton` directly at the DCT jetton master contract |
 | `token_symbol`         | `DCT`                                                                                                        | Canonical ticker across wallets, pools, and exchanges |
 | `jetton_master`        | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                           | Dynamic Capital Token (DCT)                           |
 | `treasury_wallet`      | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`                                                           | Treasury & mint authority                             |

@@ -2,6 +2,7 @@
   "domain": "dynamiccapital.ton",
   "records": {
     "ton_alias": "dynamiccapital.ton",
+    "root_wallet": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "token_symbol": "DCT",
     "jetton_master": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "treasury_wallet": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
