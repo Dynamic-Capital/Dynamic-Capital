@@ -138,6 +138,7 @@ async function main() {
 
   const dnsRecord: Record<string, string> = {
     ton_alias: TON_MAINNET_DCT_TREASURY_ALIAS,
+    root_wallet: TON_MAINNET_JETTON_MASTER,
     token_symbol: metadata.symbol,
     jetton_master: TON_MAINNET_JETTON_MASTER,
     treasury_wallet: TON_MAINNET_DCT_TREASURY_WALLET,
