@@ -169,6 +169,37 @@
     }
   }
 
+  .page-shell {
+    min-height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    padding: clamp(3rem, 6vw, 5rem) clamp(1.5rem, 5vw, 3.5rem);
+  }
+
+  .page-shell__surface {
+    width: min(100%, 72rem);
+    margin: 0 auto;
+    border-radius: clamp(1.75rem, 4vw, 2.75rem);
+    border: 1px solid hsl(var(--border) / 0.55);
+    background: hsl(var(--background) / 0.86);
+    padding: clamp(2.5rem, 5vw, 4rem);
+    box-shadow: 0 36px 120px hsl(var(--primary) / 0.18);
+    backdrop-filter: blur(24px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(2rem, 4vw, 3rem);
+    text-align: center;
+  }
+
+  .page-shell__surface > * {
+    width: 100%;
+  }
+
   .pattern-circuit {
     background-image:
       linear-gradient(90deg, currentColor 1px, transparent 1px),
