@@ -1,4 +1,5 @@
 ton_alias=dynamiccapital.ton
+root_wallet=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 token_symbol=DCT
 jetton_master=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 treasury_wallet=EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq
@@ -25,4 +26,4 @@ manifest_fallback=https://dynamic.capital/tonconnect-manifest.json
 docs=https://dynamiccapital.ton/docs
 docs_fallback=https://dynamic.capital/docs
 signature=<to_be_filled_by_script>
-updated=2025-10-09
+updated=2025-10-10T16:41:43Z
