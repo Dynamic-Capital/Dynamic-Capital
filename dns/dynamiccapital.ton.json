@@ -47,14 +47,6 @@
       {
         "label": "Manage",
         "uri": "https://dns.tonkeeper.com/manage?v=0:038f473650b2d1641bd09563eb8c99f1e84e5c72eb0fb8fdc534a4430f14c1b5"
-      },
-      {
-        "label": "Open (Gateway)",
-        "uri": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton"
-      },
-      {
-        "label": "Open (Fallback)",
-        "uri": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton"
       }
     ],
     "verification": {
