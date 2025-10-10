@@ -4,7 +4,7 @@ export function POST(request: Request) {
   return proxySupabaseEdgeFunction({
     request,
     method: "POST",
-    path: "link-wallet",
-    context: "linking wallet",
+    path: "ton-connect-session",
+    context: "orchestrating TON Connect session",
   });
 }

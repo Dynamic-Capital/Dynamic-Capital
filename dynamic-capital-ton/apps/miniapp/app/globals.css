@@ -270,6 +270,93 @@ button {
   align-items: center;
 }
 
+.ton-proof-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  width: 100%;
+}
+
+.ton-proof-status--info {
+  border-color: rgba(97, 209, 255, 0.38);
+  background: rgba(97, 209, 255, 0.12);
+}
+
+.ton-proof-status--loading {
+  border-color: rgba(97, 209, 255, 0.28);
+  background: rgba(30, 64, 175, 0.32);
+}
+
+.ton-proof-status--error {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: rgba(127, 29, 29, 0.24);
+}
+
+.ton-proof-status--success {
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(22, 101, 52, 0.24);
+}
+
+.ton-proof-status__indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 6px rgba(97, 209, 255, 0.16);
+}
+
+.ton-proof-status--loading .ton-proof-status__indicator {
+  animation: syncPulse 1.6s ease-in-out infinite;
+  background: var(--accent);
+}
+
+.ton-proof-status--error .ton-proof-status__indicator {
+  background: #f87171;
+  box-shadow: 0 0 0 6px rgba(248, 113, 113, 0.22);
+}
+
+.ton-proof-status--success .ton-proof-status__indicator {
+  background: #4ade80;
+  box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.2);
+}
+
+.ton-proof-status__content {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.ton-proof-status__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.ton-proof-status__description {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.ton-proof-status__action {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(15, 23, 42, 0.35);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ton-proof-status__action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .hero-plan-tagline {
   margin: -8px 0 0;
   color: var(--ui-accent, var(--accent));
@@ -541,6 +628,12 @@ button {
 .plan-actions {
   display: grid;
   gap: 12px;
+}
+
+.plan-actions__hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 .mint-grid {

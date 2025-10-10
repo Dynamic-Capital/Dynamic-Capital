@@ -17,6 +17,27 @@ create table if not exists wallets (
 alter table if not exists wallets
   add constraint wallets_user_id_key unique (user_id);
 
+-- TON Connect sessions
+create table if not exists ton_connect_sessions (
+  id uuid default gen_random_uuid() primary key,
+  telegram_id text not null,
+  payload text not null,
+  expires_at timestamptz not null,
+  verified_at timestamptz,
+  wallet_address text,
+  wallet_public_key text,
+  wallet_app_name text,
+  proof_signature text,
+  proof_timestamp timestamptz,
+  created_at timestamptz default now()
+);
+
+create index if not exists ton_connect_sessions_telegram_idx
+  on ton_connect_sessions(telegram_id);
+
+create index if not exists ton_connect_sessions_payload_idx
+  on ton_connect_sessions(payload);
+
 -- Subscriptions
 create table if not exists subscriptions (
   id uuid default gen_random_uuid() primary key,

@@ -2,6 +2,22 @@
   "url": "https://dynamiccapital.ton",
   "name": "Dynamic Capital",
   "iconUrl": "https://dynamiccapital.ton/icon-mark.svg",
+  "iconUrls": [
+    "https://dynamiccapital.ton/icon-mark.svg",
+    "https://dynamiccapital.ton/icons/icon-512.png",
+    "https://dynamiccapital.ton/icons/icon-192.png"
+  ],
   "termsOfUseUrl": "https://dynamiccapital.ton/terms",
-  "privacyPolicyUrl": "https://dynamiccapital.ton/privacy"
+  "privacyPolicyUrl": "https://dynamiccapital.ton/privacy",
+  "bridge": {
+    "url": "https://bridge.dynamiccapital.ton/bridge"
+  },
+  "tonProof": {
+    "enabled": true
+  },
+  "style": {
+    "background": "#05070F",
+    "text": "#F8FAFC",
+    "button": "#0EA5E9"
+  }
 }

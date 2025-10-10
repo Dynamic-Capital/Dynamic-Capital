@@ -22,6 +22,24 @@ type FetchLike = (
 type TonWalletAccount = {
   address?: string | null;
   publicKey?: string | null;
+  walletStateInit?: string | null;
+};
+
+export type TonProofDomain = {
+  lengthBytes: number;
+  value: string;
+};
+
+export type TonProofPayload = {
+  timestamp: number;
+  domain: TonProofDomain;
+  payload: string;
+  signature: string;
+};
+
+export type TonProofChallenge = {
+  payload: string;
+  expires_at: string;
 };
 
 type ApiResult = { ok: true } | { ok: false; error: string; status?: number };
@@ -29,6 +47,8 @@ type ApiResult = { ok: true } | { ok: false; error: string; status?: number };
 type LinkWalletParams = {
   telegramId: string;
   wallet: TonWalletAccount;
+  proof: TonProofPayload | null;
+  walletAppName?: string | null;
   fetcher?: FetchLike;
 };
 
@@ -137,6 +157,8 @@ async function extractErrorMessage(
 export async function linkTonMiniAppWallet({
   telegramId,
   wallet,
+  proof,
+  walletAppName,
   fetcher = defaultFetch,
 }: LinkWalletParams): Promise<ApiResult> {
   const trimmedTelegramId = sanitiseTelegramId(telegramId);
@@ -152,10 +174,21 @@ export async function linkTonMiniAppWallet({
     return { ok: false, error: "Connect a TON wallet to continue." };
   }
 
+  if (!proof) {
+    return {
+      ok: false,
+      error: "Wallet verification expired. Reconnect your TON wallet and try again.",
+    };
+  }
+
   const payload = {
+    action: "verify",
     telegram_id: trimmedTelegramId,
     address,
     publicKey: wallet.publicKey ?? null,
+    walletStateInit: wallet.walletStateInit ?? null,
+    walletAppName: walletAppName ?? null,
+    proof,
   };
 
   try {
@@ -174,6 +207,60 @@ export async function linkTonMiniAppWallet({
   } catch (error) {
     console.error("[ton-miniapp-helper] Wallet link request failed", error);
     return { ok: false, error: FALLBACK_ERROR_LINK };
+  }
+}
+
+export async function requestTonProofChallenge({
+  telegramId,
+  fetcher = defaultFetch,
+}: {
+  telegramId: string;
+  fetcher?: FetchLike;
+}): Promise<{
+  ok: true;
+  challenge: TonProofChallenge;
+} | {
+  ok: false;
+  error: string;
+}> {
+  const trimmedTelegramId = sanitiseTelegramId(telegramId);
+  if (!trimmedTelegramId) {
+    return {
+      ok: false,
+      error: "Missing Telegram identifier. Reload the Mini App and try again.",
+    };
+  }
+
+  try {
+    const response = await fetcher("/api/link-wallet", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "challenge", telegram_id: trimmedTelegramId }),
+    });
+
+    if (!response.ok) {
+      const error = await extractErrorMessage(
+        response,
+        "Unable to prepare TON wallet verification. Retry shortly.",
+      );
+      return { ok: false, error };
+    }
+
+    const challenge = await response.json() as TonProofChallenge;
+    if (!challenge || typeof challenge.payload !== "string") {
+      return {
+        ok: false,
+        error: "Unexpected challenge response from the server.",
+      };
+    }
+
+    return { ok: true, challenge };
+  } catch (error) {
+    console.error("[ton-miniapp-helper] Challenge request failed", error);
+    return {
+      ok: false,
+      error: "Unable to prepare TON wallet verification. Retry shortly.",
+    };
   }
 }
 
