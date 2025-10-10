@@ -15,7 +15,7 @@ jobs:
     outputs:
       deno_cache_hit: ${{ steps.deno-cache-telemetry.outputs.cache_hit }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: denoland/setup-deno@v1
         with: { deno-version: v1.x }
       - name: Cache Deno dependencies
@@ -60,7 +60,7 @@ jobs:
     outputs:
       supabase_cli_version: ${{ steps.supabase-cli-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
