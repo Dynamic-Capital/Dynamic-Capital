@@ -20,7 +20,37 @@ Use this framework to evaluate existing TonAPI integrations or blueprint new
 deployments. Each phase outputs evidence that feeds the next one, ensuring
 coverage from infrastructure to business readiness.
 
+### Phase Execution Playbook
+
+| Phase                        | Kickoff Criteria                                      | Core Activities                                                            | Exit Deliverables                                            |
+| ---------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 0. Initiation                | Sponsor assigned, TonAPI surfaces in scope documented | Convene working group, confirm regulatory constraints, align timeline      | Charter, stakeholder map, communications plan                |
+| 1. Discovery                 | Charter signed, data sources catalogued               | Complete current-state inventory, dependency mapping, criticality scoring  | Asset inventory, dependency matrix, tiered backlog           |
+| 2. Validation                | Discovery artifacts approved                          | Execute per-surface validation scripts, capture telemetry, log defects     | Validation report with pass/fail status, remediation tracker |
+| 3. Security & Compliance     | Validation report baselined                           | Run credential rotation drills, validate access controls, collect evidence | Security posture assessment, compliance evidence package     |
+| 4. Reliability & Performance | Security gaps addressed or mitigated                  | Stress test workloads, simulate incident scenarios, rehearse recoveries    | Performance benchmark dossier, incident drill results        |
+| 5. Operationalization        | Reliability targets met, runbooks drafted             | Formalize ownership, wire up observability, schedule roadmap reviews       | Signed SLAs/OLAs, on-call roster updates, review calendar    |
+
+For each phase, the program manager should maintain a RACI grid:
+
+- **Responsible:** Feature or platform owner executing the tasks (e.g., TonAPI
+  integration lead).
+- **Accountable:** Dynamic Capital connectivity steward ensuring the phase meets
+  exit criteria.
+- **Consulted:** Security, compliance, and SRE partners contributing controls or
+  tooling.
+- **Informed:** Business stakeholders consuming the resulting services.
+
+Before progressing, run a short debate between the optimistic ("bull") and
+defensive ("bear") reviewers to stress-test assumptions, document unresolved
+risks, and decide on mitigation owners. The debate summary becomes part of the
+phase artifacts so future audits see the rationale for key decisions.
+
 ### Phase 1 — Current-State Discovery
+
+**Inputs:** Program charter, environment access list, prior incident reports.
+
+**Execution Steps**
 
 1. **Inventory connectivity.** Capture every Dynamic Capital workload touching
    TonAPI, the surface used (LiteServers, Webhooks, Streaming), and the data
@@ -30,8 +60,20 @@ coverage from infrastructure to business readiness.
    integration.
 3. **Score criticality.** Assign impact tiers (mission-critical, important,
    experimental) to prioritize remediation sequencing.
+4. **Run stakeholder interviews.** Confirm ownership, support windows, and
+   change-freeze constraints for each integration.
+
+**Outputs:** Connectivity inventory, dependency matrix, criticality heatmap,
+debate summary capturing optimistic vs. risk-first viewpoints.
+
+**Success Metrics:** 100% of TonAPI touchpoints catalogued and tagged with
+owners; discovery backlog approved by sponsor.
 
 ### Phase 2 — Connectivity Validation
+
+**Inputs:** Discovery outputs, test credentials, observability dashboards.
+
+**Execution Steps**
 
 1. **LiteServers** — Verify both redundant endpoints are live, confirm proofs
    are being validated, and log rate-limit telemetry.
@@ -41,8 +83,20 @@ coverage from infrastructure to business readiness.
    confirm prototype dashboards flag the impending deprecation.
 4. **TonAPI Embed** — Confirm embedded nodes synchronize within five blocks of
    public TonAPI, and validate backup/restore jobs.
+5. **Defect triage.** Classify findings by severity, assign owners, and create
+   remediation timelines.
+
+**Outputs:** Validation report, defect tracker, decision log from bull vs. bear
+review, updated monitoring dashboards.
+
+**Success Metrics:** All critical defects logged with owners; validation report
+signed by accountable steward.
 
 ### Phase 3 — Security & Compliance Review
+
+**Inputs:** Validation report, security policies, compliance evidence templates.
+
+**Execution Steps**
 
 1. Ensure all credentials (Ed25519 keys, API tokens) rotate on the corporate
    cadence and are stored in approved secret stores.
@@ -52,8 +106,20 @@ coverage from infrastructure to business readiness.
    reviews—for quarterly compliance packs.
 4. Register TonAPI Embed hosts with infrastructure security to inherit
    vulnerability scanning and patch rotations.
+5. **Perform threat modeling.** Facilitate a cross-functional workshop to stress
+   test attack paths across all TonAPI surfaces.
+
+**Outputs:** Credential rotation evidence, access control test results, threat
+model report, compliance binder updated with artifacts.
+
+**Success Metrics:** Zero high-risk findings remain unmitigated; compliance team
+confirms evidence sufficiency for the next audit cycle.
 
 ### Phase 4 — Reliability & Performance Testing
+
+**Inputs:** Hardened configurations, test harnesses, performance baselines.
+
+**Execution Steps**
 
 1. Execute load tests for LiteServer query bursts and webhook event spikes based
    on projected business volumes.
@@ -63,8 +129,20 @@ coverage from infrastructure to business readiness.
    thresholds.
 4. Run catch-up drills for TonAPI Embed by replaying 24 hours of blocks and
    measuring state divergence.
+5. **Document remediation.** Capture tuning changes (autoscaling, cache
+   adjustments, retry policies) and retest until metrics stabilize.
+
+**Outputs:** Load test reports, incident drill retrospectives, latency
+scorecard, updated configuration baselines.
+
+**Success Metrics:** SLIs/SLAs achieved for all surfaces; recovery objectives
+met within agreed tolerances.
 
 ### Phase 5 — Operationalization & Governance
+
+**Inputs:** Tested runbooks, performance benchmarks, governance requirements.
+
+**Execution Steps**
 
 1. Define owners, runbooks, and SLIs/SLAs for each connectivity surface.
 2. Integrate alerts into on-call rotations and ensure observability dashboards
@@ -73,6 +151,14 @@ coverage from infrastructure to business readiness.
    onboard new features.
 4. Align TonAPI Embed lifecycle management (upgrades, snapshot trims) with
    corporate change windows.
+5. **Institutionalize learnings.** Feed insights into training sessions,
+   portfolio reviews, and upstream product feedback loops.
+
+**Outputs:** Signed operational runbooks, governance calendar, training assets,
+continuous improvement backlog.
+
+**Success Metrics:** On-call readiness drills pass, roadmap reviews scheduled
+for the next four quarters, governance scorecards show ≥90% adherence.
 
 ## LiteServers
 
