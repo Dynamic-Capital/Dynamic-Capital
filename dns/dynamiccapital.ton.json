@@ -29,20 +29,20 @@
     },
     "gateways": {
       "primary": {
-        "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
-        "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+        "host": "dynamic-capital-qazf2.ondigitalocean.app",
+        "url": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
         "provider": "DigitalOcean App Platform",
-        "note": "Cloudflare reverse proxy bridging standard browsers to the DigitalOcean TON Site origin (currently offline; redeploy dynamic-capital-qazf2.ondigitalocean.app before re-enabling).",
+        "note": "Direct origin host for the TON Site bundle. Host is reachable but returns HTTP 404 until the static bundle is republished, so treat as degraded until redeploy completes.",
         "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app",
-        "status": "offline"
+        "status": "degraded"
       },
       "fallback": {
         "host": "ton-gateway.dynamic-capital.lovable.app",
         "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
         "provider": "Lovable App Platform",
-        "note": "Hot standby reverse proxy mirroring the DigitalOcean gateway (currently offline pending redeploy).",
+        "note": "Hot standby reverse proxy mirroring the DigitalOcean gateway. Currently reachable but returning HTTP 503 while the upstream bundle is missing.",
         "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app",
-        "status": "offline"
+        "status": "degraded"
       },
       "foundation": {
         "host": "ton.site",
@@ -69,9 +69,9 @@
         "note": "Primary TON Foundation gateway for browsers without TON DNS support."
       },
       {
-        "label": "Open Legacy DigitalOcean Gateway",
-        "uri": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-        "note": "Legacy DigitalOcean reverse proxy (currently offline until the TON bundle is redeployed)."
+        "label": "Open DigitalOcean Origin",
+        "uri": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
+        "note": "Direct origin host served by DigitalOcean App Platform. Use for verification when the custom domain is being relinked."
       },
       {
         "label": "Open Legacy Lovable Gateway",
@@ -86,7 +86,7 @@
     ],
     "verification": {
       "https": {
-        "checked_at": "2025-10-10T02:32:02Z",
+        "checked_at": "2025-10-11T01:44:30Z",
         "status": "degraded",
         "endpoints": [
           {
@@ -95,14 +95,14 @@
             "notes": "TON Foundation gateway responded with HTTP 200."
           },
           {
-            "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-            "http_status": 503,
-            "notes": "Legacy DigitalOcean gateway returned HTTP 503 / DNS failure; redeploy required."
+            "url": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
+            "http_status": 404,
+            "notes": "DigitalOcean origin returned HTTP 404; the TON bundle is missing from the default domain. Redeploy before switching DNS."
           },
           {
             "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
             "http_status": 503,
-            "notes": "Legacy Lovable gateway returned HTTP 503 / DNS failure; redeploy required."
+            "notes": "Legacy Lovable gateway returned HTTP 503; redeploy the proxy once the origin is healthy."
           }
         ]
       }
@@ -119,30 +119,30 @@
         {
           "host": "ton.site",
           "status": "operational",
-          "last_verified": "2025-10-10T02:32:02Z",
+          "last_verified": "2025-10-11T01:44:30Z",
           "notes": "TON Foundation-operated gateway currently serving the TON Site bundle."
         },
         {
-          "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
-          "status": "offline",
-          "last_verified": "2025-10-10T02:32:02Z",
+          "host": "dynamic-capital-qazf2.ondigitalocean.app",
+          "status": "degraded",
+          "last_verified": "2025-10-11T01:44:30Z",
           "depends_on": "https://dynamic-capital-qazf2.ondigitalocean.app",
-          "notes": "Legacy DigitalOcean gateway offline pending redeploy."
+          "notes": "DigitalOcean origin responds with HTTP 404 because the TON bundle is missing. Connectivity is healthy; redeploy to restore content."
         },
         {
           "host": "ton-gateway.dynamic-capital.lovable.app",
-          "status": "offline",
-          "last_verified": "2025-10-10T02:32:02Z",
+          "status": "degraded",
+          "last_verified": "2025-10-11T01:44:30Z",
           "depends_on": "https://dynamic-capital-qazf2.ondigitalocean.app",
-          "notes": "Legacy Lovable gateway offline pending redeploy."
+          "notes": "Legacy Lovable gateway reaches the upstream but returns HTTP 503 while the origin bundle is absent."
         }
       ],
       "origin": {
         "host": "dynamic-capital-qazf2.ondigitalocean.app",
         "platform": "DigitalOcean App Platform",
-        "status": "operational",
+        "status": "degraded",
         "last_redeploy": "2025-10-10T02:00:00Z",
-        "notes": "Authoritative TON Site bundle; keep synchronized with the repo build artifacts"
+        "notes": "Authoritative TON Site bundle; current probes return HTTP 404 so the static build must be republished."
       }
     },
     "monitoring": {
@@ -154,8 +154,8 @@
           "alert_policy": "#dynamiccapital-ton-site"
         },
         {
-          "name": "Legacy DigitalOcean Gateway",
-          "endpoint": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+          "name": "DigitalOcean Origin",
+          "endpoint": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
           "cadence": "15m",
           "alert_policy": "#dynamiccapital-ton-site",
           "status": "paused"
@@ -178,10 +178,11 @@
           "uri": "https://github.com/dynamic-labs/Dynamic-Capital/blob/main/dns/https-gateway-verification-2025-10-08.md"
         }
       ],
-      "last_successful_probe": "2025-10-10T02:32:02Z"
+      "last_successful_probe": "2025-10-11T01:44:30Z"
     },
     "notes": [
-      "2025-02-14: Promoted https://ton.site/dynamiccapital.ton as the primary HTTPS gateway while self-hosted proxies remain offline pending redeploy. Update scripts once the DigitalOcean and Lovable gateways return to service."
+      "2025-02-14: Promoted https://ton.site/dynamiccapital.ton as the primary HTTPS gateway while self-hosted proxies remain degraded pending redeploy. Update scripts once the DigitalOcean and Lovable gateways return to service.",
+      "2025-10-11: Latest verification recorded HTTP 404 from the DigitalOcean origin and HTTP 503 from the Lovable proxy. Both endpoints are reachable but serving error responses, so continue routing browsers through https://ton.site/dynamiccapital.ton until the static bundle is redeployed."
     ]
   },
   "records": [
@@ -216,9 +217,9 @@
     {
       "type": "CNAME",
       "name": "ton-gateway",
-      "data": "ton-gateway.dynamic-capital.ondigitalocean.app",
+      "data": "dynamic-capital-qazf2.ondigitalocean.app",
       "ttl": 300,
-      "note": "Legacy DigitalOcean reverse proxy CNAME retained for redeploy workflows."
+      "note": "Point the TON gateway CNAME directly at the DigitalOcean default domain so certificate validation succeeds without Cloudflare proxying."
     },
     {
       "type": "CNAME",
@@ -265,6 +266,7 @@
     "Verify resolution through TON DNS tools before going live",
     "Supabase custom domains require `_acme-challenge.api.dynamiccapital.ton` TXT records during verification. Capture the issued tokens in this repo before activation and pin them to TON Storage/IPFS with the hash recorded in the operations multisig memo.",
     "Keep the `ton-gateway` CNAMEs aligned with the DigitalOcean and Lovable reverse proxy hostnames so browsers without TON DNS continue to bridge through HTTPS.",
+    "2025-10-12: DigitalOcean flagged the custom domain as pointing at Cloudflare. Update the `ton-gateway.dynamiccapital.ton` CNAME to `dynamic-capital-qazf2.ondigitalocean.app` and disable Cloudflare proxying while the certificate reissues.",
     "2025-10-08: Follow-up HTTPS probe captured HTTP 503 responses from both gateways. Investigate the DigitalOcean app host https://dynamic-capital-qazf2.ondigitalocean.app/ returning HTTP 404 and restore the TON bundle before revalidating.",
     "2025-10-10: Redeployed the TON Site bundle to dynamic-capital-qazf2.ondigitalocean.app, clearing the 404 at the origin and restoring HTTP 200 responses on both HTTPS gateways.",
     "2025-10-10 16:41 UTC: Follow-up probe recorded HTTP 503 on both gateways and HTTP 404 on the DigitalOcean origin. Leave verification in error until the TON bundle is republished.",
@@ -279,6 +281,6 @@
     "When Supabase issues a fresh ACME token, stage it under dns/operations/acme/ with the block height, then update the TXT record here and commit the hash reference to the multisig memo.",
     "Monitor synthetic probe alerts in #dynamiccapital-ton-site and pause announcements if the gateways report HTTP errors.",
     "When redeploying the DigitalOcean origin, update ton_site.monitoring.last_successful_probe with the timestamp from the observability dashboard.",
-    "2025-02-14: Promoted https://ton.site/dynamiccapital.ton as the primary HTTPS gateway while self-hosted proxies remain offline pending redeploy. Update scripts once the DigitalOcean and Lovable gateways return to service."
+    "2025-02-14: Promoted https://ton.site/dynamiccapital.ton as the primary HTTPS gateway while self-hosted proxies remain degraded pending redeploy. Update scripts once the DigitalOcean and Lovable gateways return to service."
   ]
 }

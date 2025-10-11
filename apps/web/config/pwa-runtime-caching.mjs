@@ -4,7 +4,7 @@ const TON_GATEWAY_HOSTS = [
   "dynamiccapital.ton",
   "www.dynamiccapital.ton",
   "ton.site",
-  "ton-gateway.dynamic-capital.ondigitalocean.app",
+  "dynamic-capital-qazf2.ondigitalocean.app",
   "ton-gateway.dynamic-capital.lovable.app",
 ];
 

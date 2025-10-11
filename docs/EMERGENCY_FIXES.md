@@ -112,14 +112,15 @@ doctl apps create-deployment <APP_ID>
 ```bash
 # Test origin
 curl -I https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton
-# Expected: HTTP/1.1 200 OK
+# Expected (current state): HTTP/1.1 404 Not Found until the bundle is redeployed
 
 # Test public TON Foundation gateway
 curl -I https://ton.site/dynamiccapital.ton
 # Expected: HTTP/2 200
 
 # Optional: test legacy self-hosted proxies once redeployed
-curl -I https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton
+# Verify once redeployed
+curl -I https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton
 curl -I https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton
 ```
 
@@ -156,7 +157,7 @@ curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
 for url in \
   "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton" \
   "https://ton.site/dynamiccapital.ton" \
-  "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton" \
+  "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton" \
   "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton"
 do
   echo "Testing: $url"
