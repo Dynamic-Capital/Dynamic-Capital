@@ -27,13 +27,13 @@ redeploy.
 
 ## Gateway endpoints
 
-| Purpose              | URL                                                                       | Notes                                            |
-| -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
-| Primary gateway      | https://ton.site/dynamiccapital.ton                                       | TON Foundation-operated HTTPS bridge             |
-| Icon                 | https://ton.site/dynamiccapital.ton/icon.png                              | Served from the same gateway                     |
-| Social preview       | https://ton.site/dynamiccapital.ton/social/social-preview.svg             | Served from the same gateway                     |
-| Legacy DO proxy      | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton | Currently offline; keep for historical reference |
-| Legacy Lovable proxy | https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton        | Currently offline; reinstated after redeploy     |
+| Purpose              | URL                                                                 | Notes                                        |
+| -------------------- | ------------------------------------------------------------------- | -------------------------------------------- |
+| Primary gateway      | https://ton.site/dynamiccapital.ton                                 | TON Foundation-operated HTTPS bridge         |
+| Icon                 | https://ton.site/dynamiccapital.ton/icon.png                        | Served from the same gateway                 |
+| Social preview       | https://ton.site/dynamiccapital.ton/social/social-preview.svg       | Served from the same gateway                 |
+| DigitalOcean origin  | https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton | Bring back online after DNS relink           |
+| Legacy Lovable proxy | https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton  | Currently offline; reinstated after redeploy |
 
 When the self-hosted gateways come back online, update `shared/ton/site.ts` and
 `dns/dynamiccapital.ton.json` to promote them back to primary/standby roles.

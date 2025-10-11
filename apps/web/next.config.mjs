@@ -33,8 +33,7 @@ const DYNAMIC_CAPITAL_TON_WWW_ORIGIN =
   `https://www.${DYNAMIC_CAPITAL_TON_HOST}`;
 const TON_GATEWAY_PRIMARY_HOST = "ton.site";
 const TON_GATEWAY_PRIMARY_ORIGIN = `https://${TON_GATEWAY_PRIMARY_HOST}`;
-const TON_GATEWAY_STANDBY_HOST =
-  "ton-gateway.dynamic-capital.ondigitalocean.app";
+const TON_GATEWAY_STANDBY_HOST = "dynamic-capital-qazf2.ondigitalocean.app";
 const TON_GATEWAY_STANDBY_ORIGIN = `https://${TON_GATEWAY_STANDBY_HOST}`;
 const TON_GATEWAY_LEGACY_ORIGIN =
   "https://ton-gateway.dynamic-capital.lovable.app";

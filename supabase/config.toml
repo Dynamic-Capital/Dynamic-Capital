@@ -16,7 +16,7 @@ project_id = "qeejuomcapbdlhnjqjcc"
     "https://dynamic-capital-kp5fqeegn-the-project-archive.vercel.app",
     "https://dynamic-capital.vercel.app",
     "https://dynamic-capital.lovable.app",
-    "https://ton-gateway.dynamic-capital.ondigitalocean.app",
+    "https://dynamic-capital-qazf2.ondigitalocean.app",
     "https://ton-gateway.dynamic-capital.lovable.app",
     "https://t.me/Dynamic_VIP_BOT/dynamic_pay",
   ]
@@ -25,7 +25,7 @@ project_id = "qeejuomcapbdlhnjqjcc"
   [functions.env]
     SITE_URL = "https://dynamic.capital"
     NEXT_PUBLIC_SITE_URL = "https://dynamic.capital"
-    ALLOWED_ORIGINS = "https://dynamic.capital,https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://ton.site,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.ondigitalocean.app,https://dynamic-capital-git-dynamic-capital-a2ae79-the-project-archive.vercel.app,https://dynamic-capital-kp5fqeegn-the-project-archive.vercel.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,https://ton-gateway.dynamic-capital.ondigitalocean.app,https://ton-gateway.dynamic-capital.lovable.app,https://t.me"
+    ALLOWED_ORIGINS = "https://dynamic.capital,https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://ton.site,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.ondigitalocean.app,https://dynamic-capital-git-dynamic-capital-a2ae79-the-project-archive.vercel.app,https://dynamic-capital-kp5fqeegn-the-project-archive.vercel.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,https://dynamic-capital-qazf2.ondigitalocean.app,https://ton-gateway.dynamic-capital.lovable.app,https://t.me"
     MINIAPP_ORIGIN = "https://dynamic.capital,https://dynamiccapital.ton,https://t.me"
     TELEGRAM_WEBHOOK_URL = "https://dynamic.capital/webhook"
 

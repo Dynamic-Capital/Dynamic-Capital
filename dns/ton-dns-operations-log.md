@@ -5,6 +5,24 @@ ownership. Amounts are reported in TON (1 TON = 1,000,000,000 nanotons). Use
 this file alongside [`toncli-dns-runbook.md`](./toncli-dns-runbook.md) when
 preparing governance packets or multisig memos.
 
+## 2025-10-12 – DigitalOcean gateway relink
+
+- **Symptom** — DigitalOcean App Platform flagged `dynamiccapital.ton` as
+  pointing to Cloudflare rather than the default app domain. TLS issuance for
+  the TON Site gateway stalled and the dashboard showed the custom domain in an
+  error state.
+- **DNS change** — Updated `dns/dynamiccapital.ton.json` so the
+  `ton-gateway.dynamiccapital.ton` CNAME targets
+  `dynamic-capital-qazf2.ondigitalocean.app` directly. Mirrored the same update
+  in `dns/dynamic-capital.lovable.app.json` to keep the Lovable fallback
+  aligned.
+- **Resolver metadata** — Refreshed the gateway metadata block to point at the
+  DigitalOcean origin and marked the health probe as requiring DNS relink until
+  the CNAME propagates.
+- **Follow-up** — Keep Cloudflare entries in DNS-only mode while DigitalOcean
+  reissues the certificate, then rerun `npm run ton:site-status` to confirm the
+  origin responds with HTTP 200 before re-enabling the proxy.
+
 ## 2025-09-30 – dynamiccapital.ton auction settlement
 
 - **Control message** — `TONAPI gas proxy` (`EQDzP1oeMJI2wh_UErnVIuJKam7zdFwB9-x9cxvA-ETDNHCs`)
@@ -101,6 +119,21 @@ chronological order beneath this entry.
   in `dns/dynamiccapital.ton.json` back to `ok` with the new timestamps and
   committed the probe results in
   `dns/https-gateway-verification-2025-10-08.md`.
+
+## 2025-10-11 – DigitalOcean origin still offline
+
+- **Verification** — 01:44 UTC spot check recorded `HTTP 200` from
+  `https://ton.site/dynamiccapital.ton`, `HTTP 404` from
+  `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`, and
+  `HTTP 503` from `https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`.
+- **Repository updates** — Refreshed
+  `dns/dynamiccapital.ton.json` with the latest timestamps, HTTP status codes,
+  and notes documenting the missing DigitalOcean bundle and offline Lovable
+  proxy. Logged the probe output in
+  `dns/https-gateway-verification-2025-10-08.md`.
+- **Next steps** — Rebuild and redeploy the TON Site bundle to the DigitalOcean
+  app, then re-run the verification commands before restoring the resolver
+  status to `ok`.
 
 ## 2025-10-10 – Gateway regression detected
 

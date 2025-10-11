@@ -23,8 +23,8 @@
 
 ## Follow-ups
 
-- Investigate 503 responses from legacy self-hosted TON Site gateways
-  (`ton-gateway.dynamic-capital.ondigitalocean.app`,
+- Investigate 503 responses from self-hosted TON Site gateways
+  (`dynamic-capital-qazf2.ondigitalocean.app`,
   `ton-gateway.dynamic-capital.lovable.app`) and confirm if redeployments are
   required.
 - Monitor uptime of the primary `ton.site` gateway and confirm the `/lander`

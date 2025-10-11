@@ -32,9 +32,9 @@
     {
       "type": "CNAME",
       "name": "ton-gateway",
-      "data": "ton-gateway.dynamic-capital.ondigitalocean.app",
+      "data": "dynamic-capital-qazf2.ondigitalocean.app",
       "ttl": 300,
-      "note": "Legacy CNAME pointing to the DigitalOcean-operated TON gateway (kept for redeploy workflows)."
+      "note": "CNAME targets the DigitalOcean origin directly so SSL validation does not depend on Cloudflare proxying."
     }
   ]
 }
