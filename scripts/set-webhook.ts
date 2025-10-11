@@ -14,6 +14,7 @@
  *   deno run -A scripts/set-webhook.ts
  */
 import { TELEGRAM_ALLOWED_UPDATES_JSON } from "../supabase/functions/_shared/telegram_secret.ts";
+import { createHttpClientWithEnvCa } from "./utils/http-client.ts";
 
 const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const baseUrl = Deno.env.get("TELEGRAM_WEBHOOK_URL");
@@ -38,34 +39,52 @@ params.set("secret_token", secret);
 params.set("drop_pending_updates", "true");
 params.set("allowed_updates", TELEGRAM_ALLOWED_UPDATES_JSON);
 
-const setRes = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
-  method: "POST",
-  headers: { "content-type": "application/x-www-form-urlencoded" },
-  body: params,
-});
-const setJson = await setRes.json();
-console.log("setWebhook status:", setRes.status);
-console.log(
-  "setWebhook response:",
-  JSON.stringify({ ok: setJson.ok, description: setJson.description }, null, 2),
-);
+const tlsContext = await createHttpClientWithEnvCa();
+if (tlsContext) {
+  console.log(`[tls] Using ${tlsContext.description}`);
+}
 
-// Follow-up: show getWebhookInfo summary
-const infoRes = await fetch(
-  `https://api.telegram.org/bot${token}/getWebhookInfo`,
-);
-const infoJson = await infoRes.json();
-if (infoJson.ok) {
-  const i = infoJson.result ?? {};
-  console.log("Webhook URL:", i.url || "(none)");
-  console.log("Has custom cert:", !!i.has_custom_certificate);
-  console.log("Pending updates:", i.pending_update_count ?? 0);
-  if (i.last_error_message) {
-    const ts = i.last_error_date
-      ? new Date(i.last_error_date * 1000).toISOString()
-      : "";
-    console.log("Last error:", i.last_error_message, ts ? `@ ${ts}` : "");
+try {
+  const setRes = await fetch(
+    `https://api.telegram.org/bot${token}/setWebhook`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: params,
+      client: tlsContext?.client,
+    },
+  );
+  const setJson = await setRes.json();
+  console.log("setWebhook status:", setRes.status);
+  console.log(
+    "setWebhook response:",
+    JSON.stringify(
+      { ok: setJson.ok, description: setJson.description },
+      null,
+      2,
+    ),
+  );
+
+  // Follow-up: show getWebhookInfo summary
+  const infoRes = await fetch(
+    `https://api.telegram.org/bot${token}/getWebhookInfo`,
+    { client: tlsContext?.client },
+  );
+  const infoJson = await infoRes.json();
+  if (infoJson.ok) {
+    const i = infoJson.result ?? {};
+    console.log("Webhook URL:", i.url || "(none)");
+    console.log("Has custom cert:", !!i.has_custom_certificate);
+    console.log("Pending updates:", i.pending_update_count ?? 0);
+    if (i.last_error_message) {
+      const ts = i.last_error_date
+        ? new Date(i.last_error_date * 1000).toISOString()
+        : "";
+      console.log("Last error:", i.last_error_message, ts ? `@ ${ts}` : "");
+    }
+  } else {
+    console.warn("Could not fetch getWebhookInfo:", infoJson);
   }
-} else {
-  console.warn("Could not fetch getWebhookInfo:", infoJson);
+} finally {
+  tlsContext?.client.close();
 }

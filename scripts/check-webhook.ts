@@ -39,7 +39,9 @@ async function loadFixture(path: string): Promise<TelegramWebhookInfo> {
   return (parsed ?? {}) as TelegramWebhookInfo;
 }
 
-async function fetchWebhookInfo(): Promise<TelegramWebhookInfo> {
+async function fetchWebhookInfo(
+  client?: Deno.HttpClient,
+): Promise<TelegramWebhookInfo> {
   const fixturePath = Deno.env.get("TELEGRAM_WEBHOOK_INFO_PATH");
   if (fixturePath) {
     console.log(
@@ -50,26 +52,22 @@ async function fetchWebhookInfo(): Promise<TelegramWebhookInfo> {
 
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
   if (!token) {
-    console.error("Missing TELEGRAM_BOT_TOKEN");
-    Deno.exit(1);
+    throw new Error("Missing TELEGRAM_BOT_TOKEN");
   }
 
   const apiBase =
     (Deno.env.get("TELEGRAM_API_BASE") ?? "https://api.telegram.org")
       .replace(/\/$/, "");
-  const tlsContext = await createHttpClientWithEnvCa();
-  if (tlsContext) {
-    console.log(`[tls] Using ${tlsContext.description}`);
-  }
   try {
     const response = await fetch(`${apiBase}/bot${token}/getWebhookInfo`, {
-      client: tlsContext?.client,
+      client,
     });
     const json = (await response.json()) as TelegramWebhookResponse;
 
     if (!json.ok) {
-      console.error("Telegram API error:", json);
-      Deno.exit(1);
+      throw new Error(
+        `Telegram API error: ${JSON.stringify(json, null, 2)}`,
+      );
     }
 
     return json.result ?? {};
@@ -84,25 +82,8 @@ async function fetchWebhookInfo(): Promise<TelegramWebhookInfo> {
       );
     }
     throw error;
-  } finally {
-    tlsContext?.client.close();
   }
 }
-
-const info = await fetchWebhookInfo();
-console.log("Webhook URL:", info.url || "(none)");
-console.log("Has custom cert:", !!info.has_custom_certificate);
-console.log("Pending updates:", info.pending_update_count ?? 0);
-if (info.last_error_message) {
-  const ts = info.last_error_date
-    ? new Date(info.last_error_date * 1000).toISOString()
-    : "";
-  console.log("Last error:", info.last_error_message, ts ? `@ ${ts}` : "");
-} else {
-  console.log("No recent webhook errors recorded.");
-}
-
-await checkWebhookLiveness(info);
 
 function deriveHealthUrl(info: TelegramWebhookInfo): string | null {
   const explicitHealth = Deno.env.get("TELEGRAM_WEBHOOK_HEALTH_URL") ??
@@ -143,7 +124,10 @@ function toVersionUrl(input: string): string | null {
   }
 }
 
-async function checkWebhookLiveness(info: TelegramWebhookInfo): Promise<void> {
+async function checkWebhookLiveness(
+  info: TelegramWebhookInfo,
+  client?: Deno.HttpClient,
+): Promise<void> {
   const healthUrl = deriveHealthUrl(info);
   if (!healthUrl) {
     console.warn(
@@ -173,27 +157,26 @@ async function checkWebhookLiveness(info: TelegramWebhookInfo): Promise<void> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const startedAt = performance.now();
-  const tlsContext = await createHttpClientWithEnvCa();
-  if (tlsContext) {
-    console.log(`[liveness] Using ${tlsContext.description}`);
+  if (client) {
+    console.log("[liveness] Using shared TLS client for health probe.");
   }
 
   try {
     const response = await fetch(healthUrl, {
       signal: controller.signal,
-      client: tlsContext?.client,
+      client,
     });
     const durationMs = Math.round(performance.now() - startedAt);
     const bodyText = await response.clone().text().catch(() => "");
 
     if (!response.ok) {
-      console.error(
+      const errorLines = [
         `[liveness] ${healthUrl} responded with ${response.status} ${response.statusText} after ${durationMs}ms.`,
-      );
+      ];
       if (bodyText) {
-        console.error("[liveness] Response body:", truncate(bodyText));
+        errorLines.push(`Response body: ${truncate(bodyText)}`);
       }
-      Deno.exit(1);
+      throw new Error(errorLines.join("\n"));
     }
 
     console.log(
@@ -205,26 +188,64 @@ async function checkWebhookLiveness(info: TelegramWebhookInfo): Promise<void> {
     }
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      console.error(
+      throw new Error(
         `[liveness] Timed out after ${timeoutMs}ms while waiting for ${healthUrl}.`,
       );
-      Deno.exit(1);
     }
     if (
       error instanceof TypeError &&
       /UnknownIssuer/i.test(error.message ?? String(error))
     ) {
-      console.error(
+      throw new Error(
         "[liveness] TLS validation failed: UnknownIssuer. Provide TELEGRAM_CA_CERT, TELEGRAM_CA_BUNDLE, or SSL_CERT_FILE.",
+        { cause: error },
       );
-      Deno.exit(1);
     }
     throw error;
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+async function main(): Promise<number> {
+  const tlsContext = await createHttpClientWithEnvCa();
+  if (tlsContext) {
+    console.log(`[tls] Using ${tlsContext.description}`);
+  }
+
+  try {
+    const info = await fetchWebhookInfo(tlsContext?.client);
+    console.log("Webhook URL:", info.url || "(none)");
+    console.log("Has custom cert:", !!info.has_custom_certificate);
+    console.log("Pending updates:", info.pending_update_count ?? 0);
+    if (info.last_error_message) {
+      const ts = info.last_error_date
+        ? new Date(info.last_error_date * 1000).toISOString()
+        : "";
+      console.log("Last error:", info.last_error_message, ts ? `@ ${ts}` : "");
+    } else {
+      console.log("No recent webhook errors recorded.");
+    }
+
+    await checkWebhookLiveness(info, tlsContext?.client);
+    return 0;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+      if (error.cause) {
+        console.error(error.cause);
+      }
+    } else {
+      console.error(error);
+    }
+    return 1;
+  } finally {
     tlsContext?.client.close();
   }
 }
+
+const exitCode = await main();
+Deno.exit(exitCode);
 
 function shouldSkipLivenessProbe(
   url: URL,

@@ -1,6 +1,8 @@
 // scripts/set-chat-menu-button.ts
 // Sets a persistent chat menu button to open your Mini App.
 // Env needed: TELEGRAM_BOT_TOKEN and MINI_APP_URL
+import { createHttpClientWithEnvCa } from "./utils/http-client.ts";
+
 const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const urlRaw = Deno.env.get("MINI_APP_URL");
 
@@ -40,13 +42,23 @@ const payload = {
   },
 };
 
-const res = await fetch(
-  `https://api.telegram.org/bot${token}/setChatMenuButton`,
-  {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload),
-  },
-);
-const text = await res.text();
-console.log("setChatMenuButton", res.status, text.slice(0, 500));
+const tlsContext = await createHttpClientWithEnvCa();
+if (tlsContext) {
+  console.log(`[tls] Using ${tlsContext.description}`);
+}
+
+try {
+  const res = await fetch(
+    `https://api.telegram.org/bot${token}/setChatMenuButton`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+      client: tlsContext?.client,
+    },
+  );
+  const text = await res.text();
+  console.log("setChatMenuButton", res.status, text.slice(0, 500));
+} finally {
+  tlsContext?.client.close();
+}
