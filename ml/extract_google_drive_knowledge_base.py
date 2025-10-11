@@ -443,10 +443,6 @@ def run(args: argparse.Namespace) -> CorpusExtractionSummary:
     metadata = _parse_metadata_pairs(args.metadata_pairs)
     metadata.setdefault("skip_file_ids", sorted(skip_file_ids))
 
-    summary = engine.extract(limit=args.limit, metadata=metadata)
-
-    summary.export_jsonl(args.output)
-
     sample_path: Path | None
     if str(args.sample) == "-":
         sample_path = None
@@ -459,11 +455,17 @@ def run(args: argparse.Namespace) -> CorpusExtractionSummary:
     else:
         summary_path = args.summary
 
+    summary = engine.extract(limit=args.limit, metadata=metadata)
+
     _ensure_output_paths(args.output, summary_path, sample_path)
+
+    document_count = summary.export_jsonl(args.output)
+    LOGGER.info("Exported %s document(s) to %s", document_count, args.output)
 
     sample_count = 0
     if sample_path is not None:
         sample_count = _write_sample(args.output, sample_path, args.sample_size)
+        LOGGER.info("Wrote %s document(s) to sample export %s", sample_count, sample_path)
 
     _serialise_summary(
         summary,
@@ -482,6 +484,8 @@ def run(args: argparse.Namespace) -> CorpusExtractionSummary:
         len(summary.documents),
         len(summary.source_statistics),
     )
+    if summary_path is not None:
+        LOGGER.info("Recorded run summary at %s", summary_path)
     return summary
 
 
