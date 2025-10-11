@@ -34,6 +34,11 @@ gateways occur.
    The script reads `dns/dynamiccapital.ton.json` for the upstream origin and
    exits non-zero if any preflight fails.
 
+   > **Note:** The 2025-10-11 spot check reports `HTTP 404` from
+   > `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`. The
+   > host is online but the TON bundle is missing, so the preflight will
+   > continue to fail until the static assets are rebuilt and redeployed.
+
 3. Capture the verification output and attach it to the deployment ticket or
    incident for traceability.
 
@@ -55,6 +60,10 @@ gateways occur.
 
 1. Re-run `npm run ton:site-status -- --domain dynamiccapital.ton` to verify the
    gateways and origin report HTTP 200.
+
+   > **Current status (2025-10-11):** expect `HTTP 404` from the DigitalOcean
+   > origin and `HTTP 503` from the Lovable proxy. Both endpoints are reachable
+   > but degraded until the bundle returns.
 2. Capture screenshots of the live site via both the primary and fallback
    gateways.
 3. Insert a record into Supabase `tx_logs` describing the deployment, including
