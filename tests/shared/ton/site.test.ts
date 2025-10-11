@@ -25,7 +25,7 @@ describe("ton site gateway helpers", () => {
     assertEquals(TON_SITE_GATEWAY_BASE, "https://ton.site");
     assertEquals(
       TON_SITE_GATEWAY_STANDBY_BASE,
-      "https://ton-gateway.dynamic-capital.ondigitalocean.app",
+      "https://dynamic-capital-qazf2.ondigitalocean.app",
     );
     assertEquals(TON_SITE_DOMAIN, "dynamiccapital.ton");
     assertEquals(
@@ -40,13 +40,13 @@ describe("ton site gateway helpers", () => {
     );
     assertEquals(
       TON_SITE_GATEWAY_STANDBY_HOST,
-      "ton-gateway.dynamic-capital.ondigitalocean.app",
+      "dynamic-capital-qazf2.ondigitalocean.app",
     );
     assertEquals(
       [...TON_SITE_GATEWAY_HOSTS],
       [
         "ton.site",
-        "ton-gateway.dynamic-capital.ondigitalocean.app",
+        "dynamic-capital-qazf2.ondigitalocean.app",
       ],
     );
     assertEquals(
@@ -203,10 +203,10 @@ describe("ton site gateway helpers", () => {
         resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_BASE),
         TON_SITE_GATEWAY_ORIGIN,
       );
-    assertEquals(
-      resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_STANDBY_BASE),
-      "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-    );
+      assertEquals(
+        resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_STANDBY_BASE),
+        "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
+      );
     });
   });
 

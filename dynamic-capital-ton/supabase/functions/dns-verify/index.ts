@@ -3,7 +3,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 export const DNS_RECORD_SOURCES = [
   "https://dynamiccapital.ton/dns-records.txt",
   "https://ton.site/dynamiccapital.ton/dns-records.txt",
-  "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/dns-records.txt",
+  "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton/dns-records.txt",
   "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton/dns-records.txt",
 ] as const;
 const TREASURY_PUBKEY = Deno.env.get("TREASURY_PUBKEY") ??

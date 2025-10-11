@@ -40,7 +40,7 @@ const BUILD_CONFIG = {
 const TON_DOMAINS = {
   primary: "dynamiccapital.ton",
   gateway: "ton.site",
-  gatewayFallback: "ton-gateway.dynamic-capital.ondigitalocean.app",
+  gatewayFallback: "dynamic-capital-qazf2.ondigitalocean.app",
   legacyGateway: "ton-gateway.dynamic-capital.lovable.app",
 };
 

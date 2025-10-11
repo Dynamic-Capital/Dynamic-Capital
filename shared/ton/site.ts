@@ -1,7 +1,7 @@
 export const TON_SITE_DOMAIN = "dynamiccapital.ton";
 export const TON_SITE_GATEWAY_BASE = "https://ton.site";
 export const TON_SITE_GATEWAY_STANDBY_BASE =
-  "https://ton-gateway.dynamic-capital.ondigitalocean.app";
+  "https://dynamic-capital-qazf2.ondigitalocean.app";
 
 export const TON_SITE_GATEWAY_PRIMARY_HOST =
   new URL(TON_SITE_GATEWAY_BASE).hostname;
