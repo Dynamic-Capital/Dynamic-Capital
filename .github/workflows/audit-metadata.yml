@@ -12,10 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - name: Setup runtimes
+        uses: ./.github/actions/setup-runtimes
         with:
-          node-version: 20
-          cache: npm
+          enable-node: "true"
+          node-version: "20"
+          node-cache: npm
       - run: npm ci
       - run: npm run audit:metadata
         env:

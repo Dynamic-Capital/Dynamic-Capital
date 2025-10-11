@@ -16,11 +16,13 @@ jobs:
           git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
           git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD > changed.txt
           cat changed.txt
-      - uses: actions/setup-node@v4
+      - name: Setup runtimes
+        uses: ./.github/actions/setup-runtimes
         with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: |
+          enable-node: "true"
+          node-version: "20"
+          node-cache: npm
+          node-cache-dependency-path: |
             package-lock.json
             apps/*/package-lock.json
       - name: Run content guard

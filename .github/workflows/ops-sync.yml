@@ -13,16 +13,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - name: Setup runtimes
+        uses: ./.github/actions/setup-runtimes
         with:
-          node-version: 22
-          cache: "npm"
-          cache-dependency-path: |
+          enable-node: "true"
+          node-version: "22"
+          node-cache: npm
+          node-cache-dependency-path: |
             package-lock.json
             apps/*/package-lock.json
-      - uses: denoland/setup-deno@v1
-        with:
+          enable-deno: "true"
           deno-version: v1.x
+          deno-cache-key: ${{ format('{0}-deno-{1}', runner.os, hashFiles('deno.lock')) }}
+          deno-cache-restore-keys: |
+            ${{ format('{0}-deno-', runner.os) }}
+          write-summary: "true"
       - run: npm ci
       - run: npm test
       - name: Sync audit

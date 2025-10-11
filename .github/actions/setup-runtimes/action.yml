@@ -55,6 +55,10 @@ inputs:
     description: File used to seed the pip cache key. Leave blank to skip caching.
     required: false
     default: ''
+  write-summary:
+    description: "Set to 'true' to append the configured runtime versions and cache status to the job summary."
+    required: false
+    default: 'false'
 outputs:
   node-version:
     description: Installed Node.js version.
@@ -62,6 +66,9 @@ outputs:
   node-cache-hit:
     description: Whether the Node.js dependency cache was restored.
     value: ${{ steps.setup-node.outputs['cache-hit'] || '' }}
+  deno-version:
+    description: Installed Deno version.
+    value: ${{ steps.setup-deno.outputs['deno-version'] || '' }}
   deno-cache-hit:
     description: Whether the Deno cache was restored.
     value: ${{ steps.deno-cache.outputs['cache-hit'] || '' }}
@@ -82,6 +89,22 @@ runs:
         node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.node-cache }}
         cache-dependency-path: ${{ inputs.node-cache-dependency-path }}
+    - name: Optimize Node.js tooling defaults
+      if: ${{ inputs.enable-node == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        corepack enable || true
+        npm config set fund false --location=global
+        npm config set audit false --location=global
+        npm config set progress false --location=global
+        npm config set update-notifier false --location=global
+        {
+          echo 'NPM_CONFIG_FUND=false'
+          echo 'NPM_CONFIG_AUDIT=false'
+          echo 'NPM_CONFIG_PROGRESS=false'
+          echo 'NPM_CONFIG_UPDATE_NOTIFIER=false'
+        } >> "$GITHUB_ENV"
     - name: Setup Python
       if: ${{ inputs.enable-python == 'true' }}
       id: setup-python
@@ -92,6 +115,7 @@ runs:
         cache-dependency-path: ${{ inputs.python-cache-dependency-path }}
     - name: Setup Deno
       if: ${{ inputs.enable-deno == 'true' }}
+      id: setup-deno
       uses: denoland/setup-deno@v1
       with:
         deno-version: ${{ inputs.deno-version }}
@@ -103,3 +127,41 @@ runs:
         path: ${{ inputs.deno-cache-paths }}
         key: ${{ inputs.deno-cache-key }}
         restore-keys: ${{ inputs.deno-cache-restore-keys }}
+    - name: Append runtime summary
+      if: ${{ inputs.write-summary == 'true' }}
+      shell: bash
+      env:
+        ENABLE_NODE: ${{ inputs.enable-node }}
+        NODE_VERSION: ${{ steps.setup-node.outputs['node-version'] || '' }}
+        NODE_CACHE_HIT: ${{ steps.setup-node.outputs['cache-hit'] || '' }}
+        ENABLE_DENO: ${{ inputs.enable-deno }}
+        DENO_VERSION: ${{ steps.setup-deno.outputs['deno-version'] || '' }}
+        DENO_CACHE_HIT: ${{ steps.deno-cache.outputs['cache-hit'] || '' }}
+        ENABLE_PYTHON: ${{ inputs.enable-python }}
+        PYTHON_VERSION: ${{ steps.setup-python.outputs['python-version'] || '' }}
+        PYTHON_CACHE_HIT: ${{ steps.setup-python.outputs['cache-hit'] || '' }}
+      run: |
+        set -euo pipefail
+        summary_file="${GITHUB_STEP_SUMMARY:-}"
+        if [ -z "${summary_file}" ]; then
+          exit 0
+        fi
+
+        {
+          echo "### Runtime setup"
+          if [ "${ENABLE_NODE}" = "true" ]; then
+            node_version="${NODE_VERSION:-unknown}"
+            cache_status="${NODE_CACHE_HIT:-n/a}"
+            echo "- Node.js: \`${node_version}\` (cache hit: \`${cache_status}\`)"
+          fi
+          if [ "${ENABLE_DENO}" = "true" ]; then
+            deno_version="${DENO_VERSION:-unknown}"
+            cache_status="${DENO_CACHE_HIT:-n/a}"
+            echo "- Deno: \`${deno_version}\` (cache hit: \`${cache_status}\`)"
+          fi
+          if [ "${ENABLE_PYTHON}" = "true" ]; then
+            python_version="${PYTHON_VERSION:-unknown}"
+            cache_status="${PYTHON_CACHE_HIT:-n/a}"
+            echo "- Python: \`${python_version}\` (cache hit: \`${cache_status}\`)"
+          fi
+        } >> "${summary_file}"

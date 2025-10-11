@@ -13,9 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - name: Setup runtimes
+        uses: ./.github/actions/setup-runtimes
         with:
-          node-version: 20
+          enable-node: "true"
+          node-version: "20"
+          node-cache: npm
       - name: Install dependencies
         run: npm ci
       - name: Gateway health probe

@@ -19,15 +19,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup runtimes
+        uses: ./.github/actions/setup-runtimes
         with:
-          node-version: '20'
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
+          enable-node: "true"
+          node-version: "20"
+          node-cache: npm
+          enable-deno: "true"
           deno-version: v2.x
+          deno-cache-key: ${{ format('{0}-deno-{1}', runner.os, hashFiles('deno.lock')) }}
+          deno-cache-restore-keys: |
+            ${{ format('{0}-deno-', runner.os) }}
 
       - name: Install dependencies
         run: npm ci
