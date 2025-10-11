@@ -12,11 +12,15 @@ import CommoditiesMarketSnapshotSection from "@/components/dynamic-portfolio/hom
 import CryptoMarketSnapshotSection from "@/components/dynamic-portfolio/home/CryptoMarketSnapshotSection";
 import IndicesMarketSnapshotSection from "@/components/dynamic-portfolio/home/IndicesMarketSnapshotSection";
 import StocksMarketSnapshotSection from "@/components/dynamic-portfolio/home/StocksMarketSnapshotSection";
-import { DeskSection } from "@/components/workspaces/DeskSection";
+import {
+  DeskSection,
+  type DeskSectionProps,
+} from "@/components/workspaces/DeskSection";
 import {
   DeskSectionGrid,
   type DeskSectionGridItem,
   DeskSectionHeader,
+  type DeskSectionHeaderProps,
 } from "@/components/workspaces/DeskSectionHeader";
 
 const COVERAGE_PRIMARY: DeskSectionGridItem[] = [
@@ -88,63 +92,96 @@ const HEATMAP_GRID: DeskSectionGridItem[] = [
   },
 ];
 
+type MarketReviewSection = {
+  deskProps: Omit<DeskSectionProps, "children">;
+  header: DeskSectionHeaderProps;
+  grids?: DeskSectionGridItem[][];
+};
+
+const DESK_BASE_PROPS: Pick<
+  DeskSectionProps,
+  "background" | "border" | "width"
+> = {
+  background: "surface",
+  border: "neutral-alpha-weak",
+  width: "wide",
+};
+
+const MARKET_REVIEW_SECTIONS: MarketReviewSection[] = [
+  {
+    deskProps: {
+      ...DESK_BASE_PROPS,
+      anchor: "snapshot",
+      shadow: "l",
+      contentClassName: "gap-10 lg:gap-12",
+    },
+    header: {
+      title: "Dynamic market snapshot",
+      titleVariant: "display-strong-s",
+      tag: {
+        label: "Multi-asset desk view",
+        background: "neutral-alpha-weak",
+        prefixIcon: "clock",
+      },
+      description:
+        "A calm, multi-asset briefing for FX, equities, commodities, crypto, and indices. Currency telemetry is fully live today, while the remaining desks deliver curated scaffolding ahead of the streaming feed rollout.",
+      descriptionVariant: "body-default-l",
+      helperText:
+        "The layout breathes with generous padding so it feels composed on phones, tablets, ultrawide desks, and everything in between.",
+      maxWidth: 80,
+      gap: "16",
+    },
+  },
+  {
+    deskProps: {
+      ...DESK_BASE_PROPS,
+      anchor: "coverage",
+      shadow: "s",
+      contentClassName: "gap-8",
+    },
+    header: {
+      title: "Live asset coverage",
+      description:
+        "Keep the FX cockpit beside the live watchlist on expansive screens, then let them stack gracefully on tighter breakpoints without losing breathing room.",
+      maxWidth: 88,
+    },
+    grids: [COVERAGE_PRIMARY, COVERAGE_SNAPSHOTS],
+  },
+  {
+    deskProps: {
+      ...DESK_BASE_PROPS,
+      anchor: "heatmaps",
+      shadow: "s",
+      contentClassName: "gap-8",
+    },
+    header: {
+      title: "Momentum heatmaps",
+      description:
+        "Cross-asset strength tables share the same safe padding so quick comparisons stay legible whether you are scanning on mobile or a trading battlestation.",
+      maxWidth: 80,
+    },
+    grids: [HEATMAP_GRID],
+  },
+];
+
 export function DynamicMarketReview() {
   return (
     <Column gap="32" fillWidth>
-      <DeskSection
-        anchor="snapshot"
-        background="surface"
-        border="neutral-alpha-weak"
-        shadow="l"
-        width="wide"
-        contentClassName="gap-10 lg:gap-12"
-      >
-        <DeskSectionHeader
-          title="Dynamic market snapshot"
-          titleVariant="display-strong-s"
-          tag={{
-            label: "Multi-asset desk view",
-            background: "neutral-alpha-weak",
-            prefixIcon: "clock",
-          }}
-          description="A calm, multi-asset briefing for FX, equities, commodities, crypto, and indices. Currency telemetry is fully live today, while the remaining desks deliver curated scaffolding ahead of the streaming feed rollout."
-          descriptionVariant="body-default-l"
-          helperText="The layout breathes with generous padding so it feels composed on phones, tablets, ultrawide desks, and everything in between."
-          maxWidth={80}
-          gap="16"
-        />
-      </DeskSection>
-      <DeskSection
-        anchor="coverage"
-        background="surface"
-        border="neutral-alpha-weak"
-        shadow="s"
-        width="wide"
-        contentClassName="gap-8"
-      >
-        <DeskSectionHeader
-          title="Live asset coverage"
-          description="Keep the FX cockpit beside the live watchlist on expansive screens, then let them stack gracefully on tighter breakpoints without losing breathing room."
-          maxWidth={88}
-        />
-        <DeskSectionGrid items={COVERAGE_PRIMARY} />
-        <DeskSectionGrid items={COVERAGE_SNAPSHOTS} />
-      </DeskSection>
-      <DeskSection
-        anchor="heatmaps"
-        background="surface"
-        border="neutral-alpha-weak"
-        shadow="s"
-        width="wide"
-        contentClassName="gap-8"
-      >
-        <DeskSectionHeader
-          title="Momentum heatmaps"
-          description="Cross-asset strength tables share the same safe padding so quick comparisons stay legible whether you are scanning on mobile or a trading battlestation."
-          maxWidth={80}
-        />
-        <DeskSectionGrid items={HEATMAP_GRID} />
-      </DeskSection>
+      {MARKET_REVIEW_SECTIONS.map(({ deskProps, header, grids }, index) => {
+        const sectionAnchor = deskProps.anchor ??
+          `market-review-section-${index}`;
+        return (
+          <DeskSection key={sectionAnchor} {...deskProps}>
+            <DeskSectionHeader {...header} />
+            {grids?.map((items, gridIndex) => (
+              <DeskSectionGrid
+                key={`${sectionAnchor}-grid-${gridIndex}`}
+                items={items}
+              />
+            ))}
+          </DeskSection>
+        );
+      })}
     </Column>
   );
 }
