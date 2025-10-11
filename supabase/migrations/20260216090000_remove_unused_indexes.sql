@@ -1,4 +1,5 @@
 -- Drop unused indexes flagged by Supabase lint to reduce write overhead.
+-- Retain chat history and user analytics indexes that power active queries.
 DROP INDEX IF EXISTS public.idx_abuse_bans_tg;
 DROP INDEX IF EXISTS public.idx_ai_service_logs_created_at;
 DROP INDEX IF EXISTS public.idx_ai_service_logs_service_type;
@@ -6,8 +7,6 @@ DROP INDEX IF EXISTS public.idx_ai_service_logs_session_id;
 DROP INDEX IF EXISTS public.idx_ai_service_logs_status;
 DROP INDEX IF EXISTS public.idx_ai_service_logs_telegram_user_id;
 DROP INDEX IF EXISTS public.idx_ai_service_logs_user_id;
-DROP INDEX IF EXISTS public.idx_chat_messages_created_at;
-DROP INDEX IF EXISTS public.idx_chat_messages_session_id;
 DROP INDEX IF EXISTS public.idx_chat_sessions_telegram_id;
 DROP INDEX IF EXISTS public.idx_chat_sessions_user_id;
 DROP INDEX IF EXISTS public.idx_domain_cache_expires;
@@ -31,7 +30,3 @@ DROP INDEX IF EXISTS public.idx_ton_tx_user;
 DROP INDEX IF EXISTS public.idx_tx_logs_created_at;
 DROP INDEX IF EXISTS public.idx_tx_logs_event_type;
 DROP INDEX IF EXISTS public.idx_tx_logs_telegram_user;
-DROP INDEX IF EXISTS public.idx_user_analytics_created_at;
-DROP INDEX IF EXISTS public.idx_user_analytics_event_type;
-DROP INDEX IF EXISTS public.idx_user_analytics_session_id;
-DROP INDEX IF EXISTS public.idx_user_analytics_telegram_user_id;
