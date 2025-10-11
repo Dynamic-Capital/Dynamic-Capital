@@ -15,8 +15,11 @@ import {
   TON_SITE_GATEWAY_STANDBY_HOST,
   TON_SITE_GATEWAY_HOSTS,
   TON_SITE_GATEWAY_STANDBY_BASE,
+  TON_SITE_GATEWAY_FOUNDATION_BASES,
+  TON_SITE_GATEWAY_SELF_HOST_BASES,
   resolveTonSiteGatewayOrigin,
   resolveTonSiteGatewayBaseForHost,
+  resolveTonSiteGatewayBasesForHost,
   TON_SITE_ICON_URL,
   TON_SITE_SOCIAL_PREVIEW_URL,
 } from "../../../shared/ton/site";
@@ -27,6 +30,21 @@ describe("ton site gateway helpers", () => {
     assertEquals(
       TON_SITE_GATEWAY_STANDBY_BASE,
       "https://ton-gateway.dynamic-capital.ondigitalocean.app",
+    );
+    assertEquals(
+      [...TON_SITE_GATEWAY_FOUNDATION_BASES],
+      [
+        "https://ton.site",
+        "https://tonsite.io",
+        "https://tonsite.link",
+      ],
+    );
+    assertEquals(
+      [...TON_SITE_GATEWAY_SELF_HOST_BASES],
+      [
+        "https://ton-gateway.dynamic-capital.ondigitalocean.app",
+        "https://ton-gateway.dynamic-capital.lovable.app",
+      ],
     );
     assertEquals(TON_SITE_DOMAIN, "dynamiccapital.ton");
     assertEquals([...TON_SITE_ALIAS_DOMAINS], ["dynamicapital.ton"]);
@@ -48,7 +66,10 @@ describe("ton site gateway helpers", () => {
       [...TON_SITE_GATEWAY_HOSTS],
       [
         "ton.site",
+        "tonsite.io",
+        "tonsite.link",
         "ton-gateway.dynamic-capital.ondigitalocean.app",
+        "ton-gateway.dynamic-capital.lovable.app",
       ],
     );
     assertEquals(
@@ -237,6 +258,10 @@ describe("ton site gateway helpers", () => {
         host: ` ${TON_SITE_GATEWAY_STANDBY_HOST}:8443 `,
         expected: TON_SITE_GATEWAY_STANDBY_BASE,
       },
+      {
+        host: "ton-gateway.dynamic-capital.lovable.app",
+        expected: "https://ton-gateway.dynamic-capital.lovable.app",
+      },
       { host: "unknown.example.com", expected: TON_SITE_GATEWAY_BASE },
     ];
 
@@ -245,5 +270,35 @@ describe("ton site gateway helpers", () => {
         assertEquals(resolveTonSiteGatewayBaseForHost(host), expected);
       });
     }
+  });
+
+  describe("resolveTonSiteGatewayBasesForHost", () => {
+    it("prioritises mapped host bases before defaults", () => {
+      assertEquals(
+        resolveTonSiteGatewayBasesForHost(
+          "ton-gateway.dynamic-capital.lovable.app",
+        ),
+        [
+          "https://ton-gateway.dynamic-capital.lovable.app",
+          "https://ton.site",
+          "https://tonsite.io",
+          "https://tonsite.link",
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
+        ],
+      );
+    });
+
+    it("falls back to the foundation gateways when the host is unknown", () => {
+      assertEquals(
+        resolveTonSiteGatewayBasesForHost("unknown.example.com"),
+        [
+          "https://ton.site",
+          "https://tonsite.io",
+          "https://tonsite.link",
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
+          "https://ton-gateway.dynamic-capital.lovable.app",
+        ],
+      );
+    });
   });
 });
