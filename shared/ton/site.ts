@@ -1,4 +1,12 @@
 export const TON_SITE_DOMAIN = "dynamiccapital.ton";
+export const TON_SITE_ALIAS_DOMAINS = Object.freeze([
+  "dynamicapital.ton",
+] as const);
+
+const TON_SITE_DOMAIN_CANDIDATES = Object.freeze([
+  TON_SITE_DOMAIN,
+  ...TON_SITE_ALIAS_DOMAINS,
+]);
 export const TON_SITE_GATEWAY_BASE = "https://ton.site";
 export const TON_SITE_GATEWAY_STANDBY_BASE =
   "https://ton-gateway.dynamic-capital.ondigitalocean.app";
@@ -151,17 +159,19 @@ export function normalizeTonGatewayPath(pathname: string | undefined): string {
     return "";
   }
 
-  const gatewayPrefix = `/${TON_SITE_DOMAIN}`;
-  if (working === gatewayPrefix || working === `${gatewayPrefix}/`) {
-    return "";
-  }
-
-  if (working.startsWith(`${gatewayPrefix}/`)) {
-    const remainder = working.slice(gatewayPrefix.length);
-    if (!remainder || remainder === "/") {
+  for (const domain of TON_SITE_DOMAIN_CANDIDATES) {
+    const gatewayPrefix = `/${domain}`;
+    if (working === gatewayPrefix || working === `${gatewayPrefix}/`) {
       return "";
     }
-    return remainder.startsWith("/") ? remainder : `/${remainder}`;
+
+    if (working.startsWith(`${gatewayPrefix}/`)) {
+      const remainder = working.slice(gatewayPrefix.length);
+      if (!remainder || remainder === "/") {
+        return "";
+      }
+      return remainder.startsWith("/") ? remainder : `/${remainder}`;
+    }
   }
 
   return working;
@@ -179,11 +189,17 @@ export function isTonSitePath(
     ? trimmed
     : `/${trimmed}`;
   const normalized = withLeadingSlash.toLowerCase();
-  const prefix = `/${TON_SITE_DOMAIN}`;
+  for (const domain of TON_SITE_DOMAIN_CANDIDATES) {
+    const prefix = `/${domain}`;
 
-  if (normalized === prefix) {
-    return true;
+    if (normalized === prefix) {
+      return true;
+    }
+
+    if (normalized.startsWith(`${prefix}/`)) {
+      return true;
+    }
   }
 
-  return normalized.startsWith(`${prefix}/`);
+  return false;
 }
