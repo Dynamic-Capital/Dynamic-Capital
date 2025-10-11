@@ -61,6 +61,26 @@ The resulting JSONL file will contain one record per 99-page batch (or fewer if
 the final chunk is smaller). Snapshot metadata is written to the JSON output for
 bookkeeping.
 
+## Knowledge base dataset export
+
+To mirror the Drive corpus into the repository's knowledge base directory, use
+`ml/extract_google_drive_knowledge_base.py`. The helper wraps the
+`DynamicCorpusExtractionEngine`, skips previously processed file IDs, and writes
+both the JSONL corpus and a run summary under `data/knowledge_base/google_drive/`.
+
+```bash
+python ml/extract_google_drive_knowledge_base.py \
+  --share-link "https://drive.google.com/drive/folders/<folder-id>" \
+  --api-key "$GOOGLE_API_KEY" \
+  --output data/knowledge_base/google_drive/processed/google_drive_corpus.jsonl \
+  --summary data/knowledge_base/google_drive/processed/google_drive_summary.json \
+  --sample data/knowledge_base/google_drive/processed/google_drive_sample.jsonl
+```
+
+Supply `--continue-from` with one or more existing JSONL exports to avoid
+reprocessing the same Drive files. Enable `--enable-ocr` when the share contains
+scanned PDFs and configure OCR languages via repeated `--ocr-language` flags.
+
 ## Handling restricted folders
 
 If the share link is not world-readable, API calls or utilities such as `gdown`
