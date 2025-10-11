@@ -17,11 +17,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup runtimes
+        uses: ./.github/actions/setup-runtimes
         with:
-          node-version: 20
-          cache: "npm"
+          enable-node: "true"
+          node-version: "20"
+          node-cache: npm
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund

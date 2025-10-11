@@ -12,12 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup runtimes
+        uses: ./.github/actions/setup-runtimes
         with:
-          node-version: 22
-          cache: "npm"
-          cache-dependency-path: |
+          enable-node: "true"
+          node-version: "22"
+          node-cache: npm
+          node-cache-dependency-path: |
             package-lock.json
             apps/*/package-lock.json
       - name: Install dependencies

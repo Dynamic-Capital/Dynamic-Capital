@@ -53,8 +53,13 @@ jobs:
           echo "verbose=$VERBOSE" >> $GITHUB_OUTPUT
           echo "quiet=$QUIET" >> $GITHUB_OUTPUT
 
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+      - name: Setup runtimes
+        uses: ./.github/actions/setup-runtimes
+        with:
+          enable-node: "true"
+          node-version: "20"
+          node-cache: pnpm
+          node-cache-dependency-path: pnpm-lock.yaml
       - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - name: Install (best-effort)
