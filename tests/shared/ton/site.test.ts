@@ -25,7 +25,7 @@ describe("ton site gateway helpers", () => {
     assertEquals(TON_SITE_GATEWAY_BASE, "https://ton.site");
     assertEquals(
       TON_SITE_GATEWAY_STANDBY_BASE,
-      "https://ton-gateway.dynamic-capital.ondigitalocean.app",
+      "https://dynamic-capital-qazf2.ondigitalocean.app",
     );
     assertEquals(TON_SITE_DOMAIN, "dynamiccapital.ton");
     assertEquals(
@@ -40,18 +40,18 @@ describe("ton site gateway helpers", () => {
     );
     assertEquals(
       TON_SITE_GATEWAY_STANDBY_HOST,
-      "ton-gateway.dynamic-capital.ondigitalocean.app",
+      "dynamic-capital-qazf2.ondigitalocean.app",
     );
     assertEquals(
       [...TON_SITE_GATEWAY_HOSTS],
       [
         "ton.site",
-        "ton-gateway.dynamic-capital.ondigitalocean.app",
+        "dynamic-capital-qazf2.ondigitalocean.app",
       ],
     );
     assertEquals(
       TON_SITE_ICON_URL,
-      "https://ton.site/dynamiccapital.ton/icon.png",
+      "https://ton.site/dynamiccapital.ton/icon.svg",
     );
     assertEquals(
       TON_SITE_SOCIAL_PREVIEW_URL,
@@ -84,7 +84,7 @@ describe("ton site gateway helpers", () => {
       },
       {
         name: "resolves asset paths relative to the origin",
-        args: ["icon.png"],
+        args: ["icon.svg"],
         expected: TON_SITE_ICON_URL,
       },
       {
@@ -131,16 +131,16 @@ describe("ton site gateway helpers", () => {
       { input: `/${TON_SITE_DOMAIN}/`, expected: "" },
       { input: `/${TON_SITE_DOMAIN}//`, expected: "" },
       {
-        input: `/${TON_SITE_DOMAIN}/icon.png`,
-        expected: "/icon.png",
+        input: `/${TON_SITE_DOMAIN}/icon.svg`,
+        expected: "/icon.svg",
       },
       {
-        input: `/${TON_SITE_DOMAIN}/./icon.png`,
-        expected: "/icon.png",
+        input: `/${TON_SITE_DOMAIN}/./icon.svg`,
+        expected: "/icon.svg",
       },
       {
-        input: `${TON_SITE_DOMAIN}/icon.png`,
-        expected: "/icon.png",
+        input: `${TON_SITE_DOMAIN}/icon.svg`,
+        expected: "/icon.svg",
       },
       {
         input: `/${TON_SITE_DOMAIN}//nested//asset`,
@@ -166,7 +166,7 @@ describe("ton site gateway helpers", () => {
     const positiveCases = [
       `/${TON_SITE_DOMAIN}`,
       `/${TON_SITE_DOMAIN}/`,
-      `/${TON_SITE_DOMAIN}/icon.png`,
+      `/${TON_SITE_DOMAIN}/icon.svg`,
       `/${TON_SITE_DOMAIN}//nested//asset`,
       `${TON_SITE_DOMAIN}`,
       ` ${TON_SITE_DOMAIN}/docs `,
@@ -203,10 +203,10 @@ describe("ton site gateway helpers", () => {
         resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_BASE),
         TON_SITE_GATEWAY_ORIGIN,
       );
-    assertEquals(
-      resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_STANDBY_BASE),
-      "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-    );
+      assertEquals(
+        resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_STANDBY_BASE),
+        "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
+      );
     });
   });
 

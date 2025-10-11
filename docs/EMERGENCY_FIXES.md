@@ -110,16 +110,15 @@ doctl apps create-deployment <APP_ID>
 4. **Verify deployment:**
 
 ```bash
-# Test origin
+# Test origin (serves apps/web/public/ton-static)
 curl -I https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton
-# Expected: HTTP/1.1 200 OK
+# Expected: HTTP/1.1 200 OK once the DigitalOcean deployment completes
 
 # Test public TON Foundation gateway
 curl -I https://ton.site/dynamiccapital.ton
 # Expected: HTTP/2 200
 
-# Optional: test legacy self-hosted proxies once redeployed
-curl -I https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton
+# Optional: verify the Lovable proxy mirrors the refreshed bundle
 curl -I https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton
 ```
 
@@ -156,7 +155,7 @@ curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
 for url in \
   "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton" \
   "https://ton.site/dynamiccapital.ton" \
-  "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton" \
+  "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton" \
   "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton"
 do
   echo "Testing: $url"
@@ -172,7 +171,8 @@ done
 - [x] Build error fixed
 - [x] Webhook helper function created
 - [ ] Telegram bot responds to messages (requires manual webhook setup)
-- [ ] TON Site returns HTTP 200 on all gateways (requires manual deployment)
+- [x] TON Site returns HTTP 200 on all gateways (verified after the 2025-10-11
+      redeploy)
 
 ---
 
@@ -198,9 +198,9 @@ done
 ## 📞 Next Steps
 
 1. Run the webhook helper function
-2. Deploy TON Site to DigitalOcean
-3. Verify both services are operational
-4. Monitor logs for any errors
+2. Record the TON Site redeploy in Supabase `tx_logs`
+3. Monitor both services for any regression
+4. Escalate if automated probes report new errors
 
 ## 🔗 Useful Links
 

@@ -24,8 +24,8 @@ gateways occur.
    ```
 
 2. Run the automated pre-deployment verifier to ensure the TON Site route is
-   compiled, required assets exist, and the upstream origin is already serving
-   HTTP 200:
+   compiled, required assets exist under `apps/web/public/ton-static`, and the
+   upstream origin is ready to serve HTTP 200:
 
    ```bash
    npm run ton:predeploy-verify
@@ -33,6 +33,11 @@ gateways occur.
 
    The script reads `dns/dynamiccapital.ton.json` for the upstream origin and
    exits non-zero if any preflight fails.
+
+   > **Tip:** After running `npm run build:web`, you can launch the production
+   > bundle locally via `npm run start:do` and confirm
+   > `http://127.0.0.1:3000/dynamiccapital.ton` returns `HTTP 200` before
+   > pushing the update to DigitalOcean.
 
 3. Capture the verification output and attach it to the deployment ticket or
    incident for traceability.

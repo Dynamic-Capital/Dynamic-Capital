@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  width="120"
+  height="120"
+  viewBox="0 0 120 120"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <linearGradient
+      id="tonStaticMark"
+      x1="16"
+      y1="12"
+      x2="108"
+      y2="104"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#1F398E" />
+      <stop offset="1" stop-color="#2AA0C3" />
+    </linearGradient>
+    <linearGradient
+      id="tonStaticHighlight"
+      x1="64"
+      y1="40"
+      x2="96"
+      y2="88"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#E5F2FF" />
+      <stop offset="1" stop-color="#BFE8FF" />
+    </linearGradient>
+  </defs>
+  <rect
+    x="8"
+    y="8"
+    width="104"
+    height="104"
+    rx="26"
+    fill="url(#tonStaticMark)"
+  />
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M38 28H66C84.226 28 96 39.774 96 60C96 80.226 84.226 92 66 92H38V28ZM66 84C76.493 84 84 76.493 84 66C84 55.5066 76.493 48 66 48H54V84H66Z"
+    fill="white"
+  />
+  <path
+    d="M54 52H65.5C74.0604 52 80 57.9396 80 66.5C80 75.0604 74.0604 81 65.5 81H54V52Z"
+    fill="url(#tonStaticHighlight)"
+  />
+  <path
+    d="M81 26C93.851 31.0332 100 40.7059 100 56C100 71.2941 93.851 80.9668 81 86"
+    stroke="#E3FFFF"
+    stroke-width="5"
+    stroke-linecap="round"
+  />
+  <path
+    d="M84 32C95.5396 36.8775 102 46.0128 102 56C102 65.9872 95.5396 75.1225 84 80"
+    stroke="#D2FCFF"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-opacity="0.75"
+  />
+</svg>

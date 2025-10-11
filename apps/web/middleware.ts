@@ -4,6 +4,7 @@ import {
   isTonSitePath,
   normalizeTonGatewayPath,
   TON_SITE_GATEWAY_HOSTS,
+  TON_SITE_GATEWAY_STANDBY_HOST,
 } from "@shared/ton/site";
 
 const TON_GATEWAY_HOSTS = new Set(TON_SITE_GATEWAY_HOSTS);
@@ -40,17 +41,34 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const host = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
 
-  if (TON_GATEWAY_HOSTS.has(host) && !pathname.startsWith("/ton-site")) {
+  const isGatewayHost = TON_GATEWAY_HOSTS.has(host);
+  const isStandbyGatewayHost = host === TON_SITE_GATEWAY_STANDBY_HOST;
+  const isTonSiteRequest = isTonSitePath(pathname);
+  const normalizedSuffix = normalizeTonGatewayPath(pathname);
+
+  if (isStandbyGatewayHost && isTonSiteRequest) {
     const rewritten = req.nextUrl.clone();
-    const suffix = normalizeTonGatewayPath(pathname);
-    rewritten.pathname = suffix ? `/ton-site${suffix}` : "/ton-site";
+    rewritten.pathname = normalizedSuffix
+      ? `/ton-static${normalizedSuffix}`
+      : "/ton-static/index.html";
     return NextResponse.rewrite(rewritten);
   }
 
-  if (isTonSitePath(pathname) && !pathname.startsWith("/ton-site")) {
+  if (
+    isGatewayHost && !isStandbyGatewayHost && !pathname.startsWith("/ton-site")
+  ) {
     const rewritten = req.nextUrl.clone();
-    const suffix = normalizeTonGatewayPath(pathname);
-    rewritten.pathname = suffix ? `/ton-site${suffix}` : "/ton-site";
+    rewritten.pathname = normalizedSuffix
+      ? `/ton-site${normalizedSuffix}`
+      : "/ton-site";
+    return NextResponse.rewrite(rewritten);
+  }
+
+  if (!isGatewayHost && isTonSiteRequest && !pathname.startsWith("/ton-site")) {
+    const rewritten = req.nextUrl.clone();
+    rewritten.pathname = normalizedSuffix
+      ? `/ton-static${normalizedSuffix}`
+      : "/ton-static/index.html";
     return NextResponse.rewrite(rewritten);
   }
 

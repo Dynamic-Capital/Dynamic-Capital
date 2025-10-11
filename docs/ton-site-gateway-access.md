@@ -6,8 +6,8 @@ and operate the gateway with the Tonutils Reverse Proxy helper outlined in
 fallback online. Native TON wallets resolve `.ton` domains directly, while
 traditional browsers should now start with the official TON Foundation bridge at
 <https://ton.site/dynamiccapital.ton>. Our self-hosted gateways on
-DigitalOcean/Lovable remain documented below but are currently offline pending a
-redeploy.
+DigitalOcean/Lovable are rebuilt from the `apps/web/public/ton-static` bundle
+and, once deployed, return `HTTP 200`.
 
 ## Quick remediation when browsers show NXDOMAIN
 
@@ -27,13 +27,13 @@ redeploy.
 
 ## Gateway endpoints
 
-| Purpose              | URL                                                                       | Notes                                            |
-| -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
-| Primary gateway      | https://ton.site/dynamiccapital.ton                                       | TON Foundation-operated HTTPS bridge             |
-| Icon                 | https://ton.site/dynamiccapital.ton/icon.png                              | Served from the same gateway                     |
-| Social preview       | https://ton.site/dynamiccapital.ton/social/social-preview.svg             | Served from the same gateway                     |
-| Legacy DO proxy      | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton | Currently offline; keep for historical reference |
-| Legacy Lovable proxy | https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton        | Currently offline; reinstated after redeploy     |
+| Purpose              | URL                                                                 | Notes                                                                  |
+| -------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Primary gateway      | https://ton.site/dynamiccapital.ton                                 | TON Foundation-operated HTTPS bridge                                   |
+| Icon                 | https://ton.site/dynamiccapital.ton/icon.svg                        | Served from the same gateway                                           |
+| Social preview       | https://ton.site/dynamiccapital.ton/social/social-preview.svg       | Served from the same gateway                                           |
+| DigitalOcean origin  | https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton | Serves `apps/web/public/ton-static/index.html` (HTTP 200 after deploy) |
+| Legacy Lovable proxy | https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton  | Mirrors the DigitalOcean origin; expect `HTTP 200` post-deploy         |
 
 When the self-hosted gateways come back online, update `shared/ton/site.ts` and
 `dns/dynamiccapital.ton.json` to promote them back to primary/standby roles.

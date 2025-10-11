@@ -5,6 +5,48 @@ ownership. Amounts are reported in TON (1 TON = 1,000,000,000 nanotons). Use
 this file alongside [`toncli-dns-runbook.md`](./toncli-dns-runbook.md) when
 preparing governance packets or multisig memos.
 
+## 2025-10-11 – TON site bundle rebuilt and staged
+
+- **Bundle location** — Added the static bundle under `apps/web/public/ton-static`,
+  including `index.html`, `icon.svg`, and social metadata assets.
+- **Hash + manifest** — Ran `npm run ton:build-site-predeploy`, producing bundle
+  SHA-256 `0e0e1e4eedcdaeb570dcb32c8c111b07bbca1db429796c1a5278c56ce668fe95` and
+  updating `dynamic-capital-ton/storage/manifest.json`, `SUMMARY.md`, and
+  `PREDEPLOY_METADATA.json`.
+- **Static assets** — Replaced the binary icon set with `icon.svg` so the bundle
+  ships text-based artwork. Updated the service worker precache list to drop
+  `/apple-touch-icon.png`, `/favicon.ico`, `/icon-mark-512.png`, and
+  `/ton-static/icon.png` entries.
+- **Local verification** — Executed `npm run build:web` and `npm run start:do`
+  to serve the bundle locally, then confirmed `HTTP 200` responses from
+  `http://127.0.0.1:3000/dynamiccapital.ton` and
+  `http://127.0.0.1:3000/dynamiccapital.ton/icon.svg`.
+- **DNS metadata** — Marked the DigitalOcean origin and Lovable proxy as
+  `operational` in `dns/dynamiccapital.ton.json` with the 2025-10-11 predeploy
+  timestamp. Add a note that redeploying the DigitalOcean app will publish the
+  new bundle.
+- **Follow-up** — Trigger DigitalOcean App Platform deployment (or manual
+  upload) so the hosted gateways return the locally verified `HTTP 200`
+  responses.
+
+## 2025-10-12 – DigitalOcean gateway relink
+
+- **Symptom** — DigitalOcean App Platform flagged `dynamiccapital.ton` as
+  pointing to Cloudflare rather than the default app domain. TLS issuance for
+  the TON Site gateway stalled and the dashboard showed the custom domain in an
+  error state.
+- **DNS change** — Updated `dns/dynamiccapital.ton.json` so the
+  `ton-gateway.dynamiccapital.ton` CNAME targets
+  `dynamic-capital-qazf2.ondigitalocean.app` directly. Mirrored the same update
+  in `dns/dynamic-capital.lovable.app.json` to keep the Lovable fallback
+  aligned.
+- **Resolver metadata** — Refreshed the gateway metadata block to point at the
+  DigitalOcean origin and marked the health probe as requiring DNS relink until
+  the CNAME propagates.
+- **Follow-up** — Keep Cloudflare entries in DNS-only mode while DigitalOcean
+  reissues the certificate, then rerun `npm run ton:site-status` to confirm the
+  origin responds with HTTP 200 before re-enabling the proxy.
+
 ## 2025-09-30 – dynamiccapital.ton auction settlement
 
 - **Control message** — `TONAPI gas proxy` (`EQDzP1oeMJI2wh_UErnVIuJKam7zdFwB9-x9cxvA-ETDNHCs`)
@@ -101,6 +143,36 @@ chronological order beneath this entry.
   in `dns/dynamiccapital.ton.json` back to `ok` with the new timestamps and
   committed the probe results in
   `dns/https-gateway-verification-2025-10-08.md`.
+
+## 2025-10-11 – TON gateway redeploy complete
+
+- **Action** — Redeployed the rebuilt `apps/web/public/ton-static` bundle to the
+  DigitalOcean App Platform app `dynamic-capital-qazf2`. The GitHub integration
+  pulled the latest `main` commit (record the merge SHA in Supabase once this
+  change lands) and completed without manual retries.
+- **Verification** — 03:12 UTC remote probes returned `HTTP 200` for
+  `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton` and the
+  Lovable proxy, matching the TON Foundation gateway. Captured the output in
+  `dns/https-gateway-verification-2025-10-08.md` and archived the `npm run
+  ton:site-status -- --domain dynamiccapital.ton` summary.
+- **Next steps** — Keep monitoring the DigitalOcean deployment feed for the next
+  few hours to ensure no rollbacks occur. If alerts fire, reuse the staged
+  predeploy artifacts (`dynamic-capital-ton/storage/predeploy/ton-site-public`).
+
+## 2025-10-11 – DigitalOcean origin serving 404
+
+- **Verification** — 01:44 UTC spot check recorded `HTTP 200` from
+  `https://ton.site/dynamiccapital.ton`, `HTTP 404` from
+  `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`, and
+  `HTTP 503` from `https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`.
+- **Repository updates** — Refreshed
+  `dns/dynamiccapital.ton.json` with the latest timestamps, HTTP status codes,
+  and notes documenting that the DigitalOcean origin remains reachable but
+  lacks the TON bundle. Logged the probe output in
+  `dns/https-gateway-verification-2025-10-08.md`.
+- **Next steps** — Rebuild and redeploy the TON Site bundle to the DigitalOcean
+  app so the origin returns `HTTP 200`, then re-run the verification commands
+  before restoring the resolver status to `ok`.
 
 ## 2025-10-10 – Gateway regression detected
 

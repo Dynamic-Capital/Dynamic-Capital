@@ -1,0 +1,57 @@
+{
+  "id": "/",
+  "name": "Dynamic Capital",
+  "short_name": "DynamicCap",
+  "description": "Dynamic Capital delivers institutional trading intelligence, TON-native automation, and mentorship for ambitious operators.",
+  "lang": "en",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050713",
+  "theme_color": "#1F398E",
+  "categories": [
+    "finance",
+    "productivity",
+    "business"
+  ],
+  "icons": [
+    {
+      "src": "/icon-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icons/dynamic-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dynamic Chat Intelligence",
+      "short_name": "Chat",
+      "url": "/?open=chat",
+      "description": "Jump directly into Dynamic AI market briefings and signals."
+    },
+    {
+      "name": "TON Portfolio Desk",
+      "short_name": "Portfolio",
+      "url": "/tools/dynamic-portfolio",
+      "description": "Review TON-native trading insights, VIP flows, and portfolio telemetry."
+    },
+    {
+      "name": "Market Review",
+      "short_name": "Review",
+      "url": "/tools/dynamic-market-review",
+      "description": "Launch the Dynamic Market Review heatmap and analytics workspace."
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://dynamiccapital.ton"
+    }
+  ]
+}

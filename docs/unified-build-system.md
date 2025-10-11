@@ -46,7 +46,7 @@ The build ensures proper configuration for:
 
 - Canonical web domain: `dynamic.capital`
 - TON Site Gateway: `ton.site` (primary, operated by TON Foundation)
-- Legacy DigitalOcean Gateway: `ton-gateway.dynamic-capital.ondigitalocean.app`
+- DigitalOcean origin: `dynamic-capital-qazf2.ondigitalocean.app`
 - Legacy Lovable Gateway: `ton-gateway.dynamic-capital.lovable.app`
 - DigitalOcean domain: `dynamic-capital-qazf2.ondigitalocean.app`
 
@@ -169,9 +169,12 @@ The application is accessible via multiple entry points:
 
 1. **Native TON**: `dynamiccapital.ton` (requires TON wallet browser extension)
 2. **HTTPS Gateway**: `https://ton.site/dynamiccapital.ton`
-3. **DigitalOcean**: `https://dynamic-capital-qazf2.ondigitalocean.app`
-4. **Legacy Gateways**: `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`,
-   `https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`
+3. **DigitalOcean**: `https://dynamic-capital-qazf2.ondigitalocean.app` (serves
+   the bundled static landing page after the 2025-10-11 redeploy)
+4. **DigitalOcean Origin**:
+   `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`,
+   `https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton` (both
+   hosts returned HTTP 200 during the 2025-10-11 post-deploy verification)
 
 All domains are configured in the allowed origins list and CORS policy.
 

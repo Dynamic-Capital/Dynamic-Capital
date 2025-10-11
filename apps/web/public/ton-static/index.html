@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dynamic Capital — TON-Native Institutional Infrastructure</title>
+    <meta
+      name="description"
+      content="Dynamic Capital delivers liquidity, compliance tooling, and institutional rails for the TON ecosystem."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Dynamic Capital — TON-Native Institutional Infrastructure"
+    />
+    <meta
+      property="og:description"
+      content="Institutional-grade liquidity, risk management, and DeFi automation built for the Open Network."
+    />
+    <meta property="og:image" content="./social/social-preview.svg" />
+    <meta property="og:url" content="https://dynamiccapital.ton" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Dynamic Capital" />
+    <meta
+      name="twitter:description"
+      content="Dynamic Capital pairs compliant infrastructure with automated liquidity for TON projects and institutions."
+    />
+    <meta name="twitter:image" content="./social/social-preview.svg" />
+    <link rel="canonical" href="https://dynamiccapital.ton" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="apple-touch-icon" href="./icon.svg" />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family:
+          "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(
+            circle at 20% 20%,
+            rgba(37, 99, 235, 0.15),
+            transparent 60%
+          ),
+          radial-gradient(
+          circle at 80% 0%,
+          rgba(16, 185, 129, 0.15),
+          transparent 65%
+        ),
+          #05060a;
+        color: #f8fafc;
+        min-height: 100vh;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      header {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 48px 24px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-weight: 600;
+        font-size: 1.25rem;
+        letter-spacing: 0.02em;
+      }
+      .brand img {
+        width: 48px;
+        height: 48px;
+      }
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #2563eb, #14b8a6);
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: transform 150ms ease, box-shadow 150ms ease;
+        box-shadow: 0 10px 30px rgba(20, 184, 166, 0.25);
+      }
+      .cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(37, 99, 235, 0.25);
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      h1 {
+        font-size: clamp(2.5rem, 4vw, 3.25rem);
+        margin-bottom: 16px;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+      .lead {
+        font-size: 1.125rem;
+        line-height: 1.7;
+        color: rgba(226, 232, 240, 0.9);
+        max-width: 720px;
+        margin-bottom: 40px;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 56px;
+      }
+      .secondary {
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(15, 23, 42, 0.6);
+        padding: 12px 20px;
+        border-radius: 9999px;
+        font-weight: 500;
+        transition: border-color 150ms ease, background 150ms ease;
+      }
+      .secondary:hover {
+        border-color: rgba(148, 163, 184, 0.8);
+        background: rgba(30, 41, 59, 0.7);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 9999px;
+        background: rgba(37, 99, 235, 0.12);
+        color: rgba(191, 219, 254, 0.95);
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 24px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+      }
+      .card {
+        padding: 24px;
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        backdrop-filter: blur(12px);
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .card h2 {
+        font-size: 1.1rem;
+        margin: 0;
+      }
+      .card p {
+        margin: 0;
+        line-height: 1.6;
+        color: rgba(203, 213, 225, 0.9);
+      }
+      .meta {
+        margin-top: 56px;
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+      .meta-card {
+        padding: 18px 20px;
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      .meta-card span {
+        display: block;
+        color: rgba(148, 163, 184, 0.85);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+      }
+      footer {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 48px 24px;
+        font-size: 0.85rem;
+        color: rgba(148, 163, 184, 0.7);
+      }
+      footer a {
+        color: rgba(191, 219, 254, 0.85);
+      }
+      @media (max-width: 640px) {
+        header {
+          flex-direction: column;
+          gap: 20px;
+          text-align: center;
+        }
+        .actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .cta,
+        .secondary {
+          justify-content: center;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <img
+          src="../logo-mark.svg"
+          alt="Dynamic Capital logo"
+          width="48"
+          height="48"
+        />
+        <span>Dynamic Capital</span>
+      </div>
+      <a
+        class="cta"
+        href="https://dynamic.capital"
+        rel="noopener"
+        target="_blank"
+      >
+        Launch the web platform
+        <span aria-hidden="true">→</span>
+      </a>
+    </header>
+    <main>
+      <div class="pill">Built for the Open Network</div>
+      <h1>Institutional liquidity and risk infrastructure for TON.</h1>
+      <p class="lead">
+        Dynamic Capital powers compliant on-chain liquidity, automated treasury
+        execution, and cross-exchange connectivity for the TON ecosystem. From
+        market making and launch support to perpetual risk management, we
+        deliver the rails that let Web3 teams operate like global institutions.
+      </p>
+      <div class="actions">
+        <a class="cta" href="ton://dynamiccapital.ton" rel="noopener"
+        >Open in TON Wallet</a>
+        <a
+          class="secondary"
+          href="https://t.me/Dynamic_VIP_BOT"
+          rel="noopener"
+          target="_blank"
+        >Join the OTC desk</a>
+        <a class="secondary" href="mailto:hello@dynamiccapital.ton"
+        >Contact the team</a>
+      </div>
+      <section class="grid" aria-label="Dynamic Capital focus areas">
+        <article class="card">
+          <h2>Market Liquidity</h2>
+          <p>
+            Execute professional market making across TON-native DEXes and CEX
+            venues with algorithmic spread control, inventory balancing, and
+            24/7 monitoring backed by institutional risk limits.
+          </p>
+        </article>
+        <article class="card">
+          <h2>Institutional Onboarding</h2>
+          <p>
+            Compliant wallet infrastructure, KYB/KYC workflows, and treasury
+            automation let funds and enterprises access TON yield opportunities
+            without compromising governance or custody controls.
+          </p>
+        </article>
+        <article class="card">
+          <h2>DeFi Strategy Engine</h2>
+          <p>
+            Deploy cross-protocol strategies with programmatic safeguards,
+            delegated approvals, and automated hedging that adapts to liquidity
+            conditions in real time.
+          </p>
+        </article>
+        <article class="card">
+          <h2>Research & Risk Analytics</h2>
+          <p>
+            Quantitative insight across TON markets, historical liquidity
+            modeling, and counterparty risk scoring feed smarter treasury and
+            governance decisions.
+          </p>
+        </article>
+      </section>
+      <section class="meta" aria-label="Contact and network references">
+        <div class="meta-card">
+          <span>Operations</span>
+          <div>hello@dynamiccapital.ton · support@dynamiccapital.ton</div>
+        </div>
+        <div class="meta-card">
+          <span>On-chain gateway</span>
+          <div>ton://dynamiccapital.ton</div>
+        </div>
+        <div class="meta-card">
+          <span>TON DNS Resolver</span>
+          <div>EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo</div>
+        </div>
+        <div class="meta-card">
+          <span>Jetton master</span>
+          <div>UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G</div>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div>© 2025 Dynamic Capital. All rights reserved.</div>
+      <div>
+        Primary web experience available at
+        <a href="https://dynamic.capital" rel="noopener" target="_blank"
+        >dynamic.capital</a> · Emergency access via
+        <a
+          href="https://ton.site/dynamiccapital.ton"
+          rel="noopener"
+          target="_blank"
+        >ton.site/dynamiccapital.ton</a>
+      </div>
+    </footer>
+  </body>
+</html>

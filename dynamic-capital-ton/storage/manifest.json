@@ -6,7 +6,7 @@
       "paths": [
         "apps/web/public"
       ],
-      "expectedSha256": "9da7628952ce0cd02234e7195285beb9afdcff649349a5f870315c0b159dba96"
+      "expectedSha256": "0e0e1e4eedcdaeb570dcb32c8c111b07bbca1db429796c1a5278c56ce668fe95"
     }
   ]
 }

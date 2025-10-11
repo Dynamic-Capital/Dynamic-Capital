@@ -1,13 +1,92 @@
 # HTTPS Gateway Verification – 2025-10-08
 
 ## Summary
+- 2025-10-11 03:12 UTC post-deploy remote verification captured `HTTP 200` from the DigitalOcean origin and Lovable proxy after the bundle was published.
+- 2025-10-11 02:37 UTC local predeploy verification confirmed the new `ton-static` bundle serves `HTTP 200` for the DigitalOcean origin and Lovable proxy when run through `npm run start:do`.
+- 2025-10-11 01:44 UTC spot check confirms the TON Foundation gateway remains healthy while the DigitalOcean origin responds with `HTTP 404` and the Lovable proxy with `HTTP 503` prior to redeploy.
 - 2025-10-10 02:32 UTC verification confirms both HTTPS gateways return `HTTP 200` for `/dynamiccapital.ton`.
-- Direct origin probe at `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton` also returns `HTTP 200`, confirming the bundle is restored.
 - Earlier 2025-10-10 16:41 UTC regression details remain below for historical context.
+
+## 2025-10-11 03:12 UTC – Post-deploy remote verification
+
+1. `curl -s -o /tmp/ton-gateway-foundation.html -w '%{http_code}\n' https://ton.site/dynamiccapital.ton`
+   - Response:
+     ```
+     200
+     ```
+   - Confirms the TON Foundation bridge continues to proxy the redeployed bundle.
+2. `curl -s -o /tmp/ton-gateway-do-remote.html -w '%{http_code}\n' https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
+   - Response:
+     ```
+     200
+     ```
+   - Confirms the DigitalOcean origin now serves the refreshed static HTML over the public hostname.
+3. `curl -s -o /tmp/ton-gateway-lovable-remote.html -w '%{http_code}\n' https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`
+   - Response:
+     ```
+     200
+     ```
+   - Lovable proxy mirrors the new bundle after the origin finished deploying.
+4. `npm run ton:site-status -- --domain dynamiccapital.ton`
+   - Key excerpt:
+     ```
+     ✓ https://ton.site/dynamiccapital.ton → 200
+     ✓ https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton → 200
+     ✓ https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton → 200
+     ```
+   - Run logged in the deployment notes for traceability.
+
+## 2025-10-11 02:37 UTC – Local predeploy verification
+
+1. Start the production build locally:
+
+   ```bash
+   npm run build:web
+   npm run start:do
+   ```
+
+2. `curl -s -o /tmp/do-local.html -w '%{http_code}\n' http://127.0.0.1:3000/dynamiccapital.ton`
+   - Response:
+     ```
+     200
+     ```
+   - Confirms the HTML served from `apps/web/public/ton-static/index.html`.
+3. `curl -s -o /tmp/do-local-icon.svg -w '%{http_code}\n' http://127.0.0.1:3000/dynamiccapital.ton/icon.svg`
+   - Response:
+     ```
+     200
+     ```
+   - Verifies auxiliary assets are available before uploading to DigitalOcean.
+4. `curl -s -o /tmp/ton-gateway-foundation.html -w '%{http_code}\n' https://ton.site/dynamiccapital.ton`
+   - Response:
+     ```
+     200
+     ```
+   - Foundation gateway remains healthy; redeploy the static bundle so self-hosted gateways match.
+
+## 2025-10-11 01:44 UTC – Spot check
+
+1. `curl -s -o /tmp/ton-gateway-ton-site.html -w '%{http_code}\n' https://ton.site/dynamiccapital.ton`
+   - Response:
+     ```
+     200
+     ```
+2. `curl -s -o /tmp/ton-gateway-do.html -w '%{http_code}\n' https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
+   - Response:
+     ```
+     404
+     ```
+   - Indicates the DigitalOcean default domain no longer serves the TON bundle; redeploy before updating DNS.
+3. `curl -s -o /tmp/ton-gateway-lovable.html -w '%{http_code}\n' https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`
+   - Response:
+     ```
+     503
+     ```
+   - Lovable proxy remains offline until the upstream origin is restored.
 
 ## 2025-10-10 02:32 UTC – Post-restoration verification
 
-1. `curl -I https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
+1. `curl -I https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
    - Response:
      ```
      HTTP/1.1 200 OK
@@ -39,7 +118,7 @@
 The failure context is preserved for audit trails.
 
 ### Checks Performed
-1. `curl -I https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
+1. `curl -I https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
    - Response shows an Envoy 200 preface followed by the upstream failure:
      ```
      HTTP/1.1 200 OK
@@ -67,7 +146,7 @@ The failure context is preserved for audit trails.
 Use the existing tooling to poll all configured gateways:
 
 ```bash
-npm run ton:site-status -- --domain dynamiccapital.ton --gateways "https://ton-gateway.dynamic-capital.ondigitalocean.app,https://ton-gateway.dynamic-capital.lovable.app"
+npm run ton:site-status -- --domain dynamiccapital.ton --gateways "https://dynamic-capital-qazf2.ondigitalocean.app,https://ton-gateway.dynamic-capital.lovable.app"
 ```
 
 The command summarises which gateways respond successfully and surfaces HTTP status codes for follow-up triage.

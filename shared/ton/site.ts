@@ -1,7 +1,7 @@
 export const TON_SITE_DOMAIN = "dynamiccapital.ton";
 export const TON_SITE_GATEWAY_BASE = "https://ton.site";
 export const TON_SITE_GATEWAY_STANDBY_BASE =
-  "https://ton-gateway.dynamic-capital.ondigitalocean.app";
+  "https://dynamic-capital-qazf2.ondigitalocean.app";
 
 export const TON_SITE_GATEWAY_PRIMARY_HOST =
   new URL(TON_SITE_GATEWAY_BASE).hostname;
@@ -73,7 +73,7 @@ export function resolveTonSiteUrl(path: string = "/"): string {
   return `${baseUrl}${query}${hash}`;
 }
 
-export const TON_SITE_ICON_URL = resolveTonSiteUrl("icon.png");
+export const TON_SITE_ICON_URL = resolveTonSiteUrl("icon.svg");
 export const TON_SITE_SOCIAL_PREVIEW_URL = resolveTonSiteUrl(
   "social/social-preview.svg",
 );
@@ -99,7 +99,7 @@ export function resolveTonSiteGatewayBaseForHost(
  * Normalises request paths received through the TON gateway so they can be
  * safely appended to the `/ton-site` edge route without duplicating the
  * `dynamiccapital.ton` prefix. The gateway forwards requests such as
- * `/dynamiccapital.ton`, `/dynamiccapital.ton/icon.png`, or root `/`, and we
+ * `/dynamiccapital.ton`, `/dynamiccapital.ton/icon.svg`, or root `/`, and we
  * need to collapse these into the relative suffix expected by the upstream
  * resolver.
  */

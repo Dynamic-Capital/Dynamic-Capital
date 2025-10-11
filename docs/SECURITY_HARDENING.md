@@ -3,6 +3,7 @@
 ## ✅ Completed Security Fixes (2025-10-10)
 
 ### Phase 1: Database Schema Security
+
 - ✅ Created dedicated `extensions` schema
 - ✅ Moved all PostgreSQL extensions out of `public` schema
   - `pgcrypto` → `extensions.pgcrypto`
@@ -12,9 +13,11 @@
   - `pg_graphql` → `extensions.pg_graphql`
 
 ### Phase 2: Anonymous Access Restrictions
+
 Fixed 42 tables with overly permissive anonymous access:
 
 **Critical Tables Secured:**
+
 - ✅ `abuse_bans`: Restricted to authenticated users only
 - ✅ `auto_reply_templates`: Service role only
 - ✅ `bot_content`: Public content requires `content_type = 'public'`
@@ -26,6 +29,7 @@ Fixed 42 tables with overly permissive anonymous access:
 - ✅ `email_templates`: Authenticated users only
 
 ### Phase 3: Personal Data Protection (GDPR Compliance)
+
 - ✅ `education_enrollments`: Student PII protected with RLS
   - Students can only view their own enrollments
   - Admins have full access
@@ -38,12 +42,14 @@ Fixed 42 tables with overly permissive anonymous access:
   - Service role can insert logs
 
 ### Phase 4: Analytics & Tracking Security
+
 - ✅ `conversion_tracking`: Admins and service role only
 - ✅ `daily_analytics`: Admins and service role only
 - ✅ `promo_analytics`: Admins and service role only
 - ✅ `promotion_usage`: Service role only
 
 ### Phase 5: Security Helper Functions
+
 Created security definer functions to prevent RLS recursion:
 
 ```sql
@@ -55,7 +61,9 @@ public.user_owns_telegram_id(telegram_id_param text) RETURNS boolean
 ```
 
 ### Phase 6: Performance Indexes
+
 Added indexes for frequently queried security-critical columns:
+
 - `idx_bot_users_telegram_id`
 - `idx_bot_users_is_admin`
 - `idx_bot_users_is_vip`
@@ -66,6 +74,7 @@ Added indexes for frequently queried security-critical columns:
 - `idx_payments_user_id`
 
 ### Phase 7: Audit Logging
+
 - ✅ All security changes logged to `tx_logs` table
 - ✅ Timestamp and change details recorded
 
@@ -74,6 +83,7 @@ Added indexes for frequently queried security-critical columns:
 ## 🔒 Security Posture Summary
 
 ### Before Hardening
+
 - ❌ Extensions in public schema (security warning)
 - ❌ 42 tables with anonymous access
 - ❌ Personal data (emails, phone numbers) publicly accessible
@@ -81,6 +91,7 @@ Added indexes for frequently queried security-critical columns:
 - ❌ No audit trail for security events
 
 ### After Hardening
+
 - ✅ Extensions isolated in dedicated schema
 - ✅ Anonymous access restricted to truly public content only
 - ✅ All PII protected with RLS policies
@@ -92,23 +103,24 @@ Added indexes for frequently queried security-critical columns:
 
 ## 🎯 Access Control Matrix
 
-| Table | Anonymous | Authenticated | Admin | Service Role |
-|-------|-----------|---------------|-------|--------------|
-| `abuse_bans` | ❌ | ✅ Read | ✅ All | ✅ All |
-| `bot_content` | ✅ Public only | ✅ All active | ✅ All | ✅ All |
-| `bot_settings` | ❌ | ✅ Read | ✅ All | ✅ All |
-| `education_enrollments` | ❌ | ✅ Own only | ✅ All | ✅ All |
-| `user_sessions` | ❌ | ✅ Own only | ✅ All | ✅ All |
-| `tx_logs` | ❌ | ❌ | ✅ Read | ✅ Insert |
-| `promotions` | ❌ | ✅ Active | ✅ All | ✅ All |
-| `conversion_tracking` | ❌ | ❌ | ✅ Read | ✅ All |
-| `daily_analytics` | ❌ | ❌ | ✅ Read | ✅ All |
+| Table                   | Anonymous      | Authenticated | Admin   | Service Role |
+| ----------------------- | -------------- | ------------- | ------- | ------------ |
+| `abuse_bans`            | ❌             | ✅ Read       | ✅ All  | ✅ All       |
+| `bot_content`           | ✅ Public only | ✅ All active | ✅ All  | ✅ All       |
+| `bot_settings`          | ❌             | ✅ Read       | ✅ All  | ✅ All       |
+| `education_enrollments` | ❌             | ✅ Own only   | ✅ All  | ✅ All       |
+| `user_sessions`         | ❌             | ✅ Own only   | ✅ All  | ✅ All       |
+| `tx_logs`               | ❌             | ❌            | ✅ Read | ✅ Insert    |
+| `promotions`            | ❌             | ✅ Active     | ✅ All  | ✅ All       |
+| `conversion_tracking`   | ❌             | ❌            | ✅ Read | ✅ All       |
+| `daily_analytics`       | ❌             | ❌            | ✅ Read | ✅ All       |
 
 ---
 
 ## 📋 Remaining Security Tasks
 
 ### High Priority (Requires Manual Action)
+
 1. **Upgrade PostgreSQL Version**
    - Current: Check via Supabase dashboard
    - Target: Latest stable version
@@ -127,6 +139,7 @@ Added indexes for frequently queried security-critical columns:
    - ETA: Immediate
 
 ### Medium Priority
+
 4. **Audit All RLS Policies**
    - Review each table's policies for logical flaws
    - Test with different user roles
@@ -140,6 +153,7 @@ Added indexes for frequently queried security-critical columns:
    - ETA: Next sprint
 
 ### Low Priority
+
 6. **Set Up Monitoring Alerts**
    - Configure alerts for failed authentication attempts
    - Monitor unusual database access patterns
@@ -184,6 +198,7 @@ Added indexes for frequently queried security-critical columns:
 ## 🔍 Testing Recommendations
 
 ### Test RLS Policies
+
 ```sql
 -- Test as anonymous user
 SET ROLE anon;
@@ -199,6 +214,7 @@ RESET ROLE;
 ```
 
 ### Test Admin Access
+
 ```sql
 -- Create test admin
 INSERT INTO bot_users (telegram_id, is_admin) 
@@ -226,6 +242,6 @@ SELECT check_user_is_admin(); -- Should return true
 
 ---
 
-**Last Updated:** 2025-10-10  
-**Applied By:** Automated security hardening migration  
+**Last Updated:** 2025-10-10\
+**Applied By:** Automated security hardening migration\
 **Migration ID:** 20251010-040350

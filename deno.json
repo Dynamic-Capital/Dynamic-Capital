@@ -88,6 +88,8 @@
   "fmt": {
     "include": ["apps", "supabase", "scripts", "db", "docs"],
     "exclude": [
+      "apps/web/public",
+      "dynamic-capital-ton/storage/predeploy",
       "supabase/functions/miniapp/static",
       "supabase/functions/telegram-bot/vendor"
     ]
@@ -95,6 +97,8 @@
   "lint": {
     "include": ["apps", "supabase", "scripts", "db", "docs"],
     "exclude": [
+      "apps/web/public",
+      "dynamic-capital-ton/storage/predeploy",
       "supabase/functions/miniapp/static",
       "supabase/functions/telegram-bot/vendor"
     ]
