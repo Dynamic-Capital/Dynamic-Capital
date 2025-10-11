@@ -3,7 +3,7 @@ project_id = "qeejuomcapbdlhnjqjcc"
 [edge_runtime]
   policy = "per_worker"
 
-[global]
+[auth]
   site_url = "https://dynamic.capital"
   additional_redirect_urls = [
     "https://dynamic.capital",
@@ -22,6 +22,8 @@ project_id = "qeejuomcapbdlhnjqjcc"
   ]
 
 [functions]
+  # Keep supabase/functions/.env in sync by running
+  # `deno run -A scripts/generate-functions-env.ts`
   [functions.env]
     SITE_URL = "https://dynamic.capital"
     NEXT_PUBLIC_SITE_URL = "https://dynamic.capital"
@@ -30,28 +32,28 @@ project_id = "qeejuomcapbdlhnjqjcc"
     TELEGRAM_WEBHOOK_URL = "https://dynamic.capital/webhook"
 
 [functions.agi-chat]
-verify_jwt = true
+  verify_jwt = true
 
 [functions.custom-llm-chat]
-verify_jwt = true
+  verify_jwt = true
 
 [functions.telegram-bot]
-verify_jwt = false
+  verify_jwt = false
 
 [functions.websocket-relay]
-verify_jwt = false
+  verify_jwt = false
 
 [functions.openai-webhook]
-verify_jwt = false
+  verify_jwt = false
 
 [functions."dao-dns-proposal"]
-verify_jwt = false
+  verify_jwt = false
 
 [functions."vote-dns"]
-verify_jwt = false
+  verify_jwt = false
 
 [functions."execute-dns"]
-verify_jwt = false
+  verify_jwt = false
 
 [functions."dns-verify"]
-verify_jwt = false
+  verify_jwt = false

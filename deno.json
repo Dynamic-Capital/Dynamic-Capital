@@ -60,6 +60,7 @@
     "edge:deploy:ocr": "npx supabase functions deploy receipt-ocr",
     "edge:deploy:auto": "npx supabase functions deploy payments-auto-review",
     "edge:deploy:sync": "npx supabase functions deploy sync-audit",
+    "edge:env:sync": "deno run -A scripts/generate-functions-env.ts",
     "edge:deploy:bot": "npx supabase functions deploy telegram-bot",
     "edge:deploy:mini": "npx supabase functions deploy miniapp",
     "make:initdata": "deno run -A scripts/make-initdata.ts"

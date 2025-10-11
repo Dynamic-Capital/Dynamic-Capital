@@ -1,5 +1,5 @@
 import { createClient } from "./client.ts";
-import { maybe } from "./env.ts";
+import { maybe, optionalEnv } from "./env.ts";
 import { getFeatureFlagDefault } from "./feature-flags.ts";
 
 // In-memory fallback map when kv_config table is unavailable
@@ -12,7 +12,11 @@ function getClient() {
   if (supabase !== undefined) return supabase;
 
   try {
-    supabase = createClient();
+    const hasServiceKey = Boolean(
+      optionalEnv("SUPABASE_SERVICE_ROLE_KEY") ||
+        optionalEnv("SUPABASE_SERVICE_ROLE"),
+    );
+    supabase = hasServiceKey ? createClient("service") : createClient();
     return supabase;
   } catch (e) {
     console.error("Failed to create Supabase client:", e);
