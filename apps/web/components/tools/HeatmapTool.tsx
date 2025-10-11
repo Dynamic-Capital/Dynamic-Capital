@@ -41,15 +41,20 @@ type RelativeStrengthSeries = HeatmapSeriesConfig & {
 };
 
 type RelativeStrengthGeometry = {
+  chartId: string;
   series: Array<{
     instrumentId: string;
     label: string;
     path: string;
+    areaPath: string;
+    gradientId: string;
     color: string;
-    lastPoint: { x: number; y: number; value: number };
+    lastPoint: { x: number; y: number; value: number; valueLabel: string };
   }>;
   xTicks: Array<{ label: string; x: number }>;
   yTicks: Array<{ value: number; y: number }>;
+  baselineY: number;
+  midlineY: number;
 };
 
 type MatrixPoint = HeatmapMatrixPointConfig & {
@@ -58,11 +63,13 @@ type MatrixPoint = HeatmapMatrixPointConfig & {
 };
 
 type MatrixGeometry = {
+  matrixId: string;
   points: Array<MatrixPoint & { x: number; y: number }>;
   axes: {
     xTicks: Array<{ value: number; x: number }>;
     yTicks: Array<{ value: number; y: number }>;
   };
+  center: { x: number; y: number };
 };
 
 type MomentumEntry = {
@@ -159,6 +166,12 @@ const getChartColor = (index: number) => {
   return `hsl(var(--chart-${paletteIndex}) / 0.6)`;
 };
 
+const toDomFriendlyId = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+const formatRelativeStrengthValue = (value: number) =>
+  Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
+
 const buildStrengthEntries = (
   entries: HeatmapStrengthEntryConfig[],
 ): StrengthEntry[] =>
@@ -188,6 +201,7 @@ const buildSeries = (
 const buildRelativeStrengthGeometry = (
   labels: string[],
   seriesConfig: HeatmapSeriesConfig[],
+  chartKey: string,
 ): RelativeStrengthGeometry => {
   const { width, height, marginX, marginY } = CHART_DIMENSIONS;
   const usableWidth = width - marginX * 2;
@@ -195,11 +209,15 @@ const buildRelativeStrengthGeometry = (
   const minValue = 0;
   const maxValue = 100;
   const valueRange = maxValue - minValue;
+  const chartId = toDomFriendlyId(chartKey || "relative-strength");
 
   const scaleX = (index: number) =>
     marginX + (usableWidth / Math.max(labels.length - 1, 1)) * index;
   const scaleY = (value: number) =>
     height - marginY - ((value - minValue) / valueRange) * usableHeight;
+
+  const baselineY = scaleY(minValue);
+  const midlineY = scaleY(50);
 
   const resolvedSeries = buildSeries(seriesConfig);
 
@@ -208,6 +226,7 @@ const buildRelativeStrengthGeometry = (
       x: scaleX(valueIndex),
       y: scaleY(value),
     }));
+    const firstPoint = coordinates[0];
     const path = coordinates
       .map((point, pointIndex) =>
         `${pointIndex === 0 ? "M" : "L"}${point.x} ${point.y}`
@@ -217,12 +236,31 @@ const buildRelativeStrengthGeometry = (
     const lastValue = item.values[item.values.length - 1];
     const lastPoint = coordinates[coordinates.length - 1];
 
+    const areaPath = firstPoint
+      ? [
+        `M${firstPoint.x} ${baselineY}`,
+        ...coordinates.map((point) => `L${point.x} ${point.y}`),
+        `L${lastPoint.x} ${baselineY}`,
+        "Z",
+      ].join(" ")
+      : "";
+
+    const gradientId = `${chartId}-gradient-${
+      toDomFriendlyId(item.instrumentId)
+    }`;
+
     return {
       instrumentId: item.instrumentId,
       label: item.label,
       path,
+      areaPath,
+      gradientId,
       color: getChartColor(index),
-      lastPoint: { ...lastPoint, value: lastValue },
+      lastPoint: {
+        ...lastPoint,
+        value: lastValue,
+        valueLabel: formatRelativeStrengthValue(lastValue),
+      },
     };
   });
 
@@ -236,7 +274,7 @@ const buildRelativeStrengthGeometry = (
     y: scaleY(value),
   }));
 
-  return { series, xTicks, yTicks };
+  return { series, xTicks, yTicks, baselineY, midlineY, chartId };
 };
 
 const buildMatrixPoints = (
@@ -251,10 +289,12 @@ const buildMatrixPoints = (
 
 const buildMatrixGeometry = (
   points: HeatmapMatrixPointConfig[],
+  matrixKey: string,
 ): MatrixGeometry => {
   const { width, height, margin } = MATRIX_DIMENSIONS;
   const usableWidth = width - margin * 2;
   const usableHeight = height - margin * 2;
+  const matrixId = toDomFriendlyId(`${matrixKey || "trend-matrix"}-matrix`);
 
   const scale = (value: number) => value / 100;
 
@@ -282,11 +322,13 @@ const buildMatrixGeometry = (
     }));
 
   return {
+    matrixId,
     points: mappedPoints,
     axes: {
       xTicks: buildTicks(),
       yTicks: buildYTicks(),
     },
+    center: { x: toX(50), y: toY(50) },
   };
 };
 
@@ -370,6 +412,8 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
   const config = HEATMAP_CONFIGS[assetClass];
   const { supabase } = useSupabase();
 
+  const geometryKey = id ?? assetClass;
+
   const strengthEntries = useMemo(
     () => buildStrengthEntries(config.strength.entries),
     [config.strength.entries],
@@ -377,13 +421,17 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
 
   const relativeStrengthGeometry = useMemo(
     () =>
-      buildRelativeStrengthGeometry(config.chart.labels, config.chart.series),
-    [config.chart.labels, config.chart.series],
+      buildRelativeStrengthGeometry(
+        config.chart.labels,
+        config.chart.series,
+        `${geometryKey}-chart`,
+      ),
+    [config.chart.labels, config.chart.series, geometryKey],
   );
 
   const matrixGeometry = useMemo(
-    () => buildMatrixGeometry(config.matrix.points),
-    [config.matrix.points],
+    () => buildMatrixGeometry(config.matrix.points, geometryKey),
+    [config.matrix.points, geometryKey],
   );
 
   const defaultMomentum = useMemo(
@@ -512,6 +560,22 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
       supabase.removeChannel(channel);
     };
   }, [supabase]);
+
+  const chartClipPathId = `${relativeStrengthGeometry.chartId}-clip`;
+  const chartAreaWidth = CHART_DIMENSIONS.width - CHART_DIMENSIONS.marginX * 2;
+  const chartAreaHeight = CHART_DIMENSIONS.height -
+    CHART_DIMENSIONS.marginY * 2;
+  const matrixClipPathId = `${matrixGeometry.matrixId}-clip`;
+  const matrixBounds = {
+    xStart: MATRIX_DIMENSIONS.margin,
+    xEnd: MATRIX_DIMENSIONS.width - MATRIX_DIMENSIONS.margin,
+    yStart: MATRIX_DIMENSIONS.margin,
+    yEnd: MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin,
+  };
+  const matrixTopHeight = matrixGeometry.center.y - matrixBounds.yStart;
+  const matrixBottomHeight = matrixBounds.yEnd - matrixGeometry.center.y;
+  const matrixLeftWidth = matrixGeometry.center.x - matrixBounds.xStart;
+  const matrixRightWidth = matrixBounds.xEnd - matrixGeometry.center.x;
 
   return (
     <Column
@@ -661,6 +725,38 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
               viewBox={`0 0 ${CHART_DIMENSIONS.width} ${CHART_DIMENSIONS.height}`}
               style={{ width: "100%", height: "auto" }}
             >
+              <defs>
+                <clipPath id={chartClipPathId}>
+                  <rect
+                    x={CHART_DIMENSIONS.marginX}
+                    y={CHART_DIMENSIONS.marginY}
+                    width={chartAreaWidth}
+                    height={chartAreaHeight}
+                    rx={12}
+                  />
+                </clipPath>
+                {relativeStrengthGeometry.series.map((series) => (
+                  <linearGradient
+                    key={series.gradientId}
+                    id={series.gradientId}
+                    x1="0%"
+                    x2="0%"
+                    y1="0%"
+                    y2="100%"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor={series.color}
+                      stopOpacity={0.28}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={series.color}
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                ))}
+              </defs>
               <rect
                 x={0}
                 y={0}
@@ -682,6 +778,14 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
                 x2={CHART_DIMENSIONS.marginX}
                 y2={CHART_DIMENSIONS.height - CHART_DIMENSIONS.marginY}
                 stroke="rgba(255,255,255,0.12)"
+              />
+              <line
+                x1={CHART_DIMENSIONS.marginX}
+                x2={CHART_DIMENSIONS.width - CHART_DIMENSIONS.marginX}
+                y1={relativeStrengthGeometry.midlineY}
+                y2={relativeStrengthGeometry.midlineY}
+                stroke="rgba(148,163,184,0.32)"
+                strokeDasharray="6 6"
               />
               {relativeStrengthGeometry.yTicks.map((tick) => (
                 <g key={`y-${tick.value}`}>
@@ -717,24 +821,83 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
                   </text>
                 </g>
               ))}
-              {relativeStrengthGeometry.series.map((series) => (
-                <g key={series.instrumentId}>
-                  <path
-                    d={series.path}
-                    fill="none"
-                    stroke={series.color}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle
-                    cx={series.lastPoint.x}
-                    cy={series.lastPoint.y}
-                    r={3.5}
+              <g clipPath={`url(#${chartClipPathId})`}>
+                {relativeStrengthGeometry.series.map((series) => (
+                  <g key={series.instrumentId}>
+                    {series.areaPath
+                      ? (
+                        <path
+                          d={series.areaPath}
+                          fill={`url(#${series.gradientId})`}
+                          opacity={0.9}
+                        />
+                      )
+                      : null}
+                    <path
+                      d={series.path}
+                      fill="none"
+                      stroke={series.color}
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx={series.lastPoint.x}
+                      cy={series.lastPoint.y}
+                      r={3.5}
+                      fill={series.color}
+                      stroke="rgba(15,23,42,0.35)"
+                      strokeWidth={1.5}
+                    />
+                  </g>
+                ))}
+              </g>
+              {relativeStrengthGeometry.series.map((series) => {
+                const labelX = Math.min(
+                  CHART_DIMENSIONS.width - CHART_DIMENSIONS.marginX,
+                  series.lastPoint.x + 12,
+                );
+                const labelY = Math.max(
+                  CHART_DIMENSIONS.marginY + 16,
+                  series.lastPoint.y - 12,
+                );
+                return (
+                  <text
+                    key={`label-${series.instrumentId}`}
+                    x={labelX}
+                    y={labelY}
+                    fontSize={12}
                     fill={series.color}
-                  />
-                </g>
-              ))}
+                    textAnchor="start"
+                    stroke="rgba(15,23,42,0.72)"
+                    strokeWidth={3}
+                    paintOrder="stroke"
+                  >
+                    {series.lastPoint.valueLabel}%
+                  </text>
+                );
+              })}
+              <text
+                x={CHART_DIMENSIONS.marginX - 48}
+                y={CHART_DIMENSIONS.height / 2}
+                fontSize={12}
+                fill="rgba(255,255,255,0.6)"
+                textAnchor="middle"
+                transform={`rotate(-90 ${CHART_DIMENSIONS.marginX - 48} ${
+                  CHART_DIMENSIONS.height / 2
+                })`}
+              >
+                Relative strength
+              </text>
+              <text
+                x={CHART_DIMENSIONS.width / 2}
+                y={CHART_DIMENSIONS.height - 8}
+                fontSize={12}
+                fill="rgba(255,255,255,0.6)"
+                textAnchor="middle"
+              >
+                Lookback period
+              </text>
             </svg>
           </div>
           <Row gap="8" wrap>
@@ -746,15 +909,30 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
               >
                 <span
                   style={{
-                    display: "inline-block",
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: series.color,
-                    marginRight: 8,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
                   }}
-                />
-                {series.label}
+                >
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: series.color,
+                    }}
+                  />
+                  <span>{series.label}</span>
+                  <span
+                    style={{
+                      fontVariantNumeric: "tabular-nums",
+                      opacity: 0.8,
+                    }}
+                  >
+                    {series.lastPoint.valueLabel}%
+                  </span>
+                </span>
               </Tag>
             ))}
           </Row>
@@ -801,6 +979,33 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
               viewBox={`0 0 ${MATRIX_DIMENSIONS.width} ${MATRIX_DIMENSIONS.height}`}
               style={{ width: "100%", height: "auto" }}
             >
+              <defs>
+                <clipPath id={matrixClipPathId}>
+                  <rect
+                    x={matrixBounds.xStart}
+                    y={matrixBounds.yStart}
+                    width={matrixBounds.xEnd - matrixBounds.xStart}
+                    height={matrixBounds.yEnd - matrixBounds.yStart}
+                    rx={12}
+                  />
+                </clipPath>
+                <filter
+                  id={`${matrixGeometry.matrixId}-shadow`}
+                  x="-50%"
+                  y="-50%"
+                  width="200%"
+                  height="200%"
+                  colorInterpolationFilters="sRGB"
+                >
+                  <feDropShadow
+                    dx="0"
+                    dy="6"
+                    stdDeviation="10"
+                    floodColor="rgba(15,23,42,0.45)"
+                    floodOpacity="0.5"
+                  />
+                </filter>
+              </defs>
               <rect
                 x={0}
                 y={0}
@@ -808,7 +1013,46 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
                 height={MATRIX_DIMENSIONS.height}
                 fill="var(--neutral-alpha-weak)"
                 opacity={0.08}
+                rx={18}
               />
+              <g clipPath={`url(#${matrixClipPathId})`}>
+                <rect
+                  x={matrixBounds.xStart}
+                  y={matrixBounds.yStart}
+                  width={matrixLeftWidth}
+                  height={matrixTopHeight}
+                  fill="hsl(var(--destructive) / 0.08)"
+                />
+                <rect
+                  x={matrixGeometry.center.x}
+                  y={matrixBounds.yStart}
+                  width={matrixRightWidth}
+                  height={matrixTopHeight}
+                  fill="hsl(var(--chart-1) / 0.08)"
+                />
+                <rect
+                  x={matrixBounds.xStart}
+                  y={matrixGeometry.center.y}
+                  width={matrixLeftWidth}
+                  height={matrixBottomHeight}
+                  fill="hsl(var(--destructive) / 0.14)"
+                />
+                <rect
+                  x={matrixGeometry.center.x}
+                  y={matrixGeometry.center.y}
+                  width={matrixRightWidth}
+                  height={matrixBottomHeight}
+                  fill="hsl(var(--chart-4) / 0.08)"
+                />
+                <line
+                  x1={matrixBounds.xStart}
+                  y1={matrixBounds.yEnd}
+                  x2={matrixBounds.xEnd}
+                  y2={matrixBounds.yStart}
+                  stroke="rgba(148,163,184,0.22)"
+                  strokeDasharray="10 10"
+                />
+              </g>
               <line
                 x1={MATRIX_DIMENSIONS.margin}
                 y1={MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin}
@@ -822,6 +1066,22 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
                 x2={MATRIX_DIMENSIONS.margin}
                 y2={MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin}
                 stroke="rgba(255,255,255,0.12)"
+              />
+              <line
+                x1={matrixBounds.xStart}
+                x2={matrixBounds.xEnd}
+                y1={matrixGeometry.center.y}
+                y2={matrixGeometry.center.y}
+                stroke="rgba(148,163,184,0.3)"
+                strokeDasharray="6 6"
+              />
+              <line
+                x1={matrixGeometry.center.x}
+                x2={matrixGeometry.center.x}
+                y1={matrixBounds.yStart}
+                y2={matrixBounds.yEnd}
+                stroke="rgba(148,163,184,0.3)"
+                strokeDasharray="6 6"
               />
               {matrixGeometry.axes.yTicks.map((tick) => (
                 <g key={`matrix-y-${tick.value}`}>
@@ -878,11 +1138,35 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
                         : directionStyle.background === "brand-alpha-weak"
                         ? "hsl(var(--chart-1))"
                         : "hsl(var(--chart-2))"}
-                      opacity={0.7}
+                      opacity={0.85}
+                      stroke="rgba(15,23,42,0.4)"
+                      strokeWidth={2}
+                      filter={`url(#${matrixGeometry.matrixId}-shadow)`}
                     />
                   </g>
                 );
               })}
+              <text
+                x={MATRIX_DIMENSIONS.margin - 52}
+                y={MATRIX_DIMENSIONS.height / 2}
+                fontSize={12}
+                fill="rgba(255,255,255,0.6)"
+                textAnchor="middle"
+                transform={`rotate(-90 ${MATRIX_DIMENSIONS.margin - 52} ${
+                  MATRIX_DIMENSIONS.height / 2
+                })`}
+              >
+                Short-term momentum
+              </text>
+              <text
+                x={MATRIX_DIMENSIONS.width / 2}
+                y={MATRIX_DIMENSIONS.height - 8}
+                fontSize={12}
+                fill="rgba(255,255,255,0.6)"
+                textAnchor="middle"
+              >
+                Long-term momentum
+              </text>
             </svg>
           </div>
           <Column gap="16">
