@@ -405,6 +405,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[SymbolExport, ...]] = {
         "SenseFrame",
     ),
     "dynamic_self_awareness": ("DynamicSelfAwareness",),
+    "dynamic_self_diagnosing": ("DynamicSelfDiagnosing",),
     "dynamic_self_healing": ("DynamicSelfHealing",),
     "dynamic_ecosystem": (
         "CascadeSimulation",
