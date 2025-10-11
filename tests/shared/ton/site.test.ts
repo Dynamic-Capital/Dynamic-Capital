@@ -6,6 +6,7 @@ import {
   normalizeTonGatewayPath,
   resolveTonSiteUrl,
   TON_SITE_DOMAIN,
+  TON_SITE_ALIAS_DOMAINS,
   TON_SITE_GATEWAY_BASE,
   TON_SITE_GATEWAY_ORIGIN,
   TON_SITE_GATEWAY_URL,
@@ -28,6 +29,7 @@ describe("ton site gateway helpers", () => {
       "https://ton-gateway.dynamic-capital.ondigitalocean.app",
     );
     assertEquals(TON_SITE_DOMAIN, "dynamiccapital.ton");
+    assertEquals([...TON_SITE_ALIAS_DOMAINS], ["dynamicapital.ton"]);
     assertEquals(
       TON_SITE_GATEWAY_ORIGIN,
       "https://ton.site/dynamiccapital.ton",
@@ -130,6 +132,8 @@ describe("ton site gateway helpers", () => {
       { input: `/${TON_SITE_DOMAIN}`, expected: "" },
       { input: `/${TON_SITE_DOMAIN}/`, expected: "" },
       { input: `/${TON_SITE_DOMAIN}//`, expected: "" },
+      { input: "/dynamicapital.ton", expected: "" },
+      { input: "/dynamicapital.ton/", expected: "" },
       {
         input: `/${TON_SITE_DOMAIN}/icon.png`,
         expected: "/icon.png",
@@ -144,6 +148,10 @@ describe("ton site gateway helpers", () => {
       },
       {
         input: `/${TON_SITE_DOMAIN}//nested//asset`,
+        expected: "/nested/asset",
+      },
+      {
+        input: "/dynamicapital.ton//nested//asset",
         expected: "/nested/asset",
       },
       {
@@ -170,6 +178,11 @@ describe("ton site gateway helpers", () => {
       `/${TON_SITE_DOMAIN}//nested//asset`,
       `${TON_SITE_DOMAIN}`,
       ` ${TON_SITE_DOMAIN}/docs `,
+      "/dynamicapital.ton",
+      "/dynamicapital.ton/",
+      "/dynamicapital.ton/icon.png",
+      "dynamicapital.ton",
+      " dynamicapital.ton/docs ",
     ];
 
     for (const input of positiveCases) {
