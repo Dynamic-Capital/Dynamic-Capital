@@ -1,14 +1,23 @@
 import { compileFunc } from "@ton-community/func-js";
-import { beginCell, Cell, Address, toNano } from "@ton/core";
-import { SmartContract, internal, type SendMsgAction } from "ton-contract-executor";
+import { beginCell, Cell, Address, toNano, Slice } from "@ton/core";
+import {
+  SmartContract,
+  internal,
+  stackSlice,
+  type ExecutionResult,
+  type SendMsgAction,
+  type SuccessfulExecutionResult,
+} from "ton-contract-executor";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
+import { TON_MAINNET_JETTON_MASTER } from "../../../shared/ton/mainnet-addresses.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const CONTRACT_ROOT = resolve(__dirname, "../jetton/discoverable");
+const CONTRACT_ROOT = resolve(__dirname, "..");
+const TARGET_SOURCE = "jetton/discoverable/master.fc";
 
 function loadSource(path: string): string {
   const resolved = resolve(CONTRACT_ROOT, path);
@@ -19,12 +28,19 @@ function loadSource(path: string): string {
   }
 }
 
-const MASTER_ADDRESS = Address.parse(
-  "0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-);
+const MASTER_FRIENDLY_ADDRESS = TON_MAINNET_JETTON_MASTER;
+const MASTER_ADDRESS = Address.parseFriendly(MASTER_FRIENDLY_ADDRESS).address;
 const DISCOVERY_PROTOCOL_VERSION = 1n;
 const OP_PROVIDE_WALLET_ADDRESS = 0x2c76b973;
 const OP_TAKE_WALLET_ADDRESS = 0xd1735400;
+
+function expectSuccessfulExecution(
+  result: ExecutionResult,
+  context: string,
+): asserts result is SuccessfulExecutionResult {
+  assert.equal(result.type, "success", `${context}: TVM exited with code ${result.exit_code}`);
+  assert.equal(result.exit_code, 0, `${context}: expected zero exit code`);
+}
 
 function buildWalletData(ownerAddress: Address, masterAddress: Address): Cell {
   return beginCell()
@@ -62,10 +78,16 @@ function expectSingleResponse(actions: SendMsgAction[]): SendMsgAction {
   return actions[0];
 }
 
-async function main() {
+export async function runDiscoveryGetterRegression() {
+  assert.equal(
+    MASTER_ADDRESS.toString({ urlSafe: true }),
+    MASTER_FRIENDLY_ADDRESS,
+    "DCT master contract address mismatch",
+  );
+
   const compileResult = await compileFunc({
-    targets: ["master.fc"],
-    sources: (path) => loadSource(path),
+    targets: [TARGET_SOURCE],
+    sources: loadSource,
   });
 
   if (compileResult.status === "error") {
@@ -91,19 +113,34 @@ async function main() {
   contract.setC7Config({ myself: MASTER_ADDRESS, balance: toNano("10") });
 
   const discoveryResult = await contract.invokeGetMethod("get_discovery_data", []);
-
-  assert.equal(
-    discoveryResult.type,
-    "success",
-    `TVM exited with code ${discoveryResult.exit_code}`,
-  );
-  assert.equal(discoveryResult.exit_code, 0);
+  expectSuccessfulExecution(discoveryResult, "get_discovery_data");
   assert.equal(discoveryResult.result.length, 2);
 
   const [version, walletCell] = discoveryResult.result;
   assert.equal(version, DISCOVERY_PROTOCOL_VERSION, "Discovery protocol version mismatch");
   assert.ok(walletCell instanceof Cell, "Wallet code was not returned as a cell");
   assert.ok((walletCell as Cell).equals(walletCodeCell), "Wallet code cell mismatch");
+
+  const jettonDataResult = await contract.invokeGetMethod("get_jetton_data", []);
+  expectSuccessfulExecution(jettonDataResult, "get_jetton_data");
+  assert.equal(jettonDataResult.result.length, 5, "Unexpected jetton data stack length");
+
+  const [supplyResult, mintableResult, adminEntry, contentEntry, walletCodeEntry] =
+    jettonDataResult.result;
+  assert.equal(supplyResult, totalSupply, "Total supply mismatch");
+  assert.equal(mintableResult, -1n, "Mintable flag mismatch");
+  assert.ok(
+    adminEntry instanceof Cell || adminEntry instanceof Slice,
+    "Admin address entry must be a cell slice",
+  );
+  const adminSlice =
+    adminEntry instanceof Cell ? adminEntry.beginParse() : (adminEntry as Slice).clone();
+  const resolvedAdminAddress = adminSlice.loadAddress();
+  assert.ok(resolvedAdminAddress?.equals(adminAddress), "Admin address mismatch");
+  assert.ok(contentEntry instanceof Cell, "Content entry must be a cell");
+  assert.ok((contentEntry as Cell).equals(contentCell), "Content cell mismatch");
+  assert.ok(walletCodeEntry instanceof Cell, "Wallet code entry must be a cell");
+  assert.ok((walletCodeEntry as Cell).equals(walletCodeCell), "Wallet code mismatch");
 
   const senderAddress = Address.parse(
     "0:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -129,8 +166,7 @@ async function main() {
     }),
   );
 
-  assert.equal(provideResult.type, "success", `TVM exited with code ${provideResult.exit_code}`);
-  assert.equal(provideResult.exit_code, 0);
+  expectSuccessfulExecution(provideResult, "provide_wallet_address");
 
   const sendActions = provideResult.actionList.filter(
     (action): action is SendMsgAction => action.type === "send_msg",
@@ -165,7 +201,34 @@ async function main() {
   assert.ok(includedAddressRef, "Owner address reference missing");
   const includedAddress = includedAddressRef.beginParse().loadAddress();
   assert.ok(includedAddress.equals(ownerAddress), "Included owner address mismatch");
+
+  const walletAddressResult = await contract.invokeGetMethod(
+    "get_wallet_address",
+    [stackSlice(beginCell().storeAddress(ownerAddress).endCell())],
+  );
+  expectSuccessfulExecution(walletAddressResult, "get_wallet_address");
+  assert.equal(walletAddressResult.result.length, 1, "Unexpected wallet address stack length");
+  const derivedWalletSlice = walletAddressResult.result[0];
+  assert.ok(
+    derivedWalletSlice instanceof Cell || derivedWalletSlice instanceof Slice,
+    "Wallet address result must be a cell slice",
+  );
+  const resolvedWalletSlice =
+    derivedWalletSlice instanceof Cell
+      ? derivedWalletSlice.beginParse()
+      : (derivedWalletSlice as Slice).clone();
+  const derivedWalletAddress = resolvedWalletSlice.loadAddress();
+  assert.ok(
+    derivedWalletAddress?.equals(expectedWalletAddress),
+    "Derived wallet address mismatch",
+  );
 }
 
-await main();
-process.exit(0);
+if (import.meta.url === `file://${__filename}`) {
+  runDiscoveryGetterRegression()
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
+}
