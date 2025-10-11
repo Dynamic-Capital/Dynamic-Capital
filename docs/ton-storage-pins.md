@@ -7,7 +7,7 @@ for production availability.
 
 | Added on   | Operator    | Content hash                                                         | Artifact description                           | Notes                                                                                         |
 | ---------- | ----------- | -------------------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| 2025-10-06 | Dynamic Ops | bag:9da7628952ce0cd02234e7195285beb9afdcff649349a5f870315c0b159dba96 | TON Site public asset bundle (apps/web/public) | Hash tracked via `scripts/verify/ton_storage.mjs`; update after publishing new gateway bundle |
+| 2025-10-10 | Dynamic Ops | bag:78c26d7594151335f3b137318ef151dab6b98106e784206841d307a4b8296695 | TON Site public asset bundle (apps/web/public) | Hash tracked via `scripts/verify/ton_storage.mjs`; update after publishing new gateway bundle |
 
 ## Archive
 
