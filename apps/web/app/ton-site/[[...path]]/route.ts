@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
 
 import {
-  resolveTonSiteGatewayBaseForHost,
+  resolveTonSiteGatewayBasesForHost,
   resolveTonSiteGatewayOrigin,
 } from "@shared/ton/site";
 const PROXY_HEADER = "x-dynamic-ton-gateway";
+const PROXY_SOURCE_HEADER = "x-dynamic-ton-gateway-host";
+const PROXY_ATTEMPTS_HEADER = "x-dynamic-ton-gateway-attempts";
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
   "keep-alive",
@@ -62,6 +64,7 @@ function filterResponseHeaders(
   headers: Headers,
   req: NextRequest,
   tonSiteBase: string,
+  gatewayHost: string,
 ): Headers {
   const filtered = new Headers();
   const origin = req.nextUrl.origin;
@@ -80,6 +83,7 @@ function filterResponseHeaders(
   }
 
   filtered.set(PROXY_HEADER, "1");
+  filtered.set(PROXY_SOURCE_HEADER, gatewayHost);
 
   return filtered;
 }
@@ -113,6 +117,15 @@ type TonSiteRouteParams = { path?: string[] };
 
 type TonSiteRouteContext = { params: Promise<TonSiteRouteParams> };
 
+const RETRIABLE_UPSTREAM_STATUSES = new Set([404, 502, 503, 504]);
+
+function shouldRetryGatewayResponse(response: Response): boolean {
+  if (RETRIABLE_UPSTREAM_STATUSES.has(response.status)) {
+    return true;
+  }
+  return response.status >= 500;
+}
+
 async function proxyTonSite(
   req: NextRequest,
   params: TonSiteRouteParams = {},
@@ -129,34 +142,73 @@ async function proxyTonSite(
     });
   }
 
-  const gatewayBase = resolveTonSiteGatewayBaseForHost(req.headers.get("host"));
-  const tonSiteBase = resolveTonSiteGatewayOrigin(gatewayBase);
-  const gatewayHost = new URL(gatewayBase).host;
-  const upstreamUrl = buildUpstreamUrl(
-    tonSiteBase,
-    params.path,
-    req.nextUrl.search,
+  const candidateGatewayBases = resolveTonSiteGatewayBasesForHost(
+    req.headers.get("host"),
   );
-  const upstreamResponse = await fetch(upstreamUrl, {
-    method: req.method,
-    headers: filterRequestHeaders(req.headers, gatewayHost),
-    redirect: "manual",
-    cache: "no-store",
-  });
+  const attemptSummaries: string[] = [];
 
-  const responseHeaders = filterResponseHeaders(
-    upstreamResponse.headers,
-    req,
-    tonSiteBase,
-  );
-  return new Response(
-    req.method === "HEAD" ? null : upstreamResponse.body,
-    {
-      status: upstreamResponse.status,
-      statusText: upstreamResponse.statusText,
-      headers: responseHeaders,
-    },
-  );
+  for (const candidateBase of candidateGatewayBases) {
+    const tonSiteBase = resolveTonSiteGatewayOrigin(candidateBase);
+    const gatewayHost = new URL(candidateBase).host;
+    const upstreamUrl = buildUpstreamUrl(
+      tonSiteBase,
+      params.path,
+      req.nextUrl.search,
+    );
+
+    let upstreamResponse: Response;
+    try {
+      upstreamResponse = await fetch(upstreamUrl, {
+        method: req.method,
+        headers: filterRequestHeaders(req.headers, gatewayHost),
+        redirect: "manual",
+        cache: "no-store",
+      });
+    } catch {
+      attemptSummaries.push(`${gatewayHost}:error`);
+      continue;
+    }
+
+    if (shouldRetryGatewayResponse(upstreamResponse)) {
+      attemptSummaries.push(`${gatewayHost}:${upstreamResponse.status}`);
+      upstreamResponse.body?.cancel();
+      continue;
+    }
+
+    const responseHeaders = filterResponseHeaders(
+      upstreamResponse.headers,
+      req,
+      tonSiteBase,
+      gatewayHost,
+    );
+    return new Response(
+      req.method === "HEAD" ? null : upstreamResponse.body,
+      {
+        status: upstreamResponse.status,
+        statusText: upstreamResponse.statusText,
+        headers: responseHeaders,
+      },
+    );
+  }
+
+  const failureMessage = attemptSummaries.length
+    ? `Unable to load TON site via configured gateways (${
+      attemptSummaries.join(
+        ", ",
+      )
+    }).`
+    : "Unable to load TON site via configured gateways.";
+  const fallbackHeaders = new Headers();
+  fallbackHeaders.set(PROXY_HEADER, "0");
+  if (attemptSummaries.length > 0) {
+    fallbackHeaders.set(PROXY_ATTEMPTS_HEADER, attemptSummaries.join(","));
+  }
+
+  return new Response(req.method === "HEAD" ? null : failureMessage, {
+    status: 502,
+    statusText: "Bad Gateway",
+    headers: fallbackHeaders,
+  });
 }
 
 async function resolveRouteParams(

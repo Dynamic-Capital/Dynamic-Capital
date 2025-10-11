@@ -11,15 +11,35 @@ export const TON_SITE_GATEWAY_BASE = "https://ton.site";
 export const TON_SITE_GATEWAY_STANDBY_BASE =
   "https://ton-gateway.dynamic-capital.ondigitalocean.app";
 
-export const TON_SITE_GATEWAY_PRIMARY_HOST =
-  new URL(TON_SITE_GATEWAY_BASE).hostname;
-export const TON_SITE_GATEWAY_STANDBY_HOST =
-  new URL(TON_SITE_GATEWAY_STANDBY_BASE).hostname;
+export const TON_SITE_GATEWAY_FOUNDATION_BASES = Object.freeze([
+  TON_SITE_GATEWAY_BASE,
+  "https://tonsite.io",
+  "https://tonsite.link",
+] as const);
 
-export const TON_SITE_GATEWAY_HOSTS = [
-  TON_SITE_GATEWAY_PRIMARY_HOST,
-  TON_SITE_GATEWAY_STANDBY_HOST,
-] as const;
+export const TON_SITE_GATEWAY_SELF_HOST_BASES = Object.freeze([
+  TON_SITE_GATEWAY_STANDBY_BASE,
+  "https://ton-gateway.dynamic-capital.lovable.app",
+] as const);
+
+const TON_SITE_GATEWAY_FOUNDATION_HOSTS =
+  TON_SITE_GATEWAY_FOUNDATION_BASES.map((base) => new URL(base).hostname);
+const TON_SITE_GATEWAY_SELF_HOST_HOSTS =
+  TON_SITE_GATEWAY_SELF_HOST_BASES.map((base) => new URL(base).hostname);
+
+export const TON_SITE_GATEWAY_PRIMARY_HOST =
+  TON_SITE_GATEWAY_FOUNDATION_HOSTS[0];
+export const TON_SITE_GATEWAY_STANDBY_HOST =
+  TON_SITE_GATEWAY_SELF_HOST_HOSTS[0];
+
+export const TON_SITE_GATEWAY_HOSTS = Object.freeze(
+  Array.from(
+    new Set([
+      ...TON_SITE_GATEWAY_FOUNDATION_HOSTS,
+      ...TON_SITE_GATEWAY_SELF_HOST_HOSTS,
+    ]),
+  ),
+);
 
 function trimTrailingSlash(input: string): string {
   return input.endsWith("/") ? input.slice(0, -1) : input;
@@ -27,6 +47,18 @@ function trimTrailingSlash(input: string): string {
 
 export function resolveTonSiteGatewayOrigin(base: string): string {
   return `${trimTrailingSlash(base)}/${TON_SITE_DOMAIN}`;
+}
+
+const TON_SITE_GATEWAY_BASE_BY_HOST = new Map<string, string>();
+for (const base of [
+  ...TON_SITE_GATEWAY_FOUNDATION_BASES,
+  ...TON_SITE_GATEWAY_SELF_HOST_BASES,
+]) {
+  const normalizedBase = trimTrailingSlash(base);
+  const host = new URL(normalizedBase).hostname;
+  if (!TON_SITE_GATEWAY_BASE_BY_HOST.has(host)) {
+    TON_SITE_GATEWAY_BASE_BY_HOST.set(host, normalizedBase);
+  }
 }
 
 export const TON_SITE_GATEWAY_ORIGIN = resolveTonSiteGatewayOrigin(
@@ -86,21 +118,52 @@ export const TON_SITE_SOCIAL_PREVIEW_URL = resolveTonSiteUrl(
   "social/social-preview.svg",
 );
 
-const TON_SITE_GATEWAY_BASE_BY_HOST = new Map<string, string>([
-  [TON_SITE_GATEWAY_PRIMARY_HOST, TON_SITE_GATEWAY_BASE],
-  [TON_SITE_GATEWAY_STANDBY_HOST, TON_SITE_GATEWAY_STANDBY_BASE],
-]);
+export function resolveTonSiteGatewayBasesForHost(
+  host: string | null | undefined,
+): readonly string[] {
+  const prioritized: string[] = [];
+  const seen = new Set<string>();
+
+  const addBase = (base: string | undefined) => {
+    if (!base) return;
+    const trimmed = trimTrailingSlash(base.trim());
+    if (!trimmed) return;
+    if (seen.has(trimmed)) return;
+    seen.add(trimmed);
+    prioritized.push(trimmed);
+  };
+
+  if (host) {
+    const normalizedHost = host.trim().toLowerCase();
+    if (normalizedHost) {
+      const hostname = normalizedHost.split(":")[0];
+      const mapped = TON_SITE_GATEWAY_BASE_BY_HOST.get(hostname);
+      if (mapped) {
+        addBase(mapped);
+      }
+    }
+  }
+
+  for (const base of TON_SITE_GATEWAY_FOUNDATION_BASES) {
+    addBase(base);
+  }
+
+  for (const base of TON_SITE_GATEWAY_SELF_HOST_BASES) {
+    addBase(base);
+  }
+
+  if (prioritized.length === 0) {
+    addBase(TON_SITE_GATEWAY_BASE);
+  }
+
+  return Object.freeze([...prioritized]);
+}
 
 export function resolveTonSiteGatewayBaseForHost(
   host: string | null | undefined,
 ): string {
-  if (!host) return TON_SITE_GATEWAY_BASE;
-
-  const normalized = host.trim().toLowerCase();
-  if (!normalized) return TON_SITE_GATEWAY_BASE;
-
-  const hostname = normalized.split(":")[0];
-  return TON_SITE_GATEWAY_BASE_BY_HOST.get(hostname) ?? TON_SITE_GATEWAY_BASE;
+  const [first] = resolveTonSiteGatewayBasesForHost(host);
+  return first ?? TON_SITE_GATEWAY_BASE;
 }
 
 /**
