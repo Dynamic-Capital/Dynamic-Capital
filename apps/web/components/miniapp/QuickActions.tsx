@@ -1,5 +1,8 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -7,137 +10,240 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   Interactive3DCard,
-  MagneticCard,
-  RippleCard,
   StaggeredGrid,
 } from "@/components/ui/interactive-cards";
 import {
-  Bell,
   BookOpen,
   ExternalLink,
-  Headphones,
+  type LucideIcon,
   MessageSquare,
   Star,
   TrendingUp,
   Users,
+  Wallet,
   Zap,
 } from "lucide-react";
-import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { toast } from "sonner";
+
+type QuickActionPriority = "high" | "medium" | "low";
 
 interface QuickAction {
   id: string;
   title: string;
   description: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   action: () => void;
   isExternal?: boolean;
-  priority?: "high" | "medium" | "low";
+  priority?: QuickActionPriority;
 }
 
+interface QuickActionContext {
+  isInTelegram: boolean;
+  openExternalLink: (url: string, message: string) => void;
+  navigateWithToast: (path: string, message: string) => void;
+  setTabWithHistory: (tab: string, message: string) => void;
+}
+
+type QuickActionFactory = (context: QuickActionContext) => QuickAction;
+
+type TelegramWindow = Window & {
+  Telegram?: {
+    WebApp?: {
+      openLink?: (url: string) => void;
+      openTelegramLink?: (url: string) => void;
+    };
+  };
+};
+
+const QUICK_ACTION_FACTORIES: QuickActionFactory[] = [
+  ({ openExternalLink }) => ({
+    id: "contact",
+    title: "Contact Support",
+    description: "Get help from our team",
+    icon: MessageSquare,
+    action: () =>
+      openExternalLink(
+        "https://t.me/DynamicCapital_Support",
+        "Opening support chat...",
+      ),
+    isExternal: true,
+    priority: "high",
+  }),
+  ({ navigateWithToast }) => ({
+    id: "account_access",
+    title: "Account & Billing",
+    description: "Manage receipts and subscriptions",
+    icon: Wallet,
+    action: () =>
+      navigateWithToast(
+        "/miniapp/dynamic-access",
+        "Opening account dashboard...",
+      ),
+    priority: "high",
+  }),
+  ({ openExternalLink }) => ({
+    id: "community",
+    title: "Join Community",
+    description: "Connect with traders",
+    icon: Users,
+    action: () =>
+      openExternalLink(
+        "https://t.me/DynamicCapital_Community",
+        "Opening community...",
+      ),
+    isExternal: true,
+    priority: "medium",
+  }),
+  ({ isInTelegram }) => ({
+    id: "signals",
+    title: "Signal Alerts",
+    description: "Real-time notifications",
+    icon: Zap,
+    action: () => {
+      toast.info(
+        isInTelegram
+          ? "Enable notifications in Telegram settings for instant alerts"
+          : "Download our Telegram bot for real-time signal alerts",
+      );
+    },
+    priority: "high",
+  }),
+  ({ setTabWithHistory }) => ({
+    id: "education",
+    title: "Trading Academy",
+    description: "Learn & improve skills",
+    icon: BookOpen,
+    action: () =>
+      setTabWithHistory("education", "Navigating to Trading Academy..."),
+    priority: "medium",
+  }),
+  ({ setTabWithHistory }) => ({
+    id: "performance",
+    title: "Track Performance",
+    description: "Monitor your progress",
+    icon: TrendingUp,
+    action: () =>
+      setTabWithHistory("dashboard", "Opening performance tracker..."),
+    priority: "medium",
+  }),
+  ({ openExternalLink }) => ({
+    id: "reviews",
+    title: "Member Reviews",
+    description: "See what others say",
+    icon: Star,
+    action: () =>
+      openExternalLink(
+        "https://t.me/DynamicCapital_Reviews",
+        "Opening member reviews...",
+      ),
+    isExternal: true,
+    priority: "low",
+  }),
+];
+
 export function QuickActions() {
-  const isInTelegram = typeof window !== "undefined" && window.Telegram?.WebApp;
+  const router = useRouter();
+  const [isInTelegram, setIsInTelegram] = useState(false);
 
-  const quickActions: QuickAction[] = [
-    {
-      id: "contact",
-      title: "Contact Support",
-      description: "Get help from our team",
-      icon: <MessageSquare className="h-5 w-5" />,
-      action: () => {
-        window.open("https://t.me/DynamicCapital_Support", "_blank");
-        toast.success("Opening support chat...");
-      },
-      isExternal: true,
-      priority: "high",
-    },
-    {
-      id: "vip_support",
-      title: "VIP Support",
-      description: "Priority assistance",
-      icon: <Headphones className="h-5 w-5" />,
-      action: () => {
-        window.open("https://t.me/DynamicCapital_Support", "_blank");
-        toast.success("Opening VIP support...");
-      },
-      isExternal: true,
-      priority: "high",
-    },
-    {
-      id: "community",
-      title: "Join Community",
-      description: "Connect with traders",
-      icon: <Users className="h-5 w-5" />,
-      action: () => {
-        window.open("https://t.me/DynamicCapital_Community", "_blank");
-        toast.success("Opening community...");
-      },
-      isExternal: true,
-      priority: "medium",
-    },
-    {
-      id: "signals",
-      title: "Signal Alerts",
-      description: "Real-time notifications",
-      icon: <Zap className="h-5 w-5" />,
-      action: () => {
-        if (isInTelegram) {
-          toast.info(
-            "Enable notifications in Telegram settings for instant alerts",
-          );
-        } else {
-          toast.info("Download our Telegram bot for real-time signal alerts");
-        }
-      },
-      priority: "high",
-    },
-    {
-      id: "education",
-      title: "Trading Academy",
-      description: "Learn & improve skills",
-      icon: <BookOpen className="h-5 w-5" />,
-      action: () => {
-        const url = new URL(window.location.href);
-        url.searchParams.set("tab", "education");
-        window.history.pushState({}, "", url.toString());
-        window.dispatchEvent(new PopStateEvent("popstate"));
-        toast.success("Navigating to Trading Academy...");
-      },
-      priority: "medium",
-    },
-    {
-      id: "performance",
-      title: "Track Performance",
-      description: "Monitor your progress",
-      icon: <TrendingUp className="h-5 w-5" />,
-      action: () => {
-        const url = new URL(window.location.href);
-        url.searchParams.set("tab", "dashboard");
-        window.history.pushState({}, "", url.toString());
-        window.dispatchEvent(new PopStateEvent("popstate"));
-        toast.success("Opening performance tracker...");
-      },
-      priority: "medium",
-    },
-    {
-      id: "reviews",
-      title: "Member Reviews",
-      description: "See what others say",
-      icon: <Star className="h-5 w-5" />,
-      action: () => {
-        window.open("https://t.me/DynamicCapital_Reviews", "_blank");
-        toast.success("Opening member reviews...");
-      },
-      isExternal: true,
-      priority: "low",
-    },
-  ];
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
 
-  const getPriorityStyles = (priority: string = "medium") => {
+    const detectTelegramPresence = () => {
+      const webApp = (window as TelegramWindow).Telegram?.WebApp;
+      setIsInTelegram(Boolean(webApp));
+    };
+
+    detectTelegramPresence();
+
+    window.addEventListener("focus", detectTelegramPresence);
+
+    return () => {
+      window.removeEventListener("focus", detectTelegramPresence);
+    };
+  }, []);
+
+  const openExternalLink = useCallback((url: string, message: string) => {
+    toast.success(message);
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const webApp = (window as TelegramWindow).Telegram?.WebApp;
+
+    if (url.startsWith("https://t.me/") && webApp?.openTelegramLink) {
+      webApp.openTelegramLink(url);
+      return;
+    }
+
+    if (webApp?.openLink) {
+      webApp.openLink(url);
+      return;
+    }
+
+    window.open(url, "_blank", "noopener,noreferrer");
+  }, []);
+
+  const navigateWithToast = useCallback(
+    (path: string, message: string) => {
+      toast.success(message);
+      router.push(path);
+    },
+    [router],
+  );
+
+  const setTabWithHistory = useCallback((tab: string, message: string) => {
+    toast.success(message);
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", tab);
+
+      if (typeof window.history?.pushState === "function") {
+        window.history.pushState({}, "", url.toString());
+        const popstateEvent = typeof window.PopStateEvent === "function"
+          ? new window.PopStateEvent("popstate")
+          : new Event("popstate");
+        window.dispatchEvent(popstateEvent);
+      } else {
+        window.location.assign(url.toString());
+      }
+    } catch {
+      window.location.href = `?tab=${tab}`;
+    }
+  }, []);
+
+  const quickActionContext = useMemo<QuickActionContext>(
+    () => ({
+      isInTelegram,
+      openExternalLink,
+      navigateWithToast,
+      setTabWithHistory,
+    }),
+    [
+      isInTelegram,
+      navigateWithToast,
+      openExternalLink,
+      setTabWithHistory,
+    ],
+  );
+
+  const quickActions: QuickAction[] = useMemo(
+    () => QUICK_ACTION_FACTORIES.map((factory) => factory(quickActionContext)),
+    [quickActionContext],
+  );
+
+  const getPriorityStyles = (
+    priority: QuickActionPriority = "medium",
+  ) => {
     switch (priority) {
       case "high":
         return "bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30 hover:border-primary/50";
@@ -150,7 +256,7 @@ export function QuickActions() {
     }
   };
 
-  const getIconStyles = (priority: string = "medium") => {
+  const getIconStyles = (priority: QuickActionPriority = "medium") => {
     switch (priority) {
       case "high":
         return "text-primary";
@@ -213,102 +319,106 @@ export function QuickActions() {
             staggerDelay={0.1}
             className="grid-cols-2 md:grid-cols-3"
           >
-            {quickActions.map((action, index) => (
-              <Interactive3DCard
-                key={action.id}
-                intensity={0.08}
-                scale={1.03}
-                glowEffect={action.priority === "high"}
-                magneticEffect={action.priority === "high"}
-                onClick={action.action}
-                className="h-full"
-              >
-                <div
-                  className={`
+            {quickActions.map((action, index) => {
+              const Icon = action.icon;
+
+              return (
+                <Interactive3DCard
+                  key={action.id}
+                  intensity={0.08}
+                  scale={1.03}
+                  glowEffect={action.priority === "high"}
+                  magneticEffect={action.priority === "high"}
+                  onClick={action.action}
+                  className="h-full"
+                >
+                  <div
+                    className={`
                   p-4 text-center relative transition-all duration-300
                   ${getPriorityStyles(action.priority)}
                   rounded-xl border group overflow-hidden h-full flex flex-col justify-center
                 `}
-                >
-                  <AnimatePresence>
-                    {action.isExternal && (
-                      <motion.div
-                        className="absolute top-2 right-2"
-                        initial={{ opacity: 0, scale: 0, rotate: -180 }}
-                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                        exit={{ opacity: 0, scale: 0, rotate: 180 }}
-                        transition={{
-                          delay: 0.5 + index * 0.1,
-                          type: "spring",
-                        }}
-                      >
-                        <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <motion.div
-                    className={`mb-3 flex justify-center ${
-                      getIconStyles(action.priority)
-                    }`}
-                    whileHover={{
-                      scale: 1.2,
-                      rotate: action.title === "Signal Alerts"
-                        ? 15
-                        : action.title === "Track Performance"
-                        ? -15
-                        : 5,
-                    }}
-                    transition={{
-                      duration: 0.3,
-                      type: "spring",
-                      stiffness: 400,
-                    }}
                   >
+                    <AnimatePresence>
+                      {action.isExternal && (
+                        <motion.div
+                          className="absolute top-2 right-2"
+                          initial={{ opacity: 0, scale: 0, rotate: -180 }}
+                          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                          exit={{ opacity: 0, scale: 0, rotate: 180 }}
+                          transition={{
+                            delay: 0.5 + index * 0.1,
+                            type: "spring",
+                          }}
+                        >
+                          <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <motion.div
-                      className="p-2 rounded-full bg-background/50 group-hover:bg-background/80 transition-colors"
+                      className={`mb-3 flex justify-center ${
+                        getIconStyles(action.priority)
+                      }`}
                       whileHover={{
-                        boxShadow: action.priority === "high"
-                          ? "0 0 20px hsl(var(--primary) / 0.3)"
-                          : "0 4px 20px rgba(0,0,0,0.1)",
+                        scale: 1.2,
+                        rotate: action.title === "Signal Alerts"
+                          ? 15
+                          : action.title === "Track Performance"
+                          ? -15
+                          : 5,
+                      }}
+                      transition={{
+                        duration: 0.3,
+                        type: "spring",
+                        stiffness: 400,
                       }}
                     >
-                      {action.icon}
+                      <motion.div
+                        className="p-2 rounded-full bg-background/50 group-hover:bg-background/80 transition-colors"
+                        whileHover={{
+                          boxShadow: action.priority === "high"
+                            ? "0 0 20px hsl(var(--primary) / 0.3)"
+                            : "0 4px 20px rgba(0,0,0,0.1)",
+                        }}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
 
-                  <motion.h4
-                    className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors"
-                    initial={{ opacity: 0.8 }}
-                    whileHover={{ opacity: 1, scale: 1.05 }}
-                  >
-                    {action.title}
-                  </motion.h4>
+                    <motion.h4
+                      className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors"
+                      initial={{ opacity: 0.8 }}
+                      whileHover={{ opacity: 1, scale: 1.05 }}
+                    >
+                      {action.title}
+                    </motion.h4>
 
-                  <motion.p
-                    className="text-xs text-muted-foreground group-hover:text-foreground transition-colors"
-                    initial={{ opacity: 0.6 }}
-                    whileHover={{ opacity: 1 }}
-                  >
-                    {action.description}
-                  </motion.p>
+                    <motion.p
+                      className="text-xs text-muted-foreground group-hover:text-foreground transition-colors"
+                      initial={{ opacity: 0.6 }}
+                      whileHover={{ opacity: 1 }}
+                    >
+                      {action.description}
+                    </motion.p>
 
-                  {/* Prismatic overlay effect */}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 group-hover:opacity-100"
-                    initial={false}
-                    animate={{ x: "-100%" }}
-                    whileHover={{
-                      x: "100%",
-                      background: action.priority === "high"
-                        ? "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent)"
-                        : "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent)",
-                    }}
-                    transition={{ duration: 0.8, ease: "easeInOut" }}
-                  />
-                </div>
-              </Interactive3DCard>
-            ))}
+                    {/* Prismatic overlay effect */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 group-hover:opacity-100"
+                      initial={false}
+                      animate={{ x: "-100%" }}
+                      whileHover={{
+                        x: "100%",
+                        background: action.priority === "high"
+                          ? "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent)"
+                          : "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent)",
+                      }}
+                      transition={{ duration: 0.8, ease: "easeInOut" }}
+                    />
+                  </div>
+                </Interactive3DCard>
+              );
+            })}
           </StaggeredGrid>
 
           <motion.div

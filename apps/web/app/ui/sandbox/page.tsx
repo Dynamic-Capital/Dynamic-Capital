@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { ChevronDown, Play, Route, Settings2 } from "lucide-react";
 
@@ -18,6 +19,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+const MiniAppQuickActions = dynamic(
+  () =>
+    import("@/components/miniapp/QuickActions").then(
+      (module) => module.QuickActions,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Skeleton key={index} className="h-32 rounded-xl" />
+        ))}
+      </div>
+    ),
+  },
+);
 
 export default function UISandbox() {
   const [loading, setLoading] = useState(false);
@@ -109,7 +126,7 @@ export default function UISandbox() {
             <TabsList className="mb-2">
               <TabsTrigger value="a">Async demo</TabsTrigger>
               <TabsTrigger value="b">Command center</TabsTrigger>
-              <TabsTrigger value="c">Quick actions</TabsTrigger>
+              <TabsTrigger value="miniapp">Miniapp quick actions</TabsTrigger>
               <TabsTrigger value="motion">Motion CTA</TabsTrigger>
             </TabsList>
             <TabsContent value="a" className="space-y-3">
@@ -177,30 +194,18 @@ export default function UISandbox() {
                 </SheetContent>
               </Sheet>
             </TabsContent>
-            <TabsContent value="c">
-              <div className="flex flex-wrap gap-3">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="inline-flex items-center gap-2"
-                    >
-                      Status
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-44">
-                    <DropdownMenuItem>On track</DropdownMenuItem>
-                    <DropdownMenuItem>Needs review</DropdownMenuItem>
-                    <DropdownMenuItem>Blocked</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button variant="ghost" size="icon">
-                  <Settings2 className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <Play className="h-4 w-4" />
-                </Button>
+            <TabsContent value="miniapp" className="space-y-4">
+              <div className="space-y-1 text-left">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Dynamic miniapp quick actions
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Explore the motion-rich action grid exactly as it appears in
+                  the Telegram miniapp experience.
+                </p>
+              </div>
+              <div className="mx-auto w-full max-w-3xl">
+                <MiniAppQuickActions />
               </div>
             </TabsContent>
             <TabsContent value="motion">
