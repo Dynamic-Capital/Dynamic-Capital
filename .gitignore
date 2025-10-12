@@ -97,3 +97,6 @@ apps/web/public/apple-touch-icon.png
 apps/web/public/icon-mark-512.png
 apps/web/public/favicon.ico
 apps/web/public/.brand-icons.json
+
+# Generated issuer statement exports
+exports/*.pdf

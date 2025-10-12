@@ -38,10 +38,12 @@ blockchain.
   - Corporate resolution authorizing issuance dated 2025-07-15 (archived in the
     compliance drive).
 
-## Escalation Evidence (2025-10-07 Refresh)
+## Escalation Evidence Refresh Workflow
 
-- PDF export `exports/dct-issuer-statement-20251007.pdf` generated via `pandoc`;
-  SHA-256 recorded in the escalation log.
+- Run `npm run docs:export:issuer -- <YYYYMMDD>` to generate
+  `exports/dct-issuer-statement-<YYYYMMDD>.pdf` with Pandoc (append `-- --force`
+  to overwrite an existing export). Record the SHA-256 hash in the escalation
+  log immediately after creation.
 - Metadata digest
   `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5` confirmed
   against `metadata.json` prior to dispatch.

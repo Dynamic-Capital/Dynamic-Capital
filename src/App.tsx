@@ -22,7 +22,8 @@ import AGIChat from "./pages/AGIChat";
 import AIAnalytics from "./pages/AIAnalytics";
 import MemoryRetrieval from "./pages/MemoryRetrieval";
 import ProceduresRouting from "./pages/ProceduresRouting";
-import { LayoutDashboard, TrendingUp, Camera, Wallet, MessageSquare, Sparkles, Activity, Database, GitBranch } from "lucide-react";
+import TodoListPage from "./pages/TodoListPage";
+import { LayoutDashboard, TrendingUp, Camera, Wallet, MessageSquare, Sparkles, Activity, Database, GitBranch, CheckSquare } from "lucide-react";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -37,6 +38,7 @@ const AI_NAV_ITEMS = [
   { path: "/analytics", label: "Analytics", icon: Activity },
   { path: "/memory", label: "Memory", icon: Database },
   { path: "/procedures", label: "Procedures", icon: GitBranch },
+  { path: "/todos", label: "Todos", icon: CheckSquare },
 ];
 
 function getScrollBehavior(): ScrollBehavior {
@@ -192,6 +194,7 @@ function App() {
               <Route path="/analytics" element={<AIAnalytics />} />
               <Route path="/memory" element={<MemoryRetrieval />} />
               <Route path="/procedures" element={<ProceduresRouting />} />
+              <Route path="/todos" element={<TodoListPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
