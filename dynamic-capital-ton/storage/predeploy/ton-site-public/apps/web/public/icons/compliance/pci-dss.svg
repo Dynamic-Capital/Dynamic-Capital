@@ -1,0 +1,40 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 160 110"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">PCI DSS Level 1 Mark</title>
+  <desc id="desc">PCI DSS logo with teal badge and white lettering.</desc>
+  <defs>
+    <linearGradient id="pciGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#009c9f" />
+      <stop offset="100%" stop-color="#006b7b" />
+    </linearGradient>
+  </defs>
+  <path d="M12 16h130l6 32-52 46H20L12 16z" fill="url(#pciGradient)" />
+  <path
+    d="M112 30l-28 32-14-16-30 36"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <text
+    x="34"
+    y="52"
+    fill="#ffffff"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="30"
+    font-weight="800"
+  >PCI</text>
+  <text
+    x="34"
+    y="78"
+    fill="#ffffff"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="20"
+    font-weight="600"
+  >DSS</text>
+</svg>

@@ -149,7 +149,9 @@ async function proxyTonSite(
   const attemptSummaries: string[] = [];
 
   for (const candidateBase of candidateGatewayBases) {
-    const tonSiteBase = resolveTonSiteGatewayOrigin(candidateBase);
+    const tonSiteBase = resolveTonSiteGatewayOrigin(candidateBase, {
+      canonicalizeStandby: false,
+    });
     const gatewayHost = new URL(candidateBase).host;
     const upstreamUrl = buildUpstreamUrl(
       tonSiteBase,
@@ -252,26 +254,90 @@ async function serveFallbackFromStatic(
 
   try {
     const response = await fetch(fallbackUrl, { cache: "no-store" });
-    if (!response.ok) {
-      return null;
+    if (response.ok) {
+      const headers = new Headers(response.headers);
+      headers.set(PROXY_HEADER, "fallback");
+      headers.set(PROXY_SOURCE_HEADER, "local-static");
+      headers.set(
+        PROXY_ATTEMPTS_HEADER,
+        [...attempts, "fallback:success"].join(","),
+      );
+      headers.set(PROXY_FALLBACK_HEADER, fallbackPath);
+
+      if (req.method === "HEAD") {
+        headers.delete("content-length");
+        return new Response(null, { status: 200, headers });
+      }
+
+      return new Response(response.body, {
+        status: 200,
+        headers,
+      });
     }
-
-    const headers = new Headers(response.headers);
-    headers.set(PROXY_HEADER, "fallback");
-    headers.set(PROXY_SOURCE_HEADER, "local-static");
-    headers.set(PROXY_ATTEMPTS_HEADER, [...attempts, "fallback:success"].join(","));
-    headers.set(PROXY_FALLBACK_HEADER, fallbackPath);
-
-    if (req.method === "HEAD") {
-      headers.delete("content-length");
-      return new Response(null, { status: 200, headers });
-    }
-
-    return new Response(response.body, {
-      status: 200,
-      headers,
-    });
   } catch {
-    return null;
+    // Ignore errors when fetching the static fallback; we'll return an inline
+    // response instead so the caller still receives a helpful payload.
   }
+
+  return buildInlineFallbackResponse(req, attempts);
+}
+
+function buildInlineFallbackResponse(
+  req: NextRequest,
+  attempts: string[],
+): Response {
+  const attemptsHeader = [...attempts, "fallback:inline"].join(",");
+  const headers = new Headers({
+    "content-type": "text/html; charset=utf-8",
+    "cache-control": "no-store",
+    [PROXY_HEADER]: "fallback",
+    [PROXY_SOURCE_HEADER]: "inline",
+    [PROXY_FALLBACK_HEADER]: "inline",
+  });
+  if (attemptsHeader) {
+    headers.set(PROXY_ATTEMPTS_HEADER, attemptsHeader);
+  }
+
+  if (req.method === "HEAD") {
+    headers.delete("content-length");
+    return new Response(null, { status: 200, headers });
+  }
+
+  const attemptsContent = attempts.length
+    ? `<p class="attempts">Gateway attempts: ${attempts.join(", ")}</p>`
+    : "";
+  const html = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dynamic Capital TON gateway</title>
+    <style>
+      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 2.5rem 1.5rem; background: #0a0f1c; color: #f8fafc; }
+      main { max-width: 42rem; margin: 0 auto; background: rgba(15, 23, 42, 0.72); border-radius: 1.25rem; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.55); border: 1px solid rgba(59, 130, 246, 0.25); }
+      h1 { font-size: 1.75rem; line-height: 1.2; margin: 0 0 1rem; }
+      p { margin: 0 0 1rem; line-height: 1.6; }
+      .attempts { font-size: 0.875rem; color: rgba(148, 163, 184, 0.9); word-break: break-word; }
+      a.button { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.25rem; border-radius: 999px; text-decoration: none; font-weight: 600; color: #0f172a; background: linear-gradient(135deg, #38bdf8, #818cf8); box-shadow: 0 20px 30px -15px rgba(56, 189, 248, 0.65); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+      a.button:hover { transform: translateY(-1px); box-shadow: 0 25px 40px -20px rgba(129, 140, 248, 0.75); }
+      footer { margin-top: 1.5rem; font-size: 0.75rem; color: rgba(148, 163, 184, 0.8); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>DigitalOcean gateway is offline</h1>
+      <p>
+        The Dynamic Capital TON experience is temporarily unavailable from the DigitalOcean edge cluster.
+        Switch to the foundation-managed bridge or retry after the origin redeploys.
+      </p>
+      <p>
+        <a class="button" href="https://ton.site/dynamiccapital.ton" rel="noopener noreferrer">Open via TON Foundation gateway</a>
+      </p>
+      ${attemptsContent}
+      <footer>Generated fallback &middot; Dynamic Capital</footer>
+    </main>
+  </body>
+</html>`;
+
+  return new Response(html, { status: 200, headers });
 }

@@ -4,22 +4,22 @@ import { assertEquals } from "std/assert/mod.ts";
 import {
   isTonSitePath,
   normalizeTonGatewayPath,
-  resolveTonSiteUrl,
-  TON_SITE_DOMAIN,
-  TON_SITE_ALIAS_DOMAINS,
-  TON_SITE_GATEWAY_BASE,
-  TON_SITE_GATEWAY_ORIGIN,
-  TON_SITE_GATEWAY_URL,
-  TON_SITE_GATEWAY_CURL_URL,
-  TON_SITE_GATEWAY_PRIMARY_HOST,
-  TON_SITE_GATEWAY_STANDBY_HOST,
-  TON_SITE_GATEWAY_HOSTS,
-  TON_SITE_GATEWAY_STANDBY_BASE,
-  TON_SITE_GATEWAY_FOUNDATION_BASES,
-  TON_SITE_GATEWAY_SELF_HOST_BASES,
-  resolveTonSiteGatewayOrigin,
   resolveTonSiteGatewayBaseForHost,
   resolveTonSiteGatewayBasesForHost,
+  resolveTonSiteGatewayOrigin,
+  resolveTonSiteUrl,
+  TON_SITE_ALIAS_DOMAINS,
+  TON_SITE_DOMAIN,
+  TON_SITE_GATEWAY_BASE,
+  TON_SITE_GATEWAY_CURL_URL,
+  TON_SITE_GATEWAY_FOUNDATION_BASES,
+  TON_SITE_GATEWAY_HOSTS,
+  TON_SITE_GATEWAY_ORIGIN,
+  TON_SITE_GATEWAY_PRIMARY_HOST,
+  TON_SITE_GATEWAY_SELF_HOST_BASES,
+  TON_SITE_GATEWAY_STANDBY_BASE,
+  TON_SITE_GATEWAY_STANDBY_HOST,
+  TON_SITE_GATEWAY_URL,
   TON_SITE_ICON_URL,
   TON_SITE_SOCIAL_PREVIEW_URL,
 } from "../../../shared/ton/site";
@@ -241,33 +241,55 @@ describe("ton site gateway helpers", () => {
         resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_BASE),
         TON_SITE_GATEWAY_ORIGIN,
       );
-    assertEquals(
-      resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_STANDBY_BASE),
-      "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-    );
+      assertEquals(
+        resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_STANDBY_BASE),
+        "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+      );
+    });
+
+    it("preserves standby base when canonicalisation is disabled", () => {
+      assertEquals(
+        resolveTonSiteGatewayOrigin(TON_SITE_GATEWAY_STANDBY_BASE, {
+          canonicalizeStandby: false,
+        }),
+        `${TON_SITE_GATEWAY_STANDBY_BASE}/${TON_SITE_DOMAIN}`,
+      );
     });
   });
 
   describe("resolveTonSiteGatewayBaseForHost", () => {
-    const cases: Array<{ host: string | null | undefined; expected: string }> = [
-      { host: undefined, expected: TON_SITE_GATEWAY_BASE },
-      { host: null, expected: TON_SITE_GATEWAY_BASE },
-      { host: "", expected: TON_SITE_GATEWAY_BASE },
-      { host: "   ", expected: TON_SITE_GATEWAY_BASE },
-      { host: TON_SITE_GATEWAY_PRIMARY_HOST, expected: TON_SITE_GATEWAY_BASE },
-      { host: `${TON_SITE_GATEWAY_PRIMARY_HOST}:443`, expected: TON_SITE_GATEWAY_BASE },
-      { host: TON_SITE_GATEWAY_PRIMARY_HOST.toUpperCase(), expected: TON_SITE_GATEWAY_BASE },
-      { host: TON_SITE_GATEWAY_STANDBY_HOST, expected: TON_SITE_GATEWAY_STANDBY_BASE },
-      {
-        host: ` ${TON_SITE_GATEWAY_STANDBY_HOST}:8443 `,
-        expected: TON_SITE_GATEWAY_STANDBY_BASE,
-      },
-      {
-        host: "ton-gateway.dynamic-capital.lovable.app",
-        expected: "https://ton-gateway.dynamic-capital.lovable.app",
-      },
-      { host: "unknown.example.com", expected: TON_SITE_GATEWAY_BASE },
-    ];
+    const cases: Array<{ host: string | null | undefined; expected: string }> =
+      [
+        { host: undefined, expected: TON_SITE_GATEWAY_BASE },
+        { host: null, expected: TON_SITE_GATEWAY_BASE },
+        { host: "", expected: TON_SITE_GATEWAY_BASE },
+        { host: "   ", expected: TON_SITE_GATEWAY_BASE },
+        {
+          host: TON_SITE_GATEWAY_PRIMARY_HOST,
+          expected: TON_SITE_GATEWAY_BASE,
+        },
+        {
+          host: `${TON_SITE_GATEWAY_PRIMARY_HOST}:443`,
+          expected: TON_SITE_GATEWAY_BASE,
+        },
+        {
+          host: TON_SITE_GATEWAY_PRIMARY_HOST.toUpperCase(),
+          expected: TON_SITE_GATEWAY_BASE,
+        },
+        {
+          host: TON_SITE_GATEWAY_STANDBY_HOST,
+          expected: TON_SITE_GATEWAY_STANDBY_BASE,
+        },
+        {
+          host: ` ${TON_SITE_GATEWAY_STANDBY_HOST}:8443 `,
+          expected: TON_SITE_GATEWAY_STANDBY_BASE,
+        },
+        {
+          host: "ton-gateway.dynamic-capital.lovable.app",
+          expected: "https://ton-gateway.dynamic-capital.lovable.app",
+        },
+        { host: "unknown.example.com", expected: TON_SITE_GATEWAY_BASE },
+      ];
 
     for (const { host, expected } of cases) {
       it(`maps ${JSON.stringify(host)} -> ${expected}`, () => {
@@ -284,10 +306,10 @@ describe("ton site gateway helpers", () => {
         ),
         [
           "https://ton-gateway.dynamic-capital.lovable.app",
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
           "https://ton.site",
           "https://tonsite.io",
           "https://tonsite.link",
-          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
         ],
       );
     });
@@ -296,10 +318,10 @@ describe("ton site gateway helpers", () => {
       assertEquals(
         resolveTonSiteGatewayBasesForHost("unknown.example.com"),
         [
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
           "https://ton.site",
           "https://tonsite.io",
           "https://tonsite.link",
-          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
           "https://ton-gateway.dynamic-capital.lovable.app",
         ],
       );

@@ -6,42 +6,12 @@ spec:
   alerts:
     - rule: DEPLOYMENT_FAILED
     - rule: DOMAIN_FAILED
-  domains:
-    - domain: dynamic-capital-qazf2.ondigitalocean.app
-      type: PRIMARY
-      wildcard: false
-      zone: ondigitalocean.app
-    - domain: dynamic-capital.ondigitalocean.app
-      type: ALIAS
-      wildcard: false
-      zone: dynamic-capital.ondigitalocean.app
-    - domain: dynamic-capital.vercel.app
-      type: ALIAS
-      wildcard: false
-      zone: vercel.app
-    - domain: dynamic-capital.lovable.app
-      type: ALIAS
-      wildcard: false
-      zone: dynamic-capital.lovable.app
-  ingress:
-    rules:
-      - component:
-          name: dynamic-capital
-        match:
-          authority:
-            exact: dynamic-capital.ondigitalocean.app
-          path:
-            prefix: /
-      - component:
-          name: dynamic-capital
-        match:
-          authority:
-            exact: dynamic-capital-qazf2.ondigitalocean.app
-          path:
-            prefix: /
   envs:
     - key: NODE_ENV
       value: production
+      scope: RUN_AND_BUILD_TIME
+    - key: NPM_CONFIG_PRODUCTION
+      value: "false"
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_TELEMETRY_DISABLED
       value: "1"

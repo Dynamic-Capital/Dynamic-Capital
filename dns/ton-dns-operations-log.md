@@ -71,6 +71,39 @@ chronological order beneath this entry.
   state until the TON bundle is redeployed (see
   `dns/https-gateway-verification-2025-10-08.md`).
 
+## 2025-10-12 – Manual redeploy follow-up
+
+- **Timestamp** — 2025-10-12 15:16 UTC redeploy attempted via `npm run do:sync-site` with app ID
+  `aead98a2-db66-41e0-a5af-43c063b1f61a`; the helper failed with `AggregateError [ENETUNREACH]`
+  because Node `fetch` cannot reach `api.digitalocean.com` inside the sandbox.
+- **Redeploy path** — Issued `POST /v2/apps/{app_id}/deployments` via `curl` instead; deployment
+  `0f8b18ca-9077-43c3-9e46-c7ee5a97a3ae` moved to `ACTIVE` at 15:16 UTC.
+- **Origin probe** — `curl -sS -o /tmp/dyn-ton.html -w '%{http_code}\n' https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
+  still returns `404`, showing the TON bundle was not rebuilt with the redeploy.
+- **Gateway tooling** — `npm run ton:site-status -- --domain dynamiccapital.ton` remains blocked by
+  sandbox egress limits (`ENETUNREACH` / `ENOTFOUND` across all gateways), so no live gateway checks
+  were captured.
+- **Bundle staging** — 2025-10-12 15:24 UTC `npm run ton:build-site-predeploy` staged the `ton-site-public`
+  bundle (SHA-256 `74b89c3fd9370faafa7ec6705370d645af967ecabd5ad338d029cee3876e08fb`) under
+  `dynamic-capital-ton/storage/predeploy`. The machine-readable summary lives at
+  `dynamic-capital-ton/storage/predeploy/summary.json`. Redeploy remains pending because the sandbox
+  cannot reach `api.digitalocean.com`, so the refreshed bundle still needs to be uploaded from a networked
+  environment before `/dynamiccapital.ton` recovers.
+- **Root cause** — The DigitalOcean origin continues to serve `HTTP 404` for `/dynamiccapital.ton`
+  because the redeploys executed without the rebuilt TON bundle. Publishing the staged assets and rerunning
+  the HTTPS verification workflow from an egress-enabled workstation will clear the failure.
+- **Next step** — From an egress-enabled workstation, upload the staged bundle, trigger the DigitalOcean redeploy,
+  and rerun the HTTPS verification workflow to confirm `/dynamiccapital.ton` returns `HTTP 200` before updating the resolver status.
+
+## 2025-10-12 – Spec sync and redeploy (gateway still failing)
+
+- **Timestamp** — 2025-10-12 15:54 UTC DigitalOcean app spec applied from `.do/app.yml` (manual `PUT` with `NPM_CONFIG_PRODUCTION=false` and legacy ingress removed), then deployment `4fdf8a69-4f3f-4cc2-be38-5340a8ba7bd8` promoted to `ACTIVE`.
+- **Build outcome** — The Node buildpack retained dev dependencies (`NPM_CONFIG_PRODUCTION=false`) and executed the custom `node scripts/digitalocean-build.mjs` workflow successfully; static asset upload skipped because CDN credentials are unset.【13788a†L1-L41】【9aa19d†L1-L8】
+- **Origin probe** — `curl -i https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton` now returns `HTTP 504` with `x-dynamic-ton-gateway-attempts: ton.site:error, tonsite.io:error, tonsite.link:error, ton-gateway.dynamic-capital.ondigitalocean.app:error, ton-gateway.dynamic-capital.lovable.app:error`, confirming every configured gateway fails and the static fallback never engaged.【a47526†L1-L23】
+- **Gateway check** — Direct probe of `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton` still responds `HTTP 503`, matching the exhausted attempts header from the origin.【a9f4ac†L1-L2】【c368b6†L1-L13】
+- **Foundation status** — `https://ton.site/dynamiccapital.ton` only serves the placeholder redirect (`window.location.href="/lander"`), proving the TON bundle has not been uploaded to TON Storage and explaining the upstream failures.【55b53a†L1-L2】【3c8d7a†L1-L2】
+- **Root cause** — The TON site bundle is absent across all gateways (TON Storage and self-hosted) even after the successful DigitalOcean redeploy, so `/dynamiccapital.ton` continues to surface gateway timeouts. Publish the staged bundle and re-run the HTTPS verification to restore `HTTP 200` responses.
+
 ## 2025-10-10 – TON gateway restoration confirmed
 
 - **Timestamp** — 2025-10-10 02:32 UTC verification block executed after the

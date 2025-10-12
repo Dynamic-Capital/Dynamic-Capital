@@ -53,7 +53,21 @@ function trimTrailingSlash(input: string): string {
   return input.endsWith("/") ? input.slice(0, -1) : input;
 }
 
-export function resolveTonSiteGatewayOrigin(base: string): string {
+type ResolveTonSiteGatewayOriginOptions = {
+  /**
+   * When true (default), requests for the standby foundation base are
+   * canonicalised back to the primary self-hosted gateway to preserve legacy
+   * behaviour. Setting this to false preserves the provided standby base so the
+   * caller can attempt a direct foundation fetch.
+   */
+  canonicalizeStandby?: boolean;
+};
+
+export function resolveTonSiteGatewayOrigin(
+  base: string,
+  options: ResolveTonSiteGatewayOriginOptions = {},
+): string {
+  const { canonicalizeStandby = true } = options;
   const trimmed = base.trim();
   if (!trimmed) {
     return `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMAIN}`;
@@ -72,9 +86,17 @@ export function resolveTonSiteGatewayOrigin(base: string): string {
 
   const hostname = url.hostname;
   const mappedBase = TON_SITE_GATEWAY_BASE_BY_HOST.get(hostname);
-  const canonicalBase = mappedBase === TON_SITE_GATEWAY_STANDBY_BASE
-    ? TON_SITE_GATEWAY_BASE
-    : (mappedBase ?? normalizedBase);
+  let canonicalBase = normalizedBase;
+
+  if (mappedBase) {
+    if (mappedBase === TON_SITE_GATEWAY_STANDBY_BASE) {
+      canonicalBase = canonicalizeStandby
+        ? TON_SITE_GATEWAY_BASE
+        : normalizedBase;
+    } else {
+      canonicalBase = mappedBase;
+    }
+  }
 
   return `${canonicalBase}/${TON_SITE_DOMAIN}`;
 }
@@ -175,6 +197,8 @@ export function resolveTonSiteGatewayBasesForHost(
       }
     }
   }
+
+  addBase(TON_SITE_GATEWAY_BASE);
 
   for (const base of TON_SITE_GATEWAY_FOUNDATION_BASES) {
     addBase(base);

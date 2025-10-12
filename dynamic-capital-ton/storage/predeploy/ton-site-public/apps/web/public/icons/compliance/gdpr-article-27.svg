@@ -1,0 +1,77 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 120 120"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">GDPR Article 27 Seal</title>
+  <desc id="desc">Blue circle with European stars and Article 27 text.</desc>
+  <circle cx="60" cy="60" r="56" fill="#004494" />
+  <g fill="#ffcc00">
+    <polygon
+      points="60,12 62.4,19.2 70,19.2 63.8,23.8 66.2,31 60,26.4 53.8,31 56.2,23.8 50,19.2 57.6,19.2"
+    />
+    <polygon
+      points="82,18 84.4,25.2 92,25.2 85.8,29.8 88.2,37 82,32.4 75.8,37 78.2,29.8 72,25.2 79.6,25.2"
+      transform="rotate(30 82 28)"
+    />
+    <polygon
+      points="98,36 100.4,43.2 108,43.2 101.8,47.8 104.2,55 98,50.4 91.8,55 94.2,47.8 88,43.2 95.6,43.2"
+      transform="rotate(60 98 46)"
+    />
+    <polygon
+      points="104,60 106.4,67.2 114,67.2 107.8,71.8 110.2,79 104,74.4 97.8,79 100.2,71.8 94,67.2 101.6,67.2"
+      transform="rotate(90 104 68)"
+    />
+    <polygon
+      points="98,84 100.4,91.2 108,91.2 101.8,95.8 104.2,103 98,98.4 91.8,103 94.2,95.8 88,91.2 95.6,91.2"
+      transform="rotate(120 98 92)"
+    />
+    <polygon
+      points="82,102 84.4,109.2 92,109.2 85.8,113.8 88.2,121 82,116.4 75.8,121 78.2,113.8 72,109.2 79.6,109.2"
+      transform="rotate(150 82 110)"
+    />
+    <polygon
+      points="60,108 62.4,115.2 70,115.2 63.8,119.8 66.2,127 60,122.4 53.8,127 56.2,119.8 50,115.2 57.6,115.2"
+      transform="rotate(180 60 116)"
+    />
+    <polygon
+      points="38,102 40.4,109.2 48,109.2 41.8,113.8 44.2,121 38,116.4 31.8,121 34.2,113.8 28,109.2 35.6,109.2"
+      transform="rotate(210 38 110)"
+    />
+    <polygon
+      points="22,84 24.4,91.2 32,91.2 25.8,95.8 28.2,103 22,98.4 15.8,103 18.2,95.8 12,91.2 19.6,91.2"
+      transform="rotate(240 22 92)"
+    />
+    <polygon
+      points="16,60 18.4,67.2 26,67.2 19.8,71.8 22.2,79 16,74.4 9.8,79 12.2,71.8 6,67.2 13.6,67.2"
+      transform="rotate(270 16 68)"
+    />
+    <polygon
+      points="22,36 24.4,43.2 32,43.2 25.8,47.8 28.2,55 22,50.4 15.8,55 18.2,47.8 12,43.2 19.6,43.2"
+      transform="rotate(300 22 44)"
+    />
+    <polygon
+      points="38,18 40.4,25.2 48,25.2 41.8,29.8 44.2,37 38,32.4 31.8,37 34.2,29.8 28,25.2 35.6,25.2"
+      transform="rotate(330 38 28)"
+    />
+  </g>
+  <text
+    x="50%"
+    y="68"
+    text-anchor="middle"
+    fill="#ffffff"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="24"
+    font-weight="700"
+  >GDPR</text>
+  <text
+    x="50%"
+    y="90"
+    text-anchor="middle"
+    fill="#ffcc00"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="16"
+    font-weight="600"
+  >ARTICLE 27</text>
+</svg>

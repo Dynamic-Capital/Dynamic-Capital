@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2025-10-12T15:24:23.777Z",
+  "outputDir": "/workspace/Dynamic-Capital/dynamic-capital-ton/storage/predeploy",
+  "bundles": [
+    {
+      "id": "ton-site-public",
+      "label": "TON Site public asset bundle",
+      "sourcePaths": [
+        "apps/web/public"
+      ],
+      "stagingDir": "/workspace/Dynamic-Capital/dynamic-capital-ton/storage/predeploy/ton-site-public",
+      "uploadHint": "/workspace/Dynamic-Capital/dynamic-capital-ton/storage/predeploy/ton-site-public/apps/web/public",
+      "expectedSha256": "74b89c3fd9370faafa7ec6705370d645af967ecabd5ad338d029cee3876e08fb",
+      "computedSha256": "74b89c3fd9370faafa7ec6705370d645af967ecabd5ad338d029cee3876e08fb",
+      "matchesExpected": true,
+      "generatedAt": "2025-10-12T15:24:23.777Z"
+    }
+  ]
+}
