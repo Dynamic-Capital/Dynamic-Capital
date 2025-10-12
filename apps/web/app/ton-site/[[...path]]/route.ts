@@ -7,6 +7,7 @@ import {
 const PROXY_HEADER = "x-dynamic-ton-gateway";
 const PROXY_SOURCE_HEADER = "x-dynamic-ton-gateway-host";
 const PROXY_ATTEMPTS_HEADER = "x-dynamic-ton-gateway-attempts";
+const PROXY_FALLBACK_HEADER = "x-dynamic-ton-gateway-fallback";
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
   "keep-alive",
@@ -198,16 +199,21 @@ async function proxyTonSite(
       )
     }).`
     : "Unable to load TON site via configured gateways.";
-  const fallbackHeaders = new Headers();
-  fallbackHeaders.set(PROXY_HEADER, "0");
-  if (attemptSummaries.length > 0) {
-    fallbackHeaders.set(PROXY_ATTEMPTS_HEADER, attemptSummaries.join(","));
+  const fallbackResponse = await serveFallbackFromStatic(req, attemptSummaries);
+  if (fallbackResponse) {
+    return fallbackResponse;
   }
+
+  const attemptsHeader = attemptSummaries.join(",");
 
   return new Response(req.method === "HEAD" ? null : failureMessage, {
     status: 502,
     statusText: "Bad Gateway",
-    headers: fallbackHeaders,
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      [PROXY_HEADER]: "0",
+      ...(attemptsHeader ? { [PROXY_ATTEMPTS_HEADER]: attemptsHeader } : {}),
+    },
   });
 }
 
@@ -231,4 +237,41 @@ export async function HEAD(
 ): Promise<Response> {
   const params = await resolveRouteParams(context.params);
   return await proxyTonSite(req, params);
+}
+
+function resolveFallbackAssetPath(): string {
+  return "/_ton-site-fallback/index.html";
+}
+
+async function serveFallbackFromStatic(
+  req: NextRequest,
+  attempts: string[],
+): Promise<Response | null> {
+  const fallbackPath = resolveFallbackAssetPath();
+  const fallbackUrl = new URL(fallbackPath, req.nextUrl.origin);
+
+  try {
+    const response = await fetch(fallbackUrl, { cache: "no-store" });
+    if (!response.ok) {
+      return null;
+    }
+
+    const headers = new Headers(response.headers);
+    headers.set(PROXY_HEADER, "fallback");
+    headers.set(PROXY_SOURCE_HEADER, "local-static");
+    headers.set(PROXY_ATTEMPTS_HEADER, [...attempts, "fallback:success"].join(","));
+    headers.set(PROXY_FALLBACK_HEADER, fallbackPath);
+
+    if (req.method === "HEAD") {
+      headers.delete("content-length");
+      return new Response(null, { status: 200, headers });
+    }
+
+    return new Response(response.body, {
+      status: 200,
+      headers,
+    });
+  } catch {
+    return null;
+  }
 }
