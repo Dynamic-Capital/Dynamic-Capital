@@ -68,6 +68,8 @@ const themeAttributeDefaults = Object.fromEntries(
 );
 
 const dynamicBrandingStyles = createBrandingStyles(brandingTokens);
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 const dynamicThemeScript = `(function () {
   try {
     var root = document.documentElement;
@@ -328,7 +330,7 @@ export default async function RootLayout(
             </HideOnMiniApp>
           </Column>
         </Providers>
-        <SpeedInsights />
+        {IS_PRODUCTION ? <SpeedInsights /> : null}
       </body>
     </html>
   );
