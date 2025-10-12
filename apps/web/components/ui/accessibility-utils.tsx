@@ -45,6 +45,18 @@ export function VisuallyHidden({
   );
 }
 
+interface NewTabAnnouncementProps
+  extends React.HTMLAttributes<HTMLSpanElement> {
+  message?: string;
+}
+
+export function NewTabAnnouncement({
+  message = "Opens in a new tab",
+  ...props
+}: NewTabAnnouncementProps) {
+  return <VisuallyHidden {...props}>{`(${message})`}</VisuallyHidden>;
+}
+
 interface AccessibleIconProps {
   icon: React.ReactNode;
   label: string;
