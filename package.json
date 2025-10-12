@@ -63,6 +63,7 @@
     "smoke:tunnel": "node scripts/smoke-tunnel.mjs",
     "audit": "npm audit",
     "audit:metadata": "node scripts/audit/index.mjs",
+    "audit:hardcodes": "tsx scripts/security/audit-hardcodes.ts",
     "audit:fix": "npm audit fix",
     "sync-env": "deno run -A scripts/sync-env.ts",
     "env:validate": "tsx scripts/env/validate.ts",
