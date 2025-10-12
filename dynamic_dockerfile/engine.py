@@ -477,7 +477,72 @@ class DockerfileArtifact:
 
 
 def _default_features() -> Dict[str, FeatureRecipe]:
+    telemetry_env_defaults: Tuple[Tuple[str, str], ...] = (
+        ("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317"),
+        ("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+        ("OTEL_SERVICE_NAME", "dynamic-service"),
+        ("OTEL_METRIC_EXPORT_INTERVAL", "60000"),
+    )
+    telemetry_packages: Dict[str, Tuple[str, ...]] = {
+        "python": (
+            "opentelemetry-api",
+            "opentelemetry-sdk",
+            "opentelemetry-exporter-otlp",
+            "opentelemetry-instrumentation",
+        ),
+        "node": (
+            "@opentelemetry/api",
+            "@opentelemetry/sdk-node",
+            "@opentelemetry/exporter-trace-otlp-proto",
+            "@opentelemetry/exporter-metrics-otlp-proto",
+        ),
+    }
+
+    def _pip_install_command() -> str:
+        packages = " ".join(telemetry_packages["python"])
+        return (
+            "if command -v pip >/dev/null 2>&1; then "
+            f"pip install --no-cache-dir {packages}; "
+            "else echo 'pip not found, skipping Python OpenTelemetry packages'; fi"
+        )
+
+    def _npm_install_command() -> str:
+        packages = " ".join(telemetry_packages["node"])
+        return (
+            "if command -v npm >/dev/null 2>&1; then "
+            f"npm install --global {packages}; "
+            "else echo 'npm not found, skipping Node.js OpenTelemetry packages'; fi"
+        )
+
     return {
+        "telemetry": FeatureRecipe(
+            description="Enables OpenTelemetry instrumentation and default exporters.",
+            builder=(
+                StageInstruction.run(
+                    [
+                        _pip_install_command(),
+                        _npm_install_command(),
+                    ],
+                    comment="Telemetry libraries",
+                ),
+            ),
+            runtime=(
+                StageInstruction.env(telemetry_env_defaults),
+                StageInstruction.label(
+                    {
+                        "com.dynamic.telemetry": "enabled",
+                        "com.dynamic.telemetry.stack": "opentelemetry",
+                    },
+                ),
+            ),
+            metadata={
+                "category": "observability",
+                "export_protocol": "otlp/grpc",
+                "default_endpoint": "http://otel-collector:4317",
+                "environment": {key: value for key, value in telemetry_env_defaults},
+                "packages": telemetry_packages,
+            },
+        ),
         "poetry": FeatureRecipe(
             description="Installs Poetry and resolves dependencies at build time.",
             builder=(
@@ -521,6 +586,20 @@ class DynamicDockerfileEngine:
     @property
     def available_features(self) -> tuple[str, ...]:
         return tuple(sorted(self._feature_registry))
+
+    def describe_feature(self, name: str) -> MutableMapping[str, object]:
+        """Return the metadata payload for a registered feature."""
+
+        key = _normalise_feature_name(name)
+        recipe = self._feature_registry.get(key)
+        if recipe is None:
+            raise KeyError(f"feature '{key}' is not registered")
+        return recipe.describe()
+
+    def describe_features(self) -> Dict[str, MutableMapping[str, object]]:
+        """Return metadata for all registered features keyed by name."""
+
+        return {name: recipe.describe() for name, recipe in sorted(self._feature_registry.items())}
 
     def register_feature(
         self,
