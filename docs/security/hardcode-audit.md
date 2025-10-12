@@ -18,6 +18,12 @@ passes. Any detections include the file path, line, column, pattern label, and a
 short description of why the value was flagged so engineers can quickly verify
 and remediate.
 
+### Latest automation evidence
+
+| Timestamp (UTC)        | Command                          | Result |
+| ---------------------- | -------------------------------- | ------ |
+| 2025-10-12 01:26:24    | `npm run audit:hardcodes:auto`   | ✅ No suspicious hardcoded secrets detected. |
+
 ### Strict mode
 
 Strict mode disables the TON allow list so every match is surfaced:
