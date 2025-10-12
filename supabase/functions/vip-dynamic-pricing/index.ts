@@ -185,6 +185,52 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+function extractTonRate(snapshot: unknown): number | null {
+  if (!snapshot || typeof snapshot !== "object") {
+    return null;
+  }
+  const tonRate = (snapshot as { tonRate?: unknown }).tonRate;
+  if (!tonRate || typeof tonRate !== "object") {
+    return null;
+  }
+  return parseNumber((tonRate as { rate?: unknown }).rate ?? null);
+}
+
+function computeReliabilityMultiplier(sampleSize: number): number {
+  if (sampleSize <= 0) {
+    return 0.25;
+  }
+  const normalized = Math.log10(sampleSize + 1) / Math.log10(5000 + 1);
+  return Number(clamp(normalized, 0.25, 1).toFixed(3));
+}
+
+function computeConsistencyAdjustment(
+  sampleSize: number,
+  averageHoldMinutes: number | null,
+): number {
+  const sampleComponent = sampleSize < 75
+    ? clamp(-((75 - sampleSize) / 75) * 0.08, -0.08, 0)
+    : clamp(Math.log1p(sampleSize - 75) * 0.004, 0, 0.05);
+  const holdComponent = averageHoldMinutes === null
+    ? 0
+    : clamp(((120 - averageHoldMinutes) / 120) * 0.03, -0.04, 0.04);
+  return clamp(sampleComponent + holdComponent, -0.09, 0.07);
+}
+
+function computeMarketDriftAdjustment(
+  currentRate: number | null,
+  previousRate: number | null,
+): number {
+  if (!currentRate || currentRate <= 0 || !previousRate || previousRate <= 0) {
+    return 0;
+  }
+  const delta = diffPercent(currentRate, previousRate);
+  if (delta === null) {
+    return 0;
+  }
+  return clamp(-(delta / 100) * 0.5, -0.06, 0.06);
+}
+
 function buildFormulaSummary(adjustments: Record<string, number>): string {
   const parts = Object.entries(adjustments)
     .map(([label, value]) =>
@@ -215,6 +261,13 @@ async function processPlans(
   const supabase = createClient("service");
   const tonRate = await fetchTonUsdRate();
   const results: unknown[] = [];
+  const planUpdates: {
+    id: string;
+    dynamic_price_usdt: number;
+    pricing_formula: string;
+    last_priced_at: string;
+    performance_snapshot: Record<string, unknown>;
+  }[] = [];
   const nowIso = new Date().toISOString();
 
   for (const plan of plans) {
@@ -222,11 +275,18 @@ async function processPlans(
     const previousDynamic = plan.dynamic_price_usdt
       ? Number(plan.dynamic_price_usdt)
       : null;
+    const previousTonRate = extractTonRate(plan.performance_snapshot);
+    const reliabilityMultiplier = computeReliabilityMultiplier(
+      metrics.sampleSize,
+    );
 
-    const winRateAdj = metrics.winRate !== null
+    const winRateAdjBase = metrics.winRate !== null
       ? clamp((metrics.winRate / 100 - 0.55) * 0.6, -0.2, 0.25)
       : 0;
-    const momentumAdj =
+    const winRateAdj = Number(
+      (winRateAdjBase * reliabilityMultiplier).toFixed(4),
+    );
+    const momentumAdjBase =
       metrics.recentWinRate !== null && metrics.winRate !== null
         ? clamp(
           ((metrics.recentWinRate - metrics.winRate) / 100) * 0.4,
@@ -234,6 +294,9 @@ async function processPlans(
           0.12,
         )
         : 0;
+    const momentumAdj = Number(
+      (momentumAdjBase * reliabilityMultiplier).toFixed(4),
+    );
     const volumeAdj = clamp(Math.log1p(metrics.total) * 0.01, 0, 0.1);
     const cancellationPenalty = metrics.cancellations > 0
       ? clamp(
@@ -242,11 +305,28 @@ async function processPlans(
         0,
       )
       : 0;
+    const marketAdj = computeMarketDriftAdjustment(
+      tonRate.rate,
+      previousTonRate,
+    );
+    const consistencyAdj = computeConsistencyAdjustment(
+      metrics.sampleSize,
+      metrics.averageHoldMinutes,
+    );
+
+    const adjustments = {
+      winRate: winRateAdj,
+      momentum: momentumAdj,
+      activity: volumeAdj,
+      cancellations: cancellationPenalty,
+      market: marketAdj,
+      consistency: consistencyAdj,
+    };
 
     const totalAdj = clamp(
-      winRateAdj + momentumAdj + volumeAdj + cancellationPenalty,
-      -0.25,
-      0.35,
+      Object.values(adjustments).reduce((acc, value) => acc + value, 0),
+      -0.3,
+      0.4,
     );
     const dynamicPrice = Number((basePrice * (1 + totalAdj)).toFixed(2));
     const { price: displayPrice, dynamicApplied } = resolveDisplayPrice(
@@ -256,12 +336,11 @@ async function processPlans(
     const tonAmount = calculateTonAmount(displayPrice, tonRate.rate);
     const dctAmount = calculateDctAmount(displayPrice);
 
-    const adjustments = {
-      winRate: winRateAdj,
-      momentum: momentumAdj,
-      activity: volumeAdj,
-      cancellations: cancellationPenalty,
-    };
+    const marketDeltaPct = tonRate.rate && previousTonRate
+      ? diffPercent(tonRate.rate, previousTonRate)
+      : null;
+
+    const pricingFormula = buildFormulaSummary(adjustments);
 
     const snapshot = {
       metrics,
@@ -276,22 +355,18 @@ async function processPlans(
       ton_amount: tonAmount,
       dct_amount: dctAmount,
       delta_pct: diffPercent(displayPrice, previousDynamic),
+      market_drift_pct: marketDeltaPct,
+      reliability_multiplier: reliabilityMultiplier,
     };
 
     if (!preview) {
-      const { error } = await supabase
-        .from("subscription_plans")
-        .update({
-          dynamic_price_usdt: dynamicPrice,
-          pricing_formula: buildFormulaSummary(adjustments),
-          last_priced_at: nowIso,
-          performance_snapshot: snapshot,
-        })
-        .eq("id", plan.id);
-
-      if (error) {
-        throw new Error(error.message);
-      }
+      planUpdates.push({
+        id: plan.id,
+        dynamic_price_usdt: dynamicPrice,
+        pricing_formula: pricingFormula,
+        last_priced_at: nowIso,
+        performance_snapshot: snapshot,
+      });
     }
 
     results.push({
@@ -305,8 +380,19 @@ async function processPlans(
       dct_amount: dctAmount,
       previous_dynamic_price: previousDynamic,
       adjustments,
+      pricing_formula: pricingFormula,
       snapshot,
     });
+  }
+
+  if (!preview && planUpdates.length > 0) {
+    const { error } = await supabase
+      .from("subscription_plans")
+      .upsert(planUpdates, { onConflict: "id" });
+
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 
   return { results, tonRate };
@@ -334,7 +420,7 @@ export const handler = registerHandler(async (req) => {
 
   const lookbackEnv = optionalEnv("VIP_PRICING_LOOKBACK_DAYS");
   const lookbackDays = lookbackEnv ? Math.max(7, Number(lookbackEnv)) : 30;
-  const metrics = await computeTradeMetrics(
+  const metricsPromise = computeTradeMetrics(
     Number.isFinite(lookbackDays) ? lookbackDays : 30,
   );
 
@@ -363,15 +449,18 @@ export const handler = registerHandler(async (req) => {
 
   if (error) {
     console.error("vip-dynamic-pricing: failed to load plans", error);
+    await metricsPromise.catch(() => null);
     return oops("Failed to load subscription plans", error.message, req);
   }
 
   const plans = (data ?? []) as PlanRow[];
   if (plans.length === 0) {
-    return bad("No subscription plans found", null, req);
+    const metrics = await metricsPromise;
+    return bad("No subscription plans found", { metrics }, req);
   }
 
   try {
+    const metrics = await metricsPromise;
     const { results, tonRate } = await processPlans(
       plans,
       metrics,

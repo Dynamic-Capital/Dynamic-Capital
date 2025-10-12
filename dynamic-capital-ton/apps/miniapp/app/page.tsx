@@ -10,31 +10,23 @@ import type {
   SendTransactionRequest,
   TonConnectUI,
 } from "@tonconnect/ui-react";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, JSX } from "react";
-import {
-  useMiniAppThemeManager,
-} from "@shared/miniapp/use-miniapp-theme";
+import { useMiniAppThemeManager } from "@shared/miniapp/use-miniapp-theme";
 import { TONCONNECT_WALLETS_LIST_CONFIGURATION } from "@shared/ton/tonconnect-wallets";
 import type {
   MiniAppThemeOption,
   TonConnectLike,
 } from "@shared/miniapp/theme-loader";
 import {
+  deriveTonTransactionHash,
   isSupportedPlan,
   linkTonMiniAppWallet,
   type Plan,
   processTonMiniAppSubscription,
-  deriveTonTransactionHash,
   requestTonProofChallenge,
-  type TonProofPayload,
   type TonProofChallenge,
+  type TonProofPayload,
 } from "../lib/ton-miniapp-helper";
 import {
   computeTonProofRefreshDelay,
@@ -55,7 +47,10 @@ import {
   TONCONNECT_TWA_RETURN_URL,
 } from "../lib/config";
 import { THEME_MINT_PLANS, type ThemeMintPlan } from "../data/theme-mints";
-import { TON_MANIFEST_RESOURCE_PATH, TON_MANIFEST_URL_CANDIDATES } from "@shared/ton/manifest";
+import {
+  TON_MANIFEST_RESOURCE_PATH,
+  TON_MANIFEST_URL_CANDIDATES,
+} from "@shared/ton/manifest";
 import { TON_MANIFEST_FALLBACK_DATA_URL } from "../lib/ton-manifest-inline";
 import { resolveTonManifestUrl } from "../lib/ton-manifest-resolver";
 
@@ -185,11 +180,11 @@ function useTonConnectManifestUrl(): TonConnectManifestState {
           [
             ...(typeof window !== "undefined"
               ? [
-                  new URL(
-                    TON_MANIFEST_RESOURCE_PATH,
-                    window.location.origin,
-                  ).toString(),
-                ]
+                new URL(
+                  TON_MANIFEST_RESOURCE_PATH,
+                  window.location.origin,
+                ).toString(),
+              ]
               : []),
             ...TON_MANIFEST_URL_CANDIDATES,
           ],
@@ -356,7 +351,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
   {
     id: "vip_bronze",
     name: "VIP Bronze",
-    price: "120 TON",
+    price: "Loading price…",
     cadence: "3 month horizon",
     description:
       "Entry tier that mirrors the desk's base auto-invest strategy.",
@@ -366,9 +361,9 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       "Capital preservation guardrails",
     ],
     meta: {
-      currency: "TON",
-      amount: 120,
-      tonAmount: 120,
+      currency: "USD",
+      amount: null,
+      tonAmount: null,
       dctAmount: null,
       updatedAt: null,
       snapshot: null,
@@ -378,7 +373,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
   {
     id: "vip_silver",
     name: "VIP Silver",
-    price: "220 TON",
+    price: "Loading price…",
     cadence: "6 month horizon",
     description:
       "Expanded allocation with leverage-managed exposure and mid-cycle rotations.",
@@ -388,9 +383,9 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       "Quarterly performance briefing",
     ],
     meta: {
-      currency: "TON",
-      amount: 220,
-      tonAmount: 220,
+      currency: "USD",
+      amount: null,
+      tonAmount: null,
       dctAmount: null,
       updatedAt: null,
       snapshot: null,
@@ -400,7 +395,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
   {
     id: "vip_gold",
     name: "VIP Gold",
-    price: "420 TON",
+    price: "Loading price…",
     cadence: "12 month horizon",
     description:
       "Full desk collaboration with access to structured products and vault strategies.",
@@ -410,9 +405,9 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       "Desk escalation on demand",
     ],
     meta: {
-      currency: "TON",
-      amount: 420,
-      tonAmount: 420,
+      currency: "USD",
+      amount: null,
+      tonAmount: null,
       dctAmount: null,
       updatedAt: null,
       snapshot: null,
@@ -422,7 +417,7 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
   {
     id: "mentorship",
     name: "Mentorship Circle",
-    price: "650 TON",
+    price: "Loading price…",
     cadence: "12 month horizon",
     description:
       "One-on-one mentorship with the desk's senior PMs and quarterly onsite reviews.",
@@ -432,9 +427,9 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
       "Capital introduction pathway",
     ],
     meta: {
-      currency: "TON",
-      amount: 650,
-      tonAmount: 650,
+      currency: "USD",
+      amount: null,
+      tonAmount: null,
       dctAmount: null,
       updatedAt: null,
       snapshot: null,
@@ -552,7 +547,9 @@ function normalisePlanSnapshot(
       !Array.isArray(record.adjustments)
     ? Object.entries(record.adjustments as Record<string, unknown>)
       .map(([key, value]) => ({ key, value: coerceNumber(value) }))
-      .filter((item): item is SnapshotAdjustment => typeof item.value === "number")
+      .filter((item): item is SnapshotAdjustment =>
+        typeof item.value === "number"
+      )
       .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
     : [];
 
@@ -715,7 +712,10 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
   return nextOptions.length > 0 ? nextOptions : [...FALLBACK_PLAN_OPTIONS];
 }
 
-function formatPercent(value: number | null, fractionDigits = 2): string | null {
+function formatPercent(
+  value: number | null,
+  fractionDigits = 2,
+): string | null {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return null;
   }
@@ -766,8 +766,10 @@ function resolvePlanSnapshot(
   const normalized = normalisePlanSnapshot(snapshot);
 
   if (signature) {
-    if (!planSnapshotCache.has(signature) &&
-      planSnapshotCache.size >= PLAN_SNAPSHOT_CACHE_LIMIT) {
+    if (
+      !planSnapshotCache.has(signature) &&
+      planSnapshotCache.size >= PLAN_SNAPSHOT_CACHE_LIMIT
+    ) {
       const oldestKey = planSnapshotCache.keys().next().value;
       if (typeof oldestKey === "string") {
         planSnapshotCache.delete(oldestKey);
@@ -892,7 +894,10 @@ function resolvePlanUpdatedAt(options: PlanOption[]): string | undefined {
     }
   }
 
-  if (!Number.isFinite(latestTimestamp) || latestTimestamp === Number.NEGATIVE_INFINITY) {
+  if (
+    !Number.isFinite(latestTimestamp) ||
+    latestTimestamp === Number.NEGATIVE_INFINITY
+  ) {
     return undefined;
   }
 
@@ -927,8 +932,10 @@ function parseIsoTimestamp(iso?: string | null): number | null {
 
   const parsed = Date.parse(iso);
   const normalized = Number.isFinite(parsed) ? parsed : null;
-  if (!isoTimestampCache.has(iso) &&
-    isoTimestampCache.size >= ISO_TIMESTAMP_CACHE_LIMIT) {
+  if (
+    !isoTimestampCache.has(iso) &&
+    isoTimestampCache.size >= ISO_TIMESTAMP_CACHE_LIMIT
+  ) {
     const oldestKey = isoTimestampCache.keys().next().value;
     if (typeof oldestKey === "string") {
       isoTimestampCache.delete(oldestKey);
@@ -964,7 +971,9 @@ function formatRelativeTime(iso?: string): string {
     return `${diffDays}d ago`;
   }
 
-  const divisions: Array<{ amount: number; unit: Intl.RelativeTimeFormatUnit }> = [
+  const divisions: Array<
+    { amount: number; unit: Intl.RelativeTimeFormatUnit }
+  > = [
     { amount: 60, unit: "second" },
     { amount: 60, unit: "minute" },
     { amount: 24, unit: "hour" },
@@ -1264,7 +1273,9 @@ function HomeInner() {
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
   const [isLinking, setIsLinking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [mintingStates, setMintingStates] = useState<Record<number, MintingPlanState>>(
+  const [mintingStates, setMintingStates] = useState<
+    Record<number, MintingPlanState>
+  >(
     createDefaultMintingState,
   );
   const [tonProofChallenge, setTonProofChallenge] = useState<
@@ -1379,8 +1390,10 @@ function HomeInner() {
       return;
     }
     const unsubscribe = tonConnectUI.onStatusChange((walletInfo) => {
-      if (walletInfo?.connectItems?.tonProof &&
-        "proof" in walletInfo.connectItems.tonProof) {
+      if (
+        walletInfo?.connectItems?.tonProof &&
+        "proof" in walletInfo.connectItems.tonProof
+      ) {
         setTonProof(walletInfo.connectItems.tonProof.proof);
         setTonProofState((previous) => {
           if (previous.status === "verified") {
@@ -1595,14 +1608,17 @@ function HomeInner() {
         if (!response.ok) {
           const errorMessage =
             typeof payload === "object" && payload && "error" in payload
-              ? String((payload as { error?: unknown }).error ?? "Mint start failed")
+              ? String(
+                (payload as { error?: unknown }).error ?? "Mint start failed",
+              )
               : `Mint start failed (HTTP ${response.status})`;
           throw new Error(errorMessage);
         }
 
         const mintRecord =
           typeof payload === "object" && payload && "mint" in payload
-            ? (payload as { mint?: { started_at?: string | null } }).mint ?? null
+            ? (payload as { mint?: { started_at?: string | null } }).mint ??
+              null
             : null;
         const startedAt =
           mintRecord && typeof mintRecord.started_at === "string"
@@ -1615,15 +1631,15 @@ function HomeInner() {
           [plan.index]: { status: "success", startedAt, progress: 100 },
         }));
       } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Unable to reach the minting service. Please try again shortly.";
+        const message = error instanceof Error
+          ? error.message
+          : "Unable to reach the minting service. Please try again shortly.";
         clearMintingTimer(plan.index);
         setMintingStates((previous) => {
           const current = previous[plan.index];
-          const fallbackProgress =
-            current && current.status === "starting" ? current.progress : 0;
+          const fallbackProgress = current && current.status === "starting"
+            ? current.progress
+            : 0;
           return {
             ...previous,
             [plan.index]: {
@@ -1980,7 +1996,9 @@ function HomeInner() {
 
       const derivedHash = deriveTonTransactionHash(boc);
       if (!derivedHash) {
-        throw new Error("Unable to derive transaction hash from wallet response");
+        throw new Error(
+          "Unable to derive transaction hash from wallet response",
+        );
       }
 
       setTxHash(derivedHash);
@@ -2263,16 +2281,14 @@ function HomeInner() {
                   className={`plan-card${isActive ? " plan-card--active" : ""}`}
                   onClick={() => setPlan(option.id)}
                   aria-pressed={isActive}
-                  style={
-                    {
-                      "--plan-card-accent": visual.accent,
-                      "--plan-card-soft": visual.soft,
-                      "--plan-card-glow": visual.glow,
-                      "--plan-card-sheen": visual.sheen,
-                      "--plan-card-surface": visual.surface,
-                      "--plan-card-shadow": visual.shadow,
-                    } as CSSProperties
-                  }
+                  style={{
+                    "--plan-card-accent": visual.accent,
+                    "--plan-card-soft": visual.soft,
+                    "--plan-card-glow": visual.glow,
+                    "--plan-card-sheen": visual.sheen,
+                    "--plan-card-surface": visual.surface,
+                    "--plan-card-shadow": visual.shadow,
+                  } as CSSProperties}
                 >
                   <div className="plan-card-header">
                     <span className="plan-name">{option.name}</span>
@@ -2320,29 +2336,39 @@ function HomeInner() {
                 <span className="plan-detail__label">Currently selected</span>
                 <div className="plan-detail__name">
                   {selectedPlan.name}
-                  <span className="plan-detail__badge">{selectedPlan.cadence}</span>
+                  <span className="plan-detail__badge">
+                    {selectedPlan.cadence}
+                  </span>
                 </div>
               </header>
               <div className="plan-detail__grid">
                 <div>
                   <p className="plan-detail__metric-label">Desk contribution</p>
-                  <p className="plan-detail__metric-value">{selectedPlan.price}</p>
+                  <p className="plan-detail__metric-value">
+                    {selectedPlan.price}
+                  </p>
                 </div>
                 {planTonLabel && (
                   <div>
                     <p className="plan-detail__metric-label">TON equivalent</p>
-                    <p className="plan-detail__metric-value">{planTonLabel} TON</p>
+                    <p className="plan-detail__metric-value">
+                      {planTonLabel} TON
+                    </p>
                   </div>
                 )}
                 {planDctLabel && (
                   <div>
                     <p className="plan-detail__metric-label">Desk credit</p>
-                    <p className="plan-detail__metric-value">{planDctLabel} DCT</p>
+                    <p className="plan-detail__metric-value">
+                      {planDctLabel} DCT
+                    </p>
                   </div>
                 )}
               </div>
               {planUpdatedLabel && (
-                <p className="plan-detail__footnote">Last repriced {planUpdatedLabel}</p>
+                <p className="plan-detail__footnote">
+                  Last repriced {planUpdatedLabel}
+                </p>
               )}
             </aside>
           )}
@@ -2378,9 +2404,9 @@ function HomeInner() {
             <div>
               <h2 className="section-title">Theme minting</h2>
               <p className="section-description">
-                Launch each Theme Pass drop with a single tap. Every run is logged
-                to the treasury ledger so governance can audit who triggered the
-                mint and when.
+                Launch each Theme Pass drop with a single tap. Every run is
+                logged to the treasury ledger so governance can audit who
+                triggered the mint and when.
               </p>
             </div>
           </div>
@@ -2420,7 +2446,8 @@ function HomeInner() {
                       ? `Started ${formatRelativeTime(state.startedAt)}`
                       : "Mint run started.";
                   case "error":
-                    return state.error ?? "Mint run could not start. Try again.";
+                    return state.error ??
+                      "Mint run could not start. Try again.";
                   default:
                     return "Tap start to dispatch this theme run.";
                 }
@@ -2458,22 +2485,31 @@ function HomeInner() {
                 >
                   <header className="mint-card__header">
                     <div>
-                      <p className="mint-card__eyebrow">Mint #{mintPlan.index}</p>
+                      <p className="mint-card__eyebrow">
+                        Mint #{mintPlan.index}
+                      </p>
                       <h3 className="mint-card__title">{mintPlan.name}</h3>
                     </div>
-                    <span className="mint-card__priority" aria-label="Default priority">
+                    <span
+                      className="mint-card__priority"
+                      aria-label="Default priority"
+                    >
                       Priority {mintPlan.defaultPriority}
                     </span>
                   </header>
 
                   <div className="mint-card__tags">
-                    <span className="mint-card__tag">{mintPlan.launchWindow}</span>
+                    <span className="mint-card__tag">
+                      {mintPlan.launchWindow}
+                    </span>
                     <span className="mint-card__tag mint-card__tag--outline">
                       {mintPlan.supply}
                     </span>
                   </div>
 
-                  <p className="mint-card__description">{mintPlan.description}</p>
+                  <p className="mint-card__description">
+                    {mintPlan.description}
+                  </p>
 
                   <div
                     className="mint-card__progress"
@@ -2491,7 +2527,9 @@ function HomeInner() {
                       />
                     </div>
                     <div className="mint-card__progress-footer">
-                      <span className="mint-card__progress-state">{statusLabel}</span>
+                      <span className="mint-card__progress-state">
+                        {statusLabel}
+                      </span>
                       {state.status !== "idle" && (
                         <span className="mint-card__progress-value">
                           {progressValue}%
@@ -2516,7 +2554,9 @@ function HomeInner() {
                     <div>
                       <dt>Status</dt>
                       <dd>
-                        <span className={`mint-card__status mint-card__status--${state.status}`}>
+                        <span
+                          className={`mint-card__status mint-card__status--${state.status}`}
+                        >
                           {statusLabel}
                         </span>
                       </dd>
@@ -2526,7 +2566,9 @@ function HomeInner() {
                   {helperText && (
                     <p
                       className={`mint-card__message${
-                        state.status === "error" ? " mint-card__message--error" : ""
+                        state.status === "error"
+                          ? " mint-card__message--error"
+                          : ""
                       }`}
                       role={messageRole}
                       aria-live={messageRole ? "polite" : undefined}
@@ -3036,7 +3078,9 @@ function PlanSnapshotCard({
       <div className="plan-snapshot__header">
         <h3 className="plan-snapshot__title">Live pricing snapshot</h3>
         {computedLabel && (
-          <span className="plan-snapshot__timestamp">Updated {computedLabel}</span>
+          <span className="plan-snapshot__timestamp">
+            Updated {computedLabel}
+          </span>
         )}
       </div>
       <div className="plan-snapshot__grid">
@@ -3351,9 +3395,9 @@ export default function Page() {
 
   return (
     <>
-      {error ? (
-        <TonManifestFallbackBanner message={error} onRetry={retry} />
-      ) : null}
+      {error
+        ? <TonManifestFallbackBanner message={error} onRetry={retry} />
+        : null}
       <TonConnectUIProvider
         manifestUrl={manifestUrlForProvider}
         walletsListConfiguration={TONCONNECT_WALLETS_LIST_CONFIGURATION}
@@ -3378,7 +3422,8 @@ function TonManifestFallbackBanner({
         <div className="space-y-1">
           <p className="font-medium">{message}</p>
           <p className="text-white/70">
-            We’ll keep trying in the background. You can also manually retry now.
+            We’ll keep trying in the background. You can also manually retry
+            now.
           </p>
         </div>
         <button

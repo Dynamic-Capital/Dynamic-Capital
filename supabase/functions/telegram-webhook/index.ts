@@ -5,6 +5,11 @@ import { envOrSetting, getContent } from "../_shared/config.ts";
 import { readMiniAppEnv } from "../_shared/miniapp.ts";
 import { createClient } from "../_shared/client.ts";
 import { registerHandler } from "../_shared/serve.ts";
+import {
+  calculateDctAmount,
+  calculateTonAmount,
+  resolveDisplayPrice,
+} from "../_shared/pricing.ts";
 
 interface TelegramMessage {
   text?: string;
@@ -32,6 +37,166 @@ function getLogger(req: Request) {
  * Allows passing through optional payload fields like reply_markup.
  */
 const BOT_TOKEN = await envOrSetting("TELEGRAM_BOT_TOKEN");
+
+type PlanDigestCache = { text: string; expiresAt: number };
+const PLAN_DIGEST_TTL_MS = 2 * 60 * 1000;
+let planDigestCache: PlanDigestCache | null = null;
+
+function parseNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function extractTonRate(
+  snapshot: Record<string, unknown> | null,
+): number | null {
+  if (!snapshot) return null;
+  const tonRate = snapshot.tonRate as { rate?: unknown } | undefined;
+  if (!tonRate || typeof tonRate !== "object") return null;
+  return parseNumber(tonRate.rate ?? null);
+}
+
+function formatCurrency(amount: number, currency: string): string {
+  const normalized = currency && currency.trim().length > 0
+    ? currency.trim().toUpperCase()
+    : "USD";
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: normalized,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `$${amount.toFixed(2)}`;
+  }
+}
+
+function formatTon(amount: number | null): string | null {
+  if (amount === null || !Number.isFinite(amount)) return null;
+  const formatted = new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 3,
+  }).format(amount);
+  return `${formatted} TON`;
+}
+
+function formatDct(amount: number | null): string | null {
+  if (amount === null || !Number.isFinite(amount)) return null;
+  return `${amount.toFixed(2)} DCT`;
+}
+
+async function buildPlanDigest(
+  logger: ReturnType<typeof getLogger>,
+): Promise<string | null> {
+  if (planDigestCache && planDigestCache.expiresAt > Date.now()) {
+    return planDigestCache.text;
+  }
+
+  try {
+    const supabase = createClient("service");
+    const { data, error } = await supabase
+      .from("subscription_plans")
+      .select(
+        "id,name,price,currency,dynamic_price_usdt,last_priced_at,performance_snapshot",
+      )
+      .order("price", { ascending: true });
+
+    if (error) {
+      logger.error("failed to load subscription plans for digest", error);
+      return null;
+    }
+
+    const plans = (data ?? []).filter(Boolean);
+    if (plans.length === 0) {
+      return null;
+    }
+
+    const lines: string[] = [];
+    let latestTimestamp: number | null = null;
+
+    for (const plan of plans) {
+      const basePrice = Number(plan.price ?? 0);
+      const dynamicPrice = parseNumber(plan.dynamic_price_usdt);
+      const { price: displayPrice, dynamicApplied } = resolveDisplayPrice(
+        basePrice,
+        dynamicPrice,
+      );
+
+      const snapshot = (plan.performance_snapshot ?? null) as
+        | Record<string, unknown>
+        | null;
+      const snapshotTonAmount = snapshot
+        ? parseNumber((snapshot as { ton_amount?: unknown }).ton_amount ?? null)
+        : null;
+      const snapshotDctAmount = snapshot
+        ? parseNumber((snapshot as { dct_amount?: unknown }).dct_amount ?? null)
+        : null;
+      const tonAmount = snapshotTonAmount ??
+        calculateTonAmount(displayPrice, extractTonRate(snapshot));
+      const dctAmount = snapshotDctAmount ?? calculateDctAmount(displayPrice);
+
+      const segments = [
+        formatCurrency(displayPrice, plan.currency ?? "USD"),
+      ];
+      const tonLabel = formatTon(tonAmount);
+      if (tonLabel) {
+        segments.push(`≈ ${tonLabel}`);
+      }
+      const dctLabel = formatDct(dctAmount);
+      if (dctLabel) {
+        segments.push(dctLabel);
+      }
+
+      const planName =
+        typeof plan.name === "string" && plan.name.trim().length > 0
+          ? plan.name.trim()
+          : plan.id ?? "VIP Plan";
+      const dynamicMarker = dynamicApplied ? " (dynamic)" : "";
+      lines.push(`• ${planName}: ${segments.join(" | ")}${dynamicMarker}`);
+
+      const lastPricedCandidate = typeof plan.last_priced_at === "string" &&
+          plan.last_priced_at
+        ? plan.last_priced_at
+        : snapshot && typeof snapshot.computed_at === "string"
+        ? snapshot.computed_at
+        : null;
+      if (lastPricedCandidate) {
+        const parsed = Date.parse(lastPricedCandidate);
+        if (Number.isFinite(parsed)) {
+          latestTimestamp = latestTimestamp === null
+            ? parsed
+            : Math.max(latestTimestamp, parsed);
+        }
+      }
+    }
+
+    if (lines.length === 0) {
+      return null;
+    }
+
+    let digest = `Latest VIP pricing\n${lines.join("\n")}`;
+    if (latestTimestamp !== null) {
+      digest += `\nLast recalibrated: ${
+        new Date(latestTimestamp).toISOString()
+      }`;
+    }
+
+    planDigestCache = {
+      text: digest,
+      expiresAt: Date.now() + PLAN_DIGEST_TTL_MS,
+    };
+
+    return digest;
+  } catch (error) {
+    logger.error("failed to build plan digest", error);
+    return null;
+  }
+}
 
 async function sendMessage(
   chatId: number,
@@ -181,12 +346,20 @@ export async function handler(req: Request): Promise<Response> {
         const prompt = await getContent("miniapp_open_prompt") ??
           "Join the VIP Mini App:";
 
+        const sendDigest = async () => {
+          const digest = await buildPlanDigest(logger);
+          if (digest) {
+            await sendMessage(chatId, digest);
+          }
+        };
+
         if (url) {
           await sendMessage(chatId, prompt, {
             reply_markup: {
               inline_keyboard: [[{ text: btnText, web_app: { url } }]],
             },
           });
+          await sendDigest();
           return;
         }
 
@@ -199,15 +372,28 @@ export async function handler(req: Request): Promise<Response> {
               }]],
             },
           });
+          await sendDigest();
           return;
         }
 
         const msg = await getContent("bot_activated_configuring") ??
           "Bot activated. Mini app is being configured. Please try again soon.";
         await sendMessage(chatId, msg);
+        await sendDigest();
       },
       "/ping": async (chatId) => {
         await sendMessage(chatId, JSON.stringify({ pong: true }));
+      },
+      "/plans": async (chatId) => {
+        const digest = await buildPlanDigest(logger);
+        if (digest) {
+          await sendMessage(chatId, digest);
+        } else {
+          await sendMessage(
+            chatId,
+            "Pricing is syncing with the desk. Please try again in a moment.",
+          );
+        }
       },
     };
 
