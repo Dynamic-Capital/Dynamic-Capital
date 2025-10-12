@@ -461,16 +461,42 @@ const sharedPreset = {
         },
       });
 
+      const glassMotionStyles = {
+        backgroundImage: "var(--glass-motion-bg)",
+        borderColor: "var(--glass-motion-border)",
+        backdropFilter: "var(--glass-motion-blur)",
+        WebkitBackdropFilter: "var(--glass-motion-blur)",
+        boxShadow: "var(--glass-motion-shadow)",
+        borderWidth: "1px",
+        borderStyle: "solid",
+      } as const;
+
+      const motionCardStyles = {
+        position: "relative",
+        overflow: "hidden",
+        backgroundImage: "var(--gradient-motion-card)",
+        boxShadow: "var(--shadow-motion-md)",
+        borderColor: "hsl(var(--border) / 0.5)",
+        borderWidth: "1px",
+        borderStyle: "solid",
+        backdropFilter: "var(--glass-motion-blur)",
+        WebkitBackdropFilter: "var(--glass-motion-blur)",
+        transitionProperty: "transform, box-shadow, border-color",
+        transitionDuration: "var(--motion-duration-normal)",
+        transitionTimingFunction: "var(--motion-ease-smooth)",
+      } as const;
+
+      const motionButtonStyles = {
+        position: "relative",
+        overflow: "hidden",
+        transitionProperty:
+          "transform, box-shadow, background-color, border-color, color",
+        transitionDuration: "var(--motion-duration-normal)",
+        transitionTimingFunction: "var(--motion-ease-spring)",
+      } as const;
+
       addComponents({
-        ".surface-glass": {
-          backgroundImage: "var(--glass-motion-bg)",
-          borderColor: "var(--glass-motion-border)",
-          backdropFilter: "var(--glass-motion-blur)",
-          WebkitBackdropFilter: "var(--glass-motion-blur)",
-          boxShadow: "var(--glass-motion-shadow)",
-          borderWidth: "1px",
-          borderStyle: "solid",
-        },
+        ".surface-glass": glassMotionStyles,
         ".surface-glass-muted": {
           backgroundImage: "var(--gradient-card)",
           borderColor: "hsl(var(--border) / 0.55)",
@@ -478,38 +504,18 @@ const sharedPreset = {
           borderWidth: "1px",
           borderStyle: "solid",
         },
-        ".glass-motion": {
-          backgroundImage: "var(--glass-motion-bg)",
-          backdropFilter: "var(--glass-motion-blur)",
-          WebkitBackdropFilter: "var(--glass-motion-blur)",
-          borderColor: "var(--glass-motion-border)",
-          borderWidth: "1px",
-          borderStyle: "solid",
-          boxShadow: "var(--glass-motion-shadow)",
-        },
-        ".motion-card": {
-          position: "relative",
-          overflow: "hidden",
-          backgroundImage: "var(--gradient-motion-card)",
-          boxShadow: "var(--shadow-motion-md)",
-          borderColor: "hsl(var(--border) / 0.5)",
-          borderWidth: "1px",
-          borderStyle: "solid",
-          backdropFilter: "var(--glass-motion-blur)",
-          WebkitBackdropFilter: "var(--glass-motion-blur)",
-          transitionProperty: "transform, box-shadow, border-color",
-          transitionDuration: "var(--motion-duration-normal)",
-          transitionTimingFunction: "var(--motion-ease-smooth)",
-        },
-        ".motion-button": {
-          position: "relative",
-          overflow: "hidden",
-          transitionProperty:
-            "transform, box-shadow, background-color, border-color, color",
-          transitionDuration: "var(--motion-duration-normal)",
-          transitionTimingFunction: "var(--motion-ease-spring)",
-        },
       });
+
+      addUtilities(
+        {
+          ".glass-motion": glassMotionStyles,
+          ".motion-card": motionCardStyles,
+          ".motion-button": motionButtonStyles,
+        },
+        {
+          variants: ["responsive"],
+        },
+      );
     }),
   ],
 } satisfies Config;
