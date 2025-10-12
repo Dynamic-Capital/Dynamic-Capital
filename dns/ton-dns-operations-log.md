@@ -83,8 +83,17 @@ chronological order beneath this entry.
 - **Gateway tooling** — `npm run ton:site-status -- --domain dynamiccapital.ton` remains blocked by
   sandbox egress limits (`ENETUNREACH` / `ENOTFOUND` across all gateways), so no live gateway checks
   were captured.
-- **Next step** — Rebuild the TON bundle from `apps/web` and redeploy with a workspace that can reach
-  DigitalOcean APIs (or run the REST calls manually), then repeat the HTTPS verification runbook.
+- **Bundle staging** — 2025-10-12 15:24 UTC `npm run ton:build-site-predeploy` staged the `ton-site-public`
+  bundle (SHA-256 `74b89c3fd9370faafa7ec6705370d645af967ecabd5ad338d029cee3876e08fb`) under
+  `dynamic-capital-ton/storage/predeploy`. The machine-readable summary lives at
+  `dynamic-capital-ton/storage/predeploy/summary.json`. Redeploy remains pending because the sandbox
+  cannot reach `api.digitalocean.com`, so the refreshed bundle still needs to be uploaded from a networked
+  environment before `/dynamiccapital.ton` recovers.
+- **Root cause** — The DigitalOcean origin continues to serve `HTTP 404` for `/dynamiccapital.ton`
+  because the redeploys executed without the rebuilt TON bundle. Publishing the staged assets and rerunning
+  the HTTPS verification workflow from an egress-enabled workstation will clear the failure.
+- **Next step** — From an egress-enabled workstation, upload the staged bundle, trigger the DigitalOcean redeploy,
+  and rerun the HTTPS verification workflow to confirm `/dynamiccapital.ton` returns `HTTP 200` before updating the resolver status.
 
 ## 2025-10-10 – TON gateway restoration confirmed
 

@@ -1,11 +1,20 @@
 # HTTPS Gateway Verification – 2025-10-08
 
 ## Summary
+- 2025-10-12 15:24 UTC rebuild staged the `ton-site-public` bundle (`SHA-256 74b89c3fd9370faafa7ec6705370d645af967ecabd5ad338d029cee3876e08fb`) via `npm run ton:build-site-predeploy`; redeploy remains pending because the sandbox cannot reach `api.digitalocean.com`, so `/dynamiccapital.ton` still responds with `HTTP 404` until the bundle is published from a networked environment.
 - 2025-10-12 15:16 UTC follow-up redeploy triggered via the DigitalOcean REST API after the `npm run do:sync-site` helper failed (sandbox `ENETUNREACH` on Node `fetch`); direct origin probes still return `HTTP 404`, indicating the TON bundle was not rebuilt.
 - 2025-10-12 15:04 UTC manual redeploy triggered for `dynamic-capital-qazf2` via the DigitalOcean REST API; origin probe currently returns `HTTP 404` while propagation completes.
-- 2025-10-10 02:32 UTC verification confirms both HTTPS gateways return `HTTP 200` for `/dynamiccapital.ton`.
-- Direct origin probe at `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton` also returns `HTTP 200`, confirming the bundle is restored.
+- Historical reference: 2025-10-10 02:32 UTC verification confirmed both HTTPS gateways returned `HTTP 200` for `/dynamiccapital.ton` once the bundle was restored.
+- Historical reference: Direct origin probe at `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton` also returned `HTTP 200` after the 2025-10-10 redeploy.
 - Earlier 2025-10-10 16:41 UTC regression details remain below for historical context.
+
+## 2025-10-12 15:24 UTC – TON site bundle rebuilt (redeploy pending)
+
+1. `npm run ton:build-site-predeploy`
+   - Staged the `ton-site-public` bundle at `dynamic-capital-ton/storage/predeploy/ton-site-public/apps/web/public`.
+   - Computed SHA-256 `74b89c3fd9370faafa7ec6705370d645af967ecabd5ad338d029cee3876e08fb`, matching the updated manifest entry and recorded in `dynamic-capital-ton/storage/predeploy/summary.json`.
+2. DigitalOcean redeploy remains blocked inside the sandbox: outbound requests to `https://api.digitalocean.com` continue to fail with `ENETUNREACH`, so the staged bundle still needs to be published from an environment with network egress.
+3. Root cause: the DigitalOcean origin lacks the refreshed TON bundle, which leaves `/dynamiccapital.ton` responding with `HTTP 404` until the staged assets are uploaded and the redeploy completes.
 
 ## 2025-10-12 15:16 UTC – Follow-up redeploy and health checks
 

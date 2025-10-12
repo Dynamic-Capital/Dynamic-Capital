@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  width="720"
+  height="240"
+  viewBox="0 0 720 240"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <linearGradient
+      id="markGradient"
+      x1="52"
+      y1="36"
+      x2="212"
+      y2="196"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#1F398E" />
+      <stop offset="1" stop-color="#2AA0C3" />
+    </linearGradient>
+    <linearGradient
+      id="innerHighlight"
+      x1="104"
+      y1="92"
+      x2="180"
+      y2="168"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#E5F2FF" />
+      <stop offset="1" stop-color="#BFE8FF" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(32 24)">
+    <rect width="208" height="208" rx="52" fill="url(#markGradient)" />
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M72 48H124C158.346 48 184 73.2155 184 112C184 150.784 158.346 176 124 176H72V48ZM124 152C145.091 152 160 137.091 160 116C160 94.9086 145.091 80 124 80H100V152H124Z"
+      fill="white"
+    />
+    <path
+      d="M100 88H122C140.673 88 152 99.327 152 116C152 132.673 140.673 144 122 144H100V88Z"
+      fill="url(#innerHighlight)"
+    />
+    <path
+      d="M154 44C180.826 54.7326 196 75.6311 196 112C196 148.369 180.826 169.267 154 180"
+      stroke="#E3FFFF"
+      stroke-width="9"
+      stroke-linecap="round"
+    />
+    <path
+      d="M160 56C183.265 66.4366 198 86.1147 198 112C198 137.885 183.265 157.563 160 168"
+      stroke="#D2FCFF"
+      stroke-width="12"
+      stroke-linecap="round"
+      stroke-opacity="0.7"
+    />
+  </g>
+  <g transform="translate(288 0)">
+    <text
+      x="0"
+      y="112"
+      font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+      font-size="72"
+      font-weight="700"
+      fill="#04025C"
+      letter-spacing="0.5px"
+    >
+      Dynamic
+    </text>
+    <text
+      x="0"
+      y="178"
+      font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+      font-size="68"
+      font-weight="500"
+      fill="#1F6782"
+      letter-spacing="0.3px"
+    >
+      Capital
+    </text>
+    <rect x="6" y="196" width="188" height="8" rx="4" fill="#6F94F1" />
+  </g>
+</svg>

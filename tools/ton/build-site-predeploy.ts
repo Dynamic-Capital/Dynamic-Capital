@@ -504,9 +504,10 @@ try {
 } catch (error) {
   if (error instanceof CliError) {
     console.error(error.message);
-    process.exitCode = 1;
-    return;
+  } else if (error instanceof Error) {
+    console.error(error.stack ?? error.message);
+  } else {
+    console.error(String(error));
   }
-  console.error((error as Error).message);
   process.exitCode = 1;
 }
