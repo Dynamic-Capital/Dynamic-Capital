@@ -1,0 +1,5 @@
+;; Entry point for compiling the DCT jetton master contract with the FunC CLI.
+;; The master implementation lives under the discoverable/ directory and pulls
+;; in the supporting libraries from imports/.
+
+#include "discoverable/master.fc";
