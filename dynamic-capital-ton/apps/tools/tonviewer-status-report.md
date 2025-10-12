@@ -2,7 +2,7 @@
 
 ## Run Context
 
-- **Run Date (UTC):** 2025-10-10 16:02:11
+- **Run Date (UTC):** 2025-10-12 09:34:19
 - **Execution Command:**
   `$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/check-tonviewer-status.ts`
 - **Jetton Address:**
@@ -26,39 +26,37 @@
 
 ## Network Metrics
 
-| Metric                            | Value                              |
-| --------------------------------- | ---------------------------------- |
-| Tonapi verification flag          | `none` (jetton remains unverified) |
-| Reported total supply (raw)       | `100000000000000000`               |
-| Reported total supply (human, Ð9) | `100,000,000` DCT                  |
-| Holder count                      | `1` wallet                         |
-| Last Tonapi sync observed         | 2025-10-06 15:56 UTC               |
+| Metric                            | Value                                              |
+| --------------------------------- | -------------------------------------------------- |
+| Tonapi verification flag          | `none` (jetton remains unverified)                 |
+| Reported total supply (raw)       | `99998500000000000`                                |
+| Reported total supply (human, Ð9) | `99,998,500` DCT                                   |
+| Holder count                      | `29` wallets                                       |
+| Last Tonapi sync observed         | Not provided (Tonapi response omitted timestamp). |
 
 ## Verification Timeline Highlights
 
-| Date       | Owner      | Activity                                                                                                                                         | Outcome                                                    |
-| ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| 2025-10-07 | Operations | Dispatched escalation package with issuer statement PDF, metadata JSON, digest note, and status log generated via the evidence preflight script. | Auto-response received; awaiting reviewer acknowledgement. |
-| 2025-10-08 | Compliance | Archived notarized KYC dossier at `s3://dynamic-compliance/kyc/dct/2025-10-08/` and logged presigned URL.                                        | Archive validated; access expires 2025-10-14 00:00 UTC.    |
-| 2025-10-09 | Analytics  | Logged verification flag (`none`) and scheduled 2025-10-10 rerun; updated escalation log guidance.                                               | Status unchanged; rerun prepared.                          |
-| 2025-10-10 | Analytics  | Executed rerun, captured log excerpt, and queued 2025-10-11 contingency escalation.                                                              | Verification still `none`; monitoring continues.           |
+| Date       | Owner      | Activity                                                                                               | Outcome                                                    |
+| ---------- | ---------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| 2025-10-07 | Operations | Dispatched escalation package with issuer statement, metadata JSON, digest note, and status log (preflight). | Auto-response received; awaiting reviewer acknowledgement. |
+| 2025-10-08 | Compliance | Archived notarized KYC dossier at `s3://dynamic-compliance/kyc/dct/2025-10-08/` and logged presigned URL. | Archive validated; access expires 2025-10-14 00:00 UTC.    |
+| 2025-10-09 | Analytics  | Logged verification flag (`none`) and scheduled 2025-10-10 rerun; refreshed escalation log guidance.       | Status unchanged; rerun prepared.                          |
+| 2025-10-10 | Analytics  | Executed rerun, captured log excerpt, and queued 2025-10-11 contingency escalation.                        | Verification still `none`; monitoring continues.           |
+| 2025-10-12 | Analytics  | Ran unscheduled verification sweep and archived log under `check-tonviewer-status-20251012.log`.           | Flag remains `none`; escalation bundle kept staged.        |
 
 ## Outstanding Actions
 
-1. Hold secondary escalation for dispatch on 2025-10-11 16:00 UTC if Tonviewer
-   remains silent.
-2. Perform a progress check on 2025-10-13 and refresh the escalation log plus
-   this report with any reviewer feedback.
-3. Extend the compliance archive presigned URL on 2025-10-14 if the escalation
-   is still unresolved.
+1. Hold secondary escalation window and dispatch the follow-up on 2025-10-13 16:00 UTC if Tonviewer remains silent.
+2. Execute the scheduled 2025-10-13 progress check (`check-tonviewer-status.ts`) and refresh this report with any change in the verification flag.
+3. Extend the compliance archive presigned URL on 2025-10-14 if the escalation is still unresolved.
 
 ## Verification Follow-up Plan
 
-| Action                             | Description                                                                                                           | Owner      | Target Date | Status    | Notes                                                               |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------- | ----------- | --------- | ------------------------------------------------------------------- |
-| Secondary escalation (if required) | Send the prepared follow-up template referencing ticket `TVR-4821` and confirm attachments checklist before dispatch. | Operations | 2025-10-11  | Ready     | Evidence bundle staged; waiting on reviewer response window.        |
-| Progress check                     | Execute `check-tonviewer-status.ts` and update reports with any change in verification flag.                          | Analytics  | 2025-10-13  | Scheduled | Command block reserved in runbook; alert set in monitoring channel. |
-| Archive maintenance                | Renew presigned URL and confirm compliance archive integrity if the case remains open.                                | Compliance | 2025-10-14  | Planned   | AWS CLI reminder scheduled; no action needed before 2025-10-14.     |
+| Action                             | Description                                                                 | Owner      | Target Date | Status    | Notes                                                            |
+| ---------------------------------- | --------------------------------------------------------------------------- | ---------- | ----------- | --------- | ---------------------------------------------------------------- |
+| Secondary escalation (if required) | Send the prepared follow-up template referencing ticket `TVR-4821` and confirm attachments checklist before dispatch. | Operations | 2025-10-13  | Ready     | Waiting through 2025-10-13 16:00 UTC before triggering the send. |
+| Progress check                     | Execute `check-tonviewer-status.ts` and update reports with any change in verification flag.  | Analytics  | 2025-10-13  | Scheduled | 2025-10-12 sweep logged as pre-check; main run still queued.     |
+| Archive maintenance                | Renew presigned URL and confirm compliance archive integrity if the case remains open.        | Compliance | 2025-10-14  | Planned   | AWS CLI reminder scheduled; no action needed before 2025-10-14. |
 
 ### Supporting Materials
 
@@ -77,16 +75,16 @@
   `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5` (validated
   2025-10-07 15:48 UTC).
 - **Verification logs:** `logs/check-tonviewer-status-20251007.log`,
-  `logs/check-tonviewer-status-20251010.log` (flag `none`).
+  `logs/check-tonviewer-status-20251010.log`,
+  `logs/check-tonviewer-status-20251012.log` (flag `none`).
 - **Compliance archive:** Presigned URL covering
-  `s3://dynamic-compliance/kyc/dct/2025-10-08/` valid until 2025-10-14 00:00
-  UTC.
+  `s3://dynamic-compliance/kyc/dct/2025-10-08/` valid until 2025-10-14 00:00 UTC.
 
 ## Recommended Next Steps
 
-- Operations to monitor Tonviewer queue through 2025-10-11 and dispatch
-  secondary escalation if the reviewer remains silent.
-- Analytics to execute the 2025-10-13 progress check and log any status change
-  immediately.
+- Operations to hold the follow-up template until 2025-10-13 16:00 UTC and
+  dispatch it if Tonviewer still has not acknowledged the ticket.
+- Analytics to perform the scheduled 2025-10-13 sweep and capture any change in
+  the Tonviewer verification flag.
 - Compliance to reconfirm archive accessibility on 2025-10-14 and extend
   validity as required.
