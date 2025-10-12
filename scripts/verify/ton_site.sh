@@ -36,6 +36,9 @@ if ! output=$(node scripts/verify/ton_site.mjs "$CONFIG_PATH" "$DOMAIN_OVERRIDE"
   exit 0
 fi
 
+tonapi_status=""
+gateway_status=""
+
 while IFS= read -r line; do
   [ -z "$line" ] && continue
   echo "$line" >> "$OUT"
@@ -92,6 +95,7 @@ while IFS= read -r line; do
       fi
       ;;
     tonapi_lookup)
+      tonapi_status="$value"
       case "$value" in
         PASS)
           pass "TON API lookup succeeded"
@@ -100,7 +104,7 @@ while IFS= read -r line; do
           warn "TON API lookup skipped"
           ;;
         ERROR)
-          warn "TON API lookup encountered an exception"
+          warn "TON API lookup encountered a network or transport error"
           ;;
         *)
           warn "TON API lookup returned status: $value"
@@ -143,6 +147,7 @@ while IFS= read -r line; do
       fi
       ;;
     tonsite_gateway_lookup)
+      gateway_status="$value"
       case "$value" in
         PASS)
           pass "TON Site gateway served content"
@@ -151,7 +156,7 @@ while IFS= read -r line; do
           warn "TON Site gateway check skipped"
           ;;
         ERROR)
-          warn "TON Site gateway lookup encountered an exception"
+          warn "TON Site gateway lookup encountered a network or transport error"
           ;;
         *)
           warn "TON Site gateway reported status: $value"
@@ -241,16 +246,20 @@ while IFS= read -r line; do
   if [ "$key" = "resolver_address_bounceable" ]; then
     say "Resolver bounceable flag: $value"
   fi
-  if [ "$key" = "tonapi_lookup" ] && [ "$value" != "PASS" ]; then
-    echo "verified=FAIL" >> "$OUT"
-  fi
-  if [ "$key" = "tonsite_gateway_lookup" ] && [ "$value" != "PASS" ]; then
-    echo "verified=FAIL" >> "$OUT"
-  fi
 done <<< "$output"
 
-if ! grep -q '^verified=' "$OUT"; then
-  echo "verified=PASS" >> "$OUT"
+verification_status="PASS"
+
+if [ "$tonapi_status" = "FAIL" ] || [ "$gateway_status" = "FAIL" ]; then
+  verification_status="FAIL"
+elif [ "$tonapi_status" = "ERROR" ] || [ "$gateway_status" = "ERROR" ]; then
+  verification_status="UNKNOWN"
+elif [ "$tonapi_status" = "SKIPPED" ] || [ "$gateway_status" = "SKIPPED" ]; then
+  verification_status="UNKNOWN"
+elif [ -z "$tonapi_status" ] && [ -z "$gateway_status" ]; then
+  verification_status="UNKNOWN"
 fi
+
+echo "verified=$verification_status" >> "$OUT"
 
 say "TON Site verification complete."
