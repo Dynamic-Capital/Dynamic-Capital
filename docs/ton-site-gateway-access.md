@@ -5,9 +5,9 @@ and operate the gateway with the Tonutils Reverse Proxy helper outlined in
 [docs/tonutils-reverse-proxy.md](./tonutils-reverse-proxy.md) to keep the HTTPS
 reverse proxy online. Native TON wallets resolve `.ton` domains directly, while
 traditional browsers should now start with the DigitalOcean reverse proxy at
-<https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton>.
-The TON Foundation bridge remains an audited fallback if the self-hosted
-gateway is unavailable.
+<https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton>. The
+TON Foundation bridge remains an audited fallback if the self-hosted gateway is
+unavailable.
 
 ## Quick remediation when browsers show NXDOMAIN
 
@@ -29,13 +29,13 @@ gateway is unavailable.
 
 ## Gateway endpoints
 
-| Purpose              | URL                                                                       | Notes                                            |
-| -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
-| Primary gateway      | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton | DigitalOcean reverse proxy terminating TLS for standard browsers |
-| Icon                 | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/icon.png | Served from the DigitalOcean gateway |
-| Social preview       | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/social/social-preview.svg | Served from the DigitalOcean gateway |
-| Foundation fallback  | https://ton.site/dynamiccapital.ton                                       | TON Foundation-operated HTTPS bridge |
-| Lovable standby      | https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton        | Hot standby reverse proxy mirroring the DigitalOcean gateway |
+| Purpose             | URL                                                                                                 | Notes                                                            |
+| ------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Primary gateway     | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton                           | DigitalOcean reverse proxy terminating TLS for standard browsers |
+| Icon                | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/icon.png                  | Served from the DigitalOcean gateway                             |
+| Social preview      | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/social/social-preview.svg | Served from the DigitalOcean gateway                             |
+| Foundation fallback | https://ton.site/dynamiccapital.ton                                                                 | TON Foundation-operated HTTPS bridge                             |
+| Lovable standby     | https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton                                  | Hot standby reverse proxy mirroring the DigitalOcean gateway     |
 
 When updating gateway priority, adjust `shared/ton/site.ts` and
 `dns/dynamiccapital.ton.json` so operational dashboards reflect the active

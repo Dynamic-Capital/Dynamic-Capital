@@ -46,7 +46,7 @@ blockchain.
   log immediately after creation.
 - Metadata digest
   `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5` confirmed
-  against `metadata.json` prior to dispatch.
+  against `metadata.json` prior to dispatch (regenerated 2025-10-12 10:14 UTC).
 - Compliance archive location `s3://dynamic-compliance/kyc/dct/2025-10-08/`
   contains notarized KYC dossier, digest note, and verification logs for
   Tonviewer reviewers.

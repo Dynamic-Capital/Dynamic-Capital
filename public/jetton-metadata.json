@@ -1,0 +1,67 @@
+{
+  "name": "Dynamic Capital Token",
+  "symbol": "DCT",
+  "description": "Dynamic Capital is a Maldivian-born Web3 finance collective on TON that fuses quant automation, human mentorship, and transparent treasury governance.\n\n🔹 Core Asset: DCT Token\n• Utility: trading automation credits, mentorship tiers, governance, theme pass unlocks, liquidity incentives\n• Treasury streams: public multisig splitting subscription inflows 48% operations, 32% auto-invest, 20% buyback + burn\n• Market path: $0.02 (Private) → $0.05 (IDO) → $0.10 (Listing) with DAO-managed buybacks targeting $1–$5 mid-term\n\n🔹 Governance & Security\n• 48h timelocked multisig for treasury, router, and metadata changes\n• Monthly disclosures, on-chain supply proofs, and audit-tracked DNS records\n\nDynamic Capital Foundation maintains community-owned growth with verifiable on-chain telemetry.",
+  "decimals": 9,
+  "address": "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+  "image": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCTMark.png",
+  "external_url": "https://dynamiccapital.ton/token",
+  "sameAs": [
+    "https://dynamiccapital.ton/token",
+    "https://dynamic.capital/token",
+    "https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+    "https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+    "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "https://app.ston.fi/swap?from=TON&to=DCT",
+    "https://dedust.io/swap/TON-DCT",
+    "https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi",
+    "https://www.geckoterminal.com/ton/pools/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+    "https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm",
+    "https://meta.ston.fi/lp/v1/0:31876BC3DD431F36B176F692A5E96B0ECF1AEDEBFA76497ACD2F3661D6FBACD3.json",
+    "https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3",
+    "https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata",
+    "https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98",
+    "https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+    "https://tonscan.org/address/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+    "https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
+    "https://tonscan.org/address/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
+    "https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
+    "https://tonscan.org/address/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
+    "https://tonviewer.com/EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3",
+    "https://tonscan.org/address/EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3",
+    "https://tonviewer.com/EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
+    "https://tonscan.org/address/EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
+    "https://tonviewer.com/UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
+    "https://tonscan.org/address/UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
+    "https://tonviewer.com/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq",
+    "https://tonscan.org/address/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq"
+  ],
+  "attributes": [
+    {
+      "trait_type": "Max supply",
+      "value": "100000000"
+    },
+    {
+      "trait_type": "Decimals",
+      "value": 9
+    },
+    {
+      "trait_type": "Treasury split",
+      "value": "48% operations / 32% auto-invest / 20% buyback & burn"
+    },
+    {
+      "trait_type": "Governance",
+      "value": "Timelocked multisig + DAO votes (48h guard)"
+    },
+    {
+      "trait_type": "Treasury multisig",
+      "value": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G"
+    }
+  ],
+  "version": "1.1",
+  "standard": "ton.jetton.v1"
+}

@@ -91,12 +91,12 @@ Supabase webhook) issues DCT and updates the investor dashboard.
 
 ## 3. Investor journey reference
 
-| Step | Investor action                               | System response                                               |
-| ---- | --------------------------------------------- | ------------------------------------------------------------- |
+| Step | Investor action                                | System response                                               |
+| ---- | ---------------------------------------------- | ------------------------------------------------------------- |
 | 1    | Clicks **Join Fund** in the mini app or web UI | App generates a TonConnect deep link targeted at the fund DNS |
 | 2    | Confirms the Tonkeeper transaction             | Payment hits the fund pool contract                           |
 | 3    | Waits for confirmation                         | Contract mints/sends DCT; Supabase logs the investment        |
-| 4    | Receives Telegram notification                 | Bot confirms the investment, dashboard flips to *Active*      |
+| 4    | Receives Telegram notification                 | Bot confirms the investment, dashboard flips to _Active_      |
 | 5    | Opens Tonkeeper                                | DCT balance and `.ton` mappings visible for future transfers  |
 
 ## 4. Operational checklist
@@ -112,11 +112,10 @@ Supabase webhook) issues DCT and updates the investor dashboard.
 
 ## 5. Quick reference summary
 
-| Task                         | Tool / Action                      | Outcome                                          |
-| ---------------------------- | ---------------------------------- | ------------------------------------------------ |
-| Send tokens to allocations   | Tonkeeper (manual)                 | Immediate jetton wallet deployment and transfer |
-| Distribute to many wallets   | `distribute.ts` (scripted airdrop) | Bulk allocations with audit-friendly memos      |
-| Accept investor deposits     | Fund contract / TonConnect link    | Capital accepted from Tonkeeper in one tap      |
-| Deliver investor tokens      | Auto jetton mint or scripted drop  | DCT appears in the investor's Tonkeeper wallet  |
-| Track & confirm investments  | Supabase + Telegram bot            | Real-time confirmations and dashboards          |
-
+| Task                        | Tool / Action                      | Outcome                                         |
+| --------------------------- | ---------------------------------- | ----------------------------------------------- |
+| Send tokens to allocations  | Tonkeeper (manual)                 | Immediate jetton wallet deployment and transfer |
+| Distribute to many wallets  | `distribute.ts` (scripted airdrop) | Bulk allocations with audit-friendly memos      |
+| Accept investor deposits    | Fund contract / TonConnect link    | Capital accepted from Tonkeeper in one tap      |
+| Deliver investor tokens     | Auto jetton mint or scripted drop  | DCT appears in the investor's Tonkeeper wallet  |
+| Track & confirm investments | Supabase + Telegram bot            | Real-time confirmations and dashboards          |

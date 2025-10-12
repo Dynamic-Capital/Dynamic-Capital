@@ -178,34 +178,44 @@ async function fetchWithTimeout(
   }
 }
 
-async function validateDexScreenerPairs(
-  normalizedMap: Map<string, { url: string; index: number }>,
+interface DexScreenerPairSummary {
+  readonly dexId?: string;
+}
+
+async function fetchDexScreenerPair(
+  poolDexLabel: string,
+  poolAddress: string,
   issues: ValidationIssue[],
-) {
-  const apiUrl =
-    `https://api.dexscreener.com/latest/dex/tokens/${TON_MAINNET_JETTON_MASTER}`;
+  context: string,
+): Promise<DexScreenerPairSummary | undefined> {
+  const normalizedAddress = poolAddress.toLowerCase();
+  const pairApiUrl =
+    `https://api.dexscreener.com/latest/dex/pairs/ton/${normalizedAddress}`;
 
   let response: Response;
   try {
-    response = await fetchWithTimeout(apiUrl, {
+    response = await fetchWithTimeout(pairApiUrl, {
       headers: { Accept: "application/json" },
     });
   } catch (error) {
     issues.push({
       severity: "warning",
-      message: "Failed to query DEX Screener token API",
-      detail: error instanceof Error ? error.message : String(error),
+      message: `Failed to query DEX Screener pair API for ${poolDexLabel}`,
+      detail: `${context}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
     });
-    return;
+    return undefined;
   }
 
   if (!response.ok) {
     issues.push({
       severity: "warning",
-      message: "DEX Screener token API returned non-success status",
-      detail: `${response.status} ${response.statusText}`,
+      message:
+        `DEX Screener pair API returned non-success status for ${poolDexLabel}`,
+      detail: `${context}: ${response.status} ${response.statusText}`,
     });
-    return;
+    return undefined;
   }
 
   let payload: unknown;
@@ -214,55 +224,178 @@ async function validateDexScreenerPairs(
   } catch (error) {
     issues.push({
       severity: "warning",
-      message: "Unable to parse DEX Screener API response",
+      message:
+        `Unable to parse DEX Screener pair API response for ${poolDexLabel}`,
+      detail: `${context}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    });
+    return undefined;
+  }
+
+  const rawPair = (payload as { pair?: unknown }).pair;
+  if (!rawPair || typeof rawPair !== "object") {
+    issues.push({
+      severity: "warning",
+      message: `DEX Screener pair API returned no payload for ${poolDexLabel}`,
+      detail: `${context}: ${pairApiUrl}`,
+    });
+    return undefined;
+  }
+
+  const pairAddress = (rawPair as { pairAddress?: unknown }).pairAddress;
+  if (typeof pairAddress !== "string") {
+    issues.push({
+      severity: "warning",
+      message: `Pair payload missing address for ${poolDexLabel}`,
+      detail: `${context}: ${pairApiUrl}`,
+    });
+    return undefined;
+  }
+
+  if (pairAddress.toUpperCase() !== poolAddress.toUpperCase()) {
+    issues.push({
+      severity: "warning",
+      message: `DEX Screener pair payload address mismatch for ${poolDexLabel}`,
+      detail: `${context}: expected=${poolAddress} actual=${pairAddress}`,
+    });
+    return undefined;
+  }
+
+  const dexId = typeof (rawPair as { dexId?: unknown }).dexId === "string"
+    ? (rawPair as { dexId: string }).dexId.toLowerCase()
+    : undefined;
+
+  return { dexId };
+}
+
+async function validateDexScreenerPairs(
+  normalizedMap: Map<string, { url: string; index: number }>,
+  issues: ValidationIssue[],
+) {
+  const apiUrl =
+    `https://api.dexscreener.com/latest/dex/tokens/${TON_MAINNET_JETTON_MASTER}`;
+
+  const pairLookup = new Map<string, DexScreenerPairSummary>();
+  let tokenApiResponded = false;
+
+  try {
+    const response = await fetchWithTimeout(apiUrl, {
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      issues.push({
+        severity: "warning",
+        message: "DEX Screener token API returned non-success status",
+        detail: `${response.status} ${response.statusText}`,
+      });
+    } else {
+      tokenApiResponded = true;
+      let payload: unknown;
+      try {
+        payload = await response.json();
+      } catch (error) {
+        issues.push({
+          severity: "warning",
+          message: "Unable to parse DEX Screener API response",
+          detail: error instanceof Error ? error.message : String(error),
+        });
+        payload = undefined;
+      }
+
+      const pairs = Array.isArray((payload as { pairs?: unknown }).pairs)
+        ? (payload as { pairs: unknown[] }).pairs
+        : [];
+
+      if (pairs.length === 0) {
+        issues.push({
+          severity: "warning",
+          message: "DEX Screener token API returned no pair entries for DCT",
+          detail: apiUrl,
+        });
+      }
+
+      for (const entry of pairs) {
+        if (
+          entry && typeof entry === "object" &&
+          typeof (entry as { pairAddress?: unknown }).pairAddress === "string"
+        ) {
+          const pairAddress = (entry as { pairAddress: string }).pairAddress;
+          pairLookup.set(pairAddress.toUpperCase(), {
+            dexId: typeof (entry as { dexId?: unknown }).dexId === "string"
+              ? (entry as { dexId: string }).dexId.toLowerCase()
+              : undefined,
+          });
+        }
+      }
+    }
+  } catch (error) {
+    issues.push({
+      severity: "warning",
+      message: "Failed to query DEX Screener token API",
       detail: error instanceof Error ? error.message : String(error),
     });
-    return;
   }
 
-  const pairs = Array.isArray((payload as { pairs?: unknown }).pairs)
-    ? (payload as { pairs: unknown[] }).pairs
-    : [];
-
-  const pairLookup = new Map<string, { dexId?: string }>();
-  for (const entry of pairs) {
-    if (
-      entry && typeof entry === "object" &&
-      typeof (entry as { pairAddress?: unknown }).pairAddress === "string"
-    ) {
-      const pairAddress = (entry as { pairAddress: string }).pairAddress;
-      pairLookup.set(pairAddress.toUpperCase(), {
-        dexId: typeof (entry as { dexId?: unknown }).dexId === "string"
-          ? (entry as { dexId: string }).dexId.toLowerCase()
-          : undefined,
-      });
-    }
-  }
-
-  DCT_DEX_POOLS.forEach((pool) => {
+  for (const pool of DCT_DEX_POOLS) {
     if (!pool.dexScreenerId) {
-      return;
+      continue;
     }
 
     const normalizedAddress = pool.poolAddress.toUpperCase();
-    const expectation = pairLookup.get(normalizedAddress);
-    if (!expectation) {
-      issues.push({
-        severity: "error",
-        message: `DEX Screener token API missing ${pool.dex} pair`,
-        detail: pool.poolAddress,
-      });
-      return;
+    const expectedDexId = pool.dexScreenerId.toLowerCase();
+
+    let pairSummary = pairLookup.get(normalizedAddress);
+    let attemptedFallback = false;
+
+    if (!pairSummary) {
+      attemptedFallback = true;
+      pairSummary = await fetchDexScreenerPair(
+        pool.dex,
+        pool.poolAddress,
+        issues,
+        "token API missing pair entry",
+      );
+      if (pairSummary) {
+        pairLookup.set(normalizedAddress, pairSummary);
+      } else if (tokenApiResponded) {
+        issues.push({
+          severity: "warning",
+          message: `DEX Screener token API missing ${pool.dex} pair`,
+          detail: pool.poolAddress,
+        });
+      }
     }
 
-    if (expectation.dexId !== pool.dexScreenerId.toLowerCase()) {
-      issues.push({
-        severity: "error",
-        message: `${pool.dex} pair reported unexpected dexId`,
-        detail: `expected=${pool.dexScreenerId} actual=${
-          expectation.dexId ?? "unknown"
-        }`,
-      });
+    if (!pairSummary) {
+      continue;
+    }
+
+    if (pairSummary.dexId !== expectedDexId) {
+      if (!attemptedFallback) {
+        const fallback = await fetchDexScreenerPair(
+          pool.dex,
+          pool.poolAddress,
+          issues,
+          "token API dexId mismatch",
+        );
+        attemptedFallback = true;
+        if (fallback) {
+          pairSummary = fallback;
+          pairLookup.set(normalizedAddress, fallback);
+        }
+      }
+
+      if (pairSummary.dexId !== expectedDexId) {
+        issues.push({
+          severity: "warning",
+          message: `${pool.dex} pair reported unexpected dexId`,
+          detail: `expected=${expectedDexId} actual=${
+            pairSummary.dexId ?? "unknown"
+          }`,
+        });
+      }
     }
 
     if (pool.dexScreenerPairUrl) {
@@ -275,7 +408,7 @@ async function validateDexScreenerPairs(
         });
       }
     }
-  });
+  }
 }
 
 async function verifyHttpEndpoints(issues: ValidationIssue[]) {

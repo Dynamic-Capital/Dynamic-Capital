@@ -167,8 +167,9 @@ export const callEdgeFunction = async <T>(
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Network request failed";
+    const message = error instanceof Error
+      ? error.message
+      : "Network request failed";
 
     return {
       error: {

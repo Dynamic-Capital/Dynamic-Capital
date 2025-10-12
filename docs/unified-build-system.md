@@ -170,7 +170,8 @@ The application is accessible via multiple entry points:
 1. **Native TON**: `dynamiccapital.ton` (requires TON wallet browser extension)
 2. **HTTPS Gateway**: `https://ton.site/dynamiccapital.ton`
 3. **DigitalOcean**: `https://dynamic-capital-qazf2.ondigitalocean.app`
-4. **Legacy Gateways**: `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`,
+4. **Legacy Gateways**:
+   `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`,
    `https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton`
 
 All domains are configured in the allowed origins list and CORS policy.

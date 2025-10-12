@@ -74,3 +74,11 @@ links remain intact:
 ```sh
 deno run -A ../../apps/tools/validate-jetton-links.ts
 ```
+
+Use `npx tsx ../../../scripts/ton/build-jetton-content-cell.ts` to refresh the
+on-chain content cell (`metadata-content.json`). The script also writes
+`metadata-content.boc` locally for convenience, but the file is
+`.gitignore`d because it is reproducible from the JSON metadata and URI. The
+summary JSON captures the cell hash and base64 payload so the master contract
+can reference the latest hosted metadata URI and checksum without versioning a
+binary artifact.

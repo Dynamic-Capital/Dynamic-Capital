@@ -1,0 +1,13 @@
+{
+  "metadataUri": "https://dynamiccapital.ton/jetton-metadata.json",
+  "metadataSha256": "541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5",
+  "cellHash": "ffbc4f631da92cd531bea5baf0909712124bd4f9fe22789c27210b53af9416f7",
+  "bocBase64": "te6cckEBAwEAOAABAgABAQACAF5odHRwczovL2R5bmFtaWNjYXBpdGFsLnRvbi9qZXR0b24tbWV0YWRhdGEuanNvbj0LyB4=",
+  "metadataPreview": {
+    "name": "Dynamic Capital Token",
+    "symbol": "DCT",
+    "decimals": 9,
+    "sameAsCount": 32
+  },
+  "generatedAt": "2025-10-12T10:14:26.730Z"
+}

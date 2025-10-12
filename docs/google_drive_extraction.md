@@ -66,7 +66,8 @@ bookkeeping.
 To mirror the Drive corpus into the repository's knowledge base directory, use
 `ml/extract_google_drive_knowledge_base.py`. The helper wraps the
 `DynamicCorpusExtractionEngine`, skips previously processed file IDs, and writes
-both the JSONL corpus and a run summary under `data/knowledge_base/google_drive/`.
+both the JSONL corpus and a run summary under
+`data/knowledge_base/google_drive/`.
 
 ```bash
 python ml/extract_google_drive_knowledge_base.py \

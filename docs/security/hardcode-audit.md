@@ -20,9 +20,9 @@ and remediate.
 
 ### Latest automation evidence
 
-| Timestamp (UTC)        | Command                          | Result |
-| ---------------------- | -------------------------------- | ------ |
-| 2025-10-12 01:26:24    | `npm run audit:hardcodes:auto`   | ✅ No suspicious hardcoded secrets detected. |
+| Timestamp (UTC)     | Command                        | Result                                       |
+| ------------------- | ------------------------------ | -------------------------------------------- |
+| 2025-10-12 01:26:24 | `npm run audit:hardcodes:auto` | ✅ No suspicious hardcoded secrets detected. |
 
 ### Strict mode
 

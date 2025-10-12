@@ -1,0 +1,25 @@
+{
+  "jettonMasterAddress": "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+  "metadataSha256": "541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5",
+  "metadataPreview": {
+    "name": "Dynamic Capital Token",
+    "symbol": "DCT",
+    "decimals": 9,
+    "image": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCTMark.png",
+    "external_url": "https://dynamiccapital.ton/token"
+  },
+  "governance": {
+    "admin": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
+    "treasury": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
+    "dexRouter": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt"
+  },
+  "generatedAt": "2025-10-12T10:15:23.135Z",
+  "instructions": [
+    "Upload this archive to https://tonviewer.com/verification when submitting the contract verification request.",
+    "Cross-reference the metadata SHA-256 hash above with the hosted JSON served to Tonviewer/Tonkeeper.",
+    "Attach governance evidence (timelock + multisig) in the support ticket alongside this bundle.",
+    "Confirm the admin multisig UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G controls timelocked actions and matches the deployment parameters.",
+    "Verify the treasury destination UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G aligns with the revenue split documentation.",
+    "Ensure the primary DEX router EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt routes liquidity operations post-launch."
+  ]
+}
