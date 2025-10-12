@@ -99,32 +99,56 @@ def _prepare_pipeline(
 
 
 def _aggregate_insights(snapshots: Sequence[MarketSnapshot]) -> OptimizationInsights:
-    correlations: List[float] = []
-    seasonal_bias: List[float] = []
-    seasonal_confidence: List[float] = []
-    ranges: List[float] = []
+    correlation_total = 0.0
+    correlation_count = 0
+    max_correlation: Optional[float] = None
+    seasonal_bias_total = 0.0
+    seasonal_bias_count = 0
+    seasonal_confidence_total = 0.0
+    seasonal_confidence_count = 0
+    range_total = 0.0
+    range_count = 0
 
     for snapshot in snapshots:
-        if snapshot.correlation_scores:
-            correlations.extend(abs(score) for score in snapshot.correlation_scores.values())
+        scores = snapshot.correlation_scores
+        if scores:
+            for score in scores.values():
+                value = abs(float(score))
+                correlation_total += value
+                correlation_count += 1
+                if max_correlation is None or value > max_correlation:
+                    max_correlation = value
+
         if snapshot.seasonal_bias is not None:
-            seasonal_bias.append(float(snapshot.seasonal_bias))
+            seasonal_bias_total += float(snapshot.seasonal_bias)
+            seasonal_bias_count += 1
+
         if snapshot.seasonal_confidence is not None:
-            seasonal_confidence.append(float(snapshot.seasonal_confidence))
-        high = snapshot.daily_high or snapshot.high
-        low = snapshot.daily_low or snapshot.low
-        if high is not None and low is not None and snapshot.pip_size:
-            ranges.append((high - low) / snapshot.pip_size)
+            seasonal_confidence_total += float(snapshot.seasonal_confidence)
+            seasonal_confidence_count += 1
+
+        high = snapshot.daily_high if snapshot.daily_high is not None else snapshot.high
+        low = snapshot.daily_low if snapshot.daily_low is not None else snapshot.low
+        pip_size = snapshot.pip_size
+        if high is not None and low is not None and pip_size:
+            range_total += (float(high) - float(low)) / float(pip_size)
+            range_count += 1
 
     return OptimizationInsights(
         snapshot_count=len(snapshots),
-        average_correlation=statistics.fmean(correlations) if correlations else None,
-        max_correlation=max(correlations) if correlations else None,
-        average_seasonal_bias=statistics.fmean(seasonal_bias) if seasonal_bias else None,
-        average_seasonal_confidence=(
-            statistics.fmean(seasonal_confidence) if seasonal_confidence else None
+        average_correlation=(
+            correlation_total / correlation_count if correlation_count else None
         ),
-        average_range_pips=statistics.fmean(ranges) if ranges else None,
+        max_correlation=max_correlation,
+        average_seasonal_bias=(
+            seasonal_bias_total / seasonal_bias_count if seasonal_bias_count else None
+        ),
+        average_seasonal_confidence=(
+            seasonal_confidence_total / seasonal_confidence_count
+            if seasonal_confidence_count
+            else None
+        ),
+        average_range_pips=(range_total / range_count if range_count else None),
     )
 
 
