@@ -44,6 +44,37 @@ Include your database connection string or anon key as needed:
 - `ALLOWED_ORIGINS` (comma-separated list of hosts allowed by CORS)
 - `MINIAPP_ORIGIN` (canonical host(s) allowed to call `verify-telegram`)
 
+## Installing and authenticating `doctl`
+
+Run the bundled installer to download the DigitalOcean CLI and (optionally)
+store credentials in a dedicated context. The helper drops the binary in
+`./.bin/doctl` (ignored by git) so repository scripts can rely on a local copy
+without touching the system-wide PATH:
+
+```bash
+# Install the latest release and authenticate the default doctl context.
+npm run doctl:install -- --token "$DIGITALOCEAN_TOKEN"
+
+# Pin a specific version, install into ~/.local/bin, and write to a custom config directory.
+npm run doctl:install -- \
+  --version 1.145.0 \
+  --install-dir ~/.local/bin \
+  --context dynamic-capital \
+  --config-dir ~/.config/dynamic-capital/doctl \
+  --token "$DIGITALOCEAN_TOKEN"
+
+# Preview the actions without downloading anything.
+npm run doctl:install -- --dry-run
+```
+
+By default the script pulls the latest GitHub release for the current platform
+(`linux` or `darwin`) and architecture (`amd64` or `arm64`). Provide
+`DIGITALOCEAN_ACCESS_TOKEN` or the `--token` flag to run `doctl auth init` after
+installation. Supply `--context <name>` to create or switch to a named context,
+and `--config-dir` to write credentials somewhere other than `~/.config/doctl`.
+Re-run the installer with `--force` whenever you need to upgrade the binary in
+place.
+
 ## DNS for App Platform
 
 DigitalOcean provisions the `dynamic-capital.ondigitalocean.app` domain. Export
