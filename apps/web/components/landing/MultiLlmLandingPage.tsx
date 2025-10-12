@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/sheet";
 import { resolveTonSiteUrl } from "../../../../shared/ton/site";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { PUBLIC_API_ENDPOINTS } from "@/data/api-endpoints";
 
 const HERO_BADGES = [
   { icon: "sparkles" as const, label: "AI-managed strategies" },
@@ -208,28 +209,6 @@ const MINI_APP_FEATURES = [
     description:
       "Switch between Dhivehi and English across every screen instantly.",
     icon: "languages" as const,
-  },
-];
-
-const API_ENDPOINTS = [
-  {
-    path: "/api/tradingview/webhook",
-    description:
-      "Ingest TradingView alerts directly into the orchestration layer.",
-  },
-  {
-    path: "/api/telegram/webhook",
-    description:
-      "Keep Telegram bot conversations and Mini App actions in sync.",
-  },
-  {
-    path: "/api/treasury",
-    description: "Expose live token burns, rewards, and staking analytics.",
-  },
-  {
-    path: "/api/user/:id",
-    description:
-      "Serve Supabase-backed investor profiles and portfolio data securely.",
   },
 ];
 
@@ -1110,7 +1089,7 @@ export function MultiLlmLandingPage() {
             </Column>
           </Column>
           <Column gap="12" className="max-w-3xl">
-            {API_ENDPOINTS.map((endpoint) => (
+            {PUBLIC_API_ENDPOINTS.map((endpoint) => (
               <Column
                 key={endpoint.path}
                 gap="8"
@@ -1122,7 +1101,7 @@ export function MultiLlmLandingPage() {
                 className="bg-background/70"
               >
                 <Text variant="code-default-m" onBackground="brand-medium">
-                  {endpoint.path}
+                  {endpoint.method} {endpoint.path}
                 </Text>
                 <Text
                   variant="body-default-s"
