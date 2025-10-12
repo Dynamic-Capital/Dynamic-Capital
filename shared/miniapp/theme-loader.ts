@@ -1,5 +1,10 @@
 /* eslint-disable no-console -- Logging is useful for telemetry during theme sync */
 
+import {
+  isIpfsUri,
+  resolveOffchainIpfsGatewayUrl,
+} from "../offchain/ipfs";
+
 const TON_API_BASE = "https://tonapi.io/v2";
 const NFT_FETCH_LIMIT = 256;
 const ACTIVE_THEME_STORAGE_KEY = "dc:miniapp:theme:active";
@@ -365,13 +370,14 @@ function ensureBrowserEnvironment(): boolean {
 }
 
 function resolveGatewayUrl(uri: string): string {
-  if (uri.startsWith("ipfs://")) {
-    return `https://ipfs.io/ipfs/${uri.replace("ipfs://", "")}`;
+  const trimmed = uri.trim();
+  if (isIpfsUri(trimmed)) {
+    return resolveOffchainIpfsGatewayUrl(trimmed);
   }
-  if (uri.startsWith("tonstorage://")) {
-    return `https://tonstorage.com/${uri.replace("tonstorage://", "")}`;
+  if (trimmed.startsWith("tonstorage://")) {
+    return `https://tonstorage.com/${trimmed.replace("tonstorage://", "")}`;
   }
-  return uri;
+  return trimmed;
 }
 
 async function fetchJson(

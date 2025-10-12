@@ -12,7 +12,7 @@ import {
   StyleConfig,
   SystemUIConfig,
 } from "./types";
-import { resolveTonSiteUrl } from "../../../shared/ton/site";
+import { resolveOffchainWebsiteUrl } from "../../../shared/offchain/site";
 import { dynamicBranding } from "./dynamic-branding.config";
 import { home } from "./content";
 import {
@@ -190,7 +190,7 @@ const sameAs: SameAsConfig = {
   instagram: "https://www.instagram.com/dynamic.capital",
   facebook: "https://www.facebook.com/dynamic.capital.fb",
   tradingview: "https://www.tradingview.com/u/DynamicCapital-FX/",
-  website: resolveTonSiteUrl(),
+  website: resolveOffchainWebsiteUrl(),
 };
 
 const socialSharing: SocialSharingConfig = {

@@ -11,7 +11,7 @@ import {
   type DynamicBrandingOverrides,
 } from "./types/branding.types";
 import { DC_LOGO_MARK_URL, DC_SOCIAL_PREVIEW_URL } from "@/config/brand-assets";
-import { TON_SITE_GATEWAY_URL } from "../../../shared/ton/site";
+import { OFFCHAIN_WEBSITE_CANONICAL_URL } from "../../../shared/offchain/site";
 import { normalizeThemePassTokens } from "../utils/theme-pass.ts";
 
 const palette: BrandingPalette = {
@@ -287,7 +287,7 @@ const metadata: BrandingMetadata = {
     "portfolio intelligence",
     "financial education",
   ],
-  primaryUrl: TON_SITE_GATEWAY_URL,
+  primaryUrl: OFFCHAIN_WEBSITE_CANONICAL_URL,
   supportEmail: "support@dynamiccapital.ton",
 };
 

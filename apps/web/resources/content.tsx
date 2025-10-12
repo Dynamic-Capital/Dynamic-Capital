@@ -15,7 +15,7 @@ import tzdata from "tzdata";
 import deskTimeZone from "../../../shared/time/desk-time-zone.json";
 import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";
-import { resolveTonSiteUrl } from "../../../shared/ton/site";
+import { resolveOffchainWebsiteUrl } from "../../../shared/offchain/site";
 
 function isIANATimeZone(value: string): value is IANATimeZone {
   return Object.prototype.hasOwnProperty.call(zones, value);
@@ -100,7 +100,7 @@ const social: Social = [
   {
     name: "Website",
     icon: "globe",
-    link: resolveTonSiteUrl(),
+    link: resolveOffchainWebsiteUrl(),
   },
   {
     name: "Telegram",

@@ -44,7 +44,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { resolveTonSiteUrl } from "../../../../shared/ton/site";
+import { resolveOffchainWebsiteUrl } from "../../../../shared/offchain/site";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { PUBLIC_API_ENDPOINTS } from "@/data/api-endpoints";
 
@@ -56,7 +56,7 @@ const HERO_BADGES = [
 
 const CTA_LINKS = {
   telegram: "https://t.me/dynamiccapital", // replace with production invite when ready
-  invest: resolveTonSiteUrl("app"),
+  invest: resolveOffchainWebsiteUrl("app"),
   learn: "#academy",
 };
 
