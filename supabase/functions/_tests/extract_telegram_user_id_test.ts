@@ -1,5 +1,5 @@
 import { assertEquals } from "std/assert/mod.ts";
-import { extractTelegramUserId } from "../shared/telegram.ts";
+import { extractTelegramUserId } from "../_shared/telegram.ts";
 
 Deno.test("extractTelegramUserId parses id from initData", () => {
   const user = { id: 42, first_name: "Alice" };
