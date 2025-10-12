@@ -312,7 +312,8 @@ const dynamicBranding: DynamicBrandingConfig = {
   tokens,
   metadata,
   assets: {
-    logo: "/logo-mark.svg",
+    logo:
+      "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DC-Mark.svg",
     favicon: "/favicon.ico",
     appleTouchIcon: "/apple-touch-icon.png",
     socialPreview: "/social/social-preview.svg",

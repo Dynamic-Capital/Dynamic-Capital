@@ -13,6 +13,9 @@ interface BrandLogoProps {
   animated?: boolean;
 }
 
+const BRAND_LOGO_URL =
+  "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DC-Mark.svg";
+
 const BrandLogo: React.FC<BrandLogoProps> = ({
   className = "",
   size = "md",
@@ -80,7 +83,7 @@ const BrandLogo: React.FC<BrandLogoProps> = ({
       whileTap={animated ? { scale: 0.95 } : undefined}
     >
       <MotionImage
-        src="/icon-mark.svg"
+        src={BRAND_LOGO_URL}
         alt="Dynamic Capital Icon"
         width={sizeDimensions[size]}
         height={sizeDimensions[size]}
