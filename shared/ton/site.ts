@@ -89,8 +89,10 @@ export function resolveTonSiteGatewayOrigin(
   let canonicalBase = normalizedBase;
 
   if (mappedBase) {
-    if (mappedBase === TON_SITE_GATEWAY_STANDBY_BASE && !canonicalizeStandby) {
-      canonicalBase = normalizedBase;
+    if (mappedBase === TON_SITE_GATEWAY_STANDBY_BASE) {
+      canonicalBase = canonicalizeStandby
+        ? TON_SITE_GATEWAY_BASE
+        : normalizedBase;
     } else {
       canonicalBase = mappedBase;
     }
@@ -195,6 +197,8 @@ export function resolveTonSiteGatewayBasesForHost(
       }
     }
   }
+
+  addBase(TON_SITE_GATEWAY_BASE);
 
   for (const base of TON_SITE_GATEWAY_FOUNDATION_BASES) {
     addBase(base);

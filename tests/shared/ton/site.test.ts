@@ -306,10 +306,10 @@ describe("ton site gateway helpers", () => {
         ),
         [
           "https://ton-gateway.dynamic-capital.lovable.app",
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
           "https://ton.site",
           "https://tonsite.io",
           "https://tonsite.link",
-          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
         ],
       );
     });
@@ -318,10 +318,10 @@ describe("ton site gateway helpers", () => {
       assertEquals(
         resolveTonSiteGatewayBasesForHost("unknown.example.com"),
         [
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
           "https://ton.site",
           "https://tonsite.io",
           "https://tonsite.link",
-          "https://ton-gateway.dynamic-capital.ondigitalocean.app",
           "https://ton-gateway.dynamic-capital.lovable.app",
         ],
       );
