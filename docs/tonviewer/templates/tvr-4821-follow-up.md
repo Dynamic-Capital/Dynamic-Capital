@@ -61,10 +61,10 @@ entry for 2025-10-07 or any subsequent resend.
 > **Command reference**
 >
 > ```sh
-> mkdir -p exports && \
->   pandoc docs/tonviewer/dct-issuer-statement.md \
->   -o exports/dct-issuer-statement-<YYYYMMDD>.pdf
+> npm run docs:export:issuer -- <YYYYMMDD>
 > ```
+>
+> Append `-- --force` to overwrite an existing export for the same date.
 
 ### Metadata JSON
 
