@@ -256,6 +256,7 @@
     }
   ],
   "notes": [
+    "2025-10-12: Root wallet alias repointed to EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y via governance request to link dynamiccapital.ton directly to the DAO multisig.",
     "TON DNS uses blockchain-based resolution via smart contracts",
     "Records must be set through TON DNS resolver contract",
     "Register domain at TON DNS marketplace (e.g., dns.ton.org)",
