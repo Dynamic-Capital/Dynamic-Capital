@@ -47,7 +47,7 @@ export default function TodoListPage() {
 
     try {
       const { data, error } = await supabase
-        .from<RawTodo>("todos")
+        .from("todos")
         .select("*");
 
       if (!isMountedRef.current) {
