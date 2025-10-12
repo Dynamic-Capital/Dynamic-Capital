@@ -1,29 +1,74 @@
-// JettonMetadataUpdater.tact
-// Simple helper to update the metadata URI (content cell) of your Jetton Master.
+import "@stdlib/stdlib";
+
+const OP_TRIGGER_UPDATE: Int = 0x4a4d5531; // 'JM U1'
+const OP_SET_CONTENT: Int = 0x01;
 
 contract JettonMetadataUpdater {
-  address owner;          // Treasury or DAO
-  address jettonMaster;   // DCT Master Address
+  owner: Address;
+  jettonMaster: Address;
 
-  init(owner: address, jetton: address) {
-    this.owner = owner;
-    this.jettonMaster = jetton;
+  init(owner: Address, jetton: Address) {
+    self.requireBaseWorkchain(owner, "metadata: owner workchain");
+    self.requireBaseWorkchain(jetton, "metadata: jetton workchain");
+    self.owner = owner;
+    self.jettonMaster = jetton;
   }
 
-  updateMetadata(newUri: string) onlyOwner {
-    // convert string -> cell
-    let uriCell = beginCell().storeStringTail(newUri).endCell();
+  receive(msg: InternalMessage) {
+    if (msg.body.isEmpty()) {
+      return;
+    }
 
-    // build message body for Jetton Master
-    let msgBody = beginCell()
-        .storeUint(0x01, 32)         // op code: set_content
-        .storeRef(uriCell)
-        .endCell();
+    slice body = msg.body.beginParse();
+    if (body.bits() < 32) {
+      return;
+    }
 
-    send(this.jettonMaster, 0.1 ton, msgBody);
+    Int op = body.loadUint(32);
+    if (op != OP_TRIGGER_UPDATE) {
+      return;
+    }
+
+    self.requireOwner(msg.info.src);
+
+    String newUri = body.loadStringTail();
+    self.forwardMetadataUpdate(newUri);
   }
 
-  modifier onlyOwner() {
-    require(msg.sender == this.owner, 100);
+  get fun get_owner(): Address {
+    return self.owner;
+  }
+
+  get fun get_jetton_master(): Address {
+    return self.jettonMaster;
+  }
+
+  fun forwardMetadataUpdate(newUri: String) {
+    Cell uriCell = beginCell().storeStringTail(newUri).endCell();
+    Cell messageBody = beginCell()
+      .storeUint(OP_SET_CONTENT, 32)
+      .storeRef(uriCell)
+      .endCell();
+
+    sendRawMessage(
+      InternalMessage{
+        info: InternalMessageInfo{
+          src: myAddress(),
+          dest: self.jettonMaster,
+          value: 0.1 ton,
+          ihrDisabled: true,
+        },
+        body: messageBody,
+      },
+    );
+  }
+
+  fun requireOwner(sender: Address) {
+    require(sender == self.owner, "metadata: unauthorized");
+  }
+
+  fun requireBaseWorkchain(addr: Address, err: String) {
+    StdAddress parsed = parseStdAddress(addr.asSlice());
+    require(parsed.workchain == 0, err);
   }
 }
