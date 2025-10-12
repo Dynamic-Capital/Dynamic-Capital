@@ -12,6 +12,7 @@
 | 2025-10-11 | Operations | Prepared secondary escalation package using updated follow-up template; awaiting reviewer response.      | Template checklist                            | Standing by for Tonviewer verdict before dispatch. |
 | 2025-10-12 | Compliance | Reviewed compliance archive, confirmed attachments checklist completeness, and documented the new preflight automation. | `s3://dynamic-compliance/kyc/dct/2025-10-08/` | No gaps found; archive remains accessible.          |
 | 2025-10-12 | Analytics  | Ran unscheduled verification sweep at 09:45 UTC and archived `check-tonviewer-status-20251012.log` in the escalation bundle. | Script log                                    | Flag still `none`; Tonapi now reports 30 holders; escalation window shifted to 2025-10-13 16:00 UTC. |
+| 2025-10-12 | Operations | Confirmed evidence preflight script output, regenerated digest note, and filed the JSON summary showing `digestMatches: true` with `statusExitCode` `3`. | `logs/check-tonviewer-status-20251012.log`, preflight JSON (2025-10-12T10:19Z) | Digest note refreshed; Tonviewer remains unverified (`statusWarning` captured). |
 
 ## Pending Follow-Ups
 
@@ -28,3 +29,21 @@
 | Digest note (`metadata-digest.txt`)                             | ✅       | ✅       | ✅     | Upload path `s3://dynamic-compliance/kyc/dct/2025-10-08/hashes/metadata-digest.txt` (preflight script). |
 | Verification script log (`check-tonviewer-status-20251007.log`) | ✅       | ✅       | ✅     | Captured 2025-10-07 15:59 UTC with flag `none`; stored in `logs/`.                           |
 | Compliance archive link                                         | ✅       | ✅       | ✅     | Presigned URL valid through 2025-10-14 00:00 UTC; access logged in ticket.                    |
+
+
+## Evidence Preflight Summary – 2025-10-12
+
+```json
+{
+  "metadataPath": "/workspace/Dynamic-Capital/dynamic-capital-ton/contracts/jetton/metadata.json",
+  "digest": "541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5",
+  "expectedDigest": "541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5",
+  "expectedDigestSource": "cli",
+  "digestMatches": true,
+  "digestNote": "evidence/metadata-digest.txt",
+  "statusLog": "logs/check-tonviewer-status-20251012.log",
+  "statusExitCode": 3,
+  "statusWarning": "⚠️ Tonviewer/Tonapi still report the jetton as unverified. Follow up on the submitted ticket.",
+  "generatedAt": "2025-10-12T10:19:04.722Z"
+}
+```
