@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { getServerSession } from "next-auth";
-
 import { withApiMetrics } from "@/observability/server-metrics.ts";
 import { callDynamicAi } from "@/services/dynamic-ai/client";
 import {
@@ -18,7 +16,6 @@ import {
   chatRequestPayloadSchema,
   telegramAuthSchema,
 } from "@/services/dynamic-ai/schema";
-import { authOptions } from "@/auth/options";
 import { SUPABASE_URL } from "@/config/supabase-runtime";
 import type { Database } from "@/integrations/supabase/types";
 import {
@@ -103,6 +100,40 @@ type SessionLike =
 
 type SessionResolver = () => SessionLike | Promise<SessionLike>;
 
+type GetServerSession = typeof import("next-auth").getServerSession;
+type AuthOptionsModule = typeof import("@/auth/options");
+
+let getServerSessionPromise: Promise<GetServerSession> | null = null;
+let authOptionsPromise:
+  | Promise<AuthOptionsModule["authOptions"]>
+  | null = null;
+
+async function loadGetServerSession(): Promise<GetServerSession> {
+  if (!getServerSessionPromise) {
+    getServerSessionPromise = import("next-auth").then((module) => {
+      if (typeof module.getServerSession !== "function") {
+        throw new Error("next-auth getServerSession export is unavailable");
+      }
+      return module.getServerSession;
+    });
+  }
+
+  return getServerSessionPromise;
+}
+
+async function loadAuthOptions(): Promise<AuthOptionsModule["authOptions"]> {
+  if (!authOptionsPromise) {
+    authOptionsPromise = import("@/auth/options").then((module) => {
+      if (!module.authOptions) {
+        throw new Error("Auth options module did not export authOptions");
+      }
+      return module.authOptions;
+    });
+  }
+
+  return authOptionsPromise;
+}
+
 async function loadSupabaseModule(): Promise<
   { createClient: (...args: unknown[]) => unknown }
 > {
@@ -149,6 +180,8 @@ async function resolveSession(): Promise<SessionLike> {
   if (typeof override === "function") {
     return await (override as SessionResolver)();
   }
+  const getServerSession = await loadGetServerSession();
+  const authOptions = await loadAuthOptions();
   return await getServerSession(authOptions);
 }
 
@@ -478,6 +511,14 @@ export async function POST(req: Request) {
       console.warn("Invalid chat payload", error);
       return bad("Invalid request body", req);
     }
+
+    const sessionId = payload.sessionId.trim();
+    const message = payload.message.trim();
+    if (!sessionId || !message) {
+      return bad("sessionId and message are required", req);
+    }
+
+    payload = { ...payload, sessionId, message };
 
     const normalisedLanguage = normaliseLanguage(payload.language);
     if (normalisedLanguage && payload.language !== normalisedLanguage) {

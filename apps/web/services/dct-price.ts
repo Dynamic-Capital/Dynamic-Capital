@@ -184,8 +184,19 @@ const aggregatePairs = (
   const changePercent = changeWeightTotal > 0
     ? changeWeighted / changeWeightTotal
     : null;
-  const change = changePercent !== null ? price * (changePercent / 100) : null;
-  const previousClose = change !== null ? price - change : null;
+
+  let change: number | null = null;
+  let previousClose: number | null = null;
+  if (changePercent !== null) {
+    const factor = 1 + changePercent / 100;
+    if (Number.isFinite(factor) && factor !== 0) {
+      const computedPrevious = price / factor;
+      if (Number.isFinite(computedPrevious)) {
+        previousClose = computedPrevious;
+        change = price - computedPrevious;
+      }
+    }
+  }
 
   const volumeTotal = parsedPairs.reduce(
     (sum, entry) => sum + Math.max(0, entry.volumeUsd ?? 0),
