@@ -34,6 +34,7 @@
     "format": "deno fmt apps supabase scripts db docs",
     "typecheck": "node scripts/npm-safe.mjs -w apps/web run typecheck",
     "review": "python -m pytest algorithms/python/tests/test_review_and_optimize.py",
+    "project:review": "python automation/run_project_review.py",
     "debug": "NODE_OPTIONS='--inspect' node scripts/npm-safe.mjs run dev",
     "preview": "npm run dev",
     "upload-assets": "node scripts/upload-assets.js",

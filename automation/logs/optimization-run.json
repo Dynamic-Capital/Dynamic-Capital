@@ -1,0 +1,232 @@
+{
+  "generatedAt": "2025-10-12T05:04:51.303261+00:00",
+  "automation": "optimization",
+  "inputs": {
+    "observationCount": 3,
+    "snapshotCount": 22
+  },
+  "review": {
+    "health_score": 0.55,
+    "agenda": [
+      {
+        "title": "Operations",
+        "talking_points": [
+          "Stabilise support response times"
+        ],
+        "priority": "Critical"
+      },
+      {
+        "title": "Growth",
+        "talking_points": [
+          "Accelerate acquisition loops"
+        ],
+        "priority": "Focus"
+      },
+      {
+        "title": "Research",
+        "talking_points": [
+          "Validate new signal sources"
+        ],
+        "priority": "Monitor"
+      }
+    ],
+    "risks": [
+      "Operations: Stabilise support response times"
+    ],
+    "decisions": [
+      "Confirm path for Growth: Accelerate acquisition loops"
+    ],
+    "follow_ups": [
+      "Assign owner for Research: Validate new signal sources"
+    ],
+    "narrative": "Mission Expand Dynamic flywheel (Weekly). Reviewing 3 signals across 3 areas with 45 minutes of attention."
+  },
+  "optimization": {
+    "insights": {
+      "snapshot_count": 22,
+      "average_correlation": null,
+      "max_correlation": null,
+      "average_seasonal_bias": null,
+      "average_seasonal_confidence": null,
+      "average_range_pips": 18.409090909091685
+    },
+    "bestConfig": {
+      "neighbors": 2,
+      "max_rows": 2000,
+      "label_lookahead": 2,
+      "neutral_zone_pips": 2.0,
+      "knn_recency_halflife_minutes": null,
+      "manual_stop_loss_pips": 30.0,
+      "manual_take_profit_pips": 60.0,
+      "break_even_pips": 10.0,
+      "trail_start_pips": 25.0,
+      "trail_step_pips": 15.0,
+      "use_adr": true,
+      "adr_period": 14,
+      "adr_stop_loss_factor": 1.63,
+      "adr_take_profit_factor": 3.259,
+      "min_confidence": 0.0,
+      "correlation_threshold": 0.6,
+      "correlation_weight": 0.5,
+      "max_correlation_adjustment": 0.4,
+      "seasonal_bias_weight": 0.5,
+      "max_seasonal_adjustment": 0.3,
+      "use_smc_context": true,
+      "smc_level_threshold_pips": 10.0,
+      "smc_round_number_interval_pips": 50.0,
+      "smc_structure_lookback": 12,
+      "smc_structure_threshold_pips": 6.0,
+      "smc_bias_weight": 0.15,
+      "smc_liquidity_weight": 0.1,
+      "max_smc_adjustment": 0.25
+    },
+    "tunedConfig": {
+      "neighbors": 8,
+      "max_rows": 2000,
+      "label_lookahead": 4,
+      "neutral_zone_pips": 2.0,
+      "knn_recency_halflife_minutes": null,
+      "manual_stop_loss_pips": 30.0,
+      "manual_take_profit_pips": 60.0,
+      "break_even_pips": 10.0,
+      "trail_start_pips": 25.0,
+      "trail_step_pips": 15.0,
+      "use_adr": true,
+      "adr_period": 14,
+      "adr_stop_loss_factor": 1.63,
+      "adr_take_profit_factor": 3.259,
+      "min_confidence": 0.0,
+      "correlation_threshold": 0.6,
+      "correlation_weight": 0.5,
+      "max_correlation_adjustment": 0.4,
+      "seasonal_bias_weight": 0.5,
+      "max_seasonal_adjustment": 0.3,
+      "use_smc_context": true,
+      "smc_level_threshold_pips": 10.0,
+      "smc_round_number_interval_pips": 50.0,
+      "smc_structure_lookback": 12,
+      "smc_structure_threshold_pips": 6.0,
+      "smc_bias_weight": 0.15,
+      "smc_liquidity_weight": 0.1,
+      "max_smc_adjustment": 0.25
+    },
+    "reusedPipeline": false,
+    "historyLength": 2,
+    "fingerprint": {
+      "count": 22,
+      "start": "2024-01-01T01:10:00+00:00",
+      "end": "2024-01-01T02:55:00+00:00",
+      "symbols": [
+        "XAUUSD"
+      ],
+      "contentHash": "ff87c3cd0623b2aa5d1099bf9232a541d42872a2228291c67f0c27d2d9ed5229"
+    },
+    "backtest": {
+      "endingEquity": 10011.130000000003,
+      "performance": {
+        "totalTrades": 1,
+        "wins": 1,
+        "losses": 0,
+        "hitRate": 1.0,
+        "profitFactor": Infinity,
+        "maxDrawdownPct": 0.0,
+        "equityCurve": [
+          {
+            "timestamp": "2024-01-01T01:10:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:15:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:20:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:25:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:25:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:30:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:35:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:40:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:45:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:50:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T01:55:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:00:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:05:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:10:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:15:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:20:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:25:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:30:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:35:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:40:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:45:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:50:00+00:00",
+            "equity": 10000.0
+          },
+          {
+            "timestamp": "2024-01-01T02:55:00+00:00",
+            "equity": 10000.0
+          }
+        ]
+      },
+      "decisionCount": 1,
+      "tradeCount": 1
+    }
+  }
+}

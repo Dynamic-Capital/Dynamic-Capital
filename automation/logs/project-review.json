@@ -1,0 +1,501 @@
+{
+  "organisation": {
+    "focus": [
+      "release",
+      "risk",
+      "ops readiness"
+    ],
+    "branches": [
+      {
+        "service": "ai",
+        "environment": "staging",
+        "branches": [
+          {
+            "name": "ai/research",
+            "service": "ai",
+            "environment": "staging",
+            "description": "Research features for intelligence copilots",
+            "dependencies": [
+              "core/main"
+            ],
+            "tags": [
+              "ai",
+              "experimental"
+            ],
+            "protected": false,
+            "ready": false,
+            "blocked_by": [],
+            "summary": "Open an integration PR before promotion.",
+            "ahead": 2,
+            "behind": 0,
+            "checks_passed": true,
+            "review_approved": true,
+            "integration_pr_open": false,
+            "last_commit_at": "2025-10-09T16:45:00+00:00",
+            "notes": "Awaiting platform sign-off for new signal adapters",
+            "metadata": {
+              "owner": "quant-research",
+              "risk": "medium"
+            }
+          }
+        ]
+      },
+      {
+        "service": "ops",
+        "environment": "staging",
+        "branches": [
+          {
+            "name": "ops/tools",
+            "service": "ops",
+            "environment": "staging",
+            "description": "Operational tooling and alerting automation",
+            "dependencies": [
+              "core/main"
+            ],
+            "tags": [
+              "ops",
+              "support"
+            ],
+            "protected": false,
+            "ready": false,
+            "blocked_by": [],
+            "summary": "Behind target by 3 commits. Required checks are failing or incomplete. Reviews pending approval. Open an integration PR before promotion.",
+            "ahead": 1,
+            "behind": 3,
+            "checks_passed": false,
+            "review_approved": false,
+            "integration_pr_open": false,
+            "last_commit_at": "2025-10-08T18:05:00+00:00",
+            "notes": "On-call tooling backlog requires dependency updates",
+            "metadata": {
+              "owner": "platform-ops",
+              "risk": "medium",
+              "blockedBy": [
+                "library-upgrade"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "service": "platform",
+        "environment": "production",
+        "branches": [
+          {
+            "name": "core/main",
+            "service": "platform",
+            "environment": "production",
+            "description": "Core integration trunk powering trading infrastructure",
+            "dependencies": [],
+            "tags": [
+              "core",
+              "critical"
+            ],
+            "protected": true,
+            "ready": true,
+            "blocked_by": [],
+            "summary": "Branch core/main is ready to promote into production.",
+            "ahead": 4,
+            "behind": 0,
+            "checks_passed": true,
+            "review_approved": true,
+            "integration_pr_open": true,
+            "last_commit_at": "2025-10-10T14:15:00+00:00",
+            "notes": "Rolling up trading risk guardrails",
+            "metadata": {
+              "owner": "core-platform",
+              "tickets": [
+                "OPS-21"
+              ],
+              "changeWindow": "green"
+            }
+          }
+        ]
+      },
+      {
+        "service": "web",
+        "environment": "production",
+        "branches": [
+          {
+            "name": "web/main",
+            "service": "web",
+            "environment": "production",
+            "description": "Next.js web experience shipping customer surfaces",
+            "dependencies": [
+              "core/main"
+            ],
+            "tags": [
+              "web",
+              "user-facing"
+            ],
+            "protected": true,
+            "ready": false,
+            "blocked_by": [],
+            "summary": "Behind target by 2 commits. Required checks are failing or incomplete. Reviews pending approval. Open an integration PR before promotion.",
+            "ahead": 5,
+            "behind": 2,
+            "checks_passed": false,
+            "review_approved": false,
+            "integration_pr_open": false,
+            "last_commit_at": "2025-10-11T09:30:00+00:00",
+            "notes": "E2E tests failing due to pricing widget regression",
+            "metadata": {
+              "owner": "web-experience",
+              "failingSuites": [
+                "pricing-widget",
+                "checkout-flows"
+              ],
+              "risk": "high"
+            }
+          }
+        ]
+      }
+    ],
+    "teams": [
+      {
+        "role": "DevOps Engineer",
+        "summary": "DevOps Engineer playbook with 6 workflow steps; focus on release, risk, ops readiness, OPS-21, ENG-442",
+        "objectives": [
+          "Ensure resilient infrastructure, rapid incident response, and frictionless releases.",
+          "Automate monitoring, security scanning, and compliance evidence capture.",
+          "Lead operational readiness reviews and cost optimisation initiatives."
+        ],
+        "workflow": [
+          "Review real-time alerts and incident backlogs daily, prioritising remediation by severity and SLA.",
+          "Audit upcoming releases for infrastructure dependencies and update infrastructure-as-code modules as needed.",
+          "Run security and compliance scans, logging findings with owners and due dates.",
+          "Monitor SLO dashboards during release windows; trigger rollback protocols if error budgets degrade.",
+          "Document release outcomes, update runbooks, and schedule resilience tests when gaps surface.",
+          "Conduct weekly capacity and cost reviews, recommending optimisation actions to leadership."
+        ],
+        "outputs": [
+          "Deployment runbooks",
+          "Updated pipelines",
+          "Incident postmortems",
+          "Compliance reports"
+        ],
+        "kpis": [
+          "System uptime",
+          "Deployment success rate",
+          "Mean time to recovery",
+          "Infrastructure cost efficiency"
+        ],
+        "focus": [
+          "release",
+          "risk",
+          "ops readiness",
+          "OPS-21",
+          "ENG-442"
+        ],
+        "notes": {
+          "releaseWindow": "2025-10-15T09:00:00Z",
+          "programIncrement": "FY25-Q4",
+          "notes": "Align platform and web surfaces for the October trading event"
+        }
+      },
+      {
+        "role": "Project Manager",
+        "summary": "Project Manager playbook with 6 workflow steps; focus on release, risk, ops readiness, OPS-21, ENG-442",
+        "objectives": [
+          "Coordinate roadmap execution, resource alignment, and risk mitigation across squads.",
+          "Provide transparent status communication and stakeholder updates.",
+          "Continuously improve retrospectives and dependency management."
+        ],
+        "workflow": [
+          "Consolidate roadmap and backlog items, ranking initiatives by impact, effort, and strategic alignment.",
+          "Validate resource availability, adjusting scope or negotiating trade-offs when conflicts arise.",
+          "Run kickoff ceremonies that define milestones, owners, and communication cadences.",
+          "Maintain real-time status dashboards; trigger unblock sessions when progress slips beyond 10% of plan.",
+          "Facilitate weekly stakeholder updates summarising wins, blockers, decisions, and next steps.",
+          "Lead retrospectives capturing action items, assign owners with due dates, and track to completion."
+        ],
+        "outputs": [
+          "Sprint plan",
+          "Dependency tracker",
+          "Status updates",
+          "Retrospective notes",
+          "Risk register updates"
+        ],
+        "kpis": [
+          "On-time delivery rate",
+          "Blocker resolution time",
+          "Stakeholder satisfaction",
+          "Action item completion rate"
+        ],
+        "focus": [
+          "release",
+          "risk",
+          "ops readiness",
+          "OPS-21",
+          "ENG-442"
+        ],
+        "notes": {
+          "releaseWindow": "2025-10-15T09:00:00Z",
+          "programIncrement": "FY25-Q4",
+          "notes": "Align platform and web surfaces for the October trading event"
+        }
+      }
+    ],
+    "summary": "4 branches across 4 groups; 2 teams aligned"
+  },
+  "audit": {
+    "ready": [
+      "core/main"
+    ],
+    "findings": [
+      {
+        "branch": "ai/research",
+        "severity": "warning",
+        "issues": [
+          "Integration PR not open"
+        ],
+        "blocked_by": [],
+        "recommended_actions": [
+          "Open integration PR to stage promotion"
+        ]
+      },
+      {
+        "branch": "ops/tools",
+        "severity": "warning",
+        "issues": [
+          "Behind trunk by 3 commits",
+          "Required checks failing or incomplete",
+          "Reviews pending approval",
+          "Integration PR not open"
+        ],
+        "blocked_by": [],
+        "recommended_actions": [
+          "Synchronise with trunk to clear the backlog",
+          "Stabilise CI checks to restore readiness",
+          "Secure required code review approvals",
+          "Open integration PR to stage promotion"
+        ]
+      },
+      {
+        "branch": "web/main",
+        "severity": "warning",
+        "issues": [
+          "Behind trunk by 2 commits",
+          "Required checks failing or incomplete",
+          "Reviews pending approval",
+          "Integration PR not open"
+        ],
+        "blocked_by": [],
+        "recommended_actions": [
+          "Synchronise with trunk to clear the backlog",
+          "Stabilise CI checks to restore readiness",
+          "Secure required code review approvals",
+          "Open integration PR to stage promotion"
+        ]
+      }
+    ],
+    "summary": "1 branches ready; 3 requiring attention (0 blocked)"
+  },
+  "optimisation": {
+    "promotion_sequence": [
+      "core/main"
+    ],
+    "pending": [
+      "ai/research",
+      "ops/tools",
+      "web/main"
+    ],
+    "blocked": [],
+    "recommended_actions": [
+      "Promote core/main in the next release window",
+      "Finalise readiness tasks for ai/research",
+      "Finalise readiness tasks for ops/tools",
+      "Finalise readiness tasks for web/main"
+    ],
+    "summary": "1 ready for promotion; 3 pending readiness"
+  },
+  "recommendedNextSteps": [
+    "Open integration PR to stage promotion",
+    "Synchronise with trunk to clear the backlog",
+    "Stabilise CI checks to restore readiness",
+    "Secure required code review approvals",
+    "Promote core/main in the next release window",
+    "Finalise readiness tasks for ai/research",
+    "Finalise readiness tasks for ops/tools",
+    "Finalise readiness tasks for web/main"
+  ],
+  "overview": {
+    "ai/research": {
+      "branch": "ai/research",
+      "ready": false,
+      "blocked_by": [],
+      "summary": "Open an integration PR before promotion.",
+      "definition": {
+        "name": "ai/research",
+        "service": "ai",
+        "environment": "staging",
+        "description": "Research features for intelligence copilots",
+        "dependencies": [
+          "core/main"
+        ],
+        "tags": [
+          "ai",
+          "experimental"
+        ],
+        "protected": false
+      },
+      "status": {
+        "branch": "ai/research",
+        "ahead": 2,
+        "behind": 0,
+        "checks_passed": true,
+        "review_approved": true,
+        "integration_pr_open": false,
+        "last_commit_at": "2025-10-09T16:45:00+00:00",
+        "notes": "Awaiting platform sign-off for new signal adapters",
+        "metadata": {
+          "owner": "quant-research",
+          "risk": "medium"
+        }
+      }
+    },
+    "core/main": {
+      "branch": "core/main",
+      "ready": true,
+      "blocked_by": [],
+      "summary": "Branch core/main is ready to promote into production.",
+      "definition": {
+        "name": "core/main",
+        "service": "platform",
+        "environment": "production",
+        "description": "Core integration trunk powering trading infrastructure",
+        "dependencies": [],
+        "tags": [
+          "core",
+          "critical"
+        ],
+        "protected": true
+      },
+      "status": {
+        "branch": "core/main",
+        "ahead": 4,
+        "behind": 0,
+        "checks_passed": true,
+        "review_approved": true,
+        "integration_pr_open": true,
+        "last_commit_at": "2025-10-10T14:15:00+00:00",
+        "notes": "Rolling up trading risk guardrails",
+        "metadata": {
+          "owner": "core-platform",
+          "tickets": [
+            "OPS-21"
+          ],
+          "changeWindow": "green"
+        }
+      }
+    },
+    "ops/tools": {
+      "branch": "ops/tools",
+      "ready": false,
+      "blocked_by": [],
+      "summary": "Behind target by 3 commits. Required checks are failing or incomplete. Reviews pending approval. Open an integration PR before promotion.",
+      "definition": {
+        "name": "ops/tools",
+        "service": "ops",
+        "environment": "staging",
+        "description": "Operational tooling and alerting automation",
+        "dependencies": [
+          "core/main"
+        ],
+        "tags": [
+          "ops",
+          "support"
+        ],
+        "protected": false
+      },
+      "status": {
+        "branch": "ops/tools",
+        "ahead": 1,
+        "behind": 3,
+        "checks_passed": false,
+        "review_approved": false,
+        "integration_pr_open": false,
+        "last_commit_at": "2025-10-08T18:05:00+00:00",
+        "notes": "On-call tooling backlog requires dependency updates",
+        "metadata": {
+          "owner": "platform-ops",
+          "risk": "medium",
+          "blockedBy": [
+            "library-upgrade"
+          ]
+        }
+      }
+    },
+    "web/main": {
+      "branch": "web/main",
+      "ready": false,
+      "blocked_by": [],
+      "summary": "Behind target by 2 commits. Required checks are failing or incomplete. Reviews pending approval. Open an integration PR before promotion.",
+      "definition": {
+        "name": "web/main",
+        "service": "web",
+        "environment": "production",
+        "description": "Next.js web experience shipping customer surfaces",
+        "dependencies": [
+          "core/main"
+        ],
+        "tags": [
+          "web",
+          "user-facing"
+        ],
+        "protected": true
+      },
+      "status": {
+        "branch": "web/main",
+        "ahead": 5,
+        "behind": 2,
+        "checks_passed": false,
+        "review_approved": false,
+        "integration_pr_open": false,
+        "last_commit_at": "2025-10-11T09:30:00+00:00",
+        "notes": "E2E tests failing due to pricing widget regression",
+        "metadata": {
+          "owner": "web-experience",
+          "failingSuites": [
+            "pricing-widget",
+            "checkout-flows"
+          ],
+          "risk": "high"
+        }
+      }
+    }
+  },
+  "metrics": {
+    "branchCount": 4,
+    "teamCount": 2,
+    "readyCount": 1,
+    "findingCount": 3,
+    "blockedCount": 0,
+    "pendingCount": 3
+  },
+  "generatedAt": "2025-10-12T05:05:58.658682+00:00",
+  "automation": "project_review",
+  "focus": [
+    "release",
+    "risk",
+    "ops readiness"
+  ],
+  "inputs": {
+    "branchDefinitions": 4,
+    "statusEntries": 4
+  },
+  "context": {
+    "tickets": [
+      "OPS-21",
+      "ENG-442"
+    ],
+    "releaseWindow": "2025-10-15T09:00:00Z",
+    "programIncrement": "FY25-Q4",
+    "notes": "Align platform and web surfaces for the October trading event"
+  },
+  "teamRoles": [
+    "DevOps Engineer",
+    "Project Manager",
+    "Incident Commander"
+  ]
+}

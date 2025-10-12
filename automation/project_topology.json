@@ -1,0 +1,116 @@
+{
+  "focus": [
+    "release",
+    "risk",
+    "ops readiness"
+  ],
+  "context": {
+    "tickets": ["OPS-21", "ENG-442"],
+    "releaseWindow": "2025-10-15T09:00:00Z",
+    "programIncrement": "FY25-Q4",
+    "notes": "Align platform and web surfaces for the October trading event"
+  },
+  "roles": [
+    "DevOps Engineer",
+    "Project Manager",
+    "Incident Commander"
+  ],
+  "includeOptionalPlaybooks": true,
+  "branches": [
+    {
+      "name": "core/main",
+      "service": "platform",
+      "environment": "production",
+      "description": "Core integration trunk powering trading infrastructure",
+      "tags": ["core", "critical"],
+      "protected": true
+    },
+    {
+      "name": "web/main",
+      "service": "web",
+      "environment": "production",
+      "description": "Next.js web experience shipping customer surfaces",
+      "dependencies": ["core/main"],
+      "tags": ["web", "user-facing"]
+    },
+    {
+      "name": "ai/research",
+      "service": "ai",
+      "environment": "staging",
+      "description": "Research features for intelligence copilots",
+      "dependencies": ["core/main"],
+      "tags": ["ai", "experimental"],
+      "protected": false
+    },
+    {
+      "name": "ops/tools",
+      "service": "ops",
+      "environment": "staging",
+      "description": "Operational tooling and alerting automation",
+      "dependencies": ["core/main"],
+      "tags": ["ops", "support"],
+      "protected": false
+    }
+  ],
+  "statuses": [
+    {
+      "branch": "core/main",
+      "ahead": 4,
+      "behind": 0,
+      "checks_passed": true,
+      "review_approved": true,
+      "integration_pr_open": true,
+      "last_commit_at": "2025-10-10T14:15:00Z",
+      "notes": "Rolling up trading risk guardrails",
+      "metadata": {
+        "owner": "core-platform",
+        "tickets": ["OPS-21"],
+        "changeWindow": "green"
+      }
+    },
+    {
+      "branch": "web/main",
+      "ahead": 5,
+      "behind": 2,
+      "checks_passed": false,
+      "review_approved": false,
+      "integration_pr_open": false,
+      "last_commit_at": "2025-10-11T09:30:00Z",
+      "notes": "E2E tests failing due to pricing widget regression",
+      "metadata": {
+        "owner": "web-experience",
+        "failingSuites": ["pricing-widget", "checkout-flows"],
+        "risk": "high"
+      }
+    },
+    {
+      "branch": "ai/research",
+      "ahead": 2,
+      "behind": 0,
+      "checks_passed": true,
+      "review_approved": true,
+      "integration_pr_open": false,
+      "last_commit_at": "2025-10-09T16:45:00Z",
+      "notes": "Awaiting platform sign-off for new signal adapters",
+      "metadata": {
+        "owner": "quant-research",
+        "risk": "medium"
+      }
+    },
+    {
+      "branch": "ops/tools",
+      "ahead": 1,
+      "behind": 3,
+      "checks_passed": false,
+      "review_approved": false,
+      "integration_pr_open": false,
+      "last_commit_at": "2025-10-08T18:05:00Z",
+      "notes": "On-call tooling backlog requires dependency updates",
+      "metadata": {
+        "owner": "platform-ops",
+        "risk": "medium",
+        "blockedBy": ["library-upgrade"]
+      }
+    }
+  ]
+}
