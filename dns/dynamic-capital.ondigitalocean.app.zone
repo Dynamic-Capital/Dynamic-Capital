@@ -1,10 +1,10 @@
-; DigitalOcean App Platform primary domain for Dynamic Capital
+; Vercel-managed DNS zone for Dynamic Capital
 $ORIGIN dynamic-capital.ondigitalocean.app.
 $TTL 1800
-dynamic-capital.ondigitalocean.app. IN SOA ns1.digitalocean.com. hostmaster.dynamic-capital.ondigitalocean.app. 1757878623 10800 3600 604800 1800
-dynamic-capital.ondigitalocean.app. 1800 IN NS ns1.digitalocean.com.
-dynamic-capital.ondigitalocean.app. 1800 IN NS ns2.digitalocean.com.
-dynamic-capital.ondigitalocean.app. 1800 IN NS ns3.digitalocean.com.
+dynamic-capital.ondigitalocean.app. IN SOA ns1.vercel-dns.com. hostmaster.dynamic-capital.ondigitalocean.app. 1757878623 10800
+ 3600 604800 1800
+dynamic-capital.ondigitalocean.app. 1800 IN NS ns1.vercel-dns.com.
+dynamic-capital.ondigitalocean.app. 1800 IN NS ns2.vercel-dns.com.
 ; Delegate the apex to Vercel's current anycast range
 dynamic-capital.ondigitalocean.app. 3600 IN A 216.198.79.1
 ; Retain the legacy Vercel apex IP until their migration is fully complete
