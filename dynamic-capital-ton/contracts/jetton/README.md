@@ -31,6 +31,22 @@ Refer to `config.yaml` for the default deployment parameters. The pool allocator
 exposed by the master contract, so deploy it alongside the jetton and reuse the
 same multisig administrator when configuring the vault.
 
+## FunC compilation entrypoint
+
+Auditors that rely on the [`func`](https://github.com/ton-blockchain/ton)
+compiler can generate the `fift` artifact directly from this directory. The
+`jetton-minter.fc` shim wraps the discoverable master implementation so that the
+following command produces `output.fif` without navigating the nested
+directories:
+
+```sh
+func -o output.fif -SPA jetton-minter.fc
+```
+
+The shim simply includes the `discoverable/master.fc` source while preserving
+the relative include paths into `discoverable/imports/`, ensuring the compiler
+resolves the supporting libraries correctly.
+
 ## Governance addresses
 
 The canonical governance addresses ship with this repository inside
