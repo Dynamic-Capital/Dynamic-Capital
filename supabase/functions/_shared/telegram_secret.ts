@@ -1,5 +1,5 @@
 import { maybe, optionalEnv } from "./env.ts";
-import { jsonResponse, unauth } from "./http.ts";
+import { jsonResponse } from "./http.ts";
 import { getSetting } from "./config.ts";
 
 const TELEGRAM_ALLOWED_UPDATES_BASE = [
@@ -136,6 +136,7 @@ function timingSafeEqual(a: string, b: string): boolean {
   return out === 0;
 }
 let missingSecretLogged = false;
+let secretLookupLogged = false;
 
 export async function validateTelegramHeader(
   req: Request,
@@ -155,7 +156,13 @@ export async function validateTelegramHeader(
       "[telegram] unable to resolve expected webhook secret",
       error,
     );
-    return unauth("secret lookup failure", req);
+    if (!secretLookupLogged) {
+      secretLookupLogged = true;
+      console.warn(
+        "[telegram] continuing without webhook secret validation due to lookup failure",
+      );
+    }
+    return null;
   }
   if (!exp) {
     if (!missingSecretLogged) {
