@@ -16,6 +16,7 @@ import {
   RevealFx,
   SpacingToken,
 } from "@/components/dynamic-ui-system";
+import { DC_ICON_MARK_URL } from "@/config/brand-assets";
 
 import Providers from "./providers";
 import { RouteGuard, ScrollToHash } from "@/components/dynamic-portfolio";
@@ -194,7 +195,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icon-mark.svg", type: "image/svg+xml" },
+      { url: DC_ICON_MARK_URL, type: "image/svg+xml" },
       { url: brandingAssets.favicon, type: "image/x-icon" },
     ],
     shortcut: brandingAssets.favicon,
@@ -237,7 +238,7 @@ export default async function RootLayout(
           content={brandingMetadata.name}
         />
         <link rel="apple-touch-icon" href={brandingAssets.appleTouchIcon} />
-        <link rel="icon" type="image/svg+xml" href="/icon-mark.svg" />
+        <link rel="icon" type="image/svg+xml" href={DC_ICON_MARK_URL} />
         <link rel="icon" type="image/x-icon" href={brandingAssets.favicon} />
         <style
           id={BRANDING_STYLE_ELEMENT_ID}

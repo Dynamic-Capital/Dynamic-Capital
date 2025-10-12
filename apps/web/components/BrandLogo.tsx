@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { DC_MARK_URL } from "@/config/brand-assets";
 import { cn } from "@/utils";
 
 interface BrandLogoProps {
@@ -12,6 +13,8 @@ interface BrandLogoProps {
   variant?: "default" | "minimal" | "brand";
   animated?: boolean;
 }
+
+const BRAND_LOGO_URL = DC_MARK_URL;
 
 const BrandLogo: React.FC<BrandLogoProps> = ({
   className = "",
@@ -80,7 +83,7 @@ const BrandLogo: React.FC<BrandLogoProps> = ({
       whileTap={animated ? { scale: 0.95 } : undefined}
     >
       <MotionImage
-        src="/icon-mark.svg"
+        src={BRAND_LOGO_URL}
         alt="Dynamic Capital Icon"
         width={sizeDimensions[size]}
         height={sizeDimensions[size]}

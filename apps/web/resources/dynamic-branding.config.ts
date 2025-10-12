@@ -10,6 +10,7 @@ import {
   type DynamicBrandingConfig,
   type DynamicBrandingOverrides,
 } from "./types/branding.types";
+import { DC_LOGO_MARK_URL, DC_SOCIAL_PREVIEW_URL } from "@/config/brand-assets";
 import { TON_SITE_GATEWAY_URL } from "../../../shared/ton/site";
 import { normalizeThemePassTokens } from "../utils/theme-pass.ts";
 
@@ -312,10 +313,10 @@ const dynamicBranding: DynamicBrandingConfig = {
   tokens,
   metadata,
   assets: {
-    logo: "/logo-mark.svg",
+    logo: DC_LOGO_MARK_URL,
     favicon: "/favicon.ico",
     appleTouchIcon: "/apple-touch-icon.png",
-    socialPreview: "/social/social-preview.svg",
+    socialPreview: DC_SOCIAL_PREVIEW_URL,
   },
   distribution,
 };
