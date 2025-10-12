@@ -64,6 +64,28 @@ library, opcodes, and wallet utilities already present in this repository. Use
 the same wallet code and content cells when migrating between the Tact and FunC
 variants to keep balances and metadata consistent.
 
+### Automated build pipeline
+
+The repository now ships a unified compiler harness that produces all
+deployable artifacts (Tact + FunC) in a single pass. Run it from the repository
+root:
+
+```
+npm run ton:build-contracts -- --clean --verbose
+```
+
+- Tact contracts (`dao_dns_controller.tact`, `pool_allocator.tact`, jetton,
+  and Theme Pass suites) are built with the upstream Tact stdlib and emitted to
+  `dynamic-capital-ton/contracts/build/tact`.
+- The FunC discovery master is compiled with the root-level `stdlib.fc`
+  aggregator, which pins the include paths under `dynamic-capital-ton/contracts`
+  so FunC toolchains no longer require ad-hoc `-I` flags.
+- Pass `--skip-tact` or `--skip-func` to limit the run to a specific toolchain;
+  omit `--clean` to reuse existing build outputs.
+- The script automatically skips Tact builds on Node.js runtimes older than v22
+  (the minimum required by the upstream compiler) and prints a reminder so CI
+  jobs know when to upgrade.
+
 ### FunC regression tests
 
 Compile-time regressions for the discoverable master are covered by a TypeScript

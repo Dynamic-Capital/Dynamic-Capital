@@ -1,0 +1,21 @@
+;; Dynamic Capital FunC standard library entry point
+;;
+;; This file re-exports the canonical TON FunC stdlib used by the
+;; project's smart contracts so build pipelines can reference a
+;; predictable root-relative path ("stdlib.fc") when compiling.
+;;
+;; The additional `#path` directives ensure FunC-based toolchains can
+;; resolve project-local imports (e.g. jetton helpers) without needing to
+;; manually configure include directories. This keeps CI, toncli, and the
+;; bespoke build scripts in sync when compiling contracts from different
+;; working directories.
+
+#path "dynamic-capital-ton/contracts"
+#path "dynamic-capital-ton/contracts/stdlib"
+#path "dynamic-capital-ton/contracts/jetton"
+#path "dynamic-capital-ton/contracts/jetton/discoverable"
+#path "dynamic-capital-ton/contracts/jetton/discoverable/imports"
+#path "dynamic-capital-ton/contracts/dns"
+#path "dynamic-capital-ton/contracts/theme"
+
+#include "dynamic-capital-ton/contracts/stdlib/stdlib.fc"

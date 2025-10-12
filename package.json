@@ -102,6 +102,7 @@
     "ton:site-status": "tsx tools/ton/check-site-status.ts",
     "ton:mainnet-status": "tsx tools/ton/check-mainnet-status.ts",
     "ton:build-site-predeploy": "tsx tools/ton/build-site-predeploy.ts",
+    "ton:build-contracts": "tsx tools/ton/build-contract-suite.ts",
     "ton:build-verifier": "$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/build-ton-verifier.ts"
   },
   "dependencies": {
@@ -156,8 +157,10 @@
   },
   "devDependencies": {
     "@babel/types": "^7.28.4",
+    "@tact-lang/compiler": "^1.6.13",
     "@testing-library/jest-dom": "^6.6.3",
     "@ton-community/func-js": "^0.10.0",
+    "axios": "^1.12.2",
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
     "dotenv": "^16.4.5",
@@ -172,8 +175,7 @@
     "ton-contract-executor": "^0.8.4",
     "tsx": "^4.20.6",
     "vitest": "^3.2.4",
-    "yaml": "^2.8.1",
-    "axios": "^1.12.2"
+    "yaml": "^2.8.1"
   },
   "overrides": {
     "esbuild": "^0.25.10",
