@@ -41,7 +41,7 @@ wallets.【F:dynamic-capital-ton/contracts/jetton/metadata.json†L1-L28】
 1. **Upload the bundle** via the Tonviewer verification portal
    (`https://tonviewer.com/verification`). Attach the generated ZIP file and
    cite the jetton master address
-   (`0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38`).
+   (`0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`).
 2. **Reference governance controls** by pointing reviewers to the timelock and
    multisig description inside the packaged `contracts/README.md`. Highlight the
    Governance addresses table (admin multisig, treasury, and router in friendly

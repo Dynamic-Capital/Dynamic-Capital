@@ -230,7 +230,7 @@
     {
       "type": "TXT",
       "name": "@",
-      "data": "wallet=UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
+      "data": "wallet=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
       "ttl": 300,
       "note": "Root domain wallet alias mapping dynamiccapital.ton directly to the DCT jetton master contract"
     },

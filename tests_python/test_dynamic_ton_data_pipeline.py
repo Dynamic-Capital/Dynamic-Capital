@@ -81,7 +81,7 @@ def test_fetch_wallet_distribution_supports_addresses_payload() -> None:
             {
                 "address": "0:26cdc2a0ddec9b50dcec4f896526b8e80deec5c02e759d246124430008276789",
                 "owner": {
-                    "address": "0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38",
+                    "address": "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
                     "name": "dynamiccapital.ton",
                     "is_scam": False,
                     "is_wallet": True,
