@@ -43,7 +43,7 @@ blockchain.
 - PDF export `exports/dct-issuer-statement-20251007.pdf` generated via `pandoc`;
   SHA-256 recorded in the escalation log.
 - Metadata digest
-  `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4` confirmed
+  `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5` confirmed
   against `metadata.json` prior to dispatch.
 - Compliance archive location `s3://dynamic-compliance/kyc/dct/2025-10-08/`
   contains notarized KYC dossier, digest note, and verification logs for

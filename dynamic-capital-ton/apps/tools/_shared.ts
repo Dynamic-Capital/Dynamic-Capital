@@ -20,6 +20,11 @@ export interface ProjectConfig {
   contracts?: ContractsConfig;
 }
 
+export interface TonviewerManifest {
+  metadataSha256?: string;
+  [key: string]: unknown;
+}
+
 export function resolveProjectRoot(metaUrl: string): string {
   const here = dirname(fileURLToPath(metaUrl));
   return resolve(here, "..", "..");
@@ -44,6 +49,27 @@ export async function readJettonMetadata(projectRoot: string) {
   const json = JSON.parse(text) as Record<string, unknown>;
 
   return { bytes, json, path: metadataPath, text };
+}
+
+export async function readTonviewerManifest(projectRoot: string) {
+  const manifestPath = join(
+    projectRoot,
+    "build",
+    "tonviewer",
+    "bundle",
+    "manifest.json",
+  );
+
+  try {
+    const text = await Deno.readTextFile(manifestPath);
+    const json = JSON.parse(text) as TonviewerManifest;
+    return { path: manifestPath, text, json };
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function computeSha256Hex(data: Uint8Array): Promise<string> {
