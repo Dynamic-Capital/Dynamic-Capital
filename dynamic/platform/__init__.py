@@ -4,4 +4,5 @@ __all__ = [
     "web3",
     "token",
     "engines",
+    "routers",
 ]
