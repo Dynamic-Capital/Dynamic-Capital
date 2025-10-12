@@ -11,7 +11,7 @@
 | 2025-10-10 | Analytics  | Executed scheduled script, captured log excerpt, and registered contingency escalation for 2025-10-11. | `check-tonviewer-status-20251010.log`         | Verification still `none`; escalation prep continues.    |
 | 2025-10-11 | Operations | Prepared secondary escalation package using updated follow-up template; awaiting reviewer response. | Template checklist                            | Standing by for Tonviewer verdict before dispatch.       |
 | 2025-10-12 | Compliance | Reviewed compliance archive, confirmed attachments checklist completeness, and documented new preflight automation. | `s3://dynamic-compliance/kyc/dct/2025-10-08/` | No gaps found; archive remains accessible.               |
-| 2025-10-12 | Analytics  | Ran unscheduled verification sweep and archived `check-tonviewer-status-20251012.log` in escalation bundle. | Script log                                    | Flag still `none`; escalation window shifted to 2025-10-13 16:00 UTC. |
+| 2025-10-12 | Analytics  | Ran unscheduled verification sweep at 09:45 UTC and archived `check-tonviewer-status-20251012.log` in escalation bundle. | Script log                                    | Flag still `none`; Tonapi now reports 30 holders; escalation window shifted to 2025-10-13 16:00 UTC. |
 
 ## Pending Follow-Ups
 

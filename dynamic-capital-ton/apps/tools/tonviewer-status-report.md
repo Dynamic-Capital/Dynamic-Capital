@@ -2,7 +2,7 @@
 
 ## Run Context
 
-- **Run Date (UTC):** 2025-10-12 09:34:19
+- **Run Date (UTC):** 2025-10-12 09:45:52
 - **Execution Command:**
   `$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/check-tonviewer-status.ts`
 - **Jetton Address:**
@@ -31,7 +31,7 @@
 | Tonapi verification flag          | `none` (jetton remains unverified)                 |
 | Reported total supply (raw)       | `99998500000000000`                                |
 | Reported total supply (human, Ð9) | `99,998,500` DCT                                   |
-| Holder count                      | `29` wallets                                       |
+| Holder count                      | `30` wallets                                       |
 | Last Tonapi sync observed         | Not provided (Tonapi response omitted timestamp). |
 
 ## Verification Timeline Highlights
@@ -42,7 +42,7 @@
 | 2025-10-08 | Compliance | Archived notarized KYC dossier at `s3://dynamic-compliance/kyc/dct/2025-10-08/` and logged presigned URL. | Archive validated; access expires 2025-10-14 00:00 UTC.    |
 | 2025-10-09 | Analytics  | Logged verification flag (`none`) and scheduled 2025-10-10 rerun; refreshed escalation log guidance.       | Status unchanged; rerun prepared.                          |
 | 2025-10-10 | Analytics  | Executed rerun, captured log excerpt, and queued 2025-10-11 contingency escalation.                        | Verification still `none`; monitoring continues.           |
-| 2025-10-12 | Analytics  | Ran unscheduled verification sweep and archived log under `check-tonviewer-status-20251012.log`.           | Flag remains `none`; escalation bundle kept staged.        |
+| 2025-10-12 | Analytics  | Ran unscheduled verification sweep at 09:45 UTC and archived log under `check-tonviewer-status-20251012.log`.           | Flag remains `none`; Tonapi now reports 30 holders; escalation bundle kept staged. |
 
 ## Outstanding Actions
 
