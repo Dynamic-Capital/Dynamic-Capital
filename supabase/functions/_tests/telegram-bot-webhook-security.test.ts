@@ -27,6 +27,41 @@ Deno.test("ignores requests without secret and preserves CORS", async () => {
   clearTestEnv();
 });
 
+Deno.test("continues gracefully when webhook secret lookup fails", async () => {
+  clearTestEnv();
+  setTestEnv({ ALLOWED_ORIGINS: "*" });
+
+  const original = getSetting;
+  const stub = (async () => {
+    throw new Error("boom");
+  }) as typeof getSetting;
+  __setGetSetting(stub);
+
+  try {
+    const req = new Request("https://example.com/telegram-bot", {
+      method: "POST",
+      body: "{}",
+      headers: { origin: "https://example.com" },
+    });
+
+    const { validateTelegramHeader } = await import(
+      "../_shared/telegram_secret.ts"
+    );
+    const res = await validateTelegramHeader(req);
+    assertEquals(res?.status, 200);
+    const payload = res ? await res.json() : null;
+    assertEquals(payload?.ignored, true);
+    assertEquals(payload?.detail, "lookup_failure");
+    assertStrictEquals(
+      res?.headers.get("access-control-allow-origin"),
+      "*",
+    );
+  } finally {
+    __setGetSetting(original);
+    clearTestEnv();
+  }
+});
+
 Deno.test("allows requests when secret is not configured", async () => {
   clearTestEnv();
 

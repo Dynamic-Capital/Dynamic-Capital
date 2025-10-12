@@ -162,7 +162,16 @@ export async function validateTelegramHeader(
         "[telegram] continuing without webhook secret validation due to lookup failure",
       );
     }
-    return null;
+    return jsonResponse(
+      {
+        ok: true,
+        ignored: true,
+        reason: "invalid_webhook_secret",
+        detail: "lookup_failure",
+      },
+      { status: 200 },
+      req,
+    );
   }
   if (!exp) {
     if (!missingSecretLogged) {
