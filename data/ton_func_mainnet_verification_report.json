@@ -1,0 +1,22 @@
+{
+  "run_at": "2025-10-12T01:52:33.437Z",
+  "network": "mainnet",
+  "toncenter_endpoint": "https://toncenter.com/api/v2/getAddressInformation",
+  "contracts": [
+    {
+      "name": "discoverable_master",
+      "description": "DCT FunC discoverable jetton master",
+      "address": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+      "local_hash_hex": "16492fd272ef46b017a717f495e89e1ef360785ed0abda91a04e64640ff09b15",
+      "local_boc_length": 728,
+      "onchain_hash_hex": "9a0f98dd6fbf225eef8165e4e64417ee931f7eea000653439e7b5dcdc0644cd6",
+      "onchain_boc_length": 684,
+      "toncenter_state": "active",
+      "toncenter_balance": "91727790",
+      "toncenter_reported_code_hash": null,
+      "toncenter_reported_data_hash": null,
+      "matches": false,
+      "notes": []
+    }
+  ]
+}

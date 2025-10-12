@@ -103,6 +103,7 @@
     "ton:mainnet-status": "tsx tools/ton/check-mainnet-status.ts",
     "ton:build-site-predeploy": "tsx tools/ton/build-site-predeploy.ts",
     "ton:build-verifier": "$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/build-ton-verifier.ts",
+    "ton:verify-func-mainnet": "tsx scripts/ton/run-func-verification.ts --network mainnet",
     "orbs:verify-mainnet": "tsx scripts/orbs/run-mainnet-verification.ts"
   },
   "dependencies": {
