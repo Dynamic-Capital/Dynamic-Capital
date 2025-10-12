@@ -69,6 +69,12 @@ export const TON_MAINNET_DEDUST_DCT_JETTON_WALLET =
 export const TON_MAINNET_DEDUST_DCT_TON_POOL =
   "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm";
 
+export const TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL =
+  "EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D";
+
+export const TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET =
+  "EQAT363NPdduFnHRL3cP96cbxhbtMZ7vJCiuH7lt7tcwjH9l";
+
 export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
   {
     key: "operationsTreasury",
@@ -148,6 +154,20 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     friendlyAddress: TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
     description:
       "Jetton wallet bound to the DeDust TON/DCT pool for accounting checks.",
+  },
+  {
+    key: "swapcoffeeDctTonPool",
+    label: "swap.coffee DCT/TON pool",
+    friendlyAddress: TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
+    description:
+      "Aggregator pool exposing TON⇄DCT liquidity through the swap.coffee routing network.",
+  },
+  {
+    key: "swapcoffeeDctJettonWallet",
+    label: "swap.coffee DCT jetton wallet",
+    friendlyAddress: TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
+    description:
+      "Derived jetton wallet for the swap.coffee pool used in treasury reconciliation routines.",
   },
 ] as const satisfies readonly TonMainnetAccountDefinition[];
 

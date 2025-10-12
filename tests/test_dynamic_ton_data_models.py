@@ -7,6 +7,8 @@ from collections.abc import Sequence
 from dataclasses import fields, is_dataclass
 from typing import Any, Mapping, get_type_hints
 
+import pytest
+
 from dynamic_ton.data_pipeline import TonActionRecord, TonDataCollector
 from dynamic_ton.ton_index_client import (
     TonIndexAccountState,
@@ -345,4 +347,57 @@ def test_ton_index_supporting_models_schema_matches_contract() -> None:
         "address_book": Mapping[str, TonIndexAddressBookEntry],
         "metadata": Mapping[str, TonIndexAddressMetadata],
     }
+
+
+def test_fetch_swapcoffee_price_point_from_pool_data() -> None:
+    payload = {
+        "success": True,
+        "exit_code": 0,
+        "decoded": {
+            "reserve1": "32020531554",
+            "reserve2": "50048858890804",
+            "lp_fee": "2000",
+        },
+    }
+
+    stub_client = _StubHttpClient([payload])
+    collector = TonDataCollector(http_client=stub_client)
+
+    price_point = asyncio.run(
+        collector.fetch_price_point(venue="swap.coffee", pair="TON/DCT")
+    )
+
+    expected_price = 32020531554 / 50048858890804
+    assert price_point.close_price == pytest.approx(expected_price)
+    assert price_point.volume == 0.0
+    assert price_point.pair == "TON/DCT"
+    assert price_point.start_time < price_point.end_time
+    request_url, _ = stub_client.requests[0]
+    assert request_url.endswith("/methods/get_pool_data")
+
+
+def test_fetch_swapcoffee_liquidity_snapshot() -> None:
+    payload = {
+        "success": True,
+        "exit_code": 0,
+        "decoded": {
+            "reserve1": "32020531554",
+            "reserve2": "50048858890804",
+            "lp_fee": "2000",
+        },
+    }
+
+    stub_client = _StubHttpClient([payload])
+    collector = TonDataCollector(http_client=stub_client)
+
+    snapshot = asyncio.run(
+        collector.fetch_liquidity(venue="swap.coffee", pair="DCT/TON")
+    )
+
+    assert snapshot.ton_depth == pytest.approx(32.020531554)
+    assert snapshot.quote_depth == pytest.approx(50_048.858890804)
+    assert snapshot.fee_bps == pytest.approx(20.0)
+    assert snapshot.block_height == 0
+    request_url, _ = stub_client.requests[0]
+    assert request_url.endswith("/methods/get_pool_data")
 

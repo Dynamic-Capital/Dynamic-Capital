@@ -13,6 +13,8 @@ import {
   TON_MAINNET_STONFI_DCT_JETTON_WALLET,
   TON_MAINNET_STONFI_DCT_TON_POOL,
   TON_MAINNET_STONFI_ROUTER,
+  TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
+  TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
 } from "../../../shared/ton/mainnet-addresses";
 import { DCT_DEX_POOLS } from "../../../shared/ton/dct-liquidity";
 
@@ -130,6 +132,9 @@ async function main() {
 
   const stonfiPool = DCT_DEX_POOLS.find((pool) => pool.dex === "STON.fi");
   const dedustPool = DCT_DEX_POOLS.find((pool) => pool.dex === "DeDust");
+  const swapcoffeePool = DCT_DEX_POOLS.find(
+    (pool) => pool.dex === "swap.coffee",
+  );
 
   if (!stonfiPool || !stonfiPool.metadataUrl || !stonfiPool.dexScreenerPairUrl) {
     throw new Error("Missing STON.fi pool metadata configuration");
@@ -139,19 +144,17 @@ async function main() {
     throw new Error("Missing DeDust pool metadata configuration");
   }
 
+  if (!swapcoffeePool || !swapcoffeePool.metadataUrl) {
+    throw new Error("Missing swap.coffee pool metadata configuration");
+  }
+
   const dnsRecord: Record<string, string> = {
     ton_alias: TON_MAINNET_DCT_TREASURY_ALIAS,
     root_wallet: TON_MAINNET_JETTON_MASTER,
     token_symbol: metadata.symbol,
     jetton_master: TON_MAINNET_JETTON_MASTER,
     treasury_wallet: TON_MAINNET_DCT_TREASURY_WALLET,
-    stonfi_pool: stonfiPool.poolAddress,
-    stonfi_pool_metadata: stonfiPool.metadataUrl,
-    stonfi_jetton_wallet: TON_MAINNET_STONFI_DCT_JETTON_WALLET,
     wallet_v5r1: TON_MAINNET_DCT_WALLET_V5R1,
-    dedust_pool: dedustPool.poolAddress,
-    dedust_pool_metadata: dedustPool.metadataUrl,
-    dedust_jetton_wallet: TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
     jetton_tonviewer: TON_VIEWER_JETTON_URL,
     jetton_tonscan: TONSCAN_JETTON_URL,
     jetton_dyor: DYOR_JETTON_URL,
@@ -165,38 +168,55 @@ async function main() {
     docs: "https://dynamiccapital.ton/docs",
     docs_fallback: "https://dynamic.capital/docs",
     dexscreener_token: DEX_SCREENER_TOKEN_URL,
-    dexscreener_stonfi: stonfiPool.dexScreenerPairUrl,
-    dexscreener_dedust: dedustPool.dexScreenerPairUrl,
     x1000_token: X1000_TOKEN_URL,
   };
 
-  if (stonfiPool.geckoTerminalPoolUrl) {
-    dnsRecord.geckoterminal_stonfi = stonfiPool.geckoTerminalPoolUrl;
+  for (const pool of DCT_DEX_POOLS) {
+    const slug = pool.dex.toLowerCase().replace(/[^a-z0-9]/g, "");
+    dnsRecord[`${slug}_pool`] = pool.poolAddress;
+    if (pool.metadataUrl) {
+      dnsRecord[`${slug}_pool_metadata`] = pool.metadataUrl;
+    }
+    dnsRecord[`${slug}_jetton_wallet`] = pool.jettonWalletAddress;
+    if (pool.dexScreenerPairUrl) {
+      dnsRecord[`dexscreener_${slug}`] = pool.dexScreenerPairUrl;
+    }
+    if (pool.geckoTerminalPoolUrl) {
+      dnsRecord[`geckoterminal_${slug}`] = pool.geckoTerminalPoolUrl;
+    }
   }
 
-  if (dedustPool.geckoTerminalPoolUrl) {
-    dnsRecord.geckoterminal_dedust = dedustPool.geckoTerminalPoolUrl;
-  }
+  const walletExpectations = [
+    {
+      dex: "STON.fi",
+      owner: TON_MAINNET_STONFI_ROUTER,
+      expected: TON_MAINNET_STONFI_DCT_JETTON_WALLET,
+    },
+    {
+      dex: "DeDust",
+      owner: TON_MAINNET_DEDUST_DCT_TON_POOL,
+      expected: TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
+    },
+    {
+      dex: "swap.coffee",
+      owner: TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
+      expected: TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
+    },
+  ] as const;
 
-  const [stonfiWallet, dedustWallet] = await Promise.all([
-    fetchJettonWallet(TON_MAINNET_STONFI_ROUTER),
-    fetchJettonWallet(TON_MAINNET_DEDUST_DCT_TON_POOL),
-  ]);
+  const derivedWallets = await Promise.all(
+    walletExpectations.map(({ owner }) => fetchJettonWallet(owner)),
+  );
 
-  if (stonfiWallet !== TON_MAINNET_STONFI_DCT_JETTON_WALLET) {
-    throw new Error(
-      `STON.fi jetton wallet mismatch: expected ${TON_MAINNET_STONFI_DCT_JETTON_WALLET} received ${stonfiWallet}`,
-    );
-  }
-
-  if (dedustWallet !== TON_MAINNET_DEDUST_DCT_JETTON_WALLET) {
-    throw new Error(
-      `DeDust jetton wallet mismatch: expected ${TON_MAINNET_DEDUST_DCT_JETTON_WALLET} received ${dedustWallet}`,
-    );
-  }
-
-  console.log("STON.fi jetton wallet verified:", stonfiWallet);
-  console.log("DeDust jetton wallet verified:", dedustWallet);
+  walletExpectations.forEach(({ dex, expected }, index) => {
+    const derived = derivedWallets[index];
+    if (derived !== expected) {
+      throw new Error(
+        `${dex} jetton wallet mismatch: expected ${expected} received ${derived}`,
+      );
+    }
+    console.log(`${dex} jetton wallet verified:`, derived);
+  });
 
   const keyPair = await mnemonicToPrivateKey(words);
   const pubkeyPreview = keyPair.publicKey.toString("hex").slice(0, 16);

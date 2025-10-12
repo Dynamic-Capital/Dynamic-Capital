@@ -46,8 +46,8 @@ DEFAULT_TON_NODE_CONFIGS: tuple[TonNodeConfig, ...] = (
         "dependencies": ("ton_network_metrics",),
         "outputs": ("ton_liquidity_curves",),
         "metadata": {
-            "description": "Ingest DEX pool depth and fee telemetry from STON.fi and DeDust.",
-            "venues": ("stonfi", "dedust"),
+            "description": "Ingest DEX pool depth and fee telemetry from STON.fi, DeDust, and swap.coffee.",
+            "venues": ("stonfi", "dedust", "swap.coffee"),
         },
         "weight": 0.5,
     },
