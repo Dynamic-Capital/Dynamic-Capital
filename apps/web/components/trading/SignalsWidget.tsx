@@ -9,24 +9,24 @@ type IndicatorColor = (typeof dynamicSignals.indicators)[number]["color"];
 
 const SIGNAL_META = {
   success: {
-    label: "Bullish momentum",
-    description: "Auto-routed to execution desk with guardrails engaged.",
+    label: "Buy zone",
+    action: "Robots are buying.",
     icon: TrendingUp,
     accentClass: "text-success",
     badgeClass: "bg-success/10 text-success",
     barClass: "bg-success",
   },
   warning: {
-    label: "Attention required",
-    description: "Copilot flagged threshold breaches for human review.",
+    label: "Check soon",
+    action: "Review setups.",
     icon: AlertTriangle,
     accentClass: "text-warning",
     badgeClass: "bg-warning/10 text-warning",
     barClass: "bg-warning",
   },
   error: {
-    label: "Risk halt",
-    description: "Automation paused pending compliance confirmation.",
+    label: "Pause now",
+    action: "Protect capital.",
     icon: ShieldAlert,
     accentClass: "text-error",
     badgeClass: "bg-error/10 text-error",
@@ -36,7 +36,7 @@ const SIGNAL_META = {
   IndicatorColor,
   {
     label: string;
-    description: string;
+    action: string;
     icon: LucideIcon;
     accentClass: string;
     badgeClass: string;
@@ -49,20 +49,29 @@ export function SignalsWidget() {
     (sum, indicator) => sum + indicator.count,
     0,
   );
+  const cardClasses =
+    "relative overflow-hidden rounded-3xl border border-border/60 bg-background/90 p-6 shadow-lg shadow-primary/10";
+  const summaryId = "signals-summary";
+  const listId = "signals-list";
 
   return (
-    <Card className="relative overflow-hidden rounded-3xl border border-border/60 bg-background/90 p-6 shadow-lg shadow-primary/10">
+    <Card className={cardClasses}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(110,80,255,0.12),transparent_75%)]" />
       <div className="relative z-10 space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div
+          className="flex flex-wrap items-center justify-between gap-4"
+          aria-labelledby={summaryId}
+        >
           <div className="flex items-center gap-3">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <Activity className="h-6 w-6" aria-hidden />
             </span>
             <div className="space-y-1">
-              <p className="text-base font-semibold">Dynamic Signals</p>
+              <p id={summaryId} className="text-base font-semibold">
+                Signals now
+              </p>
               <p className="text-sm text-muted-foreground">
-                Streaming telemetry from the automation desk.
+                Quick view for new traders.
               </p>
             </div>
           </div>
@@ -76,37 +85,51 @@ export function SignalsWidget() {
 
         <div className="rounded-2xl border border-border/50 bg-background/80 p-4 shadow-inner">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Total alerts (rolling)</span>
+            <span>Total alerts</span>
             <span className="text-sm font-semibold text-foreground">
               {totalSignals}
             </span>
           </div>
-          <div className="mt-3 flex h-1.5 w-full overflow-hidden rounded-full bg-border/60">
+          <div
+            className="mt-3 flex h-1.5 w-full overflow-hidden rounded-full bg-border/60"
+            aria-hidden
+          >
             {dynamicSignals.indicators.map((indicator, index) => {
               const meta = SIGNAL_META[indicator.color as IndicatorColor];
-              const flexValue = Math.max(indicator.count, 1);
+              const widthPercent = totalSignals
+                ? Math.max(
+                  Math.round((indicator.count / totalSignals) * 100),
+                  4,
+                )
+                : indicator.count > 0
+                ? 100 / dynamicSignals.indicators.length
+                : 0;
               return (
                 <span
                   key={`${indicator.color}-${index}`}
                   className={meta.barClass}
-                  style={{ flexGrow: flexValue, flexBasis: 0 }}
+                  style={{ width: `${widthPercent}%` }}
                 />
               );
             })}
           </div>
         </div>
 
-        <div className="grid gap-3">
+        <ul id={listId} className="grid gap-3" role="list">
           {dynamicSignals.indicators.map((indicator, index) => {
             const meta = SIGNAL_META[indicator.color as IndicatorColor];
             const percentage = totalSignals
               ? Math.round((indicator.count / totalSignals) * 100)
               : 0;
+            const indicatorClasses = [
+              "group flex flex-col gap-4 rounded-2xl border border-border/60 bg-background/80 p-4 shadow-sm transition-colors hover:border-primary/50 hover:bg-primary/5",
+              "sm:flex-row sm:items-center sm:justify-between",
+            ].join(" ");
 
             return (
-              <div
+              <li
                 key={`${indicator.color}-${index}`}
-                className="group flex items-center justify-between gap-4 rounded-2xl border border-border/60 bg-background/80 p-4 shadow-sm transition-colors hover:border-primary/50 hover:bg-primary/5"
+                className={indicatorClasses}
               >
                 <div className="flex items-center gap-3">
                   <span
@@ -119,22 +142,22 @@ export function SignalsWidget() {
                       {meta.label}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {meta.description}
+                      {meta.action}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <p className={`text-sm font-semibold ${meta.accentClass}`}>
-                    {indicator.count} signals
+                    {indicator.count} alerts
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {percentage}% of flow
+                    {percentage}% of alerts
                   </p>
                 </div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
     </Card>
   );
