@@ -8,6 +8,28 @@ import {
   resolveDisplayPrice,
 } from "../_shared/pricing.ts";
 import { registerHandler } from "../_shared/serve.ts";
+import { getConfig } from "../_shared/config.ts";
+import type { PricingBlueprint } from "../_shared/service-pricing.ts";
+
+interface EducationPackageRow {
+  id: string;
+  name: string;
+  price: number;
+  currency: string | null;
+  duration_weeks: number | null;
+  is_lifetime: boolean | null;
+}
+
+interface EducationPackagePricing {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  duration_weeks: number | null;
+  is_lifetime: boolean;
+  ton_amount: number | null;
+  dct_amount: number;
+}
 
 export async function handler(req: Request): Promise<Response> {
   const v = version(req, "plans");
@@ -98,8 +120,69 @@ export async function handler(req: Request): Promise<Response> {
     };
   });
 
+  let educationPackages: EducationPackagePricing[] = [];
+  try {
+    const { data: educationData, error: educationError } = await supa
+      .from("education_packages")
+      .select("id,name,price,currency,duration_weeks,is_lifetime")
+      .eq("is_active", true)
+      .order("price", { ascending: true });
+
+    if (!educationError && Array.isArray(educationData)) {
+      educationPackages = (educationData as EducationPackageRow[]).map(
+        (pkg) => {
+          const rawPrice = Number(pkg.price ?? 0);
+          const safePrice = Number.isFinite(rawPrice) && rawPrice > 0
+            ? Number(rawPrice.toFixed(2))
+            : 0;
+          const currency = typeof pkg.currency === "string" &&
+              pkg.currency.trim().length > 0
+            ? pkg.currency.trim()
+            : "USD";
+
+          return {
+            id: pkg.id,
+            name: pkg.name,
+            price: safePrice,
+            currency,
+            duration_weeks: pkg.duration_weeks,
+            is_lifetime: Boolean(pkg.is_lifetime),
+            ton_amount: safePrice > 0
+              ? calculateTonAmount(safePrice, tonRate.rate)
+              : null,
+            dct_amount: calculateDctAmount(safePrice),
+          };
+        },
+      );
+    }
+  } catch (educationError) {
+    console.warn("plans: failed to load education packages", educationError);
+  }
+
+  let blueprintSnapshot:
+    | { computed_at?: string; data?: PricingBlueprint }
+    | null = null;
+  try {
+    blueprintSnapshot = await getConfig<
+      { computed_at?: string; data?: PricingBlueprint } | null
+    >("pricing:service-blueprint", null);
+  } catch (configError) {
+    console.warn("plans: failed to load pricing blueprint", configError);
+  }
+
+  const servicePricing = {
+    blueprint: blueprintSnapshot?.data ?? null,
+    computed_at: blueprintSnapshot?.computed_at ?? null,
+    education_packages: educationPackages,
+  };
+
   return new Response(
-    JSON.stringify({ ok: true, plans, tonRate }),
+    JSON.stringify({
+      ok: true,
+      plans,
+      tonRate,
+      service_pricing: servicePricing,
+    }),
     {
       headers: { ...headers, "Content-Type": "application/json" },
     },
