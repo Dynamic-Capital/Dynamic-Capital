@@ -172,6 +172,24 @@ chronological order beneath this entry.
   re-run the Supabase verification job to confirm downstream endpoints accept
   the update.
 
+## 2025-10-12 – DAO proposal executed and signatures published
+
+- **Execution** — DAO proposal `dns-refresh-2025-10-12` broadcast to the
+  operations multisig at 20:05 UTC, producing DAO signature
+  `peyyMTQ2c49kqFHHhUIbCguv4VBahb8QOgbwtH3S4f7Cmlwtf60Yy83NEFpXF+cISBKCpO+Yd/8j85WI8QtZPQ==`
+  and treasury signature
+  `EnXCb7BTgyGpFj0WiPCrGwCaAd+HJRJx5lTYPrcvjYAP0cqPX3IPyWmtc0XkK+0HjGvWXJ+u9SDQ/pWR1KBG2A==`.
+- **Repository updates** — Applied the signed payload to
+  `public/dns/active.json`, `dynamic-capital-ton/storage/dns-records.txt`, and
+  the governance playbook snippet with timestamp
+  `2025-10-12T20:05:44Z`. Added the missing `geckoterminal_stonfi` key to the
+  storage snapshot for parity with the published manifest.
+- **Verification** — Replayed the Supabase verification flow via
+  `node dns/scripts/supabase-dns-verify.js` (captured at
+  `dns/verifications/2025-10-12-supabase-dns-verify.json`), confirming the
+  published manifest matches the signed storage snapshot and both signatures are
+  present.
+
 ## 2025-02-14 – TON Foundation gateway promoted
 
 - **Context** — The self-hosted DigitalOcean and Lovable reverse proxies remain
