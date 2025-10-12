@@ -23,74 +23,81 @@ import {
   type DeskSectionHeaderProps,
 } from "@/components/workspaces/DeskSectionHeader";
 
-const COVERAGE_PRIMARY: DeskSectionGridItem[] = [
+// Keep these widths numeric so the desk grid parses them as rem values rather than
+// collapsing to spacing token sizes (e.g. "64" => var(--static-space-64)).
+const FX_MIN_WIDTH_REM = 36;
+const WATCHLIST_MIN_WIDTH_REM = 28;
+const SNAPSHOT_MIN_WIDTH_REM = 18;
+const HEATMAP_MIN_WIDTH_REM = 18;
+
+const COVERAGE_PRIMARY = [
   {
     key: "fx",
     Component: FxMarketSnapshotSection,
     flex: 5,
-    minWidth: 64,
+    minWidth: FX_MIN_WIDTH_REM,
   },
   {
     key: "watchlist",
     Component: MarketWatchlist,
     flex: 4,
-    minWidth: 48,
+    minWidth: WATCHLIST_MIN_WIDTH_REM,
   },
-];
+] satisfies ReadonlyArray<DeskSectionGridItem>;
 
-const COVERAGE_SNAPSHOTS: DeskSectionGridItem[] = [
+const COVERAGE_SNAPSHOTS = [
   {
     key: "stocks",
     Component: StocksMarketSnapshotSection,
     flex: 1,
-    minWidth: 56,
+    minWidth: SNAPSHOT_MIN_WIDTH_REM,
   },
   {
     key: "commodities",
     Component: CommoditiesMarketSnapshotSection,
     flex: 1,
-    minWidth: 56,
+    minWidth: SNAPSHOT_MIN_WIDTH_REM,
   },
   {
     key: "indices",
     Component: IndicesMarketSnapshotSection,
     flex: 1,
-    minWidth: 56,
+    minWidth: SNAPSHOT_MIN_WIDTH_REM,
   },
   {
     key: "crypto",
     Component: CryptoMarketSnapshotSection,
     flex: 1,
-    minWidth: 56,
+    minWidth: SNAPSHOT_MIN_WIDTH_REM,
   },
-];
+] satisfies ReadonlyArray<DeskSectionGridItem>;
 
-const HEATMAP_GRID: DeskSectionGridItem[] = [
+const HEATMAP_GRID = [
   {
     key: "currency",
     Component: CurrencyStrengthSection,
     flex: 1,
-    minWidth: 48,
+    minWidth: HEATMAP_MIN_WIDTH_REM,
   },
   {
     key: "commodity",
     Component: CommodityStrengthSection,
     flex: 1,
-    minWidth: 48,
+    minWidth: HEATMAP_MIN_WIDTH_REM,
   },
   {
     key: "index",
     Component: IndexStrengthSection,
     flex: 1,
-    minWidth: 48,
+    minWidth: HEATMAP_MIN_WIDTH_REM,
   },
   {
     key: "crypto-strength",
     Component: CryptoStrengthSection,
     flex: 1,
-    minWidth: 48,
+    minWidth: HEATMAP_MIN_WIDTH_REM,
   },
-];
+] satisfies ReadonlyArray<DeskSectionGridItem>;
 
 type MarketReviewSection = {
   deskProps: Omit<DeskSectionProps, "children">;
@@ -107,7 +114,7 @@ const DESK_BASE_PROPS: Pick<
   width: "wide",
 };
 
-const MARKET_REVIEW_SECTIONS: MarketReviewSection[] = [
+const MARKET_REVIEW_SECTIONS = [
   {
     deskProps: {
       ...DESK_BASE_PROPS,
@@ -162,7 +169,7 @@ const MARKET_REVIEW_SECTIONS: MarketReviewSection[] = [
     },
     grids: [HEATMAP_GRID],
   },
-];
+] satisfies ReadonlyArray<MarketReviewSection>;
 
 export function DynamicMarketReview() {
   return (

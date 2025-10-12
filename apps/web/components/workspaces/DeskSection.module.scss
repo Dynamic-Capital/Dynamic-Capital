@@ -1,6 +1,10 @@
 .section {
-  --section-width: min(64rem, 100%);
-  --section-gap: clamp(1.75rem, 3.5vw, 2.5rem);
+  --section-width: min(var(--static-width-1024), 100%);
+  --section-gap: clamp(
+    calc(var(--static-space-24) + var(--static-space-4)),
+    3.5vw,
+    var(--static-space-40)
+  );
 
   width: 100%;
   margin-inline: auto;
@@ -11,11 +15,21 @@
 }
 
 .sectionWide {
-  --section-width: min(72rem, 100%);
-  --section-gap: clamp(2rem, 3.5vw, 3rem);
+  --section-width: min(
+    calc(var(--static-width-1200) + var(--static-space-160)),
+    100%
+  );
+  --section-gap: clamp(var(--static-space-32), 3.5vw, var(--static-space-56));
 }
 
 .sectionCompact {
-  --section-width: min(60rem, 100%);
-  --section-gap: clamp(1.5rem, 3vw, 2.25rem);
+  --section-width: min(
+    calc(var(--static-width-1024) - var(--static-space-64)),
+    100%
+  );
+  --section-gap: clamp(
+    var(--static-space-24),
+    3vw,
+    calc(var(--static-space-32) + var(--static-space-4))
+  );
 }
