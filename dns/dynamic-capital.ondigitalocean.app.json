@@ -1,0 +1,68 @@
+{
+  "domain": "dynamic-capital.ondigitalocean.app",
+  "records": [
+    {
+      "type": "NS",
+      "name": "@",
+      "data": "ns1.vercel-dns.com",
+      "ttl": 1800,
+      "note": "Primary Vercel DNS nameserver"
+    },
+    {
+      "type": "NS",
+      "name": "@",
+      "data": "ns2.vercel-dns.com",
+      "ttl": 1800,
+      "note": "Secondary Vercel DNS nameserver"
+    },
+    {
+      "type": "A",
+      "name": "@",
+      "data": "216.198.79.1",
+      "ttl": 3600,
+      "note": "Anycast apex published by Vercel"
+    },
+    {
+      "type": "A",
+      "name": "@",
+      "data": "76.76.21.21",
+      "ttl": 3600,
+      "note": "Legacy Vercel apex IP retained during migration"
+    },
+    {
+      "type": "CNAME",
+      "name": "www",
+      "data": "8f6be55f6b691414.vercel-dns-017.com",
+      "ttl": 3600,
+      "note": "Vercel-managed web entry point"
+    },
+    {
+      "type": "CNAME",
+      "name": "api",
+      "data": "8f6be55f6b691414.vercel-dns-017.com",
+      "ttl": 3600,
+      "note": "Vercel-managed API entry point"
+    },
+    {
+      "type": "A",
+      "name": "ton-gateway",
+      "data": "162.159.140.98",
+      "ttl": 3600,
+      "note": "Primary Cloudflare anycast ingress for TON gateway"
+    },
+    {
+      "type": "A",
+      "name": "ton-gateway",
+      "data": "172.66.0.96",
+      "ttl": 3600,
+      "note": "Secondary Cloudflare anycast ingress for TON gateway"
+    },
+    {
+      "type": "TXT",
+      "name": "_vercel",
+      "data": "vc-domain-verify=dynamic-capital.ondigitalocean.app,9370ed1d989d60e8ab4c",
+      "ttl": 300,
+      "note": "Vercel domain verification token"
+    }
+  ]
+}
