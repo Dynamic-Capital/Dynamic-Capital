@@ -23,74 +23,74 @@ import {
   type DeskSectionHeaderProps,
 } from "@/components/workspaces/DeskSectionHeader";
 
-const COVERAGE_PRIMARY: DeskSectionGridItem[] = [
+const COVERAGE_PRIMARY = [
   {
     key: "fx",
     Component: FxMarketSnapshotSection,
     flex: 5,
-    minWidth: 64,
+    minWidth: "64",
   },
   {
     key: "watchlist",
     Component: MarketWatchlist,
     flex: 4,
-    minWidth: 48,
+    minWidth: "48",
   },
-];
+] satisfies ReadonlyArray<DeskSectionGridItem>;
 
-const COVERAGE_SNAPSHOTS: DeskSectionGridItem[] = [
+const COVERAGE_SNAPSHOTS = [
   {
     key: "stocks",
     Component: StocksMarketSnapshotSection,
     flex: 1,
-    minWidth: 56,
+    minWidth: "56",
   },
   {
     key: "commodities",
     Component: CommoditiesMarketSnapshotSection,
     flex: 1,
-    minWidth: 56,
+    minWidth: "56",
   },
   {
     key: "indices",
     Component: IndicesMarketSnapshotSection,
     flex: 1,
-    minWidth: 56,
+    minWidth: "56",
   },
   {
     key: "crypto",
     Component: CryptoMarketSnapshotSection,
     flex: 1,
-    minWidth: 56,
+    minWidth: "56",
   },
-];
+] satisfies ReadonlyArray<DeskSectionGridItem>;
 
-const HEATMAP_GRID: DeskSectionGridItem[] = [
+const HEATMAP_GRID = [
   {
     key: "currency",
     Component: CurrencyStrengthSection,
     flex: 1,
-    minWidth: 48,
+    minWidth: "48",
   },
   {
     key: "commodity",
     Component: CommodityStrengthSection,
     flex: 1,
-    minWidth: 48,
+    minWidth: "48",
   },
   {
     key: "index",
     Component: IndexStrengthSection,
     flex: 1,
-    minWidth: 48,
+    minWidth: "48",
   },
   {
     key: "crypto-strength",
     Component: CryptoStrengthSection,
     flex: 1,
-    minWidth: 48,
+    minWidth: "48",
   },
-];
+] satisfies ReadonlyArray<DeskSectionGridItem>;
 
 type MarketReviewSection = {
   deskProps: Omit<DeskSectionProps, "children">;
@@ -107,7 +107,7 @@ const DESK_BASE_PROPS: Pick<
   width: "wide",
 };
 
-const MARKET_REVIEW_SECTIONS: MarketReviewSection[] = [
+const MARKET_REVIEW_SECTIONS = [
   {
     deskProps: {
       ...DESK_BASE_PROPS,
@@ -162,7 +162,7 @@ const MARKET_REVIEW_SECTIONS: MarketReviewSection[] = [
     },
     grids: [HEATMAP_GRID],
   },
-];
+] satisfies ReadonlyArray<MarketReviewSection>;
 
 export function DynamicMarketReview() {
   return (
