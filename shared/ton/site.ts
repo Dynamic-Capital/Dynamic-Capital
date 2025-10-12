@@ -1,7 +1,9 @@
 export const TON_SITE_DOMAIN = "dynamiccapital.ton";
-export const TON_SITE_ALIAS_DOMAINS = Object.freeze([
-  "dynamicapital.ton",
-] as const);
+export const TON_SITE_ALIAS_DOMAINS = Object.freeze(
+  [
+    "dynamicapital.ton",
+  ] as const,
+);
 
 const TON_SITE_DOMAIN_CANDIDATES = Object.freeze([
   TON_SITE_DOMAIN,
@@ -11,21 +13,27 @@ export const TON_SITE_GATEWAY_BASE =
   "https://ton-gateway.dynamic-capital.ondigitalocean.app";
 export const TON_SITE_GATEWAY_STANDBY_BASE = "https://ton.site";
 
-export const TON_SITE_GATEWAY_SELF_HOST_BASES = Object.freeze([
-  TON_SITE_GATEWAY_BASE,
-  "https://ton-gateway.dynamic-capital.lovable.app",
-] as const);
+export const TON_SITE_GATEWAY_SELF_HOST_BASES = Object.freeze(
+  [
+    TON_SITE_GATEWAY_BASE,
+    "https://ton-gateway.dynamic-capital.lovable.app",
+  ] as const,
+);
 
-export const TON_SITE_GATEWAY_FOUNDATION_BASES = Object.freeze([
-  TON_SITE_GATEWAY_STANDBY_BASE,
-  "https://tonsite.io",
-  "https://tonsite.link",
-] as const);
+export const TON_SITE_GATEWAY_FOUNDATION_BASES = Object.freeze(
+  [
+    TON_SITE_GATEWAY_STANDBY_BASE,
+    "https://tonsite.io",
+    "https://tonsite.link",
+  ] as const,
+);
 
-const TON_SITE_GATEWAY_SELF_HOST_HOSTS =
-  TON_SITE_GATEWAY_SELF_HOST_BASES.map((base) => new URL(base).hostname);
-const TON_SITE_GATEWAY_FOUNDATION_HOSTS =
-  TON_SITE_GATEWAY_FOUNDATION_BASES.map((base) => new URL(base).hostname);
+const TON_SITE_GATEWAY_SELF_HOST_HOSTS = TON_SITE_GATEWAY_SELF_HOST_BASES.map((
+  base,
+) => new URL(base).hostname);
+const TON_SITE_GATEWAY_FOUNDATION_HOSTS = TON_SITE_GATEWAY_FOUNDATION_BASES.map(
+  (base) => new URL(base).hostname,
+);
 
 export const TON_SITE_GATEWAY_PRIMARY_HOST =
   new URL(TON_SITE_GATEWAY_BASE).hostname;
@@ -46,14 +54,38 @@ function trimTrailingSlash(input: string): string {
 }
 
 export function resolveTonSiteGatewayOrigin(base: string): string {
-  return `${trimTrailingSlash(base)}/${TON_SITE_DOMAIN}`;
+  const trimmed = base.trim();
+  if (!trimmed) {
+    return `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMAIN}`;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    // If we received a malformed URL, fall back to the canonical gateway base
+    // to avoid propagating an invalid origin.
+    return `${TON_SITE_GATEWAY_BASE}/${TON_SITE_DOMAIN}`;
+  }
+
+  const normalizedBase = trimTrailingSlash(url.toString());
+
+  const hostname = url.hostname;
+  const mappedBase = TON_SITE_GATEWAY_BASE_BY_HOST.get(hostname);
+  const canonicalBase = mappedBase === TON_SITE_GATEWAY_STANDBY_BASE
+    ? TON_SITE_GATEWAY_BASE
+    : (mappedBase ?? normalizedBase);
+
+  return `${canonicalBase}/${TON_SITE_DOMAIN}`;
 }
 
 const TON_SITE_GATEWAY_BASE_BY_HOST = new Map<string, string>();
-for (const base of [
-  ...TON_SITE_GATEWAY_FOUNDATION_BASES,
-  ...TON_SITE_GATEWAY_SELF_HOST_BASES,
-]) {
+for (
+  const base of [
+    ...TON_SITE_GATEWAY_FOUNDATION_BASES,
+    ...TON_SITE_GATEWAY_SELF_HOST_BASES,
+  ]
+) {
   const normalizedBase = trimTrailingSlash(base);
   const host = new URL(normalizedBase).hostname;
   if (!TON_SITE_GATEWAY_BASE_BY_HOST.has(host)) {
@@ -162,8 +194,22 @@ export function resolveTonSiteGatewayBasesForHost(
 export function resolveTonSiteGatewayBaseForHost(
   host: string | null | undefined,
 ): string {
-  const [first] = resolveTonSiteGatewayBasesForHost(host);
-  return first ?? TON_SITE_GATEWAY_BASE;
+  if (!host || !host.trim()) {
+    return TON_SITE_GATEWAY_BASE;
+  }
+
+  const normalizedHost = host.trim().toLowerCase();
+  if (!normalizedHost) {
+    return TON_SITE_GATEWAY_BASE;
+  }
+
+  const hostname = normalizedHost.split(":")[0];
+  const mappedBase = TON_SITE_GATEWAY_BASE_BY_HOST.get(hostname);
+  if (mappedBase) {
+    return mappedBase;
+  }
+
+  return TON_SITE_GATEWAY_BASE;
 }
 
 /**
@@ -248,9 +294,7 @@ export function isTonSitePath(
   const trimmed = pathname.trim();
   if (!trimmed) return false;
 
-  const withLeadingSlash = trimmed.startsWith("/")
-    ? trimmed
-    : `/${trimmed}`;
+  const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
   const normalized = withLeadingSlash.toLowerCase();
   for (const domain of TON_SITE_DOMAIN_CANDIDATES) {
     const prefix = `/${domain}`;

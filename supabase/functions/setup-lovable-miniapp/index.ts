@@ -1,6 +1,7 @@
 import { registerHandler } from "../_shared/serve.ts";
 import { createSupabaseClient } from "../_shared/client.ts";
 import { functionsHost } from "../_shared/edge.ts";
+import { normalizeMiniAppUrl } from "./url.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,8 +39,9 @@ export const handler = registerHandler(async (req) => {
         ? `https://${host}/miniapp/`
         : "https://stub.functions.supabase.co/miniapp/";
     })();
-    const lovableMiniAppUrl = Deno.env.get("MINI_APP_URL") ??
-      fallbackMiniAppUrl;
+    const lovableMiniAppUrl = normalizeMiniAppUrl(
+      Deno.env.get("MINI_APP_URL") ?? fallbackMiniAppUrl,
+    );
 
     console.log("Setting up Dynamic Mini App with URL:", lovableMiniAppUrl);
 
