@@ -23,10 +23,10 @@ import {
   type DeskSectionHeaderProps,
 } from "@/components/workspaces/DeskSectionHeader";
 
-const FX_MIN_WIDTH_REM = 38;
-const WATCHLIST_MIN_WIDTH_REM = 32;
-const SNAPSHOT_MIN_WIDTH_REM = 32;
-const HEATMAP_MIN_WIDTH_REM = 40;
+const FX_MIN_WIDTH_REM = 28;
+const WATCHLIST_MIN_WIDTH_REM = 24;
+const SNAPSHOT_MIN_WIDTH_REM = 18;
+const HEATMAP_MIN_WIDTH_REM = 18;
 
 const COVERAGE_PRIMARY = [
   {
