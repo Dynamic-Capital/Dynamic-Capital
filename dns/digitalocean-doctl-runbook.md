@@ -186,6 +186,17 @@ the issues we see most frequently when operators run commands such as:
 - Run `./.bin/doctl auth list` to ensure the expected context is active. Switch
   contexts with `./.bin/doctl auth switch --context <name>` before retrying the
   import.
+- Re-run `./.bin/doctl auth init` when the active context is missing or the
+  helper script has never been executed on the current machine. The command will
+  prompt for the `dop_v1_` token and optional context name:
+
+  ```bash
+  ./.bin/doctl auth init --context dynamic-capital
+  ```
+
+  Use the same context label that downstream scripts expect (`dynamic-capital`
+  by default) so `npm run doctl:sync-site` can pick it up without additional
+  flags.
 - If you recently rotated credentials, remove the cached config in
   `~/.config/dynamic-capital/doctl` and re-run `npm run doctl:install` with the
   new token so the helper script rebuilds the context.
