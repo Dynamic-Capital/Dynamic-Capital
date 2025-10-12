@@ -23,6 +23,11 @@ incentives without manual intervention.
 - **Outputs**: For each plan the function returns the base price, the computed
   dynamic price, display price, TON/DCT conversion, adjustment breakdown, the
   pricing formula summary that was persisted, and a performance snapshot.
+- **Service catalog**: Each run now emits a `service_pricing` block containing a
+  mentorship pricing ladder, promo incentives, and live education package
+  pricing. The blueprint is persisted to `kv_config` under
+  `pricing:service-blueprint` so web, Telegram, and mini app clients can render
+  consistent price cards.
 - **Formula**:
   - `reliabilityMultiplier = clamp(log10(sampleSize + 1) / log10(5001), 0.25, 1)`
   - `winRateAdjustment = clamp((winRate - 55%) * 0.6, -20%, +25%) * reliabilityMultiplier`
@@ -45,6 +50,25 @@ incentives without manual intervention.
   - `performance_snapshot` (JSON payload with metrics, adjustments, TON/DCT
     amounts, delta vs the previous dynamic price, market drift, and the
     reliability multiplier applied).
+  - `kv_config.pricing:service-blueprint` (JSON payload containing VIP,
+    mentorship, and promo pricing summaries plus active education packages).
+
+## Mentorship & Education Pricing Blueprint
+
+Every recalculation composes a deterministic mentorship ladder and promo slate
+alongside the VIP tiers:
+
+- **Mentorship packages**: Pricing adjusts from the average VIP plan, recent win
+  rate momentum, and trade cadence to recommend 2–4 tiers with session counts,
+  async support commitments, and unique promo codes.
+- **Promo incentives**: Urgency, loyalty, and cancellation pressure combine to
+  emit short-lived offers with controlled discount bands.
+- **Education packages**: Active `education_packages` rows are re-valued with
+  the live TON/USD rate so course cards in the web app and Telegram bot never
+  drift from checkout totals.
+
+Clients can read the cached blueprint via the public `plans` function which now
+returns `service_pricing` alongside the standard plan list.
 
 ## TON Subscription Flow
 

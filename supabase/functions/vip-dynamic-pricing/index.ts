@@ -9,12 +9,18 @@ import {
 } from "../_shared/http.ts";
 import { optionalEnv } from "../_shared/env.ts";
 import { registerHandler } from "../_shared/serve.ts";
+import { setConfig } from "../_shared/config.ts";
+import {
+  buildPricingBlueprint,
+  type PricingBlueprint,
+} from "../_shared/service-pricing.ts";
 import {
   calculateDctAmount,
   calculateTonAmount,
   diffPercent,
   fetchTonUsdRate,
   resolveDisplayPrice,
+  type TonRateResult,
 } from "../_shared/pricing.ts";
 
 interface PricingRequestBody {
@@ -51,6 +57,41 @@ interface PlanRow {
   pricing_formula: string | null;
   last_priced_at: string | null;
   performance_snapshot: Record<string, unknown> | null;
+}
+
+interface ProcessedPlan {
+  plan_id: string;
+  plan_name: string;
+  base_price: number;
+  dynamic_price: number;
+  display_price: number;
+  dynamic_applied: boolean;
+  ton_amount: number | null;
+  dct_amount: number | null;
+  previous_dynamic_price: number | null;
+  adjustments: Record<string, number>;
+  pricing_formula: string;
+  snapshot: Record<string, unknown>;
+}
+
+interface EducationPackageRow {
+  id: string;
+  name: string;
+  price: number;
+  currency: string | null;
+  duration_weeks: number | null;
+  is_lifetime: boolean | null;
+}
+
+interface EducationPackagePricing {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  duration_weeks: number | null;
+  is_lifetime: boolean;
+  ton_amount: number | null;
+  dct_amount: number;
 }
 
 function parseNumber(value: unknown): number | null {
@@ -185,6 +226,18 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+function average(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const total = values.reduce((acc, value) => acc + value, 0);
+  return total / values.length;
+}
+
+function normalise(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return 0;
+  if (max === min) return 0;
+  return clamp((value - min) / (max - min), 0, 1);
+}
+
 function extractTonRate(snapshot: unknown): number | null {
   if (!snapshot || typeof snapshot !== "object") {
     return null;
@@ -257,10 +310,10 @@ async function processPlans(
   plans: PlanRow[],
   metrics: TradeMetrics,
   preview: boolean,
-) {
+): Promise<{ results: ProcessedPlan[]; tonRate: TonRateResult }> {
   const supabase = createClient("service");
   const tonRate = await fetchTonUsdRate();
-  const results: unknown[] = [];
+  const results: ProcessedPlan[] = [];
   const planUpdates: {
     id: string;
     dynamic_price_usdt: number;
@@ -466,12 +519,209 @@ export const handler = registerHandler(async (req) => {
       metrics,
       payload.preview === true,
     );
+    const displayPrices = results
+      .map((plan) => Number(plan.display_price))
+      .filter((value) => Number.isFinite(value) && value > 0);
+
+    const fallbackBasePrice = displayPrices[0] ??
+      (plans.length > 0 ? Number(plans[0].price ?? 0) : 1200);
+    const averageDisplayPrice = average(displayPrices) ??
+      (Number.isFinite(fallbackBasePrice) && fallbackBasePrice > 0
+        ? fallbackBasePrice
+        : 1200);
+    const highestDisplayPrice = displayPrices.length > 0
+      ? Math.max(...displayPrices)
+      : averageDisplayPrice;
+
+    const reliabilityMultiplier = computeReliabilityMultiplier(
+      metrics.sampleSize,
+    );
+    const mentorExperienceScore = normalise(reliabilityMultiplier, 0.25, 1);
+    const loyaltyScore = metrics.total > 0
+      ? clamp(
+        (metrics.total - metrics.cancellations) /
+          Math.max(metrics.total, 1),
+        0,
+        1,
+      )
+      : 0.6;
+    const churnRisk = metrics.total > 0
+      ? clamp(metrics.losses / Math.max(metrics.total, 1), 0, 1)
+      : 0.2;
+    const demandIndex = metrics.winRate !== null
+      ? clamp((metrics.winRate - 55) / 10, -1, 2)
+      : 0;
+    const momentumDelta = metrics.recentWinRate !== null &&
+        metrics.winRate !== null
+      ? metrics.recentWinRate - metrics.winRate
+      : 0;
+    const averageMomentum = results.length > 0
+      ? results.reduce(
+        (acc, plan) => acc + plan.adjustments.momentum,
+        0,
+      ) / results.length
+      : 0;
+    const urgencyIndex = clamp(0.5 + averageMomentum * 4, 0, 1);
+    const inventoryPressure = metrics.total > 0
+      ? clamp(
+        metrics.cancellations / Math.max(metrics.total, 1) +
+          Math.max(0, -averageMomentum) * 2,
+        0,
+        1,
+      )
+      : 0.2;
+
+    const sessionsPerWeek = Math.max(
+      2,
+      Math.min(
+        4,
+        Math.round(
+          2 + clamp(
+            metrics.total / Math.max(metrics.lookbackDays * 40, 1),
+            0,
+            2,
+          ),
+        ),
+      ),
+    );
+    const programWeeks = metrics.lookbackDays >= 35 ? 5 : 4;
+
+    const baseSessionRate = Math.max(
+      150,
+      Number(
+        (
+          (averageDisplayPrice /
+            Math.max(programWeeks * sessionsPerWeek, 1)) *
+          (0.75 + mentorExperienceScore * 0.35)
+        ).toFixed(2),
+      ),
+    );
+
+    const holdComponent = metrics.averageHoldMinutes !== null
+      ? clamp((120 - metrics.averageHoldMinutes) / 120, -0.5, 0.5)
+      : 0;
+    const volumeComponent = clamp(metrics.total / 250, 0, 1) * 0.2;
+    const menteeIntensity = clamp(
+      0.5 + momentumDelta / 20 + holdComponent / 2 + volumeComponent,
+      0,
+      1,
+    );
+
+    const mentorshipTiers = Math.min(4, Math.max(2, results.length || 2));
+    const promoCount = Math.max(2, Math.min(4, results.length || 3));
+
+    let pricingBlueprint: PricingBlueprint | null = null;
+    const blueprintSeed = payload.preview === true
+      ? undefined
+      : Math.floor(Date.now() / (60 * 60 * 1000));
+
+    try {
+      pricingBlueprint = buildPricingBlueprint({
+        seed: blueprintSeed,
+        vip: {
+          basePrice: fallbackBasePrice > 0
+            ? fallbackBasePrice
+            : averageDisplayPrice,
+          tiers: Math.max(1, results.length || plans.length),
+          demandIndex,
+          loyaltyScore,
+          churnRisk,
+        },
+        mentorship: {
+          baseSessionRate,
+          programWeeks,
+          sessionsPerWeek,
+          mentorExperience: mentorExperienceScore,
+          menteeIntensity,
+          loyaltyScore,
+          tiers: mentorshipTiers,
+        },
+        promo: {
+          basePrice: highestDisplayPrice > 0
+            ? highestDisplayPrice
+            : averageDisplayPrice,
+          urgencyIndex,
+          loyaltyScore,
+          inventoryPressure,
+          count: promoCount,
+        },
+      });
+    } catch (blueprintError) {
+      console.error(
+        "vip-dynamic-pricing: failed to build pricing blueprint",
+        blueprintError,
+      );
+      pricingBlueprint = null;
+    }
+
+    let educationPackages: EducationPackagePricing[] = [];
+    try {
+      const { data: educationData, error: educationError } = await supabase
+        .from("education_packages")
+        .select(
+          "id,name,price,currency,duration_weeks,is_lifetime",
+        )
+        .eq("is_active", true)
+        .order("price", { ascending: true });
+
+      if (!educationError && Array.isArray(educationData)) {
+        educationPackages = (educationData as EducationPackageRow[]).map(
+          (pkg) => {
+            const rawPrice = Number(pkg.price ?? 0);
+            const safePrice = Number.isFinite(rawPrice) && rawPrice > 0
+              ? Number(rawPrice.toFixed(2))
+              : 0;
+            const currency = typeof pkg.currency === "string" &&
+                pkg.currency.trim().length > 0
+              ? pkg.currency.trim()
+              : "USD";
+            return {
+              id: pkg.id,
+              name: pkg.name,
+              price: safePrice,
+              currency,
+              duration_weeks: pkg.duration_weeks,
+              is_lifetime: Boolean(pkg.is_lifetime),
+              ton_amount: safePrice > 0
+                ? calculateTonAmount(safePrice, tonRate.rate)
+                : null,
+              dct_amount: calculateDctAmount(safePrice),
+            };
+          },
+        );
+      }
+    } catch (educationError) {
+      console.warn(
+        "vip-dynamic-pricing: failed to load education packages",
+        educationError,
+      );
+    }
+
+    const computedAt = new Date().toISOString();
+
+    if (pricingBlueprint && payload.preview !== true) {
+      await setConfig("pricing:service-blueprint", {
+        computed_at: computedAt,
+        data: pricingBlueprint,
+      }).catch((err) => {
+        console.warn(
+          "vip-dynamic-pricing: failed to persist pricing blueprint",
+          err,
+        );
+      });
+    }
+
     return ok({
       metrics,
       tonRate,
       updated: payload.preview ? false : true,
       preview: payload.preview === true,
       plans: results,
+      service_pricing: {
+        blueprint: pricingBlueprint,
+        computed_at: computedAt,
+        education_packages: educationPackages,
+      },
     }, req);
   } catch (error) {
     console.error("vip-dynamic-pricing: failed to compute", error);
