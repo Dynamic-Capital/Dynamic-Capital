@@ -1,7 +1,7 @@
 ;; Dynamic Capital FunC standard library entry point
 ;;
 ;; This file re-exports the canonical TON FunC stdlib used by the
-;; project's smart contracts so build pipelines can reference a
+;; Dynamic Capital smart contracts so build pipelines can reference a
 ;; predictable root-relative path ("stdlib.fc") when compiling.
 ;;
 ;; The additional `#path` directives ensure FunC-based toolchains can
