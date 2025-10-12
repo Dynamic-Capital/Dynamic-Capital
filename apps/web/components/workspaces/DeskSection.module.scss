@@ -16,10 +16,10 @@
 
 .sectionWide {
   --section-width: min(
-    calc(var(--static-width-1024) + var(--static-space-128)),
+    calc(var(--static-width-1200) + var(--static-space-160)),
     100%
   );
-  --section-gap: clamp(var(--static-space-32), 3.5vw, var(--static-space-48));
+  --section-gap: clamp(var(--static-space-32), 3.5vw, var(--static-space-56));
 }
 
 .sectionCompact {

@@ -23,18 +23,23 @@ import {
   type DeskSectionHeaderProps,
 } from "@/components/workspaces/DeskSectionHeader";
 
+const FX_MIN_WIDTH_REM = 38;
+const WATCHLIST_MIN_WIDTH_REM = 32;
+const SNAPSHOT_MIN_WIDTH_REM = 32;
+const HEATMAP_MIN_WIDTH_REM = 40;
+
 const COVERAGE_PRIMARY = [
   {
     key: "fx",
     Component: FxMarketSnapshotSection,
     flex: 5,
-    minWidth: "64",
+    minWidth: FX_MIN_WIDTH_REM,
   },
   {
     key: "watchlist",
     Component: MarketWatchlist,
     flex: 4,
-    minWidth: "48",
+    minWidth: WATCHLIST_MIN_WIDTH_REM,
   },
 ] satisfies ReadonlyArray<DeskSectionGridItem>;
 
@@ -43,25 +48,25 @@ const COVERAGE_SNAPSHOTS = [
     key: "stocks",
     Component: StocksMarketSnapshotSection,
     flex: 1,
-    minWidth: "56",
+    minWidth: SNAPSHOT_MIN_WIDTH_REM,
   },
   {
     key: "commodities",
     Component: CommoditiesMarketSnapshotSection,
     flex: 1,
-    minWidth: "56",
+    minWidth: SNAPSHOT_MIN_WIDTH_REM,
   },
   {
     key: "indices",
     Component: IndicesMarketSnapshotSection,
     flex: 1,
-    minWidth: "56",
+    minWidth: SNAPSHOT_MIN_WIDTH_REM,
   },
   {
     key: "crypto",
     Component: CryptoMarketSnapshotSection,
     flex: 1,
-    minWidth: "56",
+    minWidth: SNAPSHOT_MIN_WIDTH_REM,
   },
 ] satisfies ReadonlyArray<DeskSectionGridItem>;
 
@@ -70,25 +75,25 @@ const HEATMAP_GRID = [
     key: "currency",
     Component: CurrencyStrengthSection,
     flex: 1,
-    minWidth: "48",
+    minWidth: HEATMAP_MIN_WIDTH_REM,
   },
   {
     key: "commodity",
     Component: CommodityStrengthSection,
     flex: 1,
-    minWidth: "48",
+    minWidth: HEATMAP_MIN_WIDTH_REM,
   },
   {
     key: "index",
     Component: IndexStrengthSection,
     flex: 1,
-    minWidth: "48",
+    minWidth: HEATMAP_MIN_WIDTH_REM,
   },
   {
     key: "crypto-strength",
     Component: CryptoStrengthSection,
     flex: 1,
-    minWidth: "48",
+    minWidth: HEATMAP_MIN_WIDTH_REM,
   },
 ] satisfies ReadonlyArray<DeskSectionGridItem>;
 
