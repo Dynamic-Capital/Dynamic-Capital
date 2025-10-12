@@ -159,11 +159,25 @@ export const callEdgeFunction = async <T>(
     requestHeaders["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(buildFunctionUrl(functionName), {
-    method,
-    headers: requestHeaders,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let res: Response;
+  try {
+    res = await fetch(buildFunctionUrl(functionName), {
+      method,
+      headers: requestHeaders,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Network request failed";
+
+    return {
+      error: {
+        status: 0,
+        message,
+      },
+      status: 0,
+    };
+  }
 
   let data: T | undefined;
   try {
