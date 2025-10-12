@@ -6,7 +6,7 @@
  * object with a `message` field) is thrown. Callers should handle these errors
  * with a `try/catch` block.
  */
-import { extractTelegramUserId } from "../../../shared/telegram.ts";
+import { extractTelegramUserId } from "../../../_shared/telegram.ts";
 
 export function useApi() {
   const getInitData = () =>

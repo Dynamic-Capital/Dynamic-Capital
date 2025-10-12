@@ -232,12 +232,6 @@ Deno.test("startReceiptPipeline stores parsed bank slip on payment", async () =>
     () => fakeSupabase,
   );
 
-  const sampleSlipText =
-    `Maldives Islamic Bank\nTransaction Date : 2024-02-01 10:00:00\nStatus : Successful\nTo Account 9876543210 Dynamic Capital\nReference # REF999\nAmount MVR 750.00`;
-  telegramModule.__setReceiptParsingOverrides({
-    ocrTextFromBlob: async () => sampleSlipText,
-  });
-
   const supabaseUrl = "https://stub.supabase.co/functions/v1/receipt-submit";
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (input: Request | string, init?: RequestInit) => {
@@ -290,14 +284,15 @@ Deno.test("startReceiptPipeline stores parsed bank slip on payment", async () =>
     const payment = payments.get("pay-1");
     assert(payment, "payment row should be created");
     assert(payment.webhook_data, "webhook data should be stored");
-    const parsed = payment.webhook_data.parsed_slip;
-    assert(parsed, "parsed slip should be attached");
-    assertEquals(parsed.status, "SUCCESS");
-    assertEquals(parsed.bank, "MIB");
-    assertEquals(parsed.rawText, sampleSlipText);
+    assertEquals(payment.webhook_data.bucket, "payment-receipts");
+    assert(payment.webhook_data.image_sha256, "image hash should be stored");
+    assertEquals(
+      payment.webhook_data.file_path,
+      "receipts/4242/" + payment.webhook_data.image_sha256,
+    );
+    assertEquals(payment.webhook_data.parsed_slip, undefined);
   } finally {
     globalThis.fetch = originalFetch;
-    telegramModule.__resetReceiptParsingOverrides();
     getSupabaseStub.restore();
     createClientStub.restore();
     getFlagStub.restore();
