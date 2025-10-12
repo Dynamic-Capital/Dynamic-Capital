@@ -1,2 +1,2 @@
 SHA-256 (/workspace/Dynamic-Capital/dynamic-capital-ton/contracts/jetton/metadata.json) = 541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5
-Generated: 2025-10-12T03:06:04.792Z
+Generated: 2025-10-12T03:08:57.851Z
