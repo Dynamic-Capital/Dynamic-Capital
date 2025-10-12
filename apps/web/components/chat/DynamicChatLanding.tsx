@@ -25,7 +25,10 @@ import {
   Text,
 } from "@/components/dynamic-ui-system";
 import { DynamicCommandBar } from "@/components/navigation/DynamicCommandBar";
-import { VisuallyHidden } from "@/components/ui/accessibility-utils";
+import {
+  NewTabAnnouncement,
+  VisuallyHidden,
+} from "@/components/ui/accessibility-utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
 import { AdminGate } from "@/components/admin/AdminGate";
@@ -511,15 +514,33 @@ function AuditStatusBadge({
 
 function AuditItemRow({ item }: { item: AuditItem }) {
   const isExternal = item.href ? item.href.startsWith("http") : false;
+  const baseId = createAccessibleId("audit-item", item.label);
+  const labelId = `${baseId}-label`;
+  const summaryId = `${baseId}-summary`;
+  const detailId = item.detail ? `${baseId}-detail` : undefined;
+  const descriptionIds = [summaryId, detailId].filter(Boolean).join(" ");
+  const actionText = item.actionLabel ?? `Open ${item.label}`;
 
   return (
-    <li className="list-none rounded-2xl border border-border/60 bg-background/90 p-4 shadow-sm">
+    <li
+      className="list-none rounded-2xl border border-border/60 bg-background/90 p-4 shadow-sm"
+      aria-labelledby={labelId}
+      aria-describedby={descriptionIds}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-foreground">{item.label}</p>
-          <p className="text-xs text-muted-foreground">{item.summary}</p>
+          <p id={labelId} className="text-sm font-semibold text-foreground">
+            {item.label}
+          </p>
+          <p id={summaryId} className="text-xs text-muted-foreground">
+            {item.summary}
+          </p>
           {item.detail
-            ? <p className="text-xs text-muted-foreground/80">{item.detail}</p>
+            ? (
+              <p id={detailId} className="text-xs text-muted-foreground/80">
+                {item.detail}
+              </p>
+            )
             : null}
         </div>
         <AuditStatusBadge status={item.status} label={item.statusLabel} />
@@ -534,8 +555,10 @@ function AuditItemRow({ item }: { item: AuditItem }) {
               suffixIcon={isExternal ? "arrowUpRight" : undefined}
               target={isExternal ? "_blank" : undefined}
               rel={isExternal ? "noreferrer noopener" : undefined}
+              aria-describedby={descriptionIds}
             >
-              {item.actionLabel ?? "Open"}
+              {actionText}
+              {isExternal ? <NewTabAnnouncement /> : null}
             </DynamicButton>
           </div>
         )
@@ -652,7 +675,15 @@ function DeviceSupportCard() {
                           >
                             {item.evidence.label}
                             {isExternal
-                              ? <ArrowUpRight className="h-3 w-3" aria-hidden />
+                              ? (
+                                <>
+                                  <ArrowUpRight
+                                    className="h-3 w-3"
+                                    aria-hidden
+                                  />
+                                  <NewTabAnnouncement />
+                                </>
+                              )
                               : null}
                           </Link>
                         )

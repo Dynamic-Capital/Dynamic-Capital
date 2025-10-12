@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { NewTabAnnouncement } from "@/components/ui/accessibility-utils";
 
 export const metadata: Metadata = {
   title: "Support | Dynamic Capital",
@@ -34,6 +35,7 @@ const RESOURCE_LINKS = [
       <Button asChild variant="telegram" className="mt-6">
         <a href={conciergeUrl} target="_blank" rel="noopener noreferrer">
           Message on Telegram
+          <NewTabAnnouncement />
           <ArrowUpRight className="ml-2 h-4 w-4" aria-hidden="true" />
         </a>
       </Button>
@@ -52,6 +54,7 @@ const RESOURCE_LINKS = [
       >
         <a href={conciergeUrl} target="_blank" rel="noopener noreferrer">
           Request a callback
+          <NewTabAnnouncement />
           <ArrowUpRight className="ml-2 h-4 w-4" aria-hidden="true" />
         </a>
       </Button>
