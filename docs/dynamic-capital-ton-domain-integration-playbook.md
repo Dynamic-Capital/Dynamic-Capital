@@ -15,8 +15,12 @@ dApps, and explorers.
 - **Jetton Master:** `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`
 - **Treasury Wallet:** `dynamiccapital.ton` →
   `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`
+- **Operations Treasury Multisig:**
+  `UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G` (non-bounceable) ·
+  `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` (bounceable) ·
+  `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38` (raw)
 - **Root Wallet Alias:** `dynamiccapital.ton` wallet record →
-  `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`
+  `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`
 
 > **Note:** Only the treasury wallet should have permission to update the
 > resolver record to preserve authoritative control.
@@ -27,32 +31,39 @@ Store the following key-value pairs in the TON DNS TXT record so integrators can
 auto-discover Dynamic Capital contracts and services when resolving
 `dynamiccapital.ton`:
 
-| Key                                                                                               | Address / URL                                                                                                | Description                                                                      |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| `ton_alias`                                                                                       | `dynamiccapital.ton`                                                                                         | DNS alias resolving deposits                                                     |
-| `root_wallet`                                                                                     | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                           |                                                                                  |
-| Root domain wallet alias pointing `dynamiccapital.ton` directly at the DCT jetton master contract |                                                                                                              |                                                                                  |
-| `token_symbol`                                                                                    | `DCT`                                                                                                        | Canonical ticker across wallets, pools, and exchanges                            |
-| `jetton_master`                                                                                   | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                           | Dynamic Capital Token (DCT)                                                      |
-| `treasury_wallet`                                                                                 | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`                                                           | Treasury & mint authority                                                        |
-| `stonfi_pool`                                                                                     | `EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI`                                                           | STON.fi DCT/TON pool                                                             |
-| `stonfi_pool_metadata`                                                                            | `https://meta.ston.fi/lp/v1/0:31876BC3DD431F36B176F692A5E96B0ECF1AEDEBFA76497ACD2F3661D6FBACD3.json`         | STON.fi LP metadata JSON                                                         |
-| `stonfi_jetton_wallet`                                                                            | `EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3`                                                           | STON.fi jetton wallet for DCT                                                    |
-| `wallet_v5r1`                                                                                     | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm`                                                           | Jetton wallet (Wallet v5r1)                                                      |
-| `dedust_pool`                                                                                     | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm`                                                           | DeDust DCT/TON vault                                                             |
-| `dedust_pool_metadata`                                                                            | `https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata` | DeDust LP metadata JSON                                                          |
-| `dedust_jetton_wallet`                                                                            | `EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz`                                                           | DeDust jetton wallet for DCT                                                     |
-| `dao_contract`                                                                                    | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                           | Dedicated DAO governance multisig executing resolver and configuration proposals |
-| `jetton_tonviewer`                                                                                | `https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                              | Jetton explorer (Tonviewer)                                                      |
-| `jetton_tonscan`                                                                                  | `https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                | Jetton explorer (Tonscan)                                                        |
-| `jetton_dyor`                                                                                     | `https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                     | Jetton intelligence profile (DYOR)                                               |
-| `dexscreener_token`                                                                               | `https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                               | Unified token analytics hub (DEX Screener)                                       |
-| `dexscreener_stonfi`                                                                              | `https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi`                               | STON.fi pair analytics (DEX Screener)                                            |
-| `dexscreener_dedust`                                                                              | `https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm`                               | DeDust pair analytics (DEX Screener)                                             |
-| `x1000_token`                                                                                     | `https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                              | Token intelligence & alerts (X1000 Finance)                                      |
-| `api_endpoint`                                                                                    | `https://api.dynamiccapital.ton`                                                                             | REST / Supabase gateway                                                          |
-| `metadata`                                                                                        | `https://dynamiccapital.ton/jetton-metadata.json`                                                            | Jetton metadata JSON (primary)                                                   |
-| `web`                                                                                             | `https://dynamiccapital.ton`                                                                                 | Marketing & dashboard site                                                       |
+| Key                        | Address / URL                                                                                                                             | Description                                           |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `api_endpoint`             | `https://api.dynamiccapital.ton`                                                                                                          | REST / Supabase gateway                               |
+| `dao_contract`             | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`                                                                                        | DAO governance multisig executing resolver updates    |
+| `dedust_jetton_wallet`     | `EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz`                                                                                        | DeDust jetton wallet for DCT                          |
+| `dedust_pool`              | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm`                                                                                        | DeDust DCT/TON vault                                  |
+| `dedust_pool_metadata`     | `https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata`                              | DeDust LP metadata JSON                               |
+| `dedust_swap`              | `https://dedust.io/swap/TON/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                             | Direct DeDust swap deeplink                           |
+| `dexscreener_dedust`       | `https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm`                                                            | DeDust pair analytics (DEX Screener)                  |
+| `dexscreener_stonfi`       | `https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi`                                                            | STON.fi pair analytics (DEX Screener)                 |
+| `dexscreener_token`        | `https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                            | Unified token analytics hub (DEX Screener)            |
+| `jetton_dyor`              | `https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                                  | Jetton intelligence profile (DYOR)                    |
+| `jetton_master`            | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                                                        | Dynamic Capital Token (DCT) master contract           |
+| `jetton_toncoin`           | `https://explorer.toncoin.org/account?account=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                           | Jetton explorer (TON Explorer)                        |
+| `jetton_toncx`             | `https://ton.cx/address/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                                 | Jetton explorer (TON.cx)                              |
+| `jetton_tonviewer`         | `https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                           | Jetton explorer (Tonviewer)                           |
+| `jetton_tonscan`           | `https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                             | Jetton explorer (Tonscan)                             |
+| `metadata`                 | `https://dynamiccapital.ton/jetton-metadata.json`                                                                                         | Jetton metadata JSON (primary)                        |
+| `root_wallet`              | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`                                                                                        | Root domain wallet alias                              |
+| `stonfi_jetton_wallet`     | `EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3`                                                                                        | STON.fi jetton wallet for DCT                         |
+| `stonfi_pool`              | `EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI`                                                                                        | STON.fi DCT/TON pool                                  |
+| `stonfi_pool_metadata`     | `https://meta.ston.fi/lp/v1/0:31876BC3DD431F36B176F692A5E96B0ECF1AEDEBFA76497ACD2F3661D6FBACD3.json`                                      | STON.fi LP metadata JSON                              |
+| `stonfi_swap`              | `https://app.ston.fi/swap?from=TON&to=DCT&chartVisible=true&chartInterval=24h&ft=TON&tt=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | Direct STON.fi swap deeplink                          |
+| `swapcoffee_jetton_wallet` | `EQAT363NPdduFnHRL3cP96cbxhbtMZ7vJCiuH7lt7tcwjH9l`                                                                                        | Swap.Coffee jetton wallet for DCT                     |
+| `swapcoffee_pool`          | `EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D`                                                                                        | Swap.Coffee DCT/TON pool                              |
+| `swapcoffee_pool_metadata` | `https://lp.swap.coffee/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a/metadata`                                      | Swap.Coffee LP metadata JSON                          |
+| `swapcoffee_swap`          | `https://swap.coffee/dex?st=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                             | Swap.Coffee token hub & swap                          |
+| `token_symbol`             | `DCT`                                                                                                                                     | Canonical ticker across wallets, pools, and exchanges |
+| `ton_alias`                | `dynamiccapital.ton`                                                                                                                      | DNS alias resolving deposits                          |
+| `treasury_wallet`          | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq`                                                                                        | Treasury & mint authority                             |
+| `wallet_v5r1`              | `EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm`                                                                                        | Jetton wallet (Wallet v5r1)                           |
+| `web`                      | `https://dynamiccapital.ton`                                                                                                              | Marketing & dashboard site                            |
+| `x1000_token`              | `https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                           | Token intelligence & alerts (X1000 Finance)           |
 
 ### Payment Subdomain Routing
 
@@ -133,29 +144,39 @@ ton_alias=dynamiccapital.ton
 token_symbol=DCT
 jetton_master=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 treasury_wallet=EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq
-stonfi_pool=EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI
-stonfi_pool_metadata=https://meta.ston.fi/lp/v1/0:31876BC3DD431F36B176F692A5E96B0ECF1AEDEBFA76497ACD2F3661D6FBACD3.json
-stonfi_jetton_wallet=EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3
 wallet_v5r1=EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm
-dedust_pool=EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm
-dedust_pool_metadata=https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata
-dedust_jetton_wallet=EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz
-dao_contract=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
-jetton_tonviewer=https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
-jetton_tonscan=https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
-jetton_dyor=https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
-dexscreener_token=https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
-dexscreener_stonfi=https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi
-dexscreener_dedust=https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm
-x1000_token=https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 api=https://api.dynamiccapital.ton
 api_fallback=https://dynamic.capital/api
-metadata=https://dynamiccapital.ton/jetton-metadata.json
-metadata_fallback=https://dynamic.capital/jetton-metadata.json
-manifest=https://dynamiccapital.ton/tonconnect-manifest.json
-manifest_fallback=https://dynamic.capital/tonconnect-manifest.json
+dao_contract=EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD
+dedust_jetton_wallet=EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz
+dedust_pool=EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm
+dedust_pool_metadata=https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata
+dedust_swap=https://dedust.io/swap/TON/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+dexscreener_dedust=https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm
+dexscreener_stonfi=https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi
+dexscreener_token=https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 docs=https://dynamiccapital.ton/docs
 docs_fallback=https://dynamic.capital/docs
+jetton_dyor=https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+jetton_toncoin=https://explorer.toncoin.org/account?account=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+jetton_toncx=https://ton.cx/address/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+jetton_tonviewer=https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+jetton_tonscan=https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+manifest=https://dynamiccapital.ton/tonconnect-manifest.json
+manifest_fallback=https://dynamic.capital/tonconnect-manifest.json
+metadata=https://dynamiccapital.ton/jetton-metadata.json
+metadata_fallback=https://dynamic.capital/jetton-metadata.json
+root_wallet=EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD
+stonfi_jetton_wallet=EQAtgX_AkOJEEDxYICWRlS9HtNFMrujgruQJLanYHJURCxB3
+stonfi_pool=EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI
+stonfi_pool_metadata=https://meta.ston.fi/lp/v1/0:31876BC3DD431F36B176F692A5E96B0ECF1AEDEBFA76497ACD2F3661D6FBACD3.json
+stonfi_swap=https://app.ston.fi/swap?from=TON&to=DCT&chartVisible=true&chartInterval=24h&ft=TON&tt=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+swapcoffee_jetton_wallet=EQAT363NPdduFnHRL3cP96cbxhbtMZ7vJCiuH7lt7tcwjH9l
+swapcoffee_pool=EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D
+swapcoffee_pool_metadata=https://lp.swap.coffee/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a/metadata
+swapcoffee_swap=https://swap.coffee/dex?st=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+web=https://dynamiccapital.ton
+x1000_token=https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 ```
 
 ## Infrastructure Layout

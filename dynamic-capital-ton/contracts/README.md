@@ -41,8 +41,8 @@ representations suitable for most wallets, while the raw column surfaces the
 
 | Role          | Friendly address                                                                 | Raw (`workchain:hash`)                                                    | Tonviewer link                                                                 |
 | ------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Admin multisig | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7` | [tonviewer.com/EQDSm…x_6y](https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
-| Treasury wallet | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7` | [tonviewer.com/EQDSm…x_6y](https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
+| Admin multisig | `UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G` | `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38` | [tonviewer.com/UQD1z…OK0G](https://tonviewer.com/UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G) |
+| Treasury wallet | `EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq` | `0:26cdc2a0ddec9b50dcec4f896526b8e80deec5c02e759d246124430008276789` | [tonviewer.com/EQAmz…iYhq](https://tonviewer.com/EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq) |
 | Primary DEX router | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | `0:779dcc815138d9500e449c5291e7f12738c23d575b5310000f6a253bd607384e` | [tonviewer.com/EQB3n…TiUt](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) |
 
 ### Discovery-compliant FunC master contract
@@ -147,15 +147,17 @@ Use the following canonical explorer pages to validate the on-chain jetton and
 liquidity pool wallets. Tonscan includes both the raw workchain and friendly
 addresses so the link works regardless of which representation a wallet shows.
 
-| Platform  | Scope                      | Canonical link(s)                                                                                                    |
-| --------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Tonscan   | Jetton overview            | [Friendly](https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [Raw](https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7) |
-| Tonviewer | Jetton overview            | [tonviewer.com/jetton/0:d29…96c7](https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7)                                                             |
-| DYOR      | Token intelligence profile | [dyor.io/token/EQDSm…x_6y](https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y)                                                        |
-| STON.fi   | pTON/DCT liquidity         | [Pool wallet](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI) · [LP jetton](https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3) |
-| Dedust    | TON/DCT liquidity          | [Pool wallet](https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm) · [LP jetton](https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98) |
-| DEX Screener | Liquidity analytics | [Token hub](https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [STON.fi pair](https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi) · [DeDust pair](https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm) |
-
+| Platform     | Scope                      | Canonical link(s) |
+| ------------ | -------------------------- | ----------------- |
+| Tonscan      | Jetton overview            | [Friendly](https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [Raw](https://tonscan.org/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7) |
+| Tonviewer    | Jetton overview            | [tonviewer.com/jetton/0:d29…96c7](https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7) |
+| TON Explorer | Jetton account             | [explorer.toncoin.org/account?account=EQDSm…x_6y](https://explorer.toncoin.org/account?account=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
+| TON.cx       | Jetton account             | [ton.cx/address/EQDSm…x_6y](https://ton.cx/address/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
+| DYOR         | Token intelligence profile | [dyor.io/token/EQDSm…x_6y](https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
+| STON.fi      | pTON/DCT liquidity         | [Pool wallet](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI) · [LP jetton](https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3) · [Swap](https://app.ston.fi/swap?from=TON&to=DCT&chartVisible=true&chartInterval=24h&ft=TON&tt=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
+| DeDust       | TON/DCT liquidity          | [Pool wallet](https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm) · [LP jetton](https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98) · [Swap](https://dedust.io/swap/TON/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
+| Swap.Coffee  | TON/DCT liquidity & routing | [Token hub](https://swap.coffee/dex?st=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [Pool wallet](https://tonviewer.com/EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D) |
+| DEX Screener | Liquidity analytics        | [Token hub](https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [STON.fi pair](https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi) · [DeDust pair](https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm) |
 ### Metadata guardrails
 
 Run the validation script after editing `metadata.json` to ensure the `sameAs`

@@ -9,12 +9,12 @@ snapshot prevents accidental drift.
 
 | Field              | Value                                                                | Notes                                                                                                 |
 | ------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Address            | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                   | Friendly (bounceable) format that matches the DNS record payloads.                                    |
-| Non-bounceable     | `UQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx6N3`                   | Use for wallets or tooling that require the non-bounceable form (e.g. legacy exchanges, QR payloads). |
-| Raw workchain:hash | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7` | Handy when reconciling explorer API payloads and FunC tooling.                                        |
-| Balance            | `0.0917 TON`                                                         | Tonviewer balance taken at **2025-10-12 01:39 UTC**.                                                  |
-| Code hash          | `mg+Y3W+/Il7vgWXk5kQX7pMffuoABlNDnntdzcBkTNY=`                       | Confirms the wallet uses the vetted multisig implementation.                                          |
-| Data hash          | `DyGKxO1CXdoOwJtbV6Mxpmi8h5rweETYPfMBkJLEtXk=`                       | Validates that the configuration cell has not changed unexpectedly.                                   |
+| Address            | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`                   | Friendly (bounceable) format that matches the DNS record payloads.                                    |
+| Non-bounceable     | `UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G`                   | Use for wallets or tooling that require the non-bounceable form (e.g. legacy exchanges, QR payloads). |
+| Raw workchain:hash | `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38` | Handy when reconciling explorer API payloads and FunC tooling.                                        |
+| Balance            | `0.354375612 TON`                                                    | Toncenter balance sampled at **2025-10-12 19:08 UTC**.                                                |
+| Code hash          | `IINLe3KxEhR+Gy+0V7hOdNGjDwT3N9T2KmaOlVLSty8=`                       | Confirms the wallet uses the vetted multisig implementation.                                          |
+| Data hash          | `nGNSvzi/hjTPuE2UNsOBXY64O1ycXmzAYtKUL4OELR4=`                       | Validates that the configuration cell has not changed unexpectedly.                                   |
 | State init*        | _See workflow below_                                                 | Recompute when regenerating the snapshot to detect init cell changes.                                 |
 
 > ✨ _State init hash is derived from the account's code and data cells and acts
@@ -32,7 +32,7 @@ Request the current multisig state from Toncenter. Supply your paid API key (or
 a throttled public key for manual runs) and persist the JSON locally:
 
 ```bash
-curl "https://toncenter.com/api/v3/accountStates?address=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y&include_boc=true" \
+curl "https://toncenter.com/api/v3/accountStates?address=EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD&include_boc=true" \
   -H "accept: application/json" \
   -H "X-API-Key: $TONCENTER_API_KEY" \
   --compressed \
@@ -54,7 +54,7 @@ as needed.
 
 ### 3. Cross-check with Tonviewer (optional but recommended)
 
-Load `https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`
+Load `https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`
 and confirm the displayed balance and code hash match the inspector output. Save
 the Tonviewer screenshot or the Toncenter JSON payload alongside the compliance
 package for a fully auditable trail.

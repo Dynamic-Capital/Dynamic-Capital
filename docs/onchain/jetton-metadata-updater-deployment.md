@@ -25,7 +25,7 @@ you need to rotate the metadata host or stage a new manifest hash.
 - **Configuration**
   - Owner / jetton master addresses from the on-chain snapshot:
     - Owner (DAO multisig):
-      `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`
+      `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38`
     - Jetton master:
       `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`
 
@@ -50,7 +50,7 @@ deployment record for reproducibility.
 
 ```bash
 npx tsx scripts/ton/deploy-jetton-metadata-updater.ts \
-  --owner EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y \
+  --owner EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD \
   --jetton EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y \
   --code build/metadata-updater/JettonMetadataUpdater.code.boc \
   --state /tmp/metadata-updater.json \

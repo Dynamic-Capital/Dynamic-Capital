@@ -6,10 +6,7 @@ import {
   resolveProjectRoot,
 } from "./_shared.ts";
 import { DCT_DEX_POOLS } from "../../../shared/ton/dct-liquidity.ts";
-import {
-  TON_MAINNET_DAO_MULTISIG,
-  TON_MAINNET_JETTON_MASTER,
-} from "../../../shared/ton/mainnet-addresses.ts";
+import { TON_MAINNET_JETTON_MASTER } from "../../../shared/ton/mainnet-addresses.ts";
 
 interface RequiredLink {
   label: string;
@@ -30,7 +27,7 @@ const DCT_JETTON_MASTER_RAW =
 const DEX_SCREENER_TOKEN_URL =
   `https://dexscreener.com/ton/${TON_MAINNET_JETTON_MASTER}` as const;
 const X1000_TOKEN_URL =
-  `https://x1000.finance/tokens/${TON_MAINNET_DAO_MULTISIG}` as const;
+  `https://x1000.finance/tokens/${TON_MAINNET_JETTON_MASTER}` as const;
 
 const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
@@ -56,6 +53,14 @@ const REQUIRED_LINKS: readonly RequiredLink[] = [
   {
     label: "Tonscan → jetton overview (friendly)",
     url: `https://tonscan.org/jetton/${TON_MAINNET_JETTON_MASTER}`,
+  },
+  {
+    label: "TON Explorer → jetton account",
+    url: `https://explorer.toncoin.org/account?account=${TON_MAINNET_JETTON_MASTER}`,
+  },
+  {
+    label: "TON.cx → jetton account",
+    url: `https://ton.cx/address/${TON_MAINNET_JETTON_MASTER}`,
   },
   {
     label: "DYOR → token intelligence profile",

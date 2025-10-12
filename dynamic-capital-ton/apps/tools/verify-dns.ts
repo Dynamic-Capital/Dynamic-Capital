@@ -31,10 +31,14 @@ const TON_VIEWER_JETTON_URL =
 const TONSCAN_JETTON_URL =
   `https://tonscan.org/jetton/${TON_MAINNET_JETTON_MASTER}`;
 const DYOR_JETTON_URL = `https://dyor.io/token/${TON_MAINNET_JETTON_MASTER}`;
+const TONCOIN_EXPLORER_JETTON_URL =
+  `https://explorer.toncoin.org/account?account=${TON_MAINNET_JETTON_MASTER}`;
+const TONCX_EXPLORER_JETTON_URL =
+  `https://ton.cx/address/${TON_MAINNET_JETTON_MASTER}`;
 const DEX_SCREENER_TOKEN_URL =
   `https://dexscreener.com/ton/${TON_MAINNET_JETTON_MASTER}`;
 const X1000_TOKEN_URL =
-  `https://x1000.finance/tokens/${TON_MAINNET_DAO_MULTISIG}`;
+  `https://x1000.finance/tokens/${TON_MAINNET_JETTON_MASTER}`;
 
 async function fetchJettonWallet(ownerFriendly: string): Promise<string> {
   const ownerAddress = Address.parse(ownerFriendly);
@@ -150,7 +154,7 @@ async function main() {
 
   const dnsRecord: Record<string, string> = {
     ton_alias: TON_MAINNET_DCT_TREASURY_ALIAS,
-    root_wallet: TON_MAINNET_JETTON_MASTER,
+    root_wallet: TON_MAINNET_DAO_MULTISIG,
     token_symbol: metadata.symbol,
     jetton_master: TON_MAINNET_JETTON_MASTER,
     treasury_wallet: TON_MAINNET_DCT_TREASURY_WALLET,
@@ -158,6 +162,8 @@ async function main() {
     jetton_tonviewer: TON_VIEWER_JETTON_URL,
     jetton_tonscan: TONSCAN_JETTON_URL,
     jetton_dyor: DYOR_JETTON_URL,
+    jetton_toncoin: TONCOIN_EXPLORER_JETTON_URL,
+    jetton_toncx: TONCX_EXPLORER_JETTON_URL,
     dao_contract: TON_MAINNET_DAO_MULTISIG,
     metadata: METADATA_URL,
     metadata_fallback: "https://dynamic.capital/jetton-metadata.json",
@@ -178,6 +184,7 @@ async function main() {
       dnsRecord[`${slug}_pool_metadata`] = pool.metadataUrl;
     }
     dnsRecord[`${slug}_jetton_wallet`] = pool.jettonWalletAddress;
+    dnsRecord[`${slug}_swap`] = pool.swapUrl;
     if (pool.dexScreenerPairUrl) {
       dnsRecord[`dexscreener_${slug}`] = pool.dexScreenerPairUrl;
     }

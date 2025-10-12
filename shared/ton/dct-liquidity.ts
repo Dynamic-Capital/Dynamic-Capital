@@ -1,6 +1,7 @@
 import {
   TON_MAINNET_DEDUST_DCT_JETTON_WALLET,
   TON_MAINNET_DEDUST_DCT_TON_POOL,
+  TON_MAINNET_JETTON_MASTER,
   TON_MAINNET_STONFI_DCT_JETTON_WALLET,
   TON_MAINNET_STONFI_DCT_TON_POOL,
   TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
@@ -30,7 +31,8 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
   {
     dex: "STON.fi",
     pair: "DCT/TON",
-    swapUrl: "https://app.ston.fi/swap?from=TON&to=DCT",
+    swapUrl:
+      `https://app.ston.fi/swap?from=TON&to=DCT&chartVisible=true&chartInterval=24h&ft=TON&tt=${TON_MAINNET_JETTON_MASTER}`,
     description:
       "Primary TON DEX route delivering deep DCT/TON liquidity for treasury operations and member swaps.",
     poolAddress: TON_MAINNET_STONFI_DCT_TON_POOL,
@@ -52,7 +54,7 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
   {
     dex: "DeDust",
     pair: "DCT/TON",
-    swapUrl: "https://dedust.io/swap/TON-DCT",
+    swapUrl: `https://dedust.io/swap/TON/${TON_MAINNET_JETTON_MASTER}`,
     description:
       "Secondary routing venue leveraging DeDust's TON-native liquidity network for balanced execution.",
     poolAddress: TON_MAINNET_DEDUST_DCT_TON_POOL,
@@ -72,7 +74,7 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
   {
     dex: "swap.coffee",
     pair: "TON/DCT",
-    swapUrl: "https://swap.coffee/swap?from=TON&to=DCT",
+    swapUrl: `https://swap.coffee/dex?st=${TON_MAINNET_JETTON_MASTER}`,
     description:
       "Aggregator route that blends venue quotes while exposing native TON⇄DCT liquidity for partners and bots.",
     poolAddress: TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
