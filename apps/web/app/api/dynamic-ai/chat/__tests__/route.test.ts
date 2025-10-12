@@ -355,3 +355,62 @@ Deno.test(
     ];
   },
 );
+
+Deno.test(
+  "POST /api/dynamic-ai/chat rejects whitespace-only inputs",
+  async () => {
+    setEnv();
+    const supabaseMock = createSupabaseMock();
+    (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL] =
+      supabaseMock;
+    (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
+      createNoopApiMetrics();
+    (globalThis as Record<PropertyKey, unknown>)[SESSION_OVERRIDE_SYMBOL] =
+      async () => ({ user: { id: "session-user" } });
+
+    const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> =
+      [];
+    (globalThis as Record<PropertyKey, unknown>)[DYNAMIC_AI_FETCH_OVERRIDE] =
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        fetchCalls.push({ input, init });
+        return new Response("{}", {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      };
+
+    const { POST } = await import("../route.ts");
+
+    const response = await POST(
+      new Request("http://localhost/api/dynamic-ai/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          sessionId: "   ",
+          message: "    ",
+          history: [],
+        }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    assertEquals(response.status, 400);
+    const payload = await response.json() as { ok?: boolean; error?: string };
+    assertCondition(payload.ok === false, "expected failure response");
+    assertEquals(payload.error, "sessionId and message are required");
+    assertEquals(supabaseMock.inserts.length, 0);
+    assertEquals(fetchCalls.length, 0);
+
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      SUPABASE_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      DYNAMIC_AI_FETCH_OVERRIDE
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      API_METRICS_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      SESSION_OVERRIDE_SYMBOL
+    ];
+  },
+);

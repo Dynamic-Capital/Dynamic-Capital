@@ -57,8 +57,8 @@ describe("fetchDctMarketSnapshot", () => {
     expect(snapshot).toMatchObject<DctMarketSnapshot>({
       price: expect.closeTo(1.68, 1e-6),
       changePercent: expect.closeTo(-2.4, 1e-6),
-      change: expect.closeTo(-0.04032, 1e-6),
-      previousClose: expect.closeTo(1.72032, 1e-6),
+      change: expect.closeTo(-0.0413114754, 1e-6),
+      previousClose: expect.closeTo(1.7213114754, 1e-6),
       volume24h: expect.closeTo(400000, 1e-6),
       sourceSymbol: "DCT",
       name: "Dynamic Capital Token",
