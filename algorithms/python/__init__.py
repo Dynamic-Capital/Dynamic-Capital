@@ -3,6 +3,7 @@
 from types import MappingProxyType
 from typing import Mapping
 
+from . import fact_check_algorithm as _fact_check_algorithm
 from . import trade_logic as _trade_logic
 from .alert_notifications import (
     AlertEngine,
@@ -347,8 +348,11 @@ PROTOCOL_CATEGORY_EXECUTORS: Mapping[str, tuple[str, ...]] = MappingProxyType(
 )
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
+_fact_check_exports = list(
+    getattr(_fact_check_algorithm, "__all__", [])
+)  # type: ignore[attr-defined]
 
-__all__ = _trade_exports + [
+__all__ = _trade_exports + _fact_check_exports + [
     "AlertEngine",
     "AlertEvent",
     "AlertRule",
@@ -580,6 +584,9 @@ __all__ = _trade_exports + [
 ]
 
 globals().update({name: getattr(_trade_logic, name) for name in _trade_exports})
+globals().update(
+    {name: getattr(_fact_check_algorithm, name) for name in _fact_check_exports}
+)
 globals().update(
     {
         "AwesomeAPIAutoCalculator": AwesomeAPIAutoCalculator,
