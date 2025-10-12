@@ -50,12 +50,17 @@ deployment record for reproducibility.
 
 ```bash
 npx tsx scripts/ton/deploy-jetton-metadata-updater.ts \
-  --owner EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD \
+  --owner UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G \
   --jetton EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y \
   --code build/metadata-updater/JettonMetadataUpdater.code.boc \
   --state /tmp/metadata-updater.json \
   --topup 0.2
 ```
+
+> The script accepts either address representation. Use the canonical
+> non-bounceable form above so the payload mirrors the DNS `root_wallet` entry;
+> swap in the bounceable companion (`EQD1…NOPDD`) only when interacting with
+> tooling that demands it.
 
 The helper script computes and prints:
 

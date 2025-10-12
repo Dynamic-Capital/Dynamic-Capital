@@ -7,15 +7,15 @@ snapshot prevents accidental drift.
 
 ## Current account state
 
-| Field              | Value                                                                | Notes                                                                                                 |
-| ------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Address            | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`                   | Friendly (bounceable) format that matches the DNS record payloads.                                    |
-| Non-bounceable     | `UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G`                   | Use for wallets or tooling that require the non-bounceable form (e.g. legacy exchanges, QR payloads). |
-| Raw workchain:hash | `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38` | Handy when reconciling explorer API payloads and FunC tooling.                                        |
-| Balance            | `0.354375612 TON`                                                    | Toncenter balance sampled at **2025-10-12 19:08 UTC**.                                                |
-| Code hash          | `IINLe3KxEhR+Gy+0V7hOdNGjDwT3N9T2KmaOlVLSty8=`                       | Confirms the wallet uses the vetted multisig implementation.                                          |
-| Data hash          | `nGNSvzi/hjTPuE2UNsOBXY64O1ycXmzAYtKUL4OELR4=`                       | Validates that the configuration cell has not changed unexpectedly.                                   |
-| State init*        | _See workflow below_                                                 | Recompute when regenerating the snapshot to detect init cell changes.                                 |
+| Field              | Value                                                                | Notes                                                                                 |
+| ------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Address            | `UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G`                   | Canonical non-bounceable form published in DNS (`root_wallet`) and resolver payloads. |
+| Bounceable         | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`                   | Use for explorers and wallets that prefer the bounceable friendly representation.     |
+| Raw workchain:hash | `0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38` | Handy when reconciling explorer API payloads and FunC tooling.                        |
+| Balance            | `0.354375612 TON`                                                    | Toncenter balance sampled at **2025-10-12 19:08 UTC**.                                |
+| Code hash          | `IINLe3KxEhR+Gy+0V7hOdNGjDwT3N9T2KmaOlVLSty8=`                       | Confirms the wallet uses the vetted multisig implementation.                          |
+| Data hash          | `nGNSvzi/hjTPuE2UNsOBXY64O1ycXmzAYtKUL4OELR4=`                       | Validates that the configuration cell has not changed unexpectedly.                   |
+| State init*        | _See workflow below_                                                 | Recompute when regenerating the snapshot to detect init cell changes.                 |
 
 > ✨ _State init hash is derived from the account's code and data cells and acts
 > as a compact fingerprint for migrations. Always recompute it when you refresh
@@ -32,7 +32,7 @@ Request the current multisig state from Toncenter. Supply your paid API key (or
 a throttled public key for manual runs) and persist the JSON locally:
 
 ```bash
-curl "https://toncenter.com/api/v3/accountStates?address=EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD&include_boc=true" \
+curl "https://toncenter.com/api/v3/accountStates?address=UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G&include_boc=true" \
   -H "accept: application/json" \
   -H "X-API-Key: $TONCENTER_API_KEY" \
   --compressed \

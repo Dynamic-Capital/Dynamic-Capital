@@ -64,7 +64,7 @@
     },
     {
       "trait_type": "Treasury multisig",
-      "value": "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD (bounceable) / UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G (non-bounceable)"
+      "value": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G (non-bounceable, canonical) / EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD (bounceable companion)"
     }
   ],
   "version": "1.1",

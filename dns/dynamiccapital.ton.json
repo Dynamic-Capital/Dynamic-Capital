@@ -229,9 +229,9 @@
     {
       "type": "TXT",
       "name": "@",
-      "data": "wallet=EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD",
+      "data": "wallet=UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
       "ttl": 300,
-      "note": "Root domain wallet alias pointing dynamiccapital.ton at the DAO operations multisig"
+      "note": "Root domain wallet alias pointing dynamiccapital.ton at the DAO operations multisig (non-bounceable)"
     },
     {
       "type": "TXT",
