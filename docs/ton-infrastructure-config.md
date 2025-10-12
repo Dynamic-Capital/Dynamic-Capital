@@ -38,6 +38,50 @@ To inspect live values, use either Tonviewer
 (`https://tonviewer.com/config/<id>`) or the lite client
 (`lite-client -C ~/.config/ton/global.config.json -rc 'getconfig <id>'`).
 
+### Quick lookup index
+
+Auditors often need to jump straight to a specific TON configuration entry
+without scanning multiple tables. The matrix below links the most frequently
+requested IDs to their Tonviewer inspection pages. Each label mirrors the
+headings used later in this guide so you can pivot from the live value back to
+the operational context described in the detailed tables.
+
+| ID | Label | Tonviewer |
+| -- | ----- | --------- |
+| 0  | Config address | https://tonviewer.com/config/0 |
+| 1  | Elector address | https://tonviewer.com/config/1 |
+| 2  | System address | https://tonviewer.com/config/2 |
+| 4  | Root DNS Contract | https://tonviewer.com/config/4 |
+| 5  | Blackhole address | https://tonviewer.com/config/5 |
+| 7  | Currencies volume | https://tonviewer.com/config/7 |
+| 8  | Network version | https://tonviewer.com/config/8 |
+| 9  | Mandatory parameters | https://tonviewer.com/config/9 |
+| 10 | Critical parameters | https://tonviewer.com/config/10 |
+| 11 | Proposal conditions | https://tonviewer.com/config/11 |
+| 12 | Workchain configuration | https://tonviewer.com/config/12 |
+| 13 | Complaints fee | https://tonviewer.com/config/13 |
+| 14 | Block reward | https://tonviewer.com/config/14 |
+| 15 | Election data | https://tonviewer.com/config/15 |
+| 16 | Validators count | https://tonviewer.com/config/16 |
+| 17 | Staking parameters | https://tonviewer.com/config/17 |
+| 18 | Storage price | https://tonviewer.com/config/18 |
+| 20 | Gas params | https://tonviewer.com/config/20 |
+| 21 | Masterchain gas params | https://tonviewer.com/config/21 |
+| 22 | Masterchain block limits | https://tonviewer.com/config/22 |
+| 23 | Workchain block limits | https://tonviewer.com/config/23 |
+| 24 | Masterchain message cost | https://tonviewer.com/config/24 |
+| 25 | Workchain message cost | https://tonviewer.com/config/25 |
+| 28 | Catchain configuration | https://tonviewer.com/config/28 |
+| 29 | Consensus configuration | https://tonviewer.com/config/29 |
+| 31 | Preferential addresses | https://tonviewer.com/config/31 |
+| 32 | Previous round validators | https://tonviewer.com/config/32 |
+| 34 | Current round validators | https://tonviewer.com/config/34 |
+| 44 | Suspended addresses | https://tonviewer.com/config/44 |
+| 45 | config.param_45.title | https://tonviewer.com/config/45 |
+| 71 | ETH Toncoin Bridge | https://tonviewer.com/config/71 |
+| 72 | BSC Toncoin Bridge | https://tonviewer.com/config/72 |
+| 79 | ETH Bridge (jettons) | https://tonviewer.com/config/79 |
+
 ### Governance contracts & economic routing
 
 | ID | Parameter (TL‑B type)                                | Operational focus                                                                    |
