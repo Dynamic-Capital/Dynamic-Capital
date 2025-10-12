@@ -1,9 +1,24 @@
 # HTTPS Gateway Verification – 2025-10-08
 
-## Summary
+-## Summary
+- 2025-10-12 15:54 UTC DigitalOcean spec synced manually (added `NPM_CONFIG_PRODUCTION=false`, dropped unmanaged domain ingress) and redeployed (`deployment 4fdf8a69-4f3f-4cc2-be38-5340a8ba7bd8`); build completed but `/dynamiccapital.ton` still returns `HTTP 504` with gateway attempts exhausted because the TON bundle is absent from all upstream gateways (`ton.site` serves the placeholder redirect).
 - 2025-10-12 15:24 UTC rebuild staged the `ton-site-public` bundle (`SHA-256 74b89c3fd9370faafa7ec6705370d645af967ecabd5ad338d029cee3876e08fb`) via `npm run ton:build-site-predeploy`; redeploy remains pending because the sandbox cannot reach `api.digitalocean.com`, so `/dynamiccapital.ton` still responds with `HTTP 404` until the bundle is published from a networked environment.
 - 2025-10-12 15:16 UTC follow-up redeploy triggered via the DigitalOcean REST API after the `npm run do:sync-site` helper failed (sandbox `ENETUNREACH` on Node `fetch`); direct origin probes still return `HTTP 404`, indicating the TON bundle was not rebuilt.
 - 2025-10-12 15:04 UTC manual redeploy triggered for `dynamic-capital-qazf2` via the DigitalOcean REST API; origin probe currently returns `HTTP 404` while propagation completes.
+
+## 2025-10-12 15:54 UTC – Spec sync and redeploy (gateway still failing)
+
+1. `curl -sS -X PUT -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" -H "Content-Type: application/json" https://api.digitalocean.com/v2/apps/aead98a2-db66-41e0-a5af-43c063b1f61a -d @/tmp/app-spec.json`
+   - Applied `.do/app.yml` after removing legacy domain ingress and adding the build-time `NPM_CONFIG_PRODUCTION=false` toggle so dev dependencies persist during custom builds.
+2. `curl -sS -X POST -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" -H "Content-Type: application/json" https://api.digitalocean.com/v2/apps/aead98a2-db66-41e0-a5af-43c063b1f61a/deployments`
+   - Created deployment `4fdf8a69-4f3f-4cc2-be38-5340a8ba7bd8` (build logs confirm the Node buildpack skipped pruning dev dependencies and ran the custom build successfully while static asset uploads were skipped because CDN credentials are unset).【9aa19d†L1-L10】【bc68b4†L1-L2】
+3. `curl -i https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
+   - Response: `HTTP/1.1 504 Gateway Timeout` with `x-dynamic-ton-gateway-attempts: ton.site:error, tonsite.io:error, tonsite.link:error, ton-gateway.dynamic-capital.ondigitalocean.app:error, ton-gateway.dynamic-capital.lovable.app:error`, confirming every configured gateway fails and no static fallback is served.【a47526†L1-L23】
+4. `curl -sSL https://ton.site/dynamiccapital.ton`
+   - Returns only the TON placeholder redirect (`window.location.href="/lander"`), proving the bundle was never published to TON Storage and explaining the repeated gateway failures.【55b53a†L1-L2】【3c8d7a†L1-L2】
+5. `curl -sS -o /tmp/gateway.html -w "%{http_code}\n" https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton`
+   - Still returns `HTTP 503`, matching the upstream outage and reinforcing that the self-hosted gateways do not have a valid TON snapshot to serve.【a9f4ac†L1-L2】【c368b6†L1-L13】
+6. Next steps: Upload the staged TON bundle to TON Storage (or the DigitalOcean origin), then rerun the HTTPS verification workflow once `/dynamiccapital.ton` responds with `HTTP 200`.
 - Historical reference: 2025-10-10 02:32 UTC verification confirmed both HTTPS gateways returned `HTTP 200` for `/dynamiccapital.ton` once the bundle was restored.
 - Historical reference: Direct origin probe at `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton` also returned `HTTP 200` after the 2025-10-10 redeploy.
 - Earlier 2025-10-10 16:41 UTC regression details remain below for historical context.

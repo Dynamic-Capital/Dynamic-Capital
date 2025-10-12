@@ -95,6 +95,15 @@ chronological order beneath this entry.
 - **Next step** — From an egress-enabled workstation, upload the staged bundle, trigger the DigitalOcean redeploy,
   and rerun the HTTPS verification workflow to confirm `/dynamiccapital.ton` returns `HTTP 200` before updating the resolver status.
 
+## 2025-10-12 – Spec sync and redeploy (gateway still failing)
+
+- **Timestamp** — 2025-10-12 15:54 UTC DigitalOcean app spec applied from `.do/app.yml` (manual `PUT` with `NPM_CONFIG_PRODUCTION=false` and legacy ingress removed), then deployment `4fdf8a69-4f3f-4cc2-be38-5340a8ba7bd8` promoted to `ACTIVE`.
+- **Build outcome** — The Node buildpack retained dev dependencies (`NPM_CONFIG_PRODUCTION=false`) and executed the custom `node scripts/digitalocean-build.mjs` workflow successfully; static asset upload skipped because CDN credentials are unset.【13788a†L1-L41】【9aa19d†L1-L8】
+- **Origin probe** — `curl -i https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton` now returns `HTTP 504` with `x-dynamic-ton-gateway-attempts: ton.site:error, tonsite.io:error, tonsite.link:error, ton-gateway.dynamic-capital.ondigitalocean.app:error, ton-gateway.dynamic-capital.lovable.app:error`, confirming every configured gateway fails and the static fallback never engaged.【a47526†L1-L23】
+- **Gateway check** — Direct probe of `https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton` still responds `HTTP 503`, matching the exhausted attempts header from the origin.【a9f4ac†L1-L2】【c368b6†L1-L13】
+- **Foundation status** — `https://ton.site/dynamiccapital.ton` only serves the placeholder redirect (`window.location.href="/lander"`), proving the TON bundle has not been uploaded to TON Storage and explaining the upstream failures.【55b53a†L1-L2】【3c8d7a†L1-L2】
+- **Root cause** — The TON site bundle is absent across all gateways (TON Storage and self-hosted) even after the successful DigitalOcean redeploy, so `/dynamiccapital.ton` continues to surface gateway timeouts. Publish the staged bundle and re-run the HTTPS verification to restore `HTTP 200` responses.
+
 ## 2025-10-10 – TON gateway restoration confirmed
 
 - **Timestamp** — 2025-10-10 02:32 UTC verification block executed after the
