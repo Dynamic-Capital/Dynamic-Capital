@@ -26,11 +26,11 @@ import {
 
 describe("ton site gateway helpers", () => {
   it("exposes canonical constants", () => {
-    assertEquals(TON_SITE_GATEWAY_BASE, "https://ton.site");
     assertEquals(
-      TON_SITE_GATEWAY_STANDBY_BASE,
+      TON_SITE_GATEWAY_BASE,
       "https://ton-gateway.dynamic-capital.ondigitalocean.app",
     );
+    assertEquals(TON_SITE_GATEWAY_STANDBY_BASE, "https://ton.site");
     assertEquals(
       [...TON_SITE_GATEWAY_FOUNDATION_BASES],
       [
@@ -50,17 +50,17 @@ describe("ton site gateway helpers", () => {
     assertEquals([...TON_SITE_ALIAS_DOMAINS], ["dynamicapital.ton"]);
     assertEquals(
       TON_SITE_GATEWAY_ORIGIN,
-      "https://ton.site/dynamiccapital.ton",
+      "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
     );
     assertEquals(TON_SITE_GATEWAY_URL, TON_SITE_GATEWAY_ORIGIN);
     assertEquals(TON_SITE_GATEWAY_CURL_URL, TON_SITE_GATEWAY_URL);
     assertEquals(
       TON_SITE_GATEWAY_PRIMARY_HOST,
-      "ton.site",
+      "ton-gateway.dynamic-capital.ondigitalocean.app",
     );
     assertEquals(
       TON_SITE_GATEWAY_STANDBY_HOST,
-      "ton-gateway.dynamic-capital.ondigitalocean.app",
+      "ton.site",
     );
     assertEquals(
       [...TON_SITE_GATEWAY_HOSTS],
@@ -74,11 +74,11 @@ describe("ton site gateway helpers", () => {
     );
     assertEquals(
       TON_SITE_ICON_URL,
-      "https://ton.site/dynamiccapital.ton/icon.png",
+      "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/icon.png",
     );
     assertEquals(
       TON_SITE_SOCIAL_PREVIEW_URL,
-      "https://ton.site/dynamiccapital.ton/social/social-preview.svg",
+      "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/social/social-preview.svg",
     );
   });
 
@@ -113,22 +113,26 @@ describe("ton site gateway helpers", () => {
       {
         name: "supports simple application routes",
         args: ["/app"],
-        expected: "https://ton.site/dynamiccapital.ton/app",
+        expected:
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/app",
       },
       {
         name: "collapses duplicate slashes while preserving nesting",
         args: ["/nested//path//"],
-        expected: "https://ton.site/dynamiccapital.ton/nested/path",
+        expected:
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/nested/path",
       },
       {
         name: "trims whitespace before normalising a path with query params",
         args: [" nested//path ?q=1 "],
-        expected: "https://ton.site/dynamiccapital.ton/nested/path?q=1",
+        expected:
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/nested/path?q=1",
       },
       {
         name: "preserves hash fragments after normalisation",
         args: ["/path//with#hash"],
-        expected: "https://ton.site/dynamiccapital.ton/path/with#hash",
+        expected:
+          "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/path/with#hash",
       },
       {
         name: "resolves nested social preview asset paths",
