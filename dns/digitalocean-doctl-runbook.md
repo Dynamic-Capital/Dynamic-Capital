@@ -116,6 +116,31 @@ The `${DOCTL_CONTEXT:+...}` expansion passes a specific context only when the
 `DOCTL_CONTEXT` environment variable is set, keeping the command compatible with
 both interactive sessions and unattended automation.
 
+### Run the repository's DigitalOcean CLI helper
+
+Some operational playbooks rely on the Node-based DigitalOcean CLI wrapper that
+lives in `scripts/digitalocean`. The helper targets the REST API directly and is
+useful when you need more control than `doctl` exposes. To preview the impact of
+an App Platform sync without writing changes, run:
+
+```bash
+DIGITALOCEAN_TOKEN=dop_v1_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+  npm run do:sync-site -- \
+    --app-id <APP_ID> \
+    --site-url https://dynamic-capital-qazf2.ondigitalocean.app \
+    --zone dynamic-capital.ondigitalocean.app \
+    --show-spec
+```
+
+- `DIGITALOCEAN_TOKEN` must carry the same scope you would grant to `doctl`
+  (Domains + App Platform) and matches the `--token` flag described in the
+  script usage banner.
+- Drop `--show-spec` and add `--apply` when you are ready to push the rendered
+  spec through the API. The command exits with a non-zero status if the API
+  responds with an error, surfacing the response payload for debugging.
+- Use `--output` to capture the generated spec YAML locally before shipping it,
+  or `--allowed-origins`/`--domain` to override individual fields ad hoc.
+
 ## 5. Post-import verification
 
 1. Inspect the records on DigitalOcean to confirm the import succeeded:
