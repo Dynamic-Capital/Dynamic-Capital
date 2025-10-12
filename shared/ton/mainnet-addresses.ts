@@ -2,6 +2,7 @@ export interface TonMainnetAccountDefinition {
   readonly key: string;
   readonly label: string;
   readonly friendlyAddress: string;
+  readonly nonBounceableAddress?: string;
   readonly description?: string;
   readonly tonDns?: string;
   readonly explorerUrl?: string;
@@ -15,6 +16,9 @@ export const TON_MAINNET_OPERATIONS_TREASURY =
 
 export const TON_MAINNET_DAO_MULTISIG =
   "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y";
+
+export const TON_MAINNET_DAO_MULTISIG_NON_BOUNCEABLE =
+  "UQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx6N3";
 
 export const TON_MAINNET_INTAKE_WALLET = TON_MAINNET_PRIMARY_MULTISIG;
 
@@ -77,6 +81,7 @@ export const TON_MAINNET_ACCOUNT_DEFINITIONS = [
     key: "daoMultisig",
     label: "DAO governance multisig",
     friendlyAddress: TON_MAINNET_DAO_MULTISIG,
+    nonBounceableAddress: TON_MAINNET_DAO_MULTISIG_NON_BOUNCEABLE,
     description:
       "Dedicated DAO executor responsible for governance proposals and resolver updates.",
     explorerUrl: TON_MAINNET_DAO_MULTISIG_EXPLORER_URL,
