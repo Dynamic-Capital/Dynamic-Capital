@@ -1,5 +1,7 @@
-import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
-import { extractTelegramUserId } from "../shared/telegram.ts";
+import {
+  extractTelegramUserId,
+  verifyInitDataAndGetUser,
+} from "../_shared/telegram.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import type { SupabaseClient } from "../_shared/client.ts";
 
@@ -203,26 +205,26 @@ export async function handleApiRoutes(
   if (path === "/api/vip-dashboard" && req.method === "GET") {
     try {
       const url = new URL(req.url);
-      const telegram_user_id = url.searchParams.get("telegram_user_id");
+      const initData = url.searchParams.get("initData") || "";
+      const user = await verifyInitDataAndGetUser(initData);
 
-      if (!telegram_user_id) {
-        return new Response(
-          JSON.stringify({ error: "telegram_user_id required" }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "content-type": "application/json" },
-          },
-        );
+      if (!user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "content-type": "application/json" },
+        });
       }
 
+      const telegram_user_id = String(user.id);
+
       // Check if user is VIP
-      const { data: user, error: userError } = await supabase
+      const { data: userRow, error: userError } = await supabase
         .from("bot_users")
         .select("is_vip, subscription_expires_at")
         .eq("telegram_id", telegram_user_id)
         .single();
 
-      if (userError || !user?.is_vip) {
+      if (userError || !userRow?.is_vip) {
         return new Response(JSON.stringify({ error: "Access denied" }), {
           status: 403,
           headers: { ...corsHeaders, "content-type": "application/json" },
@@ -247,8 +249,8 @@ export async function handleApiRoutes(
       return new Response(
         JSON.stringify({
           user: {
-            is_vip: user.is_vip,
-            subscription_expires_at: user.subscription_expires_at,
+            is_vip: userRow.is_vip,
+            subscription_expires_at: userRow.subscription_expires_at,
           },
           analytics: analytics || [],
           recent_interactions: interactions || [],

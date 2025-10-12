@@ -6,7 +6,7 @@
  * object with a `message` field) is thrown. Callers should handle these errors
  * with a `try/catch` block.
  */
-import { extractTelegramUserId } from "../../../shared/telegram.ts";
+import { extractTelegramUserId } from "../../../_shared/telegram.ts";
 
 export function useApi() {
   const getInitData = () =>
@@ -107,7 +107,7 @@ export function useApi() {
     const res = await fetch("/api/admin-check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegram_user_id }),
+      body: JSON.stringify({ initData, telegram_user_id }),
     });
     if (!res.ok) return handleError(res);
     return res.json();
@@ -120,19 +120,15 @@ export function useApi() {
     const res = await fetch("/api/subscription-status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegram_user_id }),
+      body: JSON.stringify({ initData, telegram_user_id }),
     });
     if (!res.ok) return handleError(res);
     return res.json();
   };
 
   const getVipDashboard = async () => {
-    const initData = getInitData();
-    const telegram_user_id = extractTelegramUserId(initData);
-
-    const res = await fetch(
-      `/api/vip-dashboard?telegram_user_id=${telegram_user_id}`,
-    );
+    const initData = encodeURIComponent(getInitData());
+    const res = await fetch(`/api/vip-dashboard?initData=${initData}`);
     if (!res.ok) return handleError(res);
     return res.json();
   };

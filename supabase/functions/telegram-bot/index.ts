@@ -42,11 +42,6 @@ import {
   createConversation,
 } from "https://deno.land/x/grammy_conversations@v1.2.0/mod.ts";
 import { createThrottler } from "./vendor/grammy_transformer_throttler.ts";
-import { ocrTextFromBlob as defaultOcrTextFromBlob } from "./ocr.ts";
-import {
-  parseBankSlip as defaultParseBankSlip,
-  type ParsedSlip,
-} from "./bank-parsers.ts";
 // Type definition moved inline to avoid import issues
 interface Promotion {
   code: string;
@@ -185,26 +180,6 @@ function normalizeParseMode(parseMode: unknown): string {
 
 function shouldEscapeHtml(parseMode: string): boolean {
   return parseMode.toLowerCase() === "html";
-}
-
-let ocrTextFromBlobImpl = defaultOcrTextFromBlob;
-let parseBankSlipImpl = defaultParseBankSlip;
-
-export function __setReceiptParsingOverrides(overrides: {
-  ocrTextFromBlob?: typeof defaultOcrTextFromBlob;
-  parseBankSlip?: typeof defaultParseBankSlip;
-}): void {
-  if (overrides.ocrTextFromBlob) {
-    ocrTextFromBlobImpl = overrides.ocrTextFromBlob;
-  }
-  if (overrides.parseBankSlip) {
-    parseBankSlipImpl = overrides.parseBankSlip;
-  }
-}
-
-export function __resetReceiptParsingOverrides(): void {
-  ocrTextFromBlobImpl = defaultOcrTextFromBlob;
-  parseBankSlipImpl = defaultParseBankSlip;
 }
 
 async function telegramFetch(
@@ -1913,14 +1888,6 @@ export async function startReceiptPipeline(
       `https://api.telegram.org/file/bot${BOT_TOKEN}/${path}`,
     ).then((r) => r.blob());
 
-    let parsedSlip: ParsedSlip | null = null;
-    try {
-      const ocrText = await ocrTextFromBlobImpl(blob);
-      parsedSlip = parseBankSlipImpl(ocrText);
-    } catch (error) {
-      console.error("Failed to OCR/parse bank slip", error);
-    }
-
     const hash = await hashBlob(blob);
     const storagePath = `receipts/${chatId}/${hash}`;
     try {
@@ -1967,7 +1934,6 @@ export async function startReceiptPipeline(
         payment_id: pay.id,
         file_path: storagePath,
         bucket: "payment-receipts",
-        ...(parsedSlip ? { parsed_slip: parsedSlip } : {}),
       }),
     }).then((r) => r.json()).catch(() => null);
     if (!rs?.ok) {
