@@ -3,6 +3,8 @@ import {
   TON_MAINNET_DEDUST_DCT_TON_POOL,
   TON_MAINNET_STONFI_DCT_JETTON_WALLET,
   TON_MAINNET_STONFI_DCT_TON_POOL,
+  TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
+  TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
 } from "./mainnet-addresses.ts";
 
 const buildTonviewerAccountUrl = (address: string) =>
@@ -66,5 +68,22 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     dexScreenerId: "dedust",
     dexScreenerPairUrl:
       `https://dexscreener.com/ton/${TON_MAINNET_DEDUST_DCT_TON_POOL.toLowerCase()}`,
+  },
+  {
+    dex: "swap.coffee",
+    pair: "TON/DCT",
+    swapUrl: "https://swap.coffee/swap?from=TON&to=DCT",
+    description:
+      "Aggregator route that blends venue quotes while exposing native TON⇄DCT liquidity for partners and bots.",
+    poolAddress: TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
+    poolExplorerUrl: buildTonviewerAccountUrl(TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL),
+    metadataUrl:
+      "https://lp.swap.coffee/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a/metadata",
+    jettonWalletAddress: TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
+    jettonWalletExplorerUrl: buildTonviewerAccountUrl(
+      TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
+    ),
+    lpJettonExplorerUrl:
+      "https://tonviewer.com/jetton/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a",
   },
 ]);

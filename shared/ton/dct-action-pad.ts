@@ -59,6 +59,9 @@ const shorten = (value: string, visible = 6) =>
 
 const STONFI_POOL = DCT_DEX_POOLS.find((pool) => pool.dex === "STON.fi");
 const DEDUST_POOL = DCT_DEX_POOLS.find((pool) => pool.dex === "DeDust");
+const SWAPCOFFEE_POOL = DCT_DEX_POOLS.find(
+  (pool) => pool.dex === "swap.coffee",
+);
 
 const DCT_ACTION_PAD_DEFINITION = {
   alias: TON_MAINNET_DCT_TREASURY_ALIAS,
@@ -74,7 +77,7 @@ const DCT_ACTION_PAD_DEFINITION = {
       label: "TON alias",
       value: TON_MAINNET_DCT_TREASURY_ALIAS,
       helper:
-        "Works across Tonkeeper, Wallet, DeDust, STON.fi, Tonhub, and Bitget wallets.",
+        "Works across Tonkeeper, Wallet, STON.fi, DeDust, swap.coffee, Tonhub, and Bitget wallets.",
     },
     {
       key: "wallet",
@@ -199,9 +202,9 @@ const DCT_ACTION_PAD_DEFINITION = {
       icon: "repeat",
       summary: "Access liquidity and explorers",
       description:
-        "Route swaps through STON.fi or DeDust and audit jetton wallets before executing treasury moves.",
+        "Route swaps through STON.fi, DeDust, or swap.coffee and audit jetton wallets before executing treasury moves.",
       highlights: [
-        "STON.fi and DeDust pools keep DCT/TON liquidity balanced for investors and operations.",
+        "STON.fi, DeDust, and swap.coffee pools keep DCT/TON liquidity balanced for investors and operations.",
         "Explorer links expose pool balances for reconciliation across Supabase and bots.",
         "Jetton wallet references align governance, automation scripts, and compliance checks.",
       ],
@@ -240,6 +243,25 @@ const DCT_ACTION_PAD_DEFINITION = {
             {
               label: "DeDust jetton wallet",
               href: DEDUST_POOL.jettonWalletExplorerUrl,
+              external: true,
+            },
+          ]
+          : []),
+        ...(SWAPCOFFEE_POOL
+          ? [
+            {
+              label: "Swap on swap.coffee",
+              href: SWAPCOFFEE_POOL.swapUrl,
+              external: true,
+            },
+            {
+              label: "swap.coffee pool explorer",
+              href: SWAPCOFFEE_POOL.poolExplorerUrl,
+              external: true,
+            },
+            {
+              label: "swap.coffee jetton wallet",
+              href: SWAPCOFFEE_POOL.jettonWalletExplorerUrl,
               external: true,
             },
           ]

@@ -44,6 +44,9 @@ from .ton_index_client import (
     TonIndexTransactionsResult,
 )
 
+_NANOTON: float = 1_000_000_000.0
+_DCT_DECIMALS: float = 1_000_000_000.0
+
 __all__ = [
     "TonPricePoint",
     "TonLiquiditySnapshot",
@@ -234,6 +237,11 @@ _DEDUST_POOL_ALIASES: Mapping[str, str] = {
     "TONDCT": "0:D3278947B93E817536048A8F7D50C64D0BD873950F937E803D4C7AEFCAB2EE98",
 }
 
+_SWAPCOFFEE_POOL_ALIASES: Mapping[str, str] = {
+    "TONDCT": "0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A",
+    "DCTTON": "0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A",
+}
+
 
 def _stonfi_pool_address(pair: str) -> str:
     return _normalise_pool_alias(pair, mapping=_STONFI_POOL_ALIASES, venue="STON.fi")
@@ -241,6 +249,21 @@ def _stonfi_pool_address(pair: str) -> str:
 
 def _dedust_pool_address(pair: str) -> str:
     return _normalise_pool_alias(pair, mapping=_DEDUST_POOL_ALIASES, venue="DeDust")
+
+
+def _swapcoffee_pool_address(pair: str) -> str:
+    return _normalise_pool_alias(pair, mapping=_SWAPCOFFEE_POOL_ALIASES, venue="swap.coffee")
+
+
+def _decode_swapcoffee_payload(payload: Mapping[str, Any]) -> Mapping[str, Any]:
+    decoded = payload.get("decoded")
+    if not decoded:
+        raise ValueError("swap.coffee get_pool_data response missing decoded payload")
+    return _coerce_mapping(decoded, label="swap.coffee get_pool_data")
+
+
+def _to_amount(value: int, *, scale: float) -> float:
+    return float(value) / scale
 
 
 _INTERVAL_SECONDS: Mapping[str, int] = {
@@ -379,6 +402,7 @@ class TonDataCollector:
             "stonfi": "https://api.ston.fi",
             "dedust": "https://api.dedust.io",
             "tonapi": "https://tonapi.io/v2",
+            "swapcoffee": "https://tonapi.io/v2",
         }
         if base_urls:
             self._base_urls.update(base_urls)
@@ -489,6 +513,24 @@ class TonDataCollector:
                 )
             except ValueError:
                 end = start + _interval_to_timedelta(interval)
+        elif venue_key in {"swapcoffee", "swap.coffee"}:
+            base = self._base_urls.get("swapcoffee", self._base_urls["tonapi"])
+            pool_address = _swapcoffee_pool_address(pair)
+            payload = await self._request(
+                f"{base}/blockchain/accounts/{pool_address}/methods/get_pool_data"
+            )
+            decoded = _decode_swapcoffee_payload(payload)
+            reserve_ton = _as_int(
+                decoded.get("reserve1"), field="swap.coffee reserve1"
+            )
+            reserve_dct = _as_int(
+                decoded.get("reserve2"), field="swap.coffee reserve2"
+            )
+            price = float(reserve_ton / reserve_dct) if reserve_dct else 0.0
+            volume = 0.0
+            now = datetime.now(tz=timezone.utc)
+            start = now - _interval_to_timedelta(interval)
+            end = now
         else:
             raise ValueError(f"Unsupported venue for price data: {venue}")
 
@@ -678,6 +720,31 @@ class TonDataCollector:
                 quote_depth=quote_depth,
                 fee_bps=fee_bps,
                 block_height=block_height,
+            )
+        if venue_key in {"swapcoffee", "swap.coffee"}:
+            base = self._base_urls.get("swapcoffee", self._base_urls["tonapi"])
+            pool_address = _swapcoffee_pool_address(pair)
+            payload = await self._request(
+                f"{base}/blockchain/accounts/{pool_address}/methods/get_pool_data"
+            )
+            decoded = _decode_swapcoffee_payload(payload)
+            reserve_ton = _as_int(
+                decoded.get("reserve1"), field="swap.coffee reserve1"
+            )
+            reserve_dct = _as_int(
+                decoded.get("reserve2"), field="swap.coffee reserve2"
+            )
+            fee_raw = _as_int(decoded.get("lp_fee"), field="swap.coffee lp_fee")
+            ton_depth = _to_amount(reserve_ton, scale=_NANOTON)
+            quote_depth = _to_amount(reserve_dct, scale=_DCT_DECIMALS)
+            fee_bps = float(fee_raw) / 100.0
+            return TonLiquiditySnapshot(
+                venue=venue,
+                pair=pair,
+                ton_depth=ton_depth,
+                quote_depth=quote_depth,
+                fee_bps=fee_bps,
+                block_height=0,
             )
         raise ValueError(f"Unsupported venue for liquidity data: {venue}")
 
