@@ -72,7 +72,7 @@
 - **Issuer statement export:** `exports/dct-issuer-statement-20251007.pdf`
   (SHA-256 recorded in escalation log).
 - **Metadata JSON digest:**
-  `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5` (validated 2025-10-07 15:48 UTC).
+  `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5` (validated 2025-10-12 10:19 UTC via evidence preflight; `statusExitCode` `3`, warning logged).
 - **Verification logs:** `logs/check-tonviewer-status-20251007.log`,
   `logs/check-tonviewer-status-20251010.log`, `logs/check-tonviewer-status-20251012.log` (flag `none`).
 - **Compliance archive:** Presigned URL covering
