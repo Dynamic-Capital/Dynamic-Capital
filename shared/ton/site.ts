@@ -7,30 +7,30 @@ const TON_SITE_DOMAIN_CANDIDATES = Object.freeze([
   TON_SITE_DOMAIN,
   ...TON_SITE_ALIAS_DOMAINS,
 ]);
-export const TON_SITE_GATEWAY_BASE = "https://ton.site";
-export const TON_SITE_GATEWAY_STANDBY_BASE =
+export const TON_SITE_GATEWAY_BASE =
   "https://ton-gateway.dynamic-capital.ondigitalocean.app";
+export const TON_SITE_GATEWAY_STANDBY_BASE = "https://ton.site";
+
+export const TON_SITE_GATEWAY_SELF_HOST_BASES = Object.freeze([
+  TON_SITE_GATEWAY_BASE,
+  "https://ton-gateway.dynamic-capital.lovable.app",
+] as const);
 
 export const TON_SITE_GATEWAY_FOUNDATION_BASES = Object.freeze([
-  TON_SITE_GATEWAY_BASE,
+  TON_SITE_GATEWAY_STANDBY_BASE,
   "https://tonsite.io",
   "https://tonsite.link",
 ] as const);
 
-export const TON_SITE_GATEWAY_SELF_HOST_BASES = Object.freeze([
-  TON_SITE_GATEWAY_STANDBY_BASE,
-  "https://ton-gateway.dynamic-capital.lovable.app",
-] as const);
-
-const TON_SITE_GATEWAY_FOUNDATION_HOSTS =
-  TON_SITE_GATEWAY_FOUNDATION_BASES.map((base) => new URL(base).hostname);
 const TON_SITE_GATEWAY_SELF_HOST_HOSTS =
   TON_SITE_GATEWAY_SELF_HOST_BASES.map((base) => new URL(base).hostname);
+const TON_SITE_GATEWAY_FOUNDATION_HOSTS =
+  TON_SITE_GATEWAY_FOUNDATION_BASES.map((base) => new URL(base).hostname);
 
 export const TON_SITE_GATEWAY_PRIMARY_HOST =
-  TON_SITE_GATEWAY_FOUNDATION_HOSTS[0];
+  new URL(TON_SITE_GATEWAY_BASE).hostname;
 export const TON_SITE_GATEWAY_STANDBY_HOST =
-  TON_SITE_GATEWAY_SELF_HOST_HOSTS[0];
+  new URL(TON_SITE_GATEWAY_STANDBY_BASE).hostname;
 
 export const TON_SITE_GATEWAY_HOSTS = Object.freeze(
   Array.from(

@@ -89,12 +89,14 @@ Next.js application (under `apps/web`) powers both the marketing landing page an
 the authenticated Mini App dashboard, while Supabase handles storage,
 authentication, and real-time orchestration.
 
-> **Browser fallback:** Standard DNS resolvers cannot resolve `.ton` domains and
-> may return `DNS_PROBE_FINISHED_NXDOMAIN`. Use the TON Foundation gateway at
-> <https://ton.site/dynamiccapital.ton> or install a TON-enabled wallet
-> extension (for example, MyTonWallet) to access production content hosted at
-> `DynamicCapital.ton`. Legacy self-hosted proxies remain documented for
-> redeployments.
+> **Primary browser gateway:** Standard DNS resolvers cannot resolve `.ton`
+> domains and may return `DNS_PROBE_FINISHED_NXDOMAIN`. Route traffic through
+> the DigitalOcean reverse proxy at
+> <https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton>
+> to load the production bundle. The TON Foundation bridge at
+> <https://ton.site/dynamiccapital.ton> remains a standby fallback, and native
+> `.ton` resolution is still available through wallet extensions such as
+> MyTonWallet. Legacy gateway options are documented for redeployments.
 
 ## What's New
 

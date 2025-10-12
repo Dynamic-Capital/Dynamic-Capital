@@ -3,22 +3,24 @@
 Dynamic Capital serves the Telegram Mini App bundle through a TON Site. Install
 and operate the gateway with the Tonutils Reverse Proxy helper outlined in
 [docs/tonutils-reverse-proxy.md](./tonutils-reverse-proxy.md) to keep the HTTPS
-fallback online. Native TON wallets resolve `.ton` domains directly, while
-traditional browsers should now start with the official TON Foundation bridge at
-<https://ton.site/dynamiccapital.ton>. Our self-hosted gateways on
-DigitalOcean/Lovable remain documented below but are currently offline pending a
-redeploy.
+reverse proxy online. Native TON wallets resolve `.ton` domains directly, while
+traditional browsers should now start with the DigitalOcean reverse proxy at
+<https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton>.
+The TON Foundation bridge remains an audited fallback if the self-hosted
+gateway is unavailable.
 
 ## Quick remediation when browsers show NXDOMAIN
 
-1. **Confirm the gateway is online.** Open <https://ton.site/dynamiccapital.ton>
-   in any modern browser. The TON Foundation bridge terminates TLS and relays
-   traffic to the TON Site so no wallet integration is required.
-2. **Install a TON DNS resolver extension if you want native `.ton` support.**
-   Wallet extensions such as
+1. **Confirm the gateway is online.** Open
+   <https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton>
+   in any modern browser. The DigitalOcean reverse proxy terminates TLS and
+   relays traffic to the TON Site so no wallet integration is required.
+2. **Install a TON DNS resolver extension if you want native `.ton` support or
+   need the TON Foundation fallback.** Wallet extensions such as
    [MyTonWallet for Chrome](https://chromewebstore.google.com/detail/mytonwallet/abogkplpencnmaiffledhjgobkeeflka)
    register a custom resolver and immediately remove the
-   `DNS_PROBE_FINISHED_NXDOMAIN` warning for `.ton` domains.
+   `DNS_PROBE_FINISHED_NXDOMAIN` warning for `.ton` domains while also enabling
+   direct access to <https://ton.site/dynamiccapital.ton> when required.
 3. **Flush the browser cache after installing the resolver.** Clear the cached
    host list or restart the browser so the new resolver handles
    `dynamiccapital.ton`.
@@ -29,14 +31,15 @@ redeploy.
 
 | Purpose              | URL                                                                       | Notes                                            |
 | -------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
-| Primary gateway      | https://ton.site/dynamiccapital.ton                                       | TON Foundation-operated HTTPS bridge             |
-| Icon                 | https://ton.site/dynamiccapital.ton/icon.png                              | Served from the same gateway                     |
-| Social preview       | https://ton.site/dynamiccapital.ton/social/social-preview.svg             | Served from the same gateway                     |
-| Legacy DO proxy      | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton | Currently offline; keep for historical reference |
-| Legacy Lovable proxy | https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton        | Currently offline; reinstated after redeploy     |
+| Primary gateway      | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton | DigitalOcean reverse proxy terminating TLS for standard browsers |
+| Icon                 | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/icon.png | Served from the DigitalOcean gateway |
+| Social preview       | https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton/social/social-preview.svg | Served from the DigitalOcean gateway |
+| Foundation fallback  | https://ton.site/dynamiccapital.ton                                       | TON Foundation-operated HTTPS bridge |
+| Lovable standby      | https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton        | Hot standby reverse proxy mirroring the DigitalOcean gateway |
 
-When the self-hosted gateways come back online, update `shared/ton/site.ts` and
-`dns/dynamiccapital.ton.json` to promote them back to primary/standby roles.
+When updating gateway priority, adjust `shared/ton/site.ts` and
+`dns/dynamiccapital.ton.json` so operational dashboards reflect the active
+primary and fallback ordering.
 
 Link helpers inside the repository now point to these gateway URLs. Publishing
 flows should continue to treat `dynamiccapital.ton` as the canonical domain;
