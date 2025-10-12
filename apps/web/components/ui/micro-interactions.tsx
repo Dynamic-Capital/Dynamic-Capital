@@ -185,10 +185,10 @@ export function MicroCard({
 
   const variantClasses = {
     default: "motion-card",
-    glass: "glass-motion-card backdrop-blur-xl",
+    glass: "motion-card glass-motion-card backdrop-blur-xl",
     elevated: "motion-card shadow-xl hover:shadow-2xl",
-    glow: "motion-card-glow",
-    tilt: "motion-card transform-gpu",
+    glow: "motion-card motion-card-glow",
+    tilt: "motion-card motion-card-interactive transform-gpu",
   };
 
   return (

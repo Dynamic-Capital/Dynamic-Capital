@@ -23,10 +23,10 @@ export interface MotionCardProps {
 
 const variantStyles = {
   default: "motion-card",
-  glass: "glass-motion-card",
+  glass: "motion-card glass-motion-card",
   elevated: "motion-card shadow-xl",
-  interactive: "motion-card-interactive",
-  glow: "motion-card-glow",
+  interactive: "motion-card motion-card-interactive",
+  glow: "motion-card motion-card-glow",
   minimal: "bg-transparent border-0 shadow-none",
 };
 
