@@ -159,6 +159,19 @@ chronological order beneath this entry.
   https://dynamic-capital-qazf2.ondigitalocean.app --apply --apply-zone` to push
   the spec and import the latest zone snapshot.
 
+## 2025-10-12 – DNS payload refreshed for non-bounceable multisig
+
+- **Scope** — Regenerated `storage/dns-records.txt` and `public/dns/active.json`
+  so `root_wallet` and `dao_contract` both reference the non-bounceable
+  operations multisig `UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G`.
+- **Repository updates** — Bumped the payload timestamp to
+  `2025-10-12T19:49:30Z` and published placeholders for the DAO and treasury
+  signatures until the multisig owners re-sign the bundle.
+- **Action required** — Execute the DAO governance proposal that signs the new
+  payload, replace the placeholders with the emitted base64 signatures, and
+  re-run the Supabase verification job to confirm downstream endpoints accept
+  the update.
+
 ## 2025-02-14 – TON Foundation gateway promoted
 
 - **Context** — The self-hosted DigitalOcean and Lovable reverse proxies remain

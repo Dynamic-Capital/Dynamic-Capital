@@ -181,11 +181,11 @@ mirrors the canonical structure:
     "swapcoffee_swap": "https://swap.coffee/dex?st=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "x1000_token": "https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "web": "https://dynamiccapital.ton",
-    "updated": "2025-10-12T19:45:00Z"
+    "updated": "2025-10-12T19:49:30Z"
   },
   "signatures": {
-    "dao": "base64:abc123...",
-    "treasury": "base64:def456..."
+    "dao": "PENDING_DAO_SIGNATURE",
+    "treasury": "PENDING_TREASURY_SIGNATURE"
   }
 }
 ```

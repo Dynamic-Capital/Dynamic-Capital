@@ -34,5 +34,5 @@ swapcoffee_pool=EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D
 swapcoffee_pool_metadata=https://lp.swap.coffee/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a/metadata
 swapcoffee_swap=https://swap.coffee/dex?st=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 x1000_token=https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
-signature=<to_be_filled_by_script>
-updated=2025-10-12T19:45:00Z
+signature=PENDING_TREASURY_SIGNATURE
+updated=2025-10-12T19:49:30Z
