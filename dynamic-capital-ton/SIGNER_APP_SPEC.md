@@ -102,6 +102,20 @@ tonsign://v1/?network=ton&pk=5a13667c677535f94d8b365c7952e3b63e069babf8133d93470
 The deeplink above should be embedded in a QR code when transferring payloads
 between devices.
 
+### Inspecting signer payloads
+
+Developers can decode signer requests or state-init blobs locally with the
+`inspect-boc` helper:
+
+```bash
+tsx dynamic-capital-ton/apps/tools/inspect-boc.ts <hex-or-base64-boc>
+```
+
+The command prints each cell's hash, depth, and references so payloads can be
+audited before being shared with the offline signer. Hex strings such as the
+example above are detected automatically; base64 deeplinks can be pasted
+verbatim.
+
 ### Return Parameter
 
 When SignerApp runs on the same device as Tonkeeper, the `return` parameter
