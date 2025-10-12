@@ -1,0 +1,138 @@
+{
+  "run_at": "2025-10-12T01:42:21.269Z",
+  "verifier_domain": {
+    "domain": "orbs.com",
+    "dns_lookup": {
+      "name": "dns_lookup",
+      "ok": true,
+      "detail": "185.199.110.153"
+    },
+    "https_head": {
+      "name": "https_head",
+      "ok": false,
+      "detail": "{\"code\":\"ENETUNREACH\"}"
+    }
+  },
+  "validators": [
+    {
+      "record": {
+        "status": "verified",
+        "public_key_base64": "edaMyPS3LRFd28UVd7qP6YK1Y/JWrW4+hT+ydMO8TRY=",
+        "ip_address": "3.3.3.3",
+        "verified_at": "2022-11-15",
+        "verifier": "orbs.com"
+      },
+      "checks": [
+        {
+          "name": "schema_status",
+          "ok": true,
+          "detail": "verified"
+        },
+        {
+          "name": "base64_format",
+          "ok": true
+        },
+        {
+          "name": "ip_format",
+          "ok": true,
+          "detail": "3.3.3.3"
+        },
+        {
+          "name": "verified_at_past",
+          "ok": true,
+          "detail": "2022-11-15T00:00:00.000Z"
+        },
+        {
+          "name": "tcp_443",
+          "ok": false,
+          "detail": "connect ENETUNREACH 3.3.3.3:443 - Local (0.0.0.0:0)"
+        },
+        {
+          "name": "tcp_80",
+          "ok": false,
+          "detail": "connect ENETUNREACH 3.3.3.3:80 - Local (0.0.0.0:0)"
+        }
+      ]
+    },
+    {
+      "record": {
+        "status": "verified",
+        "public_key_base64": "0fjyUVE88fJa2IgWpNjjz6O9TC8ftFoSwb+DI1HvFM8=",
+        "ip_address": "3.3.3.4",
+        "verified_at": "2022-11-15",
+        "verifier": "orbs.com"
+      },
+      "checks": [
+        {
+          "name": "schema_status",
+          "ok": true,
+          "detail": "verified"
+        },
+        {
+          "name": "base64_format",
+          "ok": true
+        },
+        {
+          "name": "ip_format",
+          "ok": true,
+          "detail": "3.3.3.4"
+        },
+        {
+          "name": "verified_at_past",
+          "ok": true,
+          "detail": "2022-11-15T00:00:00.000Z"
+        },
+        {
+          "name": "tcp_443",
+          "ok": false,
+          "detail": "connect ENETUNREACH 3.3.3.4:443 - Local (0.0.0.0:0)"
+        },
+        {
+          "name": "tcp_80",
+          "ok": false,
+          "detail": "connect ENETUNREACH 3.3.3.4:80 - Local (0.0.0.0:0)"
+        }
+      ]
+    },
+    {
+      "record": {
+        "status": "verified",
+        "public_key_base64": "1fWcZGowOI0gTHZyTPhTX2s3iBnMSdqsNqJYCWNj0A4=",
+        "ip_address": "3.3.3.5",
+        "verified_at": "2022-11-15",
+        "verifier": "orbs.com"
+      },
+      "checks": [
+        {
+          "name": "schema_status",
+          "ok": true,
+          "detail": "verified"
+        },
+        {
+          "name": "base64_format",
+          "ok": true
+        },
+        {
+          "name": "ip_format",
+          "ok": true,
+          "detail": "3.3.3.5"
+        },
+        {
+          "name": "verified_at_past",
+          "ok": true,
+          "detail": "2022-11-15T00:00:00.000Z"
+        },
+        {
+          "name": "tcp_443",
+          "ok": false,
+          "detail": "connect ENETUNREACH 3.3.3.5:443 - Local (0.0.0.0:0)"
+        },
+        {
+          "name": "tcp_80",
+          "ok": false,
+          "detail": "connect ENETUNREACH 3.3.3.5:80 - Local (0.0.0.0:0)"
+        }
+      ]
+    }
+  ]
+}

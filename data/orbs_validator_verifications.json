@@ -1,0 +1,23 @@
+[
+  {
+    "status": "verified",
+    "public_key_base64": "edaMyPS3LRFd28UVd7qP6YK1Y/JWrW4+hT+ydMO8TRY=",
+    "ip_address": "3.3.3.3",
+    "verified_at": "2022-11-15",
+    "verifier": "orbs.com"
+  },
+  {
+    "status": "verified",
+    "public_key_base64": "0fjyUVE88fJa2IgWpNjjz6O9TC8ftFoSwb+DI1HvFM8=",
+    "ip_address": "3.3.3.4",
+    "verified_at": "2022-11-15",
+    "verifier": "orbs.com"
+  },
+  {
+    "status": "verified",
+    "public_key_base64": "1fWcZGowOI0gTHZyTPhTX2s3iBnMSdqsNqJYCWNj0A4=",
+    "ip_address": "3.3.3.5",
+    "verified_at": "2022-11-15",
+    "verifier": "orbs.com"
+  }
+]
