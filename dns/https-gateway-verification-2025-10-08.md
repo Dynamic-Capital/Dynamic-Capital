@@ -1,10 +1,22 @@
 # HTTPS Gateway Verification – 2025-10-08
 
 ## Summary
+- 2025-10-12 15:16 UTC follow-up redeploy triggered via the DigitalOcean REST API after the `npm run do:sync-site` helper failed (sandbox `ENETUNREACH` on Node `fetch`); direct origin probes still return `HTTP 404`, indicating the TON bundle was not rebuilt.
 - 2025-10-12 15:04 UTC manual redeploy triggered for `dynamic-capital-qazf2` via the DigitalOcean REST API; origin probe currently returns `HTTP 404` while propagation completes.
 - 2025-10-10 02:32 UTC verification confirms both HTTPS gateways return `HTTP 200` for `/dynamiccapital.ton`.
 - Direct origin probe at `https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton` also returns `HTTP 200`, confirming the bundle is restored.
 - Earlier 2025-10-10 16:41 UTC regression details remain below for historical context.
+
+## 2025-10-12 15:16 UTC – Follow-up redeploy and health checks
+
+1. `npm run do:sync-site -- --app-id aead98a2-db66-41e0-a5af-43c063b1f61a --site-url https://dynamic-capital-qazf2.ondigitalocean.app --apply`
+   - Result: `fetch failed` (Node `undici` surfaced `AggregateError [ENETUNREACH]` in the sandbox, blocking the helper from reaching `api.digitalocean.com`).
+2. `curl -sS -X POST -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" -H "Content-Type: application/json" https://api.digitalocean.com/v2/apps/aead98a2-db66-41e0-a5af-43c063b1f61a/deployments`
+   - Response excerpt records deployment `0f8b18ca-9077-43c3-9e46-c7ee5a97a3ae` entering `PENDING_BUILD` at `2025-10-12T15:15:59Z` and completing with phase `ACTIVE` after the follow-up poll.
+3. `curl -sS -o /tmp/dyn-ton.html -w '%{http_code}\n' https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
+   - Returned `404` (TON bundle still absent on the DigitalOcean origin after redeploy).
+4. `npm run ton:site-status -- --domain dynamiccapital.ton`
+   - Result: fails for all gateways with `ENETUNREACH`/`ENOTFOUND` errors because outbound TON network access remains blocked in the sandbox; no live gateway checks completed.
 
 ## 2025-10-12 15:04 UTC – Manual redeploy snapshot
 

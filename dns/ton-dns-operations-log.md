@@ -71,6 +71,21 @@ chronological order beneath this entry.
   state until the TON bundle is redeployed (see
   `dns/https-gateway-verification-2025-10-08.md`).
 
+## 2025-10-12 – Manual redeploy follow-up
+
+- **Timestamp** — 2025-10-12 15:16 UTC redeploy attempted via `npm run do:sync-site` with app ID
+  `aead98a2-db66-41e0-a5af-43c063b1f61a`; the helper failed with `AggregateError [ENETUNREACH]`
+  because Node `fetch` cannot reach `api.digitalocean.com` inside the sandbox.
+- **Redeploy path** — Issued `POST /v2/apps/{app_id}/deployments` via `curl` instead; deployment
+  `0f8b18ca-9077-43c3-9e46-c7ee5a97a3ae` moved to `ACTIVE` at 15:16 UTC.
+- **Origin probe** — `curl -sS -o /tmp/dyn-ton.html -w '%{http_code}\n' https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton`
+  still returns `404`, showing the TON bundle was not rebuilt with the redeploy.
+- **Gateway tooling** — `npm run ton:site-status -- --domain dynamiccapital.ton` remains blocked by
+  sandbox egress limits (`ENETUNREACH` / `ENOTFOUND` across all gateways), so no live gateway checks
+  were captured.
+- **Next step** — Rebuild the TON bundle from `apps/web` and redeploy with a workspace that can reach
+  DigitalOcean APIs (or run the REST calls manually), then repeat the HTTPS verification runbook.
+
 ## 2025-10-10 – TON gateway restoration confirmed
 
 - **Timestamp** — 2025-10-10 02:32 UTC verification block executed after the
