@@ -115,6 +115,24 @@ def test_dynamic_dockerfile_unknown_feature() -> None:
         engine.describe_feature("unknown")
 
 
+def test_feature_metadata_is_immutable_snapshot() -> None:
+    engine = DynamicDockerfileEngine()
+
+    telemetry_metadata = engine.describe_feature("telemetry")
+    telemetry_metadata["environment"]["OTEL_SERVICE_NAME"] = "mutated-service"
+    telemetry_metadata["packages"] = {}
+
+    fresh_metadata = engine.describe_feature("telemetry")
+
+    assert fresh_metadata["environment"]["OTEL_SERVICE_NAME"] == "dynamic-service"
+    assert fresh_metadata["packages"]["python"] == (
+        "opentelemetry-api",
+        "opentelemetry-sdk",
+        "opentelemetry-exporter-otlp",
+        "opentelemetry-instrumentation",
+    )
+
+
 def test_register_feature_requires_override_for_duplicates() -> None:
     engine = DynamicDockerfileEngine()
     recipe = FeatureRecipe(description="Adds linting support.")

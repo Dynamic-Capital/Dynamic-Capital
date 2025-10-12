@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import os
 import re
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import MappingProxyType
 from typing import Dict, Iterable, Mapping, MutableMapping, Sequence, Tuple
 
 __all__ = [
@@ -360,11 +362,14 @@ class FeatureRecipe:
         object.__setattr__(self, "description", self.description.strip())
         object.__setattr__(self, "builder", tuple(self.builder))
         object.__setattr__(self, "runtime", tuple(self.runtime))
+        if self.metadata is not None:
+            frozen_metadata = MappingProxyType(copy.deepcopy(dict(self.metadata)))
+            object.__setattr__(self, "metadata", frozen_metadata)
 
     def describe(self) -> MutableMapping[str, object]:
         payload: MutableMapping[str, object] = {"description": self.description}
         if self.metadata:
-            payload.update(dict(self.metadata))
+            payload.update(copy.deepcopy(dict(self.metadata)))
         payload["builder_instructions"] = len(self.builder)
         payload["runtime_instructions"] = len(self.runtime)
         return payload
