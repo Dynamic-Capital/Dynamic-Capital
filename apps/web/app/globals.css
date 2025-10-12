@@ -354,6 +354,22 @@
   /* === UNIVERSAL MOTION COMPONENTS === */
 
   /* Motion Cards */
+  .motion-card {
+    position: relative;
+    overflow: hidden;
+    background-image: var(--gradient-motion-card);
+    box-shadow: var(--shadow-motion-md);
+    border-width: 1px;
+    border-style: solid;
+    border-color: hsl(var(--border) / 0.5);
+    backdrop-filter: var(--glass-motion-blur);
+    -webkit-backdrop-filter: var(--glass-motion-blur);
+    transition:
+      transform var(--motion-duration-normal) var(--motion-ease-smooth),
+      box-shadow var(--motion-duration-normal) var(--motion-ease-smooth),
+      border-color var(--motion-duration-normal) var(--motion-ease-smooth);
+  }
+
   .motion-card:hover {
     transform: translateY(-4px) scale(var(--scale-motion-sm));
     box-shadow: var(--shadow-motion-lg);
@@ -361,7 +377,7 @@
   }
 
   .motion-card-interactive {
-    @apply motion-card cursor-pointer;
+    cursor: pointer;
   }
 
   .motion-card-interactive:active {
@@ -370,7 +386,18 @@
   }
 
   .motion-card-glow {
-    @apply motion-card;
+    position: relative;
+    overflow: hidden;
+    background-image: var(--gradient-motion-card);
+    border-width: 1px;
+    border-style: solid;
+    border-color: hsl(var(--border) / 0.5);
+    backdrop-filter: var(--glass-motion-blur);
+    -webkit-backdrop-filter: var(--glass-motion-blur);
+    transition:
+      transform var(--motion-duration-normal) var(--motion-ease-smooth),
+      box-shadow var(--motion-duration-normal) var(--motion-ease-smooth),
+      border-color var(--motion-duration-normal) var(--motion-ease-smooth);
     box-shadow:
       var(--shadow-motion-glow),
       var(--shadow-motion-md);
@@ -378,17 +405,48 @@
 
   /* Enhanced Glass Effects */
   .glass-motion-card {
-    @apply glass-motion motion-card;
+    position: relative;
+    overflow: hidden;
+    background-image: var(--glass-motion-bg);
+    box-shadow: var(--glass-motion-shadow);
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--glass-motion-border);
+    backdrop-filter: var(--glass-motion-blur);
+    -webkit-backdrop-filter: var(--glass-motion-blur);
+    transition:
+      transform var(--motion-duration-normal) var(--motion-ease-smooth),
+      box-shadow var(--motion-duration-normal) var(--motion-ease-smooth),
+      border-color var(--motion-duration-normal) var(--motion-ease-smooth);
   }
 
   .glass-motion-nav {
-    @apply glass-motion;
+    background-image: var(--glass-motion-bg);
+    box-shadow: var(--glass-motion-shadow);
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--glass-motion-border);
+    backdrop-filter: var(--glass-motion-blur);
+    -webkit-backdrop-filter: var(--glass-motion-blur);
     position: sticky;
     top: 0;
     z-index: 50;
   }
 
   /* Motion Buttons */
+  .motion-button {
+    position: relative;
+    overflow: hidden;
+    transition-property:
+      transform,
+      box-shadow,
+      background-color,
+      border-color,
+      color;
+    transition-duration: var(--motion-duration-normal);
+    transition-timing-function: var(--motion-ease-spring);
+  }
+
   .motion-button:hover {
     transform: translateY(-2px) scale(var(--scale-motion-sm));
     box-shadow: var(--shadow-motion-lg);
@@ -400,12 +458,37 @@
   }
 
   .motion-button-primary {
-    @apply motion-button bg-primary text-primary-foreground;
+    position: relative;
+    overflow: hidden;
+    transition-property:
+      transform,
+      box-shadow,
+      background-color,
+      border-color,
+      color;
+    transition-duration: var(--motion-duration-normal);
+    transition-timing-function: var(--motion-ease-spring);
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
     background: var(--gradient-motion-primary);
   }
 
   .motion-button-ghost {
-    @apply motion-button bg-transparent hover:bg-muted/50;
+    position: relative;
+    overflow: hidden;
+    transition-property:
+      transform,
+      box-shadow,
+      background-color,
+      border-color,
+      color;
+    transition-duration: var(--motion-duration-normal);
+    transition-timing-function: var(--motion-ease-spring);
+    background-color: transparent;
+  }
+
+  .motion-button-ghost:hover {
+    background-color: hsl(var(--muted) / 0.5);
   }
 
   /* Motion Layout */
