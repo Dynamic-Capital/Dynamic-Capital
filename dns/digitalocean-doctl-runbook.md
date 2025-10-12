@@ -103,6 +103,19 @@ npm run doctl:sync-site -- \
 When the command runs it prints the resolved zone file path and the underlying
 `doctl compute domain records import` invocation.
 
+If you prefer to call `doctl` directly (for example inside a CI job), invoke
+`doctl compute domain records import` with the rendered zone file:
+
+```bash
+./.bin/doctl compute domain records import dynamic-capital.ondigitalocean.app \
+  --zone-file dns/dynamic-capital.ondigitalocean.app.zone \
+  ${DOCTL_CONTEXT:+--context "$DOCTL_CONTEXT"}
+```
+
+The `${DOCTL_CONTEXT:+...}` expansion passes a specific context only when the
+`DOCTL_CONTEXT` environment variable is set, keeping the command compatible with
+both interactive sessions and unattended automation.
+
 ## 5. Post-import verification
 
 1. Inspect the records on DigitalOcean to confirm the import succeeded:
