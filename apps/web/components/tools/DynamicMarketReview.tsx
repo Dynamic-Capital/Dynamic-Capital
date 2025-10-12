@@ -23,8 +23,10 @@ import {
   type DeskSectionHeaderProps,
 } from "@/components/workspaces/DeskSectionHeader";
 
-const FX_MIN_WIDTH_REM = 28;
-const WATCHLIST_MIN_WIDTH_REM = 24;
+// Keep these widths numeric so the desk grid parses them as rem values rather than
+// collapsing to spacing token sizes (e.g. "64" => var(--static-space-64)).
+const FX_MIN_WIDTH_REM = 36;
+const WATCHLIST_MIN_WIDTH_REM = 28;
 const SNAPSHOT_MIN_WIDTH_REM = 18;
 const HEATMAP_MIN_WIDTH_REM = 18;
 
