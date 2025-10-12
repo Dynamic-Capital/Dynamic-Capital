@@ -170,17 +170,70 @@ def test_default_node_configs_cover_seeded_nodes() -> None:
 
     snapshot = registry.snapshot()
     node_ids = {node.node_id for node in snapshot}
-    assert node_ids == {"human-analysis", "dynamic-hedge"}
+    assert node_ids == {
+        "signal-intake",
+        "human-analysis",
+        "signal-dispatch",
+        "trade-execution-sync",
+        "correlation-engine",
+        "risk-governance",
+        "dynamic-hedge",
+        "hedge-broadcast",
+    }
 
-    human = registry.get("human-analysis")
-    assert human.outputs == ("fusion",)
-    assert human.metadata["source"] == "analyst_insights"
-    assert human.weight == pytest.approx(0.25)
+    intake = registry.get("signal-intake")
+    assert intake.type == "ingestion"
+    assert intake.outputs == ("raw_signals", "signals")
+    assert intake.metadata["sources"] == ("tradingview-webhook", "manual-desk")
+
+    dispatch = registry.get("signal-dispatch")
+    assert dispatch.dependencies == ("curated_signals",)
+    assert dispatch.outputs == ("signal_dispatches",)
+    assert dispatch.metadata["workers"] == ("mt5-bridge", "ton-router")
+
+    execution = registry.get("trade-execution-sync")
+    assert execution.type == "ingestion"
+    assert execution.outputs == ("trades",)
+    assert execution.metadata["brokers"] == ("exness", "mt5")
+
+    correlation = registry.get("correlation-engine")
+    assert correlation.dependencies == ("trades",)
+    assert correlation.outputs == ("correlations",)
+    assert correlation.metadata["windows"] == ("1h", "4h", "1d")
+
+    risk = registry.get("risk-governance")
+    assert risk.dependencies == ("correlations", "trades")
+    assert risk.outputs == ("risk_settings",)
+    assert "risk-framework" in risk.metadata["policy_docs"][0]
 
     hedge = registry.get("dynamic-hedge")
-    assert hedge.dependencies == ("trades", "correlations", "risk_settings")
+    assert hedge.dependencies == ("trades", "correlations", "risk_settings", "curated_signals")
     assert hedge.outputs == ("hedge_actions", "signals")
     assert hedge.metadata["confidence"] == pytest.approx(0.9)
+
+    human = registry.get("human-analysis")
+    assert human.dependencies == ("raw_signals",)
+    assert human.outputs == ("curated_signals", "fusion")
+    assert human.metadata["source"] == "analyst_insights"
+    assert human.weight == pytest.approx(0.35)
+
+    broadcast = registry.get("hedge-broadcast")
+    assert broadcast.type == "community"
+    assert broadcast.dependencies == ("hedge_actions",)
+    assert broadcast.outputs == ("community_alerts",)
+    assert broadcast.metadata["channels"] == ("investor-briefings", "ops-war-room")
+
+    ready = registry.resolve_ready_nodes()
+    assert [node.node_id for node in ready] == [
+        "signal-intake",
+        "human-analysis",
+        "signal-dispatch",
+        "trade-execution-sync",
+        "correlation-engine",
+        "risk-governance",
+        "dynamic-hedge",
+        "hedge-broadcast",
+    ]
 
 
 def test_registry_detects_dependency_cycles() -> None:
