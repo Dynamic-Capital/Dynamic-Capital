@@ -231,6 +231,56 @@ function interpolateColor(
   };
 }
 
+function createMaskLookup(color: ColorConfig | undefined) {
+  if (!color?.mode || color.mode === "color") {
+    return undefined;
+  }
+
+  const isGradientMode = color.mode === "gradient";
+  const color1 = parseColor(color.color1 ?? "#ffffff");
+  const color2 = parseColor(color.color2 ?? "#00f0ff");
+  const transparentGlow = isGradientMode ? undefined : { ...color2, a: 0 };
+  const point1 = clamp(
+    (isGradientMode ? color.color1Point ?? 0 : color.threshold ?? 50) / 100,
+    0,
+    1,
+  );
+  const point2 = clamp(
+    (isGradientMode ? color.color2Point ?? 100 : 100) / 100,
+    0,
+    1,
+  );
+  const minPoint = Math.min(point1, point2);
+  const maxPoint = Math.max(point1, point2);
+  const lookup = new Uint8ClampedArray(256 * 4);
+
+  for (let value = 0; value < 256; value++) {
+    const gray = value / 255;
+    let percent: number;
+    if (point1 === point2) {
+      percent = gray < point1 ? 0 : 1;
+    } else {
+      percent = clamp(mapRange(gray, minPoint, maxPoint, 0, 1), 0, 1);
+    }
+
+    const interpolated = percent <= point1
+      ? color1
+      : percent >= point2
+      ? color2
+      : isGradientMode
+      ? interpolateColor(color1, color2, percent)
+      : interpolateColor(color2, transparentGlow!, percent);
+
+    const idx = value * 4;
+    lookup[idx] = interpolated.r;
+    lookup[idx + 1] = interpolated.g;
+    lookup[idx + 2] = interpolated.b;
+    lookup[idx + 3] = Math.round((interpolated.a ?? 1) * 255);
+  }
+
+  return lookup;
+}
+
 class SeededRandom {
   seed: number;
 
@@ -433,7 +483,8 @@ function generateAscii(
   const gradient = props.characterSet === "custom"
     ? props.customCharacterSet || "0 "
     : characterSets[props.characterSet];
-  const levels = gradient.length;
+  const levels = Math.max(gradient.length, 1);
+  const levelChars = Array.from(gradient);
   const { gray: grayOriginal, asciiHeight } = generateGrayValues(
     img,
     props,
@@ -448,22 +499,29 @@ function generateAscii(
 
   const gray = [...grayOriginal];
   const ignoreWhite = props.whiteMode === "ignore";
-  let ascii = "";
+  const asciiRows = new Array<string>(asciiHeight);
 
   const canDiffuse = levels > 1;
+  const levelsMinusOne = Math.max(levels - 1, 1);
+  const levelToChar = (level: number) =>
+    levelChars[level] ?? levelChars[0] ?? " ";
+  const toLevel = (value: number) =>
+    canDiffuse ? Math.round((clamp(value, 0, 255) / 255) * levelsMinusOne) : 0;
+  const levelToPixel = (level: number) =>
+    canDiffuse ? (level / levelsMinusOne) * 255 : 0;
 
   if (props.ditheringMode === "floyd" && canDiffuse) {
     for (let y = 0; y < asciiHeight; y++) {
-      let line = "";
+      const rowChars = new Array<string>(props.outputWidth);
       for (let x = 0; x < props.outputWidth; x++) {
         const idx = y * props.outputWidth + x;
         if (ignoreWhite && grayOriginal[idx] === 255) {
-          line += " ";
+          rowChars[x] = " ";
           continue;
         }
-        const level = Math.round((gray[idx] / 255) * (levels - 1));
-        line += gradient.charAt(level);
-        const newPixel = (level / (levels - 1)) * 255;
+        const level = toLevel(gray[idx]);
+        rowChars[x] = levelToChar(level);
+        const newPixel = levelToPixel(level);
         const error = gray[idx] - newPixel;
         if (x + 1 < props.outputWidth) {
           gray[idx + 1] = clamp(gray[idx + 1] + (error * 7) / 16, 0, 255);
@@ -490,20 +548,20 @@ function generateAscii(
           );
         }
       }
-      ascii += `${line}\n`;
+      asciiRows[y] = rowChars.join("");
     }
   } else if (props.ditheringMode === "atkinson" && canDiffuse) {
     for (let y = 0; y < asciiHeight; y++) {
-      let line = "";
+      const rowChars = new Array<string>(props.outputWidth);
       for (let x = 0; x < props.outputWidth; x++) {
         const idx = y * props.outputWidth + x;
         if (ignoreWhite && grayOriginal[idx] === 255) {
-          line += " ";
+          rowChars[x] = " ";
           continue;
         }
-        const level = Math.round((gray[idx] / 255) * (levels - 1));
-        line += gradient.charAt(level);
-        const newPixel = (level / (levels - 1)) * 255;
+        const level = toLevel(gray[idx]);
+        rowChars[x] = levelToChar(level);
+        const newPixel = levelToPixel(level);
         const error = gray[idx] - newPixel;
         const diffusion = error / 8;
         if (x + 1 < props.outputWidth) {
@@ -541,67 +599,69 @@ function generateAscii(
           );
         }
       }
-      ascii += `${line}\n`;
+      asciiRows[y] = rowChars.join("");
     }
   } else if (props.ditheringMode === "noise") {
     const rng = new SeededRandom(rngSeed);
     for (let y = 0; y < asciiHeight; y++) {
-      let line = "";
+      const rowChars = new Array<string>(props.outputWidth);
       for (let x = 0; x < props.outputWidth; x++) {
         const idx = y * props.outputWidth + x;
         if (ignoreWhite && grayOriginal[idx] === 255) {
-          line += " ";
+          rowChars[x] = " ";
           continue;
         }
         const noise = (rng.next() - 0.4) * (255 / levels);
-        const noisy = clamp(gray[idx] + noise, 0, 255);
-        const level = Math.round((noisy / 255) * (levels - 1));
-        line += gradient.charAt(level);
+        const noisyValue = clamp(gray[idx] + noise, 0, 255);
+        const level = toLevel(noisyValue);
+        rowChars[x] = levelToChar(level);
       }
-      ascii += `${line}\n`;
+      asciiRows[y] = rowChars.join("");
     }
-  } else if (props.ditheringMode === "ordered") {
+  } else if (props.ditheringMode === "ordered" && canDiffuse) {
     const bayer = [
       [0, 8, 2, 10],
       [12, 4, 14, 6],
       [3, 11, 1, 9],
       [15, 7, 13, 5],
-    ];
+    ] as const;
     const matrixSize = 4;
     for (let y = 0; y < asciiHeight; y++) {
-      let line = "";
+      const rowChars = new Array<string>(props.outputWidth);
       for (let x = 0; x < props.outputWidth; x++) {
         const idx = y * props.outputWidth + x;
         if (ignoreWhite && grayOriginal[idx] === 255) {
-          line += " ";
+          rowChars[x] = " ";
           continue;
         }
         const p = gray[idx] / 255;
         const t = (bayer[y % matrixSize][x % matrixSize] + 0.5) /
           (matrixSize * matrixSize);
-        const valueWithDither = clamp(p + t - 0.5, 0, 1);
+        let valueWithDither = p + t - 0.5;
+        valueWithDither = Math.min(Math.max(valueWithDither, 0), 1);
         let level = Math.floor(valueWithDither * levels);
         if (level >= levels) level = levels - 1;
-        line += gradient.charAt(level);
+        rowChars[x] = levelToChar(level);
       }
-      ascii += `${line}\n`;
+      asciiRows[y] = rowChars.join("");
     }
   } else {
     for (let y = 0; y < asciiHeight; y++) {
-      let line = "";
+      const rowChars = new Array<string>(props.outputWidth);
       for (let x = 0; x < props.outputWidth; x++) {
         const idx = y * props.outputWidth + x;
         if (ignoreWhite && grayOriginal[idx] === 255) {
-          line += " ";
+          rowChars[x] = " ";
           continue;
         }
-        const level = Math.round((gray[idx] / 255) * (levels - 1));
-        line += gradient.charAt(level);
+        const level = toLevel(gray[idx]);
+        rowChars[x] = levelToChar(level);
       }
-      ascii += `${line}\n`;
+      asciiRows[y] = rowChars.join("");
     }
   }
 
+  const ascii = asciiRows.length > 0 ? `${asciiRows.join("\n")}\n` : "";
   return { ascii, grayValues: grayOriginal, asciiHeight };
 }
 
@@ -651,7 +711,9 @@ export function InteractiveAscii({
   className,
 }: InteractiveAsciiProps) {
   const [text, setText] = useState("");
-  const [maskUrl, setMaskUrl] = useState<string>();
+  const [maskUrl, setMaskUrl] = useState<string | undefined>(undefined);
+  const maskObjectUrlRef = useRef<string | undefined>(undefined);
+  const maskGenerationRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
@@ -693,6 +755,25 @@ export function InteractiveAscii({
     setCursorImage(undefined);
     return undefined;
   }, [cursor?.imageSrc, cursor?.style]);
+
+  useEffect(() => () => {
+    if (maskObjectUrlRef.current) {
+      URL.revokeObjectURL(maskObjectUrlRef.current);
+      maskObjectUrlRef.current = undefined;
+    }
+  }, []);
+
+  const maskLookup = useMemo(
+    () => createMaskLookup(color),
+    [
+      color?.mode,
+      color?.color1,
+      color?.color1Point,
+      color?.color2,
+      color?.color2Point,
+      color?.threshold,
+    ],
+  );
 
   const generate = useCallback(() => {
     if (!image) return;
@@ -745,44 +826,49 @@ export function InteractiveAscii({
     );
     setText(ascii);
 
-    if (color?.mode && color.mode !== "color") {
+    if (maskLookup) {
       const asciiWidth = outputWidth;
       maskCanvasRef.current.width = asciiWidth;
       maskCanvasRef.current.height = asciiHeight;
       const imageData = maskCtx.createImageData(asciiWidth, asciiHeight);
-      const color1 = parseColor(color.color1 ?? "#ffffff");
-      const color2 = parseColor(color.color2 ?? "#00f0ff");
-      const point1 = (color.color1Point ?? 0) / 100;
-      const point2 = (color.color2Point ?? 100) / 100;
       for (let i = 0; i < grayValues.length; i++) {
-        const gray = grayValues[i] / 255;
-        let percent: number;
-        if (point1 === point2) {
-          percent = gray < point1 ? 0 : 1;
-        } else {
-          percent = mapRange(
-            gray,
-            Math.min(point1, point2),
-            Math.max(point1, point2),
-            0,
-            1,
-          );
-          percent = clamp(percent, 0, 1);
-        }
-        const interpolated = percent <= point1
-          ? color1
-          : percent >= point2
-          ? color2
-          : interpolateColor(color1, color2, percent);
+        const value = Math.round(clamp(grayValues[i], 0, 255));
+        const lookupIdx = value * 4;
         const idx = i * 4;
-        imageData.data[idx] = interpolated.r;
-        imageData.data[idx + 1] = interpolated.g;
-        imageData.data[idx + 2] = interpolated.b;
-        imageData.data[idx + 3] = Math.round((interpolated.a ?? 1) * 255);
+        imageData.data[idx] = maskLookup[lookupIdx];
+        imageData.data[idx + 1] = maskLookup[lookupIdx + 1];
+        imageData.data[idx + 2] = maskLookup[lookupIdx + 2];
+        imageData.data[idx + 3] = maskLookup[lookupIdx + 3];
       }
       maskCtx.putImageData(imageData, 0, 0);
-      setMaskUrl(maskCanvasRef.current.toDataURL());
+      const generationId = ++maskGenerationRef.current;
+      const canvas = maskCanvasRef.current;
+      const toBlob = canvas.toBlob?.bind(canvas);
+      if (toBlob) {
+        toBlob((blob) => {
+          if (!blob || generationId !== maskGenerationRef.current) {
+            return;
+          }
+          const nextUrl = URL.createObjectURL(blob);
+          if (maskObjectUrlRef.current) {
+            URL.revokeObjectURL(maskObjectUrlRef.current);
+          }
+          maskObjectUrlRef.current = nextUrl;
+          setMaskUrl(nextUrl);
+        }, "image/png");
+      } else {
+        const nextUrl = canvas.toDataURL("image/png");
+        if (maskObjectUrlRef.current) {
+          URL.revokeObjectURL(maskObjectUrlRef.current);
+          maskObjectUrlRef.current = undefined;
+        }
+        setMaskUrl(nextUrl);
+      }
     } else {
+      if (maskObjectUrlRef.current) {
+        URL.revokeObjectURL(maskObjectUrlRef.current);
+        maskObjectUrlRef.current = undefined;
+      }
       setMaskUrl(undefined);
     }
   }, [
@@ -802,11 +888,7 @@ export function InteractiveAscii({
     cursorY,
     initializedRef,
     cursorImage,
-    color?.mode,
-    color?.color1,
-    color?.color2,
-    color?.color1Point,
-    color?.color2Point,
+    maskLookup,
   ]);
 
   useEffect(() => {
