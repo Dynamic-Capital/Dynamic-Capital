@@ -8,25 +8,17 @@ import {
   type SendMsgAction,
   type SuccessfulExecutionResult,
 } from "ton-contract-executor";
-import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { TON_MAINNET_JETTON_MASTER } from "../../../shared/ton/mainnet-addresses.ts";
+import { createFuncSourceResolver } from "../func-source-resolver.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const CONTRACT_ROOT = resolve(__dirname, "..");
 const TARGET_SOURCE = "jetton/discoverable/master.fc";
-
-function loadSource(path: string): string {
-  const resolved = resolve(CONTRACT_ROOT, path);
-  try {
-    return readFileSync(resolved, "utf8");
-  } catch (error) {
-    throw new Error(`Failed to load FunC source "${path}" at ${resolved}: ${error}`);
-  }
-}
+const loadSource = createFuncSourceResolver(CONTRACT_ROOT);
 
 const MASTER_FRIENDLY_ADDRESS = TON_MAINNET_JETTON_MASTER;
 const MASTER_ADDRESS = Address.parseFriendly(MASTER_FRIENDLY_ADDRESS).address;

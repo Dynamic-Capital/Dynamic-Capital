@@ -1,9 +1,10 @@
-import { compileFunc, type SourceResolver } from "@ton-community/func-js";
+import { compileFunc } from "@ton-community/func-js";
 import { spawn, type SpawnOptions } from "node:child_process";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep as pathSeparator } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createFuncSourceResolver } from "../../dynamic-capital-ton/contracts/func-source-resolver.js";
 
 type CliFlags = {
   readonly outDir?: string;
@@ -164,14 +165,7 @@ async function compileFuncTargets(
   funcOutDir: string,
   verbose: boolean,
 ): Promise<string[]> {
-  const loadSource: SourceResolver = (requestedPath) => {
-    const resolved = resolve(contractsRoot, requestedPath);
-    if (!existsSync(resolved)) {
-      throw new Error(`FunC source not found: ${requestedPath} (resolved to ${resolved})`);
-    }
-    return readFileSync(resolved, "utf8");
-  };
-
+  const loadSource = createFuncSourceResolver(contractsRoot);
   const artifacts: string[] = [];
 
   for (const target of FUNC_TARGETS) {
