@@ -185,7 +185,7 @@ chronological order beneath this entry.
   `2025-10-12T20:05:44Z`. Added the missing `geckoterminal_stonfi` key to the
   storage snapshot for parity with the published manifest.
 - **Verification** — Replayed the Supabase verification flow via
-  `node dns/scripts/supabase-dns-verify.js` (captured at
+  `npx tsx dns/scripts/supabase-dns-verify.ts` (captured at
   `dns/verifications/2025-10-12-supabase-dns-verify.json`), confirming the
   published manifest matches the signed storage snapshot and both signatures are
   present.
