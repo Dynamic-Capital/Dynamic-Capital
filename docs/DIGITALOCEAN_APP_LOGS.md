@@ -6,9 +6,13 @@ DigitalOcean App.
 ## Automation
 
 1. **Install and authenticate `doctl`**
-   - Download and install the DigitalOcean CLI.
-   - Create a personal access token.
-   - Authenticate: `doctl auth init`.
+   - `npm run doctl:install -- --token "$DIGITALOCEAN_TOKEN"` downloads the
+     latest CLI release into `./.bin/doctl` and runs `doctl auth init` with the
+     provided token.
+   - Create a personal access token from the DigitalOcean control panel if you
+     do not already have one.
+   - Repeat with `--context <name>` to create or switch to a dedicated context
+     for Dynamic Capital operations.
 2. **List apps and get the app ID**
    - `doctl apps list`
 3. **Fetch logs via CLI**

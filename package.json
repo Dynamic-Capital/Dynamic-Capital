@@ -79,6 +79,7 @@
     "crawlers:install": "node scripts/install-crawlers.mjs",
     "do:sync-site": "node scripts/digitalocean/sync-site-config.mjs",
     "do:sync-cdn": "node scripts/digitalocean/sync-cdn-config.mjs",
+    "doctl:install": "node scripts/doctl/install-doctl.mjs",
     "doctl:sync-site": "node scripts/doctl/sync-site-config.mjs",
     "checklists": "node scripts/run-checklists.js",
     "sync:onedrive": "tsx scripts/onedrive/sync.ts",

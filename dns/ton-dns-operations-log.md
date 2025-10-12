@@ -118,6 +118,13 @@ chronological order beneath this entry.
 - **Next steps** — Rebuild and redeploy the TON site bundle, verify the origin
   returns `HTTP 200`, then re-test the gateways before restoring the resolver
   status to `ok`.
+- **Remediation in progress (2025-10-12)** — Updated `.do/app.yml` to promote
+  `dynamic-capital-qazf2.ondigitalocean.app` as the primary DigitalOcean App
+  domain and refreshed the environment defaults so the TON origin, Cloudflare
+  bridge, and CORS configuration all reference the live hostname. Apply the
+  change via `npm run doctl:sync-site -- --app-id <APP_ID> --site-url
+  https://dynamic-capital-qazf2.ondigitalocean.app --apply --apply-zone` to push
+  the spec and import the latest zone snapshot.
 
 ## 2025-02-14 – TON Foundation gateway promoted
 
