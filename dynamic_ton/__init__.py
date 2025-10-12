@@ -34,6 +34,12 @@ from .ton_index_client import (
     TonIndexTransaction,
     TonIndexTransactionsResult,
 )
+from .treasury_contract import (
+    TREASURY_CODE_HASH,
+    TREASURY_DATA_HASH,
+    filter_treasury_states,
+    matches_treasury_contract,
+)
 
 __all__ = [
     "AUCTION_START_TIME",
@@ -67,4 +73,8 @@ __all__ = [
     "TonIndexMessage",
     "TonIndexTransaction",
     "TonIndexTransactionsResult",
+    "TREASURY_CODE_HASH",
+    "TREASURY_DATA_HASH",
+    "matches_treasury_contract",
+    "filter_treasury_states",
 ]
