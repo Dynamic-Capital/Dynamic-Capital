@@ -5,6 +5,21 @@ ownership. Amounts are reported in TON (1 TON = 1,000,000,000 nanotons). Use
 this file alongside [`toncli-dns-runbook.md`](./toncli-dns-runbook.md) when
 preparing governance packets or multisig memos.
 
+## 2025-10-12 – Root wallet alias repoint
+
+- **Objective** — Align the `wallet` TXT payload for `dynamiccapital.ton` with
+  the DAO multisig `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`, matching
+  the latest governance directive.
+- **Change set** — Updated `dns/dynamiccapital.ton.json` and
+  `dynamic-capital-ton/storage/dns-records.txt` so the committed resolver bundle
+  encodes the new root wallet and refreshes the publication timestamp to
+  `2025-10-12T18:32:00Z`. Mirrored the change in `public/dns/active.json` for
+  downstream tooling parity.
+- **Next steps** — Broadcast the TXT update via `toncli dns set-record` using
+  the DAO multisig signer, capture the transaction hash, and attach the signed
+  DNS payload to the resolver archive before distributing the refresh to
+  gateways.
+
 ## 2025-09-30 – dynamiccapital.ton auction settlement
 
 - **Control message** — `TONAPI gas proxy` (`EQDzP1oeMJI2wh_UErnVIuJKam7zdFwB9-x9cxvA-ETDNHCs`)
