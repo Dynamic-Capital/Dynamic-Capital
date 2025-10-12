@@ -350,38 +350,6 @@
   }
 }
 
-@layer utilities {
-  .bg-gradient-brand {
-    background-image: var(--gradient-brand);
-  }
-
-  .text-gradient-brand {
-    @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-brand);
-  }
-}
-
-@utility motion-card {
-  @apply relative overflow-hidden transition-all duration-300;
-  background: var(--gradient-motion-card);
-  box-shadow: var(--shadow-motion-md);
-  border: 1px solid hsl(var(--border) / 0.5);
-  backdrop-filter: var(--glass-motion-blur);
-}
-
-@utility glass-motion {
-  background: var(--glass-motion-bg);
-  backdrop-filter: var(--glass-motion-blur);
-  border: 1px solid var(--glass-motion-border);
-  box-shadow: var(--glass-motion-shadow);
-}
-
-@utility motion-button {
-  @apply relative overflow-hidden transition-all;
-  transition-duration: var(--motion-duration-normal);
-  transition-timing-function: var(--motion-ease-spring);
-}
-
 @layer components {
   /* === UNIVERSAL MOTION COMPONENTS === */
 
