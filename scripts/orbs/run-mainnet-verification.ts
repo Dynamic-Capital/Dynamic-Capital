@@ -87,7 +87,7 @@ const httpsAgent = new Agent({
 async function checkHttpsHead(domain: string): Promise<CheckResult> {
   try {
     const response = await request(`https://${domain}`, {
-      method: "GET",
+      method: "HEAD",
       dispatcher: httpsAgent,
       maxRedirections: 2,
       headers: {
@@ -169,71 +169,109 @@ async function checkTcpConnectivity(
 
 async function run(): Promise<void> {
   const raw = await readFile(datasetPath, "utf8");
-  const records = JSON.parse(raw) as ValidatorRecord[];
+  const parsed = JSON.parse(raw) as unknown;
 
-  if (!Array.isArray(records)) {
+  if (!Array.isArray(parsed)) {
     throw new Error("The dataset must be an array of validator records.");
   }
+
+  const records = parsed as ValidatorRecord[];
 
   const runAt = new Date().toISOString();
 
   const domain = records[0]?.verifier ?? "orbs.com";
 
-  const dnsCheck = await checkDns(domain);
-  const httpsCheck = await checkHttpsHead(domain);
+  records.forEach((record, index) => {
+    const requiredFields: (keyof ValidatorRecord)[] = [
+      "status",
+      "public_key_base64",
+      "ip_address",
+      "verified_at",
+      "verifier",
+    ];
 
-  const validators: ValidatorResult[] = [];
-
-  for (const record of records) {
-    const checks: CheckResult[] = [];
-
-    checks.push({
-      name: "schema_status",
-      ok: record.status?.toLowerCase() === "verified",
-      detail: record.status,
-    });
-
-    checks.push({
-      name: "base64_format",
-      ok: isValidBase64(record.public_key_base64),
-    });
-
-    const ipValid = isIP(record.ip_address) === 4;
-    checks.push({
-      name: "ip_format",
-      ok: ipValid,
-      detail: record.ip_address,
-    });
-
-    const date = new Date(record.verified_at);
-    const dateValid = !Number.isNaN(date.valueOf()) && date <= new Date();
-    checks.push({
-      name: "verified_at_past",
-      ok: dateValid,
-      detail: date.toISOString(),
-    });
-
-    if (ipValid) {
-      const tcp443 = await checkTcpConnectivity(record.ip_address, 443);
-      checks.push(tcp443);
-
-      const tcp80 = await checkTcpConnectivity(record.ip_address, 80);
-      checks.push(tcp80);
-    } else {
-      checks.push({
-        name: "tcp_443",
-        ok: false,
-        detail: "skipped due to invalid IP",
-      });
-      checks.push({
-        name: "tcp_80",
-        ok: false,
-        detail: "skipped due to invalid IP",
-      });
+    const missingFields = requiredFields.filter((field) => !(field in record));
+    if (missingFields.length > 0) {
+      throw new Error(
+        `Record at index ${index} is missing required fields: ${
+          missingFields.join(", ")
+        }`,
+      );
     }
 
-    validators.push({ record, checks });
-  }
+    const nonStringFields = requiredFields.filter((field) =>
+      typeof record[field] !== "string" || record[field].trim() === ""
+    );
+
+    if (nonStringFields.length > 0) {
+      throw new Error(
+        `Record at index ${index} has invalid field types: ${
+          nonStringFields.join(", ")
+        }`,
+      );
+    }
+  });
+
+  const [dnsCheck, httpsCheck] = await Promise.all([
+    checkDns(domain),
+    checkHttpsHead(domain),
+  ]);
+
+  const validators: ValidatorResult[] = await Promise.all(
+    records.map(async (record) => {
+      const checks: CheckResult[] = [];
+
+      checks.push({
+        name: "schema_status",
+        ok: record.status?.toLowerCase() === "verified",
+        detail: record.status,
+      });
+
+      checks.push({
+        name: "base64_format",
+        ok: isValidBase64(record.public_key_base64),
+      });
+
+      const ipValid = isIP(record.ip_address) === 4;
+      checks.push({
+        name: "ip_format",
+        ok: ipValid,
+        detail: record.ip_address,
+      });
+
+      const date = new Date(record.verified_at);
+      const dateValid = !Number.isNaN(date.valueOf()) && date <= new Date();
+      const dateDetail = dateValid ? date.toISOString() : record.verified_at;
+      checks.push({
+        name: "verified_at_past",
+        ok: dateValid,
+        detail: dateDetail,
+      });
+
+      if (ipValid) {
+        const [tcp443, tcp80] = await Promise.all([
+          checkTcpConnectivity(record.ip_address, 443),
+          checkTcpConnectivity(record.ip_address, 80),
+        ]);
+        checks.push(tcp443, tcp80);
+      } else {
+        checks.push(
+          {
+            name: "tcp_443",
+            ok: false,
+            detail: "skipped due to invalid IP",
+          },
+          {
+            name: "tcp_80",
+            ok: false,
+            detail: "skipped due to invalid IP",
+          },
+        );
+      }
+
+      return { record, checks };
+    }),
+  );
 
   const report: Report = {
     run_at: runAt,
@@ -260,7 +298,11 @@ async function run(): Promise<void> {
   console.log(`Detailed report written to ${reportPath}`);
 }
 
-run().catch((error) => {
-  console.error("Failed to run Orbs mainnet verification:", error);
-  process.exitCode = 1;
-});
+run()
+  .catch((error) => {
+    console.error("Failed to run Orbs mainnet verification:", error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await httpsAgent.close();
+  });

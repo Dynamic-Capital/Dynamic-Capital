@@ -1,11 +1,11 @@
 {
-  "run_at": "2025-10-12T01:38:44.105Z",
+  "run_at": "2025-10-12T01:42:21.269Z",
   "verifier_domain": {
     "domain": "orbs.com",
     "dns_lookup": {
       "name": "dns_lookup",
       "ok": true,
-      "detail": "185.199.109.153"
+      "detail": "185.199.110.153"
     },
     "https_head": {
       "name": "https_head",
