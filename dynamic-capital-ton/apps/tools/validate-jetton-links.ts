@@ -25,7 +25,7 @@ interface ValidationIssue {
 type LoadedConfig = Awaited<ReturnType<typeof loadProjectConfig>>;
 
 const DCT_JETTON_MASTER_RAW =
-  "0:f5cc024f6193187f763d07848bedf44b154f9583957b45c2cc9c4bb61ff70d38" as const;
+  "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7" as const;
 
 const DEX_SCREENER_TOKEN_URL =
   `https://dexscreener.com/ton/${TON_MAINNET_JETTON_MASTER}` as const;
