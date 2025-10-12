@@ -11,7 +11,7 @@
   https://tonviewer.com/jetton/0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7
 - **Local Metadata Path:** dynamic-capital-ton/contracts/jetton/metadata.json
 - **Local Metadata SHA-256:**
-  `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4`
+  `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5`
 - **Support Ticket Reference:** `TVR-4821`
 
 ## Metadata Comparison
@@ -21,7 +21,7 @@
 | Name           | Dynamic Capital Token                                                                                   | Dynamic Capital Token                                                                                   | ✅    |
 | Symbol         | DCT                                                                                                     | DCT                                                                                                     | ✅    |
 | Decimals       | 9                                                                                                       | 9                                                                                                       | ✅    |
-| Image URL      | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCT-Mark.svg) | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCT-Mark.svg) | ✅    |
+| Image URL      | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCTMark.png) | [Supabase asset](https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DCTMark.png) | ✅    |
 | Jetton Address | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`                                    | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7`                                    | ✅    |
 
 ## Network Metrics
@@ -74,7 +74,7 @@
 - **Issuer statement export:** `exports/dct-issuer-statement-20251007.pdf`
   (SHA-256 recorded in escalation log).
 - **Metadata JSON digest:**
-  `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4` (validated
+  `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5` (validated
   2025-10-07 15:48 UTC).
 - **Verification logs:** `logs/check-tonviewer-status-20251007.log`,
   `logs/check-tonviewer-status-20251010.log` (flag `none`).

@@ -10,7 +10,7 @@
    "Tonviewer Support Team".
 2. **Context Recap** – Reference the original verification submission on
    2025-10-03 and the 2025-10-07 escalation that bundled the refreshed metadata
-   digest `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4`.
+   digest `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5`.
 3. **Evidence Summary** – Confirm that the issuer statement export, metadata
    JSON, digest note, verification script log, and compliance archive link are
    attached or linked (see checklist below).
@@ -72,7 +72,7 @@ entry for 2025-10-07 or any subsequent resend.
       for attachment without compression.
 - [ ] **Verified** – Confirm the preflight script output reports
       `digestMatches: true` for the metadata file, matching
-      `1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4`.
+      `541fc6e557a10e703a1568da31b3a97078907cd1391cfae61e5d1df01227c3a5`.
 - [ ] **Logged** – Record the digest output and validation timestamp (from the
       script summary) in the escalation log and compliance ticket.
 

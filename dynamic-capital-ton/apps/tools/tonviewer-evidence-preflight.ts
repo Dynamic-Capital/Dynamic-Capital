@@ -6,14 +6,53 @@ import {
   join,
 } from "https://deno.land/std@0.224.0/path/mod.ts";
 
-import { computeSha256Hex, resolveProjectRoot } from "./_shared.ts";
+import {
+  computeSha256Hex,
+  readTonviewerManifest,
+  resolveProjectRoot,
+} from "./_shared.ts";
 
 interface CliOptions {
   metadata?: string;
-  expect?: string;
+  expect?: string | boolean;
   "write-note"?: string;
   log?: string;
   quiet?: boolean;
+}
+
+interface ExpectedDigestResolution {
+  digest: string;
+  source: string | null;
+}
+
+function overrideProvided(options: CliOptions): boolean {
+  return Object.prototype.hasOwnProperty.call(options, "expect");
+}
+
+async function resolveExpectedDigest(
+  projectRoot: string,
+  options: CliOptions,
+): Promise<ExpectedDigestResolution> {
+  if (overrideProvided(options)) {
+    const override = options.expect;
+    if (typeof override === "string") {
+      return { digest: override, source: "cli" };
+    }
+    if (override === undefined) {
+      return { digest: "", source: null };
+    }
+    return { digest: String(override), source: "cli" };
+  }
+
+  const manifest = await readTonviewerManifest(projectRoot);
+  if (manifest && typeof manifest.json.metadataSha256 === "string") {
+    const digest = manifest.json.metadataSha256.trim();
+    if (digest.length > 0) {
+      return { digest, source: manifest.path };
+    }
+  }
+
+  return { digest: "", source: null };
 }
 
 function formatDigestLine(metadataPath: string, digest: string): string {
@@ -75,12 +114,18 @@ async function main() {
   const metadataPath = parsed.metadata
     ? parsed.metadata
     : join(projectRoot, "contracts", "jetton", "metadata.json");
-  const expectedDigest = parsed.expect ??
-    "1e2ee164089558184acd118d05400f7e6ba9adbef6885b378df629bd84f8aab4";
+  const expectedDigestInfo = await resolveExpectedDigest(projectRoot, parsed);
+  const expectedDigest = expectedDigestInfo.digest;
 
   const metadataBytes = await Deno.readFile(metadataPath);
   const digest = await computeSha256Hex(metadataBytes);
   const digestMatches = expectedDigest === "" || digest === expectedDigest;
+
+  if (!overrideProvided(parsed) && expectedDigest === "") {
+    throw new Error(
+      "Unable to resolve expected metadata digest. Run the Tonviewer bundle generator or pass --expect.",
+    );
+  }
 
   if (!digestMatches) {
     throw new Error(
@@ -102,6 +147,7 @@ async function main() {
       metadataPath,
       digest,
       expectedDigest,
+      expectedDigestSource: expectedDigestInfo.source,
       digestMatches,
       digestNote: parsed["write-note"] ?? null,
       statusLog: parsed.log ?? null,
