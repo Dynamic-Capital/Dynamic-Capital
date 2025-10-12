@@ -1,9 +1,101 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
-const args = new Set(process.argv.slice(2));
-const strictMode = args.has("--strict");
+const {
+  values: argValues,
+} = parseArgs({
+  options: {
+    strict: {
+      type: "boolean",
+      short: "s",
+    },
+    auto: {
+      type: "boolean",
+      short: "a",
+    },
+    help: {
+      type: "boolean",
+      short: "h",
+    },
+  },
+});
+
+if (argValues.help) {
+  console.log(
+    `Usage: tsx scripts/security/audit-hardcodes.ts [options]\n\n` +
+      `Options:\n` +
+      `  --strict, -s   Disable the TON allow list and report every match.\n` +
+      `  --auto, -a     Auto-select strict mode when CI signals are present.\n` +
+      `  --help, -h     Show this help output.\n`,
+  );
+  process.exit(0);
+}
+
+const autoMode = Boolean(argValues.auto);
+let strictMode = Boolean(argValues.strict);
+
+type EnvBoolean = {
+  value: boolean;
+  source: string;
+};
+
+function readEnvBoolean(key: string): EnvBoolean | undefined {
+  const raw = process.env[key];
+  if (raw === undefined) return undefined;
+  const normalized = raw.trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) {
+    return { value: true, source: key };
+  }
+  if (["0", "false", "no", "off"].includes(normalized)) {
+    return { value: false, source: key };
+  }
+  return undefined;
+}
+
+function determineAutoStrict(): { strict: boolean; reason?: string } {
+  const explicit = readEnvBoolean("HARDCODE_AUDIT_STRICT");
+  if (explicit) {
+    return {
+      strict: explicit.value,
+      reason: `${explicit.source}=${explicit.value}`,
+    };
+  }
+
+  const ci = readEnvBoolean("CI");
+  if (ci?.value) {
+    return { strict: true, reason: `${ci.source}=true` };
+  }
+
+  const githubActions = readEnvBoolean("GITHUB_ACTIONS");
+  if (githubActions?.value) {
+    return { strict: true, reason: `${githubActions.source}=true` };
+  }
+
+  return { strict: false };
+}
+
+let autoReason: string | undefined;
+if (autoMode) {
+  const autoDecision = determineAutoStrict();
+  if (autoDecision.strict) {
+    strictMode = true;
+    autoReason = autoDecision.reason ?? "CI signal detected";
+  } else if (autoDecision.reason) {
+    autoReason = autoDecision.reason;
+  } else if (strictMode) {
+    autoReason = "--strict flag provided";
+  } else {
+    autoReason = "no CI signals detected";
+  }
+
+  const modeLabel = strictMode ? "strict" : "standard";
+  const note = autoReason ? ` (${autoReason})` : "";
+  console.log(
+    `ℹ️ Auto mode: running hardcode audit in ${modeLabel} mode${note}.`,
+  );
+}
 
 // Directories that should be skipped entirely when scanning for hardcoded values.
 const IGNORED_DIRECTORIES = new Set([

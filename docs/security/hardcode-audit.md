@@ -16,12 +16,34 @@ npm run audit:hardcodes
 The command reports `✅ No suspicious hardcoded secrets detected.` when the scan
 passes. Any detections include the file path, line, column, pattern label, and a
 short description of why the value was flagged so engineers can quickly verify
-and remediate. Add the `--strict` flag to review results without the built-in
-allow list for known TON wallet addresses and base64 resources:
+and remediate.
+
+### Strict mode
+
+Strict mode disables the TON allow list so every match is surfaced:
 
 ```bash
-npm run audit:hardcodes -- --strict
+npm run audit:hardcodes:strict
 ```
+
+You can alternatively append `-- --strict` to the base command. Use this when
+auditing third-party code drops or verifying that allow-listed values still need
+to be present.
+
+### Auto mode
+
+Auto mode adapts to the environment—locally it keeps the allow list enabled,
+while CI runs automatically escalate to strict scanning when `CI`,
+`GITHUB_ACTIONS`, or an explicit `HARDCODE_AUDIT_STRICT` environment variable is
+truthy:
+
+```bash
+npm run audit:hardcodes:auto
+```
+
+Set `HARDCODE_AUDIT_STRICT=true` to force strict results (even outside CI) or
+`HARDCODE_AUDIT_STRICT=false` to explicitly opt out when automation sets `CI`.
+Use `npm run audit:hardcodes -- --auto --help` to inspect all options.
 
 ## Detection coverage
 
