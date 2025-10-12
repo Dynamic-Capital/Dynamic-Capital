@@ -1,4 +1,5 @@
 import { optionalEnvVar } from "@/utils/env";
+import { DC_ICON_MARK_URL } from "./brand-assets";
 import {
   TON_MANIFEST_ORIGIN_CANDIDATES,
   TON_MANIFEST_RESOURCE_PATH,
@@ -20,7 +21,7 @@ export type TonConnectManifest = {
 
 const DEFAULT_NETWORK: TonNetwork = "mainnet";
 export const TON_MANIFEST_PATH = "/api/tonconnect/manifest";
-const MANIFEST_ICON_PATH = "/icon-mark.svg";
+const MANIFEST_ICON_PATH = DC_ICON_MARK_URL;
 const PRIMARY_PRODUCTION_ORIGIN = TON_MANIFEST_ORIGIN_CANDIDATES[0];
 const PROD_FALLBACK_ORIGINS = [...TON_MANIFEST_ORIGIN_CANDIDATES];
 const DEFAULT_SERVER_FALLBACK_ORIGIN =

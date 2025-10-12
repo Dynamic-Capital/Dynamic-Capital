@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { DC_MARK_URL } from "@/config/brand-assets";
 import { cn } from "@/utils";
 
 interface BrandLogoProps {
@@ -13,8 +14,7 @@ interface BrandLogoProps {
   animated?: boolean;
 }
 
-const BRAND_LOGO_URL =
-  "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/DC-Mark.svg";
+const BRAND_LOGO_URL = DC_MARK_URL;
 
 const BrandLogo: React.FC<BrandLogoProps> = ({
   className = "",

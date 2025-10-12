@@ -17,12 +17,12 @@
   ],
   "icons": [
     {
-      "src": "/icon-mark.svg",
+      "src": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/icon-mark.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     },
     {
-      "src": "/icons/dynamic-logo.svg",
+      "src": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/dynamic-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

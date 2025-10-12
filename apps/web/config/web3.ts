@@ -1,4 +1,5 @@
 import { optionalEnvVar } from "@/utils/env";
+import { DC_ICON_MARK_URL } from "./brand-assets";
 
 export type Web3ChainConfig = {
   id: string;
@@ -74,7 +75,7 @@ const DEFAULT_METADATA: Web3AppMetadata = {
   name: "Dynamic Capital",
   description:
     "Dynamic Capital trading desk, LayerZero v2 bridge routing, and portfolio tools",
-  icon: "/icon-mark.svg",
+  icon: DC_ICON_MARK_URL,
   recommendedInjectedWallets: [
     { name: "Bitget Wallet", url: "https://bitkeep.com" },
     { name: "MetaMask", url: "https://metamask.io" },
