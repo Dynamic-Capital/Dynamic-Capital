@@ -24,17 +24,64 @@ export type CommandHandler = (ctx: CommandContext) => Promise<void>;
 
 type AdminHandlers = typeof import("./admin-handlers/index.ts");
 import { optionalEnv } from "../_shared/env.ts";
-import { functionUrl } from "../_shared/edge.ts";
+import { createClient } from "../_shared/client.ts";
 
-function resolveVipSyncUrl(endpoint: "one" | "batch"): string | null {
-  const direct = functionUrl(`vip-sync/${endpoint}`);
-  if (direct) return direct;
+type VipSyncEndpoint = "one" | "batch";
 
-  const supabaseUrl = optionalEnv("SUPABASE_URL");
-  if (!supabaseUrl) return null;
+const SUPABASE_URL = optionalEnv("SUPABASE_URL");
+const SUPABASE_ANON_KEY = optionalEnv("SUPABASE_ANON_KEY");
+const SUPABASE_SERVICE_ROLE_KEY = optionalEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-  const normalized = supabaseUrl.replace(/\/?$/, "");
-  return `${normalized}/functions/v1/vip-sync/${endpoint}`;
+let vipSyncClient: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseConfigError(): string | null {
+  if (!SUPABASE_URL) {
+    return "Supabase URL is not configured. Define SUPABASE_URL to enable VIP sync.";
+  }
+
+  if (!SUPABASE_ANON_KEY && !SUPABASE_SERVICE_ROLE_KEY) {
+    return "Supabase API keys are not configured. Define SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY to enable VIP sync.";
+  }
+
+  return null;
+}
+
+function getVipSyncClient() {
+  if (vipSyncClient) {
+    return vipSyncClient;
+  }
+
+  const role = SUPABASE_SERVICE_ROLE_KEY ? "service" : "anon";
+  vipSyncClient = createClient(role);
+  return vipSyncClient;
+}
+
+async function invokeVipSync(
+  endpoint: VipSyncEndpoint,
+  body: Record<string, unknown>,
+) {
+  const client = getVipSyncClient();
+  const adminSecret = optionalEnv("ADMIN_API_SECRET");
+
+  const headers = adminSecret ? { "X-Admin-Secret": adminSecret } : undefined;
+
+  const { data, error } = await client.functions.invoke<
+    Record<string, unknown>
+  >(`vip-sync/${endpoint}`, {
+    body,
+    headers,
+  });
+
+  if (error) {
+    const message = error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+      ? String((error as { message?: unknown }).message ?? "VIP sync failed")
+      : String(error ?? "VIP sync failed");
+    throw new Error(message);
+  }
+
+  return data ?? { ok: true };
 }
 
 export function buildAdminCommandHandlers(
@@ -78,35 +125,59 @@ export function buildAdminCommandHandlers(
       await mod.handleAdminDashboard(chatId, userId);
     },
     "/vipsync": async ({ chatId, args }) => {
-      const endpoint = args[0] ? "one" : "batch";
-      const targetUrl = resolveVipSyncUrl(endpoint);
+      const rawArg = args[0];
+      const normalizedArg = typeof rawArg === "string"
+        ? rawArg.trim()
+        : typeof rawArg === "number"
+        ? String(rawArg)
+        : rawArg != null
+        ? String(rawArg).trim()
+        : "";
+      const endpoint: VipSyncEndpoint = normalizedArg.length > 0
+        ? "one"
+        : "batch";
+      const configError = getSupabaseConfigError();
 
-      if (!targetUrl) {
+      if (configError) {
         await notify(
           chatId,
           JSON.stringify({
             ok: false,
-            error:
-              "Supabase functions host is not configured. Define SUPABASE_PROJECT_ID or SUPABASE_URL to enable VIP sync.",
+            error: configError,
           }),
         );
         return;
       }
 
       const adminSecret = optionalEnv("ADMIN_API_SECRET");
-      const body = args[0] ? { telegram_user_id: args[0] } : {};
+      if (!adminSecret) {
+        await notify(
+          chatId,
+          JSON.stringify({
+            ok: false,
+            error:
+              "ADMIN_API_SECRET is not configured. Define it to authorize VIP sync requests.",
+          }),
+        );
+        return;
+      }
+
+      if (endpoint === "one" && normalizedArg.length === 0) {
+        await notify(
+          chatId,
+          JSON.stringify({
+            ok: false,
+            error: "Provide a Telegram user ID to sync a single VIP.",
+          }),
+        );
+        return;
+      }
 
       try {
-        const response = await fetch(targetUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(adminSecret ? { "X-Admin-Secret": adminSecret } : {}),
-          },
-          body: JSON.stringify(body),
-        });
-
-        const payload = await response.json();
+        const payload = await invokeVipSync(
+          endpoint,
+          endpoint === "one" ? { telegram_user_id: normalizedArg } : {},
+        );
         await notify(chatId, JSON.stringify(payload));
       } catch (error) {
         const message = error instanceof Error
