@@ -1,3 +1,6 @@
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 import { assert, assertEquals } from "std/assert/mod.ts";
 
 Deno.test("collect-market-sentiment aggregates multiple providers", async () => {

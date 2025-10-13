@@ -41,8 +41,17 @@ function normaliseBias(rawBias: unknown): Bias {
 function normaliseChartUrl(raw: unknown): string | null {
   const value = coerceString(raw);
   if (!value) return null;
+
+  const candidate = value.trim();
+  if (!/^https?:\/\//i.test(candidate)) {
+    throw new Error("invalid_chart_url");
+  }
+
   try {
-    const url = new URL(value, "https://tradingview.com");
+    const url = new URL(candidate);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      throw new Error("invalid_chart_url");
+    }
     return url.toString();
   } catch {
     throw new Error("invalid_chart_url");

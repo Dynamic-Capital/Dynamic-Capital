@@ -10,6 +10,9 @@ function fnv1a64(input: string): number {
   return Number(hash);
 }
 
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 Deno.test("collect-market-news upserts normalized rows", async () => {
   const originalFetch = globalThis.fetch;
   const serviceKey = "service-role-test";
