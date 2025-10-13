@@ -36,7 +36,36 @@ function getLogger(req: Request) {
  * Minimal wrapper around Telegram's sendMessage API.
  * Allows passing through optional payload fields like reply_markup.
  */
-const BOT_TOKEN = await envOrSetting("TELEGRAM_BOT_TOKEN");
+interface TokenCache {
+  value: string | null;
+  expiresAt: number;
+}
+
+const TOKEN_TTL_MS = 5 * 60 * 1000;
+let botTokenCache: TokenCache | null = null;
+
+async function getBotToken(): Promise<string | null> {
+  const now = Date.now();
+  if (botTokenCache && botTokenCache.expiresAt > now) {
+    return botTokenCache.value;
+  }
+
+  try {
+    const token = await envOrSetting<string>("TELEGRAM_BOT_TOKEN");
+    botTokenCache = {
+      value: token ?? null,
+      expiresAt: now + TOKEN_TTL_MS,
+    };
+    return botTokenCache.value;
+  } catch (error) {
+    baseLogger.error("failed to resolve TELEGRAM_BOT_TOKEN", error);
+    botTokenCache = {
+      value: null,
+      expiresAt: now + TOKEN_TTL_MS,
+    };
+    return null;
+  }
+}
 
 type PlanDigestCache = { text: string; expiresAt: number };
 const PLAN_DIGEST_TTL_MS = 2 * 60 * 1000;
@@ -203,7 +232,8 @@ async function sendMessage(
   text: string,
   extra?: Record<string, unknown>,
 ) {
-  if (!BOT_TOKEN) {
+  const botToken = await getBotToken();
+  if (!botToken) {
     baseLogger.warn(
       "TELEGRAM_BOT_TOKEN is not set; cannot send message",
     );
@@ -211,7 +241,7 @@ async function sendMessage(
   }
   try {
     const resp = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+      `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
