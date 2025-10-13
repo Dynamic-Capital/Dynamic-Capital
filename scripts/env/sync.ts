@@ -14,6 +14,12 @@ type ProviderStatus = {
   const providerMap = groupByProvider(envMap);
 
   const matrix: ProviderStatus[] = [];
+  const providerHints: Record<string, string> = {
+    vercel:
+      "Use `vercel env pull` to inspect current values and `vercel env add <KEY> production` (repeat for preview/dev) to register secrets, including underscore-prefixed names.",
+    droplet:
+      "Run `node scripts/digitalocean/sync-site-config.mjs --app-id <id> --site-url <url> --apply` after Supabase is the source of truth so the App Platform spec references the gateway tokens.",
+  };
 
   const supabaseRequired = providerMap.get("supabase") ?? new Set<string>();
   const missingEnv: string[] = [];
@@ -61,10 +67,12 @@ type ProviderStatus = {
       name !== "supabase"
     )
   ) {
+    const trackedKeys = Array.from(providerMap.get(provider) ?? []).sort();
     matrix.push({
       provider,
       status: "pending",
-      note:
+      missing: trackedKeys,
+      note: providerHints[provider] ??
         "Configure provider API credentials and extend this script to push values from Supabase. Secrets are not pulled directly.",
     });
   }

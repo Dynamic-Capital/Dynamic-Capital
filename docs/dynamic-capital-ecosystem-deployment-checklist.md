@@ -92,6 +92,11 @@ platform owner. Complete every checkbox before marking the deployment ready.
 - [ ] Run `npm run env:validate` and confirm gateway tokens (`EDGE_US_TOKEN`,
       `EDGE_EU_TOKEN`, `_EDGE_INT_TOKEN`) exist in Supabase, Vercel, and droplet
       environments.
+- [ ] Re-run
+      `node scripts/digitalocean/sync-site-config.mjs --app-id <id>
+      --site-url <url> --apply`
+      so the App Platform spec registers the gateway credential keys with
+      runtime scope.
 
 ## Telegram Bot and Mini App
 

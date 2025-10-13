@@ -47,5 +47,10 @@ variables to avoid accidental leakage in configuration files or code.
 - Track gateway credential keys in `env/env.map.json` (see the
   `gateway-credentials` domain) so `npm run env:validate` and `npm run env:sync`
   confirm Supabase, Vercel, and droplet deployments are populated.
+- Use
+  `node scripts/digitalocean/sync-site-config.mjs --app-id <id> --site-url
+  <url> --apply`
+  after updating Supabase secrets to register the tokens on the DigitalOcean App
+  Platform with runtime scope.
 - Review any bootstrap scripts or infrastructure templates to ensure they set
   the required environment variables before the gateway engine starts.
