@@ -116,6 +116,13 @@ const REQUIRED_ENV_KEYS = [
   "TELEGRAM_BOT_TOKEN",
 ] as const;
 
+// Log connection status on initialization
+console.log("[telegram-bot] Initializing with env check:", {
+  hasSupabaseUrl: !!SUPABASE_URL,
+  hasServiceKey: !!SUPABASE_SERVICE_ROLE_KEY,
+  hasBotToken: !!BOT_TOKEN,
+});
+
 // Header used by Telegram to authenticate webhook calls
 const SECRET_HEADER = "x-telegram-bot-api-secret-token";
 
