@@ -1,7 +1,7 @@
 import { checkEnv, optionalEnv } from "../_shared/env.ts";
 import { readMiniAppEnv, requireMiniAppEnv } from "../_shared/miniapp.ts";
 import { alertAdmins } from "../_shared/alerts.ts";
-import { json, mna, ok, oops } from "../_shared/http.ts";
+import { json, oops } from "../_shared/http.ts";
 import { validateTelegramHeader } from "../_shared/telegram_secret.ts";
 import { version } from "../_shared/version.ts";
 import { hashBlob } from "../_shared/hash.ts";
@@ -2009,20 +2009,45 @@ export async function startReceiptPipeline(
 }
 
 export async function serveWebhook(req: Request): Promise<Response> {
+  const allowedMethods = "GET,HEAD,POST,OPTIONS";
+  const baseHeaders: Record<string, string> = {
+    ...corsHeaders,
+    "Allow": allowedMethods,
+    "Access-Control-Allow-Methods": allowedMethods,
+  };
   // CORS preflight support for browser calls
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: baseHeaders });
   }
   const v = version(req, "telegram-bot");
-  if (v) return v;
+  if (v) {
+    const res = new Response(v.body, v);
+    for (const [key, value] of Object.entries(baseHeaders)) {
+      res.headers.set(key, value);
+    }
+    return res;
+  }
+  if (req.method === "HEAD") {
+    return new Response(null, { status: 200, headers: baseHeaders });
+  }
   if (req.method === "GET") {
     const url = new URL(req.url);
     if (url.pathname.endsWith("/echo")) {
-      return ok({ echo: true, ua: req.headers.get("user-agent") || "" });
+      return json(
+        {
+          ok: true,
+          echo: true,
+          ua: req.headers.get("user-agent") || "",
+        },
+        200,
+        baseHeaders,
+      );
     }
-    return mna();
+    return json({ ok: false, error: "Method Not Allowed" }, 405, baseHeaders);
   }
-  if (req.method !== "POST") return mna();
+  if (req.method !== "POST") {
+    return json({ ok: false, error: "Method Not Allowed" }, 405, baseHeaders);
+  }
 
   // Only validate webhook secret for POST requests
   const receivedSecret = req.headers.get(SECRET_HEADER);
@@ -2059,11 +2084,11 @@ export async function serveWebhook(req: Request): Promise<Response> {
       (body as { test?: string }).test === "ping" &&
       Object.keys(body).length === 1
     ) {
-      return ok({ pong: true });
+      return json({ ok: true, pong: true }, 200, baseHeaders);
     }
     if (!body) {
       // Empty/invalid JSON - skip logging to reduce noise
-      return json({ ok: false, error: "Invalid JSON" }, 400);
+      return json({ ok: false, error: "Invalid JSON" }, 400, baseHeaders);
     }
     const update = body as TelegramUpdate;
     if (!bot) {
@@ -2075,12 +2100,20 @@ export async function serveWebhook(req: Request): Promise<Response> {
 
     if (update.chat_member || update.my_chat_member) {
       await handleMembershipUpdate(update);
-      return ok({ handled: true, kind: "chat_member" });
+      return json(
+        { ok: true, handled: true, kind: "chat_member" },
+        200,
+        baseHeaders,
+      );
     }
 
     if (update.callback_query) {
       await handleCallback(update);
-      return ok({ handled: true, kind: "callback_query" });
+      return json(
+        { ok: true, handled: true, kind: "callback_query" },
+        200,
+        baseHeaders,
+      );
     }
 
     // ---- BAN CHECK (short-circuit early) ----
@@ -2096,7 +2129,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
           .maybeSingle();
         if (ban && (!ban.expires_at || new Date(ban.expires_at) > new Date())) {
           // optional: send a one-time notice
-          return json({ ok: false, error: "Forbidden" }, 403);
+          return json({ ok: false, error: "Forbidden" }, 403, baseHeaders);
         }
       } catch {
         /* swallow */
@@ -2126,7 +2159,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
       await startReceiptPipeline(update);
     }
 
-    return ok({ handled: true });
+    return json({ ok: true, handled: true }, 200, baseHeaders);
   } catch (e) {
     const errMsg = e instanceof Error ? e.message : String(e);
     console.error("telegram-bot error:", errMsg);
