@@ -67,6 +67,17 @@ export function buildAdminCommandHandlers(
     },
     "/vipsync": async ({ chatId, args }) => {
       const supaUrl = optionalEnv("SUPABASE_URL");
+      if (!supaUrl) {
+        await notify(
+          chatId,
+          JSON.stringify({
+            ok: false,
+            error: "SUPABASE_URL is not configured",
+          }),
+        );
+        return;
+      }
+
       const adminSecret = optionalEnv("ADMIN_API_SECRET");
       const endpoint = args[0] ? "one" : "batch";
       const body = args[0] ? { telegram_user_id: args[0] } : {};
