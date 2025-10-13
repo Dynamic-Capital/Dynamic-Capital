@@ -279,6 +279,82 @@ Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
   resetOverrides();
 });
 
+Deno.test("POST /api/dynamic-cli sanitises stack traces from CLI errors", async () => {
+  Deno.env.set("DYNAMIC_CLI_PYTHON", "python3");
+  Deno.env.set("ADMIN_API_SECRET", ADMIN_SECRET);
+  (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
+    createNoopApiMetrics();
+
+  (globalThis as Record<PropertyKey, unknown>)[SPAWN_OVERRIDE_SYMBOL] = () => {
+    const child = new MockChildProcess();
+    queueMicrotask(() => {
+      child.stderr.emitData(
+        [
+          "Traceback (most recent call last):",
+          '  File "/app/cli.py", line 10, in <module>',
+          '    raise ValueError("bad data")',
+          "ValueError: bad data",
+          "",
+        ].join("\\n"),
+      );
+      child.close(1);
+    });
+    return child as unknown as ChildProcessWithoutNullStreams;
+  };
+
+  const originalConsoleError = console.error;
+  console.error = () => {};
+
+  try {
+    const { POST } = await import("./route.ts");
+
+    const token = createAdminToken(ADMIN_SECRET);
+    const response = await POST(
+      new Request("http://localhost/api/dynamic-cli", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          scenario: {
+            nodes: [{ key: "orchestration", title: "Orchestration" }],
+            pulses: [
+              {
+                node: "orchestration",
+                maturity: 0.8,
+                timestamp: "2024-04-01T00:00:00Z",
+              },
+            ],
+          },
+          format: "json",
+          indent: 2,
+          fineTuneTags: [],
+          exportDataset: false,
+        }),
+      }),
+    );
+
+    if (response.status !== 500) {
+      throw new Error(
+        `Expected HTTP 500 for CLI failure, received ${response.status}`,
+      );
+    }
+
+    const payload = await response.json() as { error?: string };
+    if (!payload.error || payload.error.includes("Traceback")) {
+      throw new Error("Expected stack trace to be removed from error payload");
+    }
+
+    if (payload.error !== "ValueError: bad data") {
+      throw new Error("Expected sanitized error message to summarise failure");
+    }
+  } finally {
+    console.error = originalConsoleError;
+    resetOverrides();
+  }
+});
+
 Deno.test("POST /api/dynamic-cli rejects missing admin credentials", async () => {
   Deno.env.set("DYNAMIC_CLI_PYTHON", "python3");
   Deno.env.set("ADMIN_API_SECRET", ADMIN_SECRET);

@@ -210,6 +210,68 @@ function normaliseOutput(
   return { report: stdout.trimEnd() };
 }
 
+const STACK_TRACE_MARKERS = [
+  /traceback \(most recent call last\)/iu,
+  /^\s*at\s.+\(.+\)$/mu,
+  /^\s*File\s+".*",\s+line\s+\d+/mu,
+];
+
+const STACK_TRACE_LINE_MARKERS = [
+  /^Traceback \(most recent call last\)/iu,
+  /^\s*at\s.+\(.+\)$/u,
+  /^\s*File\s+".*",\s+line\s+\d+/u,
+  /^\^+$/u,
+];
+
+const MAX_ERROR_MESSAGE_LENGTH = 500;
+
+function containsStackTrace(output: string): boolean {
+  return STACK_TRACE_MARKERS.some((pattern) => pattern.test(output));
+}
+
+function sanitiseCliErrorMessage(stderr: string, exitCode: number): string {
+  const trimmed = stderr.trim();
+  if (!trimmed) {
+    return `Dynamic CLI execution failed with exit code ${exitCode}.`;
+  }
+
+  const lines = trimmed
+    .split(/\r?\n/u)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const hasStackTrace = containsStackTrace(trimmed);
+
+  const pickSummary = (): string | undefined => {
+    if (!hasStackTrace) {
+      return lines.length > 0 ? lines[lines.length - 1] : undefined;
+    }
+
+    for (let index = lines.length - 1; index >= 0; index -= 1) {
+      const line = lines[index];
+      if (STACK_TRACE_LINE_MARKERS.some((pattern) => pattern.test(line))) {
+        continue;
+      }
+      if (!line) {
+        continue;
+      }
+      return line;
+    }
+    return undefined;
+  };
+
+  const summary = pickSummary();
+  if (!summary) {
+    return `Dynamic CLI execution failed with exit code ${exitCode}.`;
+  }
+
+  if (summary.length > MAX_ERROR_MESSAGE_LENGTH) {
+    return `${summary.slice(0, MAX_ERROR_MESSAGE_LENGTH - 1)}…`;
+  }
+
+  return summary;
+}
+
 function handleAdminFailure(
   result: AdminVerificationFailure,
   req: Request,
@@ -245,8 +307,15 @@ export async function POST(req: Request) {
       const { stdout, stderr, exitCode } = await executeCli(payload);
 
       if (exitCode !== 0) {
-        const message = stderr.trim() || "Dynamic CLI execution failed.";
+        const message = sanitiseCliErrorMessage(stderr, exitCode);
         const status = exitCode === 2 ? 400 : 500;
+        const loggedStderr = stderr.trim();
+        if (loggedStderr) {
+          console.error(
+            "[web] Dynamic CLI execution failed",
+            { exitCode, stderr: loggedStderr },
+          );
+        }
         return jsonResponse({ ok: false, error: message }, { status }, req);
       }
 
