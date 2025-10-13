@@ -194,6 +194,30 @@ def test_crypto_detection_handles_derivative_suffixes(
     assert algo._is_crypto_context(context) is True
 
 
+@pytest.mark.parametrize(
+    "symbol",
+    [
+        "PERPUSDT",
+        "PERPBUSD",
+        "PERP-DAI",
+    ],
+)
+def test_crypto_detection_handles_perp_token_pairs(
+    algo: DynamicFusionAlgo, symbol: str
+) -> None:
+    context = algo._prepare_context(
+        {
+            "signal": "SELL",
+            "confidence": 0.5,
+            "volatility": 1.0,
+            "symbol": symbol,
+        }
+    )
+
+    assert context.asset_class == "crypto"
+    assert algo._is_crypto_context(context) is True
+
+
 def test_crypto_detection_avoids_false_positive_symbols(algo: DynamicFusionAlgo) -> None:
     context = algo._prepare_context(
         {

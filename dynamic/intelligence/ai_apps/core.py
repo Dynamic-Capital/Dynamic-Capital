@@ -75,6 +75,8 @@ _CRYPTO_TICKER_HINTS = (
     "MATIC",
     "USDT",
     "USDC",
+    "BUSD",
+    "DAI",
     "BCH",
     "XMR",
     "LINK",
@@ -83,7 +85,10 @@ _CRYPTO_TICKER_HINTS = (
     "APT",
     "ARB",
     "OP",
+    "PERP",
 )
+
+_CRYPTO_TICKER_HINTS_SET: Set[str] = frozenset(_CRYPTO_TICKER_HINTS)
 
 _COMMON_QUOTE_TOKENS = {
     "USD",
@@ -604,7 +609,7 @@ class DynamicFusionAlgo:
         if not token:
             return False
 
-        hints = set(_CRYPTO_TICKER_HINTS)
+        hints = _CRYPTO_TICKER_HINTS_SET
         if token in hints:
             return True
 
