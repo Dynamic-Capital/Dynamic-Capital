@@ -89,6 +89,9 @@ platform owner. Complete every checkbox before marking the deployment ready.
       target.
 - [ ] Enable HTTPS and configure firewall rules.
 - [ ] Monitor the service with uptime alerts.
+- [ ] Run `npm run env:validate` and confirm gateway tokens (`EDGE_US_TOKEN`,
+      `EDGE_EU_TOKEN`, `_EDGE_INT_TOKEN`) exist in Supabase, Vercel, and droplet
+      environments.
 
 ## Telegram Bot and Mini App
 

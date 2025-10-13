@@ -7,7 +7,7 @@ variables to avoid accidental leakage in configuration files or code.
 ## Registering Credentials
 
 1. Define a strong token in your secrets manager and expose it to the runtime as
-   an environment variable (for example `DYNAMIC_EDGE_US_TOKEN`).
+   an environment variable (for example `EDGE_US_TOKEN`).
 2. Register the endpoint and associate the credential with the engine:
 
    ```python
@@ -21,7 +21,7 @@ variables to avoid accidental leakage in configuration files or code.
            region="us-east",
        )
    )
-   engine.register_endpoint_credential("edge-us", "DYNAMIC_EDGE_US_TOKEN")
+   engine.register_endpoint_credential("edge-us", "EDGE_US_TOKEN")
    ```
 
 3. Provide the token through the environment before composing requests. The
@@ -44,5 +44,8 @@ variables to avoid accidental leakage in configuration files or code.
 
 - Store gateway tokens in your preferred secrets manager and inject them at
   deployment time.
+- Track gateway credential keys in `env/env.map.json` (see the
+  `gateway-credentials` domain) so `npm run env:validate` and `npm run env:sync`
+  confirm Supabase, Vercel, and droplet deployments are populated.
 - Review any bootstrap scripts or infrastructure templates to ensure they set
   the required environment variables before the gateway engine starts.
