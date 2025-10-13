@@ -94,10 +94,8 @@ async function getRouteModule(): Promise<RouteModule> {
 }
 
 async function resetOverrides() {
-  const { SPAWN_OVERRIDE_SYMBOL } = await getRouteModule();
-  delete (globalThis as Record<PropertyKey, unknown>)[
-    SPAWN_OVERRIDE_SYMBOL
-  ];
+  const { POST } = await getRouteModule();
+  POST.clearSpawnOverride();
   delete (globalThis as Record<PropertyKey, unknown>)[
     API_METRICS_OVERRIDE_SYMBOL
   ];
@@ -123,9 +121,7 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
 
   const routeModule = await getRouteModule();
 
-  (globalThis as Record<PropertyKey, unknown>)[
-    routeModule.SPAWN_OVERRIDE_SYMBOL
-  ] = (
+  routeModule.POST.setSpawnOverride((
     command: string,
     args?: readonly string[],
   ) => {
@@ -136,7 +132,7 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
       lastProcess?.close(0);
     });
     return lastProcess as unknown as ChildProcessWithoutNullStreams;
-  };
+  });
 
   const { POST } = routeModule;
 
@@ -236,16 +232,14 @@ Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
 
   const routeModule = await getRouteModule();
 
-  (globalThis as Record<PropertyKey, unknown>)[
-    routeModule.SPAWN_OVERRIDE_SYMBOL
-  ] = () => {
+  routeModule.POST.setSpawnOverride(() => {
     const child = new MockChildProcess();
     queueMicrotask(() => {
       child.stderr.emitData("error: bad scenario\n");
       child.close(2);
     });
     return child as unknown as ChildProcessWithoutNullStreams;
-  };
+  });
 
   const { POST } = routeModule;
 
@@ -298,9 +292,7 @@ Deno.test("POST /api/dynamic-cli sanitises stack traces from CLI errors", async 
 
   const routeModule = await getRouteModule();
 
-  (globalThis as Record<PropertyKey, unknown>)[
-    routeModule.SPAWN_OVERRIDE_SYMBOL
-  ] = () => {
+  routeModule.POST.setSpawnOverride(() => {
     const child = new MockChildProcess();
     queueMicrotask(() => {
       child.stderr.emitData(
@@ -315,7 +307,7 @@ Deno.test("POST /api/dynamic-cli sanitises stack traces from CLI errors", async 
       child.close(1);
     });
     return child as unknown as ChildProcessWithoutNullStreams;
-  };
+  });
 
   const originalConsoleError = console.error;
   console.error = () => {};
