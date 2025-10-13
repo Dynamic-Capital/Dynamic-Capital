@@ -51,14 +51,17 @@ export function useSubscriptionPlans(
       try {
         const result = await fetchSubscriptionPlans({ force });
         setPlans(result);
+        const fallbackMessage = getCachedSubscriptionPlansError();
+        setError(fallbackMessage);
         return result;
       } catch (err) {
         const message = err instanceof Error
           ? err.message
           : "Failed to load subscription plans.";
+        const fallback = getCachedSubscriptionPlans();
         setError(message);
-        setPlans([]);
-        return [];
+        setPlans(fallback);
+        return fallback;
       } finally {
         setLoading(false);
       }
