@@ -167,7 +167,12 @@ def _strip_quote_suffix(token: str) -> str:
         stripped = False
         for suffix in _DERIVATIVE_SUFFIXES:
             if candidate.endswith(suffix):
-                candidate = candidate[: -len(suffix)]
+                next_candidate = candidate[: -len(suffix)]
+                # Keep recognised quote tokens such as "PERP" intact instead of
+                # stripping them down to an empty string.
+                if not next_candidate and candidate in _COMMON_QUOTE_TOKENS:
+                    return candidate
+                candidate = next_candidate
                 stripped = True
                 break
         if stripped:

@@ -174,6 +174,8 @@ def test_crypto_detection_handles_common_pairs(algo: DynamicFusionAlgo) -> None:
         "ETHUSD0324",
         "XBTUSDT",
         "SOLUSDT5L",
+        "BTC-PERP",
+        "ETH-PERP",
     ],
 )
 def test_crypto_detection_handles_derivative_suffixes(
