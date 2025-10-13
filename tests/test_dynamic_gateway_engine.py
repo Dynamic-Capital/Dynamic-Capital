@@ -135,3 +135,43 @@ def test_gateway_engine_marks_routes_offline_when_everything_is_down():
     assert snapshot.routes["status"] == ("edge-down",)
     assert snapshot.notes["fallback_routes"] == ("status",)
     assert snapshot.notes["offline_only_routes"] == ("status",)
+
+
+def test_gateway_engine_credentials_from_environment(monkeypatch):
+    engine = DynamicGatewayEngine()
+    endpoint = GatewayEndpoint(
+        identifier="edge-us",
+        url="https://edge-us.dynamic.gateway",
+        region="us-east",
+    )
+    engine.register_endpoint(endpoint)
+    engine.register_endpoint_credential("edge-us", "EDGE_US_TOKEN")
+    monkeypatch.setenv("EDGE_US_TOKEN", "super-secret")
+
+    headers = engine.authorisation_headers("edge-us")
+    assert headers == {"Authorization": "Bearer super-secret"}
+    assert engine.endpoint_credentials == {"edge-us": "EDGE_US_TOKEN"}
+
+
+def test_gateway_engine_credentials_require_env(monkeypatch):
+    engine = DynamicGatewayEngine()
+    endpoint = GatewayEndpoint(
+        identifier="edge-eu",
+        url="https://edge-eu.dynamic.gateway",
+        region="eu-central",
+    )
+    engine.register_endpoint(endpoint)
+    engine.register_endpoint_credential("edge-eu", "EDGE_EU_TOKEN")
+
+    with pytest.raises(RuntimeError):
+        engine.authorisation_headers("edge-eu")
+
+    monkeypatch.setenv("EDGE_EU_TOKEN", "  scoped-token  ")
+    token = engine.resolve_endpoint_token("edge-eu")
+    assert token == "scoped-token"
+
+
+def test_gateway_engine_rejects_invalid_env_name():
+    engine = DynamicGatewayEngine()
+    with pytest.raises(ValueError):
+        engine.register_endpoint_credential("edge-us", "edge-us-token")
