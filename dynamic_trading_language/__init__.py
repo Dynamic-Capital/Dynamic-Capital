@@ -15,6 +15,7 @@ from .model import (
     OrderFlowSignal,
     TradeIntent,
 )
+from .parser import TradeIntentParseError, parse_trade_intent
 from .reporting import NarrativeDeck
 
 __all__ = [
@@ -28,4 +29,6 @@ __all__ = [
     "get_trading_discipline",
     "list_trading_discipline_names",
     "NarrativeDeck",
+    "parse_trade_intent",
+    "TradeIntentParseError",
 ]

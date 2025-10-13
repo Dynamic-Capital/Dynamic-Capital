@@ -252,6 +252,21 @@ function ensureEnvScope(envs, key, scope, changes, context) {
   }
 }
 
+function ensureSecretEnv(envs, key, scope, changes, context) {
+  const entry = envs.find((item) => item?.key === key);
+  const label = context && context.length > 0 ? `${context}: ${key}` : key;
+  if (!entry) {
+    envs.push({ key, scope });
+    changes.add(`${label} registered`);
+    changes.add(formatScopeChangeLabel(key, undefined, scope, context));
+    return;
+  }
+  if (entry.scope !== scope) {
+    changes.add(formatScopeChangeLabel(key, entry.scope, scope, context));
+    entry.scope = scope;
+  }
+}
+
 function ensureHealthCheckHttpPath(component, httpPath, changes, context) {
   if (!component || typeof component !== "object") {
     return;
@@ -381,9 +396,18 @@ export function normalizeAppSpec({
     );
   }
 
+  const gatewayCredentialKeys = [
+    "EDGE_US_TOKEN",
+    "EDGE_EU_TOKEN",
+    "_EDGE_INT_TOKEN",
+  ];
+  for (const key of gatewayCredentialKeys) {
+    ensureSecretEnv(spec.envs, key, "RUN_TIME", changes, globalContext);
+  }
+
   function updateComponentEnvs(
     components,
-    { includeAllowedOrigins = false, label },
+    { includeAllowedOrigins = false, label, secretKeys = [] },
   ) {
     const list = ensureArray(components);
     for (const component of list) {
@@ -436,6 +460,15 @@ export function normalizeAppSpec({
         changes,
         componentContext,
       );
+      for (const key of secretKeys) {
+        ensureSecretEnv(
+          component.envs,
+          key,
+          "RUN_TIME",
+          changes,
+          componentContext,
+        );
+      }
     }
     return list;
   }
@@ -447,12 +480,18 @@ export function normalizeAppSpec({
 
   let targetedServices = [];
   if (service) {
-    targetedServices = updateComponentEnvs([service], { label: "service" });
+    targetedServices = updateComponentEnvs([service], {
+      label: "service",
+      secretKeys: gatewayCredentialKeys,
+    });
   } else if (spec.services.length > 0) {
     console.warn(
       `Warning: Service '${serviceName}' not found. Updating all services instead.`,
     );
-    targetedServices = updateComponentEnvs(spec.services, { label: "service" });
+    targetedServices = updateComponentEnvs(spec.services, {
+      label: "service",
+      secretKeys: gatewayCredentialKeys,
+    });
   } else {
     console.warn(
       "Warning: No services defined in the app spec. Only global env vars were updated.",

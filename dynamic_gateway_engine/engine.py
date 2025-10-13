@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Iterable, Mapping, MutableMapping, Sequence
@@ -33,6 +35,9 @@ _STATUS_PRIORITY = {
     "offline": 2,
     "unknown": 3,
 }
+
+
+_ENV_NAME_PATTERN = re.compile(r"^[A-Z_][A-Z0-9_]*$")
 
 
 # ---------------------------------------------------------------------------
@@ -95,6 +100,15 @@ def _normalise_protocols(protocols: Sequence[str] | None) -> tuple[str, ...]:
             seen.add(cleaned)
             resolved.append(cleaned)
     return tuple(resolved)
+
+
+def _normalise_env_var(name: str) -> str:
+    text = _normalise_text(name)
+    if not _ENV_NAME_PATTERN.fullmatch(text):
+        raise ValueError(
+            "environment variable names must be uppercase alphanumeric with optional underscores"
+        )
+    return text
 
 
 def _normalise_methods(methods: Sequence[str] | None) -> tuple[str, ...]:
@@ -319,16 +333,21 @@ class DynamicGatewayEngine:
         *,
         endpoints: Iterable[GatewayEndpoint] | None = None,
         routes: Iterable[GatewayRoute] | None = None,
+        credentials: Mapping[str, str] | None = None,
     ) -> None:
         self._endpoints: MutableMapping[str, GatewayEndpoint] = {}
         self._routes: MutableMapping[str, GatewayRoute] = {}
         self._health: MutableMapping[str, GatewayHealth] = {}
+        self._credentials: MutableMapping[str, str] = {}
         if endpoints:
             for endpoint in endpoints:
                 self.register_endpoint(endpoint)
         if routes:
             for route in routes:
                 self.register_route(route)
+        if credentials:
+            for endpoint_id, env_var in credentials.items():
+                self.register_endpoint_credential(endpoint_id, env_var)
 
     # ------------------------------------------------------------------
     # Registration helpers
@@ -337,6 +356,11 @@ class DynamicGatewayEngine:
         endpoint = payload
         self._endpoints[endpoint.identifier] = endpoint
         return endpoint
+
+    def register_endpoint_credential(self, endpoint_id: str, env_var: str) -> None:
+        key = _normalise_identifier(endpoint_id)
+        env_name = _normalise_env_var(env_var)
+        self._credentials[key] = env_name
 
     def register_route(self, payload: GatewayRoute) -> GatewayRoute:
         route = payload
@@ -363,9 +387,42 @@ class DynamicGatewayEngine:
     def routes(self) -> tuple[GatewayRoute, ...]:
         return tuple(self._routes.values())
 
+    @property
+    def endpoint_credentials(self) -> Mapping[str, str]:
+        return dict(self._credentials)
+
     def health_for(self, endpoint_id: str) -> GatewayHealth | None:
         key = _normalise_identifier(endpoint_id)
         return self._health.get(key)
+
+    def resolve_endpoint_token(
+        self,
+        endpoint_id: str,
+        *,
+        environ: Mapping[str, str] | None = None,
+    ) -> str:
+        key = _normalise_identifier(endpoint_id)
+        env_name = self._credentials.get(key)
+        if env_name is None:
+            raise KeyError(f"No credential registered for endpoint '{endpoint_id}'")
+        source = environ or os.environ
+        token = source.get(env_name)
+        if token is None or not token.strip():
+            raise RuntimeError(
+                f"Environment variable '{env_name}' is not set for endpoint '{endpoint_id}'"
+            )
+        return token.strip()
+
+    def authorisation_headers(
+        self,
+        endpoint_id: str,
+        *,
+        environ: Mapping[str, str] | None = None,
+        scheme: str = "Bearer",
+    ) -> Mapping[str, str]:
+        token = self.resolve_endpoint_token(endpoint_id, environ=environ)
+        cleaned_scheme = _normalise_text(scheme)
+        return {"Authorization": f"{cleaned_scheme} {token}"}
 
     # ------------------------------------------------------------------
     # Planning helpers

@@ -152,6 +152,14 @@ Additional crypto keys:
 | `NEXT_PUBLIC_ECONOMIC_CALENDAR_URL`     | REST endpoint the client queries for economic events. Defaults to the Forex Factory open feed. | No       | `https://nfs.faireconomy.media/ff_calendar_thisweek.json` | `tests/economic-calendar-service.test.ts`, `apps/web/lib/env.ts` |
 | `NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY` | API key forwarded to the calendar provider.                                                    | No       | `public-key`                                              | `tests/economic-calendar-service.test.ts`, `apps/web/lib/env.ts` |
 
+## Gateway Credentials
+
+| Key               | Purpose                                                                  | Required | Example                 | Used in                                                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------ | -------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EDGE_US_TOKEN`   | Primary US edge gateway token resolved by the gateway engine.            | Yes      | `edge_us_prod_secret`   | `dynamic_gateway_engine/engine.py`, `scripts/digitalocean/site-config-utils.mjs`, `scripts/env/sync.ts`                                         |
+| `EDGE_EU_TOKEN`   | Primary EU edge gateway token resolved by the gateway engine.            | Yes      | `edge_eu_prod_secret`   | `dynamic_gateway_engine/engine.py`, `scripts/digitalocean/site-config-utils.mjs`, `scripts/env/sync.ts`                                         |
+| `_EDGE_INT_TOKEN` | Internal or staging token (underscore-prefixed) supported by the engine. | No       | `_edge_internal_secret` | `dynamic_gateway_engine/engine.py`, `tests/test_dynamic_gateway_engine.py`, `scripts/digitalocean/site-config-utils.mjs`, `scripts/env/sync.ts` |
+
 ## Treasury Buyback Bot
 
 | Key                             | Purpose                                                         | Required | Example            | Used in                 |
