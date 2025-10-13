@@ -24,6 +24,18 @@ export type CommandHandler = (ctx: CommandContext) => Promise<void>;
 
 type AdminHandlers = typeof import("./admin-handlers/index.ts");
 import { optionalEnv } from "../_shared/env.ts";
+import { functionUrl } from "../_shared/edge.ts";
+
+function resolveVipSyncUrl(endpoint: "one" | "batch"): string | null {
+  const direct = functionUrl(`vip-sync/${endpoint}`);
+  if (direct) return direct;
+
+  const supabaseUrl = optionalEnv("SUPABASE_URL");
+  if (!supabaseUrl) return null;
+
+  const normalized = supabaseUrl.replace(/\/?$/, "");
+  return `${normalized}/functions/v1/vip-sync/${endpoint}`;
+}
 
 export function buildAdminCommandHandlers(
   load: () => Promise<AdminHandlers>,
@@ -66,36 +78,47 @@ export function buildAdminCommandHandlers(
       await mod.handleAdminDashboard(chatId, userId);
     },
     "/vipsync": async ({ chatId, args }) => {
-      const supaUrl = optionalEnv("SUPABASE_URL");
-      if (!supaUrl) {
+      const endpoint = args[0] ? "one" : "batch";
+      const targetUrl = resolveVipSyncUrl(endpoint);
+
+      if (!targetUrl) {
         await notify(
           chatId,
           JSON.stringify({
             ok: false,
-            error: "SUPABASE_URL is not configured",
+            error:
+              "Supabase functions host is not configured. Define SUPABASE_PROJECT_ID or SUPABASE_URL to enable VIP sync.",
           }),
         );
         return;
       }
 
       const adminSecret = optionalEnv("ADMIN_API_SECRET");
-      const endpoint = args[0] ? "one" : "batch";
       const body = args[0] ? { telegram_user_id: args[0] } : {};
+
       try {
-        const res = await fetch(
-          `${supaUrl}/functions/v1/vip-sync/${endpoint}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(adminSecret ? { "X-Admin-Secret": adminSecret } : {}),
-            },
-            body: JSON.stringify(body),
+        const response = await fetch(targetUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(adminSecret ? { "X-Admin-Secret": adminSecret } : {}),
           },
-        ).then((r) => r.json());
-        await notify(chatId, JSON.stringify(res));
-      } catch (e) {
-        await notify(chatId, JSON.stringify({ ok: false, error: String(e) }));
+          body: JSON.stringify(body),
+        });
+
+        const payload = await response.json();
+        await notify(chatId, JSON.stringify(payload));
+      } catch (error) {
+        const message = error instanceof Error
+          ? error.message
+          : String(error ?? "unknown error");
+        await notify(
+          chatId,
+          JSON.stringify({
+            ok: false,
+            error: `Failed to trigger VIP sync: ${message}`,
+          }),
+        );
       }
     },
     "/tables": async ({ chatId }) => {
