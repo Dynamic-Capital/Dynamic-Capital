@@ -324,6 +324,13 @@ const tokenHighlights = Object.freeze([
     ]
     : []),
   {
+    label: "Minting status",
+    value: "Ownership renounced",
+    description:
+      "Jetton admin cleared on-chain; supply permanently capped at 100M DCT.",
+    icon: "check",
+  },
+  {
     label: "Treasury TON wallet",
     value: shortenTonAddress(OPERATIONS_TREASURY_WALLET),
     description:

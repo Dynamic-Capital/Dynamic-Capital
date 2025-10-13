@@ -10,14 +10,15 @@ blockchain.
 
 ## Token Details
 
-| Attribute                 | Value                                  |
-| ------------------------- | -------------------------------------- |
-| Name                      | Dynamic Capital Token                  |
-| Symbol                    | DCT                                    |
-| Decimals                  | 9                                      |
-| Total Supply (minted)     | 100,000,000 DCT                        |
-| Issuance Date             | 2025-07-18                             |
-| Smart Contract Repository | `dynamic-capital-ton/contracts/jetton` |
+| Attribute                 | Value                                   |
+| ------------------------- | --------------------------------------- |
+| Name                      | Dynamic Capital Token                   |
+| Symbol                    | DCT                                     |
+| Decimals                  | 9                                       |
+| Total Supply (minted)     | 100,000,000 DCT                         |
+| Minting Status            | Ownership renounced; supply hard-capped |
+| Issuance Date             | 2025-07-18                              |
+| Smart Contract Repository | `dynamic-capital-ton/contracts/jetton`  |
 
 ## Purpose
 

@@ -60,6 +60,10 @@
     {
       "trait_type": "Treasury multisig",
       "value": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G"
+    },
+    {
+      "trait_type": "Minting status",
+      "value": "Ownership renounced · supply capped at 100000000 DCT"
     }
   ],
   "version": "1.1",

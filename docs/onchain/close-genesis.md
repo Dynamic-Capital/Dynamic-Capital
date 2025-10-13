@@ -57,5 +57,6 @@ After the transaction lands on-chain:
 3. Record the transaction hash in the operations log and update the
    `docs/onchain/jetton-minter.md` dossier if this is part of a redeployment.
 
-With `closeGenesis` executed, all further supply changes must flow through the
-contract’s timelocked governance paths.
+With `closeGenesis` executed and the admin slot renounced, all further supply
+changes are impossible—DCT now remains permanently capped at the 100M genesis
+allocation.
