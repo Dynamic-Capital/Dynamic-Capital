@@ -36,8 +36,15 @@ type ExplicitBucketHistogramAggregationConstructor = new (
   boundaries: number[],
 ) => unknown;
 
-type InstrumentTypeLike = {
+type InstrumentTypeLike = Record<string, unknown> & {
   HISTOGRAM: unknown;
+};
+
+type SDKMetricsRequiredExports = {
+  MeterProvider: MeterProviderConstructor;
+  View: ViewConstructor;
+  ExplicitBucketHistogramAggregation: ExplicitBucketHistogramAggregationConstructor;
+  InstrumentType: InstrumentTypeLike;
 };
 
 type SentryFacade = {
@@ -345,34 +352,54 @@ const registerImpl: () => Promise<void> = (() => {
     const { SemanticResourceAttributes } = semanticConventionsModule;
 
     const metricsExports = metricsModule as ModuleWithPossibleDefault;
-    const meterProviderCtor = resolveModuleExport<MeterProviderConstructor>(
-      metricsExports,
-      "MeterProvider",
-    );
-    const instrumentType = resolveModuleExport<InstrumentTypeLike>(
-      metricsExports,
-      "InstrumentType",
-    );
-    const viewCtor = resolveModuleExport<ViewConstructor>(
-      metricsExports,
-      "View",
-    );
-    const explicitBucketHistogramAggregationCtor = resolveModuleExport<
-      ExplicitBucketHistogramAggregationConstructor
-    >(
-      metricsExports,
-      "ExplicitBucketHistogramAggregation",
-    );
+
+    const resolvedMetricsExports: Partial<SDKMetricsRequiredExports> = {
+      MeterProvider: resolveModuleExport<MeterProviderConstructor>(
+        metricsExports,
+        "MeterProvider",
+      ),
+      InstrumentType: resolveModuleExport<InstrumentTypeLike>(
+        metricsExports,
+        "InstrumentType",
+      ),
+      View: resolveModuleExport<ViewConstructor>(
+        metricsExports,
+        "View",
+      ),
+      ExplicitBucketHistogramAggregation:
+        resolveModuleExport<ExplicitBucketHistogramAggregationConstructor>(
+          metricsExports,
+          "ExplicitBucketHistogramAggregation",
+        ),
+    };
+
+    const {
+      MeterProvider: meterProviderCtor,
+      InstrumentType: instrumentType,
+      View: viewCtor,
+      ExplicitBucketHistogramAggregation: explicitBucketHistogramAggregationCtor,
+    } = resolvedMetricsExports;
+
+    const instrumentTypeHasHistogram =
+      typeof instrumentType === "object" &&
+      instrumentType !== null &&
+      "HISTOGRAM" in instrumentType;
 
     if (
       typeof meterProviderCtor !== "function" ||
       typeof viewCtor !== "function" ||
       typeof explicitBucketHistogramAggregationCtor !== "function" ||
-      typeof instrumentType !== "object" ||
-      instrumentType === null
+      !instrumentTypeHasHistogram
     ) {
       fallbackToExistingMeterProvider(
         "OpenTelemetry metrics SDK exports are unavailable",
+        {
+          meterProviderAvailable: typeof meterProviderCtor === "function",
+          viewAvailable: typeof viewCtor === "function",
+          histogramAggregationAvailable:
+            typeof explicitBucketHistogramAggregationCtor === "function",
+          instrumentTypeAvailable: instrumentTypeHasHistogram,
+        },
       );
       return;
     }
