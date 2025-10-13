@@ -8,10 +8,6 @@ import {
   createNoopApiMetrics,
 } from "@/observability/server-metrics.ts";
 
-const SPAWN_OVERRIDE_SYMBOL = Symbol.for(
-  "dynamic-capital.dynamic-cli.spawn-override",
-);
-
 class MockReadable extends EventEmitter {
   setEncoding() {}
   emitData(chunk: string) {
@@ -91,7 +87,14 @@ function createAdminToken(
   return `${signingInput}.${signature}`;
 }
 
-function resetOverrides() {
+type RouteModule = typeof import("./route.ts");
+
+async function getRouteModule(): Promise<RouteModule> {
+  return await import("./route.ts");
+}
+
+async function resetOverrides() {
+  const { SPAWN_OVERRIDE_SYMBOL } = await getRouteModule();
   delete (globalThis as Record<PropertyKey, unknown>)[
     SPAWN_OVERRIDE_SYMBOL
   ];
@@ -118,7 +121,11 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
   const spawnCalls: Array<{ command: string; args: string[] }> = [];
   let lastProcess: MockChildProcess | null = null;
 
-  (globalThis as Record<PropertyKey, unknown>)[SPAWN_OVERRIDE_SYMBOL] = (
+  const routeModule = await getRouteModule();
+
+  (globalThis as Record<PropertyKey, unknown>)[
+    routeModule.SPAWN_OVERRIDE_SYMBOL
+  ] = (
     command: string,
     args?: readonly string[],
   ) => {
@@ -131,7 +138,7 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
     return lastProcess as unknown as ChildProcessWithoutNullStreams;
   };
 
-  const { POST } = await import("./route.ts");
+  const { POST } = routeModule;
 
   const body = {
     scenario: {
@@ -218,7 +225,7 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
 
   Deno.env.set("DYNAMIC_AGI_PYTHON", "python3");
   Deno.env.set("DYNAMIC_CLI_PYTHON", "python3");
-  resetOverrides();
+  await resetOverrides();
 });
 
 Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
@@ -227,7 +234,11 @@ Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
   (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
     createNoopApiMetrics();
 
-  (globalThis as Record<PropertyKey, unknown>)[SPAWN_OVERRIDE_SYMBOL] = () => {
+  const routeModule = await getRouteModule();
+
+  (globalThis as Record<PropertyKey, unknown>)[
+    routeModule.SPAWN_OVERRIDE_SYMBOL
+  ] = () => {
     const child = new MockChildProcess();
     queueMicrotask(() => {
       child.stderr.emitData("error: bad scenario\n");
@@ -236,7 +247,7 @@ Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
     return child as unknown as ChildProcessWithoutNullStreams;
   };
 
-  const { POST } = await import("./route.ts");
+  const { POST } = routeModule;
 
   const token = createAdminToken(ADMIN_SECRET);
   const response = await POST(
@@ -276,7 +287,7 @@ Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
     throw new Error("Expected CLI stderr to be surfaced in error payload");
   }
 
-  resetOverrides();
+  await resetOverrides();
 });
 
 Deno.test("POST /api/dynamic-cli sanitises stack traces from CLI errors", async () => {
@@ -285,7 +296,11 @@ Deno.test("POST /api/dynamic-cli sanitises stack traces from CLI errors", async 
   (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
     createNoopApiMetrics();
 
-  (globalThis as Record<PropertyKey, unknown>)[SPAWN_OVERRIDE_SYMBOL] = () => {
+  const routeModule = await getRouteModule();
+
+  (globalThis as Record<PropertyKey, unknown>)[
+    routeModule.SPAWN_OVERRIDE_SYMBOL
+  ] = () => {
     const child = new MockChildProcess();
     queueMicrotask(() => {
       child.stderr.emitData(
@@ -306,7 +321,7 @@ Deno.test("POST /api/dynamic-cli sanitises stack traces from CLI errors", async 
   console.error = () => {};
 
   try {
-    const { POST } = await import("./route.ts");
+    const { POST } = routeModule;
 
     const token = createAdminToken(ADMIN_SECRET);
     const response = await POST(
@@ -351,7 +366,7 @@ Deno.test("POST /api/dynamic-cli sanitises stack traces from CLI errors", async 
     }
   } finally {
     console.error = originalConsoleError;
-    resetOverrides();
+    await resetOverrides();
   }
 });
 
@@ -361,7 +376,7 @@ Deno.test("POST /api/dynamic-cli rejects missing admin credentials", async () =>
   (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
     createNoopApiMetrics();
 
-  const { POST } = await import("./route.ts");
+  const { POST } = await getRouteModule();
 
   const response = await POST(
     new Request("http://localhost/api/dynamic-cli", {
@@ -390,5 +405,5 @@ Deno.test("POST /api/dynamic-cli rejects missing admin credentials", async () =>
     throw new Error(`Expected HTTP 401 when admin credentials are missing.`);
   }
 
-  resetOverrides();
+  await resetOverrides();
 });

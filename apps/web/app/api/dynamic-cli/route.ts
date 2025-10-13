@@ -3,7 +3,6 @@ import type {
   ChildProcessWithoutNullStreams,
   SpawnOptions,
 } from "node:child_process";
-import { TextDecoder } from "node:util";
 import { z } from "zod";
 
 import { withApiMetrics } from "@/observability/server-metrics.ts";
@@ -27,7 +26,7 @@ const CLI_MODULE = "dynamic.intelligence.agi.build";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SPAWN_OVERRIDE_SYMBOL = Symbol.for(
+export const SPAWN_OVERRIDE_SYMBOL = Symbol.for(
   "dynamic-capital.dynamic-cli.spawn-override",
 );
 
