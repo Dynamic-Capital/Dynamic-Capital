@@ -3,7 +3,6 @@ import { createClient } from "@/integrations/supabase/client";
 import type { Plan } from "@/types/plan";
 import { callEdgeFunction } from "@/config/supabase";
 import { SUPABASE_CONFIG_FROM_ENV } from "@/config/supabase-runtime";
-import { getFallbackSubscriptionPlans } from "@/data/fallback-subscription-plans";
 
 interface PlansResponse {
   plans?: RawPlan[] | null;
@@ -37,14 +36,6 @@ let fallbackClient: SupabaseClient | null = null;
 const HAS_REMOTE_SUBSCRIPTION_PLANS = SUPABASE_CONFIG_FROM_ENV;
 const SUPABASE_MISSING_MESSAGE =
   "Supabase credentials are not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to load subscription plans.";
-
-function applyFallbackPlans(message: string): Plan[] {
-  const fallbackPlans = getFallbackSubscriptionPlans();
-  cachedPlans = fallbackPlans;
-  cachedError = message;
-  pendingRequest = null;
-  return fallbackPlans;
-}
 
 function getFallbackClient() {
   if (!fallbackClient) {
@@ -188,7 +179,10 @@ export async function fetchSubscriptionPlans(
   const { force = false } = options;
 
   if (!HAS_REMOTE_SUBSCRIPTION_PLANS) {
-    return applyFallbackPlans(SUPABASE_MISSING_MESSAGE);
+    cachedPlans = [];
+    cachedError = SUPABASE_MISSING_MESSAGE;
+    pendingRequest = null;
+    return [];
   }
 
   if (force) {
@@ -239,7 +233,8 @@ export async function fetchSubscriptionPlans(
         ? err.message
         : "Unable to load subscription plans";
 
-      applyFallbackPlans(message);
+      cachedPlans = [];
+      cachedError = message;
 
       throw err instanceof Error ? err : new Error(message);
     })
