@@ -134,18 +134,17 @@ async function executeCli(
 
   const stdoutChunks: string[] = [];
   const stderrChunks: string[] = [];
-  const decoder = new TextDecoder();
 
   child.stdout.setEncoding?.("utf-8");
   child.stderr.setEncoding?.("utf-8");
 
   child.stdout.on("data", (chunk: Buffer | string) => {
-    const piece = typeof chunk === "string" ? chunk : decoder.decode(chunk);
+    const piece = typeof chunk === "string" ? chunk : chunk.toString("utf-8");
     stdoutChunks.push(piece);
   });
 
   child.stderr.on("data", (chunk: Buffer | string) => {
-    const piece = typeof chunk === "string" ? chunk : decoder.decode(chunk);
+    const piece = typeof chunk === "string" ? chunk : chunk.toString("utf-8");
     stderrChunks.push(piece);
   });
 

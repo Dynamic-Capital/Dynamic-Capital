@@ -26,7 +26,11 @@ function assertEquals<T>(actual: T, expected: T, message?: string): void {
 }
 
 function base64UrlEncode(input: string | Buffer): string {
-  return Buffer.from(input)
+  const buffer = typeof input === "string"
+    ? Buffer.from(input)
+    : Buffer.from(input);
+
+  return buffer
     .toString("base64")
     .replace(/=/g, "")
     .replace(/\+/g, "-")

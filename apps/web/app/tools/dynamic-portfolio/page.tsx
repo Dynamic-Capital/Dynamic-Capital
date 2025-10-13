@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { FC, PropsWithChildren } from "react";
 
 import {
   Button,
@@ -119,15 +119,15 @@ const QUICK_STEPS = [
   },
 ];
 
-function HighlightCard({
-  icon,
-  title,
-  body,
-}: {
+const HighlightCard: FC<{
   icon: string;
   title: string;
   body: string;
-}) {
+}> = ({
+  icon,
+  title,
+  body,
+}) => {
   return (
     <Column
       gap="12"
@@ -145,30 +145,30 @@ function HighlightCard({
       </Text>
     </Column>
   );
-}
+};
 
-function ChecklistItem({ children }: { children: ReactNode }) {
+const ChecklistItem: FC<PropsWithChildren> = ({ children }) => {
   return (
     <Row as="li" gap="8" align="center">
       <Icon name="check" onBackground="brand-medium" />
       <Text variant="body-default-m" onBackground="neutral-weak" wrap="balance">
-        {children}
+        {children ?? null}
       </Text>
     </Row>
   );
-}
+};
 
-function PathCard({
-  icon,
-  title,
-  description,
-  bullets,
-}: {
+const PathCard: FC<{
   icon: string;
   title: string;
   description: string;
   bullets: string[];
-}) {
+}> = ({
+  icon,
+  title,
+  description,
+  bullets,
+}) => {
   return (
     <Column
       gap="12"
@@ -202,15 +202,15 @@ function PathCard({
       </Column>
     </Column>
   );
-}
+};
 
-function SupportCard({
+const SupportCard: FC<(typeof SUPPORT_CHANNELS)[number]> = ({
   icon,
   title,
   description,
   href,
   cta,
-}: (typeof SUPPORT_CHANNELS)[number]) {
+}) => {
   return (
     <Column
       gap="12"
@@ -239,7 +239,7 @@ function SupportCard({
       </Button>
     </Column>
   );
-}
+};
 
 export const metadata = {
   title: pageTitle,
