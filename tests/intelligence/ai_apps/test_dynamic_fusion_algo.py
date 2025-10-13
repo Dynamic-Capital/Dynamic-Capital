@@ -131,6 +131,28 @@ def test_human_bias_boundary_scores_promote_action(algo: DynamicFusionAlgo) -> N
     assert signal.action == "BUY"
 
 
+def test_crypto_buy_the_dip_promotes_buy(algo: DynamicFusionAlgo) -> None:
+    payload = {
+        "signal": "SELL",
+        "confidence": 0.5,
+        "volatility": 1.0,
+        "trend": "bullish",
+        "momentum": -0.3,
+        "sentiment": 0.4,
+        "drawdown": -0.08,
+        "asset_class": "crypto",
+        "symbol": "BTCUSD",
+        "support_level": 64000,
+        "alignment": 0.35,
+    }
+
+    signal = algo.generate_signal(payload)
+
+    assert signal.action == "BUY"
+    assert signal.confidence >= 0.45
+    assert "buy-the-dip" in signal.reasoning.lower()
+
+
 def test_news_none_is_treated_as_empty_iterable(algo: DynamicFusionAlgo) -> None:
     payload = {
         "signal": "SELL",

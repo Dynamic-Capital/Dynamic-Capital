@@ -91,6 +91,8 @@ def _prepared_context() -> PreparedMarketContext:
         resistance_level=110.0,
         human_bias=None,
         human_weight=None,
+        symbol="EURUSD",
+        asset_class="fx_major",
         circuit_breaker=False,
     )
 
