@@ -153,6 +153,34 @@ def test_crypto_buy_the_dip_promotes_buy(algo: DynamicFusionAlgo) -> None:
     assert "buy-the-dip" in signal.reasoning.lower()
 
 
+def test_crypto_detection_handles_common_pairs(algo: DynamicFusionAlgo) -> None:
+    context = algo._prepare_context(
+        {
+            "signal": "SELL",
+            "confidence": 0.5,
+            "volatility": 1.0,
+            "symbol": "BTCUSDT",
+        }
+    )
+
+    assert context.asset_class == "crypto"
+    assert algo._is_crypto_context(context) is True
+
+
+def test_crypto_detection_avoids_false_positive_symbols(algo: DynamicFusionAlgo) -> None:
+    context = algo._prepare_context(
+        {
+            "signal": "SELL",
+            "confidence": 0.5,
+            "volatility": 1.0,
+            "symbol": "BOSTON",
+        }
+    )
+
+    assert context.asset_class is None
+    assert algo._is_crypto_context(context) is False
+
+
 def test_news_none_is_treated_as_empty_iterable(algo: DynamicFusionAlgo) -> None:
     payload = {
         "signal": "SELL",

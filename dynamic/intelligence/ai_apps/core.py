@@ -84,6 +84,40 @@ _CRYPTO_TICKER_HINTS = (
     "OP",
 )
 
+_COMMON_QUOTE_TOKENS = {
+    "USD",
+    "USDT",
+    "USDC",
+    "USDK",
+    "USDD",
+    "USDP",
+    "USDX",
+    "EUR",
+    "GBP",
+    "JPY",
+    "CNY",
+    "KRW",
+    "TRY",
+    "AUD",
+    "CAD",
+    "CHF",
+    "SGD",
+    "HKD",
+    "NZD",
+    "ZAR",
+    "BRL",
+    "MXN",
+    "IDR",
+    "RUB",
+    "INR",
+    "BTC",
+    "ETH",
+    "BNB",
+    "BUSD",
+    "DAI",
+    "PERP",
+}
+
 
 @dataclass(frozen=True)
 class CompositeComponent:
@@ -492,7 +526,7 @@ class DynamicFusionAlgo:
         if not symbol:
             return ""
         token = str(symbol).upper()
-        for char in ("/", "-", "_", ":", ".", " "):
+        for char in ("/", "-", "_", ":", ".", " ", "!"):
             token = token.replace(char, "")
         return token
 
@@ -501,7 +535,49 @@ class DynamicFusionAlgo:
         token = cls._symbol_token(symbol)
         if not token:
             return False
-        return any(hint in token for hint in _CRYPTO_TICKER_HINTS)
+
+        hints = set(_CRYPTO_TICKER_HINTS)
+        if token in hints:
+            return True
+
+        segments: List[str] = []
+        current = []
+        for char in token:
+            if char.isalpha():
+                current.append(char)
+            else:
+                if current:
+                    segments.append("".join(current))
+                    current = []
+        if current:
+            segments.append("".join(current))
+
+        if segments:
+            for segment in segments:
+                if segment in hints:
+                    return True
+
+        for hint in hints:
+            if token.startswith(hint):
+                suffix = token[len(hint) :]
+                if suffix and cls._token_looks_like_quote(suffix):
+                    return True
+            if token.endswith(hint):
+                prefix = token[: -len(hint)]
+                if prefix and cls._token_looks_like_quote(prefix):
+                    return True
+
+        return False
+
+    @staticmethod
+    def _token_looks_like_quote(token: str) -> bool:
+        if not token or token.isdigit():
+            return False
+        if token in _COMMON_QUOTE_TOKENS:
+            return True
+        if token.isalpha() and 2 <= len(token) <= 5:
+            return token in _COMMON_QUOTE_TOKENS
+        return False
 
     def _is_crypto_context(self, context: "PreparedMarketContext") -> bool:
         if context.asset_class and context.asset_class.lower() == "crypto":
