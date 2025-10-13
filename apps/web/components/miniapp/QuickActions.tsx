@@ -14,6 +14,7 @@ import {
   Interactive3DCard,
   StaggeredGrid,
 } from "@/components/ui/interactive-cards";
+import { cn } from "@/utils";
 import {
   BookOpen,
   ExternalLink,
@@ -278,7 +279,7 @@ export function QuickActions() {
       <Card className="bg-gradient-to-br from-card/50 to-background border-border/50 relative overflow-hidden">
         {/* Animated background gradient */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-primary/5 via-dc-brand-light/5 to-primary/5"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/5 via-dc-brand-light/5 to-primary/5"
           animate={{
             backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
           }}
@@ -317,7 +318,8 @@ export function QuickActions() {
           <StaggeredGrid
             columns={3}
             staggerDelay={0.1}
-            className="grid-cols-2 md:grid-cols-3"
+            className="sm:grid-cols-2 xl:grid-cols-3"
+            gapClassName="gap-3 sm:gap-4 lg:gap-5"
           >
             {quickActions.map((action, index) => {
               const Icon = action.icon;
@@ -331,13 +333,13 @@ export function QuickActions() {
                   magneticEffect={action.priority === "high"}
                   onClick={action.action}
                   className="h-full"
+                  contentClassName="relative h-full"
                 >
                   <div
-                    className={`
-                  p-4 text-center relative transition-all duration-300
-                  ${getPriorityStyles(action.priority)}
-                  rounded-xl border group overflow-hidden h-full flex flex-col justify-center
-                `}
+                    className={cn(
+                      "relative flex h-full flex-col justify-center overflow-hidden rounded-xl border p-4 text-center transition-all duration-300 group",
+                      getPriorityStyles(action.priority),
+                    )}
                   >
                     <AnimatePresence>
                       {action.isExternal && (
@@ -357,9 +359,10 @@ export function QuickActions() {
                     </AnimatePresence>
 
                     <motion.div
-                      className={`mb-3 flex justify-center ${
-                        getIconStyles(action.priority)
-                      }`}
+                      className={cn(
+                        "mb-3 flex justify-center",
+                        getIconStyles(action.priority),
+                      )}
                       whileHover={{
                         scale: 1.2,
                         rotate: action.title === "Signal Alerts"
@@ -404,7 +407,7 @@ export function QuickActions() {
 
                     {/* Prismatic overlay effect */}
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 group-hover:opacity-100"
+                      className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 group-hover:opacity-100"
                       initial={false}
                       animate={{ x: "-100%" }}
                       whileHover={{

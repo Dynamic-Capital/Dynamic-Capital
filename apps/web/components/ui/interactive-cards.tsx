@@ -21,6 +21,7 @@ interface Interactive3DCardProps {
   glowEffect?: boolean;
   magneticEffect?: boolean;
   onClick?: () => void;
+  contentClassName?: string;
 }
 
 export function Interactive3DCard({
@@ -32,6 +33,8 @@ export function Interactive3DCard({
   glowEffect = true,
   magneticEffect = false,
   onClick,
+  contentClassName =
+    "relative bg-card border border-border rounded-xl p-6 h-full backdrop-blur-xl",
 }: Interactive3DCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -86,7 +89,7 @@ export function Interactive3DCard({
       whileTap={{ scale: 0.95 }}
     >
       <motion.div
-        className="relative w-full h-full rounded-xl overflow-hidden"
+        className="relative w-full h-full overflow-hidden rounded-xl isolate"
         style={{
           rotateX,
           rotateY,
@@ -104,7 +107,7 @@ export function Interactive3DCard({
         {/* Glow effect */}
         {glowEffect && (
           <motion.div
-            className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-xl opacity-0 blur-sm"
+            className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-primary via-accent to-primary opacity-0 blur-sm"
             animate={{
               opacity: isHovered ? 0.4 : 0,
             }}
@@ -114,7 +117,7 @@ export function Interactive3DCard({
 
         {/* Content */}
         <motion.div
-          className="relative bg-card border border-border rounded-xl p-6 h-full backdrop-blur-xl"
+          className={cn(contentClassName)}
           style={{
             transform: "translateZ(50px)",
           }}
@@ -420,6 +423,7 @@ interface StaggeredGridProps {
   className?: string;
   staggerDelay?: number;
   columns?: number;
+  gapClassName?: string;
 }
 
 export function StaggeredGrid({
@@ -427,48 +431,75 @@ export function StaggeredGrid({
   className = "",
   staggerDelay = 0.1,
   columns = 3,
+  gapClassName,
 }: StaggeredGridProps) {
+  const columnClassMap: Record<number, string> = {
+    1: "lg:grid-cols-1",
+    2: "lg:grid-cols-2",
+    3: "lg:grid-cols-3",
+    4: "lg:grid-cols-4",
+  };
+
+  const resolvedLargeScreenColumns = columnClassMap[columns] ??
+    "lg:grid-cols-3";
+
+  const resolvedGapClasses = gapClassName ?? "gap-4 sm:gap-5 lg:gap-6";
+
+  const childArray = React.Children.toArray(children);
+
   return (
     <motion.div
       className={cn(
-        `grid gap-6`,
-        `grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns}`,
+        "grid",
+        resolvedGapClasses,
+        "grid-cols-1 md:grid-cols-2",
+        resolvedLargeScreenColumns,
         className,
       )}
       initial="hidden"
       animate="visible"
       variants={{
+        hidden: {
+          opacity: 0,
+        },
         visible: {
+          opacity: 1,
           transition: {
             staggerChildren: staggerDelay,
           },
         },
       }}
     >
-      {React.Children.map(children, (child, index) => (
-        <motion.div
-          key={index}
-          variants={{
-            hidden: {
-              opacity: 0,
-              y: 50,
-              scale: 0.9,
-            },
-            visible: {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              transition: {
-                type: "spring",
-                stiffness: 100,
-                damping: 12,
+      {childArray.map((child, index) => {
+        const key = React.isValidElement(child) && child.key != null
+          ? child.key
+          : index;
+
+        return (
+          <motion.div
+            key={key}
+            variants={{
+              hidden: {
+                opacity: 0,
+                y: 50,
+                scale: 0.9,
               },
-            },
-          }}
-        >
-          {child}
-        </motion.div>
-      ))}
+              visible: {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                transition: {
+                  type: "spring",
+                  stiffness: 100,
+                  damping: 12,
+                },
+              },
+            }}
+          >
+            {child}
+          </motion.div>
+        );
+      })}
     </motion.div>
   );
 }
