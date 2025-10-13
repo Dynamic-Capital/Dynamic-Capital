@@ -49,16 +49,27 @@ const CardHeader = React.forwardRef<HTMLDivElement, ColumnProps>(
 CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<TextElement, TextProps>(
-  ({ className, variant, as = "h3", weight, ...props }, ref) => (
-    <Text
-      ref={ref}
-      as={as}
-      variant={variant ?? "heading-strong-m"}
-      weight={weight ?? "strong"}
-      className={cn("tracking-tight", className)}
-      {...props}
-    />
-  ),
+  ({ className, variant, as = "h3", weight, size, ...props }, ref) => {
+    const textProps: TextProps = {
+      ref,
+      as,
+      className: cn("tracking-tight", className),
+      ...props,
+    } as TextProps;
+
+    if (variant !== undefined) {
+      textProps.variant = variant;
+    } else if (weight !== undefined || size !== undefined) {
+      if (weight !== undefined) {
+        textProps.weight = weight;
+      }
+      textProps.size = size ?? "m";
+    } else {
+      textProps.variant = "heading-strong-m";
+    }
+
+    return <Text {...textProps} />;
+  },
 );
 CardTitle.displayName = "CardTitle";
 

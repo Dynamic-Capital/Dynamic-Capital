@@ -354,14 +354,46 @@
   /* === UNIVERSAL MOTION COMPONENTS === */
 
   /* Motion Cards */
+  .motion-card,
+  .motion-card-interactive,
+  .motion-card-glow,
+  .glass-motion-card {
+    @apply relative overflow-hidden rounded-xl border border-border/60
+      bg-card/80 shadow-md transition-all duration-300;
+    background-image: var(--gradient-motion-card);
+    background-size: 200% 200%;
+    background-position: 50% 50%;
+    transition-timing-function: var(--motion-ease-smooth);
+  }
+
+  .motion-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      120deg,
+      transparent 5%,
+      hsl(var(--primary) / 0.04) 40%,
+      transparent 75%
+    );
+    opacity: 0;
+    transition: opacity var(--motion-duration-normal) var(--motion-ease-smooth);
+  }
+
   .motion-card:hover {
     transform: translateY(-4px) scale(var(--scale-motion-sm));
     box-shadow: var(--shadow-motion-lg);
     border-color: hsl(var(--primary) / 0.3);
+    background-position: 48% 42%;
+  }
+
+  .motion-card:hover::after {
+    opacity: 1;
   }
 
   .motion-card-interactive {
-    @apply motion-card cursor-pointer;
+    cursor: pointer;
   }
 
   .motion-card-interactive:active {
@@ -370,7 +402,6 @@
   }
 
   .motion-card-glow {
-    @apply motion-card;
     box-shadow:
       var(--shadow-motion-glow),
       var(--shadow-motion-md);
@@ -378,11 +409,19 @@
 
   /* Enhanced Glass Effects */
   .glass-motion-card {
-    @apply glass-motion motion-card;
+    background-image: var(--glass-motion-bg);
+    border-color: var(--glass-motion-border);
+    box-shadow: var(--glass-motion-shadow);
+    backdrop-filter: var(--glass-motion-blur);
+    -webkit-backdrop-filter: var(--glass-motion-blur);
   }
 
   .glass-motion-nav {
-    @apply glass-motion;
+    background-image: var(--glass-motion-bg);
+    border-color: var(--glass-motion-border);
+    box-shadow: var(--glass-motion-shadow);
+    backdrop-filter: var(--glass-motion-blur);
+    -webkit-backdrop-filter: var(--glass-motion-blur);
     position: sticky;
     top: 0;
     z-index: 50;
@@ -399,13 +438,36 @@
     transition-duration: var(--motion-duration-fast);
   }
 
+  .motion-button,
+  .motion-button-primary,
+  .motion-button-ghost {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    border-width: 1px;
+    border-style: solid;
+    border-color: hsl(var(--border) / 0.6);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    transition: all var(--motion-duration-normal) var(--motion-ease-spring);
+  }
+
   .motion-button-primary {
-    @apply motion-button bg-primary text-primary-foreground;
+    color: hsl(var(--primary-foreground));
     background: var(--gradient-motion-primary);
+    border-color: hsl(var(--primary) / 0.2);
+    box-shadow: var(--shadow-motion-md);
   }
 
   .motion-button-ghost {
-    @apply motion-button bg-transparent hover:bg-muted/50;
+    background-color: transparent;
+    border-color: transparent;
   }
 
   /* Motion Layout */

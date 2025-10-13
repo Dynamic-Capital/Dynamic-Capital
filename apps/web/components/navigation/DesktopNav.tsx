@@ -16,11 +16,15 @@ export function DesktopNav({ className }: DesktopNavProps) {
 
   return (
     <nav
-      className={cn("hidden flex-1 md:flex", className)}
+      className={cn("hidden flex-1 flex-wrap md:flex", className)}
       role="navigation"
       aria-label="Main navigation"
     >
-      <Row gap="8" wrap className="w-full items-center justify-center">
+      <Row
+        gap="12"
+        wrap
+        className="w-full items-center justify-center gap-y-2"
+      >
         {PRIMARY_NAV_ITEMS.map((item) => {
           const target = item.href ?? item.path;
           const isAnchorLink = target.includes("#");
@@ -38,14 +42,19 @@ export function DesktopNav({ className }: DesktopNavProps) {
               aria-current={active ? "page" : undefined}
               selected={active}
               className={cn(
-                "rounded-xl px-4 py-2 text-sm font-semibold uppercase tracking-[0.24em] transition",
+                "group relative rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors duration-200",
+                "after:absolute after:inset-x-3 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-primary after:opacity-0 after:transition-opacity after:duration-200",
                 active
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-primary",
+                  ? "text-foreground after:opacity-100"
+                  : "hover:text-foreground hover:after:opacity-60",
               )}
               data-route-category={item.categoryId}
             >
-              <Text as="span" variant="label-default-xs">
+              <Text
+                as="span"
+                variant="body-default-s"
+                className="font-semibold normal-case tracking-[0.02em]"
+              >
                 {item.label}
               </Text>
             </SmartLink>
