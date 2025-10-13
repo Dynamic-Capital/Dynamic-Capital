@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +15,7 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { useSupabase } from "@/context/SupabaseProvider";
@@ -26,6 +28,11 @@ import { MintingManager } from "./MintingManager";
 import { callEdgeFunction } from "@/config/supabase";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 import { DynamicButton, DynamicContainer } from "@/components/dynamic-ui";
+import {
+  createChildVariant,
+  DYNAMIC_MOTION_STAGGERS,
+} from "@/lib/motion-variants";
+import { cn } from "@/lib/utils";
 
 const AdminDashboardSkeleton = () => {
   return (
@@ -55,19 +62,25 @@ const AdminDashboardSkeleton = () => {
                 <Skeleton height="s" width="l" />
                 <Skeleton height="s" width="m" />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div
                     key={index}
-                    className="space-y-4 rounded-2xl border border-border/30 bg-background/80 p-4 shadow-sm"
+                    className="group relative h-full rounded-[28px] p-[1px]"
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <Skeleton shape="circle" width="m" />
-                      <Skeleton height="xs" width="s" />
-                    </div>
-                    <div className="space-y-2">
-                      <Skeleton height="s" width="l" />
-                      <Skeleton height="s" width="m" />
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 rounded-[28px] bg-gradient-to-br from-white/15 via-primary/20 to-dc-accent/30 opacity-70 blur-sm"
+                    />
+                    <div className="relative flex h-full flex-col gap-4 rounded-[26px] border border-white/10 bg-background/70 p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <Skeleton shape="circle" width="m" />
+                        <Skeleton height="xs" width="s" />
+                      </div>
+                      <div className="space-y-2">
+                        <Skeleton height="s" width="l" />
+                        <Skeleton height="s" width="m" />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -156,6 +169,70 @@ interface PendingPayment {
 interface AdminDashboardProps {
   telegramData?: any;
 }
+
+type OverviewMetricItem = {
+  label: string;
+  value: string;
+  hint: string;
+  icon: LucideIcon;
+  accent: string;
+  iconTint: string;
+};
+
+const OVERVIEW_CARD_VARIANTS = createChildVariant("up", 20, "base");
+const OVERVIEW_CARD_STAGGER = DYNAMIC_MOTION_STAGGERS.dense;
+
+const OverviewMetricCard = ({
+  item,
+  index,
+}: {
+  item: OverviewMetricItem;
+  index: number;
+}) => {
+  const Icon = item.icon;
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      variants={OVERVIEW_CARD_VARIANTS}
+      initial={shouldReduceMotion ? undefined : "hidden"}
+      whileInView={shouldReduceMotion ? undefined : "visible"}
+      viewport={shouldReduceMotion ? undefined : { once: true, amount: 0.35 }}
+      transition={shouldReduceMotion
+        ? undefined
+        : { delay: index * OVERVIEW_CARD_STAGGER }}
+      className={cn(
+        "group relative h-full",
+        index === 3 ? "sm:col-span-2 xl:col-span-3" : undefined,
+      )}
+    >
+      <div className="relative z-0 h-full rounded-[28px] p-[1px]">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 rounded-[28px] bg-gradient-to-br from-white/20 via-primary/25 to-dc-accent/40 opacity-80 blur-sm transition-opacity duration-300 group-hover:opacity-100"
+        />
+        <div className="relative flex h-full flex-col gap-5 rounded-[26px] border border-white/10 bg-background/70 p-5 backdrop-blur-xl transition duration-300 group-hover:border-white/20 group-hover:bg-background/75">
+          <div className="flex items-center justify-between gap-3">
+            <div
+              className={`flex h-10 w-10 items-center justify-center rounded-2xl ${item.iconTint}`}
+            >
+              <Icon className={`h-5 w-5 ${item.accent}`} aria-hidden="true" />
+            </div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              {item.label}
+            </span>
+          </div>
+          <div
+            className={`text-3xl font-semibold tracking-tight ${item.accent}`}
+          >
+            {item.value}
+          </div>
+          <p className="text-xs text-muted-foreground">{item.hint}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const { supabase } = useSupabase();
@@ -372,7 +449,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const formattedLastUpdated = stats?.last_updated
     ? formatIsoDateTime(stats.last_updated)
     : "Awaiting sync";
-  const overviewItems = stats
+  const overviewItems: OverviewMetricItem[] = stats
     ? [
       {
         label: "Total users",
@@ -380,6 +457,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         hint: `${stats.vip_users.toLocaleString()} VIP members`,
         icon: Users,
         accent: "text-primary",
+        iconTint: "bg-primary/10",
       },
       {
         label: "Revenue",
@@ -391,6 +469,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         hint: `${stats.completed_payments.toLocaleString()} payments settled`,
         icon: DollarSign,
         accent: "text-success",
+        iconTint: "bg-success/15",
       },
       {
         label: "Pending reviews",
@@ -398,6 +477,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         hint: "Awaiting manual decision",
         icon: Clock,
         accent: "text-warning",
+        iconTint: "bg-warning/15",
       },
       {
         label: "Daily activity",
@@ -405,6 +485,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         hint: `${stats.daily_sessions.toLocaleString()} sessions today`,
         icon: Activity,
         accent: "text-info",
+        iconTint: "bg-info/15",
       },
     ]
     : [];
@@ -503,36 +584,14 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                     Synced {formattedLastUpdated}
                   </Badge>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {overviewItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div
-                        key={item.label}
-                        className="flex flex-col gap-3 rounded-2xl border border-border/40 bg-background/85 p-5 shadow-sm"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                            <Icon
-                              className={`h-5 w-5 ${item.accent}`}
-                              aria-hidden="true"
-                            />
-                          </div>
-                          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                            {item.label}
-                          </span>
-                        </div>
-                        <div
-                          className={`text-2xl font-semibold ${item.accent}`}
-                        >
-                          {item.value}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {item.hint}
-                        </p>
-                      </div>
-                    );
-                  })}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                  {overviewItems.map((item, index) => (
+                    <OverviewMetricCard
+                      key={item.label}
+                      item={item}
+                      index={index}
+                    />
+                  ))}
                 </div>
               </TabsContent>
 

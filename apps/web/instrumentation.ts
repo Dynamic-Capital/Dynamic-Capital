@@ -36,9 +36,43 @@ type ExplicitBucketHistogramAggregationConstructor = new (
   boundaries: number[],
 ) => unknown;
 
-type InstrumentTypeLike = {
+type InstrumentTypeLike = Record<string, unknown> & {
   HISTOGRAM: unknown;
 };
+
+type SDKMetricsExports = {
+  MeterProvider: MeterProviderConstructor;
+  View: ViewConstructor;
+  ExplicitBucketHistogramAggregation:
+    ExplicitBucketHistogramAggregationConstructor;
+  InstrumentType: InstrumentTypeLike;
+};
+
+type SDKMetricsExportKey = keyof SDKMetricsExports;
+
+type SDKMetricsExportGuards = {
+  [Key in SDKMetricsExportKey]: (
+    value: unknown,
+  ) => value is SDKMetricsExports[Key];
+};
+
+const SDK_METRICS_EXPORT_GUARDS: SDKMetricsExportGuards = {
+  MeterProvider: (value): value is MeterProviderConstructor =>
+    typeof value === "function",
+  View: (value): value is ViewConstructor => typeof value === "function",
+  ExplicitBucketHistogramAggregation: (
+    value,
+  ): value is ExplicitBucketHistogramAggregationConstructor =>
+    typeof value === "function",
+  InstrumentType: (value): value is InstrumentTypeLike =>
+    typeof value === "object" &&
+    value !== null &&
+    "HISTOGRAM" in (value as Record<string, unknown>),
+};
+
+const SDK_METRICS_EXPORT_KEYS = Object.keys(
+  SDK_METRICS_EXPORT_GUARDS,
+) as SDKMetricsExportKey[];
 
 type SentryFacade = {
   init?: (options: Record<string, unknown>) => void;
@@ -102,6 +136,46 @@ const registerImpl: () => Promise<void> = (() => {
     }
 
     return undefined;
+  }
+
+  type MetricsDiagnostics = Record<SDKMetricsExportKey, boolean>;
+
+  function resolveSDKMetricsExports(
+    module: ModuleWithPossibleDefault,
+  ): { exports?: SDKMetricsExports; diagnostics: MetricsDiagnostics } {
+    const diagnostics = SDK_METRICS_EXPORT_KEYS.reduce<MetricsDiagnostics>(
+      (acc, key) => {
+        acc[key] = false;
+        return acc;
+      },
+      {} as MetricsDiagnostics,
+    );
+
+    const resolved: Partial<SDKMetricsExports> = {};
+
+    for (const key of SDK_METRICS_EXPORT_KEYS) {
+      const guard = SDK_METRICS_EXPORT_GUARDS[key];
+      const candidate = resolveModuleExport<unknown>(module, key);
+
+      if (guard(candidate)) {
+        diagnostics[key] = true;
+        (resolved as Record<SDKMetricsExportKey, unknown>)[key] = candidate;
+      }
+    }
+
+    const hasAllExports = SDK_METRICS_EXPORT_KEYS.every((key) =>
+      diagnostics[key]
+    );
+
+    return {
+      exports: hasAllExports
+        ? (resolved as Record<
+          SDKMetricsExportKey,
+          unknown
+        > as SDKMetricsExports)
+        : undefined,
+      diagnostics,
+    };
   }
 
   const modulePaths = {
@@ -345,37 +419,33 @@ const registerImpl: () => Promise<void> = (() => {
     const { SemanticResourceAttributes } = semanticConventionsModule;
 
     const metricsExports = metricsModule as ModuleWithPossibleDefault;
-    const meterProviderCtor = resolveModuleExport<MeterProviderConstructor>(
-      metricsExports,
-      "MeterProvider",
-    );
-    const instrumentType = resolveModuleExport<InstrumentTypeLike>(
-      metricsExports,
-      "InstrumentType",
-    );
-    const viewCtor = resolveModuleExport<ViewConstructor>(
-      metricsExports,
-      "View",
-    );
-    const explicitBucketHistogramAggregationCtor = resolveModuleExport<
-      ExplicitBucketHistogramAggregationConstructor
-    >(
-      metricsExports,
-      "ExplicitBucketHistogramAggregation",
-    );
 
-    if (
-      typeof meterProviderCtor !== "function" ||
-      typeof viewCtor !== "function" ||
-      typeof explicitBucketHistogramAggregationCtor !== "function" ||
-      typeof instrumentType !== "object" ||
-      instrumentType === null
-    ) {
+    const {
+      exports: resolvedMetricsExports,
+      diagnostics: metricExportDiagnostics,
+    } = resolveSDKMetricsExports(metricsExports);
+
+    if (!resolvedMetricsExports) {
       fallbackToExistingMeterProvider(
         "OpenTelemetry metrics SDK exports are unavailable",
+        {
+          meterProviderAvailable: metricExportDiagnostics.MeterProvider,
+          viewAvailable: metricExportDiagnostics.View,
+          histogramAggregationAvailable:
+            metricExportDiagnostics.ExplicitBucketHistogramAggregation,
+          instrumentTypeAvailable: metricExportDiagnostics.InstrumentType,
+        },
       );
       return;
     }
+
+    const {
+      MeterProvider: meterProviderCtor,
+      View: viewCtor,
+      ExplicitBucketHistogramAggregation:
+        explicitBucketHistogramAggregationCtor,
+      InstrumentType: instrumentType,
+    } = resolvedMetricsExports;
 
     const resourceExports = resourcesModule as ModuleWithPossibleDefault;
     const resourceCtor = resolveModuleExport<ResourceConstructor>(
