@@ -59,6 +59,7 @@ _DRAWDOWN_NEUTRAL_THRESHOLD = 0.12
 
 _CRYPTO_TICKER_HINTS = (
     "BTC",
+    "XBT",
     "ETH",
     "XRP",
     "BNB",
@@ -117,6 +118,68 @@ _COMMON_QUOTE_TOKENS = {
     "DAI",
     "PERP",
 }
+
+
+_DERIVATIVE_SUFFIXES: Tuple[str, ...] = (
+    "PERP",
+    "SWAP",
+    "THISWEEK",
+    "NEXTWEEK",
+    "QUARTER",
+    "F0",
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9",
+    "1S",
+    "2S",
+    "3S",
+    "4S",
+    "5S",
+    "10S",
+    "1L",
+    "2L",
+    "3L",
+    "4L",
+    "5L",
+    "10L",
+    "UP",
+    "DOWN",
+    "BULL",
+    "BEAR",
+    "LONG",
+    "SHORT",
+    "M",
+    "H",
+)
+
+
+def _strip_quote_suffix(token: str) -> str:
+    """Remove derivative suffixes and numeric settlements from quote tokens."""
+
+    candidate = token
+    while candidate:
+        stripped = False
+        for suffix in _DERIVATIVE_SUFFIXES:
+            if candidate.endswith(suffix):
+                candidate = candidate[: -len(suffix)]
+                stripped = True
+                break
+        if stripped:
+            continue
+
+        truncated = candidate.rstrip("0123456789")
+        if truncated != candidate:
+            candidate = truncated
+            continue
+        break
+
+    return candidate
 
 
 @dataclass(frozen=True)
@@ -573,11 +636,10 @@ class DynamicFusionAlgo:
     def _token_looks_like_quote(token: str) -> bool:
         if not token or token.isdigit():
             return False
-        if token in _COMMON_QUOTE_TOKENS:
-            return True
-        if token.isalpha() and 2 <= len(token) <= 5:
-            return token in _COMMON_QUOTE_TOKENS
-        return False
+        candidate = _strip_quote_suffix(token)
+        if not candidate:
+            return False
+        return candidate in _COMMON_QUOTE_TOKENS
 
     def _is_crypto_context(self, context: "PreparedMarketContext") -> bool:
         if context.asset_class and context.asset_class.lower() == "crypto":

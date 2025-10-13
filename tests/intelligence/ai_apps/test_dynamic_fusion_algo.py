@@ -167,6 +167,31 @@ def test_crypto_detection_handles_common_pairs(algo: DynamicFusionAlgo) -> None:
     assert algo._is_crypto_context(context) is True
 
 
+@pytest.mark.parametrize(
+    "symbol",
+    [
+        "BTCUSDTPERP",
+        "ETHUSD0324",
+        "XBTUSDT",
+        "SOLUSDT5L",
+    ],
+)
+def test_crypto_detection_handles_derivative_suffixes(
+    algo: DynamicFusionAlgo, symbol: str
+) -> None:
+    context = algo._prepare_context(
+        {
+            "signal": "SELL",
+            "confidence": 0.5,
+            "volatility": 1.0,
+            "symbol": symbol,
+        }
+    )
+
+    assert context.asset_class == "crypto"
+    assert algo._is_crypto_context(context) is True
+
+
 def test_crypto_detection_avoids_false_positive_symbols(algo: DynamicFusionAlgo) -> None:
     context = algo._prepare_context(
         {
