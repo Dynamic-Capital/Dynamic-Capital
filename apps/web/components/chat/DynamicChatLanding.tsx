@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRight,
@@ -205,6 +205,12 @@ const WORKFLOW_ACTIONS: WorkflowAction[] = [
   },
 ];
 
+const PRIMARY_WORKFLOW_SCROLLER_CLASSES =
+  "grid auto-cols-[minmax(260px,1fr)] grid-flow-col items-stretch gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-[minmax(0,1fr)] sm:grid-flow-row sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:pb-0 xl:grid-cols-3";
+
+const FALLBACK_WORKFLOW_SCROLLER_CLASSES =
+  "grid auto-cols-[minmax(220px,1fr)] grid-flow-col items-stretch gap-3 overflow-x-auto pb-3 [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-[minmax(0,1fr)] sm:grid-flow-row sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:pb-0 xl:grid-cols-3";
+
 const PLATFORM_SUPPORT: PlatformSupportCategory[] = [
   {
     id: "devices",
@@ -300,153 +306,172 @@ const PLATFORM_SUPPORT: PlatformSupportCategory[] = [
   },
 ];
 
-const CHAT_FALLBACK = (
-  <Card
-    as="section"
-    padding="32"
-    radius="xl"
-    gap="16"
-    className="shadow-xl shadow-primary/10"
-    aria-labelledby="dynamic-chat-auth-heading"
-  >
-    <Column gap="16">
-      <Row gap="12" vertical="center">
-        <Tag size="s" background="brand-alpha-weak" border="brand-alpha-medium">
-          Dynamic chat access
-        </Tag>
-        <Tag
-          size="s"
-          background="neutral-alpha-weak"
-          border="neutral-alpha-medium"
+function ChatFallback({
+  onAnchorNavigate,
+}: {
+  onAnchorNavigate?: (hash: string) => void;
+}) {
+  return (
+    <Card
+      as="section"
+      padding="32"
+      radius="xl"
+      gap="16"
+      className="shadow-xl shadow-primary/10"
+      aria-labelledby="dynamic-chat-auth-heading"
+    >
+      <Column gap="16">
+        <Row gap="12" vertical="center">
+          <Tag size="s" background="brand-alpha-weak" border="brand-alpha-medium">
+            Dynamic chat access
+          </Tag>
+          <Tag
+            size="s"
+            background="neutral-alpha-weak"
+            border="neutral-alpha-medium"
+          >
+            TON verified
+          </Tag>
+        </Row>
+        <Column gap="12">
+          <Heading
+            id="dynamic-chat-auth-heading"
+            variant="heading-strong-m"
+          >
+            Authenticate to launch Dynamic Chat
+          </Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            id="dynamic-chat-auth-description"
+          >
+            Connect your TON-ready Telegram admin session to orchestrate Dynamic
+            AI, AGI, and AGS copilots directly from the chat control tower. Once
+            authenticated you can stream market reviews, trade signals, and
+            automation routes in real time.
+          </Text>
+        </Column>
+        <Row gap="12" wrap>
+          <DynamicButton
+            size="s"
+            variant="secondary"
+            href="https://t.me/DynamicCapitalBot/app"
+            target="_blank"
+            rel="noreferrer noopener"
+            suffixIcon="arrowUpRight"
+            aria-describedby="dynamic-chat-auth-description"
+          >
+            Open Dynamic Capital mini app
+            <VisuallyHidden>(Opens in a new tab)</VisuallyHidden>
+          </DynamicButton>
+          <DynamicButton
+            size="s"
+            variant="tertiary"
+            href="/support"
+            aria-describedby="dynamic-chat-auth-description"
+          >
+            Contact the TON desk
+          </DynamicButton>
+        </Row>
+        <ul
+          className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+          aria-label="Current session guardrails"
         >
-          TON verified
-        </Tag>
-      </Row>
-      <Column gap="12">
-        <Heading
-          id="dynamic-chat-auth-heading"
-          variant="heading-strong-m"
+          {SESSION_SUMMARY.map((item) => {
+            const labelId = createAccessibleId("fallback-summary", item.label);
+            const metricId = `${labelId}-metric`;
+            const descriptionId = `${labelId}-description`;
+
+            return (
+              <li
+                key={item.label}
+                className="flex items-start gap-3 rounded-2xl border border-dashed border-primary/25 bg-background/60 p-4"
+                aria-labelledby={`${labelId} ${metricId}`}
+                aria-describedby={descriptionId}
+              >
+                <span className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <item.icon className="h-5 w-5" aria-hidden />
+                </span>
+                <div className="space-y-1">
+                  <Text
+                    id={labelId}
+                    variant="label-default-xs"
+                    className="uppercase tracking-[0.24em] text-muted-foreground"
+                  >
+                    {item.label}
+                  </Text>
+                  <Heading id={metricId} variant="heading-strong-xs">
+                    {item.metric}
+                  </Heading>
+                  <Text
+                    id={descriptionId}
+                    variant="body-default-xs"
+                    onBackground="neutral-weak"
+                  >
+                    {item.description}
+                  </Text>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <nav aria-label="Workspace quick actions">
+          <ul
+            className={`${FALLBACK_WORKFLOW_SCROLLER_CLASSES} snap-x snap-mandatory snap-always [mask-image:linear-gradient(90deg,transparent,black_18%,black_82%,transparent)] sm:snap-none sm:[mask-image:none]`}
+          >
+            {WORKFLOW_ACTIONS.map((action) => {
+              const descriptionId = createAccessibleId(
+                "fallback-action",
+                action.label,
+              );
+              const isAnchorLink = action.href.startsWith("#");
+
+              return (
+                <li
+                  key={action.href}
+                  className="list-none min-w-0 snap-start"
+                >
+                  <DynamicButton
+                    size="s"
+                    variant="tertiary"
+                    href={isAnchorLink ? undefined : action.href}
+                    onClick={
+                      isAnchorLink
+                        ? () => onAnchorNavigate?.(action.href)
+                        : undefined
+                    }
+                    type={isAnchorLink ? "button" : undefined}
+                    suffixIcon="arrowUpRight"
+                    aria-describedby={descriptionId}
+                    fillWidth
+                  >
+                    {action.label}
+                    <VisuallyHidden id={descriptionId}>
+                      {action.description}
+                    </VisuallyHidden>
+                  </DynamicButton>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+        <Card
+          as="section"
+          padding="16"
+          radius="l"
+          className="border border-dashed border-primary/30 bg-primary/5"
+          aria-live="polite"
         >
-          Authenticate to launch Dynamic Chat
-        </Heading>
-        <Text
-          variant="body-default-m"
-          onBackground="neutral-weak"
-          id="dynamic-chat-auth-description"
-        >
-          Connect your TON-ready Telegram admin session to orchestrate Dynamic
-          AI, AGI, and AGS copilots directly from the chat control tower. Once
-          authenticated you can stream market reviews, trade signals, and
-          automation routes in real time.
-        </Text>
+          <Text variant="body-default-xs" onBackground="neutral-weak">
+            Need access? Ask your Dynamic Capital admin lead to provision TON
+            multisig credentials or a session token. Every chat session is logged
+            for compliance and automation guardrails.
+          </Text>
+        </Card>
       </Column>
-      <Row gap="12" wrap>
-        <DynamicButton
-          size="s"
-          variant="secondary"
-          href="https://t.me/DynamicCapitalBot/app"
-          target="_blank"
-          rel="noreferrer noopener"
-          suffixIcon="arrowUpRight"
-          aria-describedby="dynamic-chat-auth-description"
-        >
-          Open Dynamic Capital mini app
-          <VisuallyHidden>(Opens in a new tab)</VisuallyHidden>
-        </DynamicButton>
-        <DynamicButton
-          size="s"
-          variant="tertiary"
-          href="/support"
-          aria-describedby="dynamic-chat-auth-description"
-        >
-          Contact the TON desk
-        </DynamicButton>
-      </Row>
-      <ul
-        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-        aria-label="Current session guardrails"
-      >
-        {SESSION_SUMMARY.map((item) => {
-          const labelId = createAccessibleId("fallback-summary", item.label);
-          const metricId = `${labelId}-metric`;
-          const descriptionId = `${labelId}-description`;
-
-          return (
-            <li
-              key={item.label}
-              className="flex items-start gap-3 rounded-2xl border border-dashed border-primary/25 bg-background/60 p-4"
-              aria-labelledby={`${labelId} ${metricId}`}
-              aria-describedby={descriptionId}
-            >
-              <span className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <item.icon className="h-5 w-5" aria-hidden />
-              </span>
-              <div className="space-y-1">
-                <Text
-                  id={labelId}
-                  variant="label-default-xs"
-                  className="uppercase tracking-[0.24em] text-muted-foreground"
-                >
-                  {item.label}
-                </Text>
-                <Heading id={metricId} variant="heading-strong-xs">
-                  {item.metric}
-                </Heading>
-                <Text
-                  id={descriptionId}
-                  variant="body-default-xs"
-                  onBackground="neutral-weak"
-                >
-                  {item.description}
-                </Text>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      <nav
-        aria-label="Workspace quick actions"
-        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-      >
-        {WORKFLOW_ACTIONS.map((action) => {
-          const descriptionId = createAccessibleId(
-            "fallback-action",
-            action.label,
-          );
-
-          return (
-            <DynamicButton
-              key={action.href}
-              size="s"
-              variant="tertiary"
-              href={action.href}
-              suffixIcon="arrowUpRight"
-              aria-describedby={descriptionId}
-            >
-              {action.label}
-              <VisuallyHidden id={descriptionId}>
-                {action.description}
-              </VisuallyHidden>
-            </DynamicButton>
-          );
-        })}
-      </nav>
-      <Card
-        as="section"
-        padding="16"
-        radius="l"
-        className="border border-dashed border-primary/30 bg-primary/5"
-        aria-live="polite"
-      >
-        <Text variant="body-default-xs" onBackground="neutral-weak">
-          Need access? Ask your Dynamic Capital admin lead to provision TON
-          multisig credentials or a session token. Every chat session is logged
-          for compliance and automation guardrails.
-        </Text>
-      </Card>
-    </Column>
-  </Card>
-);
+    </Card>
+  );
+}
 
 function createAccessibleId(prefix: string, label: string) {
   return `${prefix}-${label}`
@@ -707,6 +732,25 @@ export function DynamicChatLanding() {
     hasData: plansHasData,
   } = useSubscriptionPlans();
 
+  const handleAnchorNavigation = useCallback((hash: string) => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const targetId = hash.startsWith("#") ? hash.slice(1) : hash;
+    const targetElement = document.getElementById(targetId);
+
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.hash = targetId;
+      window.history.replaceState(null, "", url.toString());
+    }
+  }, []);
+
   const quickLinkAuditItems = useMemo<AuditItem[]>(() => {
     const status: AuditStatus = plansLoading
       ? "loading"
@@ -963,47 +1007,120 @@ export function DynamicChatLanding() {
           <div className="relative overflow-hidden rounded-[28px] border border-border/60 bg-background/90 p-1 shadow-xl shadow-primary/15">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(110,80,255,0.2),transparent_75%)]" />
             <div className="relative z-10 h-full rounded-[26px] bg-background/95 p-3 sm:p-4 lg:p-6">
-              <AdminGate fallback={CHAT_FALLBACK}>
+              <AdminGate
+                fallback={<ChatFallback onAnchorNavigate={handleAnchorNavigation} />}
+              >
                 <DynamicChat />
               </AdminGate>
             </div>
           </div>
           <nav aria-label="Dynamic workflow shortcuts">
-            <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <ul
+              className={`${PRIMARY_WORKFLOW_SCROLLER_CLASSES} snap-x snap-mandatory snap-always [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)] sm:snap-none sm:[mask-image:none]`}
+            >
               {WORKFLOW_ACTIONS.map((action) => {
                 const descriptionId = createAccessibleId(
                   "primary-action",
                   action.label,
                 );
+                const isAnchorLink = action.href.startsWith("#");
 
                 return (
-                  <li key={action.href} className="list-none">
-                    <Link
-                      href={action.href}
-                      aria-describedby={descriptionId}
-                      className="group relative flex items-start justify-between gap-4 rounded-2xl border border-border/60 bg-background/80 p-4 shadow-sm transition-colors hover:border-primary/50 hover:bg-primary/5"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          <action.icon className="h-5 w-5" aria-hidden />
-                        </span>
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold text-foreground">
-                            {action.label}
-                          </p>
-                          <p
-                            id={descriptionId}
-                            className="text-xs text-muted-foreground"
+                  <li
+                    key={action.href}
+                    className="list-none min-w-0 snap-start"
+                  >
+                    {isAnchorLink
+                      ? (
+                        <button
+                          type="button"
+                          onClick={() => handleAnchorNavigation(action.href)}
+                          aria-describedby={descriptionId}
+                          className="group relative flex h-full w-full flex-col gap-6 overflow-hidden rounded-2xl border border-border/60 bg-background/85 p-5 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/8 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/70"
+                        >
+                          <span
+                            className="pointer-events-none absolute inset-0 rounded-[22px] bg-[radial-gradient(circle_at_top,_rgba(110,80,255,0.22),transparent_68%)] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                            aria-hidden
+                          />
+                          <div className="relative z-10 flex items-start gap-3">
+                            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                              <action.icon className="h-5 w-5" aria-hidden />
+                            </span>
+                            <div className="space-y-2">
+                              <p className="text-sm font-semibold text-foreground">
+                                {action.label}
+                              </p>
+                              <p
+                                id={descriptionId}
+                                className="text-xs text-muted-foreground"
+                              >
+                                {action.description}
+                              </p>
+                            </div>
+                          </div>
+                          <div
+                            className="relative z-10 flex items-center justify-between text-xs font-medium text-muted-foreground"
+                            aria-hidden
                           >
-                            {action.description}
-                          </p>
-                        </div>
-                      </div>
-                      <ArrowUpRight
-                        className="mt-1 h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                        aria-hidden
-                      />
-                    </Link>
+                            <span className="flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-muted-foreground/80">
+                              Navigate
+                              <span
+                                className="inline-flex h-1.5 w-1.5 rounded-full bg-primary/60"
+                                aria-hidden
+                              />
+                            </span>
+                            <ArrowUpRight
+                              className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                              aria-hidden
+                            />
+                          </div>
+                        </button>
+                      )
+                      : (
+                        <Link
+                          href={action.href}
+                          prefetch={false}
+                          aria-describedby={descriptionId}
+                          className="group relative flex h-full flex-col gap-6 overflow-hidden rounded-2xl border border-border/60 bg-background/85 p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/8 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/70"
+                        >
+                          <span
+                            className="pointer-events-none absolute inset-0 rounded-[22px] bg-[radial-gradient(circle_at_top,_rgba(110,80,255,0.22),transparent_68%)] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                            aria-hidden
+                          />
+                          <div className="relative z-10 flex items-start gap-3">
+                            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                              <action.icon className="h-5 w-5" aria-hidden />
+                            </span>
+                            <div className="space-y-2">
+                              <p className="text-sm font-semibold text-foreground">
+                                {action.label}
+                              </p>
+                              <p
+                                id={descriptionId}
+                                className="text-xs text-muted-foreground"
+                              >
+                                {action.description}
+                              </p>
+                            </div>
+                          </div>
+                          <div
+                            className="relative z-10 flex items-center justify-between text-xs font-medium text-muted-foreground"
+                            aria-hidden
+                          >
+                            <span className="flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-muted-foreground/80">
+                              Navigate
+                              <span
+                                className="inline-flex h-1.5 w-1.5 rounded-full bg-primary/60"
+                                aria-hidden
+                              />
+                            </span>
+                            <ArrowUpRight
+                              className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                              aria-hidden
+                            />
+                          </div>
+                        </Link>
+                      )}
                   </li>
                 );
               })}
