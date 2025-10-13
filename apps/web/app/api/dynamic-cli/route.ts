@@ -26,7 +26,7 @@ const CLI_MODULE = "dynamic.intelligence.agi.build";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const SPAWN_OVERRIDE_SYMBOL = Symbol.for(
+const SPAWN_OVERRIDE_KEY = Symbol.for(
   "dynamic-capital.dynamic-cli.spawn-override",
 );
 
@@ -38,13 +38,29 @@ type SpawnFunction = (
 
 function resolveSpawn(): SpawnFunction {
   const override = (globalThis as Record<PropertyKey, unknown>)[
-    SPAWN_OVERRIDE_SYMBOL
+    SPAWN_OVERRIDE_KEY
   ];
   if (override) {
     return override as SpawnFunction;
   }
   return nodeSpawn;
 }
+
+function setSpawnOverride(override: SpawnFunction | null) {
+  const overrides = globalThis as Record<PropertyKey, unknown>;
+  if (override) {
+    overrides[SPAWN_OVERRIDE_KEY] = override;
+    return;
+  }
+  delete overrides[SPAWN_OVERRIDE_KEY];
+}
+
+type PostHandler = (req: Request) => Promise<Response>;
+
+type PostRouteHandler = PostHandler & {
+  setSpawnOverride(override: SpawnFunction | null): void;
+  clearSpawnOverride(): void;
+};
 
 const nodeSchema = z.object({
   key: z.string().min(1, "Node key is required."),
@@ -281,7 +297,7 @@ function handleAdminFailure(
   return unauth(result.message, req);
 }
 
-export async function POST(req: Request) {
+const postHandler: PostHandler = async (req: Request) => {
   return await withApiMetrics(req, ROUTE_NAME, async () => {
     const adminCheck = await verifyAdminRequest(req);
     if (isAdminVerificationFailure(adminCheck)) {
@@ -332,7 +348,16 @@ export async function POST(req: Request) {
       return oops(message, undefined, req);
     }
   });
-}
+};
+
+export const POST: PostRouteHandler = Object.assign(postHandler, {
+  setSpawnOverride(override: SpawnFunction | null) {
+    setSpawnOverride(override);
+  },
+  clearSpawnOverride() {
+    setSpawnOverride(null);
+  },
+});
 
 export const GET = methodNotAllowed;
 export const PUT = methodNotAllowed;
