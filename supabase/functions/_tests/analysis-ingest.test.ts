@@ -1,3 +1,6 @@
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 import { assertEquals, assertStrictEquals } from "std/assert/mod.ts";
 
 Deno.test("analysis-ingest stores valid analyst insight", async () => {

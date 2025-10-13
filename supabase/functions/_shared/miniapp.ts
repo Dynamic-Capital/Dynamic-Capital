@@ -28,7 +28,8 @@ export function normalizeMiniAppUrl(value: unknown): string | null {
     } else if (
       !parsed.pathname.endsWith("/") &&
       !parsed.search &&
-      !parsed.hash
+      !parsed.hash &&
+      parsed.protocol === "https:"
     ) {
       parsed.pathname = `${parsed.pathname}/`;
     }

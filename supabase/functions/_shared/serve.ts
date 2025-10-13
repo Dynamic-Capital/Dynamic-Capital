@@ -13,24 +13,40 @@ export function registerHandler(
 ): EdgeHandler {
   const globalAny = globalThis as {
     __SUPABASE_SKIP_AUTO_SERVE__?: boolean;
+    __SUPABASE_EDGE_SERVER_STARTED__?: boolean;
   };
   if (globalAny.__SUPABASE_SKIP_AUTO_SERVE__) {
     return handler;
   }
 
+  if (globalAny.__SUPABASE_EDGE_SERVER_STARTED__) {
+    return handler;
+  }
+
   if (typeof Deno?.serve === "function") {
-    if (options) {
-      (Deno.serve as unknown as (
-        opts: Deno.ServeInit,
-        handler: EdgeHandler,
-      ) => unknown)(
-        options as Deno.ServeInit,
-        handler,
-      );
-    } else {
-      (Deno.serve as unknown as (handler: EdgeHandler) => unknown)(handler);
+    globalAny.__SUPABASE_EDGE_SERVER_STARTED__ = true;
+    try {
+      if (options) {
+        (Deno.serve as unknown as (
+          opts: Deno.ServeInit,
+          handler: EdgeHandler,
+        ) => unknown)(
+          options as Deno.ServeInit,
+          handler,
+        );
+      } else {
+        (Deno.serve as unknown as (handler: EdgeHandler) => unknown)(handler);
+      }
+    } catch (error) {
+      if (error instanceof Deno.errors.AddrInUse) {
+        // Another instance is already serving; reuse it for subsequent imports.
+        return handler;
+      }
+      globalAny.__SUPABASE_EDGE_SERVER_STARTED__ = false;
+      throw error;
     }
   } else {
+    globalAny.__SUPABASE_EDGE_SERVER_STARTED__ = true;
     serve(handler, options as ServeInit | undefined);
   }
   return handler;
