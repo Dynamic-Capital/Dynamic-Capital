@@ -34,7 +34,7 @@ variables to avoid accidental leakage in configuration files or code.
 ## Validation Rules
 
 - Environment variable names must be uppercase alphanumeric strings and may
-  include underscores.
+  include underscores (leading underscores are accepted).
 - Attempting to register a missing or malformed credential raises a
   `ValueError`.
 - Requests for headers fail fast when the environment variable is absent,

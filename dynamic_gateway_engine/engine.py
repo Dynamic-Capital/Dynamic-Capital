@@ -37,7 +37,7 @@ _STATUS_PRIORITY = {
 }
 
 
-_ENV_NAME_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*$")
+_ENV_NAME_PATTERN = re.compile(r"^[A-Z_][A-Z0-9_]*$")
 
 
 # ---------------------------------------------------------------------------

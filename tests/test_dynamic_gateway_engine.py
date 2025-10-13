@@ -175,3 +175,17 @@ def test_gateway_engine_rejects_invalid_env_name():
     engine = DynamicGatewayEngine()
     with pytest.raises(ValueError):
         engine.register_endpoint_credential("edge-us", "edge-us-token")
+
+
+def test_gateway_engine_allows_leading_underscore_env(monkeypatch):
+    engine = DynamicGatewayEngine()
+    endpoint = GatewayEndpoint(
+        identifier="edge-int",
+        url="https://edge-int.dynamic.gateway",
+        region="us-central",
+    )
+    engine.register_endpoint(endpoint)
+    engine.register_endpoint_credential("edge-int", "_EDGE_INT_TOKEN")
+    monkeypatch.setenv("_EDGE_INT_TOKEN", "scoped-secret")
+
+    assert engine.resolve_endpoint_token("edge-int") == "scoped-secret"
