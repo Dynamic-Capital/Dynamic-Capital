@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +15,7 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { useSupabase } from "@/context/SupabaseProvider";
@@ -55,11 +57,11 @@ const AdminDashboardSkeleton = () => {
                 <Skeleton height="s" width="l" />
                 <Skeleton height="s" width="m" />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div
                     key={index}
-                    className="space-y-4 rounded-2xl border border-border/30 bg-background/80 p-4 shadow-sm"
+                    className="space-y-4 rounded-[28px] border border-border/30 bg-background/80 p-5 shadow-sm"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <Skeleton shape="circle" width="m" />
@@ -156,6 +158,63 @@ interface PendingPayment {
 interface AdminDashboardProps {
   telegramData?: any;
 }
+
+type OverviewMetricItem = {
+  label: string;
+  value: string;
+  hint: string;
+  icon: LucideIcon;
+  accent: string;
+  spanClassName?: string;
+};
+
+type OverviewMetricCardProps = {
+  item: OverviewMetricItem;
+  index: number;
+  shouldReduceMotion: boolean;
+};
+
+const OverviewMetricCard = ({
+  item,
+  index,
+  shouldReduceMotion,
+}: OverviewMetricCardProps) => {
+  const Icon = item.icon;
+  const cardClassName = ["group relative h-full", item.spanClassName]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <motion.div
+      initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+      whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+      viewport={shouldReduceMotion ? undefined : { once: true, amount: 0.3 }}
+      transition={shouldReduceMotion ? undefined : {
+        duration: 0.6,
+        delay: index * 0.05,
+        ease: "easeOut",
+      }}
+      className={cardClassName}
+    >
+      <div className="relative z-0 h-full rounded-[28px] p-[1px] before:absolute before:inset-0 before:-z-10 before:rounded-[28px] before:bg-gradient-to-br before:from-white/15 before:via-primary/20 before:to-dc-accent/30 before:opacity-80 before:content-['']">
+        <div className="relative flex h-full flex-col gap-4 rounded-[26px] border border-white/5 bg-background/75 p-5 backdrop-blur-xl transition-colors duration-300 group-hover:border-white/10 group-hover:bg-background/80">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/5">
+              <Icon className={`h-5 w-5 ${item.accent}`} aria-hidden="true" />
+            </div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              {item.label}
+            </span>
+          </div>
+          <div className={`text-2xl font-semibold ${item.accent}`}>
+            {item.value}
+          </div>
+          <p className="text-xs text-muted-foreground">{item.hint}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const { supabase } = useSupabase();
@@ -372,7 +431,8 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const formattedLastUpdated = stats?.last_updated
     ? formatIsoDateTime(stats.last_updated)
     : "Awaiting sync";
-  const overviewItems = stats
+  const shouldReduceMotion = useReducedMotion() ?? false;
+  const overviewItems: OverviewMetricItem[] = stats
     ? [
       {
         label: "Total users",
@@ -405,6 +465,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         hint: `${stats.daily_sessions.toLocaleString()} sessions today`,
         icon: Activity,
         accent: "text-info",
+        spanClassName: "sm:col-span-2 xl:col-span-3",
       },
     ]
     : [];
@@ -503,36 +564,15 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                     Synced {formattedLastUpdated}
                   </Badge>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {overviewItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div
-                        key={item.label}
-                        className="flex flex-col gap-3 rounded-2xl border border-border/40 bg-background/85 p-5 shadow-sm"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                            <Icon
-                              className={`h-5 w-5 ${item.accent}`}
-                              aria-hidden="true"
-                            />
-                          </div>
-                          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                            {item.label}
-                          </span>
-                        </div>
-                        <div
-                          className={`text-2xl font-semibold ${item.accent}`}
-                        >
-                          {item.value}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {item.hint}
-                        </p>
-                      </div>
-                    );
-                  })}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {overviewItems.map((item, index) => (
+                    <OverviewMetricCard
+                      key={item.label}
+                      item={item}
+                      index={index}
+                      shouldReduceMotion={shouldReduceMotion}
+                    />
+                  ))}
                 </div>
               </TabsContent>
 
