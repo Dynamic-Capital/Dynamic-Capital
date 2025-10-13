@@ -73,6 +73,9 @@ function formatStatus(status: string): string {
     .join(" ");
 }
 
+const MINTING_DISABLED_MESSAGE =
+  "DCT minting is permanently disabled after the jetton admin ownership was renounced. Supply remains hard-capped at 100M DCT.";
+
 export function MintingManager() {
   const { getAdminAuth } = useTelegramAuth();
   const { toast } = useToast();
@@ -87,6 +90,8 @@ export function MintingManager() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const adminAuth = useMemo(() => getAdminAuth(), [getAdminAuth]);
+  const mintingDisabled = true;
+  const submitDisabled = mintingDisabled || !adminAuth || isSubmitting;
 
   const handleReset = () => {
     setPlanName("");
@@ -100,6 +105,11 @@ export function MintingManager() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+
+    if (mintingDisabled) {
+      setError(MINTING_DISABLED_MESSAGE);
+      return;
+    }
 
     const parsedMintIndex = Number.parseInt(mintIndex, 10);
     if (!Number.isInteger(parsedMintIndex) || parsedMintIndex < 0) {
@@ -217,23 +227,31 @@ export function MintingManager() {
               <Sparkles className="h-6 w-6 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <CardTitle>Start DCT minting</CardTitle>
+              <CardTitle>DCT minting locked</CardTitle>
               <CardDescription>
-                Queue the next Dynamic Capital Theme Pass mint through the
-                Supabase edge function.
+                Ownership has been renounced; the form remains for audit history
+                but cannot submit new mint requests.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {!adminAuth && (
-            <Alert variant="destructive">
-              <AlertDescription>
-                Admin credentials are missing. Authenticate through the Telegram
-                operations console to enable minting controls.
-              </AlertDescription>
-            </Alert>
-          )}
+          {mintingDisabled
+            ? (
+              <Alert>
+                <AlertDescription>{MINTING_DISABLED_MESSAGE}</AlertDescription>
+              </Alert>
+            )
+            : !adminAuth
+            ? (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  Admin credentials are missing. Authenticate through the
+                  Telegram operations console to enable minting controls.
+                </AlertDescription>
+              </Alert>
+            )
+            : null}
 
           {error && (
             <Alert variant="destructive">
@@ -255,6 +273,7 @@ export function MintingManager() {
                   value={mintIndex}
                   onChange={(event) => setMintIndex(event.target.value)}
                   placeholder="e.g. 3"
+                  disabled={mintingDisabled}
                 />
               </div>
               <div className="space-y-2">
@@ -264,6 +283,7 @@ export function MintingManager() {
                   value={planName}
                   onChange={(event) => setPlanName(event.target.value)}
                   placeholder="Growth Theme Pass"
+                  disabled={mintingDisabled}
                 />
               </div>
             </div>
@@ -276,6 +296,7 @@ export function MintingManager() {
                   value={initiator}
                   onChange={(event) => setInitiator(event.target.value)}
                   placeholder="ton://EQxxxxxxxx"
+                  disabled={mintingDisabled}
                 />
               </div>
               <div className="space-y-2">
@@ -286,6 +307,7 @@ export function MintingManager() {
                   value={priority}
                   onChange={(event) => setPriority(event.target.value)}
                   placeholder="Higher numbers surface first"
+                  disabled={mintingDisabled}
                 />
               </div>
             </div>
@@ -297,6 +319,7 @@ export function MintingManager() {
                 value={contentUri}
                 onChange={(event) => setContentUri(event.target.value)}
                 placeholder="ipfs://dynamic-capital/theme/genesis.json"
+                disabled={mintingDisabled}
               />
             </div>
 
@@ -307,22 +330,23 @@ export function MintingManager() {
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
                 placeholder="Context for this mint (e.g. governance proposal link)."
+                disabled={mintingDisabled}
               />
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               <Button
                 type="submit"
-                isLoading={isSubmitting}
-                disabled={!adminAuth}
+                isLoading={!mintingDisabled && isSubmitting}
+                disabled={submitDisabled}
               >
-                Initiate mint
+                {mintingDisabled ? "Minting disabled" : "Initiate mint"}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleReset}
-                disabled={isSubmitting}
+                disabled={isSubmitting || mintingDisabled}
               >
                 Reset fields
               </Button>

@@ -265,7 +265,8 @@ export function DynamicCliWorkbench() {
           before running the Dynamic CLI/CD workbench.
         </Text>
         <Tag size="s" background="brand-alpha-weak">
-          Tip: Authenticate via the admin gate to mint a new token.
+          Tip: Admin gate access is still required for tooling; DCT minting is
+          permanently disabled.
         </Tag>
       </Column>
     );

@@ -51,6 +51,8 @@ async function main() {
   const adminAddress = typeof contractsConfig.admin === "string"
     ? contractsConfig.admin
     : "";
+  const adminRenounced =
+    Object.hasOwn(contractsConfig, "admin") && contractsConfig.admin == null;
   const treasuryAddress = typeof contractsConfig.treasury === "string"
     ? contractsConfig.treasury
     : "";
@@ -74,6 +76,7 @@ async function main() {
     },
     governance: {
       admin: adminAddress || null,
+      adminRenounced,
       treasury: treasuryAddress || null,
       dexRouter: dexRouterAddress || null,
     },
@@ -82,7 +85,9 @@ async function main() {
       "Upload this archive to https://tonviewer.com/verification when submitting the contract verification request.",
       "Cross-reference the metadata SHA-256 hash above with the hosted JSON served to Tonviewer/Tonkeeper.",
       "Attach governance evidence (timelock + multisig) in the support ticket alongside this bundle.",
-      adminAddress
+      adminRenounced
+        ? "State in the verification ticket that the admin slot is renounced and minting is permanently disabled."
+        : adminAddress
         ? `Confirm the admin multisig ${adminAddress} controls timelocked actions and matches the deployment parameters.`
         : "Record the admin multisig address in config.yaml before packaging the bundle.",
       treasuryAddress
@@ -104,7 +109,9 @@ async function main() {
     `- \`manifest.json\` — Machine-readable summary with metadata checksums and governance addresses.\n\n` +
     `## Submission checklist\n\n` +
     `1. Host \`metadata.json\` at the same URI configured in the on-chain content cell.\n` +
-    (adminAddress
+    (adminRenounced
+      ? "2. Document in the verification request that the jetton admin slot has been renounced and minting is disabled.\n"
+      : adminAddress
       ? `2. Confirm the admin multisig (${adminAddress}) is active and cited in the verification ticket.\n`
       : "2. Update config.yaml with the admin multisig address before packaging this archive.\n") +
     (treasuryAddress

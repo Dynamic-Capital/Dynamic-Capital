@@ -6,8 +6,9 @@ token:
   maxSupply: 100000000
 
 contracts:
-  # Tonstarter governance multisig exercises admin controls on-chain.
-  admin: "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G"
+  # Jetton admin ownership renounced on-chain; keep null to document the absence
+  # of a controlling multisig.
+  admin: null
   # Treasury receives transfer taxes and allocator forwards.
   treasury: "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G"
   # Primary STON.fi router for DCT↔TON liquidity (raw 0:779dcc815138d9500e449c5291e7f12738c23d575b5310000f6a253bd607384e).

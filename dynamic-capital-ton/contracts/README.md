@@ -7,6 +7,9 @@ based on the standard jetton template with the following extensions:
 
 - **Hard-cap supply** — minting is only allowed while `genesisClosed == false`,
   and the total supply can never exceed 100,000,000 DCT (with 9 decimals).
+- **Renounced ownership** — the jetton master admin address is cleared, locking
+  the contract in a permanently non-mintable state backed solely by the 100M
+  genesis allocation.
 - **Holder burn** — any wallet can invoke `burn(amount)` which forwards the burn
   to the master contract.
 - **Timelocked admin controls** — pausing transfers, updating the transfer tax,
@@ -18,7 +21,8 @@ based on the standard jetton template with the following extensions:
 ## Deployment checklist
 
 1. Configure the `admin`, `treasury`, and `dexRouter` addresses when deploying
-   the master contract.
+   the master contract. Once ownership is renounced, the admin slot must remain
+   empty.
 2. Mint the genesis allocation, respecting the 100M hard cap, and call
    `closeGenesis` (opcode `0x44435401`) to permanently lock further minting.
 3. Distribute wallets via the standard jetton wallet code in `wallet.tact`.
@@ -41,7 +45,7 @@ representations suitable for most wallets, while the raw column surfaces the
 
 | Role          | Friendly address                                                                 | Raw (`workchain:hash`)                                                    | Tonviewer link                                                                 |
 | ------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Admin multisig | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7` | [tonviewer.com/EQDSm…x_6y](https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
+| Admin authority | **Renounced** (no controlling multisig) | – | – |
 | Treasury wallet | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` | `0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7` | [tonviewer.com/EQDSm…x_6y](https://tonviewer.com/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) |
 | Primary DEX router | `EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt` | `0:779dcc815138d9500e449c5291e7f12738c23d575b5310000f6a253bd607384e` | [tonviewer.com/EQB3n…TiUt](https://tonviewer.com/EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt) |
 

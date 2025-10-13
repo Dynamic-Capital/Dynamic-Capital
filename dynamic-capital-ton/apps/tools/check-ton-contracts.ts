@@ -610,6 +610,8 @@ async function main() {
   const adminAddress = contractsConfig.admin;
   const treasuryAddress = contractsConfig.treasury;
   const dexRouterAddress = contractsConfig.dexRouter;
+  const adminRenounced =
+    Object.hasOwn(contractsConfig, "admin") && contractsConfig.admin == null;
   const jettonSummary = await compareJettonMetadata(projectRoot);
   const dnsRecords = await parseDnsRecords(projectRoot);
   const tonapiStatus = await fetchTonapiStatus();
@@ -629,12 +631,16 @@ async function main() {
   console.log(
     `Tonviewer page: https://tonviewer.com/jetton/${jettonSummary.jettonAddress}\n`,
   );
-  console.log(formatGovernanceAddress("Admin multisig", adminAddress));
+  console.log(
+    adminRenounced
+      ? "Admin authority: renounced (minting disabled)"
+      : formatGovernanceAddress("Admin multisig", adminAddress),
+  );
   console.log(formatGovernanceAddress("Treasury wallet", treasuryAddress));
   console.log(formatGovernanceAddress("Primary DEX router", dexRouterAddress));
 
   const missingGovernance = [
-    adminAddress ? null : "admin",
+    adminAddress || adminRenounced ? null : "admin",
     treasuryAddress ? null : "treasury",
     dexRouterAddress ? null : "dexRouter",
   ].filter((entry): entry is string => entry !== null);

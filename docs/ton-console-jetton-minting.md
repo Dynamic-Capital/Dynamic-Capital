@@ -7,6 +7,9 @@ additional Dynamic Capital Token (DCT) supply from the on-chain jetton master
 contract. It assumes the genesis deployment already satisfied the hard-cap and
 governance constraints codified in the Tact sources.
 
+> **Status notice:** DCT minting authority has been renounced and remains
+> permanently disabled. This runbook is retained for historical reference only.
+
 ## Prerequisites
 
 - **Admin wallet:** Access to the multisig or custodial wallet configured as the
