@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +28,11 @@ import { MintingManager } from "./MintingManager";
 import { callEdgeFunction } from "@/config/supabase";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 import { DynamicButton, DynamicContainer } from "@/components/dynamic-ui";
+import {
+  createChildVariant,
+  DYNAMIC_MOTION_STAGGERS,
+} from "@/lib/motion-variants";
+import { cn } from "@/lib/utils";
 
 const AdminDashboardSkeleton = () => {
   return (
@@ -174,10 +179,8 @@ type OverviewMetricItem = {
   iconTint: string;
 };
 
-const fadeUpVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
+const OVERVIEW_CARD_VARIANTS = createChildVariant("up", 20, "base");
+const OVERVIEW_CARD_STAGGER = DYNAMIC_MOTION_STAGGERS.dense;
 
 const OverviewMetricCard = ({
   item,
@@ -191,16 +194,17 @@ const OverviewMetricCard = ({
 
   return (
     <motion.div
-      variants={fadeUpVariants}
+      variants={OVERVIEW_CARD_VARIANTS}
       initial={shouldReduceMotion ? undefined : "hidden"}
       whileInView={shouldReduceMotion ? undefined : "visible"}
       viewport={shouldReduceMotion ? undefined : { once: true, amount: 0.35 }}
-      transition={shouldReduceMotion ? undefined : {
-        duration: 0.6,
-        delay: index * 0.05,
-        ease: "easeOut",
-      }}
-      className="group relative h-full"
+      transition={shouldReduceMotion
+        ? undefined
+        : { delay: index * OVERVIEW_CARD_STAGGER }}
+      className={cn(
+        "group relative h-full",
+        index === 3 ? "sm:col-span-2 xl:col-span-3" : undefined,
+      )}
     >
       <div className="relative z-0 h-full rounded-[28px] p-[1px]">
         <div
