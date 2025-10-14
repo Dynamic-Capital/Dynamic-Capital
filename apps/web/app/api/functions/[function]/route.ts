@@ -1,9 +1,11 @@
 import { SUPABASE_CONFIG } from "@/config/supabase";
 import { proxySupabaseEdgeFunction } from "../../_shared/supabase";
 
-type RouteParams = { function: string };
+type RouteParams = { function?: string | string[] };
 
-type RouteHandlerContext = { params: Promise<RouteParams> };
+type RouteHandlerContext = {
+  params?: Promise<RouteParams>;
+};
 
 const ALLOWED_FUNCTION_PATHS = new Set<string>(
   Object.values(SUPABASE_CONFIG.FUNCTIONS),
@@ -38,15 +40,32 @@ function buildNotFoundResponse(): Response {
   );
 }
 
+function normalizeFunctionParam(
+  functionParam: string | readonly string[] | undefined,
+): string | null {
+  if (!functionParam) {
+    return null;
+  }
+
+  const value = Array.isArray(functionParam) ? functionParam[0] : functionParam;
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 async function proxySupabaseFunction(
   request: Request,
   context: RouteHandlerContext,
   method: HandledMethod,
 ): Promise<Response> {
-  const params = await context.params;
-  const normalizedFunctionPath = params.function.trim();
+  const params = context.params ? await context.params : undefined;
+  const normalizedFunctionPath = normalizeFunctionParam(params?.function);
 
-  if (!isAllowedFunction(normalizedFunctionPath)) {
+  if (!normalizedFunctionPath || !isAllowedFunction(normalizedFunctionPath)) {
     return buildNotFoundResponse();
   }
 
