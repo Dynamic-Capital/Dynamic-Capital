@@ -1,10 +1,10 @@
-import { proxySupabaseEdgeFunction } from "../_shared/supabase";
+import { proxySupabaseFunction } from "../_shared/supabase";
 
 export function GET(request: Request) {
-  return proxySupabaseEdgeFunction({
+  return proxySupabaseFunction({
     request,
     method: "GET",
-    path: "plans",
+    functionKey: "PLANS",
     cache: "no-store",
     context: "loading plans",
   });

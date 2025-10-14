@@ -1,11 +1,11 @@
 import { extractForwardAuthHeaders } from "../_shared/auth";
-import { proxySupabaseEdgeFunction } from "../_shared/supabase";
+import { proxySupabaseFunction } from "../_shared/supabase";
 
 export function POST(request: Request) {
-  return proxySupabaseEdgeFunction({
+  return proxySupabaseFunction({
     request,
     method: "POST",
-    path: "private-pool-deposit",
+    functionKey: "PRIVATE_POOL_DEPOSIT",
     context: "recording private pool deposit",
     headers: extractForwardAuthHeaders(request),
   });
