@@ -1,9 +1,9 @@
 import { SUPABASE_CONFIG } from "@/config/supabase";
 import { proxySupabaseEdgeFunction } from "../../_shared/supabase";
 
-type RouteParams = {
-  params: { function: string };
-};
+type RouteParams = { function: string };
+
+type RouteHandlerContext = { params: Promise<RouteParams> };
 
 const ALLOWED_FUNCTION_PATHS = new Set<string>(
   Object.values(SUPABASE_CONFIG.FUNCTIONS),
@@ -11,6 +11,18 @@ const ALLOWED_FUNCTION_PATHS = new Set<string>(
 
 type AllowedFunctionPath =
   (typeof SUPABASE_CONFIG.FUNCTIONS)[keyof typeof SUPABASE_CONFIG.FUNCTIONS];
+
+const HANDLED_METHODS = [
+  "GET",
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+  "OPTIONS",
+  "HEAD",
+] as const;
+
+type HandledMethod = (typeof HANDLED_METHODS)[number];
 
 function isAllowedFunction(path: string): path is AllowedFunctionPath {
   return ALLOWED_FUNCTION_PATHS.has(path);
@@ -26,47 +38,42 @@ function buildNotFoundResponse(): Response {
   );
 }
 
-async function handle(
+async function proxySupabaseFunction(
   request: Request,
-  method: string,
-  { params }: RouteParams,
+  context: RouteHandlerContext,
+  method: HandledMethod,
 ): Promise<Response> {
-  const functionPath = params.function;
+  const params = await context.params;
+  const normalizedFunctionPath = params.function.trim();
 
-  if (!isAllowedFunction(functionPath)) {
+  if (!isAllowedFunction(normalizedFunctionPath)) {
     return buildNotFoundResponse();
   }
 
-  return await proxySupabaseEdgeFunction({
+  return proxySupabaseEdgeFunction({
     request,
-    path: functionPath,
+    path: normalizedFunctionPath,
     method,
-    context: `${method} /api/functions/${functionPath}`,
+    context: `${method} /api/functions/${normalizedFunctionPath}`,
     cache: request.cache,
     headers: request.headers,
   });
 }
 
-export async function GET(request: Request, context: RouteParams) {
-  return await handle(request, "GET", context);
+type RouteHandler = (
+  request: Request,
+  context: RouteHandlerContext,
+) => Promise<Response>;
+
+function createRouteHandler(method: HandledMethod): RouteHandler {
+  return async (request, context) =>
+    proxySupabaseFunction(request, context, method);
 }
 
-export async function POST(request: Request, context: RouteParams) {
-  return await handle(request, "POST", context);
-}
-
-export async function PUT(request: Request, context: RouteParams) {
-  return await handle(request, "PUT", context);
-}
-
-export async function PATCH(request: Request, context: RouteParams) {
-  return await handle(request, "PATCH", context);
-}
-
-export async function DELETE(request: Request, context: RouteParams) {
-  return await handle(request, "DELETE", context);
-}
-
-export async function OPTIONS(request: Request, context: RouteParams) {
-  return await handle(request, "OPTIONS", context);
-}
+export const GET = createRouteHandler("GET");
+export const HEAD = createRouteHandler("HEAD");
+export const POST = createRouteHandler("POST");
+export const PUT = createRouteHandler("PUT");
+export const PATCH = createRouteHandler("PATCH");
+export const DELETE = createRouteHandler("DELETE");
+export const OPTIONS = createRouteHandler("OPTIONS");
