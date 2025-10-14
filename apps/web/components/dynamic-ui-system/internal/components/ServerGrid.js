@@ -1,6 +1,10 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { forwardRef } from "react";
 import classNames from "classnames";
+import {
+  clampDimensionToViewport,
+  parseDimensionValue,
+} from "./dimensionUtils";
 const ServerGrid = forwardRef(({
   as: Component = "div",
   inline,
@@ -102,112 +106,6 @@ const ServerGrid = forwardRef(({
     }
     const [scheme, weight] = value.split("-");
     return `${scheme}-${type}-${weight}`;
-  };
-  const parseDimension = (value, type) => {
-    if (value === undefined || value === null) {
-      return undefined;
-    }
-    if (typeof value === "number") {
-      return `${value}rem`;
-    }
-    if (typeof value !== "string") {
-      return undefined;
-    }
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return undefined;
-    }
-    if (
-      [
-        "0",
-        "1",
-        "2",
-        "4",
-        "8",
-        "12",
-        "16",
-        "20",
-        "24",
-        "32",
-        "40",
-        "48",
-        "56",
-        "64",
-        "80",
-        "104",
-        "128",
-        "160",
-      ].includes(trimmed)
-    ) {
-      return `var(--static-space-${trimmed})`;
-    }
-    if (["xs", "s", "m", "l", "xl"].includes(trimmed)) {
-      return `var(--responsive-${type}-${trimmed})`;
-    }
-    if (
-      [
-        "auto",
-        "min-content",
-        "max-content",
-        "fit-content",
-        "fit-content(100%)",
-      ].includes(trimmed)
-    ) {
-      return trimmed;
-    }
-    if (
-      trimmed.startsWith("var(") ||
-      trimmed.startsWith("calc(") ||
-      trimmed.startsWith("min(") ||
-      trimmed.startsWith("max(") ||
-      trimmed.startsWith("clamp(")
-    ) {
-      return trimmed;
-    }
-    const lengthPattern = /^(?:-?\d*\.?\d+)(?:px|rem|em|vh|vw|vmin|vmax|%)$/;
-    if (lengthPattern.test(trimmed)) {
-      return trimmed;
-    }
-    return trimmed;
-  };
-  const clampToViewportWidth = (value) => {
-    if (value === undefined || value === null) {
-      return undefined;
-    }
-    if (typeof value === "number") {
-      if (value === 0) {
-        return 0;
-      }
-      return `min(100%, ${value}px)`;
-    }
-    if (typeof value !== "string") {
-      return value;
-    }
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return undefined;
-    }
-    if (trimmed === "0" || trimmed === "auto") {
-      return trimmed;
-    }
-    if (
-      trimmed === "min-content" ||
-      trimmed === "max-content" ||
-      trimmed.startsWith("fit-content")
-    ) {
-      return trimmed;
-    }
-    if (trimmed.startsWith("min(100%")) {
-      return trimmed;
-    }
-    if (
-      trimmed.startsWith("min(") ||
-      trimmed.startsWith("max(") ||
-      trimmed.startsWith("clamp(")
-    ) {
-      return trimmed;
-    }
-    return `min(100%, ${trimmed})`;
   };
   const classes = classNames(
     position && `position-${position}`,
@@ -315,25 +213,25 @@ const ServerGrid = forwardRef(({
     className,
   );
   const combinedStyle = {
-    maxWidth: parseDimension(maxWidth, "width"),
-    minHeight: parseDimension(minHeight, "height"),
-    maxHeight: parseDimension(maxHeight, "height"),
-    width: parseDimension(width, "width"),
-    height: parseDimension(height, "height"),
+    maxWidth: parseDimensionValue(maxWidth, "width"),
+    minHeight: parseDimensionValue(minHeight, "height"),
+    maxHeight: parseDimensionValue(maxHeight, "height"),
+    width: parseDimensionValue(width, "width"),
+    height: parseDimensionValue(height, "height"),
     aspectRatio: aspectRatio,
     textAlign: align,
     // Hide default cursor when using custom cursor
     cursor: typeof cursor === "string" ? cursor : undefined,
     ...style,
   };
-  const parsedMinWidth = parseDimension(minWidth, "width");
+  const parsedMinWidth = parseDimensionValue(minWidth, "width");
   const inlineMinWidth = style?.minWidth ?? combinedStyle.minWidth;
   const resolvedInlineMinWidth = inlineMinWidth !== undefined
-    ? clampToViewportWidth(inlineMinWidth)
+    ? clampDimensionToViewport(inlineMinWidth)
     : undefined;
   const resolvedMinWidth = resolvedInlineMinWidth !== undefined
     ? resolvedInlineMinWidth
-    : clampToViewportWidth(parsedMinWidth);
+    : clampDimensionToViewport(parsedMinWidth);
   if (resolvedMinWidth !== undefined) {
     combinedStyle.minWidth = resolvedMinWidth;
   }
