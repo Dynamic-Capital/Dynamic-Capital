@@ -33,9 +33,10 @@ let pendingRequest: Promise<Plan[]> | null = null;
 
 let fallbackClient: SupabaseClient | null = null;
 
-const HAS_REMOTE_SUBSCRIPTION_PLANS = SUPABASE_CONFIG_FROM_ENV;
 const SUPABASE_MISSING_MESSAGE =
   "Supabase credentials are not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to load subscription plans.";
+
+const CAN_DIRECT_QUERY_SUPABASE = SUPABASE_CONFIG_FROM_ENV;
 
 function getFallbackClient() {
   if (!fallbackClient) {
@@ -138,7 +139,7 @@ function normalizePlans(plans: PlansResponse["plans"]): Plan[] {
 }
 
 async function fetchPlansFromSupabase(): Promise<Plan[]> {
-  if (!HAS_REMOTE_SUBSCRIPTION_PLANS) {
+  if (!CAN_DIRECT_QUERY_SUPABASE) {
     throw new Error(SUPABASE_MISSING_MESSAGE);
   }
 
@@ -177,13 +178,6 @@ export async function fetchSubscriptionPlans(
   options: { force?: boolean } = {},
 ): Promise<Plan[]> {
   const { force = false } = options;
-
-  if (!HAS_REMOTE_SUBSCRIPTION_PLANS) {
-    cachedPlans = [];
-    cachedError = SUPABASE_MISSING_MESSAGE;
-    pendingRequest = null;
-    return [];
-  }
 
   if (force) {
     cachedPlans = null;
