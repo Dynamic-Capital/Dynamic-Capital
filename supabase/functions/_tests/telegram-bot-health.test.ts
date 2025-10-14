@@ -6,9 +6,7 @@ Deno.test("telegram-bot HEAD endpoint advertises allowed methods", async () => {
   Deno.env.set("TELEGRAM_BOT_TOKEN", "token");
 
   try {
-    const { serveWebhook } = await import(
-      "../telegram-bot/index.ts?health"
-    );
+    const { serveWebhook } = await import("../telegram-bot/health.ts");
 
     const req = new Request(
       "https://project.functions.supabase.co/telegram-bot",

@@ -38,11 +38,14 @@ import { askChatGPT } from "./helpers/chatgpt.ts";
 import { escapeHtml } from "./helpers/escape.ts";
 import { Bot } from "https://deno.land/x/grammy@v1.18.1/mod.ts";
 import {
+  buildBaseHeaderApplier,
+  DEFAULT_ALLOWED_METHODS,
+} from "./response-headers.ts";
+import {
   conversations,
   createConversation,
 } from "https://deno.land/x/grammy_conversations@v1.2.0/mod.ts";
 import { createThrottler } from "./vendor/grammy_transformer_throttler.ts";
-import { ocrTextFromBlob as defaultOcrTextFromBlob } from "./ocr.ts";
 import {
   parseBankSlip as defaultParseBankSlip,
   type ParsedSlip,
@@ -171,12 +174,6 @@ async function loadAdminHandlers(): Promise<AdminHandlers> {
   return adminHandlers;
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-telegram-bot-api-secret-token",
-};
-
 const DEFAULT_PARSE_MODE = "HTML";
 
 function normalizeParseMode(parseMode: unknown): string {
@@ -194,15 +191,27 @@ function shouldEscapeHtml(parseMode: string): boolean {
   return parseMode.toLowerCase() === "html";
 }
 
-let ocrTextFromBlobImpl = defaultOcrTextFromBlob;
+type OcrTextFromBlob = (blob: Blob) => Promise<string>;
+
+let cachedOcrTextFromBlob: OcrTextFromBlob | null = null;
+let ocrTextOverride: OcrTextFromBlob | null = null;
 let parseBankSlipImpl = defaultParseBankSlip;
+
+async function getOcrTextFromBlob(): Promise<OcrTextFromBlob> {
+  if (ocrTextOverride) return ocrTextOverride;
+  if (!cachedOcrTextFromBlob) {
+    const mod = await import("./ocr.ts");
+    cachedOcrTextFromBlob = mod.ocrTextFromBlob;
+  }
+  return cachedOcrTextFromBlob;
+}
 
 export function __setReceiptParsingOverrides(overrides: {
   ocrTextFromBlob?: typeof defaultOcrTextFromBlob;
   parseBankSlip?: typeof defaultParseBankSlip;
 }): void {
   if (overrides.ocrTextFromBlob) {
-    ocrTextFromBlobImpl = overrides.ocrTextFromBlob;
+    ocrTextOverride = overrides.ocrTextFromBlob;
   }
   if (overrides.parseBankSlip) {
     parseBankSlipImpl = overrides.parseBankSlip;
@@ -210,7 +219,8 @@ export function __setReceiptParsingOverrides(overrides: {
 }
 
 export function __resetReceiptParsingOverrides(): void {
-  ocrTextFromBlobImpl = defaultOcrTextFromBlob;
+  ocrTextOverride = null;
+  cachedOcrTextFromBlob = null;
   parseBankSlipImpl = defaultParseBankSlip;
 }
 
@@ -1922,7 +1932,7 @@ export async function startReceiptPipeline(
 
     let parsedSlip: ParsedSlip | null = null;
     try {
-      const ocrText = await ocrTextFromBlobImpl(blob);
+      const ocrText = await (await getOcrTextFromBlob())(blob);
       parsedSlip = parseBankSlipImpl(ocrText);
     } catch (error) {
       console.error("Failed to OCR/parse bank slip", error);
@@ -2009,18 +2019,8 @@ export async function startReceiptPipeline(
 }
 
 export async function serveWebhook(req: Request): Promise<Response> {
-  const allowedMethods = "GET,HEAD,POST,OPTIONS";
-  const baseHeaders: Record<string, string> = {
-    ...corsHeaders,
-    "Allow": allowedMethods,
-    "Access-Control-Allow-Methods": allowedMethods,
-  };
-  const withBaseHeaders = (res: Response): Response => {
-    for (const [key, value] of Object.entries(baseHeaders)) {
-      res.headers.set(key, value);
-    }
-    return res;
-  };
+  const allowedMethods = DEFAULT_ALLOWED_METHODS;
+  const withBaseHeaders = buildBaseHeaderApplier(allowedMethods);
   // CORS preflight support for browser calls
   if (req.method === "OPTIONS") {
     return withBaseHeaders(new Response(null, { status: 204 }));
