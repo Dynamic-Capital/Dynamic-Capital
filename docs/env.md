@@ -6,19 +6,24 @@ example value, and where it's referenced in the repository.
 
 ## Supabase
 
-| Key                             | Purpose                                                              | Required  | Example                               | Used in                                                                                                                                              |
-| ------------------------------- | -------------------------------------------------------------------- | --------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SUPABASE_URL`                  | Base URL of the Supabase project.                                    | Yes       | `https://xyz.supabase.co`             | `utils/config.ts`, `apps/web/integrations/supabase/client.ts`, `supabase/functions/telegram-bot/index.ts`                                            |
-| `SUPABASE_ANON_KEY`             | Public anon key for client-side calls (also accepts `SUPABASE_KEY`). | Yes       | `eyJ...`                              | `apps/web/integrations/supabase/client.ts`, `supabase/functions/theme-get/index.ts`, `supabase/functions/miniapp/src/lib/edge.ts`, `utils/config.ts` |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Build-time copy of `SUPABASE_URL` for the web app.                   | Yes (web) | `https://xyz.supabase.co`             | `apps/web/config/supabase.ts`                                                                                                                        |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Build-time copy of `SUPABASE_ANON_KEY` for the web app.              | Yes (web) | `eyJ...`                              | `apps/web/config/supabase.ts`                                                                                                                        |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Service role key for privileged Supabase access.                     | Yes       | `service-role-key`                    | `utils/config.ts`, `supabase/functions/telegram-bot/index.ts`                                                                                        |
-| `SUPABASE_PROJECT_ID`           | Supabase project reference used to build URLs in scripts.            | No        | `abcd1234`                            | `scripts/ping-webhook.ts`, `scripts/miniapp-health-check.ts`                                                                                         |
-| `SUPABASE_PROJECT_REF`          | Alias for `SUPABASE_PROJECT_ID` consumed by CLI helpers.             | No        | `abcd1234`                            | `scripts/update-telegram-miniapp.ts`, `scripts/setup-db-webhooks.ts`                                                                                 |
-| `SUPABASE_DB_PASSWORD`          | Postgres password for local or CI usage.                             | No        | `super-secret`                        | Supabase CLI only                                                                                                                                    |
-| `SUPABASE_ACCESS_TOKEN`         | Personal access token for Supabase CLI automation.                   | No        | `sbp_example`                         | `scripts/env/*`, `scripts/setup-db-webhooks.ts`, `scripts/setup-log-drain.ts`                                                                        |
-| `DATABASE_URL`                  | Optional override for direct Postgres connections.                   | No        | `postgresql://...`                    | `db/client.ts`, `apps/web/drizzle.config.js`                                                                                                         |
-| `SUPABASE_FN_URL`               | Supabase Edge Functions base URL for server-side fetch helpers.      | No        | `https://<ref>.functions.supabase.co` | `dynamic-capital-ton/apps/miniapp/app/api/*`, `dynamic-capital-ton/supabase/functions/process-subscription`                                          |
+| Key | Purpose | Required | Example | Used in |
+| --- | ------- | -------- | ------- | ------- |
+| `SUPABASE_URL` | Base URL of the Supabase project (aliases: `NEXT_PUBLIC_SUPABASE_URL`, `VITE_SUPABASE_URL`). | Yes | `https://xyz.supabase.co` | `apps/web/config/supabase-runtime.ts`<br>`apps/web/lib/env.ts`<br>`utils/config.ts`<br>`apps/web/integrations/supabase/client.ts`<br>`supabase/functions/telegram-bot/index.ts` |
+| `SUPABASE_ANON_KEY` | Public anon/publishable key for client-side calls (aliases: `SUPABASE_KEY`, `SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ANON_KEY`). | Yes | `eyJ...` | `apps/web/config/supabase-runtime.ts`<br>`apps/web/lib/env.ts`<br>`apps/web/integrations/supabase/client.ts`<br>`supabase/functions/theme-get/index.ts`<br>`supabase/functions/miniapp/src/lib/edge.ts`<br>`utils/config.ts` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Build-time copy of `SUPABASE_URL` for the web app (aliases: `SUPABASE_URL`, `VITE_SUPABASE_URL`). | Yes (web) | `https://xyz.supabase.co` | `apps/web/config/supabase-runtime.ts`<br>`apps/web/lib/env.ts`<br>`apps/web/config/supabase.ts` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Build-time copy of `SUPABASE_ANON_KEY` for the web app (aliases: `SUPABASE_ANON_KEY`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_KEY`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ANON_KEY`). | Yes (web) | `eyJ...` | `apps/web/config/supabase-runtime.ts`<br>`apps/web/lib/env.ts`<br>`apps/web/config/supabase.ts` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key for privileged Supabase access. | Yes | `service-role-key` | `utils/config.ts`<br>`supabase/functions/telegram-bot/index.ts` |
+| `SUPABASE_PROJECT_ID` | Supabase project reference used to build URLs in scripts. | No | `abcd1234` | `scripts/ping-webhook.ts`<br>`scripts/miniapp-health-check.ts` |
+| `SUPABASE_PROJECT_REF` | Alias for `SUPABASE_PROJECT_ID` consumed by CLI helpers. | No | `abcd1234` | `scripts/update-telegram-miniapp.ts`<br>`scripts/setup-db-webhooks.ts` |
+| `SUPABASE_DB_PASSWORD` | Postgres password for local or CI usage. | No | `super-secret` | Supabase CLI only |
+| `SUPABASE_ACCESS_TOKEN` | Personal access token for Supabase CLI automation. | No | `sbp_example` | `scripts/env/*`<br>`scripts/setup-db-webhooks.ts`<br>`scripts/setup-log-drain.ts` |
+| `DATABASE_URL` | Optional override for direct Postgres connections. | No | `postgresql://...` | `db/client.ts`<br>`apps/web/drizzle.config.js` |
+| `SUPABASE_FN_URL` | Supabase Edge Functions base URL for server-side fetch helpers. | No | `https://<ref>.functions.supabase.co` | `dynamic-capital-ton/apps/miniapp/app/api/*`<br>`dynamic-capital-ton/supabase/functions/process-subscription` |
+
+> **Note:** Supabase environment keys and their aliases are centralized in
+> `apps/web/config/supabase-runtime.ts` via the `SUPABASE_ENV_KEYS` map. Use
+> the exported `readSupabaseEnv` helper to resolve values so runtime validation
+> and client configuration stay aligned.
 
 ## TON Subscriptions
 
