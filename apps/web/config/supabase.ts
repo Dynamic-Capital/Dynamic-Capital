@@ -53,6 +53,11 @@ export const SUPABASE_CONFIG = {
     ECONOMIC_CALENDAR: "economic-calendar",
     MINIAPP: "miniapp",
     VERIFY_INITDATA: "verify-initdata",
+    LINK_WALLET: "link-wallet",
+    PROCESS_SUBSCRIPTION: "process-subscription",
+    PRIVATE_POOL_DEPOSIT: "private-pool-deposit",
+    PRIVATE_POOL_WITHDRAW: "private-pool-withdraw",
+    SETTLE_ORDER: "settle-order",
   },
 } as const;
 

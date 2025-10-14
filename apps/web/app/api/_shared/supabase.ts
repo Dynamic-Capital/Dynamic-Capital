@@ -1,6 +1,10 @@
 import process from "node:process";
 
+import { SUPABASE_CONFIG } from "@/config/supabase";
+
 type EnvValue = string | undefined;
+
+export type SupabaseFunctionKey = keyof typeof SUPABASE_CONFIG.FUNCTIONS;
 
 function normalizeEnvString(value: unknown): EnvValue {
   if (typeof value !== "string") {
@@ -157,6 +161,12 @@ interface ProxySupabaseOptions {
   readonly cache?: RequestCache;
   readonly body?: BodyInit | null;
   readonly headers?: HeadersInit;
+}
+
+export interface ProxySupabaseFunctionOptions
+  extends Omit<ProxySupabaseOptions, "path" | "context"> {
+  readonly functionKey: SupabaseFunctionKey;
+  readonly context?: string;
 }
 
 interface BodyResolutionSuccess {
@@ -349,4 +359,20 @@ export async function proxySupabaseEdgeFunction({
       { status: 502, headers: { "Content-Type": "application/json" } },
     );
   }
+}
+
+export function proxySupabaseFunction({
+  functionKey,
+  context,
+  ...options
+}: ProxySupabaseFunctionOptions): Promise<Response> {
+  const path = SUPABASE_CONFIG.FUNCTIONS[functionKey];
+  const normalizedContext = context ??
+    `${options.method.toUpperCase()} /supabase/functions/${path}`;
+
+  return proxySupabaseEdgeFunction({
+    ...options,
+    path,
+    context: normalizedContext,
+  });
 }

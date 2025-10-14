@@ -1,5 +1,5 @@
 import { extractForwardAuthHeaders } from "../_shared/auth";
-import { proxySupabaseEdgeFunction } from "../_shared/supabase";
+import { proxySupabaseFunction } from "../_shared/supabase";
 
 function buildForwardHeaders(request: Request): HeadersInit | undefined {
   const headers = new Headers();
@@ -20,10 +20,10 @@ function buildForwardHeaders(request: Request): HeadersInit | undefined {
 }
 
 export function POST(request: Request) {
-  return proxySupabaseEdgeFunction({
+  return proxySupabaseFunction({
     request,
     method: "POST",
-    path: "settle-order",
+    functionKey: "SETTLE_ORDER",
     context: "settling treasury transfer",
     headers: buildForwardHeaders(request),
   });
