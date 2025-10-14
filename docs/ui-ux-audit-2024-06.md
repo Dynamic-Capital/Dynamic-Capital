@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Dynamic Capital UI/UX Audit — June 2024
 
 ## Approach

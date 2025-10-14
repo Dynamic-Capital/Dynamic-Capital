@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Dynamic Docs Organizer — Dynamic-Capital
 
 **Generated:** 2025-09-27T14:25:07.130Z **Scope:** docs/

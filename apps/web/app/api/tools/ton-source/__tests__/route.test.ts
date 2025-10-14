@@ -8,7 +8,10 @@ function assertEquals<T>(actual: T, expected: T, message?: string): void {
   }
 }
 
-function assertCondition(condition: unknown, message: string): asserts condition {
+function assertCondition(
+  condition: unknown,
+  message: string,
+): asserts condition {
   if (!condition) {
     throw new Error(message);
   }
@@ -32,8 +35,16 @@ Deno.test("GET /api/tools/ton-source returns configuration", async () => {
     tolkVersions: string[];
   };
 
-  assertEquals(payload.backends.length, 3, "expected three production backends");
-  assertEquals(payload.backendsTestnet.length, 1, "expected one testnet backend");
+  assertEquals(
+    payload.backends.length,
+    3,
+    "expected three production backends",
+  );
+  assertEquals(
+    payload.backendsTestnet.length,
+    1,
+    "expected one testnet backend",
+  );
   assertEquals(payload.funcVersions[0], "0.4.6-wasmfix.0");
   assertEquals(payload.tactVersions[0], "1.6.13");
   assertEquals(payload.tolkVersions[0], "1.1.0");

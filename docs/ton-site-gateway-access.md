@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # TON Site Gateway Access Guide
 
 Dynamic Capital serves the Telegram Mini App bundle through a TON Site. Install

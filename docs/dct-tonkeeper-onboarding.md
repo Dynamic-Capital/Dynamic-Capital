@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # DCT Tonkeeper Distribution & Onboarding Playbook
 
 This playbook documents how Dynamic Capital distributes DCT jettons across

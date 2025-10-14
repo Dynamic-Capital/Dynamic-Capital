@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Dynamic Quantum Hedge Model Framework
 
 ## Overview

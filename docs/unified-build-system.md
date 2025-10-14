@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Unified Build System for Dynamic Capital TON Web3 App
 
 ## Overview
