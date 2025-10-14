@@ -1,9 +1,5 @@
-import { withApiMetrics } from "@/observability/server-metrics.ts";
-import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
-
-interface ApiResponse {
-  message: string;
-}
+import { respondWithApiStatus } from "@/app/api/_shared/api-status.ts";
+import { corsHeaders, methodNotAllowed } from "@/utils/http.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -19,10 +15,7 @@ export async function GET(req: Request, context: RouteContext) {
     return notFound();
   }
 
-  return withApiMetrics(req, "/api", async () => {
-    const body: ApiResponse = { message: "API is running" };
-    return jsonResponse(body, {}, req);
-  });
+  return respondWithApiStatus(req);
 }
 
 const methodNotAllowedForRoute = (req: Request, context: RouteContext) => {

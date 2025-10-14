@@ -323,39 +323,49 @@ async function fetchCryptoQuotes(symbols: string[]): Promise<CachedMarketData> {
     }
   }
 
+  const tasks: Array<Promise<void>> = [];
+
   if (dctSymbols.length > 0) {
-    try {
-      const snapshot = await fetchDctMarketSnapshot();
-      const dctQuotes = dctSymbols.map<MarketQuote>((requestSymbol) => ({
-        requestSymbol,
-        sourceSymbol: snapshot.sourceSymbol,
-        source: "dexscreener",
-        name: snapshot.name,
-        last: snapshot.price,
-        change: snapshot.change,
-        changePercent: snapshot.changePercent,
-        high: null,
-        low: null,
-        open: null,
-        previousClose: snapshot.previousClose,
-        volume: snapshot.volume24h,
-        timestamp: snapshot.timestamp,
-      }));
-      quotes.push(...dctQuotes);
-    } catch (error) {
-      errors.push(
-        `DCT market data unavailable: ${normaliseErrorMessage(error)}`,
-      );
-    }
+    tasks.push((async () => {
+      try {
+        const snapshot = await fetchDctMarketSnapshot();
+        const dctQuotes = dctSymbols.map<MarketQuote>((requestSymbol) => ({
+          requestSymbol,
+          sourceSymbol: snapshot.sourceSymbol,
+          source: "dexscreener",
+          name: snapshot.name,
+          last: snapshot.price,
+          change: snapshot.change,
+          changePercent: snapshot.changePercent,
+          high: null,
+          low: null,
+          open: null,
+          previousClose: snapshot.previousClose,
+          volume: snapshot.volume24h,
+          timestamp: snapshot.timestamp,
+        }));
+        quotes.push(...dctQuotes);
+      } catch (error) {
+        errors.push(
+          `DCT market data unavailable: ${normaliseErrorMessage(error)}`,
+        );
+      }
+    })());
   }
 
   if (otherSymbols.length > 0) {
-    try {
-      const cgQuotes = await fetchCoinGeckoQuotes(otherSymbols);
-      quotes.push(...cgQuotes);
-    } catch (error) {
-      errors.push(normaliseErrorMessage(error));
-    }
+    tasks.push((async () => {
+      try {
+        const cgQuotes = await fetchCoinGeckoQuotes(otherSymbols);
+        quotes.push(...cgQuotes);
+      } catch (error) {
+        errors.push(normaliseErrorMessage(error));
+      }
+    })());
+  }
+
+  if (tasks.length > 0) {
+    await Promise.all(tasks);
   }
 
   return {
