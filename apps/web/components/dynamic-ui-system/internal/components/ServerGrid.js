@@ -1,6 +1,10 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { forwardRef } from "react";
 import classNames from "classnames";
+import {
+  clampDimensionToViewport,
+  parseDimensionValue,
+} from "./dimensionUtils";
 const ServerGrid = forwardRef(({
   as: Component = "div",
   inline,
@@ -102,42 +106,6 @@ const ServerGrid = forwardRef(({
     }
     const [scheme, weight] = value.split("-");
     return `${scheme}-${type}-${weight}`;
-  };
-  const parseDimension = (value, type) => {
-    if (value === undefined) {
-      return undefined;
-    }
-    if (typeof value === "number") {
-      return `${value}rem`;
-    }
-    if (
-      [
-        "0",
-        "1",
-        "2",
-        "4",
-        "8",
-        "12",
-        "16",
-        "20",
-        "24",
-        "32",
-        "40",
-        "48",
-        "56",
-        "64",
-        "80",
-        "104",
-        "128",
-        "160",
-      ].includes(value)
-    ) {
-      return `var(--static-space-${value})`;
-    }
-    if (["xs", "s", "m", "l", "xl"].includes(value)) {
-      return `var(--responsive-${type}-${value})`;
-    }
-    return undefined;
   };
   const classes = classNames(
     position && `position-${position}`,
@@ -245,18 +213,28 @@ const ServerGrid = forwardRef(({
     className,
   );
   const combinedStyle = {
-    maxWidth: parseDimension(maxWidth, "width"),
-    minWidth: parseDimension(minWidth, "width"),
-    minHeight: parseDimension(minHeight, "height"),
-    maxHeight: parseDimension(maxHeight, "height"),
-    width: parseDimension(width, "width"),
-    height: parseDimension(height, "height"),
+    maxWidth: parseDimensionValue(maxWidth, "width"),
+    minHeight: parseDimensionValue(minHeight, "height"),
+    maxHeight: parseDimensionValue(maxHeight, "height"),
+    width: parseDimensionValue(width, "width"),
+    height: parseDimensionValue(height, "height"),
     aspectRatio: aspectRatio,
     textAlign: align,
     // Hide default cursor when using custom cursor
     cursor: typeof cursor === "string" ? cursor : undefined,
     ...style,
   };
+  const parsedMinWidth = parseDimensionValue(minWidth, "width");
+  const inlineMinWidth = style?.minWidth ?? combinedStyle.minWidth;
+  const resolvedInlineMinWidth = inlineMinWidth !== undefined
+    ? clampDimensionToViewport(inlineMinWidth)
+    : undefined;
+  const resolvedMinWidth = resolvedInlineMinWidth !== undefined
+    ? resolvedInlineMinWidth
+    : clampDimensionToViewport(parsedMinWidth);
+  if (resolvedMinWidth !== undefined) {
+    combinedStyle.minWidth = resolvedMinWidth;
+  }
   return (_jsx(Component, {
     ref: ref,
     className: classes,
