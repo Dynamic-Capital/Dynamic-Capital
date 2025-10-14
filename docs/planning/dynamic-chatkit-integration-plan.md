@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Dynamic ChatKit Integration Plan
 
 > **Status:** Proposed roadmap to migrate Dynamic Chat onto the OpenAI ChatKit advanced reference stack while preserving existing Dynamic Capital safeguards.

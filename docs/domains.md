@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Domains
 
 This catalog captures the key hostnames that back Dynamic Capital surface areas. It acts as a quick reference when validating deployments or updating environment variables that rely on fully qualified domains.

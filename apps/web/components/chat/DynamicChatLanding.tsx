@@ -322,7 +322,11 @@ function ChatFallback({
     >
       <Column gap="16">
         <Row gap="12" vertical="center">
-          <Tag size="s" background="brand-alpha-weak" border="brand-alpha-medium">
+          <Tag
+            size="s"
+            background="brand-alpha-weak"
+            border="brand-alpha-medium"
+          >
             Dynamic chat access
           </Tag>
           <Tag
@@ -435,11 +439,9 @@ function ChatFallback({
                     size="s"
                     variant="tertiary"
                     href={isAnchorLink ? undefined : action.href}
-                    onClick={
-                      isAnchorLink
-                        ? () => onAnchorNavigate?.(action.href)
-                        : undefined
-                    }
+                    onClick={isAnchorLink
+                      ? () => onAnchorNavigate?.(action.href)
+                      : undefined}
                     type={isAnchorLink ? "button" : undefined}
                     suffixIcon="arrowUpRight"
                     aria-describedby={descriptionId}
@@ -464,8 +466,8 @@ function ChatFallback({
         >
           <Text variant="body-default-xs" onBackground="neutral-weak">
             Need access? Ask your Dynamic Capital admin lead to provision TON
-            multisig credentials or a session token. Every chat session is logged
-            for compliance and automation guardrails.
+            multisig credentials or a session token. Every chat session is
+            logged for compliance and automation guardrails.
           </Text>
         </Card>
       </Column>
@@ -1008,7 +1010,9 @@ export function DynamicChatLanding() {
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(110,80,255,0.2),transparent_75%)]" />
             <div className="relative z-10 h-full rounded-[26px] bg-background/95 p-3 sm:p-4 lg:p-6">
               <AdminGate
-                fallback={<ChatFallback onAnchorNavigate={handleAnchorNavigation} />}
+                fallback={
+                  <ChatFallback onAnchorNavigate={handleAnchorNavigation} />
+                }
               >
                 <DynamicChat />
               </AdminGate>

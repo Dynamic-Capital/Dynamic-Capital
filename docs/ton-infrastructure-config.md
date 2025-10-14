@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # TON Infrastructure Configuration Playbook
 
 This playbook consolidates the operational steps required to provision and

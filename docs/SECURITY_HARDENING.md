@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Security Hardening Summary
 
 ## ✅ Completed Security Fixes (2025-10-10)

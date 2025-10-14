@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Checklist Runner Log
 
 This log captures useful invocations of the internal checklist tooling along

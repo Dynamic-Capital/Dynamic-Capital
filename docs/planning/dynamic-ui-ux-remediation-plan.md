@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Dynamic UI/UX Remediation Plan
 
 > **Status:** Proposed roadmap to eliminate UI regressions across domains and builds while uplifting end-to-end Dynamic UX quality.

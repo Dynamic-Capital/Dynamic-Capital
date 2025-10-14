@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Dynamic Quote Collection
 
 ## Collection Overview

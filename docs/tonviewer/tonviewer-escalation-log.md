@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Tonviewer Verification Escalation Log
 
 | Date (UTC) | Owner      | Action                                                                                                    | Reference                                     | Outcome                                             |

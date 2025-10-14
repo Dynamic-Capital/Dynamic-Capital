@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Telegram TL Schema Reference
 
 The Telegram TL schema defines all MTProto and Bot API types that clients and

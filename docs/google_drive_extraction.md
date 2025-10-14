@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Google Drive Knowledge Base Extraction
 
 This note captures the current options for extracting PDFs from a shared Google

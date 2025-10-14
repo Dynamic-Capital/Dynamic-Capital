@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # Checklist Audit Report — 2025-10-08
 
 ## Overview

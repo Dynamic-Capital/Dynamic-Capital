@@ -1,3 +1,5 @@
+<!-- deno-fmt-ignore-file -->
+
 # NPM Dependency Audit — 2025-10-13
 
 ## Summary
