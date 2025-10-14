@@ -136,6 +136,18 @@ interface EdgeFunctionErrorBody {
   message?: unknown;
 }
 
+function buildInternalFunctionProxyUrl(functionPath: string): string {
+  const normalized = functionPath.replace(/^\/+/, "");
+  if (typeof window !== "undefined") {
+    return `/api/functions/${normalized}`;
+  }
+
+  const base = getEnvVar("SITE_URL", ["NEXT_PUBLIC_SITE_URL"])
+    ?.replace(/\/+$/, "");
+  const origin = base && base.length > 0 ? base : "http://localhost:3000";
+  return `${origin}/api/functions/${normalized}`;
+}
+
 export const callEdgeFunction = async <T>(
   functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS,
   options: {
@@ -148,27 +160,48 @@ export const callEdgeFunction = async <T>(
   { data?: T; error?: { status: number; message: string }; status?: number }
 > => {
   const { method = "GET", body, headers = {}, token } = options;
+  const functionPath = SUPABASE_CONFIG.FUNCTIONS[functionName];
 
-  const requestHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    apikey: SUPABASE_CONFIG.ANON_KEY,
-    ...headers,
-  };
+  if (!functionPath) {
+    return {
+      error: {
+        status: 0,
+        message: `Unknown Supabase function: ${String(functionName)}`,
+      },
+      status: 0,
+    };
+  }
 
-  if (token) {
-    requestHeaders["Authorization"] = `Bearer ${token}`;
+  const useProxy = !SUPABASE_CONFIG_FROM_ENV;
+  const endpoint = useProxy
+    ? buildInternalFunctionProxyUrl(functionPath)
+    : buildFunctionUrl(functionName);
+
+  const requestHeaders = new Headers(headers);
+  if (!requestHeaders.has("Content-Type") && body !== undefined) {
+    requestHeaders.set("Content-Type", "application/json");
+  }
+
+  if (!useProxy) {
+    requestHeaders.set("apikey", SUPABASE_CONFIG.ANON_KEY);
+    if (token) {
+      requestHeaders.set("Authorization", `Bearer ${token}`);
+    }
+  } else if (token) {
+    requestHeaders.set("Authorization", `Bearer ${token}`);
   }
 
   let res: Response;
   try {
-    res = await fetch(buildFunctionUrl(functionName), {
+    res = await fetch(endpoint, {
       method,
       headers: requestHeaders,
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Network request failed";
+    const message = error instanceof Error
+      ? error.message
+      : "Network request failed";
 
     return {
       error: {
