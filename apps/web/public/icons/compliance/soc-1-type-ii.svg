@@ -1,0 +1,69 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 120 120"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">SOC 1 Type II Attestation Seal</title>
+  <desc id="desc"
+  >Blue circular SOC 1 Type II logo with AICPA and SOC text.</desc>
+  <defs>
+    <linearGradient id="soc1Outer" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3ba7f5" />
+      <stop offset="100%" stop-color="#0a4fa3" />
+    </linearGradient>
+    <linearGradient id="soc1Inner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0f7ff" />
+      <stop offset="100%" stop-color="#cddfff" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="url(#soc1Outer)" />
+  <circle cx="60" cy="60" r="44" fill="url(#soc1Inner)" />
+  <circle cx="60" cy="60" r="36" fill="#0a4fa3" />
+  <text
+    x="50%"
+    y="46"
+    text-anchor="middle"
+    fill="#ffffff"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="24"
+    font-weight="700"
+  >SOC 1</text>
+  <text
+    x="50%"
+    y="66"
+    text-anchor="middle"
+    fill="#a6cafc"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="13"
+    font-weight="600"
+  >SERVICE ORGANIZATION</text>
+  <text
+    x="50%"
+    y="80"
+    text-anchor="middle"
+    fill="#a6cafc"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="13"
+    font-weight="600"
+  >CONTROLS</text>
+  <text
+    x="50%"
+    y="96"
+    text-anchor="middle"
+    fill="#ffffff"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="14"
+    font-weight="700"
+  >TYPE II</text>
+  <text
+    x="50%"
+    y="30"
+    text-anchor="middle"
+    fill="#06356f"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="12"
+    font-weight="600"
+    letter-spacing="0.24em"
+  >AICPA</text>
+</svg>

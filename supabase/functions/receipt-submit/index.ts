@@ -3,6 +3,7 @@ import { bad, json, oops, unauth } from "../_shared/http.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { hashBlob } from "../_shared/hash.ts";
+import { findTransferRecipient } from "../_shared/transfer-recipients.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -191,7 +192,13 @@ export const handler = registerHandler(async (req) => {
         : {};
     const submittedAt = new Date().toISOString();
     const parsedSlipData = parsed_slip && typeof parsed_slip === "object"
-      ? parsed_slip
+      ? parsed_slip as Record<string, unknown>
+      : null;
+    const transferRecipient = parsedSlipData
+      ? await findTransferRecipient(supa, {
+        accountNumber: (parsedSlipData.toAccount as string | undefined) ?? null,
+        accountName: (parsedSlipData.toName as string | undefined) ?? null,
+      })
       : null;
 
     const webhookData: Record<string, unknown> = {
@@ -206,6 +213,9 @@ export const handler = registerHandler(async (req) => {
 
     if (parsedSlipData) {
       webhookData.parsed_slip = parsedSlipData;
+      if (transferRecipient) {
+        webhookData.transfer_recipient = transferRecipient;
+      }
     }
 
     const { error: paymentError } = await supa
@@ -238,12 +248,79 @@ export const handler = registerHandler(async (req) => {
       }
     }
 
-    const { error: receiptInsertError } = await supa.from("receipts").insert({
+    const receiptInsertPayload: Record<string, unknown> = {
       payment_id,
       user_id: payment.user_id,
       file_url: file_path,
       image_sha256: imageHash,
-    });
+    };
+
+    if (parsedSlipData) {
+      const bank = parsedSlipData.bank as string | undefined;
+      if (bank) receiptInsertPayload.bank = bank;
+
+      const rawText = parsedSlipData.rawText as string | undefined;
+      if (rawText) receiptInsertPayload.ocr_text = rawText;
+
+      const amountValue = parsedSlipData.amount as number | string | undefined;
+      const numericAmount = typeof amountValue === "number"
+        ? amountValue
+        : typeof amountValue === "string"
+        ? Number(amountValue.replace(/,/g, ""))
+        : null;
+      if (Number.isFinite(numericAmount)) {
+        receiptInsertPayload.ocr_amount = Number(numericAmount);
+      }
+
+      const currency = parsedSlipData.currency as string | undefined;
+      if (currency) receiptInsertPayload.ocr_currency = currency;
+
+      const status = parsedSlipData.status as string | undefined;
+      if (status) receiptInsertPayload.ocr_status = status;
+
+      if (typeof parsedSlipData.successWord === "boolean") {
+        receiptInsertPayload.ocr_success_word = parsedSlipData.successWord;
+      }
+
+      const reference = parsedSlipData.reference as string | undefined;
+      if (reference) receiptInsertPayload.ocr_reference = reference;
+
+      const fromName = parsedSlipData.fromName as string | undefined;
+      if (fromName) receiptInsertPayload.ocr_from_name = fromName;
+
+      const toName = parsedSlipData.toName as string | undefined;
+      if (toName) receiptInsertPayload.ocr_to_name = toName;
+
+      const toAccount = parsedSlipData.toAccount as string | undefined;
+      if (toAccount) receiptInsertPayload.ocr_to_account = toAccount;
+
+      const payCode = parsedSlipData.payCode as string | undefined;
+      if (payCode) receiptInsertPayload.ocr_pay_code = payCode;
+
+      const txnDateIso = parsedSlipData.ocrTxnDateIso as string | undefined;
+      if (txnDateIso) {
+        const txnDate = new Date(txnDateIso);
+        if (!Number.isNaN(txnDate.getTime())) {
+          receiptInsertPayload.ocr_txn_date = txnDate.toISOString();
+        }
+      }
+
+      const valueDateIso = parsedSlipData.ocrValueDateIso as string | undefined;
+      if (valueDateIso) {
+        const valueDate = new Date(valueDateIso);
+        if (!Number.isNaN(valueDate.getTime())) {
+          receiptInsertPayload.ocr_value_date = valueDate.toISOString();
+        }
+      }
+
+      if (transferRecipient) {
+        receiptInsertPayload.ocr_to_account = transferRecipient.account_number;
+      }
+    }
+
+    const { error: receiptInsertError } = await supa.from("receipts").insert(
+      receiptInsertPayload,
+    );
 
     if (receiptInsertError) {
       console.error("Receipt insert error:", receiptInsertError);

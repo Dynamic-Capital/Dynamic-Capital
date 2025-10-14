@@ -28,6 +28,14 @@ const CERTIFICATES: Certificate[] = [
     logoAlt: "ISO/IEC 27001 certification badge",
   },
   {
+    name: "SOC 1 Type II",
+    description: "Certificate of SOC 1",
+    certificateId: "DC-SOC1-2024-T2",
+    issuer: "Langford & Ames, LLP",
+    logoSrc: "/icons/compliance/soc-1-type-ii.svg",
+    logoAlt: "SOC 1 Type II attestation seal",
+  },
+  {
     name: "SOC 2 Type II",
     description: "Certificate of SOC 2",
     certificateId: "DC-SOC2-2024-T2",
