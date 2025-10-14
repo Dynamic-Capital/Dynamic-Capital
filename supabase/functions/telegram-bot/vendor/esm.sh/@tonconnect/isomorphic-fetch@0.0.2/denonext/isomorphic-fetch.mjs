@@ -1,0 +1,3 @@
+/* esm.sh - @tonconnect/isomorphic-fetch@0.0.2 */
+var{Blob:n,fetch:t,File:l,FormData:i,Headers:c,Request:b,Response:p,AbortController:f}=globalThis;var a=e=>e>300&&e<304||e>306&&e<309;t.isRedirect=a,t.Promise=globalThis.Promise;var o=t;function s(e,r){return/^\/\//.test(e)&&(e="https:"+e),o.call(this,e,r)}globalThis.fetch||(globalThis.fetch=s,globalThis.Response=o.Response,globalThis.Headers=o.Headers,globalThis.Request=o.Request);
+//# sourceMappingURL=isomorphic-fetch.mjs.map
