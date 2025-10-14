@@ -2015,38 +2015,43 @@ export async function serveWebhook(req: Request): Promise<Response> {
     "Allow": allowedMethods,
     "Access-Control-Allow-Methods": allowedMethods,
   };
-  // CORS preflight support for browser calls
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: baseHeaders });
-  }
-  const v = version(req, "telegram-bot");
-  if (v) {
-    const res = new Response(v.body, v);
+  const withBaseHeaders = (res: Response): Response => {
     for (const [key, value] of Object.entries(baseHeaders)) {
       res.headers.set(key, value);
     }
     return res;
+  };
+  // CORS preflight support for browser calls
+  if (req.method === "OPTIONS") {
+    return withBaseHeaders(new Response(null, { status: 204 }));
+  }
+  const v = version(req, "telegram-bot");
+  if (v) {
+    return withBaseHeaders(new Response(v.body, v));
   }
   if (req.method === "HEAD") {
-    return new Response(null, { status: 200, headers: baseHeaders });
+    return withBaseHeaders(new Response(null, { status: 200 }));
   }
   if (req.method === "GET") {
     const url = new URL(req.url);
     if (url.pathname.endsWith("/echo")) {
-      return json(
+      return withBaseHeaders(json(
         {
           ok: true,
           echo: true,
           ua: req.headers.get("user-agent") || "",
         },
         200,
-        baseHeaders,
-      );
+      ));
     }
-    return json({ ok: false, error: "Method Not Allowed" }, 405, baseHeaders);
+    return withBaseHeaders(
+      json({ ok: false, error: "Method Not Allowed" }, 405),
+    );
   }
   if (req.method !== "POST") {
-    return json({ ok: false, error: "Method Not Allowed" }, 405, baseHeaders);
+    return withBaseHeaders(
+      json({ ok: false, error: "Method Not Allowed" }, 405),
+    );
   }
 
   // Only validate webhook secret for POST requests
@@ -2060,14 +2065,14 @@ export async function serveWebhook(req: Request): Promise<Response> {
       "Make sure TELEGRAM_WEBHOOK_SECRET is set correctly in Supabase secrets",
     );
     console.error("received header", receivedSecret ? "present" : "missing");
-    return authResp;
+    return withBaseHeaders(authResp);
   }
 
   try {
     const { ok: envOk, missing } = checkEnv(REQUIRED_ENV_KEYS);
     if (!envOk) {
       console.error("Missing env vars", missing);
-      return oops("Missing env vars", missing);
+      return withBaseHeaders(oops("Missing env vars", missing));
     }
 
     try {
@@ -2075,7 +2080,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Mini app env missing", msg);
-      return oops(msg);
+      return withBaseHeaders(oops(msg));
     }
 
     const body = await extractTelegramUpdate(req);
@@ -2084,36 +2089,34 @@ export async function serveWebhook(req: Request): Promise<Response> {
       (body as { test?: string }).test === "ping" &&
       Object.keys(body).length === 1
     ) {
-      return json({ ok: true, pong: true }, 200, baseHeaders);
+      return withBaseHeaders(json({ ok: true, pong: true }, 200));
     }
     if (!body) {
       // Empty/invalid JSON - skip logging to reduce noise
-      return json({ ok: false, error: "Invalid JSON" }, 400, baseHeaders);
+      return withBaseHeaders(json({ ok: false, error: "Invalid JSON" }, 400));
     }
     const update = body as TelegramUpdate;
     if (!bot) {
       console.warn("Bot token not set; cannot handle update");
-      return oops("Bot token not configured");
+      return withBaseHeaders(oops("Bot token not configured"));
     }
     // Cast to any since our TelegramUpdate type omits some required fields for grammy
     await bot.handleUpdate(update as any);
 
     if (update.chat_member || update.my_chat_member) {
       await handleMembershipUpdate(update);
-      return json(
+      return withBaseHeaders(json(
         { ok: true, handled: true, kind: "chat_member" },
         200,
-        baseHeaders,
-      );
+      ));
     }
 
     if (update.callback_query) {
       await handleCallback(update);
-      return json(
+      return withBaseHeaders(json(
         { ok: true, handled: true, kind: "callback_query" },
         200,
-        baseHeaders,
-      );
+      ));
     }
 
     // ---- BAN CHECK (short-circuit early) ----
@@ -2129,7 +2132,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
           .maybeSingle();
         if (ban && (!ban.expires_at || new Date(ban.expires_at) > new Date())) {
           // optional: send a one-time notice
-          return json({ ok: false, error: "Forbidden" }, 403, baseHeaders);
+          return withBaseHeaders(json({ ok: false, error: "Forbidden" }, 403));
         }
       } catch {
         /* swallow */
@@ -2139,7 +2142,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
     const tgId = fromId;
     if (tgId) {
       const rl = await enforceRateLimit(tgId);
-      if (rl) return rl; // 429
+      if (rl) return withBaseHeaders(rl); // 429
       const isCmd = !!update?.message?.text?.startsWith("/");
       await logInteraction(
         isCmd ? "command" : "message",
@@ -2159,7 +2162,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
       await startReceiptPipeline(update);
     }
 
-    return json({ ok: true, handled: true }, 200, baseHeaders);
+    return withBaseHeaders(json({ ok: true, handled: true }, 200));
   } catch (e) {
     const errMsg = e instanceof Error ? e.message : String(e);
     console.error("telegram-bot error:", errMsg);
@@ -2174,7 +2177,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
     } catch {
       /* swallow */
     }
-    return oops("Internal Error");
+    return withBaseHeaders(oops("Internal Error"));
   }
 }
 
