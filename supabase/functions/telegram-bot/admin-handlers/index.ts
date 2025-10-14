@@ -9,7 +9,7 @@ import type {
   PlanChannel,
   Promotion,
   SubscriptionPlan,
-} from "../../../../apps/web/types/telegram-bot.ts";
+} from "./types.ts";
 
 import { sendMessage, supabaseAdmin } from "./common.ts";
 export { sendMessage } from "./common.ts";
