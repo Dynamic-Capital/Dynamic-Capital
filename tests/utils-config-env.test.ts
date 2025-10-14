@@ -59,3 +59,31 @@ test("supabase runtime accepts NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY alias", asyn
     equal(module.SUPABASE_CONFIG_FROM_ENV, true);
   });
 });
+
+test("web env accepts Supabase publishable key aliases", async () => {
+  await withEnv({
+    NODE_ENV: "test",
+    SUPABASE_URL: "https://example.supabase.co",
+    SUPABASE_ANON_KEY: undefined,
+    SUPABASE_PUBLISHABLE_KEY: "publishable-server",
+    SUPABASE_SERVICE_ROLE_KEY: "service-role",
+    SUPABASE_SERVICE_ROLE: "service-role",
+    NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: undefined,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-client",
+  }, async () => {
+    const module = await freshImport(
+      new URL("../apps/web/lib/env.ts", import.meta.url),
+    );
+
+    equal(module.runtimeEnv.success, true);
+    equal(
+      module.runtimeEnv.missing.public.includes("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+      false,
+    );
+    equal(
+      module.runtimeEnv.missing.server.includes("SUPABASE_ANON_KEY"),
+      false,
+    );
+  });
+});
