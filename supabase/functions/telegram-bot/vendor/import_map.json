@@ -10,6 +10,7 @@
     "mime-types": "./esm.sh/mime-types@3.0.1.js",
     "docker": "../../../../scripts/docker.ts",
     "@/": "../../../../apps/web/",
+    "@shared/": "../../../../shared/",
     "zod": "https://deno.land/x/zod@v3.22.4/mod.ts",
     "@opentelemetry/api": "../../../../tests/stubs/opentelemetry-api.ts",
     "next/cache": "../../../../tests/stubs/next-cache.ts",
