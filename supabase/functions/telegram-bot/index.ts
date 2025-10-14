@@ -1,7 +1,7 @@
 import { checkEnv, optionalEnv } from "../_shared/env.ts";
 import { readMiniAppEnv, requireMiniAppEnv } from "../_shared/miniapp.ts";
 import { alertAdmins } from "../_shared/alerts.ts";
-import { json, mna, ok, oops } from "../_shared/http.ts";
+import { json, oops } from "../_shared/http.ts";
 import { validateTelegramHeader } from "../_shared/telegram_secret.ts";
 import { version } from "../_shared/version.ts";
 import { hashBlob } from "../_shared/hash.ts";
@@ -38,11 +38,14 @@ import { askChatGPT } from "./helpers/chatgpt.ts";
 import { escapeHtml } from "./helpers/escape.ts";
 import { Bot } from "https://deno.land/x/grammy@v1.18.1/mod.ts";
 import {
+  buildBaseHeaderApplier,
+  DEFAULT_ALLOWED_METHODS,
+} from "./response-headers.ts";
+import {
   conversations,
   createConversation,
 } from "https://deno.land/x/grammy_conversations@v1.2.0/mod.ts";
 import { createThrottler } from "./vendor/grammy_transformer_throttler.ts";
-import { ocrTextFromBlob as defaultOcrTextFromBlob } from "./ocr.ts";
 import {
   parseBankSlip as defaultParseBankSlip,
   type ParsedSlip,
@@ -171,12 +174,6 @@ async function loadAdminHandlers(): Promise<AdminHandlers> {
   return adminHandlers;
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-telegram-bot-api-secret-token",
-};
-
 const DEFAULT_PARSE_MODE = "HTML";
 
 function normalizeParseMode(parseMode: unknown): string {
@@ -194,15 +191,27 @@ function shouldEscapeHtml(parseMode: string): boolean {
   return parseMode.toLowerCase() === "html";
 }
 
-let ocrTextFromBlobImpl = defaultOcrTextFromBlob;
+type OcrTextFromBlob = (blob: Blob) => Promise<string>;
+
+let cachedOcrTextFromBlob: OcrTextFromBlob | null = null;
+let ocrTextOverride: OcrTextFromBlob | null = null;
 let parseBankSlipImpl = defaultParseBankSlip;
+
+async function getOcrTextFromBlob(): Promise<OcrTextFromBlob> {
+  if (ocrTextOverride) return ocrTextOverride;
+  if (!cachedOcrTextFromBlob) {
+    const mod = await import("./ocr.ts");
+    cachedOcrTextFromBlob = mod.ocrTextFromBlob;
+  }
+  return cachedOcrTextFromBlob;
+}
 
 export function __setReceiptParsingOverrides(overrides: {
   ocrTextFromBlob?: typeof defaultOcrTextFromBlob;
   parseBankSlip?: typeof defaultParseBankSlip;
 }): void {
   if (overrides.ocrTextFromBlob) {
-    ocrTextFromBlobImpl = overrides.ocrTextFromBlob;
+    ocrTextOverride = overrides.ocrTextFromBlob;
   }
   if (overrides.parseBankSlip) {
     parseBankSlipImpl = overrides.parseBankSlip;
@@ -210,7 +219,8 @@ export function __setReceiptParsingOverrides(overrides: {
 }
 
 export function __resetReceiptParsingOverrides(): void {
-  ocrTextFromBlobImpl = defaultOcrTextFromBlob;
+  ocrTextOverride = null;
+  cachedOcrTextFromBlob = null;
   parseBankSlipImpl = defaultParseBankSlip;
 }
 
@@ -1922,7 +1932,7 @@ export async function startReceiptPipeline(
 
     let parsedSlip: ParsedSlip | null = null;
     try {
-      const ocrText = await ocrTextFromBlobImpl(blob);
+      const ocrText = await (await getOcrTextFromBlob())(blob);
       parsedSlip = parseBankSlipImpl(ocrText);
     } catch (error) {
       console.error("Failed to OCR/parse bank slip", error);
@@ -2009,20 +2019,40 @@ export async function startReceiptPipeline(
 }
 
 export async function serveWebhook(req: Request): Promise<Response> {
+  const allowedMethods = DEFAULT_ALLOWED_METHODS;
+  const withBaseHeaders = buildBaseHeaderApplier(allowedMethods);
   // CORS preflight support for browser calls
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return withBaseHeaders(new Response(null, { status: 204 }));
   }
   const v = version(req, "telegram-bot");
-  if (v) return v;
+  if (v) {
+    return withBaseHeaders(new Response(v.body, v));
+  }
+  if (req.method === "HEAD") {
+    return withBaseHeaders(new Response(null, { status: 200 }));
+  }
   if (req.method === "GET") {
     const url = new URL(req.url);
     if (url.pathname.endsWith("/echo")) {
-      return ok({ echo: true, ua: req.headers.get("user-agent") || "" });
+      return withBaseHeaders(json(
+        {
+          ok: true,
+          echo: true,
+          ua: req.headers.get("user-agent") || "",
+        },
+        200,
+      ));
     }
-    return mna();
+    return withBaseHeaders(
+      json({ ok: false, error: "Method Not Allowed" }, 405),
+    );
   }
-  if (req.method !== "POST") return mna();
+  if (req.method !== "POST") {
+    return withBaseHeaders(
+      json({ ok: false, error: "Method Not Allowed" }, 405),
+    );
+  }
 
   // Only validate webhook secret for POST requests
   const receivedSecret = req.headers.get(SECRET_HEADER);
@@ -2035,14 +2065,14 @@ export async function serveWebhook(req: Request): Promise<Response> {
       "Make sure TELEGRAM_WEBHOOK_SECRET is set correctly in Supabase secrets",
     );
     console.error("received header", receivedSecret ? "present" : "missing");
-    return authResp;
+    return withBaseHeaders(authResp);
   }
 
   try {
     const { ok: envOk, missing } = checkEnv(REQUIRED_ENV_KEYS);
     if (!envOk) {
       console.error("Missing env vars", missing);
-      return oops("Missing env vars", missing);
+      return withBaseHeaders(oops("Missing env vars", missing));
     }
 
     try {
@@ -2050,7 +2080,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Mini app env missing", msg);
-      return oops(msg);
+      return withBaseHeaders(oops(msg));
     }
 
     const body = await extractTelegramUpdate(req);
@@ -2059,28 +2089,34 @@ export async function serveWebhook(req: Request): Promise<Response> {
       (body as { test?: string }).test === "ping" &&
       Object.keys(body).length === 1
     ) {
-      return ok({ pong: true });
+      return withBaseHeaders(json({ ok: true, pong: true }, 200));
     }
     if (!body) {
       // Empty/invalid JSON - skip logging to reduce noise
-      return json({ ok: false, error: "Invalid JSON" }, 400);
+      return withBaseHeaders(json({ ok: false, error: "Invalid JSON" }, 400));
     }
     const update = body as TelegramUpdate;
     if (!bot) {
       console.warn("Bot token not set; cannot handle update");
-      return oops("Bot token not configured");
+      return withBaseHeaders(oops("Bot token not configured"));
     }
     // Cast to any since our TelegramUpdate type omits some required fields for grammy
     await bot.handleUpdate(update as any);
 
     if (update.chat_member || update.my_chat_member) {
       await handleMembershipUpdate(update);
-      return ok({ handled: true, kind: "chat_member" });
+      return withBaseHeaders(json(
+        { ok: true, handled: true, kind: "chat_member" },
+        200,
+      ));
     }
 
     if (update.callback_query) {
       await handleCallback(update);
-      return ok({ handled: true, kind: "callback_query" });
+      return withBaseHeaders(json(
+        { ok: true, handled: true, kind: "callback_query" },
+        200,
+      ));
     }
 
     // ---- BAN CHECK (short-circuit early) ----
@@ -2096,7 +2132,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
           .maybeSingle();
         if (ban && (!ban.expires_at || new Date(ban.expires_at) > new Date())) {
           // optional: send a one-time notice
-          return json({ ok: false, error: "Forbidden" }, 403);
+          return withBaseHeaders(json({ ok: false, error: "Forbidden" }, 403));
         }
       } catch {
         /* swallow */
@@ -2106,7 +2142,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
     const tgId = fromId;
     if (tgId) {
       const rl = await enforceRateLimit(tgId);
-      if (rl) return rl; // 429
+      if (rl) return withBaseHeaders(rl); // 429
       const isCmd = !!update?.message?.text?.startsWith("/");
       await logInteraction(
         isCmd ? "command" : "message",
@@ -2126,7 +2162,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
       await startReceiptPipeline(update);
     }
 
-    return ok({ handled: true });
+    return withBaseHeaders(json({ ok: true, handled: true }, 200));
   } catch (e) {
     const errMsg = e instanceof Error ? e.message : String(e);
     console.error("telegram-bot error:", errMsg);
@@ -2141,7 +2177,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
     } catch {
       /* swallow */
     }
-    return oops("Internal Error");
+    return withBaseHeaders(oops("Internal Error"));
   }
 }
 
