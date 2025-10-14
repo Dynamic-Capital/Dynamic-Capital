@@ -93,7 +93,9 @@ function extractMissing(error: z.ZodError): string[] {
 function validatePublicEnv(): ValidationResult {
   const supabaseUrl = getEnvVar("NEXT_PUBLIC_SUPABASE_URL", ["SUPABASE_URL"]);
   const supabaseAnonKey = getEnvVar("NEXT_PUBLIC_SUPABASE_ANON_KEY", [
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_ANON_KEY",
+    "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_KEY",
   ]);
 
@@ -169,8 +171,10 @@ function validateServerEnv(): ValidationResult {
     NODE_ENV: optionalEnvVar("NODE_ENV"),
     SUPABASE_URL: getEnvVar("SUPABASE_URL", ["NEXT_PUBLIC_SUPABASE_URL"]),
     SUPABASE_ANON_KEY: getEnvVar("SUPABASE_ANON_KEY", [
+      "SUPABASE_PUBLISHABLE_KEY",
       "SUPABASE_KEY",
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
     ]),
     SUPABASE_SERVICE_ROLE_KEY: getEnvVar("SUPABASE_SERVICE_ROLE_KEY", [
       "SUPABASE_SERVICE_ROLE",
