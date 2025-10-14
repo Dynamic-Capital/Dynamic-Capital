@@ -61,7 +61,7 @@ function readEnv(key: string): string | undefined {
 
 export function getEnvVar(
   name: string,
-  aliases: string[] = [],
+  aliases: readonly string[] = [],
 ): string | undefined {
   const names = [name, ...aliases];
   for (const n of names) {
@@ -73,7 +73,7 @@ export function getEnvVar(
 
 export function requireEnvVar(
   name: string,
-  aliases: string[] = [],
+  aliases: readonly string[] = [],
 ): string {
   const v = getEnvVar(name, aliases);
   if (!v) throw new Error(`Missing required env: ${name}`);
@@ -82,7 +82,7 @@ export function requireEnvVar(
 
 export function optionalEnvVar(
   name: string,
-  aliases: string[] = [],
+  aliases: readonly string[] = [],
 ): string | undefined {
   return getEnvVar(name, aliases);
 }

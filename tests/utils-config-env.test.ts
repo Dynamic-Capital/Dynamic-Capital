@@ -1,5 +1,5 @@
 import test from "node:test";
-import { equal, rejects } from "node:assert/strict";
+import { deepEqual, equal, rejects } from "node:assert/strict";
 import { freshImport } from "./utils/freshImport.ts";
 import { withEnv } from "./utils/withEnv.ts";
 
@@ -104,4 +104,27 @@ test("web env accepts Vite Supabase aliases", async () => {
     equal(module.runtimeEnv.missing.public.length, 0);
     equal(module.runtimeEnv.missing.server.length, 0);
   });
+});
+
+test("supabase env keys remain the single source of alias truth", async () => {
+  const module = await freshImport(
+    new URL("../apps/web/config/supabase-runtime.ts", import.meta.url),
+  );
+
+  deepEqual(
+    Array.from(module.SUPABASE_ENV_KEYS.publicUrl.aliases),
+    Array.from(module.SUPABASE_PUBLIC_URL_ALIASES),
+  );
+  deepEqual(
+    Array.from(module.SUPABASE_ENV_KEYS.serverUrl.aliases),
+    Array.from(module.SUPABASE_SERVER_URL_ALIASES),
+  );
+  deepEqual(
+    Array.from(module.SUPABASE_ENV_KEYS.publicAnonKey.aliases),
+    Array.from(module.SUPABASE_PUBLIC_ANON_ALIASES),
+  );
+  deepEqual(
+    Array.from(module.SUPABASE_ENV_KEYS.serverAnonKey.aliases),
+    Array.from(module.SUPABASE_SERVER_ANON_ALIASES),
+  );
 });

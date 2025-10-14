@@ -4,14 +4,7 @@ import { DEFAULT_ECONOMIC_CALENDAR_URL } from "@/config/economic-calendar";
 import {
   DEFAULT_SUPABASE_ANON_KEY,
   DEFAULT_SUPABASE_URL,
-  SUPABASE_PUBLIC_ANON_ALIASES,
-  SUPABASE_PUBLIC_ANON_KEY,
-  SUPABASE_PUBLIC_URL_ALIASES,
-  SUPABASE_PUBLIC_URL_KEY,
-  SUPABASE_SERVER_ANON_ALIASES,
-  SUPABASE_SERVER_ANON_KEY,
-  SUPABASE_SERVER_URL_ALIASES,
-  SUPABASE_SERVER_URL_KEY,
+  SUPABASE_ENV_KEYS,
 } from "@/config/supabase-runtime";
 
 type Mode = "throw" | "report";
@@ -25,6 +18,13 @@ type ValidationResult = {
   success: boolean;
   missing: MissingMap;
 };
+
+const {
+  publicUrl,
+  publicAnonKey,
+  serverUrl,
+  serverAnonKey,
+} = SUPABASE_ENV_KEYS;
 
 export const publicSchema = z.object({
   NEXT_PUBLIC_ENV: z.string().default("development"),
@@ -99,13 +99,10 @@ function extractMissing(error: z.ZodError): string[] {
 }
 
 function validatePublicEnv(): ValidationResult {
-  const supabaseUrl = getEnvVar(
-    SUPABASE_PUBLIC_URL_KEY,
-    SUPABASE_PUBLIC_URL_ALIASES,
-  );
+  const supabaseUrl = getEnvVar(publicUrl.primary, publicUrl.aliases);
   const supabaseAnonKey = getEnvVar(
-    SUPABASE_PUBLIC_ANON_KEY,
-    SUPABASE_PUBLIC_ANON_ALIASES,
+    publicAnonKey.primary,
+    publicAnonKey.aliases,
   );
 
   const raw = {
@@ -114,8 +111,8 @@ function validatePublicEnv(): ValidationResult {
       "NEXT_PUBLIC_COMMIT_SHA",
       ["COMMIT_SHA"],
     ),
-    [SUPABASE_PUBLIC_URL_KEY]: supabaseUrl ?? DEFAULT_SUPABASE_URL,
-    [SUPABASE_PUBLIC_ANON_KEY]: supabaseAnonKey ?? DEFAULT_SUPABASE_ANON_KEY,
+    [publicUrl.primary]: supabaseUrl ?? DEFAULT_SUPABASE_URL,
+    [publicAnonKey.primary]: supabaseAnonKey ?? DEFAULT_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_API_URL: optionalEnvVar("NEXT_PUBLIC_API_URL", ["API_URL"]),
     NEXT_PUBLIC_SENTRY_DSN: optionalEnvVar("NEXT_PUBLIC_SENTRY_DSN", [
       "SENTRY_DSN",
@@ -158,10 +155,10 @@ function validatePublicEnv(): ValidationResult {
   if (result.success) {
     const missing: string[] = [];
     if (!supabaseUrl) {
-      missing.push(SUPABASE_PUBLIC_URL_KEY);
+      missing.push(publicUrl.primary);
     }
     if (!supabaseAnonKey) {
-      missing.push(SUPABASE_PUBLIC_ANON_KEY);
+      missing.push(publicAnonKey.primary);
     }
     return { success: true, missing: { public: missing, server: [] } };
   }
@@ -178,13 +175,10 @@ function validatePublicEnv(): ValidationResult {
 function validateServerEnv(): ValidationResult {
   const raw = {
     NODE_ENV: optionalEnvVar("NODE_ENV"),
-    [SUPABASE_SERVER_URL_KEY]: getEnvVar(
-      SUPABASE_SERVER_URL_KEY,
-      SUPABASE_SERVER_URL_ALIASES,
-    ),
-    [SUPABASE_SERVER_ANON_KEY]: getEnvVar(
-      SUPABASE_SERVER_ANON_KEY,
-      SUPABASE_SERVER_ANON_ALIASES,
+    [serverUrl.primary]: getEnvVar(serverUrl.primary, serverUrl.aliases),
+    [serverAnonKey.primary]: getEnvVar(
+      serverAnonKey.primary,
+      serverAnonKey.aliases,
     ),
     SUPABASE_SERVICE_ROLE_KEY: getEnvVar("SUPABASE_SERVICE_ROLE_KEY", [
       "SUPABASE_SERVICE_ROLE",
@@ -257,8 +251,8 @@ export function checkRuntimeEnv(mode: Mode = "throw"): ValidationResult {
     "ROUTE_GUARD_PASSWORD",
   ]);
   const toleratedPublicMissing = new Set<keyof typeof publicSchema.shape>([
-    SUPABASE_PUBLIC_URL_KEY,
-    SUPABASE_PUBLIC_ANON_KEY,
+    publicUrl.primary as keyof typeof publicSchema.shape,
+    publicAnonKey.primary as keyof typeof publicSchema.shape,
   ]);
 
   const optionalServerMissing = merged.server.filter((key) =>
