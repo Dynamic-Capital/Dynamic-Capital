@@ -14,7 +14,24 @@
     "@opentelemetry/api": "../../../../tests/stubs/opentelemetry-api.ts",
     "next/cache": "../../../../tests/stubs/next-cache.ts",
     "@supabase/ssr": "../../../../tests/supabase-ssr-stub.ts",
-    "std/": "https://deno.land/std@0.224.0/"
+    "std/": "https://deno.land/std@0.224.0/",
+    "https://esm.sh/standardwebhooks@1.0.0": "./esm.sh/standardwebhooks@1.0.0.js",
+    "https://esm.sh/standardwebhooks@1.0.0?dts": "./esm.sh/standardwebhooks@1.0.0.js",
+    "https://esm.sh/@tonconnect/sdk@2": "./esm.sh/@tonconnect/sdk@2.2.0.js",
+    "https://esm.sh/@tonconnect/sdk@2?dts": "./esm.sh/@tonconnect/sdk@2.2.0.js",
+    "https://esm.sh/@tonconnect/sdk@2.2.0": "./esm.sh/@tonconnect/sdk@2.2.0.js",
+    "https://esm.sh/@tonconnect/protocol@2.3.0": "./esm.sh/@tonconnect/protocol@2.3.0.js",
+    "https://esm.sh/@tonconnect/isomorphic-eventsource@0.0.1": "./esm.sh/@tonconnect/isomorphic-eventsource@0.0.1.js",
+    "https://esm.sh/@tonconnect/isomorphic-fetch@0.0.2": "./esm.sh/@tonconnect/isomorphic-fetch@0.0.2.js",
+    "https://esm.sh/@stablelib/base64@1.0.1": "./esm.sh/@stablelib/base64@1.0.1.js",
+    "https://esm.sh/@stablelib/base64@1.0.1?dts": "./esm.sh/@stablelib/base64@1.0.1.js",
+    "https://esm.sh/fast-sha256@1.3.0": "./esm.sh/fast-sha256@1.3.0.js",
+    "https://esm.sh/fast-sha256@1.3.0?dts": "./esm.sh/fast-sha256@1.3.0.js",
+    "https://esm.sh/tweetnacl@1.0.3": "./esm.sh/tweetnacl@1.0.3.js",
+    "https://esm.sh/tweetnacl@1.0.3?dts": "./esm.sh/tweetnacl@1.0.3.js",
+    "https://esm.sh/tweetnacl-util@0.15.1": "./esm.sh/tweetnacl-util@0.15.1.js",
+    "https://esm.sh/tweetnacl-util@0.15.1?dts": "./esm.sh/tweetnacl-util@0.15.1.js",
+    "https://esm.sh/eventsource@2.0.2": "./esm.sh/eventsource@2.0.2.js"
   },
   "scopes": {
     "./esm.sh/": {
@@ -27,7 +44,26 @@
       "/tesseract.js@5.1.1/denonext/tesseract.mjs": "./esm.sh/tesseract.js@5.1.1/denonext/tesseract.mjs",
       "/mime-types@3.0.1/denonext/mime-types.mjs": "./esm.sh/mime-types@3.0.1/denonext/mime-types.mjs",
       "/mime-db@1.54.0/denonext/mime-db.mjs": "./esm.sh/mime-db@1.54.0/denonext/mime-db.mjs",
-      "/mime-db@^1.54.0?target=denonext": "./esm.sh/mime-db@1.54.0.js"
+      "/mime-db@^1.54.0?target=denonext": "./esm.sh/mime-db@1.54.0.js",
+      "/standardwebhooks@1.0.0/denonext/standardwebhooks.mjs": "./esm.sh/standardwebhooks@1.0.0/denonext/standardwebhooks.mjs",
+      "/@stablelib/base64@1.0.1/denonext/base64.mjs": "./esm.sh/@stablelib/base64@1.0.1/denonext/base64.mjs",
+      "/@stablelib/base64@^1.0.0?target=denonext": "./esm.sh/@stablelib/base64@1.0.1.js",
+      "/fast-sha256@1.3.0/denonext/fast-sha256.mjs": "./esm.sh/fast-sha256@1.3.0/denonext/fast-sha256.mjs",
+      "/fast-sha256@^1.3.0?target=denonext": "./esm.sh/fast-sha256@1.3.0.js",
+      "/@tonconnect/sdk@2.2.0/denonext/sdk.mjs": "./esm.sh/@tonconnect/sdk@2.2.0/denonext/sdk.mjs",
+      "/@tonconnect/sdk@^2?target=denonext": "./esm.sh/@tonconnect/sdk@2.2.0.js",
+      "/@tonconnect/protocol@2.3.0/denonext/protocol.mjs": "./esm.sh/@tonconnect/protocol@2.3.0/denonext/protocol.mjs",
+      "/@tonconnect/protocol@^2.2.5?target=denonext": "./esm.sh/@tonconnect/protocol@2.3.0.js",
+      "/@tonconnect/isomorphic-eventsource@0.0.1/denonext/isomorphic-eventsource.mjs": "./esm.sh/@tonconnect/isomorphic-eventsource@0.0.1/denonext/isomorphic-eventsource.mjs",
+      "/@tonconnect/isomorphic-eventsource@^0.0.1?target=denonext": "./esm.sh/@tonconnect/isomorphic-eventsource@0.0.1.js",
+      "/@tonconnect/isomorphic-fetch@0.0.2/denonext/isomorphic-fetch.mjs": "./esm.sh/@tonconnect/isomorphic-fetch@0.0.2/denonext/isomorphic-fetch.mjs",
+      "/@tonconnect/isomorphic-fetch@^0.0.2?target=denonext": "./esm.sh/@tonconnect/isomorphic-fetch@0.0.2.js",
+      "/tweetnacl@1.0.3/denonext/tweetnacl.mjs": "./esm.sh/tweetnacl@1.0.3/denonext/tweetnacl.mjs",
+      "/tweetnacl@^1.0.3?target=denonext": "./esm.sh/tweetnacl@1.0.3.js",
+      "/tweetnacl-util@0.15.1/denonext/tweetnacl-util.mjs": "./esm.sh/tweetnacl-util@0.15.1/denonext/tweetnacl-util.mjs",
+      "/tweetnacl-util@^0.15.1?target=denonext": "./esm.sh/tweetnacl-util@0.15.1.js",
+      "/eventsource@2.0.2/denonext/eventsource.mjs": "./esm.sh/eventsource@2.0.2/denonext/eventsource.mjs",
+      "/eventsource@^2.0.2?target=denonext": "./esm.sh/eventsource@2.0.2.js"
     }
   }
 }
