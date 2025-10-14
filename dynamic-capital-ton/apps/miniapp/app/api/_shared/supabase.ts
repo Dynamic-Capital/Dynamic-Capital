@@ -1,5 +1,12 @@
 import process from "node:process";
 
+import {
+  resolveSupabaseFunctionPath,
+  type SupabaseFunctionKey,
+} from "@shared/supabase/functions";
+
+export type { SupabaseFunctionKey };
+
 type EnvValue = string | undefined;
 
 function normalizeEnvString(value: unknown): EnvValue {
@@ -143,6 +150,28 @@ interface ProxySupabaseOptions {
   readonly cache?: RequestCache;
   readonly body?: BodyInit | null;
   readonly headers?: HeadersInit;
+}
+
+export interface ProxySupabaseFunctionOptions
+  extends Omit<ProxySupabaseOptions, "path" | "context"> {
+  readonly functionKey: SupabaseFunctionKey;
+  readonly context?: string;
+}
+
+export function proxySupabaseFunction({
+  functionKey,
+  context,
+  ...options
+}: ProxySupabaseFunctionOptions): Promise<Response> {
+  const path = resolveSupabaseFunctionPath(functionKey);
+  const normalizedContext =
+    context ?? `${options.method.toUpperCase()} /supabase/functions/${path}`;
+
+  return proxySupabaseEdgeFunction({
+    ...options,
+    path,
+    context: normalizedContext,
+  });
 }
 
 export async function proxySupabaseEdgeFunction({

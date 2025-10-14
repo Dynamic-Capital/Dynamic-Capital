@@ -1,10 +1,10 @@
 import process from "node:process";
 
-import { SUPABASE_CONFIG } from "@/config/supabase";
+import { SUPABASE_CONFIG, type SupabaseFunctionKey } from "@/config/supabase";
+
+export type { SupabaseFunctionKey };
 
 type EnvValue = string | undefined;
-
-export type SupabaseFunctionKey = keyof typeof SUPABASE_CONFIG.FUNCTIONS;
 
 function normalizeEnvString(value: unknown): EnvValue {
   if (typeof value !== "string") {

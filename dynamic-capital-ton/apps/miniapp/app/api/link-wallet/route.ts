@@ -1,10 +1,10 @@
-import { proxySupabaseEdgeFunction } from "../_shared/supabase";
+import { proxySupabaseFunction } from "../_shared/supabase";
 
 export function POST(request: Request) {
-  return proxySupabaseEdgeFunction({
+  return proxySupabaseFunction({
     request,
     method: "POST",
-    path: "ton-connect-session",
+    functionKey: "TON_CONNECT_SESSION",
     context: "orchestrating TON Connect session",
   });
 }
