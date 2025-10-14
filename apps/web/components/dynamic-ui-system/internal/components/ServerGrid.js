@@ -104,11 +104,18 @@ const ServerGrid = forwardRef(({
     return `${scheme}-${type}-${weight}`;
   };
   const parseDimension = (value, type) => {
-    if (value === undefined) {
+    if (value === undefined || value === null) {
       return undefined;
     }
     if (typeof value === "number") {
       return `${value}rem`;
+    }
+    if (typeof value !== "string") {
+      return undefined;
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return undefined;
     }
     if (
       [
@@ -130,14 +137,77 @@ const ServerGrid = forwardRef(({
         "104",
         "128",
         "160",
-      ].includes(value)
+      ].includes(trimmed)
     ) {
-      return `var(--static-space-${value})`;
+      return `var(--static-space-${trimmed})`;
     }
-    if (["xs", "s", "m", "l", "xl"].includes(value)) {
-      return `var(--responsive-${type}-${value})`;
+    if (["xs", "s", "m", "l", "xl"].includes(trimmed)) {
+      return `var(--responsive-${type}-${trimmed})`;
     }
-    return undefined;
+    if (
+      [
+        "auto",
+        "min-content",
+        "max-content",
+        "fit-content",
+        "fit-content(100%)",
+      ].includes(trimmed)
+    ) {
+      return trimmed;
+    }
+    if (
+      trimmed.startsWith("var(") ||
+      trimmed.startsWith("calc(") ||
+      trimmed.startsWith("min(") ||
+      trimmed.startsWith("max(") ||
+      trimmed.startsWith("clamp(")
+    ) {
+      return trimmed;
+    }
+    const lengthPattern = /^(?:-?\d*\.?\d+)(?:px|rem|em|vh|vw|vmin|vmax|%)$/;
+    if (lengthPattern.test(trimmed)) {
+      return trimmed;
+    }
+    return trimmed;
+  };
+  const clampToViewportWidth = (value) => {
+    if (value === undefined || value === null) {
+      return undefined;
+    }
+    if (typeof value === "number") {
+      if (value === 0) {
+        return 0;
+      }
+      return `min(100%, ${value}px)`;
+    }
+    if (typeof value !== "string") {
+      return value;
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    if (trimmed === "0" || trimmed === "auto") {
+      return trimmed;
+    }
+    if (
+      trimmed === "min-content" ||
+      trimmed === "max-content" ||
+      trimmed.startsWith("fit-content")
+    ) {
+      return trimmed;
+    }
+    if (trimmed.startsWith("min(100%")) {
+      return trimmed;
+    }
+    if (
+      trimmed.startsWith("min(") ||
+      trimmed.startsWith("max(") ||
+      trimmed.startsWith("clamp(")
+    ) {
+      return trimmed;
+    }
+    return `min(100%, ${trimmed})`;
   };
   const classes = classNames(
     position && `position-${position}`,
@@ -246,7 +316,6 @@ const ServerGrid = forwardRef(({
   );
   const combinedStyle = {
     maxWidth: parseDimension(maxWidth, "width"),
-    minWidth: parseDimension(minWidth, "width"),
     minHeight: parseDimension(minHeight, "height"),
     maxHeight: parseDimension(maxHeight, "height"),
     width: parseDimension(width, "width"),
@@ -257,6 +326,17 @@ const ServerGrid = forwardRef(({
     cursor: typeof cursor === "string" ? cursor : undefined,
     ...style,
   };
+  const parsedMinWidth = parseDimension(minWidth, "width");
+  const inlineMinWidth = style?.minWidth ?? combinedStyle.minWidth;
+  const resolvedInlineMinWidth = inlineMinWidth !== undefined
+    ? clampToViewportWidth(inlineMinWidth)
+    : undefined;
+  const resolvedMinWidth = resolvedInlineMinWidth !== undefined
+    ? resolvedInlineMinWidth
+    : clampToViewportWidth(parsedMinWidth);
+  if (resolvedMinWidth !== undefined) {
+    combinedStyle.minWidth = resolvedMinWidth;
+  }
   return (_jsx(Component, {
     ref: ref,
     className: classes,
