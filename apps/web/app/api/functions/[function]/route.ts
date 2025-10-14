@@ -4,7 +4,7 @@ import { proxySupabaseEdgeFunction } from "../../_shared/supabase";
 type RouteParams = { function?: string | string[] };
 
 type RouteHandlerContext = {
-  params?: Promise<RouteParams>;
+  params: Promise<RouteParams | undefined>;
 };
 
 const ALLOWED_FUNCTION_PATHS = new Set<string>(
@@ -62,7 +62,7 @@ async function proxySupabaseFunction(
   context: RouteHandlerContext,
   method: HandledMethod,
 ): Promise<Response> {
-  const params = context.params ? await context.params : undefined;
+  const params = await context.params;
   const normalizedFunctionPath = normalizeFunctionParam(params?.function);
 
   if (!normalizedFunctionPath || !isAllowedFunction(normalizedFunctionPath)) {

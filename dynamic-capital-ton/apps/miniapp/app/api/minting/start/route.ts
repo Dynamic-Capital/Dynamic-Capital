@@ -1,10 +1,10 @@
-import { proxySupabaseEdgeFunction } from "../../_shared/supabase";
+import { proxySupabaseFunction } from "../../_shared/supabase";
 
 export function POST(request: Request) {
-  return proxySupabaseEdgeFunction({
+  return proxySupabaseFunction({
     request,
     method: "POST",
-    path: "start-minting",
+    functionKey: "START_MINTING",
     context: "starting theme mint",
   });
 }
