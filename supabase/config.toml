@@ -4,7 +4,7 @@ project_id = "qeejuomcapbdlhnjqjcc"
   policy = "per_worker"
 
 [auth]
-  site_url = "https://dynamic.capital"
+  site_url = "https://dynamic-capital.ondigitalocean.app"
   additional_redirect_urls = [
     "https://dynamic.capital",
     "https://dynamiccapital.ton",
@@ -25,11 +25,11 @@ project_id = "qeejuomcapbdlhnjqjcc"
   # Keep supabase/functions/.env in sync by running
   # `deno run -A scripts/generate-functions-env.ts`
   [functions.env]
-    SITE_URL = "https://dynamic.capital"
-    NEXT_PUBLIC_SITE_URL = "https://dynamic.capital"
+    SITE_URL = "https://dynamic-capital.ondigitalocean.app"
+    NEXT_PUBLIC_SITE_URL = "https://dynamic-capital.ondigitalocean.app"
     ALLOWED_ORIGINS = "https://dynamic.capital,https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://ton.site,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.ondigitalocean.app,https://dynamic-capital-git-dynamic-capital-a2ae79-the-project-archive.vercel.app,https://dynamic-capital-kp5fqeegn-the-project-archive.vercel.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,https://ton-gateway.dynamic-capital.ondigitalocean.app,https://ton-gateway.dynamic-capital.lovable.app,https://t.me,https://t.me/Dynamic_VIP_BOT/dynamic_pay"
-    MINIAPP_ORIGIN = "https://dynamic.capital,https://dynamiccapital.ton,https://t.me,https://t.me/Dynamic_VIP_BOT/dynamic_pay"
-    TELEGRAM_WEBHOOK_URL = "https://dynamic.capital/webhook"
+    MINIAPP_ORIGIN = "https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.ondigitalocean.app,https://dynamic.capital,https://dynamiccapital.ton,https://t.me,https://t.me/Dynamic_VIP_BOT/dynamic_pay"
+    TELEGRAM_WEBHOOK_URL = "https://dynamic-capital.ondigitalocean.app/webhook"
 
 [functions.agi-chat]
   verify_jwt = true

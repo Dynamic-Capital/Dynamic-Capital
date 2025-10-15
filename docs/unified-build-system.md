@@ -57,7 +57,7 @@ The build ensures proper configuration for:
 All environment variables are centrally managed and validated:
 
 ```bash
-SITE_URL=https://dynamic.capital
+SITE_URL=https://dynamic-capital.ondigitalocean.app
 ALLOWED_ORIGINS=https://dynamic.capital,https://dynamiccapital.ton,https://dynamic-capital-qazf2.ondigitalocean.app,...
 NEXT_PUBLIC_SUPABASE_URL=https://qeejuomcapbdlhnjqjcc.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
@@ -111,8 +111,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://qeejuomcapbdlhnjqjcc.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 
 # Site Configuration
-SITE_URL=https://dynamic.capital
-NEXT_PUBLIC_SITE_URL=https://dynamic.capital
+SITE_URL=https://dynamic-capital.ondigitalocean.app
+NEXT_PUBLIC_SITE_URL=https://dynamic-capital.ondigitalocean.app
 ```
 
 ### Optional
@@ -131,7 +131,7 @@ CDN_SECRET_KEY=your-secret-key
 CDN_REGION=sgp1
 
 # TON Configuration
-TONCONNECT_MANIFEST_URL=https://dynamic.capital/tonconnect-manifest.json
+TONCONNECT_MANIFEST_URL=https://dynamic-capital.ondigitalocean.app/tonconnect-manifest.json
 ```
 
 ## Deployment
