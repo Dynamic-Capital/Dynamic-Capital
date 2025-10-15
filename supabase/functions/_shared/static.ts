@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { mna, nf, ok } from "./http.ts";
-import { contentType } from "mime-types";
+import { contentType } from "npm:mime-types@3.0.1";
 import { extname } from "node:path";
 
 export type StaticOpts = {
