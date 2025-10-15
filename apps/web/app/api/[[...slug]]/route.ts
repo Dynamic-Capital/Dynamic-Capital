@@ -4,7 +4,10 @@ import { corsHeaders, methodNotAllowed } from "@/utils/http.ts";
 export const dynamic = "force-dynamic";
 
 type RouteParams = { slug?: string[] };
-type RouteContext = { params: Promise<RouteParams> };
+type GuardedHandler = (
+  req: Request,
+  params: RouteParams,
+) => Promise<Response> | Response;
 
 const isRootRequest = (params: RouteParams) =>
   !params.slug || params.slug.length === 0;
@@ -20,39 +23,27 @@ const resolveGuardedParams = async (paramsPromise: Promise<RouteParams>) => {
   return { params } as const;
 };
 
-export async function GET(req: Request, context: RouteContext) {
-  const { failure } = await resolveGuardedParams(context.params);
-  if (failure) {
-    return failure;
-  }
+const withRootGuard =
+  (handler: GuardedHandler) =>
+  async (req: Request, context: { params: Promise<RouteParams> }) => {
+    const result = await resolveGuardedParams(context.params);
+    if ("failure" in result) {
+      return result.failure;
+    }
 
-  return respondWithApiStatus(req);
-}
+    return handler(req, result.params);
+  };
 
-const methodNotAllowedForRoute = async (
-  req: Request,
-  context: RouteContext,
-) => {
-  const { failure } = await resolveGuardedParams(context.params);
-  if (failure) {
-    return failure;
-  }
+const methodNotAllowedForRoute = withRootGuard((req) => methodNotAllowed(req));
 
-  return methodNotAllowed(req);
-};
-
+export const GET = withRootGuard((req) => respondWithApiStatus(req));
 export const POST = methodNotAllowedForRoute;
 export const PUT = methodNotAllowedForRoute;
 export const PATCH = methodNotAllowedForRoute;
 export const DELETE = methodNotAllowedForRoute;
 export const HEAD = methodNotAllowedForRoute;
 
-export async function OPTIONS(req: Request, context: RouteContext) {
-  const { failure } = await resolveGuardedParams(context.params);
-  if (failure) {
-    return failure;
-  }
-
+export const OPTIONS = withRootGuard((req) => {
   const headers = corsHeaders(req, "GET");
   return new Response(null, { status: 204, headers });
-}
+});
