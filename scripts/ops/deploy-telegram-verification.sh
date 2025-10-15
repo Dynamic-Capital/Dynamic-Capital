@@ -10,7 +10,7 @@ NPM_SAFE=(node "$ROOT_DIR/scripts/npm-safe.mjs")
 functions=(verify-initdata verify-telegram)
 for fn in "${functions[@]}"; do
   echo "→ Deploying $fn"
-  "${NPM_SAFE[@]}" exec --yes supabase functions deploy "$fn" --project-ref "$SUPABASE_PROJECT_REF"
+  "${NPM_SAFE[@]}" exec --yes supabase -- functions deploy "$fn" --project-ref "$SUPABASE_PROJECT_REF"
 done
 
 echo "✔ Deployments completed"

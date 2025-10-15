@@ -52,7 +52,7 @@ of activity:
 ```bash
 export SUPABASE_ACCESS_TOKEN=...  # same token as above
 export SUPABASE_PROJECT_REF=...
-./scripts/ops/tail-telegram-logs.ts
+$(bash scripts/deno_bin.sh) run --allow-env --allow-net scripts/ops/tail-telegram-logs.ts
 ```
 
 Key options:
@@ -61,12 +61,13 @@ Key options:
 - `--limit <count>` to control the API page size (default `100`).
 - `--json` to emit the raw normalized entries for downstream tooling.
 - Append function names to narrow the focus, e.g.
-  `./scripts/ops/tail-telegram-logs.ts verify-telegram`.
+  `$(bash scripts/deno_bin.sh) run --allow-env --allow-net scripts/ops/tail-telegram-logs.ts verify-telegram`.
 
-The script highlights how many entries returned status 401 (either via explicit
-status fields or message text) and prints a status-code breakdown so you can
-spot any new error classes. Use `--json` when piping into analytics pipelines or
-dashboards.
+The helper automatically installs and pins the local `deno` runtime when it's
+missing, so you don't need a global installation. The log script highlights how
+many entries returned status 401 (either via explicit status fields or message
+text) and prints a status-code breakdown so you can spot any new error classes.
+Use `--json` when piping into analytics pipelines or dashboards.
 
 ## Follow-up Actions
 
