@@ -56,6 +56,7 @@
     "proj:projects": "tsx scripts/project/projects-v2-update.ts",
     "proj:announce": "tsx scripts/project/release-announcer.ts",
     "proj:update-all": "npm run proj:collect && npm run proj:notes && npm run proj:readme && npm run proj:features && npm run proj:projects && npm run proj:announce",
+    "hallucination:scan": "tsx scripts/hallucination/index.ts",
     "chunk:text": "tsx scripts/knowledge_base/chunk-text.ts",
     "embeddings:build": "tsx scripts/knowledge_base/run-embeddings.ts build",
     "embeddings:refresh": "tsx scripts/knowledge_base/run-embeddings.ts refresh",
