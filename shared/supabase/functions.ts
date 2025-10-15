@@ -1,4 +1,5 @@
 export const SUPABASE_FUNCTIONS = {
+  CONFIG: "config",
   CHECKOUT_INIT: "checkout-init",
   INTENT: "intent",
   PLANS: "plans",
