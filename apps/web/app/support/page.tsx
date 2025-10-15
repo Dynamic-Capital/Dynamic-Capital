@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -16,12 +15,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { NewTabAnnouncement } from "@/components/ui/accessibility-utils";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+const pagePath = "/support";
+
+export const metadata = buildMetadata({
   title: "Support | Dynamic Capital",
   description:
     "Reach the Dynamic Capital concierge desk, explore guides, and access Telegram VIP support.",
-};
+  canonicalPath: pagePath,
+});
 
 const conciergeUrl = "https://t.me/DynamicCapital_Support";
 

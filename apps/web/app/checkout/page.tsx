@@ -1,6 +1,7 @@
 import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 
 import { WebCheckout } from "@/components/checkout/WebCheckout";
+import { buildMetadata } from "@/lib/seo";
 
 type CheckoutPageSearchParams = {
   plan?: string;
@@ -11,11 +12,14 @@ type CheckoutPageProps = {
   searchParams?: Promise<CheckoutPageSearchParams>;
 };
 
-export const metadata = {
+const pagePath = "/checkout";
+
+export const metadata = buildMetadata({
   title: "Checkout – Dynamic Capital",
   description:
     "Complete your Dynamic Capital VIP membership purchase and unlock the trading desk.",
-};
+  canonicalPath: pagePath,
+});
 
 export default async function CheckoutPage({
   searchParams,

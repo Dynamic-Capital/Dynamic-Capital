@@ -1,12 +1,16 @@
 import { TradeJournalWorkspace } from "@/components/tools/TradeJournalWorkspace";
 import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
 import { DeskSection } from "@/components/workspaces/DeskSection";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata = {
+const pagePath = "/tools/trade-journal";
+
+export const metadata = buildMetadata({
   title: "Dynamic Trade Journal – Dynamic Capital",
   description:
     "Compile disciplined trade reviews with automated highlights, lessons, and coach prompts from your session telemetry.",
-};
+  canonicalPath: pagePath,
+});
 
 export default function TradeJournalToolPage() {
   return (

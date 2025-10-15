@@ -4,12 +4,18 @@ import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 import { InvestorMetricsPanel } from "@/components/investor/InvestorMetricsPanel";
 import { getCachedInvestorOverview } from "@/lib/investor-overview-cache";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata = {
+const pagePath = "/investor";
+
+export const metadata = buildMetadata({
   title: "Investor Dashboard – Dynamic Capital",
   description:
     "Review your private fund equity, track buyback burns, and confirm subscription health in one place.",
-};
+  canonicalPath: pagePath,
+  noIndex: true,
+  noFollow: true,
+});
 
 export default async function InvestorPage() {
   const supabase = await createServerSupabaseClient();
