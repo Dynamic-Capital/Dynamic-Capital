@@ -24,12 +24,17 @@ function toHex(buf: ArrayBuffer) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
-async function hmacSHA256(key: CryptoKey, data: string) {
-  const enc = new TextEncoder();
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(data));
-  return toHex(sig);
+
+export function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) {
+    out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return out === 0;
 }
-async function importHmacKeyFromToken(token: string) {
+
+export async function createTelegramHmacKey(token: string): Promise<CryptoKey> {
   const enc = new TextEncoder();
   const secretKey = await crypto.subtle.digest("SHA-256", enc.encode(token));
   return crypto.subtle.importKey(
@@ -39,6 +44,15 @@ async function importHmacKeyFromToken(token: string) {
     false,
     ["sign"],
   );
+}
+
+export async function signTelegramDataCheck(
+  key: CryptoKey,
+  data: string,
+): Promise<string> {
+  const enc = new TextEncoder();
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(data));
+  return toHex(sig).toLowerCase();
 }
 
 export function parseInitDataEntries(initData: string): RawInitEntry[] | null {
@@ -101,7 +115,7 @@ export async function verifyInitDataAndGetUser(
   if (!initData) return null;
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
   if (!token) throw new Error("Missing TELEGRAM_BOT_TOKEN");
-  const key = await importHmacKeyFromToken(token);
+  const key = await createTelegramHmacKey(token);
 
   const rawEntries = parseInitDataEntries(initData);
   if (!rawEntries) return null;
@@ -109,8 +123,10 @@ export async function verifyInitDataAndGetUser(
   const hash = extractHashFromEntries(rawEntries);
   const dataCheckString = buildDataCheckString(rawEntries);
 
-  const sig = await hmacSHA256(key, dataCheckString);
-  if (!hash || sig !== hash) return null;
+  if (!hash) return null;
+  const sig = await signTelegramDataCheck(key, dataCheckString);
+  const normalizedHash = hash.toLowerCase();
+  if (!timingSafeEqual(sig, normalizedHash)) return null;
 
   const params = new URLSearchParams(initData);
 

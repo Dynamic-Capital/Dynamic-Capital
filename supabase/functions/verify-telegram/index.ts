@@ -3,9 +3,12 @@ import { bad, json, mna, ok, oops } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import {
   buildDataCheckString,
+  createTelegramHmacKey,
   extractHashFromEntries,
   parseInitDataEntries,
   parseTgUser,
+  signTelegramDataCheck,
+  timingSafeEqual,
 } from "../_shared/telegram.ts";
 
 const allowList = new Set(
@@ -33,21 +36,7 @@ function withCors(r: Response, origin: string | null) {
   return r;
 }
 
-function hex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let out = 0;
-  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return out === 0;
-}
-
 async function verifyInitData(initData: string) {
-  const encoder = new TextEncoder();
   const botToken = optionalEnv("TELEGRAM_BOT_TOKEN") || "";
   if (!botToken) {
     return { ok: false, error: "BOT_TOKEN_NOT_SET" } as const;
@@ -63,23 +52,8 @@ async function verifyInitData(initData: string) {
 
   const dataCheckString = buildDataCheckString(entries);
 
-  const secretKey = await crypto.subtle.digest(
-    "SHA-256",
-    encoder.encode(botToken),
-  );
-  const hmacKey = await crypto.subtle.importKey(
-    "raw",
-    secretKey,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    hmacKey,
-    encoder.encode(dataCheckString),
-  );
-  const signatureHex = hex(signature).toLowerCase();
+  const hmacKey = await createTelegramHmacKey(botToken);
+  const signatureHex = await signTelegramDataCheck(hmacKey, dataCheckString);
   const normalizedHash = providedHash.toLowerCase();
   if (!timingSafeEqual(signatureHex, normalizedHash)) {
     return { ok: false, error: "HASH_MISMATCH" } as const;
