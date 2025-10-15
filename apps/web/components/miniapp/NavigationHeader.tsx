@@ -80,7 +80,10 @@ export function NavigationHeader() {
             : null}
         </div>
       </div>
-      <nav className="mt-4 flex gap-3 overflow-x-auto pb-2">
+      <nav
+        aria-label="Mini app sections"
+        className="mt-4 flex gap-3 overflow-x-auto pb-2"
+      >
         {MINIAPP_TABS.map((tab) => {
           const isActive = tab.id === activeTab.id;
           const badgeTone = badgeToneMap[tab.badge?.tone ?? "accent"];

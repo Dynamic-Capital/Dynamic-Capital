@@ -1,0 +1,106 @@
+.system-shell {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  isolation: isolate;
+  background: var(--gradient-motion-bg);
+  color: hsl(var(--foreground));
+  overflow: hidden;
+}
+
+.system-shell[data-variant="miniapp"] {
+  background: var(--tg-bg, var(--gradient-motion-bg));
+  color: var(--tg-text, hsl(var(--foreground)));
+}
+
+.system-shell::before,
+.system-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.system-shell::before {
+  inset: -20% -30% 0;
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      hsl(var(--primary) / 0.16),
+      transparent 65%
+    ),
+    radial-gradient(
+    circle at 85% 5%,
+    hsl(var(--dc-secondary) / 0.14),
+    transparent 60%
+  ),
+    radial-gradient(
+    circle at 50% 100%,
+    hsl(var(--accent) / 0.1),
+    transparent 65%
+  );
+  filter: blur(50px);
+  opacity: 0.45;
+}
+
+.system-shell::after {
+  background-image:
+    linear-gradient(
+      90deg,
+      var(--system-shell-grid-color, hsl(var(--primary) / 0.08)) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+    0deg,
+    var(--system-shell-grid-color, hsl(var(--primary) / 0.08)) 1px,
+    transparent 1px
+  );
+  background-size: var(--system-shell-grid-size, 180px)
+    var(--system-shell-grid-size, 180px);
+  opacity: 0.06;
+}
+
+.system-shell[data-variant="miniapp"] {
+  --system-shell-grid-color: var(
+    --miniapp-grid-color,
+    hsl(var(--primary) / 0.12)
+  );
+  --system-shell-grid-size: 140px;
+}
+
+.system-shell[data-variant="miniapp"]::before {
+  opacity: 0.9;
+  filter: blur(40px);
+}
+
+.system-shell[data-variant="miniapp"]::after {
+  opacity: 0.12;
+}
+
+.system-shell[data-variant="page"]::before {
+  opacity: 0.35;
+  filter: blur(60px);
+}
+
+.system-shell[data-variant="page"]::after {
+  opacity: 0.08;
+}
+
+.system-shell__body {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.system-shell__footer {
+  position: relative;
+  z-index: 1;
+}
+
+.system-shell .app-shell-header,
+.system-shell .app-shell-footer {
+  display: contents;
+}

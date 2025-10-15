@@ -17,16 +17,16 @@ export function AppShell({
   header,
 }: {
   children: ReactNode;
-  footer: ReactNode;
+  footer?: ReactNode;
   header?: ReactNode;
 }) {
   const pathname = usePathname();
   const hasHeader = Boolean(header);
 
   return (
-    <div className="app-shell">
-      <div className="app-shell-body">
-        {header ?? null}
+    <div className="system-shell app-shell" data-variant="miniapp">
+      <div className="system-shell__body app-shell-body">
+        {header ? <div className="app-shell-header">{header}</div> : null}
         <AnimatePresence initial={false} mode="wait">
           <motion.main
             key={pathname}
@@ -41,7 +41,9 @@ export function AppShell({
           </motion.main>
         </AnimatePresence>
       </div>
-      {footer}
+      {footer
+        ? <div className="system-shell__footer app-shell-footer">{footer}</div>
+        : null}
     </div>
   );
 }
