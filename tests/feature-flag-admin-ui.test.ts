@@ -1,6 +1,5 @@
 import test from "node:test";
 import { deepEqual, equal } from "node:assert/strict";
-import { TextDecoder } from "node:util";
 
 import { freshImport } from "./utils/freshImport.ts";
 import { withEnv } from "./utils/withEnv.ts";
@@ -8,40 +7,18 @@ import { withEnv } from "./utils/withEnv.ts";
 const SUPABASE_FUNCTION_HOST =
   "https://qeejuomcapbdlhnjqjcc.functions.supabase.co";
 
-async function parseJsonBody(body: unknown): Promise<Record<string, unknown>> {
-  if (!body) {
+/**
+ * Read JSON from a cloned Request instance without consuming the original body stream.
+ */
+async function readJsonFromRequest(
+  request: Request,
+): Promise<Record<string, unknown>> {
+  const text = await request.text();
+  if (!text) {
     return {};
   }
 
-  if (typeof body === "string") {
-    return JSON.parse(body);
-  }
-
-  if (body instanceof ArrayBuffer) {
-    const decoder = new TextDecoder();
-    return JSON.parse(decoder.decode(new Uint8Array(body)));
-  }
-
-  if (ArrayBuffer.isView(body)) {
-    const decoder = new TextDecoder();
-    const view = body as ArrayBufferView;
-    return JSON.parse(
-      decoder.decode(
-        new Uint8Array(view.buffer, view.byteOffset, view.byteLength),
-      ),
-    );
-  }
-
-  if (typeof body === "object" && body !== null) {
-    if (typeof (body as ReadableStream).getReader === "function") {
-      const text = await new Response(body as BodyInit).text();
-      return text ? JSON.parse(text) : {};
-    }
-
-    return body as Record<string, unknown>;
-  }
-
-  return {};
+  return JSON.parse(text);
 }
 
 test(
@@ -91,14 +68,14 @@ test(
           globalThis.fetch = async (input, init) => {
             const url = typeof input === "string" ? input : input.url;
             if (url.startsWith(`${windowOrigin}/api/functions/config`)) {
-              const body = init?.body ? await parseJsonBody(init.body) : {};
-              uiCalls.push({ url, action: body.action });
-
               const request = new Request(url, {
                 method: init?.method ?? "POST",
                 headers: init?.headers,
                 body: init?.body,
               });
+
+              const payload = await readJsonFromRequest(request.clone());
+              uiCalls.push({ url, action: payload.action });
 
               return await POST(request, {
                 params: Promise.resolve({ function: "config" }),
@@ -106,13 +83,19 @@ test(
             }
 
             if (url.startsWith(`${SUPABASE_FUNCTION_HOST}/config`)) {
-              const body = await parseJsonBody(init?.body);
-              supabaseCalls.push({ url, action: body.action });
+              const request = new Request(url, {
+                method: init?.method ?? "POST",
+                headers: init?.headers,
+                body: init?.body,
+              });
 
-              switch (body.action) {
+              const payload = await readJsonFromRequest(request.clone());
+              supabaseCalls.push({ url, action: payload.action });
+
+              switch (payload.action) {
                 case "getFlag": {
-                  const name = String(body.name ?? "");
-                  const fallback = Boolean(body.def);
+                  const name = String(payload.name ?? "");
+                  const fallback = Boolean(payload.def);
                   const value = remoteState[name] ?? (fallback as boolean) ??
                     false;
                   return new Response(JSON.stringify({ data: value }), {
@@ -121,8 +104,8 @@ test(
                   });
                 }
                 case "setFlag": {
-                  const name = String(body.name ?? "");
-                  remoteState[name] = Boolean(body.value);
+                  const name = String(payload.name ?? "");
+                  remoteState[name] = Boolean(payload.value);
                   return new Response(JSON.stringify({ ok: true }), {
                     status: 200,
                     headers: { "Content-Type": "application/json" },
