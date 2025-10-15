@@ -95,3 +95,32 @@ test("verifyInitDataAndGetUser handles percent characters in user payload", asyn
     Deno.env.delete("TELEGRAM_BOT_TOKEN");
   }
 });
+
+test("verify-telegram accepts percent-encoded user payload", async () => {
+  Deno.env.set("TELEGRAM_BOT_TOKEN", "token");
+  try {
+    const initData = await makeInitData({
+      id: 3,
+      username: "50%club",
+      last_name: "Percent%User",
+    }, "token");
+    const { default: handler } = await import(
+      /* @vite-ignore */ "../supabase/functions/verify-telegram/index.ts"
+    );
+    const req = new Request("http://localhost", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ initData }),
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 200);
+    const data = await res.json();
+    assert(data.ok);
+    assert(data.user);
+    assertEquals((data.user as { id: number }).id, 3);
+    assertEquals((data.user as { username?: string }).username, "50%club");
+    assertEquals((data.user as { last_name?: string }).last_name, "Percent%User");
+  } finally {
+    Deno.env.delete("TELEGRAM_BOT_TOKEN");
+  }
+});

@@ -11,6 +11,15 @@ export type RawInitEntry = {
   key: string;
 };
 
+export type ParseTgUserError = {
+  primaryError: unknown;
+  secondaryError?: unknown;
+};
+
+export type ParseTgUserOptions = {
+  onError?: (details: ParseTgUserError) => void;
+};
+
 function toHex(buf: ArrayBuffer) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -68,6 +77,22 @@ export function buildDataCheckString(entries: RawInitEntry[]): string {
     .join("\n");
 }
 
+export function parseTgUser(
+  raw: string,
+  options?: ParseTgUserOptions,
+): TgUser | null {
+  try {
+    return JSON.parse(raw) as TgUser;
+  } catch (primaryError) {
+    try {
+      return JSON.parse(decodeURIComponent(raw)) as TgUser;
+    } catch (secondaryError) {
+      options?.onError?.({ primaryError, secondaryError });
+      return null;
+    }
+  }
+}
+
 /** Verifies initData and returns safe user if valid + not stale. */
 export async function verifyInitDataAndGetUser(
   initData: string,
@@ -97,20 +122,14 @@ export async function verifyInitDataAndGetUser(
   const userJson = params.get("user");
   if (!userJson) return null;
 
-  const parseUser = (raw: string): TgUser | null => {
-    try {
-      return JSON.parse(raw) as TgUser;
-    } catch (error) {
-      try {
-        return JSON.parse(decodeURIComponent(raw)) as TgUser;
-      } catch {
-        console.warn("[telegram] failed to parse user from initData", error);
-        return null;
-      }
-    }
-  };
-
-  return parseUser(userJson);
+  return parseTgUser(userJson, {
+    onError: ({ primaryError, secondaryError }) => {
+      console.warn(
+        "[telegram] failed to parse user from initData",
+        secondaryError ?? primaryError,
+      );
+    },
+  });
 }
 
 /** Checks if a Telegram user id is in TELEGRAM_ADMIN_IDS allowlist. */
