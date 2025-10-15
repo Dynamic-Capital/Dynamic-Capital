@@ -5,6 +5,12 @@ export type TgUser = {
   last_name?: string;
 };
 
+export type RawInitEntry = {
+  rawKey: string;
+  rawValue: string;
+  key: string;
+};
+
 function toHex(buf: ArrayBuffer) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -26,6 +32,42 @@ async function importHmacKeyFromToken(token: string) {
   );
 }
 
+export function parseInitDataEntries(initData: string): RawInitEntry[] | null {
+  const entries = [] as RawInitEntry[];
+  for (const chunk of initData.split("&")) {
+    if (!chunk) continue;
+    const eqIndex = chunk.indexOf("=");
+    const rawKey = eqIndex === -1 ? chunk : chunk.slice(0, eqIndex);
+    const rawValue = eqIndex === -1 ? "" : chunk.slice(eqIndex + 1);
+    try {
+      const key = decodeURIComponent(rawKey);
+      entries.push({ rawKey, rawValue, key });
+    } catch (error) {
+      console.warn("[telegram] failed to decode initData key", error);
+      return null;
+    }
+  }
+  return entries;
+}
+
+export function extractHashFromEntries(entries: RawInitEntry[]): string {
+  const rawHash = entries.find((entry) => entry.key === "hash");
+  if (!rawHash) return "";
+  try {
+    return decodeURIComponent(rawHash.rawValue);
+  } catch {
+    return rawHash.rawValue;
+  }
+}
+
+export function buildDataCheckString(entries: RawInitEntry[]): string {
+  return entries
+    .filter((entry) => entry.key !== "hash")
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map((entry) => `${entry.rawKey}=${entry.rawValue}`)
+    .join("\n");
+}
+
 /** Verifies initData and returns safe user if valid + not stale. */
 export async function verifyInitDataAndGetUser(
   initData: string,
@@ -36,14 +78,16 @@ export async function verifyInitDataAndGetUser(
   if (!token) throw new Error("Missing TELEGRAM_BOT_TOKEN");
   const key = await importHmacKeyFromToken(token);
 
-  const params = new URLSearchParams(initData);
-  const hash = params.get("hash") || "";
-  params.delete("hash");
-  const dataCheckString = Array.from(params.entries()).map(([k, v]) =>
-    `${k}=${v}`
-  ).sort().join("\n");
+  const rawEntries = parseInitDataEntries(initData);
+  if (!rawEntries) return null;
+
+  const hash = extractHashFromEntries(rawEntries);
+  const dataCheckString = buildDataCheckString(rawEntries);
+
   const sig = await hmacSHA256(key, dataCheckString);
-  if (sig !== hash) return null;
+  if (!hash || sig !== hash) return null;
+
+  const params = new URLSearchParams(initData);
 
   // Optional freshness check
   const auth = Number(params.get("auth_date") || "0");

@@ -7,27 +7,43 @@ import {
 
 async function makeInitData(user: Record<string, unknown>, token: string) {
   const enc = new TextEncoder();
+  const payload = {
+    user: JSON.stringify(user),
+    auth_date: String(Math.floor(Date.now() / 1000)),
+    query_id: "TEST",
+  } satisfies Record<string, string>;
+
+  const toEncodedPairs = Object.entries(payload).map(([key, value]) => ({
+    key,
+    value,
+    encodedValue: encodeURIComponent(value),
+  }));
+
   const secretKey = await crypto.subtle.digest("SHA-256", enc.encode(token));
-  const key = await crypto.subtle.importKey(
+  const hmacKey = await crypto.subtle.importKey(
     "raw",
     secretKey,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
   );
-  const params = new URLSearchParams({
-    user: JSON.stringify(user),
-    auth_date: String(Math.floor(Date.now() / 1000)),
-    query_id: "TEST",
-  });
-  const dcs = Array.from(params.entries()).map(([k, v]) => `${k}=${v}`).sort()
+
+  const dataCheckString = toEncodedPairs
+    .slice()
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map((pair) => `${pair.key}=${pair.encodedValue}`)
     .join("\n");
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(dcs));
+
+  const sig = await crypto.subtle.sign("HMAC", hmacKey, enc.encode(dataCheckString));
   const hash = [...new Uint8Array(sig)].map((b) =>
     b.toString(16).padStart(2, "0")
   ).join("");
-  params.set("hash", hash);
-  return params.toString();
+
+  const query = toEncodedPairs.map((pair) => `${pair.key}=${pair.encodedValue}`)
+    .concat(`hash=${hash}`)
+    .join("&");
+
+  return query;
 }
 
 test("tg-verify-init returns session token for valid initData", async () => {

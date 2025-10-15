@@ -1,4 +1,9 @@
 import { getEnv } from "./env.ts";
+import {
+  buildDataCheckString,
+  extractHashFromEntries,
+  parseInitDataEntries,
+} from "./telegram.ts";
 
 function toHex(buf: ArrayBuffer) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0"))
@@ -24,17 +29,18 @@ export async function verifyInitData(
 ): Promise<boolean> {
   if (!initData) return false;
   const key = await importKey(token);
-  const params = new URLSearchParams(initData);
-  const hash = params.get("hash") || "";
-  params.delete("hash");
-  const dcs = Array.from(params.entries()).map(([k, v]) => `${k}=${v}`).sort()
-    .join("\n");
+  const entries = parseInitDataEntries(initData);
+  if (!entries) return false;
+  const hash = extractHashFromEntries(entries);
+  if (!hash) return false;
+  const dcs = buildDataCheckString(entries);
   const sig = await crypto.subtle.sign(
     "HMAC",
     key,
     new TextEncoder().encode(dcs),
   );
   if (toHex(sig) !== hash) return false;
+  const params = new URLSearchParams(initData);
   const auth = Number(params.get("auth_date") || "0");
   const age = Math.floor(Date.now() / 1000) - auth;
   return !(windowSec > 0 && (isNaN(auth) || age > windowSec));
