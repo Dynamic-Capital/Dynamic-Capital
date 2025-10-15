@@ -11,8 +11,8 @@ const isRootRequest = (params: RouteParams) =>
 
 const notFound = () => new Response(null, { status: 404 });
 
-const resolveGuardedParams = async (context: RouteContext) => {
-  const params = await context.params;
+const resolveGuardedParams = async (paramsPromise: Promise<RouteParams>) => {
+  const params = await paramsPromise;
   if (!isRootRequest(params)) {
     return { failure: notFound() } as const;
   }
@@ -21,7 +21,7 @@ const resolveGuardedParams = async (context: RouteContext) => {
 };
 
 export async function GET(req: Request, context: RouteContext) {
-  const { failure, params } = await resolveGuardedParams(context);
+  const { failure } = await resolveGuardedParams(context.params);
   if (failure) {
     return failure;
   }
@@ -33,7 +33,7 @@ const methodNotAllowedForRoute = async (
   req: Request,
   context: RouteContext,
 ) => {
-  const { failure } = await resolveGuardedParams(context);
+  const { failure } = await resolveGuardedParams(context.params);
   if (failure) {
     return failure;
   }
@@ -48,7 +48,7 @@ export const DELETE = methodNotAllowedForRoute;
 export const HEAD = methodNotAllowedForRoute;
 
 export async function OPTIONS(req: Request, context: RouteContext) {
-  const { failure } = await resolveGuardedParams(context);
+  const { failure } = await resolveGuardedParams(context.params);
   if (failure) {
     return failure;
   }
