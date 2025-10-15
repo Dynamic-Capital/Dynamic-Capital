@@ -1,6 +1,15 @@
 import { optionalEnv } from "../_shared/env.ts";
 import { bad, json, mna, ok, oops } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
+import {
+  buildDataCheckString,
+  createTelegramHmacKey,
+  extractHashFromEntries,
+  parseInitDataEntries,
+  parseTgUser,
+  signTelegramDataCheck,
+  timingSafeEqual,
+} from "../_shared/telegram.ts";
 
 const allowList = new Set(
   (Deno.env.get("MINIAPP_ORIGIN") || "")
@@ -27,80 +36,39 @@ function withCors(r: Response, origin: string | null) {
   return r;
 }
 
-function hex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let out = 0;
-  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return out === 0;
-}
-
-function parseInitData(initData: string): Record<string, string> {
-  const obj: Record<string, string> = {};
-  initData.split("&").forEach((pair) => {
-    const [k, v] = pair.split("=", 2);
-    if (!k) return;
-    obj[decodeURIComponent(k)] = decodeURIComponent(v || "");
-  });
-  return obj;
-}
-
 async function verifyInitData(initData: string) {
-  const encoder = new TextEncoder();
   const botToken = optionalEnv("TELEGRAM_BOT_TOKEN") || "";
   if (!botToken) {
     return { ok: false, error: "BOT_TOKEN_NOT_SET" } as const;
   }
 
-  const params = parseInitData(initData);
-  const providedHash = params["hash"];
+  const entries = parseInitDataEntries(initData);
+  if (!entries) {
+    return { ok: false, error: "INVALID_INIT_DATA" } as const;
+  }
+
+  const providedHash = extractHashFromEntries(entries);
   if (!providedHash) return { ok: false, error: "MISSING_HASH" } as const;
 
-  const dataCheckString = Object.keys(params)
-    .filter((k) => k !== "hash")
-    .sort()
-    .map((k) => `${k}=${params[k]}`)
-    .join("\n");
+  const dataCheckString = buildDataCheckString(entries);
 
-  const secretKey = await crypto.subtle.digest(
-    "SHA-256",
-    encoder.encode(botToken),
-  );
-  const hmacKey = await crypto.subtle.importKey(
-    "raw",
-    secretKey,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    hmacKey,
-    encoder.encode(dataCheckString),
-  );
-  const signatureHex = hex(signature);
-
-  if (!timingSafeEqual(signatureHex, providedHash)) {
+  const hmacKey = await createTelegramHmacKey(botToken);
+  const signatureHex = await signTelegramDataCheck(hmacKey, dataCheckString);
+  const normalizedHash = providedHash.toLowerCase();
+  if (!timingSafeEqual(signatureHex, normalizedHash)) {
     return { ok: false, error: "HASH_MISMATCH" } as const;
   }
 
-  const authDate = Number(params["auth_date"]) || 0;
+  const params = new URLSearchParams(initData);
+  const authDate = Number(params.get("auth_date") || "0");
   if (!authDate || Math.abs(Date.now() / 1000 - authDate) > 60 * 60 * 24) {
     return { ok: false, error: "AUTH_DATE_EXPIRED" } as const;
   }
 
   let user: unknown = null;
-  if (params["user"]) {
-    try {
-      user = JSON.parse(params["user"]);
-    } catch {
-      // ignore
-    }
+  const userJson = params.get("user");
+  if (userJson) {
+    user = parseTgUser(userJson);
   }
 
   return { ok: true, user } as const;

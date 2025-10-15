@@ -5,16 +5,36 @@ export type TgUser = {
   last_name?: string;
 };
 
+export type RawInitEntry = {
+  rawKey: string;
+  rawValue: string;
+  key: string;
+};
+
+export type ParseTgUserError = {
+  primaryError: unknown;
+  secondaryError?: unknown;
+};
+
+export type ParseTgUserOptions = {
+  onError?: (details: ParseTgUserError) => void;
+};
+
 function toHex(buf: ArrayBuffer) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
-async function hmacSHA256(key: CryptoKey, data: string) {
-  const enc = new TextEncoder();
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(data));
-  return toHex(sig);
+
+export function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) {
+    out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return out === 0;
 }
-async function importHmacKeyFromToken(token: string) {
+
+export async function createTelegramHmacKey(token: string): Promise<CryptoKey> {
   const enc = new TextEncoder();
   const secretKey = await crypto.subtle.digest("SHA-256", enc.encode(token));
   return crypto.subtle.importKey(
@@ -26,6 +46,67 @@ async function importHmacKeyFromToken(token: string) {
   );
 }
 
+export async function signTelegramDataCheck(
+  key: CryptoKey,
+  data: string,
+): Promise<string> {
+  const enc = new TextEncoder();
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(data));
+  return toHex(sig).toLowerCase();
+}
+
+export function parseInitDataEntries(initData: string): RawInitEntry[] | null {
+  const entries = [] as RawInitEntry[];
+  for (const chunk of initData.split("&")) {
+    if (!chunk) continue;
+    const eqIndex = chunk.indexOf("=");
+    const rawKey = eqIndex === -1 ? chunk : chunk.slice(0, eqIndex);
+    const rawValue = eqIndex === -1 ? "" : chunk.slice(eqIndex + 1);
+    try {
+      const key = decodeURIComponent(rawKey);
+      entries.push({ rawKey, rawValue, key });
+    } catch (error) {
+      console.warn("[telegram] failed to decode initData key", error);
+      return null;
+    }
+  }
+  return entries;
+}
+
+export function extractHashFromEntries(entries: RawInitEntry[]): string {
+  const rawHash = entries.find((entry) => entry.key === "hash");
+  if (!rawHash) return "";
+  try {
+    return decodeURIComponent(rawHash.rawValue);
+  } catch {
+    return rawHash.rawValue;
+  }
+}
+
+export function buildDataCheckString(entries: RawInitEntry[]): string {
+  return entries
+    .filter((entry) => entry.key !== "hash")
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map((entry) => `${entry.rawKey}=${entry.rawValue}`)
+    .join("\n");
+}
+
+export function parseTgUser(
+  raw: string,
+  options?: ParseTgUserOptions,
+): TgUser | null {
+  try {
+    return JSON.parse(raw) as TgUser;
+  } catch (primaryError) {
+    try {
+      return JSON.parse(decodeURIComponent(raw)) as TgUser;
+    } catch (secondaryError) {
+      options?.onError?.({ primaryError, secondaryError });
+      return null;
+    }
+  }
+}
+
 /** Verifies initData and returns safe user if valid + not stale. */
 export async function verifyInitDataAndGetUser(
   initData: string,
@@ -34,16 +115,20 @@ export async function verifyInitDataAndGetUser(
   if (!initData) return null;
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
   if (!token) throw new Error("Missing TELEGRAM_BOT_TOKEN");
-  const key = await importHmacKeyFromToken(token);
+  const key = await createTelegramHmacKey(token);
+
+  const rawEntries = parseInitDataEntries(initData);
+  if (!rawEntries) return null;
+
+  const hash = extractHashFromEntries(rawEntries);
+  const dataCheckString = buildDataCheckString(rawEntries);
+
+  if (!hash) return null;
+  const sig = await signTelegramDataCheck(key, dataCheckString);
+  const normalizedHash = hash.toLowerCase();
+  if (!timingSafeEqual(sig, normalizedHash)) return null;
 
   const params = new URLSearchParams(initData);
-  const hash = params.get("hash") || "";
-  params.delete("hash");
-  const dataCheckString = Array.from(params.entries()).map(([k, v]) =>
-    `${k}=${v}`
-  ).sort().join("\n");
-  const sig = await hmacSHA256(key, dataCheckString);
-  if (sig !== hash) return null;
 
   // Optional freshness check
   const auth = Number(params.get("auth_date") || "0");
@@ -52,11 +137,15 @@ export async function verifyInitDataAndGetUser(
 
   const userJson = params.get("user");
   if (!userJson) return null;
-  try {
-    return JSON.parse(decodeURIComponent(userJson)) as TgUser;
-  } catch {
-    return null;
-  }
+
+  return parseTgUser(userJson, {
+    onError: ({ primaryError, secondaryError }) => {
+      console.warn(
+        "[telegram] failed to parse user from initData",
+        secondaryError ?? primaryError,
+      );
+    },
+  });
 }
 
 /** Checks if a Telegram user id is in TELEGRAM_ADMIN_IDS allowlist. */
