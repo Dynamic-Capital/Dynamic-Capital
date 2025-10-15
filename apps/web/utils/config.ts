@@ -6,6 +6,7 @@ import {
   SUPABASE_CONFIG_FROM_ENV,
   SUPABASE_URL,
 } from "@/config/supabase-runtime";
+import { getEnvVar } from "@/utils/env.ts";
 import { getFeatureFlagDefault } from "../../../shared/feature-flags.ts";
 
 type FlagSnapshot = { ts: number; data: Record<string, boolean> };
@@ -30,6 +31,13 @@ const globalScope = globalThis as GlobalScope;
 
 let hasLoggedConfigWarning = false;
 
+const LOCALHOST_HOSTNAMES = new Set([
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+]);
+
 function stripTrailingSlash(value: string): string {
   return value.replace(/\/+$/u, "");
 }
@@ -52,18 +60,66 @@ function readBrowserOrigin(): string | undefined {
   return undefined;
 }
 
-function resolveProxyOrigin(): string | undefined {
-  const originCandidate = readBrowserOrigin();
+function normalizeOrigin(raw?: string): string | undefined {
+  if (!raw) return undefined;
 
-  if (!originCandidate) {
-    return undefined;
-  }
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
 
   try {
-    return stripTrailingSlash(new URL(originCandidate).toString());
+    const hasScheme = trimmed.includes("://");
+    const candidate = hasScheme ? trimmed : `https://${trimmed}`;
+    const parsed = new URL(candidate);
+
+    if (!hasScheme) {
+      const hostname = parsed.hostname.toLowerCase();
+      if (
+        LOCALHOST_HOSTNAMES.has(hostname) ||
+        hostname.endsWith(".localhost")
+      ) {
+        parsed.protocol = "http:";
+      }
+    }
+
+    return stripTrailingSlash(parsed.origin);
   } catch {
-    return stripTrailingSlash(originCandidate);
+    return undefined;
   }
+}
+
+const ENV_ORIGIN_SOURCES: Array<
+  readonly [string, readonly string[]]
+> = [
+  ["SITE_URL", ["NEXT_PUBLIC_SITE_URL"]],
+  ["NEXT_PUBLIC_SITE_URL", ["SITE_URL"]],
+  ["URL", []],
+  ["APP_URL", []],
+  ["PUBLIC_URL", []],
+  ["DEPLOY_URL", []],
+  ["DEPLOYMENT_URL", []],
+  ["DIGITALOCEAN_APP_URL", []],
+  ["DIGITALOCEAN_APP_SITE_DOMAIN", []],
+  ["VERCEL_URL", []],
+];
+
+function readEnvironmentOrigin(): string | undefined {
+  for (const [primary, aliases] of ENV_ORIGIN_SOURCES) {
+    const candidate = getEnvVar(primary, aliases);
+    const origin = normalizeOrigin(candidate);
+    if (origin) {
+      return origin;
+    }
+  }
+  return undefined;
+}
+
+function resolveProxyOrigin(): string | undefined {
+  const browserOrigin = normalizeOrigin(readBrowserOrigin());
+  if (browserOrigin) {
+    return browserOrigin;
+  }
+
+  return readEnvironmentOrigin();
 }
 
 function buildSupabaseConfigEndpoint(): RemoteConfigEndpoint | null {

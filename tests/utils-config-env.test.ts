@@ -13,6 +13,16 @@ test("utils/config falls back to defaults when Supabase env vars are missing", a
   await withEnv({
     SUPABASE_URL: undefined,
     SUPABASE_ANON_KEY: undefined,
+    SITE_URL: undefined,
+    NEXT_PUBLIC_SITE_URL: undefined,
+    URL: undefined,
+    APP_URL: undefined,
+    PUBLIC_URL: undefined,
+    DEPLOY_URL: undefined,
+    DEPLOYMENT_URL: undefined,
+    DIGITALOCEAN_APP_URL: undefined,
+    DIGITALOCEAN_APP_SITE_DOMAIN: undefined,
+    VERCEL_URL: undefined,
   }, async () => {
     const { configClient } = await freshImport(
       new URL("../apps/web/utils/config.ts", import.meta.url),
@@ -26,6 +36,16 @@ test("known feature flags default to enabled", async () => {
   await withEnv({
     SUPABASE_URL: undefined,
     SUPABASE_ANON_KEY: undefined,
+    SITE_URL: undefined,
+    NEXT_PUBLIC_SITE_URL: undefined,
+    URL: undefined,
+    APP_URL: undefined,
+    PUBLIC_URL: undefined,
+    DEPLOY_URL: undefined,
+    DEPLOYMENT_URL: undefined,
+    DIGITALOCEAN_APP_URL: undefined,
+    DIGITALOCEAN_APP_SITE_DOMAIN: undefined,
+    VERCEL_URL: undefined,
   }, async () => {
     const { configClient } = await freshImport(
       new URL("../apps/web/utils/config.ts", import.meta.url),
@@ -38,6 +58,16 @@ test("utils/config rejects null-like env values", async () => {
   await withEnv({
     SUPABASE_URL: "null",
     SUPABASE_ANON_KEY: "undefined",
+    SITE_URL: undefined,
+    NEXT_PUBLIC_SITE_URL: undefined,
+    URL: undefined,
+    APP_URL: undefined,
+    PUBLIC_URL: undefined,
+    DEPLOY_URL: undefined,
+    DEPLOYMENT_URL: undefined,
+    DIGITALOCEAN_APP_URL: undefined,
+    DIGITALOCEAN_APP_SITE_DOMAIN: undefined,
+    VERCEL_URL: undefined,
   }, async () => {
     const { configClient } = await freshImport(
       new URL("../apps/web/utils/config.ts", import.meta.url),
@@ -95,6 +125,76 @@ test(
         } else {
           globalTestScope.window = originalWindow;
         }
+      }
+    });
+  },
+);
+
+test(
+  "utils/config proxies admin workflows via SITE_URL when Supabase env vars are missing",
+  async () => {
+    await withEnv({
+      SUPABASE_URL: undefined,
+      SUPABASE_ANON_KEY: undefined,
+      SITE_URL: "https://admin.dynamic.capital/",
+    }, async () => {
+      const originalFetch = globalThis.fetch;
+      const fetchCalls: Array<{
+        input: unknown;
+        init?: { body?: unknown; headers?: Record<string, string> };
+      }> = [];
+
+      globalThis.fetch = async (input, init) => {
+        fetchCalls.push({ input, init });
+
+        const body = init?.body ? JSON.parse(String(init.body)) : {};
+        if (body.action === "preview") {
+          return new Response(JSON.stringify({ ts: 123, data: { test: true } }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (body.action === "getFlag") {
+          return new Response(JSON.stringify({ data: true }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      };
+
+      try {
+        const { getFlag, setFlag, preview, publish, rollback } = await freshImport(
+          new URL("../apps/web/utils/config.ts", import.meta.url),
+        );
+
+        equal(await getFlag("test_feature", false), true);
+        await setFlag("test_feature", true);
+        const snapshot = await preview();
+        deepEqual(snapshot, { ts: 123, data: { test: true } });
+        await publish("admin-1");
+        await rollback("admin-1");
+
+        equal(fetchCalls.length, 5);
+        for (const call of fetchCalls) {
+          equal(
+            String(call.input),
+            "https://admin.dynamic.capital/api/functions/config",
+          );
+        }
+
+        const actions = fetchCalls.map((call) => {
+          const body = call.init?.body ? JSON.parse(String(call.init.body)) : {};
+          return body.action;
+        });
+
+        deepEqual(actions, ["getFlag", "setFlag", "preview", "publish", "rollback"]);
+      } finally {
+        globalThis.fetch = originalFetch;
       }
     });
   },
