@@ -1,7 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
-import { RotateCcw, Send, Sparkles } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Clipboard,
+  ClipboardCheck,
+  PencilLine,
+  RotateCcw,
+  Send,
+  Sparkles,
+  Undo2,
+} from "lucide-react";
 
 import {
   Column,
@@ -42,6 +60,8 @@ interface LanguageOption {
   tagLabel: string;
   lang: string;
 }
+
+type SystemPromptOverrides = Partial<Record<LanguageOption["value"], string>>;
 
 function composeSystemPrompt(base: string, languagePrompt: string): string {
   const baseTrimmed = base.trim();
@@ -92,6 +112,61 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
   },
 ];
 
+const SYSTEM_PROMPT_STORAGE_KEY = "dynamic-chat-system-prompts";
+
+function loadSystemPromptOverrides(): SystemPromptOverrides {
+  if (typeof window === "undefined") return {};
+
+  try {
+    const raw = window.localStorage.getItem(SYSTEM_PROMPT_STORAGE_KEY);
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object") {
+      return {};
+    }
+
+    const overrides: SystemPromptOverrides = {};
+    for (const option of LANGUAGE_OPTIONS) {
+      const value = (parsed as Record<string, unknown>)[option.value];
+      if (typeof value === "string" && value.trim().length > 0) {
+        overrides[option.value] = value;
+      }
+    }
+    return overrides;
+  } catch (error) {
+    console.error("Failed to load system prompt overrides", error);
+    return {};
+  }
+}
+
+function persistSystemPromptOverrides(overrides: SystemPromptOverrides): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    const entries = Object.entries(overrides).filter(([, value]) =>
+      typeof value === "string" && value.trim().length > 0
+    );
+
+    if (entries.length === 0) {
+      window.localStorage.removeItem(SYSTEM_PROMPT_STORAGE_KEY);
+      return;
+    }
+
+    const payload: Record<string, string> = {};
+    for (const [key, value] of entries) {
+      payload[key] = value;
+    }
+
+    window.localStorage.setItem(
+      SYSTEM_PROMPT_STORAGE_KEY,
+      JSON.stringify(payload),
+    );
+  } catch (error) {
+    console.error("Failed to persist system prompt overrides", error);
+  }
+}
+
 const DEFAULT_SYSTEM_PROMPT = composeSystemPrompt(
   BASE_SYSTEM_PROMPT,
   LANGUAGE_OPTIONS[0].prompt,
@@ -107,6 +182,21 @@ export function DynamicChat() {
   const [language, setLanguage] = useState<LanguageOption["value"]>(
     LANGUAGE_OPTIONS[0].value,
   );
+  const [isSystemPromptExpanded, setIsSystemPromptExpanded] = useState(false);
+  const [isSystemPromptEditing, setIsSystemPromptEditing] = useState(false);
+  const [systemPromptDraft, setSystemPromptDraft] = useState(
+    DEFAULT_SYSTEM_PROMPT,
+  );
+  const [isSystemPromptCustomized, setIsSystemPromptCustomized] = useState(
+    false,
+  );
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle",
+  );
+  const [systemPromptOverrides, setSystemPromptOverrides] = useState<
+    SystemPromptOverrides
+  >({});
+  const copyResetTimeoutRef = useRef<number | null>(null);
 
   const { loading: adminLoading, getAdminAuth } = useTelegramAuth();
   const resolveAdminAuth = useCallback(
@@ -131,6 +221,19 @@ export function DynamicChat() {
   const composedSystemPrompt = useMemo(() => {
     return composeSystemPrompt(BASE_SYSTEM_PROMPT, languageOption.prompt);
   }, [languageOption]);
+
+  const normalizedSystemPromptDraft = systemPromptDraft.trim();
+  const normalizedDefaultPrompt = composedSystemPrompt.trim();
+  const showSystemPromptRestore = isSystemPromptCustomized ||
+    normalizedSystemPromptDraft !== normalizedDefaultPrompt;
+
+  useEffect(() => {
+    setSystemPromptOverrides(loadSystemPromptOverrides());
+  }, []);
+
+  useEffect(() => {
+    persistSystemPromptOverrides(systemPromptOverrides);
+  }, [systemPromptOverrides]);
 
   useEffect(() => {
     if (!selectedProvider) return;
@@ -219,8 +322,153 @@ export function DynamicChat() {
   });
 
   useEffect(() => {
+    const override = systemPromptOverrides[language]?.trim();
+    const targetPrompt =
+      override && override.length > 0 ? override : composedSystemPrompt;
+    const normalizedTarget = targetPrompt.trim();
+    const normalizedCurrent = systemMessage?.content?.trim() ?? "";
+
+    if (normalizedCurrent !== normalizedTarget) {
+      updateSystemPrompt(targetPrompt);
+    }
+  }, [
+    composedSystemPrompt,
+    language,
+    systemMessage?.content,
+    systemPromptOverrides,
+    updateSystemPrompt,
+  ]);
+
+  useEffect(() => {
+    if (!systemMessage) {
+      setIsSystemPromptCustomized(false);
+      return;
+    }
+    const normalizedCurrent = systemMessage.content.trim();
+    const normalizedDefault = composedSystemPrompt.trim();
+    setIsSystemPromptCustomized(normalizedCurrent !== normalizedDefault);
+  }, [composedSystemPrompt, systemMessage]);
+
+  useEffect(() => {
+    if (isSystemPromptEditing) return;
+    if (systemMessage) {
+      setSystemPromptDraft(systemMessage.content);
+      return;
+    }
+    if (!isSystemPromptCustomized) {
+      setSystemPromptDraft(composedSystemPrompt);
+    }
+  }, [
+    composedSystemPrompt,
+    isSystemPromptCustomized,
+    isSystemPromptEditing,
+    systemMessage,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimeoutRef.current !== null) {
+        window.clearTimeout(copyResetTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSystemPromptExpandToggle = useCallback(() => {
+    setIsSystemPromptExpanded((previous) => !previous);
+  }, []);
+
+  const handleSystemPromptEditToggle = useCallback(() => {
+    setIsSystemPromptEditing((previous) => {
+      const next = !previous;
+      if (next) {
+        setIsSystemPromptExpanded(true);
+      }
+      return next;
+    });
+    const nextDraft = systemMessage?.content ?? composedSystemPrompt;
+    setSystemPromptDraft(nextDraft);
+  }, [composedSystemPrompt, systemMessage]);
+
+  const handleSystemPromptCancel = useCallback(() => {
+    setIsSystemPromptEditing(false);
+    setSystemPromptDraft(systemMessage?.content ?? composedSystemPrompt);
+  }, [composedSystemPrompt, systemMessage]);
+
+  const handleSystemPromptSave = useCallback(() => {
+    const nextPrompt = normalizedSystemPromptDraft.length > 0
+      ? normalizedSystemPromptDraft
+      : composedSystemPrompt;
+    const isDefaultPrompt = nextPrompt === normalizedDefaultPrompt;
+
+    setSystemPromptOverrides((previous) => {
+      if (isDefaultPrompt) {
+        if (!(language in previous)) {
+          return previous;
+        }
+        const { [language]: _removed, ...rest } = previous;
+        return rest;
+      }
+      const previousValue = previous[language];
+      if (previousValue === nextPrompt) {
+        return previous;
+      }
+      return { ...previous, [language]: nextPrompt };
+    });
+
+    updateSystemPrompt(nextPrompt);
+    setIsSystemPromptEditing(false);
+  }, [
+    composedSystemPrompt,
+    language,
+    normalizedDefaultPrompt,
+    normalizedSystemPromptDraft,
+    updateSystemPrompt,
+  ]);
+
+  const handleSystemPromptReset = useCallback(() => {
+    setIsSystemPromptEditing(false);
+    setIsSystemPromptExpanded(false);
+    setSystemPromptDraft(composedSystemPrompt);
+    setSystemPromptOverrides((previous) => {
+      if (!(language in previous)) {
+        return previous;
+      }
+      const { [language]: _removed, ...rest } = previous;
+      return rest;
+    });
     updateSystemPrompt(composedSystemPrompt);
-  }, [composedSystemPrompt, updateSystemPrompt]);
+  }, [
+    composedSystemPrompt,
+    language,
+    updateSystemPrompt,
+  ]);
+
+  const handleCopySystemPrompt = useCallback(async () => {
+    if (!systemMessage?.content) return;
+
+    let nextStatus: "copied" | "error" = "copied";
+
+    try {
+      if (!navigator?.clipboard?.writeText) {
+        throw new Error("Clipboard API unavailable");
+      }
+      await navigator.clipboard.writeText(systemMessage.content);
+      nextStatus = "copied";
+    } catch (caughtError) {
+      console.error("Failed to copy system prompt", caughtError);
+      nextStatus = "error";
+    }
+
+    setCopyStatus(nextStatus);
+
+    if (copyResetTimeoutRef.current !== null) {
+      window.clearTimeout(copyResetTimeoutRef.current);
+    }
+
+    copyResetTimeoutRef.current = window.setTimeout(() => {
+      setCopyStatus("idle");
+    }, nextStatus === "error" ? 4000 : 2000);
+  }, [systemMessage]);
 
   useEffect(() => {
     let cancelled = false;
@@ -578,28 +826,204 @@ export function DynamicChat() {
                 className="relative overflow-hidden"
               >
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-dc-brand/10 via-transparent to-transparent" />
-                <Column gap="8" className="relative z-[1]">
-                  <Row gap="8" vertical="center">
-                    <Sparkles
-                      className="h-4 w-4 text-dc-brand"
-                      aria-hidden="true"
-                    />
-                    <Text
-                      variant="label-default-s"
-                      className="uppercase tracking-[0.18em]"
-                      onBackground="neutral-medium"
-                    >
-                      System prompt
-                    </Text>
+                <Column gap="12" className="relative z-[1]">
+                  <Row horizontal="between" vertical="center" wrap gap="8">
+                    <Row gap="8" vertical="center">
+                      <Sparkles
+                        className="h-4 w-4 text-dc-brand"
+                        aria-hidden="true"
+                      />
+                      <Text
+                        variant="label-default-s"
+                        className="uppercase tracking-[0.18em]"
+                        onBackground="neutral-medium"
+                      >
+                        System prompt
+                      </Text>
+                      {isSystemPromptCustomized && (
+                        <Tag
+                          size="s"
+                          background="accent-alpha-weak"
+                          border="accent-alpha-medium"
+                          onBackground="accent-strong"
+                        >
+                          Custom override
+                        </Tag>
+                      )}
+                    </Row>
+                    <Row gap="4" vertical="center">
+                      {systemMessage.content.length > 200 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={handleSystemPromptExpandToggle}
+                          aria-expanded={isSystemPromptExpanded}
+                          aria-label={isSystemPromptExpanded
+                            ? "Collapse system prompt"
+                            : "Expand system prompt"}
+                          className="rounded-full border border-white/10 bg-background/60"
+                        >
+                          {isSystemPromptExpanded
+                            ? (
+                              <ChevronUp
+                                className="h-4 w-4"
+                                aria-hidden="true"
+                              />
+                            )
+                            : (
+                              <ChevronDown
+                                className="h-4 w-4"
+                                aria-hidden="true"
+                              />
+                            )}
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={handleSystemPromptEditToggle}
+                        aria-pressed={isSystemPromptEditing}
+                        aria-label={isSystemPromptEditing
+                          ? "Close system prompt editor"
+                          : "Edit system prompt"}
+                        className="rounded-full border border-white/10 bg-background/60"
+                      >
+                        <PencilLine className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={handleCopySystemPrompt}
+                        disabled={!systemMessage.content.trim()}
+                        aria-label={copyStatus === "copied"
+                          ? "System prompt copied"
+                          : "Copy system prompt"}
+                        className="rounded-full border border-white/10 bg-background/60"
+                      >
+                        {copyStatus === "copied"
+                          ? (
+                            <ClipboardCheck
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            />
+                          )
+                          : (
+                            <Clipboard className="h-4 w-4" aria-hidden="true" />
+                          )}
+                      </Button>
+                    </Row>
                   </Row>
-                  <Text
-                    as="p"
-                    variant="body-default-s"
-                    onBackground="neutral-weak"
-                    className="leading-relaxed"
-                  >
-                    {systemMessage.content}
-                  </Text>
+
+                  {isSystemPromptEditing
+                    ? (
+                      <Column gap="12">
+                        <Textarea
+                          value={systemPromptDraft}
+                          onChange={(event) =>
+                            setSystemPromptDraft(event.target.value)}
+                          rows={6}
+                          dir="auto"
+                          lang={languageOption.lang}
+                          className="min-h-[180px] rounded-2xl border border-white/15 bg-background/75 px-4 py-3 text-sm leading-relaxed text-foreground shadow-inner focus-visible:ring-2 focus-visible:ring-dc-brand/60"
+                        />
+                        <Row gap="8" horizontal="end" wrap>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={handleSystemPromptCancel}
+                            className="rounded-full border border-white/10 bg-background/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]"
+                          >
+                            Cancel
+                          </Button>
+                          {showSystemPromptRestore && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={handleSystemPromptReset}
+                              className="rounded-full border border-white/10 bg-background/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]"
+                            >
+                              <Undo2
+                                className="mr-2 h-4 w-4"
+                                aria-hidden="true"
+                              />
+                              Restore default
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            variant="brand"
+                            onClick={handleSystemPromptSave}
+                            className="rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-[0.18em]"
+                          >
+                            <Check
+                              className="mr-2 h-4 w-4"
+                              aria-hidden="true"
+                            />
+                            Save prompt
+                          </Button>
+                        </Row>
+                      </Column>
+                    )
+                    : (
+                      <Column gap="8">
+                        <Text
+                          as="p"
+                          variant="body-default-s"
+                          onBackground="neutral-weak"
+                          className={cn(
+                            "leading-relaxed",
+                            !isSystemPromptExpanded
+                              ? "line-clamp-4"
+                              : "whitespace-pre-wrap",
+                          )}
+                          dir="auto"
+                          lang={languageOption.lang}
+                        >
+                          {systemMessage.content}
+                        </Text>
+                        <Row
+                          horizontal="between"
+                          vertical="center"
+                          wrap
+                          gap="8"
+                        >
+                          <Text
+                            variant="body-default-xs"
+                            onBackground="neutral-medium"
+                          >
+                            Adjust the system prompt to steer orchestration
+                            across providers.
+                          </Text>
+                          {showSystemPromptRestore && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleSystemPromptReset}
+                              className="rounded-full border border-white/10 bg-background/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
+                            >
+                              <Undo2
+                                className="mr-2 h-3 w-3"
+                                aria-hidden="true"
+                              />
+                              Restore default
+                            </Button>
+                          )}
+                        </Row>
+                      </Column>
+                    )}
+                  {copyStatus === "error" && (
+                    <Text
+                      variant="body-default-xs"
+                      onBackground="danger-strong"
+                      className="italic"
+                    >
+                      Clipboard unavailable in this environment.
+                    </Text>
+                  )}
                 </Column>
               </Column>
             )}
