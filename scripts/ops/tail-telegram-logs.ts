@@ -144,7 +144,12 @@ function buildResponseHint(status: number): string | null {
   return null;
 }
 
-async function fetchLogs(functionName: string): Promise<NormalizedLog[]> {
+interface FetchLogsResult {
+  logs: NormalizedLog[];
+  warning?: string;
+}
+
+async function fetchLogs(functionName: string): Promise<FetchLogsResult> {
   const url = new URL(
     `https://api.supabase.com/v1/projects/${projectRef}/logs`,
   );
@@ -166,9 +171,12 @@ async function fetchLogs(functionName: string): Promise<NormalizedLog[]> {
     const hint = buildResponseHint(response.status);
     const suffix = text.trim().length > 0 ? `\n${text}` : "";
     const hintSuffix = hint ? `\nHint: ${hint}` : "";
-    throw new Error(
-      `Failed to fetch logs for ${functionName}: ${response.status} ${response.statusText}${hintSuffix}${suffix}`,
-    );
+    const message =
+      `Failed to fetch logs for ${functionName}: ${response.status} ${response.statusText}${hintSuffix}${suffix}`;
+    if (response.status === 404) {
+      return { logs: [], warning: message };
+    }
+    throw new Error(message);
   }
 
   const payload = await response.json();
@@ -180,11 +188,13 @@ async function fetchLogs(functionName: string): Promise<NormalizedLog[]> {
     ? payload.result
     : [];
 
-  return rawEntries
+  const logs = rawEntries
     .filter((entry): entry is Record<string, unknown> =>
       entry && typeof entry === "object"
     )
     .map((entry) => normalizeLog(entry, functionName));
+
+  return { logs };
 }
 
 function formatLog(log: NormalizedLog): string {
@@ -198,7 +208,10 @@ function formatLog(log: NormalizedLog): string {
 
 async function main() {
   for (const fn of functions) {
-    const logs = await fetchLogs(fn);
+    const { logs, warning } = await fetchLogs(fn);
+    if (warning) {
+      console.warn(warning);
+    }
     const total = logs.length;
     const unauthorized = logs.filter((log) =>
       log.status === 401 ||
