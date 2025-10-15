@@ -3,11 +3,14 @@ import type { SchemaProps } from "@/components/dynamic-ui-system/internal/module
 
 import { dynamicBranding, sameAs, toAbsoluteUrl } from "@/resources";
 
-const FALLBACK_SITE_URL = dynamicBranding.metadata.primaryUrl ??
-  "https://dynamic.capital";
-const SITE_URL =
-  normalizeSiteUrl(process.env.SITE_URL, { ensureTrailingSlash: true }) ??
-    FALLBACK_SITE_URL;
+const FALLBACK_SITE_URL = normalizeSiteUrl(
+  dynamicBranding.metadata.primaryUrl,
+  { ensureTrailingSlash: true },
+) ?? "https://dynamic.capital/";
+const SITE_URL = normalizeSiteUrl(
+  process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL,
+  { ensureTrailingSlash: true },
+) ?? FALLBACK_SITE_URL;
 const METADATA_BASE = resolveMetadataBase(SITE_URL);
 
 export const canonicalSiteUrl = SITE_URL;
@@ -57,6 +60,20 @@ export function buildMetadata(options: BuildMetadataOptions = {}): Metadata {
   const keywords = uniqueStrings(options.keywords ?? brandMetadata.keywords);
   const ogImage = resolveOgImage(options.image, assets.socialPreview, title);
   const robots = buildRobotsConfig(options.noIndex, options.noFollow);
+  const openGraph = {
+    type: options.type ?? "website",
+    siteName: brandMetadata.name,
+    title,
+    description,
+    ...(canonical ? { url: canonical } : {}),
+    ...(ogImage ? { images: ogImage } : {}),
+  } satisfies Metadata["openGraph"];
+  const twitter = {
+    card: "summary_large_image" as const,
+    title,
+    description,
+    ...(ogImage ? { images: ogImage.map((image) => image.url) } : {}),
+  } satisfies Metadata["twitter"];
 
   return {
     metadataBase: METADATA_BASE,
@@ -64,20 +81,8 @@ export function buildMetadata(options: BuildMetadataOptions = {}): Metadata {
     description,
     keywords,
     alternates: canonical ? { canonical } : undefined,
-    openGraph: {
-      type: options.type ?? "website",
-      url: canonical,
-      siteName: brandMetadata.name,
-      title,
-      description,
-      images: ogImage,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: ogImage?.map((image) => image.url),
-    },
+    openGraph,
+    twitter,
     robots,
   } satisfies Metadata;
 }
@@ -114,7 +119,7 @@ export function resolveCanonicalUrl(
   pathOrUrl: string | undefined,
 ): string | undefined {
   if (!pathOrUrl) {
-    return SITE_URL;
+    return undefined;
   }
 
   if (isValidUrl(pathOrUrl)) {
