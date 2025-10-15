@@ -15,9 +15,23 @@ from Telegram mini-app sessions.
 - Access to the repository scripts (run from the repo root).
 - Optional: a terminal with `deno` available for log inspection.
 
-## Redeploy the Edge Functions
+## Quick Rollout Workflow
 
-Use the helper script to redeploy both functions in a single, repeatable step:
+To redeploy the verification functions and immediately review the latest
+Supabase logs in a single command, run the consolidated helper:
+
+```bash
+export SUPABASE_ACCESS_TOKEN=...  # Personal access token with deploy scope
+export SUPABASE_PROJECT_REF=...   # e.g. abcdefghijklmnopqrst
+./scripts/ops/telegram-verification-postdeploy.sh --since 120 --limit 200
+```
+
+All arguments are forwarded to the log tailing helper, allowing you to control
+the window or output format without repeating environment setup.
+
+## Redeploy the Edge Functions Individually
+
+Use the dedicated helper to redeploy both functions in a repeatable step:
 
 ```bash
 export SUPABASE_ACCESS_TOKEN=...  # Personal access token with deploy scope
@@ -50,8 +64,9 @@ Key options:
   `./scripts/ops/tail-telegram-logs.ts verify-telegram`.
 
 The script highlights how many entries returned status 401 (either via explicit
-status fields or message text). Use `--json` when piping into analytics
-pipelines or dashboards.
+status fields or message text) and prints a status-code breakdown so you can
+spot any new error classes. Use `--json` when piping into analytics pipelines or
+dashboards.
 
 ## Follow-up Actions
 

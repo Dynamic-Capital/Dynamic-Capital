@@ -53,6 +53,25 @@ interface NormalizedLog {
   message: string | null;
 }
 
+function summarizeStatusCounts(
+  logs: NormalizedLog[],
+): Map<number, number> {
+  const counts = new Map<number, number>();
+  for (const log of logs) {
+    if (typeof log.status === "number" && Number.isFinite(log.status)) {
+      counts.set(log.status, (counts.get(log.status) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
+function formatStatusCounts(counts: Map<number, number>): string {
+  const entries = [...counts.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([status, count]) => `${status}:${count}`);
+  return entries.join(", ");
+}
+
 function normalizeLog(
   entry: Record<string, unknown>,
   fallbackFunction: string,
@@ -171,11 +190,16 @@ for (const fn of functions) {
     log.status === 401 ||
     (log.message?.includes("401") ?? false)
   ).length;
+  const statusCounts = summarizeStatusCounts(logs);
 
   console.log(`\n=== ${fn} (${total} entries, ${unauthorized} status 401) ===`);
   if (flags.json) {
     console.log(JSON.stringify({ function: fn, entries: logs }, null, 2));
     continue;
+  }
+
+  if (statusCounts.size > 0) {
+    console.log(`Status counts: ${formatStatusCounts(statusCounts)}`);
   }
 
   if (total === 0) {
