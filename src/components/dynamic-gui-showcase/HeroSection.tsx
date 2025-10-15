@@ -18,18 +18,20 @@ export function HeroSection({
       <Row gap="12" vertical="center" horizontal="center">
         <Pulse size="s" variant="brand" aria-hidden="true" />
         <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
-          {brandName} · Dynamic Chat
+          {brandName} · Dynamic Chat desk
         </Tag>
       </Row>
       <Heading variant="display-strong-s" align="center" wrap="balance">
-        Run your investor desk inside Dynamic Chat.
+        Operate your investor desk without leaving Dynamic Chat.
       </Heading>
       <Row gap="8" wrap horizontal="center">
-        {["TON actions", "AI copilots", "Signal routing"].map((label) => (
-          <Tag key={label} size="s" background="neutral-alpha-weak">
-            {label}
-          </Tag>
-        ))}
+        {["Investor onboarding", "TON automations", "Mentor guardrails"].map(
+          (label) => (
+            <Tag key={label} size="s" background="neutral-alpha-weak">
+              {label}
+            </Tag>
+          ),
+        )}
       </Row>
       <Text
         variant="body-default-m"
@@ -45,15 +47,7 @@ export function HeroSection({
         align="center"
         wrap="balance"
       >
-        Coordinate due diligence, execute TON treasury actions, and broadcast insights without hopping between dashboards.
-      </Text>
-      <Text
-        variant="label-default-s"
-        onBackground="neutral-medium"
-        align="center"
-        wrap="balance"
-      >
-        Benchmark models alongside Dynamic Chat, keep mentor guardrails visible, and deliver investor-ready context in one flow.
+        Coordinate diligence, treasury actions, and signal reviews from a single workspace.
       </Text>
       <Row gap="12" wrap horizontal="center">
         <Button
@@ -63,7 +57,7 @@ export function HeroSection({
           prefixIcon="sparkles"
           onClick={onLaunchCheckout}
         >
-          Launch Dynamic Chat
+          Get started
         </Button>
         <Button
           size="m"
@@ -72,7 +66,7 @@ export function HeroSection({
           prefixIcon="calendar"
           onClick={onPreviewVip}
         >
-          Preview VIP plans
+          Explore VIP plans
         </Button>
       </Row>
     </Column>

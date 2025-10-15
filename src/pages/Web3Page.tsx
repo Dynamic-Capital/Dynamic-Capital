@@ -2,7 +2,7 @@ import { UnifiedWalletConnect } from "@/components/web3/UnifiedWalletConnect";
 
 export function WalletSection() {
   return (
-    <section id="token" className="py-16">
+    <section id="wallet" className="py-16">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center space-y-6">
           <h2 className="text-4xl font-bold">Dynamic token</h2>

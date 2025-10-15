@@ -280,9 +280,9 @@ function applyMotionTokens(
 const metadata: BrandingMetadata = {
   name: "Dynamic Capital",
   tagline:
-    "Launch AI copilots, review trade signals, and action TON workflows without leaving the conversation.",
+    "Operate your capital desk with AI copilots, mentor guardrails, and TON automations in one chat-native console.",
   description:
-    "Run your investor desk inside Dynamic Chat—pair mentorship, market coverage, and treasury execution within one dependable TON workspace.",
+    "Dynamic Capital unifies investor onboarding, treasury execution, and market context inside Dynamic Chat so desks can move from diligence to deployment without juggling dashboards.",
   keywords: [
     "dynamic capital",
     "algorithmic trading",

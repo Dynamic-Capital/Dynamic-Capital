@@ -23,18 +23,28 @@ import AIAnalytics from "./pages/AIAnalytics";
 import MemoryRetrieval from "./pages/MemoryRetrieval";
 import ProceduresRouting from "./pages/ProceduresRouting";
 import TodoListPage from "./pages/TodoListPage";
-import { LayoutDashboard, TrendingUp, GraduationCap, Coins, MessageSquare, Sparkles, Activity, Database, GitBranch, CheckSquare, Crown } from "lucide-react";
+import {
+  LayoutDashboard,
+  TrendingUp,
+  Camera,
+  Wallet,
+  MessageSquare,
+  Sparkles,
+  Activity,
+  Database,
+  GitBranch,
+  CheckSquare,
+} from "lucide-react";
 
 const NAV_ITEMS = [
-  { id: "dashboard", label: "Investor desk", icon: LayoutDashboard },
-  { id: "market", label: "Market review", icon: TrendingUp },
-  { id: "snapshot", label: "Trade & learn", icon: GraduationCap },
-  { id: "token", label: "Dynamic token", icon: Coins },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "market", label: "Market", icon: TrendingUp },
+  { id: "snapshot", label: "Snapshot", icon: Camera },
+  { id: "wallet", label: "Web3", icon: Wallet },
   { id: "chat", label: "Chat", icon: MessageSquare },
 ];
 
 const AI_NAV_ITEMS = [
-  { path: "/checkout?plan=vip", label: "VIP plans", icon: Crown },
   { path: "/agi-chat", label: "Start AI chat", icon: Sparkles },
   { path: "/analytics", label: "Analytics", icon: Activity },
   { path: "/memory", label: "Memory", icon: Database },
@@ -118,10 +128,9 @@ function SiteFooter() {
   return (
     <footer className="bg-muted border-t">
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-muted-foreground space-y-2">
-          <p>© 2025 Dynamic Capital. All rights reserved.</p>
-          <p>Built for teams who prefer a straightforward, dependable desk.</p>
-        </div>
+        <p className="text-center text-muted-foreground">
+          © 2025 Dynamic Capital. All rights reserved.
+        </p>
       </div>
     </footer>
   );
@@ -189,7 +198,7 @@ function App() {
               <Route path="/dashboard" element={<Navigate to="/#dashboard" replace />} />
               <Route path="/market" element={<Navigate to="/#market" replace />} />
               <Route path="/snapshot" element={<Navigate to="/#snapshot" replace />} />
-              <Route path="/web3" element={<Navigate to="/#token" replace />} />
+              <Route path="/web3" element={<Navigate to="/#wallet" replace />} />
               <Route path="/chat" element={<Navigate to="/#chat" replace />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/agi-chat" element={<AGIChat />} />
