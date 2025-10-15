@@ -95,7 +95,6 @@
 
 ## Test Execution Notes
 
-- `$(bash ../scripts/deno_bin.sh) test --no-npm --no-lock --node-modules-dir=false \\
-  --unsafely-ignore-certificate-errors -A --no-check apps/tests/pool_allocator.test.ts`
+- `$(bash ../scripts/deno_bin.sh) test --no-npm --no-lock --node-modules-dir=false -A --no-check apps/tests/pool_allocator.test.ts`
   completes successfully, confirming the allocator parsing and forwarding
   regressions are covered by the dedicated suite.
