@@ -213,11 +213,19 @@ const activeConfigClient = {
       return effectiveDefault;
     }
 
-    const data = await call<{ data: boolean }>(endpoint, "getFlag", {
-      name,
-      def: effectiveDefault,
-    });
-    return data?.data ?? effectiveDefault;
+    try {
+      const data = await call<{ data: boolean }>(endpoint, "getFlag", {
+        name,
+        def: effectiveDefault,
+      });
+      return data?.data ?? effectiveDefault;
+    } catch (error) {
+      console.warn(
+        `[config] Failed to resolve flag "${name}" via proxy. Returning default value.`,
+        error,
+      );
+      return effectiveDefault;
+    }
   },
 
   async setFlag(name: string, value: boolean): Promise<void> {
