@@ -1,6 +1,11 @@
 import { respondWithApiStatus } from "@/app/api/_shared/api-status.ts";
 import { corsHeaders, methodNotAllowed } from "@/utils/http.ts";
 
+// This optional catch-all guards the `/api` root endpoint while ensuring any
+// other `/api/*` paths fall through to their dedicated route handlers. Keeping
+// the logic centralised here avoids defining a sibling `route.ts` file, which
+// would clash with the optional segment in Next.js' routing matcher.
+
 export const dynamic = "force-dynamic";
 
 type RouteParams = { slug?: string[] };
