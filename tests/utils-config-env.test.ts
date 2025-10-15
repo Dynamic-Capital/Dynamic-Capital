@@ -2,6 +2,7 @@ import test from "node:test";
 import { deepEqual, equal, rejects } from "node:assert/strict";
 import { freshImport } from "./utils/freshImport.ts";
 import { withEnv } from "./utils/withEnv.ts";
+import { readJsonBody } from "./utils/readJsonBody.ts";
 
 const CONFIG_DISABLED = /Supabase configuration is missing/;
 
@@ -91,7 +92,10 @@ test(
       const originalFetch = globalThis.fetch;
       const origin = "https://app.example.com";
       const fetchCalls: Array<
-        { input: unknown; init?: { headers?: Record<string, string> } }
+        {
+          input: unknown;
+          init?: { headers?: Record<string, string> };
+        }
       > = [];
 
       globalTestScope.window = { location: { origin } };
@@ -142,19 +146,23 @@ test(
       const fetchCalls: Array<{
         input: unknown;
         init?: { body?: unknown; headers?: Record<string, string> };
+        payload: Record<string, unknown>;
       }> = [];
 
       globalThis.fetch = async (input, init) => {
-        fetchCalls.push({ input, init });
+        const payload = await readJsonBody(init?.body);
+        fetchCalls.push({ input, init, payload });
 
-        const body = init?.body ? JSON.parse(String(init.body)) : {};
-        if (body.action === "preview") {
-          return new Response(JSON.stringify({ ts: 123, data: { test: true } }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          });
+        if (payload.action === "preview") {
+          return new Response(
+            JSON.stringify({ ts: 123, data: { test: true } }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         }
-        if (body.action === "getFlag") {
+        if (payload.action === "getFlag") {
           return new Response(JSON.stringify({ data: true }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
@@ -168,9 +176,10 @@ test(
       };
 
       try {
-        const { getFlag, setFlag, preview, publish, rollback } = await freshImport(
-          new URL("../apps/web/utils/config.ts", import.meta.url),
-        );
+        const { getFlag, setFlag, preview, publish, rollback } =
+          await freshImport(
+            new URL("../apps/web/utils/config.ts", import.meta.url),
+          );
 
         equal(await getFlag("test_feature", false), true);
         await setFlag("test_feature", true);
@@ -187,12 +196,15 @@ test(
           );
         }
 
-        const actions = fetchCalls.map((call) => {
-          const body = call.init?.body ? JSON.parse(String(call.init.body)) : {};
-          return body.action;
-        });
+        const actions = fetchCalls.map((call) => call.payload.action);
 
-        deepEqual(actions, ["getFlag", "setFlag", "preview", "publish", "rollback"]);
+        deepEqual(actions, [
+          "getFlag",
+          "setFlag",
+          "preview",
+          "publish",
+          "rollback",
+        ]);
       } finally {
         globalThis.fetch = originalFetch;
       }

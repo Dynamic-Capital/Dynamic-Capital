@@ -3,22 +3,15 @@ import { deepEqual, equal } from "node:assert/strict";
 
 import { freshImport } from "./utils/freshImport.ts";
 import { withEnv } from "./utils/withEnv.ts";
+import { readJsonBody } from "./utils/readJsonBody.ts";
 
 const SUPABASE_FUNCTION_HOST =
   "https://qeejuomcapbdlhnjqjcc.functions.supabase.co";
 
-/**
- * Read JSON from a cloned Request instance without consuming the original body stream.
- */
 async function readJsonFromRequest(
   request: Request,
 ): Promise<Record<string, unknown>> {
-  const text = await request.text();
-  if (!text) {
-    return {};
-  }
-
-  return JSON.parse(text);
+  return await readJsonBody(await request.text());
 }
 
 test(
