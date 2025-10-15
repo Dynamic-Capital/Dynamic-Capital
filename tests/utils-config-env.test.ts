@@ -5,6 +5,10 @@ import { withEnv } from "./utils/withEnv.ts";
 
 const CONFIG_DISABLED = /Supabase configuration is missing/;
 
+type GlobalTestScope = typeof globalThis & {
+  window?: { location?: { origin?: string } };
+};
+
 test("utils/config falls back to defaults when Supabase env vars are missing", async () => {
   await withEnv({
     SUPABASE_URL: undefined,
@@ -43,6 +47,59 @@ test("utils/config rejects null-like env values", async () => {
   });
 });
 
+test(
+  "utils/config proxies through internal API when browser origin is available",
+  async () => {
+    await withEnv({
+      SUPABASE_URL: undefined,
+      SUPABASE_ANON_KEY: undefined,
+      SITE_URL: undefined,
+      NEXT_PUBLIC_SITE_URL: undefined,
+    }, async () => {
+      const globalTestScope = globalThis as GlobalTestScope;
+      const originalWindow = globalTestScope.window;
+      const originalFetch = globalThis.fetch;
+      const origin = "https://app.example.com";
+      const fetchCalls: Array<
+        { input: unknown; init?: { headers?: Record<string, string> } }
+      > = [];
+
+      globalTestScope.window = { location: { origin } };
+      globalThis.fetch = async (input, init) => {
+        fetchCalls.push({ input, init });
+        return new Response(JSON.stringify({ data: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      };
+
+      try {
+        const { getFlag, setFlag } = await freshImport(
+          new URL("../apps/web/utils/config.ts", import.meta.url),
+        );
+
+        equal(await getFlag("test_feature", false), true);
+        equal(fetchCalls.length, 1);
+        equal(String(fetchCalls[0]?.input), `${origin}/api/functions/config`);
+
+        const headers = new Headers(fetchCalls[0]?.init?.headers);
+        equal(headers.get("apikey"), null);
+        equal(headers.get("Authorization"), null);
+
+        await setFlag("test_feature", true);
+        equal(fetchCalls.length, 2);
+      } finally {
+        globalThis.fetch = originalFetch;
+        if (originalWindow === undefined) {
+          delete globalTestScope.window;
+        } else {
+          globalTestScope.window = originalWindow;
+        }
+      }
+    });
+  },
+);
+
 test("supabase runtime accepts NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY alias", async () => {
   await withEnv({
     SUPABASE_URL: undefined,
@@ -78,7 +135,9 @@ test("web env accepts Supabase publishable key aliases", async () => {
 
     equal(module.runtimeEnv.success, true);
     equal(
-      module.runtimeEnv.missing.public.includes("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+      module.runtimeEnv.missing.public.includes(
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      ),
       false,
     );
     equal(
