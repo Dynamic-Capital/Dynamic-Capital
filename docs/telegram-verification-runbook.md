@@ -68,15 +68,15 @@ Key options:
   `$(bash scripts/deno_bin.sh) run --allow-env --allow-net scripts/ops/tail-telegram-logs.ts verify-telegram`.
 
 The helper automatically installs and pins the local `deno` runtime when it's
-missing, so you don't need a global installation. It now surfaces actionable
-error hints—for example, 401/403 responses prompt you to re-check the Supabase
-token scopes, while 404s flag missing edge functions. If the Supabase management
-API responds with a 404 for log retrieval, the helper emits a warning and
-continues so you can still review the rest of the rollout. The log script
-highlights how many entries returned status 401 (either via explicit status
-fields or message text) and prints a status-code breakdown so you can spot any
-new error classes. Use `--json` when piping into analytics pipelines or
-dashboards.
+missing, so you don't need a global installation. It now enumerates the deployed
+edge functions before querying logs and includes their identifiers in the
+requests, which resolves the 404 responses we observed from the management API.
+The script continues to surface actionable error hints—for example, 401/403
+responses prompt you to re-check the Supabase token scopes, while other non-200s
+include troubleshooting suggestions. The log script highlights how many entries
+returned status 401 (either via explicit status fields or message text) and
+prints a status-code breakdown so you can spot any new error classes. Use
+`--json` when piping into analytics pipelines or dashboards.
 
 ## Follow-up Actions
 

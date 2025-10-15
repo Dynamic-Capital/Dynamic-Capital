@@ -44,6 +44,75 @@ const functions = flags._.length > 0
 
 const sinceIso = new Date(Date.now() - sinceMinutes * 60_000).toISOString();
 
+interface FunctionDescriptor {
+  id: string | null;
+  name: string;
+  slug: string | null;
+}
+
+function normalizeFunctionDescriptor(
+  entry: Record<string, unknown>,
+): FunctionDescriptor | null {
+  const id = typeof entry.id === "string" ? entry.id : null;
+  const name = typeof entry.name === "string"
+    ? entry.name
+    : typeof entry.slug === "string"
+    ? entry.slug
+    : null;
+  if (!name) {
+    return null;
+  }
+  const slug = typeof entry.slug === "string" ? entry.slug : null;
+  return { id, name, slug };
+}
+
+async function fetchFunctionDescriptors(): Promise<
+  Map<string, FunctionDescriptor>
+> {
+  const url = new URL(
+    `https://api.supabase.com/v1/projects/${projectRef}/functions`,
+  );
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.warn(
+      `Warning: failed to enumerate functions (${response.status} ${response.statusText}). Logs will be fetched without metadata.\n${text}`
+        .trim(),
+    );
+    return new Map();
+  }
+
+  const payload = await response.json();
+  const rawEntries = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.functions)
+    ? payload.functions
+    : [];
+
+  const descriptors = new Map<string, FunctionDescriptor>();
+  for (const rawEntry of rawEntries) {
+    if (!rawEntry || typeof rawEntry !== "object") continue;
+    const descriptor = normalizeFunctionDescriptor(
+      rawEntry as Record<string, unknown>,
+    );
+    if (!descriptor) continue;
+    descriptors.set(descriptor.name, descriptor);
+    if (descriptor.slug && descriptor.slug !== descriptor.name) {
+      descriptors.set(descriptor.slug, descriptor);
+    }
+  }
+
+  return descriptors;
+}
+
+const functionDescriptors = await fetchFunctionDescriptors();
+
 interface NormalizedLog {
   timestamp: string | null;
   status: number | null;
@@ -150,11 +219,18 @@ interface FetchLogsResult {
 }
 
 async function fetchLogs(functionName: string): Promise<FetchLogsResult> {
+  const descriptor = functionDescriptors.get(functionName);
   const url = new URL(
     `https://api.supabase.com/v1/projects/${projectRef}/logs`,
   );
   url.searchParams.set("resource", "edge_function");
   url.searchParams.set("function_name", functionName);
+  if (descriptor?.id) {
+    url.searchParams.set("function_id", descriptor.id);
+  }
+  if (descriptor?.slug && descriptor.slug !== functionName) {
+    url.searchParams.set("identifier", descriptor.slug);
+  }
   url.searchParams.set("since", sinceIso);
   url.searchParams.set("limit", String(limit));
   url.searchParams.set("order", "desc");
