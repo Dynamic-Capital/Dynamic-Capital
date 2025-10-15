@@ -20,6 +20,7 @@ import {
   MoversSection,
   MoversTable,
   type MoversTableProps,
+  type SnapshotVariant,
   StrengthMeterList,
   type TagBackground,
   VolatilityBucket,
@@ -584,7 +585,9 @@ const VOLATILITY_DISPLAY_METADATA = [
   },
 ] as const satisfies Array<Pick<VolatilityBucket, "title" | "background">>;
 
-export function FxMarketSnapshotSection() {
+export function FxMarketSnapshotSection({
+  variant = "contained",
+}: { variant?: SnapshotVariant } = {}) {
   const [strengthMeter, setStrengthMeter] = useState<CurrencyStrength[]>(
     FALLBACK_STRENGTH,
   );
@@ -829,18 +832,20 @@ export function FxMarketSnapshotSection() {
     ? "danger-alpha-weak"
     : "neutral-alpha-weak";
 
+  const isFrameless = variant === "frameless";
+
   return (
     <Column
       as="section"
       id="fx-market-snapshot"
       aria-labelledby="fx-market-snapshot-heading"
       fillWidth
-      background="surface"
-      border="neutral-alpha-medium"
-      radius="l"
+      background={isFrameless ? undefined : "surface"}
+      border={isFrameless ? undefined : "neutral-alpha-medium"}
+      radius={isFrameless ? undefined : "l"}
       padding="xl"
-      gap="32"
-      shadow="l"
+      gap={isFrameless ? "24" : "32"}
+      shadow={isFrameless ? undefined : "l"}
     >
       <Column gap="12" maxWidth={32}>
         <Row gap="12" vertical="center" wrap>
@@ -885,8 +890,9 @@ export function FxMarketSnapshotSection() {
               icon: "flag",
               tone: "brand-alpha-weak",
             }}
+            variant={variant}
           >
-            <StrengthMeterList entries={strengthEntries} />
+            <StrengthMeterList entries={strengthEntries} variant={variant} />
           </InsightCard>
 
           <InsightCard
@@ -897,6 +903,7 @@ export function FxMarketSnapshotSection() {
               icon: "activity",
               tone: "neutral-alpha-weak",
             }}
+            variant={variant}
           >
             <VolatilityMeterList entries={volatilityEntries} />
           </InsightCard>
@@ -911,10 +918,15 @@ export function FxMarketSnapshotSection() {
               icon: "trending-up",
               tone: "brand-alpha-weak",
             }}
+            variant={variant}
           >
             <Column gap="16">
               {moversSections.map((section) => (
-                <MoversTable key={section.title} {...section} />
+                <MoversTable
+                  key={section.title}
+                  {...section}
+                  variant={variant}
+                />
               ))}
             </Column>
           </InsightCard>
@@ -927,10 +939,15 @@ export function FxMarketSnapshotSection() {
               icon: "target",
               tone: "neutral-alpha-weak",
             }}
+            variant={variant}
           >
             <Row gap="16" wrap>
               {volatilityBuckets.map((bucket) => (
-                <VolatilityBucketPanel key={bucket.title} {...bucket} />
+                <VolatilityBucketPanel
+                  key={bucket.title}
+                  {...bucket}
+                  variant={variant}
+                />
               ))}
             </Row>
           </InsightCard>

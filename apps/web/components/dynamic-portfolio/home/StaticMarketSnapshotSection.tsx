@@ -14,6 +14,7 @@ import {
   type MoversSection,
   MoversTable,
   type MoversTableProps,
+  type SnapshotVariant,
   type StrengthMeterEntry,
   StrengthMeterList,
   type VolatilityBucket,
@@ -77,7 +78,10 @@ export interface StaticMarketSnapshotConfig {
 }
 
 export function StaticMarketSnapshotSection(
-  { config }: { config: StaticMarketSnapshotConfig },
+  {
+    config,
+    variant = "contained",
+  }: { config: StaticMarketSnapshotConfig; variant?: SnapshotVariant },
 ) {
   const {
     id,
@@ -92,17 +96,19 @@ export function StaticMarketSnapshotSection(
 
   const heroTagTone = hero.tag.tone ?? "neutral-alpha-weak";
 
+  const isFrameless = variant === "frameless";
+
   return (
     <Column
       as="section"
       id={id}
       fillWidth
-      background="surface"
-      border="neutral-alpha-medium"
-      radius="l"
+      background={isFrameless ? undefined : "surface"}
+      border={isFrameless ? undefined : "neutral-alpha-medium"}
+      radius={isFrameless ? undefined : "l"}
       padding="xl"
-      gap="32"
-      shadow="m"
+      gap={isFrameless ? "24" : "32"}
+      shadow={isFrameless ? undefined : "m"}
     >
       <Column gap="12" maxWidth={48}>
         <Row gap="8" vertical="center" wrap>
@@ -122,17 +128,20 @@ export function StaticMarketSnapshotSection(
 
       <Row gap="24" wrap>
         <Column flex={1} minWidth={32} gap="24">
-          <InsightCard {...strength.card}>
-            <StrengthMeterList entries={strength.entries} />
+          <InsightCard {...strength.card} variant={variant}>
+            <StrengthMeterList
+              entries={strength.entries}
+              variant={variant}
+            />
           </InsightCard>
 
-          <InsightCard {...volatilityMeter.card}>
+          <InsightCard {...volatilityMeter.card} variant={variant}>
             <VolatilityMeterList entries={volatilityMeter.entries} />
           </InsightCard>
         </Column>
 
         <Column flex={1} minWidth={32} gap="24">
-          <InsightCard {...movers.card}>
+          <InsightCard {...movers.card} variant={variant}>
             <Column gap="16">
               {movers.sections.map((section) => (
                 <MoversTable
@@ -141,15 +150,20 @@ export function StaticMarketSnapshotSection(
                   columnLabels={movers.tableOverrides?.columnLabels}
                   formatters={movers.tableOverrides?.formatters}
                   emptyLabel={movers.tableOverrides?.emptyLabel}
+                  variant={variant}
                 />
               ))}
             </Column>
           </InsightCard>
 
-          <InsightCard {...volatilityBuckets.card}>
+          <InsightCard {...volatilityBuckets.card} variant={variant}>
             <Row gap="16" wrap>
               {volatilityBuckets.buckets.map((bucket) => (
-                <VolatilityBucketPanel key={bucket.title} {...bucket} />
+                <VolatilityBucketPanel
+                  key={bucket.title}
+                  {...bucket}
+                  variant={bucket.variant ?? variant}
+                />
               ))}
             </Row>
           </InsightCard>
@@ -158,7 +172,7 @@ export function StaticMarketSnapshotSection(
 
       <Row gap="24" wrap>
         <Column flex={1} minWidth={32} gap="24">
-          <InsightCard {...momentum.card}>
+          <InsightCard {...momentum.card} variant={variant}>
             <Column as="ul" gap="12" fillWidth>
               {momentum.entries.map((entry) => (
                 <Row key={entry.id} as="li" gap="12" vertical="start">
@@ -178,7 +192,7 @@ export function StaticMarketSnapshotSection(
         </Column>
 
         <Column flex={1} minWidth={32}>
-          <InsightCard {...heatmap.card}>
+          <InsightCard {...heatmap.card} variant={variant}>
             <Column gap="12">
               {heatmap.notes.map((note, index) => (
                 <Text

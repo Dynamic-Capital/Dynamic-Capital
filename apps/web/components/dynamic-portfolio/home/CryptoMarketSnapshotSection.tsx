@@ -6,6 +6,7 @@ import { Column, Text } from "@/components/dynamic-ui-system";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { StaticMarketSnapshotSection } from "./StaticMarketSnapshotSection";
+import type { SnapshotVariant } from "./MarketSnapshotPrimitives";
 import {
   buildSnapshotConfig,
   buildSnapshots,
@@ -146,7 +147,9 @@ const CRYPTO_OPTIONS: SnapshotBuilderOptions = {
   fallbackMomentumDetail: "Live data synchronising.",
 };
 
-export function CryptoMarketSnapshotSection() {
+export function CryptoMarketSnapshotSection({
+  variant = "contained",
+}: { variant?: SnapshotVariant } = {}) {
   const { quotes, isLoading, error, lastUpdated } = useLiveMarketQuotes({
     assetClass: "crypto",
     symbols: CRYPTO_INSTRUMENTS.map((instrument) => instrument.requestSymbol),
@@ -181,7 +184,7 @@ export function CryptoMarketSnapshotSection() {
     );
   }
 
-  return <StaticMarketSnapshotSection config={config} />;
+  return <StaticMarketSnapshotSection config={config} variant={variant} />;
 }
 
 export default CryptoMarketSnapshotSection;

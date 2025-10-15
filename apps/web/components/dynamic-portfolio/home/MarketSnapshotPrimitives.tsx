@@ -23,6 +23,8 @@ import type { ReactNode } from "react";
 
 export type SnapshotTone = "strong" | "balanced" | "soft";
 
+export type SnapshotVariant = "contained" | "frameless";
+
 export type TagBackground =
   | Colors
   | "page"
@@ -41,19 +43,31 @@ export interface InsightCardProps {
   description?: string;
   tag?: InsightCardTag;
   children: ReactNode;
+  variant?: SnapshotVariant;
+  className?: string;
 }
 
 export function InsightCard(
-  { title, description, tag, children }: InsightCardProps,
+  {
+    title,
+    description,
+    tag,
+    children,
+    variant = "contained",
+    className,
+  }: InsightCardProps,
 ) {
+  const isFrameless = variant === "frameless";
+
   return (
     <Column
-      background="page"
-      border="neutral-alpha-weak"
-      radius="l"
+      background={isFrameless ? undefined : "page"}
+      border={isFrameless ? undefined : "neutral-alpha-weak"}
+      radius={isFrameless ? undefined : "l"}
       padding="l"
-      gap="16"
+      gap={isFrameless ? "20" : "16"}
       align="start"
+      className={className}
     >
       <Column gap="8" align="start">
         {tag
@@ -103,12 +117,16 @@ export const DEFAULT_STRENGTH_TONE_STYLES: Record<
 export function StrengthMeterList({
   entries,
   toneStyles = DEFAULT_STRENGTH_TONE_STYLES,
+  variant = "contained",
 }: {
   entries: StrengthMeterEntry[];
   toneStyles?: Partial<
     Record<SnapshotTone, { label: string; background: TagBackground }>
   >;
+  variant?: SnapshotVariant;
 }) {
+  const isFrameless = variant === "frameless";
+
   return (
     <Row gap="16" wrap>
       {entries.map((entry) => {
@@ -117,9 +135,9 @@ export function StrengthMeterList({
         return (
           <Column
             key={entry.id}
-            background="page"
-            border="neutral-alpha-weak"
-            radius="l"
+            background={isFrameless ? undefined : "page"}
+            border={isFrameless ? undefined : "neutral-alpha-weak"}
+            radius={isFrameless ? undefined : "l"}
             padding="l"
             gap="12"
             minWidth={20}
@@ -208,6 +226,7 @@ export interface MoversTableProps extends MoversSection {
     last?: (value: number | undefined) => string;
   };
   emptyLabel?: string;
+  variant?: SnapshotVariant;
 }
 
 const formatSignedPercent = (value: number | undefined) => {
@@ -256,7 +275,10 @@ export function MoversTable({
   columnLabels,
   formatters,
   emptyLabel = "No movers available.",
+  variant = "contained",
 }: MoversTableProps) {
+  const isFrameless = variant === "frameless";
+
   const resolvedFormatters: Required<MoversFormatters> = {
     changePercent: formatters?.changePercent ??
       defaultMoversFormatters.changePercent,
@@ -287,11 +309,12 @@ export function MoversTable({
         {title}
       </Tag>
       <Column
-        background="surface"
-        border="neutral-alpha-weak"
-        radius="l"
+        background={isFrameless ? undefined : "surface"}
+        border={isFrameless ? undefined : "neutral-alpha-weak"}
+        radius={isFrameless ? undefined : "l"}
         padding="l"
         fillWidth
+        gap={isFrameless ? "12" : undefined}
       >
         {data.length === 0
           ? (
@@ -434,6 +457,7 @@ export interface VolatilityBucket {
   formatValue?: (value: number | undefined) => string;
   valueLabel?: string;
   emptyLabel?: string;
+  variant?: SnapshotVariant;
 }
 
 const defaultVolatilityFormatter = (value: number | undefined) => {
@@ -449,19 +473,22 @@ export function VolatilityBucketPanel({
   background,
   formatValue = defaultVolatilityFormatter,
   emptyLabel = "No instruments available.",
+  variant = "contained",
 }: VolatilityBucket) {
   const headingId = `${
     title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
   }-bucket-label`;
+
+  const isFrameless = variant === "frameless";
 
   return (
     <Column
       flex={1}
       minWidth={24}
       gap="12"
-      background="surface"
-      border="neutral-alpha-weak"
-      radius="l"
+      background={isFrameless ? undefined : "surface"}
+      border={isFrameless ? undefined : "neutral-alpha-weak"}
+      radius={isFrameless ? undefined : "l"}
       padding="l"
       align="start"
     >
