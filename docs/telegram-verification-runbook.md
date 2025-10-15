@@ -40,9 +40,12 @@ export SUPABASE_PROJECT_REF=...   # e.g. abcdefghijklmnopqrst
 scripts/ops/deploy-telegram-verification.sh
 ```
 
-The script wraps `supabase functions deploy` via `npm-safe` so the Supabase CLI
-respects the repo's sanitized environment defaults. The command exits on the
-first failure to prevent partial deployments.
+The script clones the `supabase/` directory into a temporary workspace and
+strips the legacy `[functions.env]` stanza before invoking
+`supabase functions deploy`. This avoids the current Supabase CLI validation bug
+that rejects environment keys containing underscores. The helper wraps the CLI
+through `npm-safe` so it inherits the repo's sanitized environment defaults and
+exits on the first failure to prevent partial deployments.
 
 ## Monitor Recent Logs
 

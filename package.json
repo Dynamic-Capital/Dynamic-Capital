@@ -174,7 +174,7 @@
     "pg-mem": "^3.0.5",
     "png-to-ico": "^2.1.8",
     "sharp": "^0.33.5",
-    "supabase": "^2.48.3",
+    "supabase": "^2.51.0",
     "ton-contract-executor": "^0.8.4",
     "tsx": "^4.20.6",
     "vitest": "^3.2.4",
