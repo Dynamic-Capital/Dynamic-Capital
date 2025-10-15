@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "check": "NODE_TLS_REJECT_UNAUTHORIZED=0 deno check --allow-import=deno.land,registry.npmjs.org,cdn.skypack.dev,lib.deno.dev,jsr.io --no-npm --unsafely-ignore-certificate-errors=deno.land,registry.npmjs.org,cdn.skypack.dev,lib.deno.dev,jsr.io supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts",
+    "check": "DENO_TLS_CA_STORE=system deno check --allow-import=deno.land,registry.npmjs.org,cdn.skypack.dev,lib.deno.dev,jsr.io --no-npm supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts",
     "serve": "supabase functions serve",
     "fmt": "bash -lc '$(bash scripts/deno_bin.sh) fmt --check .'",
     "fmt:write": "bash -lc '$(bash scripts/deno_bin.sh) fmt .'",
