@@ -134,6 +134,16 @@ function normalizeLog(
   };
 }
 
+function buildResponseHint(status: number): string | null {
+  if (status === 401 || status === 403) {
+    return "Supabase rejected the request. Confirm SUPABASE_ACCESS_TOKEN has edge function log access and SUPABASE_PROJECT_REF is correct.";
+  }
+  if (status === 404) {
+    return "Supabase could not find the requested edge function. Double-check the function name and deployment status.";
+  }
+  return null;
+}
+
 async function fetchLogs(functionName: string): Promise<NormalizedLog[]> {
   const url = new URL(
     `https://api.supabase.com/v1/projects/${projectRef}/logs`,
@@ -153,8 +163,11 @@ async function fetchLogs(functionName: string): Promise<NormalizedLog[]> {
 
   if (!response.ok) {
     const text = await response.text();
+    const hint = buildResponseHint(response.status);
+    const suffix = text.trim().length > 0 ? `\n${text}` : "";
+    const hintSuffix = hint ? `\nHint: ${hint}` : "";
     throw new Error(
-      `Failed to fetch logs for ${functionName}: ${response.status} ${response.statusText}\n${text}`,
+      `Failed to fetch logs for ${functionName}: ${response.status} ${response.statusText}${hintSuffix}${suffix}`,
     );
   }
 
@@ -183,32 +196,47 @@ function formatLog(log: NormalizedLog): string {
   return `${timestamp} [${status}] ${method} ${path} → ${message}`;
 }
 
-for (const fn of functions) {
-  const logs = await fetchLogs(fn);
-  const total = logs.length;
-  const unauthorized = logs.filter((log) =>
-    log.status === 401 ||
-    (log.message?.includes("401") ?? false)
-  ).length;
-  const statusCounts = summarizeStatusCounts(logs);
+async function main() {
+  for (const fn of functions) {
+    const logs = await fetchLogs(fn);
+    const total = logs.length;
+    const unauthorized = logs.filter((log) =>
+      log.status === 401 ||
+      (log.message?.includes("401") ?? false)
+    ).length;
+    const statusCounts = summarizeStatusCounts(logs);
 
-  console.log(`\n=== ${fn} (${total} entries, ${unauthorized} status 401) ===`);
-  if (flags.json) {
-    console.log(JSON.stringify({ function: fn, entries: logs }, null, 2));
-    continue;
-  }
+    console.log(
+      `\n=== ${fn} (${total} entries, ${unauthorized} status 401) ===`,
+    );
+    if (flags.json) {
+      console.log(JSON.stringify({ function: fn, entries: logs }, null, 2));
+      continue;
+    }
 
-  if (statusCounts.size > 0) {
-    console.log(`Status counts: ${formatStatusCounts(statusCounts)}`);
-  }
+    if (statusCounts.size > 0) {
+      console.log(`Status counts: ${formatStatusCounts(statusCounts)}`);
+    }
 
-  if (total === 0) {
-    console.log("No logs in the selected window.");
-    continue;
-  }
+    if (total === 0) {
+      console.log("No logs in the selected window.");
+      continue;
+    }
 
-  const preview = logs.slice(0, Math.min(10, logs.length));
-  for (const entry of preview) {
-    console.log(formatLog(entry));
+    const preview = logs.slice(0, Math.min(10, logs.length));
+    for (const entry of preview) {
+      console.log(formatLog(entry));
+    }
   }
+}
+
+try {
+  await main();
+} catch (error) {
+  if (error instanceof Error) {
+    console.error(`Error: ${error.message}`);
+  } else {
+    console.error("Unexpected error while fetching logs", error);
+  }
+  Deno.exit(1);
 }

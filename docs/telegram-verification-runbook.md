@@ -9,9 +9,10 @@ from Telegram mini-app sessions.
 
 ## Prerequisites
 
-- Supabase CLI authentication via `SUPABASE_ACCESS_TOKEN` with permissions to
-  deploy edge functions and read project logs.
-- The target project reference exported as `SUPABASE_PROJECT_REF`.
+- Supabase CLI authentication via `SUPABASE_ACCESS_TOKEN` (format `sbp_...`)
+  with permissions to deploy edge functions and read project logs.
+- The target project reference exported as `SUPABASE_PROJECT_REF` (20-character
+  lowercase identifier from the Supabase project settings).
 - Access to the repository scripts (run from the repo root).
 - Optional: a terminal with `deno` available for log inspection.
 
@@ -64,10 +65,12 @@ Key options:
   `$(bash scripts/deno_bin.sh) run --allow-env --allow-net scripts/ops/tail-telegram-logs.ts verify-telegram`.
 
 The helper automatically installs and pins the local `deno` runtime when it's
-missing, so you don't need a global installation. The log script highlights how
-many entries returned status 401 (either via explicit status fields or message
-text) and prints a status-code breakdown so you can spot any new error classes.
-Use `--json` when piping into analytics pipelines or dashboards.
+missing, so you don't need a global installation. It now surfaces actionable
+error hints—for example, 401/403 responses prompt you to re-check the Supabase
+token scopes, while 404s flag missing edge functions. The log script highlights
+how many entries returned status 401 (either via explicit status fields or
+message text) and prints a status-code breakdown so you can spot any new error
+classes. Use `--json` when piping into analytics pipelines or dashboards.
 
 ## Follow-up Actions
 
