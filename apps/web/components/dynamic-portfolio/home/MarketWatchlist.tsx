@@ -21,6 +21,7 @@ import {
   getInstrumentMetadata,
 } from "@/data/instruments";
 import { RefreshAnimation } from "./RefreshAnimation";
+import type { SnapshotVariant } from "./MarketSnapshotPrimitives";
 
 export interface StrategyPlaybook {
   automation: string;
@@ -1131,7 +1132,9 @@ const getStatusLabel = (updatedAt: Date | null, isFetching: boolean) => {
   return "Waiting for live feed…";
 };
 
-export function MarketWatchlist() {
+export function MarketWatchlist({
+  variant = "contained",
+}: { variant?: SnapshotVariant } = {}) {
   const [isInViewport, setIsInViewport] = useState(false);
   const [hasViewportEntry, setHasViewportEntry] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(() =>
@@ -1209,17 +1212,19 @@ export function MarketWatchlist() {
     isFetching,
   ]);
 
+  const isFrameless = variant === "frameless";
+
   return (
     <Column
       ref={sectionRef}
       id="market-watchlist"
       fillWidth
-      background="surface"
-      border="neutral-alpha-medium"
-      radius="l"
+      background={isFrameless ? undefined : "surface"}
+      border={isFrameless ? undefined : "neutral-alpha-medium"}
+      radius={isFrameless ? undefined : "l"}
       padding="xl"
-      gap="32"
-      shadow="l"
+      gap={isFrameless ? "24" : "32"}
+      shadow={isFrameless ? undefined : "l"}
     >
       <Column gap="16" maxWidth={32}>
         <Heading variant="display-strong-xs">
@@ -1301,9 +1306,9 @@ export function MarketWatchlist() {
                     return (
                       <Column
                         key={item.symbol}
-                        background="page"
-                        border="neutral-alpha-weak"
-                        radius="l"
+                        background={isFrameless ? undefined : "page"}
+                        border={isFrameless ? undefined : "neutral-alpha-weak"}
+                        radius={isFrameless ? undefined : "l"}
                         padding="l"
                         gap="16"
                         style={{ minWidth: "280px" }}
@@ -1504,9 +1509,9 @@ export function MarketWatchlist() {
                   })
                   : (
                     <Column
-                      background="page"
-                      border="neutral-alpha-weak"
-                      radius="l"
+                      background={isFrameless ? undefined : "page"}
+                      border={isFrameless ? undefined : "neutral-alpha-weak"}
+                      radius={isFrameless ? undefined : "l"}
                       padding="l"
                       minWidth={32}
                       gap="8"

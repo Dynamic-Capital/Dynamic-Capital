@@ -6,6 +6,7 @@ import { Column, Text } from "@/components/dynamic-ui-system";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { StaticMarketSnapshotSection } from "./StaticMarketSnapshotSection";
+import type { SnapshotVariant } from "./MarketSnapshotPrimitives";
 import {
   buildSnapshotConfig,
   buildSnapshots,
@@ -142,7 +143,9 @@ const INDEX_OPTIONS: SnapshotBuilderOptions = {
   fallbackMomentumDetail: "Live data synchronising.",
 };
 
-export function IndicesMarketSnapshotSection() {
+export function IndicesMarketSnapshotSection({
+  variant = "contained",
+}: { variant?: SnapshotVariant } = {}) {
   const { quotes, isLoading, error, lastUpdated } = useLiveMarketQuotes({
     assetClass: "indices",
     symbols: INDEX_INSTRUMENTS.map((instrument) => instrument.requestSymbol),
@@ -177,7 +180,7 @@ export function IndicesMarketSnapshotSection() {
     );
   }
 
-  return <StaticMarketSnapshotSection config={config} />;
+  return <StaticMarketSnapshotSection config={config} variant={variant} />;
 }
 
 export default IndicesMarketSnapshotSection;

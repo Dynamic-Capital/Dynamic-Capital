@@ -12,6 +12,7 @@ import {
 } from "@/components/dynamic-ui-system";
 
 import { useSupabase } from "@/context/SupabaseProvider";
+import type { SnapshotVariant } from "@/components/dynamic-portfolio/home/MarketSnapshotPrimitives";
 
 import type { Colors } from "@/components/dynamic-ui-system";
 import {
@@ -406,13 +407,20 @@ const normaliseApiMomentumEntry = (
 export type HeatmapToolProps = {
   id?: string;
   assetClass: HeatmapAssetClass;
+  variant?: SnapshotVariant;
 };
 
-export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
+export function HeatmapTool({
+  id,
+  assetClass,
+  variant = "contained",
+}: HeatmapToolProps) {
   const config = HEATMAP_CONFIGS[assetClass];
   const { supabase } = useSupabase();
 
   const geometryKey = id ?? assetClass;
+
+  const isFrameless = variant === "frameless";
 
   const strengthEntries = useMemo(
     () => buildStrengthEntries(config.strength.entries),
@@ -581,12 +589,12 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
     <Column
       id={id}
       fillWidth
-      background="surface"
-      border="neutral-alpha-medium"
-      radius="l"
+      background={isFrameless ? undefined : "surface"}
+      border={isFrameless ? undefined : "neutral-alpha-medium"}
+      radius={isFrameless ? undefined : "l"}
       padding="xl"
-      gap="32"
-      shadow="l"
+      gap={isFrameless ? "24" : "32"}
+      shadow={isFrameless ? undefined : "l"}
       aria-label={config.snapshotLabel}
     >
       <Column gap="12" maxWidth={32}>
@@ -598,9 +606,9 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
 
       <Row gap="24" wrap>
         <Column
-          background="page"
-          border="neutral-alpha-weak"
-          radius="l"
+          background={isFrameless ? undefined : "page"}
+          border={isFrameless ? undefined : "neutral-alpha-weak"}
+          radius={isFrameless ? undefined : "l"}
           padding="l"
           gap="20"
           flex={1}
@@ -697,9 +705,9 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
         </Column>
 
         <Column
-          background="page"
-          border="neutral-alpha-weak"
-          radius="l"
+          background={isFrameless ? undefined : "page"}
+          border={isFrameless ? undefined : "neutral-alpha-weak"}
+          radius={isFrameless ? undefined : "l"}
           padding="l"
           gap="20"
           flex={1}
@@ -944,9 +952,9 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
 
       <Row gap="24" wrap>
         <Column
-          background="page"
-          border="neutral-alpha-weak"
-          radius="l"
+          background={isFrameless ? undefined : "page"}
+          border={isFrameless ? undefined : "neutral-alpha-weak"}
+          radius={isFrameless ? undefined : "l"}
           padding="l"
           gap="20"
           flex={1}
@@ -1213,9 +1221,9 @@ export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
         </Column>
 
         <Column
-          background="page"
-          border="neutral-alpha-weak"
-          radius="l"
+          background={isFrameless ? undefined : "page"}
+          border={isFrameless ? undefined : "neutral-alpha-weak"}
+          radius={isFrameless ? undefined : "l"}
           padding="l"
           gap="20"
           flex={1}
