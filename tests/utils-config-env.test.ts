@@ -288,6 +288,14 @@ test("supabase env keys remain the single source of alias truth", async () => {
   );
 });
 
+test("supabase function registry includes config edge handler", async () => {
+  const module = await freshImport(
+    new URL("../shared/supabase/functions.ts", import.meta.url),
+  );
+
+  equal(module.SUPABASE_FUNCTIONS.CONFIG, "config");
+});
+
 test("readSupabaseEnv resolves aliases consistently", async () => {
   await withEnv({
     SUPABASE_URL: undefined,
