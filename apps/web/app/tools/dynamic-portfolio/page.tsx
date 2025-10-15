@@ -15,6 +15,7 @@ import { VipPlansPricingSection } from "@/components/dynamic-portfolio/home/VipP
 import { VipPackagesSection } from "@/components/dynamic-portfolio/home/VipPackagesSection";
 import { CheckoutCallout } from "@/components/dynamic-portfolio/home/CheckoutCallout";
 import { about, baseURL, person, toAbsoluteUrl } from "@/resources";
+import { buildMetadata } from "@/lib/seo";
 import styles from "@/components/dynamic-portfolio/DynamicCapitalLandingPage.module.scss";
 import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
 import { DeskSection } from "@/components/workspaces/DeskSection";
@@ -241,10 +242,11 @@ const SupportCard: FC<(typeof SUPPORT_CHANNELS)[number]> = ({
   );
 };
 
-export const metadata = {
+export const metadata = buildMetadata({
   title: pageTitle,
   description: pageDescription,
-};
+  canonicalPath: pagePath,
+});
 
 export default function InvestorDeskPage() {
   return (

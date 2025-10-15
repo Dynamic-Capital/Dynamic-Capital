@@ -3,12 +3,18 @@ import { redirect } from "next/navigation";
 import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 import { ProfileSettingsForm } from "@/components/auth/ProfileSettingsForm";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata = {
+const pagePath = "/profile";
+
+export const metadata = buildMetadata({
   title: "Profile Settings – Dynamic Capital",
   description:
     "Update your Dynamic Capital profile details, including name and workspace identity metadata.",
-};
+  canonicalPath: pagePath,
+  noIndex: true,
+  noFollow: true,
+});
 
 export default async function ProfilePage() {
   const supabase = await createServerSupabaseClient();
