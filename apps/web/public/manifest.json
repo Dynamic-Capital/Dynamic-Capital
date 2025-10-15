@@ -45,7 +45,7 @@
       "name": "Market Review",
       "short_name": "Review",
       "url": "/tools/dynamic-market-review",
-      "description": "Launch the Dynamic Market Review heatmap and analytics workspace."
+      "description": "Open the adaptive Market Review workspace with responsive heatmaps, watchlists, and cross-asset telemetry."
     }
   ],
   "related_applications": [
