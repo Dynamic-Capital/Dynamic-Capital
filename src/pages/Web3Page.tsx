@@ -4,8 +4,13 @@ export function WalletSection() {
   return (
     <section id="wallet" className="py-16">
       <div className="container mx-auto px-4">
-        <div className="mx-auto max-w-2xl">
-          <h2 className="mb-8 text-4xl font-bold">Web3 Wallet</h2>
+        <div className="mx-auto max-w-3xl text-center space-y-6">
+          <h2 className="text-4xl font-bold">Dynamic token</h2>
+          <p className="text-muted-foreground">
+            Manage your DCT position, connect TON wallets, and initiate treasury actions from one dependable interface.
+          </p>
+        </div>
+        <div className="mx-auto mt-10 max-w-2xl">
           <UnifiedWalletConnect />
         </div>
       </div>

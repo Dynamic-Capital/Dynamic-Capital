@@ -23,7 +23,18 @@ import AIAnalytics from "./pages/AIAnalytics";
 import MemoryRetrieval from "./pages/MemoryRetrieval";
 import ProceduresRouting from "./pages/ProceduresRouting";
 import TodoListPage from "./pages/TodoListPage";
-import { LayoutDashboard, TrendingUp, Camera, Wallet, MessageSquare, Sparkles, Activity, Database, GitBranch, CheckSquare } from "lucide-react";
+import {
+  LayoutDashboard,
+  TrendingUp,
+  Camera,
+  Wallet,
+  MessageSquare,
+  Sparkles,
+  Activity,
+  Database,
+  GitBranch,
+  CheckSquare,
+} from "lucide-react";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -34,7 +45,7 @@ const NAV_ITEMS = [
 ];
 
 const AI_NAV_ITEMS = [
-  { path: "/agi-chat", label: "AGI Chat", icon: Sparkles },
+  { path: "/agi-chat", label: "Start AI chat", icon: Sparkles },
   { path: "/analytics", label: "Analytics", icon: Activity },
   { path: "/memory", label: "Memory", icon: Database },
   { path: "/procedures", label: "Procedures", icon: GitBranch },
@@ -118,7 +129,7 @@ function SiteFooter() {
     <footer className="bg-muted border-t">
       <div className="container mx-auto px-4 py-8">
         <p className="text-center text-muted-foreground">
-          © 2024 Dynamic Capital. All rights reserved.
+          © 2025 Dynamic Capital. All rights reserved.
         </p>
       </div>
     </footer>

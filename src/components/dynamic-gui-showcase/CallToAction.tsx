@@ -12,7 +12,7 @@ export function CallToAction({
   return (
     <Column gap="12" align="center">
       <Heading variant="heading-strong-m" align="center" wrap="balance">
-        Ready to orchestrate your own Dynamic GUI?
+        Ready to bring Dynamic Chat to your investor desk?
       </Heading>
       <Text
         variant="body-default-m"
@@ -20,7 +20,7 @@ export function CallToAction({
         align="center"
         wrap="balance"
       >
-        Connect your preferred payment rails and let the workspace handle playbook routing, receipts, and compliance snapshots.
+        Pick the workspace track that fits your mandate, invite collaborators, and align approvals in minutes.
       </Text>
       <Row gap="12" wrap horizontal="center">
         <Button
@@ -39,7 +39,7 @@ export function CallToAction({
           prefixIcon="repeat"
           onClick={onRequestWalkthrough}
         >
-          Request a live walkthrough
+          Request a desk walkthrough
         </Button>
       </Row>
     </Column>

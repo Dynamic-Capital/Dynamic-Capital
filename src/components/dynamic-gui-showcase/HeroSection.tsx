@@ -18,12 +18,21 @@ export function HeroSection({
       <Row gap="12" vertical="center" horizontal="center">
         <Pulse size="s" variant="brand" aria-hidden="true" />
         <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
-          {brandName} · Dynamic GUI
+          {brandName} · Dynamic Chat desk
         </Tag>
       </Row>
       <Heading variant="display-strong-s" align="center" wrap="balance">
-        Compose deposit flows without touching a single spreadsheet.
+        Operate your investor desk without leaving Dynamic Chat.
       </Heading>
+      <Row gap="8" wrap horizontal="center">
+        {["Investor onboarding", "TON automations", "Mentor guardrails"].map(
+          (label) => (
+            <Tag key={label} size="s" background="neutral-alpha-weak">
+              {label}
+            </Tag>
+          ),
+        )}
+      </Row>
       <Text
         variant="body-default-m"
         onBackground="neutral-weak"
@@ -38,7 +47,7 @@ export function HeroSection({
         align="center"
         wrap="balance"
       >
-        Orchestrate onboarding, route payments, and verify proofs from one responsive workspace. Built for high-velocity desks that juggle bank, crypto, and prop channels.
+        Coordinate diligence, treasury actions, and signal reviews from a single workspace.
       </Text>
       <Row gap="12" wrap horizontal="center">
         <Button
@@ -48,7 +57,7 @@ export function HeroSection({
           prefixIcon="sparkles"
           onClick={onLaunchCheckout}
         >
-          Launch checkout
+          Get started
         </Button>
         <Button
           size="m"
@@ -57,7 +66,7 @@ export function HeroSection({
           prefixIcon="calendar"
           onClick={onPreviewVip}
         >
-          Preview VIP flow
+          Explore VIP plans
         </Button>
       </Row>
     </Column>
