@@ -116,6 +116,31 @@ The `${DOCTL_CONTEXT:+...}` expansion passes a specific context only when the
 `DOCTL_CONTEXT` environment variable is set, keeping the command compatible with
 both interactive sessions and unattended automation.
 
+### Run the repository's DigitalOcean CLI helper
+
+Some operational playbooks rely on the Node-based DigitalOcean CLI wrapper that
+lives in `scripts/digitalocean`. The helper targets the REST API directly and is
+useful when you need more control than `doctl` exposes. To preview the impact of
+an App Platform sync without writing changes, run:
+
+```bash
+DIGITALOCEAN_TOKEN=dop_v1_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+  npm run do:sync-site -- \
+    --app-id <APP_ID> \
+    --site-url https://dynamic-capital-qazf2.ondigitalocean.app \
+    --zone dynamic-capital.ondigitalocean.app \
+    --show-spec
+```
+
+- `DIGITALOCEAN_TOKEN` must carry the same scope you would grant to `doctl`
+  (Domains + App Platform) and matches the `--token` flag described in the
+  script usage banner.
+- Drop `--show-spec` and add `--apply` when you are ready to push the rendered
+  spec through the API. The command exits with a non-zero status if the API
+  responds with an error, surfacing the response payload for debugging.
+- Use `--output` to capture the generated spec YAML locally before shipping it,
+  or `--allowed-origins`/`--domain` to override individual fields ad hoc.
+
 ## 5. Post-import verification
 
 1. Inspect the records on DigitalOcean to confirm the import succeeded:
@@ -166,3 +191,64 @@ If a regression is detected after the import:
 
 Following this workflow keeps the DigitalOcean DNS zone aligned with the
 repository state and preserves the audit trail required by governance.
+
+## Troubleshooting common `doctl` DNS errors
+
+Even when the workflow above is followed precisely, the DigitalOcean API may
+return errors while you import or reconcile the zone. The checklist below covers
+the issues we see most frequently when operators run commands such as:
+
+```bash
+./.bin/doctl compute domain records import dynamic-capital.ondigitalocean.app \
+  --zone-file dns/dynamic-capital.ondigitalocean.app.zone
+```
+
+### Authentication or authorization failures
+
+- Confirm the `doctl` binary is authenticated with a token that starts with
+  `dop_v1_`. Tokens must have write access to both **Domains** and **App
+  Platform**.
+- Run `./.bin/doctl auth list` to ensure the expected context is active. Switch
+  contexts with `./.bin/doctl auth switch --context <name>` before retrying the
+  import.
+- Re-run `./.bin/doctl auth init` when the active context is missing or the
+  helper script has never been executed on the current machine. The command will
+  prompt for the `dop_v1_` token and optional context name:
+
+  ```bash
+  ./.bin/doctl auth init --context dynamic-capital
+  ```
+
+  Use the same context label that downstream scripts expect (`dynamic-capital`
+  by default) so `npm run doctl:sync-site` can pick it up without additional
+  flags.
+- If you recently rotated credentials, remove the cached config in
+  `~/.config/dynamic-capital/doctl` and re-run `npm run doctl:install` with the
+  new token so the helper script rebuilds the context.
+
+### Zone import validation errors
+
+- DigitalOcean surfaces record validation errors as HTTP 422 responses. Pipe the
+  command through `--verbose` to inspect the failing payload and compare it with
+  `dns/dynamic-capital.ondigitalocean.app.zone` to spot formatting differences.
+- When the API complains about duplicate records, run
+  `./.bin/doctl compute domain records list dynamic-capital.ondigitalocean.app`
+  and prune the conflicting entries manually or by re-exporting the zone with
+  `--output json` and diffing it against the snapshot committed in Git.
+- SPF/TXT records that contain semicolons or escaped quotes must be wrapped in
+  double quotes inside the zone file. If DigitalOcean reports `unbalanced
+  quotes`, double-check the TXT payload uses the same quoting style as the
+  working examples earlier in this document.
+
+### DNS propagation or NXDOMAIN errors after import
+
+- Use `dig +trace dynamic-capital.ondigitalocean.app` immediately after the
+  import to confirm DigitalOcean name servers serve the expected A/AAAA/CNAME
+  chain. A stale response often means the TTL has not yet expired on upstream
+  resolvers.
+- Query the apex and critical subdomains through multiple resolvers (for
+  example `1.1.1.1`, `8.8.8.8`, and your corporate resolver) to determine
+  whether the problem is limited to a particular network.
+- Capture the failing `dig` output and attach it to the operations log entry so
+  the on-call engineer has enough context to escalate to DigitalOcean support if
+  the propagation stall persists beyond the documented TTL window.
