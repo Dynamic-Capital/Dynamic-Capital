@@ -1,7 +1,6 @@
-import Script from "next/script";
-
 import { DynamicChatLanding } from "@/components/chat/DynamicChatLanding";
-import { buildMetadata, createOrganizationJsonLd } from "@/lib/seo";
+import { Schema } from "@/components/dynamic-ui-system";
+import { buildMetadata, buildOrganizationSchema } from "@/lib/seo";
 import { home } from "@/resources";
 
 export const metadata = buildMetadata({
@@ -17,20 +16,14 @@ export const metadata = buildMetadata({
 });
 
 export default function HomePage() {
-  const organizationJsonLd = createOrganizationJsonLd({
+  const organizationSchema = buildOrganizationSchema({
     canonicalPath: home.path,
     description: home.description,
   });
 
   return (
     <>
-      <Script
-        id="organization-schema"
-        type="application/ld+json"
-        strategy="afterInteractive"
-      >
-        {JSON.stringify(organizationJsonLd)}
-      </Script>
+      <Schema {...organizationSchema} />
       <DynamicChatLanding />
     </>
   );

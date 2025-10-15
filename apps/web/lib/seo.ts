@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { SchemaProps } from "@/components/dynamic-ui-system/internal/modules/seo/Schema";
 
 import { dynamicBranding, sameAs, toAbsoluteUrl } from "@/resources";
 
@@ -7,6 +8,13 @@ const FALLBACK_SITE_URL = dynamicBranding.metadata.primaryUrl ??
 const SITE_URL =
   normalizeSiteUrl(process.env.SITE_URL, { ensureTrailingSlash: true }) ??
     FALLBACK_SITE_URL;
+const METADATA_BASE = resolveMetadataBase(SITE_URL);
+
+export const canonicalSiteUrl = SITE_URL;
+
+export function getMetadataBase(): URL | undefined {
+  return METADATA_BASE;
+}
 
 type MetadataImageInput = {
   url: string;
@@ -30,11 +38,13 @@ type BuildMetadataOptions = {
   noFollow?: boolean;
 };
 
-type OrganizationJsonLdOptions = {
+type OrganizationSchemaOptions = {
   canonicalPath?: string;
   canonicalUrl?: string;
   sameAs?: Iterable<string>;
   description?: string;
+  image?: string;
+  title?: string;
 };
 
 export function buildMetadata(options: BuildMetadataOptions = {}): Metadata {
@@ -49,6 +59,7 @@ export function buildMetadata(options: BuildMetadataOptions = {}): Metadata {
   const robots = buildRobotsConfig(options.noIndex, options.noFollow);
 
   return {
+    metadataBase: METADATA_BASE,
     title,
     description,
     keywords,
@@ -71,30 +82,32 @@ export function buildMetadata(options: BuildMetadataOptions = {}): Metadata {
   } satisfies Metadata;
 }
 
-export function createOrganizationJsonLd(
-  options: OrganizationJsonLdOptions = {},
-) {
+export function buildOrganizationSchema(
+  options: OrganizationSchemaOptions = {},
+): SchemaProps {
   const { metadata: brandMetadata, assets } = dynamicBranding;
-  const canonical = resolveCanonicalUrl(
-    options.canonicalUrl ?? options.canonicalPath,
+  const { baseURL, path } = resolveSchemaLocation(
+    options.canonicalUrl,
+    options.canonicalPath,
   );
-  const logoUrl = assets.logo
-    ? toAbsoluteUrl(SITE_URL, assets.logo)
-    : undefined;
   const sameAsLinks = uniqueStrings(
     options.sameAs ?? Object.values(sameAs ?? {}),
   ).filter(isValidUrl);
+  const image = resolveSchemaImage(
+    options.image,
+    assets.logo,
+    assets.socialPreview,
+  );
 
   return {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: brandMetadata.name,
-    url: canonical ?? SITE_URL,
+    as: "organization",
+    title: options.title ?? brandMetadata.name,
     description: options.description ?? brandMetadata.description,
-    email: brandMetadata.supportEmail,
-    logo: logoUrl,
-    sameAs: sameAsLinks,
-  } as const;
+    baseURL,
+    path,
+    ...(image ? { image } : {}),
+    ...(sameAsLinks.length > 0 ? { sameAs: sameAsLinks } : {}),
+  } satisfies SchemaProps;
 }
 
 export function resolveCanonicalUrl(
@@ -175,6 +188,20 @@ function resolveOgImage(
   return images.length > 0 ? images : undefined;
 }
 
+function resolveSchemaImage(
+  image: string | undefined,
+  logo: string | undefined,
+  fallback: string | undefined,
+): string | undefined {
+  const candidate = image ?? logo ?? fallback;
+
+  if (!candidate) {
+    return undefined;
+  }
+
+  return toAbsoluteUrl(SITE_URL, candidate);
+}
+
 function buildRobotsConfig(
   noIndex: boolean | undefined,
   noFollow: boolean | undefined,
@@ -193,6 +220,44 @@ function buildRobotsConfig(
   };
 }
 
+function resolveSchemaLocation(
+  canonicalUrl: string | undefined,
+  canonicalPath: string | undefined,
+): { baseURL: string; path: string } {
+  const resolved = resolveCanonicalUrl(canonicalUrl ?? canonicalPath);
+
+  if (resolved) {
+    try {
+      const parsed = new URL(resolved);
+      const pathname = parsed.pathname || "/";
+      const search = parsed.search ?? "";
+      const hash = parsed.hash ?? "";
+
+      return {
+        baseURL: `${parsed.origin}/`,
+        path: `${pathname}${search}${hash}` || "/",
+      };
+    } catch {
+      // fall through to defaults
+    }
+  }
+
+  const normalizedPath = normalizePath(canonicalPath);
+
+  return {
+    baseURL: SITE_URL,
+    path: normalizedPath,
+  };
+}
+
+function normalizePath(path: string | undefined): string {
+  if (!path || path === "/") {
+    return "/";
+  }
+
+  return path.startsWith("/") ? path : `/${path}`;
+}
+
 function isValidUrl(candidate: string | undefined): candidate is string {
   if (!candidate) return false;
 
@@ -201,5 +266,13 @@ function isValidUrl(candidate: string | undefined): candidate is string {
     return Boolean(url.protocol && url.host);
   } catch {
     return false;
+  }
+}
+
+function resolveMetadataBase(url: string): URL | undefined {
+  try {
+    return new URL(url);
+  } catch {
+    return undefined;
   }
 }

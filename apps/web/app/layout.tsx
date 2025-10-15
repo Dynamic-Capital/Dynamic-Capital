@@ -25,10 +25,11 @@ import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { SiteFooter } from "@/components/navigation/SiteFooter";
 import { SkipToContent } from "@/components/navigation/SkipToContent";
 import { HideOnMiniApp } from "@/components/navigation/HideOnMiniApp";
+import { canonicalSiteUrl, getMetadataBase } from "@/lib/seo";
 import { dynamicBranding, dynamicUI } from "@/resources";
 import { PageShell } from "@/components/layout/PageShell";
 
-const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
+const SITE_URL = canonicalSiteUrl;
 const THEME_SCRIPT_ID = "theme-init";
 const BRANDING_STYLE_ELEMENT_ID = "dynamic-branding-tokens";
 
@@ -130,15 +131,7 @@ function serializeBrandingTokens(tokenSet: Record<string, string>): string {
     .join("\n");
 }
 
-function resolveMetadataBase(url: string) {
-  try {
-    return new URL(url);
-  } catch {
-    return undefined;
-  }
-}
-
-const resolvedMetadataBase = resolveMetadataBase(SITE_URL);
+const resolvedMetadataBase = getMetadataBase();
 const themeColorMeta = [
   {
     media: "(prefers-color-scheme: light)",
