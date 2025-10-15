@@ -15,7 +15,7 @@ deno run -A scripts/check-webhook.ts
 
 ```
 export TELEGRAM_WEBHOOK_SECRET=... # prod secret
-export TELEGRAM_WEBHOOK_URL=... # preferred override (e.g. https://dynamic-capital.ondigitalocean.app/webhook)
+export TELEGRAM_WEBHOOK_URL=... # preferred override (e.g. https://qeejuomcapbdlhnjqjcc.functions.supabase.co/telegram-bot)
 # or: export SUPABASE_PROJECT_ID=your-project-ref
 
 deno run -A scripts/ping-webhook.ts

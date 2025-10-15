@@ -46,7 +46,7 @@ version = "0.0.0"
 
   [[build.env]]
     name = "TELEGRAM_WEBHOOK_URL"
-    value = "https://dynamic-capital.ondigitalocean.app/webhook"
+    value = "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/telegram-bot"
 
   [[build.env]]
     name = "NEXT_TELEMETRY_DISABLED"

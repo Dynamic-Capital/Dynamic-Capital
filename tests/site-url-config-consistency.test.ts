@@ -11,7 +11,8 @@ const CANONICAL_VALUES = {
     "https://dynamic.capital,https://dynamiccapital.ton,https://www.dynamiccapital.ton,https://ton.site,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.ondigitalocean.app,https://dynamic-capital-git-dynamic-capital-a2ae79-the-project-archive.vercel.app,https://dynamic-capital-kp5fqeegn-the-project-archive.vercel.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,https://ton-gateway.dynamic-capital.ondigitalocean.app,https://ton-gateway.dynamic-capital.lovable.app,https://t.me,https://t.me/Dynamic_VIP_BOT/dynamic_pay",
   MINIAPP_ORIGIN:
     "https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.ondigitalocean.app,https://dynamic.capital,https://dynamiccapital.ton,https://t.me,https://t.me/Dynamic_VIP_BOT/dynamic_pay",
-  TELEGRAM_WEBHOOK_URL: "https://dynamic-capital.ondigitalocean.app/webhook",
+  TELEGRAM_WEBHOOK_URL:
+    "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/telegram-bot",
 } as const;
 
 const EXPECTED_ORIGINS = splitList(CANONICAL_VALUES.ALLOWED_ORIGINS);
