@@ -127,7 +127,7 @@ export function DynamicGuiShowcase() {
           <HeroSection
             brandName={BRAND_METADATA.name}
             brandTagline={BRAND_METADATA.tagline}
-            onLaunchCheckout={() => navigate("/checkout")}
+            onLaunchCheckout={() => navigate("/#chat")}
             onPreviewVip={() => navigate("/checkout?plan=vip")}
           />
 

@@ -18,12 +18,19 @@ export function HeroSection({
       <Row gap="12" vertical="center" horizontal="center">
         <Pulse size="s" variant="brand" aria-hidden="true" />
         <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
-          {brandName} · Dynamic GUI
+          {brandName} · Investor desk
         </Tag>
       </Row>
       <Heading variant="display-strong-s" align="center" wrap="balance">
-        Compose deposit flows without touching a single spreadsheet.
+        Start with Dynamic Chat.
       </Heading>
+      <Row gap="8" wrap horizontal="center">
+        {["TON", "AI", "Signals"].map((label) => (
+          <Tag key={label} size="s" background="neutral-alpha-weak">
+            {label}
+          </Tag>
+        ))}
+      </Row>
       <Text
         variant="body-default-m"
         onBackground="neutral-weak"
@@ -33,12 +40,20 @@ export function HeroSection({
         {brandTagline}
       </Text>
       <Text
+        variant="body-default-m"
+        onBackground="neutral-weak"
+        align="center"
+        wrap="balance"
+      >
+        Operate from a single, focused workspace.
+      </Text>
+      <Text
         variant="label-default-s"
         onBackground="neutral-medium"
         align="center"
         wrap="balance"
       >
-        Orchestrate onboarding, route payments, and verify proofs from one responsive workspace. Built for high-velocity desks that juggle bank, crypto, and prop channels.
+        Benchmark models, share context with your desk, and keep guardrails in view without juggling dashboards.
       </Text>
       <Row gap="12" wrap horizontal="center">
         <Button
@@ -48,7 +63,7 @@ export function HeroSection({
           prefixIcon="sparkles"
           onClick={onLaunchCheckout}
         >
-          Launch checkout
+          Launch Dynamic Chat
         </Button>
         <Button
           size="m"
@@ -57,7 +72,7 @@ export function HeroSection({
           prefixIcon="calendar"
           onClick={onPreviewVip}
         >
-          Preview VIP flow
+          Preview VIP plans
         </Button>
       </Row>
     </Column>
