@@ -44,20 +44,27 @@ interface SignalRow {
   id: string;
   alert_id: string;
   account_id: string | null;
+  author_id: string | null;
   source: string;
   symbol: string;
+  asset: string;
   timeframe: string | null;
   direction: string;
   order_type: string;
   status: SignalStatus;
   priority: number;
+  confidence: number | null;
   payload: unknown;
+  metadata: Record<string, unknown>;
+  notes: string | null;
   error_reason: string | null;
   next_poll_at: string;
   acknowledged_at: string | null;
   last_heartbeat_at: string | null;
   executed_at: string | null;
   cancelled_at: string | null;
+  price: number | null;
+  stops: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -470,8 +477,16 @@ function signalsHandlers(state: StubState) {
             : row.account_id === null
             ? null
             : String(row.account_id),
+          author_id: row.author_id === undefined
+            ? null
+            : row.author_id === null
+            ? null
+            : String(row.author_id),
           source: String(row.source ?? "tradingview"),
           symbol: String(row.symbol),
+          asset: row.asset === undefined
+            ? String(row.symbol)
+            : String(row.asset),
           timeframe: row.timeframe === undefined
             ? null
             : row.timeframe === null
@@ -481,7 +496,18 @@ function signalsHandlers(state: StubState) {
           order_type: String(row.order_type ?? "market"),
           status: (row.status as SignalStatus) ?? "pending",
           priority: Number(row.priority ?? 0),
+          confidence: row.confidence === undefined || row.confidence === null
+            ? null
+            : Number(row.confidence),
           payload: row.payload ?? {},
+          metadata: row.metadata === undefined || row.metadata === null
+            ? {}
+            : clone(row.metadata) as Record<string, unknown>,
+          notes: row.notes === undefined
+            ? null
+            : row.notes === null
+            ? null
+            : String(row.notes),
           error_reason: row.error_reason === undefined
             ? null
             : row.error_reason === null
@@ -508,6 +534,12 @@ function signalsHandlers(state: StubState) {
             : row.cancelled_at === null
             ? null
             : String(row.cancelled_at),
+          price: toNumber(row.price),
+          stops: row.stops === undefined
+            ? null
+            : row.stops === null
+            ? null
+            : clone(row.stops) as Record<string, unknown>,
           created_at: row.created_at ? String(row.created_at) : now,
           updated_at: row.updated_at ? String(row.updated_at) : now,
         };
@@ -535,9 +567,51 @@ function signalsHandlers(state: StubState) {
             return { data: null, error: { message: "not found" } };
           }
           const now = isoNow();
+          const symbol = values.symbol
+            ? String(values.symbol)
+            : existing.symbol;
+          const asset = values.asset
+            ? String(values.asset)
+            : symbol;
+          const authorId = values.author_id === undefined
+            ? existing.author_id
+            : values.author_id === null
+            ? null
+            : String(values.author_id);
+          const confidence = values.confidence === undefined
+            ? existing.confidence
+            : values.confidence === null
+            ? null
+            : Number(values.confidence);
+          const metadata = values.metadata === undefined
+            ? existing.metadata
+            : values.metadata === null
+            ? {}
+            : clone(values.metadata) as Record<string, unknown>;
+          const notes = values.notes === undefined
+            ? existing.notes
+            : values.notes === null
+            ? null
+            : String(values.notes);
+          const stops = values.stops === undefined
+            ? existing.stops
+            : values.stops === null
+            ? null
+            : clone(values.stops) as Record<string, unknown>;
+          const price = values.price === undefined
+            ? existing.price
+            : toNumber(values.price);
           const updated: SignalRow = {
             ...existing,
             ...values,
+            author_id: authorId,
+            symbol,
+            asset,
+            confidence,
+            metadata,
+            notes,
+            stops,
+            price,
             status: (values.status as SignalStatus) ?? existing.status,
             updated_at: values.updated_at ? String(values.updated_at) : now,
           };
