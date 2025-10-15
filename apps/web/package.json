@@ -8,7 +8,7 @@
     "start": "HOST=0.0.0.0 HOSTNAME=0.0.0.0 NODE_ENV=production node .next/standalone/apps/web/server.js",
     "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
-    "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false -A --no-check && vitest run",
+    "test": "DENO_TLS_CA_STORE=system deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false -A --no-check && vitest run",
     "typecheck": "tsc --noEmit",
     "generate:brand-assets": "tsx ../../scripts/generate-brand-assets.ts",
     "predev": "npm run generate:brand-assets",

@@ -60,7 +60,7 @@
     "embeddings:build": "tsx scripts/knowledge_base/run-embeddings.ts build",
     "embeddings:refresh": "tsx scripts/knowledge_base/run-embeddings.ts refresh",
     "lint:kb": "tsx scripts/knowledge_base/lint-kb.ts",
-    "test": "node scripts/check-static-homepage.js && deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false -A --no-check",
+    "test": "node scripts/check-static-homepage.js && DENO_TLS_CA_STORE=system deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false -A --no-check",
     "verify": "bash scripts/verify/verify_all.sh",
     "smoke:tunnel": "node scripts/smoke-tunnel.mjs",
     "audit": "npm audit",
