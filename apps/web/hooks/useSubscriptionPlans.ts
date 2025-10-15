@@ -4,9 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import type { Plan } from "@/types/plan";
 import {
   fetchSubscriptionPlans,
+  getCachedServicePricing,
   getCachedSubscriptionPlans,
   getCachedSubscriptionPlansError,
+  getCachedTonRate,
   isFetchingSubscriptionPlans,
+  type ServicePricingSnapshot,
+  type TonRateSnapshot,
 } from "@/services/plans";
 
 interface UseSubscriptionPlansOptions {
@@ -18,6 +22,8 @@ interface UseSubscriptionPlansResult {
   loading: boolean;
   error: string | null;
   hasData: boolean;
+  servicePricing: ServicePricingSnapshot | null;
+  tonRate: TonRateSnapshot | null;
   refresh: (force?: boolean) => Promise<Plan[]>;
 }
 
@@ -38,6 +44,12 @@ export function useSubscriptionPlans(
   const [error, setError] = useState<string | null>(() =>
     enabled ? getCachedSubscriptionPlansError() : null
   );
+  const [servicePricing, setServicePricing] = useState<
+    ServicePricingSnapshot | null
+  >(() => enabled ? getCachedServicePricing() : null);
+  const [tonRate, setTonRate] = useState<TonRateSnapshot | null>(() =>
+    enabled ? getCachedTonRate() : null
+  );
 
   const loadPlans = useCallback(
     async (force?: boolean) => {
@@ -53,6 +65,8 @@ export function useSubscriptionPlans(
         setPlans(result);
         const fallbackMessage = getCachedSubscriptionPlansError();
         setError(fallbackMessage);
+        setServicePricing(getCachedServicePricing());
+        setTonRate(getCachedTonRate());
         return result;
       } catch (err) {
         const message = err instanceof Error
@@ -61,6 +75,8 @@ export function useSubscriptionPlans(
         const fallback = getCachedSubscriptionPlans();
         setError(message);
         setPlans(fallback);
+        setServicePricing(getCachedServicePricing());
+        setTonRate(getCachedTonRate());
         return fallback;
       } finally {
         setLoading(false);
@@ -79,6 +95,8 @@ export function useSubscriptionPlans(
 
     if (cached.length > 0) {
       setPlans(cached);
+      setServicePricing(getCachedServicePricing());
+      setTonRate(getCachedTonRate());
       return;
     }
 
@@ -105,6 +123,8 @@ export function useSubscriptionPlans(
     loading,
     error,
     hasData: plans.length > 0,
+    servicePricing,
+    tonRate,
     refresh,
   };
 }

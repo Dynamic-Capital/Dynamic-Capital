@@ -8,6 +8,7 @@ import {
   SUPABASE_FUNCTIONS,
   type SupabaseFunctionKey,
 } from "@shared/supabase/functions";
+import { resolveSupabaseFunctionFallback } from "./supabase-fallback";
 
 export const SUPABASE_ENV_ERROR = "";
 
@@ -143,6 +144,22 @@ export const callEdgeFunction = async <T>(
       },
       status: 0,
     };
+  }
+
+  if (!SUPABASE_CONFIG_FROM_ENV) {
+    const fallback = resolveSupabaseFunctionFallback(
+      functionName,
+      method,
+      (body as Record<string, unknown>) ?? null,
+    );
+
+    if (fallback) {
+      return {
+        data: fallback.data as T | undefined,
+        error: fallback.error,
+        status: fallback.status,
+      };
+    }
   }
 
   const useProxy = !SUPABASE_CONFIG_FROM_ENV;

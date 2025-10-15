@@ -1735,6 +1735,1074 @@ export const resourcePlan: ResourcePlan = {
         },
       ],
     },
+    {
+      schema: "public",
+      name: "trading_accounts",
+      comment:
+        "Catalog of MT5 and copier accounts that execution agents can target.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary identifier for the trading account.",
+        },
+        {
+          name: "account_code",
+          type: "text",
+          nullable: false,
+          unique: true,
+          comment:
+            "Human readable code shared with bridge workers (e.g. DEMO).",
+        },
+        {
+          name: "display_name",
+          type: "text",
+          comment: "Optional label surfaced in dashboards and runbooks.",
+        },
+        {
+          name: "broker",
+          type: "text",
+          comment: "Broker or liquidity venue that hosts the account.",
+        },
+        {
+          name: "environment",
+          type: "text",
+          nullable: false,
+          default: "'demo'::text",
+          check: "environment in ('demo','live')",
+          comment:
+            "Execution environment flag used to route demo vs live traffic.",
+        },
+        {
+          name: "status",
+          type: "public.trading_account_status_enum",
+          nullable: false,
+          default: "'active'::public.trading_account_status_enum",
+          comment:
+            "Lifecycle state for the account (active, maintenance, disabled).",
+        },
+        {
+          name: "metadata",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment:
+            "Arbitrary metadata including routing hints and bridge settings.",
+        },
+        {
+          name: "last_heartbeat_at",
+          type: "timestamptz",
+          comment: "Timestamp of the last heartbeat received from the bridge.",
+        },
+        {
+          name: "created_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Creation timestamp for the account record.",
+        },
+        {
+          name: "updated_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Last update timestamp for the account record.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "idx_trading_accounts_status_env",
+          expression: "(status, environment)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+      },
+      postDeploymentSql: [
+        "DROP TRIGGER IF EXISTS trg_trading_accounts_updated_at ON public.trading_accounts;",
+        "CREATE TRIGGER trg_trading_accounts_updated_at\nBEFORE UPDATE ON public.trading_accounts\nFOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();",
+      ],
+    },
+    {
+      schema: "public",
+      name: "signals",
+      comment:
+        "Normalized trade intents queued for Dynamic Trading Algo workers and manual mentors.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary identifier for the trading signal.",
+        },
+        {
+          name: "alert_id",
+          type: "text",
+          nullable: false,
+          unique: true,
+          comment:
+            "Unique identifier provided by the upstream alerting system.",
+        },
+        {
+          name: "account_id",
+          type: "uuid",
+          references: {
+            table: "trading_accounts",
+            column: "id",
+            onDelete: "SET NULL",
+          },
+          comment: "Optional execution account override for the signal.",
+        },
+        {
+          name: "author_id",
+          type: "uuid",
+          references: {
+            table: "users",
+            column: "id",
+            onDelete: "SET NULL",
+          },
+          comment:
+            "Mentor or strategist that authored the signal when applicable.",
+        },
+        {
+          name: "source",
+          type: "text",
+          nullable: false,
+          default: "'tradingview'::text",
+          comment: "Originating platform or service that produced the signal.",
+        },
+        {
+          name: "symbol",
+          type: "text",
+          nullable: false,
+          comment:
+            "Market symbol routed to MT5 or downstream research dashboards.",
+        },
+        {
+          name: "asset",
+          type: "text",
+          nullable: false,
+          generatedExpression: "symbol",
+          comment:
+            "Computed alias that mirrors symbol for mentor facing views.",
+        },
+        {
+          name: "timeframe",
+          type: "text",
+          comment: "Original timeframe attached to the alert (e.g. 15m, 1h).",
+        },
+        {
+          name: "direction",
+          type: "text",
+          nullable: false,
+          check: "direction in ('long','short','flat')",
+          comment: "Direction the strategy should take (long, short, or flat).",
+        },
+        {
+          name: "order_type",
+          type: "text",
+          nullable: false,
+          default: "'market'::text",
+          check: "order_type in ('market','limit','stop','stop_limit')",
+          comment: "Order type requested by the originating system.",
+        },
+        {
+          name: "status",
+          type: "public.signal_status_enum",
+          nullable: false,
+          default: "'pending'::public.signal_status_enum",
+          comment:
+            "Lifecycle status of the signal as it moves through execution.",
+        },
+        {
+          name: "priority",
+          type: "integer",
+          nullable: false,
+          default: "0",
+          comment: "Priority weight used when competing signals are queued.",
+        },
+        {
+          name: "confidence",
+          type: "numeric(5,2)",
+          check:
+            "confidence is null or (confidence >= 0 and confidence <= 100)",
+          comment: "Optional mentor-provided conviction score for the setup.",
+        },
+        {
+          name: "price",
+          type: "numeric(18,6)",
+          comment: "Reference price supplied with the signal when available.",
+        },
+        {
+          name: "stops",
+          type: "jsonb",
+          comment: "Structured stop loss and take profit annotations.",
+        },
+        {
+          name: "payload",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment: "Raw normalized payload stored for auditing and replay.",
+        },
+        {
+          name: "metadata",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment: "Additional enrichment derived from Dynamic AI pipelines.",
+        },
+        {
+          name: "notes",
+          type: "text",
+          comment: "Free-form context shared with operators and students.",
+        },
+        {
+          name: "error_reason",
+          type: "text",
+          comment: "Latest error captured when execution fails or retries.",
+        },
+        {
+          name: "next_poll_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when workers should re-evaluate the signal.",
+        },
+        {
+          name: "acknowledged_at",
+          type: "timestamptz",
+          comment: "When a worker last claimed the signal for processing.",
+        },
+        {
+          name: "last_heartbeat_at",
+          type: "timestamptz",
+          comment:
+            "Worker heartbeat timestamp ensuring the signal is still active.",
+        },
+        {
+          name: "executed_at",
+          type: "timestamptz",
+          comment: "Timestamp when the signal reached an executed state.",
+        },
+        {
+          name: "cancelled_at",
+          type: "timestamptz",
+          comment: "Timestamp when the signal was cancelled or invalidated.",
+        },
+        {
+          name: "created_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Creation timestamp for the signal.",
+        },
+        {
+          name: "updated_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Last update timestamp for the signal.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "idx_signals_status_poll",
+          expression: "(status, next_poll_at, priority DESC, created_at)",
+          predicate: "status in ('pending','claimed','processing')",
+        },
+        {
+          name: "idx_signals_account_status",
+          expression: "(account_id, status)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+      },
+      policies: [
+        {
+          name: "signals_service_all",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "true",
+          withCheck: "true",
+          comment:
+            "Allow the service role to orchestrate signal lifecycle transitions.",
+        },
+        {
+          name: "signals_read_authenticated",
+          command: "SELECT",
+          roles: ["authenticated"],
+          using: "true",
+          comment: "Expose published signals to authenticated clients.",
+        },
+        {
+          name: "signals_insert_mentors",
+          command: "INSERT",
+          roles: ["authenticated"],
+          withCheck:
+            "exists (select 1 from public.users u where u.id = coalesce(signals.author_id, auth.uid()) and (u.role in ('mentor','admin','operator','strategist') or auth.uid() = u.auth_user_id or auth.uid() = u.id))",
+          comment:
+            "Allow mentors and operators to publish manual signals while enforcing role checks.",
+        },
+      ],
+      postDeploymentSql: [
+        "ALTER TABLE public.signals REPLICA IDENTITY FULL;",
+        "DROP TRIGGER IF EXISTS trg_signals_updated_at ON public.signals;",
+        "CREATE TRIGGER trg_signals_updated_at\nBEFORE UPDATE ON public.signals\nFOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();",
+      ],
+    },
+    {
+      schema: "public",
+      name: "signal_dispatches",
+      comment:
+        "Execution worker dispatch ledger used to coordinate MT5 bridge heartbeats.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary identifier for the dispatch record.",
+        },
+        {
+          name: "signal_id",
+          type: "uuid",
+          nullable: false,
+          references: {
+            table: "signals",
+            column: "id",
+            onDelete: "CASCADE",
+          },
+          comment: "Signal claimed by the execution worker.",
+        },
+        {
+          name: "worker_id",
+          type: "text",
+          nullable: false,
+          comment: "Identifier reported by the MT5 bridge worker instance.",
+        },
+        {
+          name: "status",
+          type: "public.signal_dispatch_status_enum",
+          nullable: false,
+          default: "'claimed'::public.signal_dispatch_status_enum",
+          comment: "Lifecycle status for the dispatch record.",
+        },
+        {
+          name: "retry_count",
+          type: "integer",
+          nullable: false,
+          default: "0",
+          comment: "Number of times the signal has been claimed by workers.",
+        },
+        {
+          name: "metadata",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment: "Structured metadata persisted by bridge workers.",
+        },
+        {
+          name: "claimed_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the signal was claimed.",
+        },
+        {
+          name: "last_heartbeat_at",
+          type: "timestamptz",
+          comment: "Latest heartbeat timestamp recorded for the worker.",
+        },
+        {
+          name: "completed_at",
+          type: "timestamptz",
+          comment: "When the worker reported completion for the signal.",
+        },
+        {
+          name: "failed_at",
+          type: "timestamptz",
+          comment: "When the dispatch marked the signal as failed.",
+        },
+        {
+          name: "created_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Creation timestamp for the dispatch record.",
+        },
+        {
+          name: "updated_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Last update timestamp for the dispatch record.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "idx_signal_dispatches_signal",
+          expression: "(signal_id, created_at)",
+        },
+        {
+          name: "idx_signal_dispatches_status",
+          expression: "(status, claimed_at)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+      },
+      postDeploymentSql: [
+        "DROP TRIGGER IF EXISTS trg_signal_dispatches_updated_at ON public.signal_dispatches;",
+        "CREATE TRIGGER trg_signal_dispatches_updated_at\nBEFORE UPDATE ON public.signal_dispatches\nFOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();",
+      ],
+    },
+    {
+      schema: "public",
+      name: "trades",
+      comment:
+        "Executed MT5 trade receipts linked back to originating signals.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary identifier for the trade record.",
+        },
+        {
+          name: "signal_id",
+          type: "uuid",
+          references: {
+            table: "signals",
+            column: "id",
+            onDelete: "SET NULL",
+          },
+          comment: "Signal that triggered the MT5 trade.",
+        },
+        {
+          name: "account_id",
+          type: "uuid",
+          references: {
+            table: "trading_accounts",
+            column: "id",
+            onDelete: "SET NULL",
+          },
+          comment: "Account used to execute the trade.",
+        },
+        {
+          name: "mt5_ticket_id",
+          type: "bigint",
+          comment: "MT5 ticket identifier, kept unique for idempotent updates.",
+        },
+        {
+          name: "status",
+          type: "public.trade_status_enum",
+          nullable: false,
+          default: "'pending'::public.trade_status_enum",
+          comment:
+            "Lifecycle status reported by the bridge (pending, executing, filled, etc.).",
+        },
+        {
+          name: "symbol",
+          type: "text",
+          nullable: false,
+          comment: "Symbol traded by the execution stack.",
+        },
+        {
+          name: "direction",
+          type: "text",
+          nullable: false,
+          check: "direction in ('long','short','flat')",
+          comment: "Direction executed on MT5.",
+        },
+        {
+          name: "order_type",
+          type: "text",
+          nullable: false,
+          default: "'market'::text",
+          check: "order_type in ('market','limit','stop','stop_limit')",
+          comment: "Order type captured for the trade record.",
+        },
+        {
+          name: "volume",
+          type: "numeric(14,2)",
+          comment: "Trade volume lots captured from MT5.",
+        },
+        {
+          name: "requested_price",
+          type: "numeric(18,8)",
+          comment: "Requested execution price.",
+        },
+        {
+          name: "filled_price",
+          type: "numeric(18,8)",
+          comment: "Actual fill price returned by MT5.",
+        },
+        {
+          name: "stop_loss",
+          type: "numeric(18,8)",
+          comment: "Stop loss price applied to the trade.",
+        },
+        {
+          name: "take_profit",
+          type: "numeric(18,8)",
+          comment: "Take profit price applied to the trade.",
+        },
+        {
+          name: "execution_payload",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment: "Raw execution payload mirrored from MT5.",
+        },
+        {
+          name: "error_reason",
+          type: "text",
+          comment: "Latest error reason captured for the trade.",
+        },
+        {
+          name: "opened_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the trade record was created/opened.",
+        },
+        {
+          name: "filled_at",
+          type: "timestamptz",
+          comment: "Timestamp when the trade filled.",
+        },
+        {
+          name: "closed_at",
+          type: "timestamptz",
+          comment: "Timestamp when the trade fully closed.",
+        },
+        {
+          name: "created_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Creation timestamp for the trade row.",
+        },
+        {
+          name: "updated_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Last update timestamp for the trade row.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "idx_trades_status_opened",
+          expression: "(status, opened_at)",
+        },
+        {
+          name: "idx_trades_signal",
+          expression: "(signal_id)",
+        },
+        {
+          name: "idx_trades_open_accounts",
+          expression: "(account_id, status)",
+          predicate: "status in ('pending','executing','partial_fill')",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+      },
+      postDeploymentSql: [
+        "ALTER TABLE public.trades REPLICA IDENTITY FULL;",
+        "DROP TRIGGER IF EXISTS trg_trades_updated_at ON public.trades;",
+        "CREATE TRIGGER trg_trades_updated_at\nBEFORE UPDATE ON public.trades\nFOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();",
+      ],
+    },
+    {
+      schema: "public",
+      name: "hedge_actions",
+      comment:
+        "Hedge lifecycle ledger synchronised with automated defense systems.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary identifier for the hedge action.",
+        },
+        {
+          name: "symbol",
+          type: "text",
+          nullable: false,
+          comment: "Primary trading symbol hedged by the action.",
+        },
+        {
+          name: "hedge_symbol",
+          type: "text",
+          nullable: false,
+          comment: "Instrument used to hedge the core position.",
+        },
+        {
+          name: "side",
+          type: "public.hedge_action_side_enum",
+          nullable: false,
+          comment:
+            "Whether the hedge is long or short relative to the core book.",
+        },
+        {
+          name: "qty",
+          type: "numeric(18,6)",
+          nullable: false,
+          comment: "Hedge quantity sized in instrument native units.",
+        },
+        {
+          name: "reason",
+          type: "public.hedge_action_reason_enum",
+          nullable: false,
+          comment:
+            "Trigger that initiated the hedge (ATR spike, news, drawdown limit).",
+        },
+        {
+          name: "status",
+          type: "public.hedge_action_status_enum",
+          nullable: false,
+          default: "'OPEN'::public.hedge_action_status_enum",
+          comment: "Lifecycle status for the hedge action.",
+        },
+        {
+          name: "entry_price",
+          type: "numeric(18,8)",
+          comment: "Entry price recorded when the hedge opened.",
+        },
+        {
+          name: "close_price",
+          type: "numeric(18,8)",
+          comment: "Exit price recorded when the hedge closed.",
+        },
+        {
+          name: "pnl",
+          type: "numeric(18,8)",
+          comment: "Realised P&L captured for the hedge action.",
+        },
+        {
+          name: "metadata",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment: "Structured annotations from Dynamic Hedge models.",
+        },
+        {
+          name: "created_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the hedge was opened.",
+        },
+        {
+          name: "closed_at",
+          type: "timestamptz",
+          comment: "Timestamp when the hedge was closed (if applicable).",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "hedge_actions_status_idx",
+          expression: "(status, created_at DESC)",
+        },
+        {
+          name: "hedge_actions_symbol_idx",
+          expression: "(symbol, created_at DESC)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+      },
+      policies: [
+        {
+          name: "hedge_actions_service_role_full_access",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "auth.role() = 'service_role'",
+          withCheck: "auth.role() = 'service_role'",
+          comment: "Allow the service role to manage hedge lifecycle records.",
+        },
+        {
+          name: "hedge_actions_authenticated_select",
+          command: "SELECT",
+          roles: ["authenticated"],
+          using: "true",
+          comment: "Expose hedge ledger snapshots to authenticated dashboards.",
+        },
+      ],
+    },
+    {
+      schema: "public",
+      name: "mt5_trade_logs",
+      comment:
+        "Raw MT5 trade heartbeats mirrored from external terminals for audits.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary identifier for the MT5 trade log entry.",
+        },
+        {
+          name: "mt5_ticket_id",
+          type: "bigint",
+          nullable: false,
+          comment: "MT5 ticket identifier mirrored from the external terminal.",
+        },
+        {
+          name: "symbol",
+          type: "text",
+          nullable: false,
+          comment: "Symbol referenced by the MT5 ticket.",
+        },
+        {
+          name: "side",
+          type: "text",
+          nullable: false,
+          check: "side in ('buy','sell')",
+          comment: "Direction reported by MT5 for the trade log entry.",
+        },
+        {
+          name: "volume",
+          type: "numeric(14,2)",
+          comment: "Lot size associated with the ticket.",
+        },
+        {
+          name: "open_price",
+          type: "numeric(18,8)",
+          comment: "Price at which MT5 opened the position.",
+        },
+        {
+          name: "profit",
+          type: "numeric(18,2)",
+          comment: "Realised profit reported in the heartbeat payload.",
+        },
+        {
+          name: "account_login",
+          type: "text",
+          comment: "MT5 account login string when available.",
+        },
+        {
+          name: "opened_at",
+          type: "timestamptz",
+          comment: "Timestamp when MT5 reported the trade open.",
+        },
+        {
+          name: "raw_payload",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment: "Complete MT5 payload captured for debugging.",
+        },
+        {
+          name: "received_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the heartbeat was ingested by Supabase.",
+        },
+        {
+          name: "updated_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the heartbeat row last changed.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "mt5_trade_logs_mt5_ticket_id_key",
+          expression: "(mt5_ticket_id)",
+          unique: true,
+        },
+        {
+          name: "idx_mt5_trade_logs_symbol_time",
+          expression: "(symbol, received_at DESC)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+      },
+      policies: [
+        {
+          name: "mt5_trade_logs_service_read",
+          command: "SELECT",
+          using: "auth.role() = 'service_role'",
+          comment: "Allow bridge services to read mirrored MT5 trade logs.",
+        },
+        {
+          name: "mt5_trade_logs_service_write",
+          command: "ALL",
+          using: "auth.role() = 'service_role'",
+          withCheck: "auth.role() = 'service_role'",
+          comment: "Allow bridge services to insert and update MT5 trade logs.",
+        },
+      ],
+      postDeploymentSql: [
+        "ALTER TABLE public.mt5_trade_logs REPLICA IDENTITY FULL;",
+        "DROP TRIGGER IF EXISTS trg_mt5_trade_logs_updated ON public.mt5_trade_logs;",
+        "CREATE TRIGGER trg_mt5_trade_logs_updated\nBEFORE UPDATE ON public.mt5_trade_logs\nFOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();",
+      ],
+    },
+    {
+      name: "claim_trading_signal",
+      statement: `CREATE OR REPLACE FUNCTION public.claim_trading_signal(
+  p_worker_id text,
+  p_account_code text DEFAULT NULL
+)
+RETURNS public.signals
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_signal public.signals;
+  v_account_id uuid;
+  v_retry integer := 0;
+BEGIN
+  IF coalesce(trim(p_worker_id), '') = '' THEN
+    RAISE EXCEPTION 'worker_id is required';
+  END IF;
+
+  IF p_account_code IS NOT NULL THEN
+    SELECT id INTO v_account_id
+    FROM public.trading_accounts
+    WHERE account_code = p_account_code
+    LIMIT 1;
+  END IF;
+
+  WITH candidate AS (
+    SELECT s.id
+    FROM public.signals s
+    WHERE s.status = 'pending'
+      AND (v_account_id IS NULL OR s.account_id = v_account_id)
+    ORDER BY s.priority DESC, s.next_poll_at, s.created_at
+    FOR UPDATE SKIP LOCKED
+    LIMIT 1
+  )
+  UPDATE public.signals s
+  SET status = 'claimed',
+      acknowledged_at = now(),
+      last_heartbeat_at = now(),
+      updated_at = now()
+  FROM candidate c
+  WHERE s.id = c.id
+  RETURNING s.* INTO v_signal;
+
+  IF NOT FOUND THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT coalesce(max(retry_count) + 1, 0) INTO v_retry
+  FROM public.signal_dispatches
+  WHERE signal_id = v_signal.id;
+
+  INSERT INTO public.signal_dispatches (
+    signal_id,
+    worker_id,
+    status,
+    retry_count,
+    metadata,
+    claimed_at,
+    last_heartbeat_at,
+    created_at,
+    updated_at
+  )
+  VALUES (
+    v_signal.id,
+    p_worker_id,
+    'claimed',
+    v_retry,
+    '{}'::jsonb,
+    now(),
+    now(),
+    now(),
+    now()
+  );
+
+  RETURN v_signal;
+END;
+$$;`,
+    },
+    {
+      name: "mark_trading_signal_status",
+      statement: `CREATE OR REPLACE FUNCTION public.mark_trading_signal_status(
+  p_signal_id uuid,
+  p_status public.signal_status_enum,
+  p_error text DEFAULT NULL,
+  p_next_poll_at timestamptz DEFAULT NULL,
+  p_worker_id text DEFAULT NULL,
+  p_dispatch_status public.signal_dispatch_status_enum DEFAULT NULL
+)
+RETURNS public.signals
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_signal public.signals;
+  v_now timestamptz := now();
+  v_dispatch_id uuid;
+BEGIN
+  UPDATE public.signals
+  SET status = p_status,
+      error_reason = p_error,
+      next_poll_at = COALESCE(p_next_poll_at, next_poll_at),
+      last_heartbeat_at = CASE WHEN p_worker_id IS NOT NULL THEN v_now ELSE last_heartbeat_at END,
+      executed_at = CASE WHEN p_status = 'executed' THEN COALESCE(executed_at, v_now) ELSE executed_at END,
+      cancelled_at = CASE WHEN p_status = 'cancelled' THEN COALESCE(cancelled_at, v_now) ELSE cancelled_at END,
+      updated_at = v_now
+  WHERE id = p_signal_id
+  RETURNING * INTO v_signal;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'signal % not found', p_signal_id;
+  END IF;
+
+  IF p_worker_id IS NOT NULL THEN
+    SELECT id INTO v_dispatch_id
+    FROM public.signal_dispatches
+    WHERE signal_id = p_signal_id
+      AND worker_id = p_worker_id
+    ORDER BY claimed_at DESC
+    LIMIT 1;
+
+    IF FOUND THEN
+      UPDATE public.signal_dispatches
+      SET status = COALESCE(p_dispatch_status, status),
+          last_heartbeat_at = v_now,
+          completed_at = CASE
+            WHEN COALESCE(p_dispatch_status, status) = 'completed'
+              THEN COALESCE(completed_at, v_now)
+            ELSE completed_at
+          END,
+          failed_at = CASE
+            WHEN COALESCE(p_dispatch_status, status) = 'failed'
+              THEN COALESCE(failed_at, v_now)
+            ELSE failed_at
+          END,
+          updated_at = v_now
+      WHERE id = v_dispatch_id;
+    END IF;
+  END IF;
+
+  RETURN v_signal;
+END;
+$$;`,
+    },
+    {
+      name: "record_trade_update",
+      statement: `CREATE OR REPLACE FUNCTION public.record_trade_update(
+  p_signal_id uuid,
+  p_mt5_ticket_id bigint,
+  p_status public.trade_status_enum,
+  p_payload jsonb DEFAULT '{}'::jsonb
+)
+RETURNS public.trades
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_signal public.signals;
+  v_trade public.trades;
+  v_now timestamptz := now();
+BEGIN
+  SELECT * INTO v_signal
+  FROM public.signals
+  WHERE id = p_signal_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'signal % not found', p_signal_id;
+  END IF;
+
+  INSERT INTO public.trades (
+    signal_id,
+    account_id,
+    mt5_ticket_id,
+    status,
+    symbol,
+    direction,
+    order_type,
+    volume,
+    requested_price,
+    filled_price,
+    stop_loss,
+    take_profit,
+    execution_payload,
+    error_reason,
+    opened_at,
+    filled_at,
+    closed_at,
+    created_at,
+    updated_at
+  )
+  VALUES (
+    v_signal.id,
+    v_signal.account_id,
+    p_mt5_ticket_id,
+    p_status,
+    v_signal.symbol,
+    v_signal.direction,
+    v_signal.order_type,
+    NULLIF(p_payload ->> 'volume', '')::numeric,
+    NULLIF(p_payload ->> 'requested_price', '')::numeric,
+    NULLIF(p_payload ->> 'filled_price', '')::numeric,
+    NULLIF(p_payload ->> 'stop_loss', '')::numeric,
+    NULLIF(p_payload ->> 'take_profit', '')::numeric,
+    COALESCE(p_payload, '{}'::jsonb),
+    p_payload ->> 'error_reason',
+    COALESCE(NULLIF(p_payload ->> 'opened_at', '')::timestamptz, v_now),
+    NULLIF(p_payload ->> 'filled_at', '')::timestamptz,
+    NULLIF(p_payload ->> 'closed_at', '')::timestamptz,
+    v_now,
+    v_now
+  )
+  ON CONFLICT (mt5_ticket_id) DO UPDATE
+    SET status = EXCLUDED.status,
+        execution_payload = COALESCE(p_payload, '{}'::jsonb),
+        volume = EXCLUDED.volume,
+        requested_price = EXCLUDED.requested_price,
+        filled_price = EXCLUDED.filled_price,
+        stop_loss = EXCLUDED.stop_loss,
+        take_profit = EXCLUDED.take_profit,
+        error_reason = EXCLUDED.error_reason,
+        filled_at = COALESCE(EXCLUDED.filled_at, trades.filled_at),
+        closed_at = COALESCE(EXCLUDED.closed_at, trades.closed_at),
+        updated_at = v_now
+  RETURNING * INTO v_trade;
+
+  RETURN v_trade;
+END;
+$$;`,
+    },
   ],
   sql: [
     {
