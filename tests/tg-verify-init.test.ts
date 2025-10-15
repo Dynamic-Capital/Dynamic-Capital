@@ -58,3 +58,24 @@ test("tg-verify-init returns session token for valid initData", async () => {
     Deno.env.delete("SESSION_JWT_SECRET");
   }
 });
+
+test("verifyInitDataAndGetUser handles percent characters in user payload", async () => {
+  Deno.env.set("TELEGRAM_BOT_TOKEN", "token");
+  try {
+    const initData = await makeInitData({
+      id: 2,
+      username: "f%o",
+      first_name: "50% complete",
+    }, "token");
+    const { verifyInitDataAndGetUser } = await import(
+      /* @vite-ignore */ "../supabase/functions/_shared/telegram.ts"
+    );
+    const user = await verifyInitDataAndGetUser(initData);
+    assert(user);
+    assertEquals(user?.id, 2);
+    assertEquals(user?.username, "f%o");
+    assertEquals(user?.first_name, "50% complete");
+  } finally {
+    Deno.env.delete("TELEGRAM_BOT_TOKEN");
+  }
+});

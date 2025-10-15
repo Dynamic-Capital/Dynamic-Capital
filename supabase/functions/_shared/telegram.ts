@@ -52,11 +52,21 @@ export async function verifyInitDataAndGetUser(
 
   const userJson = params.get("user");
   if (!userJson) return null;
-  try {
-    return JSON.parse(decodeURIComponent(userJson)) as TgUser;
-  } catch {
-    return null;
-  }
+
+  const parseUser = (raw: string): TgUser | null => {
+    try {
+      return JSON.parse(raw) as TgUser;
+    } catch (error) {
+      try {
+        return JSON.parse(decodeURIComponent(raw)) as TgUser;
+      } catch {
+        console.warn("[telegram] failed to parse user from initData", error);
+        return null;
+      }
+    }
+  };
+
+  return parseUser(userJson);
 }
 
 /** Checks if a Telegram user id is in TELEGRAM_ADMIN_IDS allowlist. */
