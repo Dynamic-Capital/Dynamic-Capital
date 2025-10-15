@@ -26,12 +26,14 @@ export function PageShell({ children }: PageShellProps) {
   }
 
   return (
-    <main
-      id="main-content"
-      tabIndex={-1}
-      className="page-shell flex min-h-0 w-full flex-1 flex-col"
-    >
-      <div className="page-shell__surface">{children}</div>
-    </main>
+    <div className="system-shell" data-variant="page">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="system-shell__body page-shell flex min-h-0 w-full flex-1 flex-col"
+      >
+        <div className="page-shell__surface">{children}</div>
+      </main>
+    </div>
   );
 }

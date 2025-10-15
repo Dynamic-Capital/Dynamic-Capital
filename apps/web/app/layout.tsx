@@ -4,6 +4,7 @@ import "@/components/dynamic-ui-system/css/tokens.css";
 import "@/components/dynamic-ui-system/css/styles.css";
 import "./dynamic-ui.css";
 import "./globals.css";
+import "@/styles/system-shell.css";
 import "@/lib/env";
 
 import classNames from "classnames";
