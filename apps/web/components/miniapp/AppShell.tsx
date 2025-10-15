@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, type Transition } from "framer-motion";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode, useMemo } from "react";
 
 const transition: Transition = {
   type: "spring",
@@ -23,6 +23,22 @@ export function AppShell({
   const pathname = usePathname();
   const hasHeader = Boolean(header);
 
+  const mainStyle = useMemo(
+    () => ({
+      paddingInline: "clamp(16px, 4vw, 28px)",
+      paddingTop: hasHeader
+        ? "max(16px, var(--safe-top))"
+        : "calc(var(--safe-top) + 16px)",
+      paddingBottom: "clamp(96px, 12vh, 144px)",
+      display: "grid",
+      alignContent: "start" as const,
+      gap: "clamp(20px, 5vw, 36px)",
+      width: "min(100%, 720px)",
+      marginInline: "auto",
+    }),
+    [hasHeader],
+  );
+
   return (
     <div className="app-shell">
       <div className="app-shell-body">
@@ -35,13 +51,7 @@ export function AppShell({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -12, opacity: 0 }}
             transition={transition}
-            style={{
-              padding: "16px",
-              paddingTop: hasHeader ? "12px" : "calc(var(--safe-top) + 8px)",
-              display: "grid",
-              alignContent: "start",
-              gap: "16px",
-            }}
+            style={mainStyle}
           >
             {children}
           </motion.main>

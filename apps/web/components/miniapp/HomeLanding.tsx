@@ -81,6 +81,18 @@ function formatPromoBadge(promo?: ActivePromo | null) {
   return "Special offer";
 }
 
+function LiveSyncBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+      <span
+        className="h-2 w-2 animate-pulse rounded-full bg-emerald-400"
+        aria-hidden
+      />
+      Live sync · {label}
+    </span>
+  );
+}
+
 export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const [about, setAbout] = useState(DEFAULT_ABOUT_TEXT);
   const [services, setServices] = useState(DEFAULT_SERVICES_TEXT);
@@ -264,25 +276,28 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
   if (loading) {
     return (
-      <div className="space-y-5 py-10">
-        <Skeleton className="h-10 w-3/4" />
-        <Skeleton className="h-16 w-full" />
+      <div className="space-y-6 py-12">
+        <Skeleton className="h-10 w-2/3" />
+        <Skeleton className="h-20 w-full" />
         <Skeleton className="h-24 w-full" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-28">
+    <div className="space-y-10 pb-32">
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="miniapp-hero px-5 py-6 text-left"
+        className="miniapp-hero px-6 py-7 text-left"
       >
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <Badge variant="outline" className="bg-primary/15 text-primary">
+            <Badge
+              variant="outline"
+              className="bg-primary/10 px-3 py-1 text-primary"
+            >
               <Sparkles className="mr-1 h-3 w-3" /> Live trading desk
             </Badge>
             <span className="flex items-center gap-1">
@@ -292,25 +307,26 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               <Megaphone className="h-3 w-3" />{" "}
               {isInTelegram ? "Telegram" : "Web"} session
             </span>
+            <LiveSyncBadge label={lastSyncedLabel} />
           </div>
 
-          <div className="space-y-3">
-            <h1 className="text-2xl font-semibold leading-tight text-foreground">
+          <div className="space-y-4">
+            <h1 className="text-balance text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl">
               Command your trading edge with Dynamic Capital
             </h1>
-            <p className="text-sm text-muted-foreground whitespace-pre-line">
+            <p className="text-base leading-relaxed text-muted-foreground/90 whitespace-pre-line">
               {about}
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="miniapp-panel p-4">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="miniapp-panel p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                  <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-primary/80">
                     Announcement
                   </p>
-                  <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground/90 whitespace-pre-line">
                     {announcement}
                   </p>
                 </div>
@@ -318,14 +334,14 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               </div>
             </div>
 
-            <div className="miniapp-panel p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+            <div className="miniapp-panel p-5">
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-primary/80">
                 Core services
               </p>
-              <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+              <ul className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
                 {serviceHighlights.map((item) => (
                   <li key={item} className="flex items-start gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary/70" />
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary/70" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -334,14 +350,14 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           </div>
 
           {activePromo && (
-            <Card className="glass-motion-card border border-primary/25">
+            <Card className="glass-motion-card border border-primary/30">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm text-primary">
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold text-primary">
                   <Gift className="h-4 w-4" /> Limited-time offer
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-wrap items-center gap-3 text-sm text-primary-foreground">
-                <Badge className="bg-primary text-primary-foreground">
+              <CardContent className="flex flex-wrap items-center gap-3 text-sm leading-relaxed text-primary-foreground">
+                <Badge className="bg-primary/90 px-3 py-1 text-primary-foreground">
                   {formatPromoBadge(activePromo)}
                 </Badge>
                 <span className="text-primary-foreground/80">
@@ -379,7 +395,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       <Card className="glass-motion-card">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-foreground">
+          <CardTitle className="text-lg font-semibold tracking-tight text-foreground">
             What you get with VIP access
           </CardTitle>
         </CardHeader>
