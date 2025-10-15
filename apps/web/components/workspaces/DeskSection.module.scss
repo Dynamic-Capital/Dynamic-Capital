@@ -22,6 +22,11 @@
   --section-gap: clamp(var(--static-space-32), 3.5vw, var(--static-space-56));
 }
 
+.sectionFluid {
+  --section-width: 100%;
+  --section-gap: clamp(var(--static-space-28), 3vw, var(--static-space-56));
+}
+
 .sectionCompact {
   --section-width: min(
     calc(var(--static-width-1024) - var(--static-space-64)),
