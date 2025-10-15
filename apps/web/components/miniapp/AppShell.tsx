@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, type Transition } from "framer-motion";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 const transition: Transition = {
   type: "spring",
@@ -31,17 +31,11 @@ export function AppShell({
           <motion.main
             key={pathname}
             className="app-shell-main"
+            data-has-header={hasHeader ? "true" : "false"}
             initial={{ y: 24, opacity: 0.4 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -12, opacity: 0 }}
             transition={transition}
-            style={{
-              padding: "16px",
-              paddingTop: hasHeader ? "12px" : "calc(var(--safe-top) + 8px)",
-              display: "grid",
-              alignContent: "start",
-              gap: "16px",
-            }}
           >
             {children}
           </motion.main>
