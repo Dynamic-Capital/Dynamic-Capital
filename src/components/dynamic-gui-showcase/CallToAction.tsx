@@ -12,7 +12,7 @@ export function CallToAction({
   return (
     <Column gap="12" align="center">
       <Heading variant="heading-strong-m" align="center" wrap="balance">
-        Operate from a single, focused workspace.
+        Bring Dynamic Chat to your investor desk.
       </Heading>
       <Text
         variant="body-default-m"
@@ -20,7 +20,7 @@ export function CallToAction({
         align="center"
         wrap="balance"
       >
-        Benchmark models, share context with your desk, and keep guardrails in view without juggling dashboards.
+        Choose the workspace track that fits your mandate, invite your desk, and align approvals in minutes.
       </Text>
       <Row gap="12" wrap horizontal="center">
         <Button
@@ -30,7 +30,7 @@ export function CallToAction({
           prefixIcon="sparkles"
           onClick={onStartOnboarding}
         >
-          Start investor onboarding
+          Begin investor onboarding
         </Button>
         <Button
           size="m"
@@ -39,7 +39,7 @@ export function CallToAction({
           prefixIcon="repeat"
           onClick={onRequestWalkthrough}
         >
-          Book a desk walkthrough
+          Schedule a desk walkthrough
         </Button>
       </Row>
     </Column>

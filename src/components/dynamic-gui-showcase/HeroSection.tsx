@@ -18,14 +18,14 @@ export function HeroSection({
       <Row gap="12" vertical="center" horizontal="center">
         <Pulse size="s" variant="brand" aria-hidden="true" />
         <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
-          {brandName} · Investor desk
+          {brandName} · Dynamic Chat
         </Tag>
       </Row>
       <Heading variant="display-strong-s" align="center" wrap="balance">
-        Start with Dynamic Chat.
+        Run your investor desk inside Dynamic Chat.
       </Heading>
       <Row gap="8" wrap horizontal="center">
-        {["TON", "AI", "Signals"].map((label) => (
+        {["TON actions", "AI copilots", "Signal routing"].map((label) => (
           <Tag key={label} size="s" background="neutral-alpha-weak">
             {label}
           </Tag>
@@ -40,12 +40,12 @@ export function HeroSection({
         {brandTagline}
       </Text>
       <Text
-        variant="body-default-m"
-        onBackground="neutral-weak"
+        variant="label-default-s"
+        onBackground="neutral-medium"
         align="center"
         wrap="balance"
       >
-        Operate from a single, focused workspace.
+        Coordinate due diligence, execute TON treasury actions, and broadcast insights without hopping between dashboards.
       </Text>
       <Text
         variant="label-default-s"
@@ -53,7 +53,7 @@ export function HeroSection({
         align="center"
         wrap="balance"
       >
-        Benchmark models, share context with your desk, and keep guardrails in view without juggling dashboards.
+        Benchmark models alongside Dynamic Chat, keep mentor guardrails visible, and deliver investor-ready context in one flow.
       </Text>
       <Row gap="12" wrap horizontal="center">
         <Button
