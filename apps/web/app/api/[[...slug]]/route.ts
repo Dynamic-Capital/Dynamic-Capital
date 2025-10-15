@@ -4,50 +4,46 @@ import { corsHeaders, methodNotAllowed } from "@/utils/http.ts";
 export const dynamic = "force-dynamic";
 
 type RouteParams = { slug?: string[] };
-type RouteContext = { params: Promise<RouteParams> };
+type GuardedHandler = (
+  req: Request,
+  params: RouteParams,
+) => Promise<Response> | Response;
 
-const isRootRequest = (params?: RouteParams) =>
-  !params?.slug || params.slug.length === 0;
-
-const isRootRouteRequest = async (context: RouteContext) => {
-  try {
-    const params = await context.params;
-    return isRootRequest(params);
-  } catch {
-    return true;
-  }
-};
+const isRootRequest = (params: RouteParams) =>
+  !params.slug || params.slug.length === 0;
 
 const notFound = () => new Response(null, { status: 404 });
 
-export async function GET(req: Request, context: RouteContext) {
-  if (!(await isRootRouteRequest(context))) {
-    return notFound();
+const resolveGuardedParams = async (paramsPromise: Promise<RouteParams>) => {
+  const params = await paramsPromise;
+  if (!isRootRequest(params)) {
+    return { failure: notFound() } as const;
   }
 
-  return respondWithApiStatus(req);
-}
-
-const methodNotAllowedForRoute = async (
-  req: Request,
-  context: RouteContext,
-) => {
-  if (!(await isRootRouteRequest(context))) {
-    return notFound();
-  }
-  return methodNotAllowed(req);
+  return { params } as const;
 };
 
+const withRootGuard =
+  (handler: GuardedHandler) =>
+  async (req: Request, context: { params: Promise<RouteParams> }) => {
+    const result = await resolveGuardedParams(context.params);
+    if ("failure" in result) {
+      return result.failure;
+    }
+
+    return handler(req, result.params);
+  };
+
+const methodNotAllowedForRoute = withRootGuard((req) => methodNotAllowed(req));
+
+export const GET = withRootGuard((req) => respondWithApiStatus(req));
 export const POST = methodNotAllowedForRoute;
 export const PUT = methodNotAllowedForRoute;
 export const PATCH = methodNotAllowedForRoute;
 export const DELETE = methodNotAllowedForRoute;
 export const HEAD = methodNotAllowedForRoute;
 
-export async function OPTIONS(req: Request, context: RouteContext) {
-  if (!(await isRootRouteRequest(context))) {
-    return notFound();
-  }
+export const OPTIONS = withRootGuard((req) => {
   const headers = corsHeaders(req, "GET");
   return new Response(null, { status: 204, headers });
-}
+});
