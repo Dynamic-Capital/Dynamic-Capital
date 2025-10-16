@@ -106,6 +106,17 @@ def _branch_statuses(topology: Mapping[str, Any]) -> Sequence[dict[str, Any]]:
     return coerced
 
 
+def _automation_mode(topology: Mapping[str, Any]) -> str:
+    """Return the normalised automation mode for the project topology."""
+
+    raw = str(topology.get("automationMode") or "").strip().lower()
+    if not raw:
+        return "manual"
+    if raw in {"full_auto", "full", "full-automation", "full-auto"}:
+        return "full_auto"
+    return raw
+
+
 def _planner_from_topology(topology: Mapping[str, Any]) -> DynamicBranchPlanner:
     planner = DynamicBranchPlanner(definitions=_branch_definitions(topology))
     for status in _branch_statuses(topology):
@@ -174,6 +185,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     focus_labels = _normalise_string_sequence(topology.get("focus"))
     role_list = _normalise_string_sequence(topology.get("roles"))
     include_optional = bool(topology.get("includeOptionalPlaybooks", True))
+    automation_mode = _automation_mode(topology)
+    if automation_mode == "full_auto":
+        planner.enable_full_auto_mode()
+        include_optional = True
     context = topology.get("context") if isinstance(topology.get("context"), Mapping) else None
 
     review = _build_review(
@@ -188,6 +203,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     payload = _review_payload(review, overview)
     payload["generatedAt"] = datetime.now(timezone.utc).isoformat()
     payload["automation"] = "project_review"
+    payload["automationMode"] = automation_mode
     payload["focus"] = list(review.organisation.focus)
     payload["inputs"] = {
         "branchDefinitions": len(topology.get("branches") or []),
@@ -204,6 +220,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     print("Project review summary")
     print(f"Focus: {', '.join(payload['focus']) or '—'}")
+    print(f"Automation mode: {automation_mode}")
     metrics = payload["metrics"]
     print(
         "Branches: "
