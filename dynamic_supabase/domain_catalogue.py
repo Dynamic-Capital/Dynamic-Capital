@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Mapping
+from pathlib import Path
+from typing import Mapping, Sequence
 
 from .engine import (
     DynamicSupabaseEngine,
@@ -65,6 +66,73 @@ def _function(
         version=version,
         metadata={"domain": domain, "description": description},
     )
+
+
+_EDGE_ENTRY_FILES: Sequence[str] = (
+    "index.ts",
+    "index.tsx",
+)
+
+
+def _is_edge_function_directory(path: Path) -> bool:
+    """Return ``True`` when the directory looks like a Supabase Edge Function."""
+
+    if not path.is_dir():
+        return False
+
+    name = path.name
+    if name.startswith("_") or name.startswith("."):
+        return False
+
+    for candidate in _EDGE_ENTRY_FILES:
+        if (path / candidate).is_file():
+            return True
+
+    return False
+
+
+def _discover_supabase_functions(
+    functions_root: Path | str | None = None,
+) -> tuple[SupabaseFunctionBlueprint, ...]:
+    """Discover Supabase Edge Functions from the repository tree.
+
+    The helper inspects ``supabase/functions`` (or ``functions_root`` when
+    provided) and constructs :class:`SupabaseFunctionBlueprint` instances for all
+    detected edge function directories. The discovery is filesystem-based so the
+    catalogue remains up to date as new functions are added.
+    """
+
+    if functions_root is None:
+        repo_root = Path(__file__).resolve().parents[1]
+        functions_dir = repo_root / "supabase" / "functions"
+    else:
+        functions_dir = Path(functions_root)
+
+    if not functions_dir.exists():
+        return ()
+
+    blueprints: list[SupabaseFunctionBlueprint] = []
+
+    for entry in sorted(functions_dir.iterdir(), key=lambda p: p.name):
+        if not _is_edge_function_directory(entry):
+            continue
+
+        metadata = {
+            "domain": "edge",
+            "description": f"Auto-discovered Supabase edge function '{entry.name}'.",
+            "path": str(entry.relative_to(functions_dir.parent)),
+            "source": "filesystem",
+        }
+
+        blueprints.append(
+            SupabaseFunctionBlueprint(
+                name=entry.name,
+                endpoint=f"/functions/v1/{entry.name}",
+                metadata=metadata,
+            ),
+        )
+
+    return tuple(blueprints)
 
 
 DOMAIN_SUPABASE_BLUEPRINTS: Mapping[str, DomainSupabaseBlueprints] = {
@@ -293,6 +361,10 @@ DOMAIN_SUPABASE_BLUEPRINTS: Mapping[str, DomainSupabaseBlueprints] = {
                 description="Bridges TON allocator events into the execution and treasury stack.",
             ),
         ),
+    ),
+    "edge": DomainSupabaseBlueprints(
+        tables=(),
+        functions=_discover_supabase_functions(),
     ),
 }
 
