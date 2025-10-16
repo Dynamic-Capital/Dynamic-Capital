@@ -3,18 +3,17 @@
   width: 100%;
   min-height: 100%;
   isolation: isolate;
-  background: var(--gradient-motion-bg);
+  background: var(--surface-base);
   color: hsl(var(--foreground));
   overflow: hidden;
 }
 
 .system-shell[data-variant="miniapp"] {
-  background: var(--tg-bg, var(--gradient-motion-bg));
+  background: var(--tg-bg, var(--surface-base));
   color: var(--tg-text, hsl(var(--foreground)));
 }
 
-.system-shell::before,
-.system-shell::after {
+.system-shell::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -26,65 +25,32 @@
   inset: -20% -30% 0;
   background:
     radial-gradient(
-      circle at 15% 20%,
-      hsl(var(--primary) / 0.16),
-      transparent 65%
+      circle at 18% 18%,
+      hsl(var(--surface-glow) / 0.75),
+      transparent 60%
     ),
     radial-gradient(
-    circle at 85% 5%,
-    hsl(var(--dc-secondary) / 0.14),
-    transparent 60%
+    circle at 82% 12%,
+    hsl(var(--surface-glow) / 0.6),
+    transparent 65%
   ),
     radial-gradient(
     circle at 50% 100%,
-    hsl(var(--accent) / 0.1),
-    transparent 65%
+    hsl(var(--surface-glow) / 0.45),
+    transparent 70%
   );
-  filter: blur(50px);
-  opacity: 0.45;
-}
-
-.system-shell::after {
-  background-image:
-    linear-gradient(
-      90deg,
-      var(--system-shell-grid-color, hsl(var(--primary) / 0.08)) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-    0deg,
-    var(--system-shell-grid-color, hsl(var(--primary) / 0.08)) 1px,
-    transparent 1px
-  );
-  background-size: var(--system-shell-grid-size, 180px)
-    var(--system-shell-grid-size, 180px);
-  opacity: 0.06;
-}
-
-.system-shell[data-variant="miniapp"] {
-  --system-shell-grid-color: var(
-    --miniapp-grid-color,
-    hsl(var(--primary) / 0.12)
-  );
-  --system-shell-grid-size: 140px;
+  filter: blur(48px);
+  opacity: 0.35;
 }
 
 .system-shell[data-variant="miniapp"]::before {
-  opacity: 0.9;
-  filter: blur(40px);
-}
-
-.system-shell[data-variant="miniapp"]::after {
-  opacity: 0.12;
+  opacity: 0.55;
+  filter: blur(44px);
 }
 
 .system-shell[data-variant="page"]::before {
-  opacity: 0.35;
-  filter: blur(60px);
-}
-
-.system-shell[data-variant="page"]::after {
-  opacity: 0.08;
+  opacity: 0.28;
+  filter: blur(52px);
 }
 
 .system-shell__body {

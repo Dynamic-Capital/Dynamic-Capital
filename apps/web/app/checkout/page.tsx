@@ -1,6 +1,7 @@
 import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 
 import { WebCheckout } from "@/components/checkout/WebCheckout";
+import { PageShellVariant } from "@/components/layout/PageShell";
 import { buildMetadata } from "@/lib/seo";
 
 type CheckoutPageSearchParams = {
@@ -29,21 +30,24 @@ export default async function CheckoutPage({
   const promoCode = resolvedParams?.promo;
 
   return (
-    <Column gap="24" paddingY="40" align="center" horizontal="center" fillWidth>
-      <Column maxWidth={28} gap="12" align="center" horizontal="center">
-        <Heading variant="display-strong-s" align="center">
-          Secure checkout
-        </Heading>
-        <Text
-          variant="body-default-m"
-          onBackground="neutral-weak"
-          align="center"
-        >
-          Review your plan, select a payment method, and submit proof if you’re
-          joining via bank transfer or crypto.
-        </Text>
+    <>
+      <PageShellVariant variant="workspace" />
+      <Column gap="24" paddingY="40" horizontal="stretch" fillWidth>
+        <Column maxWidth={32} gap="12" horizontal="stretch">
+          <Heading variant="display-strong-s" align="start">
+            Secure checkout
+          </Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            align="start"
+          >
+            Review your plan, select a payment method, and submit proof if
+            you’re joining via bank transfer or crypto.
+          </Text>
+        </Column>
+        <WebCheckout selectedPlanId={selectedPlan} promoCode={promoCode} />
       </Column>
-      <WebCheckout selectedPlanId={selectedPlan} promoCode={promoCode} />
-    </Column>
+    </>
   );
 }

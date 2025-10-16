@@ -481,15 +481,13 @@ export function AuthForm() {
   return (
     <Column
       fillWidth
-      horizontal="center"
-      align="center"
+      horizontal="stretch"
+      vertical="start"
       padding="xl"
-      background="page"
       gap="32"
-      style={{ minHeight: "100vh" }}
     >
       <Column
-        maxWidth={28}
+        maxWidth={32}
         fillWidth
         background="surface"
         border="neutral-alpha-medium"
@@ -497,13 +495,16 @@ export function AuthForm() {
         padding="xl"
         gap="24"
         shadow="xl"
+        horizontal="stretch"
       >
-        <Column gap="12" align="center">
-          <Heading variant="display-strong-xs">Dynamic Capital</Heading>
+        <Column gap="12" horizontal="stretch">
+          <Heading variant="display-strong-xs" align="start">
+            Dynamic Capital
+          </Heading>
           <Text
             variant="body-default-m"
             onBackground="neutral-weak"
-            align="center"
+            align="start"
           >
             {dynamicDescription}
           </Text>
@@ -512,7 +513,7 @@ export function AuthForm() {
               <Text
                 variant="body-default-s"
                 onBackground="brand-weak"
-                align="center"
+                align="start"
               >
                 We couldn’t verify the requested redirect, so you’ll land on the
                 {" "}
@@ -521,7 +522,7 @@ export function AuthForm() {
             )
             : null}
         </Column>
-        <Row gap="12" horizontal="center" wrap>
+        <Row gap="12" horizontal="start" wrap>
           <Button
             size="s"
             variant="secondary"
@@ -548,7 +549,7 @@ export function AuthForm() {
           </Button>
         </Row>
         <form onSubmit={onSubmit}>
-          <Column gap="16">
+          <Column gap="16" horizontal="stretch">
             {mode === "signup"
               ? (
                 <Row gap="12" wrap>
@@ -841,11 +842,11 @@ export function AuthForm() {
             ))}
           </Column>
         </Column>
-        <Column gap="8" align="center">
+        <Column gap="8" horizontal="stretch">
           <Text
             variant="body-default-s"
             onBackground="neutral-weak"
-            align="center"
+            align="start"
           >
             By continuing you agree to desk security policies and trading
             disclaimers.

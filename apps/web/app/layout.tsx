@@ -9,14 +9,6 @@ import "@/lib/env";
 
 import classNames from "classnames";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import {
-  Background,
-  Column,
-  Flex,
-  opacity,
-  RevealFx,
-  SpacingToken,
-} from "@/components/dynamic-ui-system";
 import { DC_ICON_MARK_URL } from "@/config/brand-assets";
 
 import Providers from "./providers";
@@ -36,7 +28,6 @@ const BRANDING_STYLE_ELEMENT_ID = "dynamic-branding-tokens";
 const {
   basics: basicsConfig,
   dataViz: dataVizConfig,
-  effects: effectsConfig,
 } = dynamicUI;
 const { fonts, style } = basicsConfig;
 const brandingMetadata = dynamicBranding.metadata;
@@ -44,8 +35,6 @@ const brandingAssets = dynamicBranding.assets;
 const brandingTokens = dynamicBranding.tokens;
 const brandingPalette = dynamicBranding.palette;
 const { dataStyle } = dataVizConfig;
-const backgroundEffects = effectsConfig.background;
-
 const DEFAULT_THEME = style.theme === "light" || style.theme === "dark"
   ? style.theme
   : "dark";
@@ -250,79 +239,20 @@ export default async function RootLayout(
       <body>
         <Providers>
           <ScrollToHash />
-          <Column
-            as="div"
-            background="page"
-            fillWidth
-            style={{ minHeight: "100vh" }}
-            margin="0"
-            padding="0"
-            horizontal="center"
-          >
-            <RevealFx fill position="absolute">
-              <Background
-                mask={{
-                  x: backgroundEffects.mask.x,
-                  y: backgroundEffects.mask.y,
-                  radius: backgroundEffects.mask.radius,
-                  cursor: backgroundEffects.mask.cursor,
-                }}
-                gradient={{
-                  display: backgroundEffects.gradient.display,
-                  opacity: backgroundEffects.gradient.opacity as opacity,
-                  x: backgroundEffects.gradient.x,
-                  y: backgroundEffects.gradient.y,
-                  width: backgroundEffects.gradient.width,
-                  height: backgroundEffects.gradient.height,
-                  tilt: backgroundEffects.gradient.tilt,
-                  colorStart: backgroundEffects.gradient.colorStart,
-                  colorEnd: backgroundEffects.gradient.colorEnd,
-                }}
-                dots={{
-                  display: backgroundEffects.dots.display,
-                  opacity: backgroundEffects.dots.opacity as opacity,
-                  size: backgroundEffects.dots.size as SpacingToken,
-                  color: backgroundEffects.dots.color,
-                }}
-                grid={{
-                  display: backgroundEffects.grid.display,
-                  opacity: backgroundEffects.grid.opacity as opacity,
-                  color: backgroundEffects.grid.color,
-                  width: backgroundEffects.grid.width,
-                  height: backgroundEffects.grid.height,
-                }}
-                lines={{
-                  display: backgroundEffects.lines.display,
-                  opacity: backgroundEffects.lines.opacity as opacity,
-                  size: backgroundEffects.lines.size as SpacingToken,
-                  thickness: backgroundEffects.lines.thickness,
-                  angle: backgroundEffects.lines.angle,
-                  color: backgroundEffects.lines.color,
-                }}
-              />
-            </RevealFx>
+          <div className="app-layout">
             <SkipToContent />
             <HideOnMiniApp>
               <SiteHeader />
             </HideOnMiniApp>
-            <Flex
-              zIndex={0}
-              fillWidth
-              padding="l"
-              horizontal="center"
-              flex={1}
-              style={{
-                paddingBottom: "4rem",
-              }}
-            >
+            <div className="app-layout__main">
               <PageShell>
                 <RouteGuard>{children}</RouteGuard>
               </PageShell>
-            </Flex>
+            </div>
             <HideOnMiniApp>
               <SiteFooter />
             </HideOnMiniApp>
-          </Column>
+          </div>
         </Providers>
         {IS_PRODUCTION ? <SpeedInsights /> : null}
       </body>

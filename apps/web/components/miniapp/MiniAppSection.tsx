@@ -4,20 +4,28 @@ import { type ComponentPropsWithoutRef, forwardRef } from "react";
 
 import { cn } from "@/lib/utils";
 
+type MiniAppSectionTone = "raised" | "muted" | "plain";
+
 type MiniAppSectionProps = ComponentPropsWithoutRef<"section"> & {
   contentClassName?: string;
+  tone?: MiniAppSectionTone;
+};
+
+const toneClassMap: Record<MiniAppSectionTone, string> = {
+  raised: "miniapp-panel",
+  muted: "miniapp-panel miniapp-panel--muted",
+  plain: "miniapp-panel miniapp-panel--plain",
 };
 
 export const MiniAppSection = forwardRef<HTMLElement, MiniAppSectionProps>(
-  ({ className, children, contentClassName, ...props }, ref) => {
+  (
+    { className, children, contentClassName, tone = "raised", ...props },
+    ref,
+  ) => {
     return (
       <section
         ref={ref}
-        className={cn(
-          "miniapp-panel overflow-hidden border border-border/40",
-          "bg-background/80 shadow-[0_20px_60px_hsl(var(--primary)/0.12)]",
-          className,
-        )}
+        className={cn(toneClassMap[tone], "overflow-hidden", className)}
         {...props}
       >
         <div

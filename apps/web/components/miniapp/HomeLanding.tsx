@@ -26,6 +26,7 @@ import { QuickActions } from "./QuickActions";
 import StatusSection from "./StatusSection";
 import { MiniAppMetricsSliders } from "./MiniAppMetricsSliders";
 import { MiniAppSection } from "./MiniAppSection";
+import { MiniAppGrid } from "./MiniAppGrid";
 
 type TelegramData = {
   user?: {
@@ -56,6 +57,12 @@ const DEFAULT_SERVICES_TEXT =
   "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support";
 const DEFAULT_ANNOUNCEMENT =
   "🚀 Welcome to the new Dynamic Capital experience. Tap a section below to explore plans, market intelligence, and support.";
+
+const SECTION_LINKS = [
+  { id: "status", label: "Desk status" },
+  { id: "actions", label: "Actions & plans" },
+  { id: "support", label: "Support" },
+] as const;
 
 function parseServiceHighlights(services: string) {
   return services
@@ -289,7 +296,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   }
 
   return (
-    <div className="space-y-10 pb-32">
+    <div className="space-y-12 pb-36 lg:space-y-16">
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -384,44 +391,71 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         </div>
       </motion.section>
 
-      <MiniAppSection>
-        <StatusSection telegramData={telegramData} />
-      </MiniAppSection>
+      <nav className="miniapp-summary-nav" aria-label="Mini app overview">
+        {SECTION_LINKS.map(({ id, label }) => (
+          <a key={id} className="miniapp-summary-nav__link" href={`#${id}`}>
+            {label}
+          </a>
+        ))}
+      </nav>
 
-      <MiniAppSection>
-        <MiniAppMetricsSliders
-          metrics={metrics}
-          insights={insights}
-          deskTimeLabel={deskClock.formatted}
-          lastSyncedLabel={lastSyncedLabel}
-        />
-      </MiniAppSection>
+      <MiniAppGrid
+        id="status"
+        title="Desk status"
+        description="Monitor live trading guidance, signals, and the metrics powering today's calls."
+      >
+        <MiniAppSection tone="raised">
+          <StatusSection telegramData={telegramData} />
+        </MiniAppSection>
+        <MiniAppSection tone="muted">
+          <MiniAppMetricsSliders
+            metrics={metrics}
+            insights={insights}
+            deskTimeLabel={deskClock.formatted}
+            lastSyncedLabel={lastSyncedLabel}
+          />
+        </MiniAppSection>
+      </MiniAppGrid>
 
-      <MiniAppSection>
-        <QuickActions />
-      </MiniAppSection>
-
-      <MiniAppSection contentClassName="gap-6">
-        <PlanSection />
-      </MiniAppSection>
-
-      <MiniAppSection>
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">
-              What you get with VIP access
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Explore the benefits included with every VIP membership tier.
-            </p>
+      <MiniAppGrid
+        id="actions"
+        title="Actions & membership"
+        description="Jump straight into the workflows you use most or review upgrade paths tailored to your desk."
+      >
+        <MiniAppSection tone="raised">
+          <QuickActions />
+        </MiniAppSection>
+        <MiniAppSection tone="muted" contentClassName="gap-6">
+          <PlanSection />
+        </MiniAppSection>
+        <MiniAppSection tone="plain" className="md:col-span-2">
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold tracking-tight text-foreground">
+                What you get with VIP access
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Explore the benefits included with every VIP membership tier.
+              </p>
+            </div>
+            <ServiceStackCarousel services={services} />
           </div>
-          <ServiceStackCarousel services={services} />
-        </div>
-      </MiniAppSection>
+        </MiniAppSection>
+      </MiniAppGrid>
 
-      <FAQSection />
-
-      <AskSection />
+      <MiniAppGrid
+        id="support"
+        title="Support & knowledge base"
+        description="Find quick answers or tap the desk for personalised guidance."
+        contentClassName="md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+      >
+        <MiniAppSection tone="muted">
+          <FAQSection />
+        </MiniAppSection>
+        <MiniAppSection tone="plain">
+          <AskSection />
+        </MiniAppSection>
+      </MiniAppGrid>
     </div>
   );
 }

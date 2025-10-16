@@ -4,6 +4,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PaymentStatus } from "@/components/receipts/PaymentStatus";
+import { PageShellVariant } from "@/components/layout/PageShell";
 
 type PaymentStatusSearchParams = {
   payment_id?: string;
@@ -57,25 +58,28 @@ export default async function PaymentStatusPage(
   }
 
   return (
-    <Column gap="24" paddingY="40" align="center" horizontal="center" fillWidth>
-      <Column maxWidth={32} gap="12" align="center" horizontal="center">
-        <Heading variant="display-strong-s" align="center">
-          Payment status
-        </Heading>
-        <Text
-          variant="body-default-m"
-          onBackground="neutral-weak"
-          align="center"
-        >
-          Check the current state of your payment, upload proof of transfer, and
-          follow the next steps for activation.
-        </Text>
-      </Column>
+    <>
+      <PageShellVariant variant="workspace" />
+      <Column gap="24" paddingY="40" horizontal="stretch" fillWidth>
+        <Column maxWidth={36} gap="12" horizontal="stretch">
+          <Heading variant="display-strong-s" align="start">
+            Payment status
+          </Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            align="start"
+          >
+            Check the current state of your payment, upload proof of transfer,
+            and follow the next steps for activation.
+          </Text>
+        </Column>
 
-      <Column gap="16" fillWidth maxWidth={36}>
-        {getStatusNotice(status, plan)}
-        <PaymentStatus paymentId={paymentId} />
+        <Column gap="16" fillWidth maxWidth={40} horizontal="stretch">
+          {getStatusNotice(status, plan)}
+          <PaymentStatus paymentId={paymentId} />
+        </Column>
       </Column>
-    </Column>
+    </>
   );
 }
