@@ -2,8 +2,18 @@ export const TON_SITE_DOMAIN = "dynamiccapital.ton";
 export const TON_SITE_ALIAS_DOMAINS = Object.freeze(
   [
     "dynamicapital.ton",
+    "www.dynamiccapital.ton",
   ] as const,
 );
+
+const TON_SITE_ALIAS_DOMAIN_SET = new Set(
+  TON_SITE_ALIAS_DOMAINS.map((domain) => domain.toLowerCase()),
+);
+
+const TON_SITE_DOMAIN_SET = new Set<string>([
+  TON_SITE_DOMAIN.toLowerCase(),
+  ...TON_SITE_ALIAS_DOMAIN_SET,
+]);
 
 const TON_SITE_DOMAIN_CANDIDATES = Object.freeze([
   TON_SITE_DOMAIN,
@@ -48,6 +58,26 @@ export const TON_SITE_GATEWAY_HOSTS = Object.freeze(
     ]),
   ),
 );
+
+export function isTonSiteHost(host: string | null | undefined): boolean {
+  if (!host) return false;
+
+  const normalized = host.trim().toLowerCase();
+  if (!normalized) return false;
+
+  const hostname = normalized.split(":")[0];
+  return TON_SITE_DOMAIN_SET.has(hostname);
+}
+
+export function isTonSiteAliasHost(host: string | null | undefined): boolean {
+  if (!host) return false;
+
+  const normalized = host.trim().toLowerCase();
+  if (!normalized) return false;
+
+  const hostname = normalized.split(":")[0];
+  return TON_SITE_ALIAS_DOMAIN_SET.has(hostname);
+}
 
 function trimTrailingSlash(input: string): string {
   return input.endsWith("/") ? input.slice(0, -1) : input;

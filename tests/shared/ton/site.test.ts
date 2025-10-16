@@ -3,6 +3,8 @@ import { assertEquals } from "std/assert/mod.ts";
 
 import {
   isTonSitePath,
+  isTonSiteAliasHost,
+  isTonSiteHost,
   normalizeTonGatewayPath,
   resolveTonSiteGatewayBaseForHost,
   resolveTonSiteGatewayBasesForHost,
@@ -47,7 +49,13 @@ describe("ton site gateway helpers", () => {
       ],
     );
     assertEquals(TON_SITE_DOMAIN, "dynamiccapital.ton");
-    assertEquals([...TON_SITE_ALIAS_DOMAINS], ["dynamicapital.ton"]);
+    assertEquals(
+      [...TON_SITE_ALIAS_DOMAINS],
+      [
+        "dynamicapital.ton",
+        "www.dynamiccapital.ton",
+      ],
+    );
     assertEquals(
       TON_SITE_GATEWAY_ORIGIN,
       "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
@@ -180,6 +188,14 @@ describe("ton site gateway helpers", () => {
         expected: "/nested/asset",
       },
       {
+        input: "/www.dynamiccapital.ton/index.html",
+        expected: "/index.html",
+      },
+      {
+        input: "/www.dynamiccapital.ton/",
+        expected: "",
+      },
+      {
         input: `/${TON_SITE_DOMAIN}/../etc/passwd`,
         expected: "",
       },
@@ -206,6 +222,10 @@ describe("ton site gateway helpers", () => {
       "/dynamicapital.ton",
       "/dynamicapital.ton/",
       "/dynamicapital.ton/icon.png",
+      "/dynamicapital.ton/nested",
+      "/www.dynamiccapital.ton",
+      "/www.dynamiccapital.ton/assets/logo.png",
+      " www.dynamiccapital.ton/docs ",
       "dynamicapital.ton",
       " dynamicapital.ton/docs ",
     ];
@@ -231,6 +251,74 @@ describe("ton site gateway helpers", () => {
     for (const input of negativeCases) {
       it(`rejects non-TON site path ${JSON.stringify(input)}`, () => {
         assertEquals(isTonSitePath(input as string | null | undefined), false);
+      });
+    }
+  });
+
+  describe("isTonSiteHost", () => {
+    const positiveCases = [
+      TON_SITE_DOMAIN,
+      TON_SITE_DOMAIN.toUpperCase(),
+      ` ${TON_SITE_DOMAIN} `,
+      `${TON_SITE_DOMAIN}:443`,
+      ...TON_SITE_ALIAS_DOMAINS,
+    ];
+
+    for (const host of positiveCases) {
+      it(`recognises TON site host ${JSON.stringify(host)}`, () => {
+        assertEquals(isTonSiteHost(host), true);
+      });
+    }
+
+    const negativeCases = [
+      undefined,
+      null,
+      "",
+      "   ",
+      "dynamiccapital.tonx",
+      "app.dynamiccapital.ton",
+      "ton.site",
+    ];
+
+    for (const host of negativeCases) {
+      it(`rejects non-TON site host ${JSON.stringify(host)}`, () => {
+        assertEquals(
+          isTonSiteHost(host as string | null | undefined),
+          false,
+        );
+      });
+    }
+  });
+
+  describe("isTonSiteAliasHost", () => {
+    const positiveCases = [
+      ...TON_SITE_ALIAS_DOMAINS,
+      TON_SITE_ALIAS_DOMAINS[0].toUpperCase(),
+      ` ${TON_SITE_ALIAS_DOMAINS[0]}:443 `,
+    ];
+
+    for (const host of positiveCases) {
+      it(`recognises TON alias host ${JSON.stringify(host)}`, () => {
+        assertEquals(isTonSiteAliasHost(host), true);
+      });
+    }
+
+    const negativeCases = [
+      undefined,
+      null,
+      "",
+      "   ",
+      TON_SITE_DOMAIN,
+      "dynamiccapital.tonx",
+      "gateway.dynamiccapital.ton",
+    ];
+
+    for (const host of negativeCases) {
+      it(`rejects non-alias host ${JSON.stringify(host)}`, () => {
+        assertEquals(
+          isTonSiteAliasHost(host as string | null | undefined),
+          false,
+        );
       });
     }
   });

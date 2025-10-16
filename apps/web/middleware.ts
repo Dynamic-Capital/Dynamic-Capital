@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildCorsHeaders, mergeVary } from "@/utils/http.ts";
 import {
+  isTonSiteAliasHost,
   isTonSitePath,
   normalizeTonGatewayPath,
   TON_SITE_GATEWAY_HOSTS,
@@ -38,9 +39,13 @@ export function middleware(req: NextRequest) {
   }
 
   const { pathname } = req.nextUrl;
-  const host = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
+  const rawHost = req.headers.get("host");
+  const host = rawHost?.split(":")[0]?.toLowerCase() ?? "";
 
-  if (TON_GATEWAY_HOSTS.has(host) && !pathname.startsWith("/ton-site")) {
+  if (
+    (TON_GATEWAY_HOSTS.has(host) || isTonSiteAliasHost(rawHost)) &&
+    !pathname.startsWith("/ton-site")
+  ) {
     const rewritten = req.nextUrl.clone();
     const suffix = normalizeTonGatewayPath(pathname);
     rewritten.pathname = suffix ? `/ton-site${suffix}` : "/ton-site";
