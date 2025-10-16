@@ -35,9 +35,29 @@ interface QuickAction {
 
 interface QuickActionContext {
   isInTelegram: boolean;
-  openExternalLink: (url: string, message: string) => void;
-  navigateWithToast: (path: string, message: string) => void;
-  setTabWithHistory: (tab: string, message: string) => void;
+  openExternalLink: (
+    actionId: string,
+    url: string,
+    message: string,
+    priority?: QuickActionPriority,
+  ) => void;
+  navigateWithStatus: (
+    actionId: string,
+    path: string,
+    message: string,
+    priority?: QuickActionPriority,
+  ) => void;
+  setTabWithHistory: (
+    actionId: string,
+    tab: string,
+    message: string,
+    priority?: QuickActionPriority,
+  ) => void;
+  provideInlineFeedback: (
+    actionId: string,
+    message: string,
+    priority?: QuickActionPriority,
+  ) => void;
 }
 
 type QuickActionFactory = (context: QuickActionContext) => QuickAction;
@@ -59,21 +79,25 @@ const QUICK_ACTION_FACTORIES: QuickActionFactory[] = [
     icon: MessageSquare,
     action: () =>
       openExternalLink(
+        "contact",
         "https://t.me/DynamicCapital_Support",
         "Opening support chat...",
+        "high",
       ),
     isExternal: true,
     priority: "high",
   }),
-  ({ navigateWithToast }) => ({
+  ({ navigateWithStatus }) => ({
     id: "account_access",
     title: "Account & Billing",
     description: "Manage receipts and subscriptions",
     icon: Wallet,
     action: () =>
-      navigateWithToast(
+      navigateWithStatus(
+        "account_access",
         "/miniapp/dynamic-access",
         "Opening account dashboard...",
+        "high",
       ),
     priority: "high",
   }),
@@ -84,22 +108,26 @@ const QUICK_ACTION_FACTORIES: QuickActionFactory[] = [
     icon: Users,
     action: () =>
       openExternalLink(
+        "community",
         "https://t.me/DynamicCapital_Community",
         "Opening community...",
+        "medium",
       ),
     isExternal: true,
     priority: "medium",
   }),
-  ({ isInTelegram }) => ({
+  ({ isInTelegram, provideInlineFeedback }) => ({
     id: "signals",
     title: "Signal Alerts",
     description: "Real-time notifications",
     icon: Zap,
     action: () => {
-      toast.info(
+      provideInlineFeedback(
+        "signals",
         isInTelegram
           ? "Enable notifications in Telegram settings for instant alerts"
           : "Download our Telegram bot for real-time signal alerts",
+        "high",
       );
     },
     priority: "high",
@@ -110,7 +138,12 @@ const QUICK_ACTION_FACTORIES: QuickActionFactory[] = [
     description: "Learn & improve skills",
     icon: BookOpen,
     action: () =>
-      setTabWithHistory("education", "Navigating to Trading Academy..."),
+      setTabWithHistory(
+        "education",
+        "education",
+        "Navigating to Trading Academy...",
+        "medium",
+      ),
     priority: "medium",
   }),
   ({ setTabWithHistory }) => ({
@@ -119,7 +152,12 @@ const QUICK_ACTION_FACTORIES: QuickActionFactory[] = [
     description: "Monitor your progress",
     icon: TrendingUp,
     action: () =>
-      setTabWithHistory("dashboard", "Opening performance tracker..."),
+      setTabWithHistory(
+        "performance",
+        "dashboard",
+        "Opening performance tracker...",
+        "medium",
+      ),
     priority: "medium",
   }),
   ({ openExternalLink }) => ({
@@ -129,8 +167,10 @@ const QUICK_ACTION_FACTORIES: QuickActionFactory[] = [
     icon: Star,
     action: () =>
       openExternalLink(
+        "reviews",
         "https://t.me/DynamicCapital_Reviews",
         "Opening member reviews...",
+        "low",
       ),
     isExternal: true,
     priority: "low",
@@ -140,6 +180,9 @@ const QUICK_ACTION_FACTORIES: QuickActionFactory[] = [
 export function QuickActions() {
   const router = useRouter();
   const [isInTelegram, setIsInTelegram] = useState(false);
+  const [inlineStatuses, setInlineStatuses] = useState<Record<string, string>>(
+    {},
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -160,72 +203,122 @@ export function QuickActions() {
     };
   }, []);
 
-  const openExternalLink = useCallback((url: string, message: string) => {
-    toast.success(message);
+  const updateInlineStatus = useCallback(
+    (actionId: string, message: string, priority: QuickActionPriority) => {
+      if (priority !== "high") {
+        return;
+      }
 
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const webApp = (window as TelegramWindow).Telegram?.WebApp;
-
-    if (url.startsWith("https://t.me/") && webApp?.openTelegramLink) {
-      webApp.openTelegramLink(url);
-      return;
-    }
-
-    if (webApp?.openLink) {
-      webApp.openLink(url);
-      return;
-    }
-
-    window.open(url, "_blank", "noopener,noreferrer");
-  }, []);
-
-  const navigateWithToast = useCallback(
-    (path: string, message: string) => {
-      toast.success(message);
-      router.push(path);
+      setInlineStatuses((previous) => ({
+        ...previous,
+        [actionId]: message,
+      }));
     },
-    [router],
+    [],
   );
 
-  const setTabWithHistory = useCallback((tab: string, message: string) => {
-    toast.success(message);
+  const provideInlineFeedback = useCallback(
+    (
+      actionId: string,
+      message: string,
+      priority: QuickActionPriority = "medium",
+    ) => {
+      updateInlineStatus(actionId, message, priority);
+    },
+    [updateInlineStatus],
+  );
 
-    if (typeof window === "undefined") {
-      return;
-    }
+  const openExternalLink = useCallback(
+    (
+      actionId: string,
+      url: string,
+      message: string,
+      priority: QuickActionPriority = "medium",
+    ) => {
+      updateInlineStatus(actionId, message, priority);
 
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set("tab", tab);
-
-      if (typeof window.history?.pushState === "function") {
-        window.history.pushState({}, "", url.toString());
-        const popstateEvent = typeof window.PopStateEvent === "function"
-          ? new window.PopStateEvent("popstate")
-          : new Event("popstate");
-        window.dispatchEvent(popstateEvent);
-      } else {
-        window.location.assign(url.toString());
+      if (typeof window === "undefined") {
+        return;
       }
-    } catch {
-      window.location.href = `?tab=${tab}`;
-    }
-  }, []);
+
+      const webApp = (window as TelegramWindow).Telegram?.WebApp;
+
+      if (url.startsWith("https://t.me/") && webApp?.openTelegramLink) {
+        toast.info(message);
+        webApp.openTelegramLink(url);
+        return;
+      }
+
+      if (webApp?.openLink) {
+        toast.info(message);
+        webApp.openLink(url);
+        return;
+      }
+
+      window.open(url, "_blank", "noopener,noreferrer");
+    },
+    [updateInlineStatus],
+  );
+
+  const navigateWithStatus = useCallback(
+    (
+      actionId: string,
+      path: string,
+      message: string,
+      priority: QuickActionPriority = "medium",
+    ) => {
+      updateInlineStatus(actionId, message, priority);
+      router.push(path);
+    },
+    [router, updateInlineStatus],
+  );
+
+  const setTabWithHistory = useCallback(
+    (
+      actionId: string,
+      tab: string,
+      message: string,
+      priority: QuickActionPriority = "medium",
+    ) => {
+      updateInlineStatus(actionId, message, priority);
+
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", tab);
+
+        if (typeof window.history?.pushState === "function") {
+          window.history.pushState({}, "", url.toString());
+          const popstateEvent = typeof window.PopStateEvent === "function"
+            ? new window.PopStateEvent("popstate")
+            : new Event("popstate");
+          window.dispatchEvent(popstateEvent);
+        } else {
+          window.location.assign(url.toString());
+        }
+      } catch {
+        window.location.href = `?tab=${tab}`;
+      }
+    },
+    [],
+  );
 
   const quickActionContext = useMemo<QuickActionContext>(
     () => ({
       isInTelegram,
       openExternalLink,
-      navigateWithToast,
+      navigateWithStatus,
       setTabWithHistory,
+      provideInlineFeedback,
     }),
     [
       isInTelegram,
-      navigateWithToast,
+      navigateWithStatus,
       openExternalLink,
+      provideInlineFeedback,
       setTabWithHistory,
     ],
   );
@@ -313,6 +406,7 @@ export function QuickActions() {
       >
         {quickActions.map((action, index) => {
           const Icon = action.icon;
+          const inlineStatusMessage = inlineStatuses[action.id];
 
           return (
             <Interactive3DCard
@@ -395,6 +489,19 @@ export function QuickActions() {
                   {action.description}
                 </motion.p>
 
+                {action.priority === "high" && inlineStatusMessage
+                  ? (
+                    <motion.p
+                      className="mt-2 text-xs text-primary/80"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {inlineStatusMessage}
+                    </motion.p>
+                  )
+                  : null}
+
                 {/* Prismatic overlay effect */}
                 <motion.div
                   className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
@@ -438,8 +545,8 @@ export function QuickActions() {
           <span className="text-sm font-medium text-foreground">Pro Tip</span>
         </motion.div>
         <p className="text-xs text-muted-foreground">
-          Join our VIP community for exclusive trading signals, market
-          analysis, and 24/7 priority support.
+          Join our VIP community for exclusive trading signals, market analysis,
+          and 24/7 priority support.
         </p>
       </motion.div>
     </motion.div>
