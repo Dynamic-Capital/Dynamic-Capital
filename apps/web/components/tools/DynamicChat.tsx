@@ -323,8 +323,9 @@ export function DynamicChat() {
 
   useEffect(() => {
     const override = systemPromptOverrides[language]?.trim();
-    const targetPrompt =
-      override && override.length > 0 ? override : composedSystemPrompt;
+    const targetPrompt = override && override.length > 0
+      ? override
+      : composedSystemPrompt;
     const normalizedTarget = targetPrompt.trim();
     const normalizedCurrent = systemMessage?.content?.trim() ?? "";
 

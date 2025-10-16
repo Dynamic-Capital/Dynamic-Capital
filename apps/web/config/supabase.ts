@@ -129,11 +129,22 @@ export const callEdgeFunction = async <T>(
     body?: JsonBody;
     headers?: Record<string, string>;
     token?: string;
+    searchParams?: Record<string, string | number | boolean | undefined>;
+    signal?: AbortSignal;
+    cache?: RequestCache;
   } = {},
 ): Promise<
   { data?: T; error?: { status: number; message: string }; status?: number }
 > => {
-  const { method = "GET", body, headers = {}, token } = options;
+  const {
+    method = "GET",
+    body,
+    headers = {},
+    token,
+    searchParams,
+    signal,
+    cache,
+  } = options;
   const functionPath = SUPABASE_CONFIG.FUNCTIONS[functionName];
 
   if (!functionPath) {
@@ -163,9 +174,25 @@ export const callEdgeFunction = async <T>(
   }
 
   const useProxy = !SUPABASE_CONFIG_FROM_ENV;
-  const endpoint = useProxy
+  let endpoint = useProxy
     ? buildInternalFunctionProxyUrl(functionPath)
     : buildFunctionUrl(functionName);
+
+  if (searchParams) {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (value === undefined || value === null) {
+        continue;
+      }
+      query.set(key, String(value));
+    }
+    const queryString = query.toString();
+    if (queryString) {
+      endpoint = `${endpoint}${
+        endpoint.includes("?") ? "&" : "?"
+      }${queryString}`;
+    }
+  }
 
   const requestHeaders = new Headers(headers);
   if (!requestHeaders.has("Content-Type") && body !== undefined) {
@@ -183,11 +210,18 @@ export const callEdgeFunction = async <T>(
 
   let res: Response;
   try {
-    res = await fetch(endpoint, {
+    const requestInit: RequestInit = {
       method,
       headers: requestHeaders,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+      signal,
+      cache,
+    };
+
+    if (body !== undefined) {
+      requestInit.body = JSON.stringify(body);
+    }
+
+    res = await fetch(endpoint, requestInit);
   } catch (error) {
     const message = error instanceof Error
       ? error.message
