@@ -1,6 +1,5 @@
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { extractTelegramUserId } from "../shared/telegram.ts";
-import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import type { SupabaseClient } from "../_shared/client.ts";
 
 export async function handleApiRoutes(
@@ -203,17 +202,20 @@ export async function handleApiRoutes(
   if (path === "/api/vip-dashboard" && req.method === "GET") {
     try {
       const url = new URL(req.url);
-      const telegram_user_id = url.searchParams.get("telegram_user_id");
+      const initData = url.searchParams.get("initData") ?? "";
+      const telegramUser = await verifyInitDataAndGetUser(initData);
 
-      if (!telegram_user_id) {
+      if (!telegramUser) {
         return new Response(
-          JSON.stringify({ error: "telegram_user_id required" }),
+          JSON.stringify({ error: "Unauthorized" }),
           {
-            status: 400,
+            status: 401,
             headers: { ...corsHeaders, "content-type": "application/json" },
           },
         );
       }
+
+      const telegram_user_id = String(telegramUser.id);
 
       // Check if user is VIP
       const { data: user, error: userError } = await supabase
@@ -229,20 +231,94 @@ export async function handleApiRoutes(
         });
       }
 
-      // Get VIP analytics
-      const { data: analytics, error: analyticsError } = await supabase
-        .from("daily_analytics")
-        .select("*")
-        .order("date", { ascending: false })
-        .limit(30);
+      const ANALYTICS_LIMIT = 14;
+      const INTERACTIONS_LIMIT = 10;
 
-      // Get recent interactions
-      const { data: interactions, error: interactionsError } = await supabase
-        .from("user_interactions")
-        .select("*")
-        .eq("telegram_user_id", telegram_user_id)
-        .order("created_at", { ascending: false })
-        .limit(10);
+      const [
+        { data: analytics, error: analyticsError },
+        { data: interactions, error: interactionsError },
+      ] = await Promise.all([
+        supabase
+          .from("daily_analytics")
+          .select("date, new_users, total_users, revenue")
+          .order("date", { ascending: false })
+          .limit(ANALYTICS_LIMIT),
+        supabase
+          .from("user_interactions")
+          .select("id, interaction_type, created_at")
+          .eq("telegram_user_id", telegram_user_id)
+          .order("created_at", { ascending: false })
+          .limit(INTERACTIONS_LIMIT),
+      ]);
+
+      if (analyticsError) {
+        console.error("VIP dashboard analytics error:", analyticsError);
+      }
+
+      if (interactionsError) {
+        console.error("VIP dashboard interactions error:", interactionsError);
+      }
+
+      const analyticsRows = (analytics ?? []).map((row) => ({
+        date: row.date,
+        new_users: Number(row.new_users ?? 0),
+        total_users: Number(row.total_users ?? 0),
+        revenue: Number(row.revenue ?? 0),
+      }));
+
+      const interactionsRows = (interactions ?? []).map((row) => ({
+        id: row.id,
+        interaction_type: row.interaction_type || "unknown",
+        created_at: row.created_at,
+      }));
+
+      const totalRevenue = analyticsRows.reduce(
+        (sum, entry) =>
+          sum + (Number.isFinite(entry.revenue) ? entry.revenue : 0),
+        0,
+      );
+
+      const avgDailyRevenue = analyticsRows.length
+        ? totalRevenue / analyticsRows.length
+        : 0;
+
+      const trailingNewUsers = analyticsRows.reduce(
+        (sum, entry) =>
+          sum + (Number.isFinite(entry.new_users) ? entry.new_users : 0),
+        0,
+      );
+
+      const trailingInteractions = interactionsRows.length;
+
+      const latestAnalytics = analyticsRows[0];
+      const lastUpdated = latestAnalytics?.date || new Date().toISOString();
+      const retentionRate = latestAnalytics && latestAnalytics.total_users > 0
+        ? Math.max(
+          latestAnalytics.total_users - latestAnalytics.new_users,
+          0,
+        ) / latestAnalytics.total_users
+        : null;
+
+      const revenueTrend = analyticsRows.slice().reverse().map((entry) => ({
+        date: entry.date,
+        value: entry.revenue,
+      }));
+
+      const newUsersTrend = analyticsRows.slice().reverse().map((entry) => ({
+        date: entry.date,
+        value: entry.new_users,
+      }));
+
+      const activityBreakdown = interactionsRows.reduce<Record<string, number>>(
+        (acc, interaction) => {
+          const key = interaction.interaction_type;
+          acc[key] = (acc[key] ?? 0) + 1;
+          return acc;
+        },
+        {},
+      );
+
+      const lastInteractionAt = interactionsRows[0]?.created_at ?? null;
 
       return new Response(
         JSON.stringify({
@@ -250,11 +326,29 @@ export async function handleApiRoutes(
             is_vip: user.is_vip,
             subscription_expires_at: user.subscription_expires_at,
           },
-          analytics: analytics || [],
-          recent_interactions: interactions || [],
+          analytics: analyticsRows,
+          recent_interactions: interactionsRows,
+          summary: {
+            totalRevenue,
+            avgDailyRevenue,
+            trailingNewUsers,
+            trailingInteractions,
+            retentionRate,
+            lastUpdated,
+            lastInteractionAt,
+          },
+          trends: {
+            revenue: revenueTrend,
+            newUsers: newUsersTrend,
+          },
+          activityBreakdown,
         }),
         {
-          headers: { ...corsHeaders, "content-type": "application/json" },
+          headers: {
+            ...corsHeaders,
+            "content-type": "application/json",
+            "cache-control": "public, max-age=60",
+          },
         },
       );
     } catch (error) {

@@ -6,8 +6,6 @@
  * object with a `message` field) is thrown. Callers should handle these errors
  * with a `try/catch` block.
  */
-import { extractTelegramUserId } from "../../../shared/telegram.ts";
-
 export function useApi() {
   const getInitData = () =>
     (globalThis as unknown as { Telegram?: { WebApp?: { initData?: string } } })
@@ -100,41 +98,27 @@ export function useApi() {
   };
 
   const checkAdminStatus = async () => {
-    const initData = getInitData();
-    // Extract telegram user ID from initData (basic parsing)
-    const telegram_user_id = extractTelegramUserId(initData);
-
     const res = await fetch("/api/admin-check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegram_user_id }),
+      body: JSON.stringify({ initData: getInitData() }),
     });
     if (!res.ok) return handleError(res);
     return res.json();
   };
 
   const getSubscriptionStatus = async () => {
-    const initData = getInitData();
-    const telegram_user_id = extractTelegramUserId(initData);
-
     const res = await fetch("/api/subscription-status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegram_user_id }),
+      body: JSON.stringify({ initData: getInitData() }),
     });
     if (!res.ok) return handleError(res);
     return res.json();
   };
 
   const getVipDashboard = async () => {
-    const initData = getInitData();
-    const telegram_user_id = extractTelegramUserId(initData);
-
-    const res = await fetch(
-      `/api/vip-dashboard?telegram_user_id=${telegram_user_id}`,
-    );
-    if (!res.ok) return handleError(res);
-    return res.json();
+    return get("/api/vip-dashboard");
   };
 
   const syncUser = async () => {
@@ -146,9 +130,6 @@ export function useApi() {
     if (!res.ok) return handleError(res);
     return res.json();
   };
-
-  // Helper function to extract telegram user ID from initData
-  // extractTelegramUserId imported from shared utility
 
   return {
     createIntent,
