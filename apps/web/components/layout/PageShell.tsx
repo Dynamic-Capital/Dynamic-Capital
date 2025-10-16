@@ -6,7 +6,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { usePathname } from "next/navigation";
@@ -15,10 +14,10 @@ import { isMiniAppPath } from "@/lib/pathnames";
 
 type PageShellVariant = "centered" | "workspace";
 
+const DEFAULT_VARIANT: PageShellVariant = "centered";
+
 interface PageShellContextValue {
-  variant: PageShellVariant;
   setVariant: (variant: PageShellVariant) => void;
-  reset: () => void;
 }
 
 const PageShellVariantContext = createContext<PageShellContextValue | null>(
@@ -27,32 +26,21 @@ const PageShellVariantContext = createContext<PageShellContextValue | null>(
 
 interface PageShellProps {
   children: ReactNode;
-  variant?: PageShellVariant;
 }
 
-export function PageShell({
-  children,
-  variant = "centered",
-}: PageShellProps) {
+export function PageShell({ children }: PageShellProps) {
   const pathname = usePathname();
   const isMiniApp = isMiniAppPath(pathname);
 
-  const [currentVariant, setCurrentVariant] = useState<PageShellVariant>(
-    variant,
-  );
-  const initialVariantRef = useRef<PageShellVariant>(variant);
+  const [variant, setVariant] = useState<PageShellVariant>(DEFAULT_VARIANT);
 
   useEffect(() => {
-    const nextVariant = variant;
-    initialVariantRef.current = nextVariant;
-    setCurrentVariant(nextVariant);
-  }, [variant, pathname]);
+    setVariant(DEFAULT_VARIANT);
+  }, [pathname]);
 
   const contextValue = useMemo<PageShellContextValue>(() => ({
-    variant: currentVariant,
-    setVariant: setCurrentVariant,
-    reset: () => setCurrentVariant(initialVariantRef.current),
-  }), [currentVariant]);
+    setVariant,
+  }), [setVariant]);
 
   if (isMiniApp) {
     return (
@@ -73,9 +61,9 @@ export function PageShell({
           id="main-content"
           tabIndex={-1}
           className="system-shell__body page-shell flex min-h-0 w-full flex-1 flex-col"
-          data-variant={currentVariant}
+          data-variant={variant}
         >
-          <div className="page-shell__surface" data-variant={currentVariant}>
+          <div className="page-shell__surface" data-variant={variant}>
             {children}
           </div>
         </main>
@@ -97,9 +85,8 @@ export function PageShellVariant({ variant }: PageShellVariantProps) {
     }
 
     context.setVariant(variant);
-
     return () => {
-      context.reset();
+      context.setVariant(DEFAULT_VARIANT);
     };
   }, [context, variant]);
 
