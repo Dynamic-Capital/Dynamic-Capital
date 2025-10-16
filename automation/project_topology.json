@@ -10,6 +10,7 @@
     "programIncrement": "FY25-Q4",
     "notes": "Align platform and web surfaces for the October trading event"
   },
+  "automationMode": "full_auto",
   "roles": [
     "DevOps Engineer",
     "Project Manager",
