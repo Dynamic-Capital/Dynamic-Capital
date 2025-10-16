@@ -2,6 +2,7 @@ export const TON_SITE_DOMAIN = "dynamiccapital.ton";
 export const TON_SITE_ALIAS_DOMAINS = Object.freeze(
   [
     "dynamicapital.ton",
+    "www.dynamiccapital.ton",
   ] as const,
 );
 
