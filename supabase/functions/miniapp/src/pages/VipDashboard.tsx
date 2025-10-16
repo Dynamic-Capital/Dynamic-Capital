@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import GlassPanel from "../components/GlassPanel";
 import PrimaryButton from "../components/PrimaryButton";
@@ -94,7 +94,20 @@ export default function VipDashboard() {
     );
   }
 
-  if (!dashboardData?.user.is_vip) {
+  if (!dashboardData) {
+    return (
+      <div className="dc-screen">
+        <TopBar title="VIP Dashboard" />
+        <GlassPanel>
+          <div className="text-center text-dc-text-dim">
+            No dashboard data is available yet.
+          </div>
+        </GlassPanel>
+      </div>
+    );
+  }
+
+  if (!dashboardData.user?.is_vip) {
     return (
       <div className="dc-screen">
         <TopBar title="VIP Dashboard" />
@@ -114,6 +127,8 @@ export default function VipDashboard() {
       </div>
     );
   }
+
+  const { user } = dashboardData;
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString();
@@ -176,8 +191,9 @@ export default function VipDashboard() {
     );
   };
 
-  const summaryMetrics = dashboardData?.summary
-    ? [
+  const summaryMetrics = useMemo(() => {
+    if (!dashboardData?.summary) return [];
+    return [
       {
         label: "Total revenue",
         value: formatCurrency(dashboardData.summary.totalRevenue),
@@ -194,23 +210,29 @@ export default function VipDashboard() {
         label: "Interactions (10 latest)",
         value: formatCount(dashboardData.summary.trailingInteractions),
       },
-    ]
-    : [];
+    ];
+  }, [dashboardData?.summary]);
 
-  const retentionPercent = dashboardData?.summary?.retentionRate != null
-    ? Math.round(dashboardData.summary.retentionRate * 100)
-    : null;
+  const retentionPercent = useMemo(() => {
+    if (dashboardData?.summary?.retentionRate == null) return null;
+    return Math.round(dashboardData.summary.retentionRate * 100);
+  }, [dashboardData?.summary?.retentionRate]);
 
-  const activityEntries = dashboardData?.activityBreakdown
-    ? Object.entries(dashboardData.activityBreakdown)
+  const activityEntries = useMemo(() => {
+    if (!dashboardData?.activityBreakdown) return [];
+    return Object.entries(dashboardData.activityBreakdown)
       .map(([type, count]) => ({ type, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 6)
-    : [];
+      .slice(0, 6);
+  }, [dashboardData?.activityBreakdown]);
 
-  const isExpiringSoon = dashboardData.user.subscription_expires_at &&
-    new Date(dashboardData.user.subscription_expires_at).getTime() -
-          Date.now() < 7 * 24 * 60 * 60 * 1000;
+  const isExpiringSoon = useMemo(() => {
+    const expiresAt = dashboardData?.user.subscription_expires_at;
+    if (!expiresAt) return false;
+    const expiresInMs = new Date(expiresAt).getTime() - Date.now();
+    return Number.isFinite(expiresInMs) &&
+      expiresInMs < 7 * 24 * 60 * 60 * 1000;
+  }, [dashboardData?.user.subscription_expires_at]);
 
   return (
     <div className="dc-screen">
@@ -227,7 +249,7 @@ export default function VipDashboard() {
           </div>
         </div>
 
-        {dashboardData.user.subscription_expires_at && (
+        {user.subscription_expires_at && (
           <div className="mt-4 p-3 border border-dc-accent/30 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="text-dc-text-dim">Subscription expires:</span>
@@ -236,7 +258,7 @@ export default function VipDashboard() {
                   isExpiringSoon ? "text-red-400" : "text-dc-text"
                 }`}
               >
-                {formatDate(dashboardData.user.subscription_expires_at)}
+                {formatDate(user.subscription_expires_at)}
               </span>
             </div>
             {isExpiringSoon && (

@@ -1,6 +1,5 @@
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { extractTelegramUserId } from "../shared/telegram.ts";
-import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import type { SupabaseClient } from "../_shared/client.ts";
 
 export async function handleApiRoutes(
@@ -203,17 +202,20 @@ export async function handleApiRoutes(
   if (path === "/api/vip-dashboard" && req.method === "GET") {
     try {
       const url = new URL(req.url);
-      const telegram_user_id = url.searchParams.get("telegram_user_id");
+      const initData = url.searchParams.get("initData") ?? "";
+      const telegramUser = await verifyInitDataAndGetUser(initData);
 
-      if (!telegram_user_id) {
+      if (!telegramUser) {
         return new Response(
-          JSON.stringify({ error: "telegram_user_id required" }),
+          JSON.stringify({ error: "Unauthorized" }),
           {
-            status: 400,
+            status: 401,
             headers: { ...corsHeaders, "content-type": "application/json" },
           },
         );
       }
+
+      const telegram_user_id = String(telegramUser.id);
 
       // Check if user is VIP
       const { data: user, error: userError } = await supabase
@@ -289,6 +291,7 @@ export async function handleApiRoutes(
       const trailingInteractions = interactionsRows.length;
 
       const latestAnalytics = analyticsRows[0];
+      const lastUpdated = latestAnalytics?.date || new Date().toISOString();
       const retentionRate = latestAnalytics && latestAnalytics.total_users > 0
         ? Math.max(
           latestAnalytics.total_users - latestAnalytics.new_users,
@@ -331,7 +334,7 @@ export async function handleApiRoutes(
             trailingNewUsers,
             trailingInteractions,
             retentionRate,
-            lastUpdated: new Date().toISOString(),
+            lastUpdated,
             lastInteractionAt,
           },
           trends: {
