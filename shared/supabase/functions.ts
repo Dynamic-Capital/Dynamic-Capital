@@ -29,6 +29,7 @@ export const SUPABASE_FUNCTIONS = {
   CONTENT_BATCH: "content-batch",
   ANALYTICS_DATA: "analytics-data",
   LANDING_HERO_METRICS: "landing-hero-metrics",
+  MARKET_EQUITY_QUOTES: "market-equity-quotes",
   ECONOMIC_CALENDAR: "economic-calendar",
   MINIAPP: "miniapp",
   VERIFY_INITDATA: "verify-initdata",

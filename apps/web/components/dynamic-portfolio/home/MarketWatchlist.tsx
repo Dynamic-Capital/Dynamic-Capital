@@ -11,7 +11,7 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import { SUPABASE_CONFIG } from "@/config/supabase";
+import { callEdgeFunction } from "@/config/supabase";
 import { AsciiShaderText } from "@/components/ui/AsciiShaderText";
 import type { IconName } from "@/resources/icons";
 import { formatIsoTime } from "@/utils/isoFormat";
@@ -463,9 +463,6 @@ const MARKET_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
   MARKET_CODES.join(",")
 }`;
 
-const EQUITY_QUOTE_ENDPOINT =
-  `${SUPABASE_CONFIG.FUNCTIONS_URL}/market-equity-quotes`;
-
 const NUMBER_FORMATTER_CACHE = new Map<string, Intl.NumberFormat>();
 
 const loadEquityQuotes = async (
@@ -475,25 +472,32 @@ const loadEquityQuotes = async (
     return { quotes: {}, lastUpdated: undefined };
   }
 
-  const requestUrl = new URL(EQUITY_QUOTE_ENDPOINT);
-  requestUrl.searchParams.set("symbols", EQUITY_REQUEST_SYMBOLS.join(","));
+  const { data, error } = await callEdgeFunction<EquityFunctionResponse>(
+    "MARKET_EQUITY_QUOTES",
+    {
+      searchParams: { symbols: EQUITY_REQUEST_SYMBOLS.join(",") },
+      signal,
+      cache: "no-store",
+    },
+  );
 
-  const response = await fetch(requestUrl, { cache: "no-store", signal });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch equity data (${response.status})`);
+  if (error) {
+    throw new Error(
+      error.message ||
+        `Failed to fetch equity data (${error.status ?? "unknown"})`,
+    );
   }
 
-  const payload = (await response.json()) as EquityFunctionResponse;
+  const payload = data ?? {};
   const quotes: Record<string, MarketQuote> = {};
-  const data = payload?.data ?? {};
+  const payloadData = payload?.data ?? {};
 
   for (
     const [instrumentId, providerSymbol] of Object.entries(
       EQUITY_SYMBOL_OVERRIDES,
     )
   ) {
-    const quote = data[providerSymbol];
+    const quote = payloadData[providerSymbol];
     if (!quote) {
       continue;
     }
