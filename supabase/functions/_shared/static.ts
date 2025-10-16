@@ -2,8 +2,99 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { mna, nf, ok } from "./http.ts";
-import { contentType } from "npm:mime-types@3.0.1";
-import { extname } from "node:path";
+
+type MimeResolver = (path: string) => string | undefined;
+
+let mimeResolverPromise: Promise<MimeResolver> | null = null;
+
+const createResolverFromModule = (
+  module: Record<string, unknown>,
+): MimeResolver | null => {
+  const maybeFunction = (value: unknown): value is (path: string) => unknown =>
+    typeof value === "function";
+
+  const candidate = maybeFunction(module.contentType)
+    ? module.contentType
+    : module.default && typeof module.default === "object"
+    ? maybeFunction((module.default as Record<string, unknown>).contentType)
+      ? (module.default as Record<string, unknown>).contentType
+      : undefined
+    : maybeFunction(module.default)
+    ? module.default
+    : undefined;
+
+  if (!candidate) {
+    return null;
+  }
+
+  return (path: string) => {
+    const result = candidate(path);
+    return typeof result === "string" ? result : undefined;
+  };
+};
+
+const loadMimeResolver = async (): Promise<MimeResolver> => {
+  if (mimeResolverPromise) {
+    return mimeResolverPromise;
+  }
+
+  mimeResolverPromise = (async () => {
+    const candidates: Array<() => Promise<MimeResolver>> = [
+      async () => {
+        const module = await import("mime-types") as Record<string, unknown>;
+        const resolver = createResolverFromModule(module);
+        if (!resolver) {
+          throw new Error("mime-types module missing contentType export");
+        }
+        return resolver;
+      },
+      async () => {
+        const module = await import("npm:mime-types@3.0.1") as Record<
+          string,
+          unknown
+        >;
+        const resolver = createResolverFromModule(module);
+        if (!resolver) {
+          throw new Error("npm:mime-types module missing contentType export");
+        }
+        return resolver;
+      },
+    ];
+
+    for (const candidate of candidates) {
+      try {
+        return await candidate();
+      } catch (error) {
+        console.warn(
+          "[static] Failed to load mime-types module, falling back",
+          error,
+        );
+      }
+    }
+
+    const { lookup } = await import(
+      "https://deno.land/std@0.224.0/media_types/mod.ts"
+    );
+
+    return (path: string) => lookup(path) ?? undefined;
+  })();
+
+  return mimeResolverPromise;
+};
+
+const resolveMimeType = async (path: string) => {
+  try {
+    const resolver = await loadMimeResolver();
+    return resolver(path) ?? "application/octet-stream";
+  } catch (error) {
+    console.error("[static] Falling back to default mime type", error);
+    return "application/octet-stream";
+  }
+};
+
+async function mime(path: string) {
+  return await resolveMimeType(path);
+}
 
 export type StaticOpts = {
   rootDir: URL; // e.g., new URL("../miniapp/static/", import.meta.url)
@@ -25,10 +116,6 @@ export const DEFAULT_SECURITY = {
     "frame-ancestors 'self';",
 } as const;
 
-function mime(p: string) {
-  return contentType(extname(p)) ?? "application/octet-stream";
-}
-
 async function readFileFrom(
   rootDir: URL,
   relPath: string,
@@ -43,7 +130,7 @@ async function readFileFrom(
       ? await Deno.readFile(url)
       : await (await import("node:fs/promises")).readFile(url);
     const h = new Headers({
-      "content-type": mime(relPath),
+      "content-type": await mime(relPath),
       "cache-control": relPath.endsWith(".html")
         ? "no-cache"
         : "public, max-age=31536000, immutable",
