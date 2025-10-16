@@ -1,6 +1,4 @@
-import test from "node:test";
-import { strict as assert } from "node:assert";
-import { readFile } from "node:fs/promises";
+import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
 
 type EnvSnapshot = Record<string, string>;
 
@@ -16,6 +14,80 @@ const CANONICAL_VALUES = {
 } as const;
 
 const EXPECTED_ORIGINS = splitList(CANONICAL_VALUES.ALLOWED_ORIGINS);
+const EXPECTED_REDIRECTS: readonly string[] = [
+  "https://dynamic.capital",
+  "https://dynamiccapital.ton",
+  "https://www.dynamiccapital.ton",
+  "https://ton.site",
+  "https://dynamic-capital-qazf2.ondigitalocean.app",
+  "https://dynamic-capital.ondigitalocean.app",
+  "https://dynamic-capital-git-dynamic-capital-a2ae79-the-project-archive.vercel.app",
+  "https://dynamic-capital-kp5fqeegn-the-project-archive.vercel.app",
+  "https://dynamic-capital.vercel.app",
+  "https://dynamic-capital.lovable.app",
+  "https://ton-gateway.dynamic-capital.ondigitalocean.app",
+  "https://ton-gateway.dynamic-capital.lovable.app",
+  "https://t.me/Dynamic_VIP_BOT/dynamic_pay",
+];
+
+Deno.test("critical domain configuration stays consistent across environments", async () => {
+  const [projectToml, supabaseToml, vercelConfig] = await Promise.all([
+    Deno.readTextFile("project.toml"),
+    Deno.readTextFile("supabase/config.toml"),
+    Deno.readTextFile("vercel.json"),
+  ]);
+
+  const projectEnv = parseProjectEnv(projectToml);
+  const supabaseEnv = parseSupabaseFunctionsEnv(supabaseToml);
+  const vercelEnv = (JSON.parse(vercelConfig).env ?? {}) as EnvSnapshot;
+
+  for (const [key, expected] of Object.entries(CANONICAL_VALUES)) {
+    assertEquals(
+      supabaseEnv[key],
+      expected,
+      `supabase/config.toml functions.env ${key} drifted`,
+    );
+    assertEquals(
+      projectEnv[key],
+      expected,
+      `project.toml build.env ${key} drifted`,
+    );
+    assertEquals(
+      vercelEnv[key],
+      expected,
+      `vercel.json env ${key} drifted`,
+    );
+  }
+
+  assertEquals(
+    parseSupabaseAuthSiteUrl(supabaseToml),
+    CANONICAL_VALUES.SITE_URL,
+    "supabase auth.site_url must match SITE_URL",
+  );
+
+  const redirectOrigins = parseSupabaseRedirects(supabaseToml);
+  const missingRedirects = EXPECTED_REDIRECTS.filter((origin) =>
+    !redirectOrigins.includes(origin)
+  );
+  assertEquals(
+    missingRedirects,
+    [],
+    `supabase auth.additional_redirect_urls missing: ${
+      missingRedirects.join(", ")
+    }`,
+  );
+
+  const unexpectedRedirects = redirectOrigins.filter((origin) =>
+    !EXPECTED_REDIRECTS.includes(origin)
+  );
+  assertEquals(
+    unexpectedRedirects,
+    [],
+    `supabase auth.additional_redirect_urls has unexpected entries: ${
+      unexpectedRedirects.join(", ")
+    }`,
+  );
+});
 
 function splitList(value: string | undefined): string[] {
   return value?.split(",").map((entry) => entry.trim()).filter(Boolean) ?? [];
@@ -38,7 +110,9 @@ function parseProjectEnv(tomlText: string): EnvSnapshot {
 
 function extractTomlSection(tomlText: string, header: string): string {
   const escaped = header.replace(/\./g, "\\.");
-  const regex = new RegExp(`\\[${escaped}\\]\\s*([\\s\\S]*?)(?=\n\\[[^\\]]+\\]|$)`);
+  const regex = new RegExp(
+    `\\[${escaped}\\]\\s*([\\s\\S]*?)(?=\n\\[[^\\]]+\\]|$)`,
+  );
   const section = regex.exec(tomlText);
   if (!section) {
     throw new Error(`Missing [${header}] section in supabase/config.toml`);
@@ -71,65 +145,12 @@ function parseSupabaseRedirects(tomlText: string): string[] {
   const block = extractTomlSection(tomlText, "auth");
   const match = block.match(/additional_redirect_urls\s*=\s*\[([\s\S]*?)\]/);
   if (!match) {
-    throw new Error("Missing auth.additional_redirect_urls in supabase/config.toml");
+    throw new Error(
+      "Missing auth.additional_redirect_urls in supabase/config.toml",
+    );
   }
   const entries = match[1].split(",").map((entry) => entry.trim())
     .filter(Boolean)
     .map((entry) => entry.replace(/^"|"$/g, ""));
   return entries;
 }
-
-test("critical domain configuration stays consistent across environments", async () => {
-  const [projectToml, supabaseToml, vercelConfig] = await Promise.all([
-    readFile("project.toml", "utf8"),
-    readFile("supabase/config.toml", "utf8"),
-    readFile("vercel.json", "utf8"),
-  ]);
-
-  const projectEnv = parseProjectEnv(projectToml);
-  const supabaseEnv = parseSupabaseFunctionsEnv(supabaseToml);
-  const vercelEnv = JSON.parse(vercelConfig).env as EnvSnapshot;
-
-  for (const [key, expected] of Object.entries(CANONICAL_VALUES)) {
-    assert.equal(
-      supabaseEnv[key],
-      expected,
-      `supabase/config.toml functions.env ${key} drifted`,
-    );
-    assert.equal(
-      projectEnv[key],
-      expected,
-      `project.toml build.env ${key} drifted`,
-    );
-    assert.equal(
-      vercelEnv[key],
-      expected,
-      `vercel.json env ${key} drifted`,
-    );
-  }
-
-  assert.equal(
-    parseSupabaseAuthSiteUrl(supabaseToml),
-    CANONICAL_VALUES.SITE_URL,
-    "supabase auth.site_url must match SITE_URL",
-  );
-
-  const redirectOrigins = parseSupabaseRedirects(supabaseToml);
-  const missingRedirects = EXPECTED_ORIGINS.filter((origin) =>
-    !redirectOrigins.includes(origin)
-  );
-  assert.deepEqual(
-    missingRedirects,
-    [],
-    `supabase auth.additional_redirect_urls missing: ${missingRedirects.join(", ")}`,
-  );
-
-  const unexpectedRedirects = redirectOrigins.filter((origin) =>
-    !EXPECTED_ORIGINS.includes(origin)
-  );
-  assert.deepEqual(
-    unexpectedRedirects,
-    [],
-    `supabase auth.additional_redirect_urls has unexpected entries: ${unexpectedRedirects.join(", ")}`,
-  );
-});
