@@ -1,12 +1,12 @@
 "use client";
 
-import { forwardRef, type HTMLAttributes } from "react";
+import { type ComponentPropsWithoutRef, forwardRef } from "react";
 
 import { cn } from "@/lib/utils";
 
-interface MiniAppSectionProps extends HTMLAttributes<HTMLElement> {
+type MiniAppSectionProps = ComponentPropsWithoutRef<"section"> & {
   contentClassName?: string;
-}
+};
 
 export const MiniAppSection = forwardRef<HTMLElement, MiniAppSectionProps>(
   ({ className, children, contentClassName, ...props }, ref) => {
