@@ -25,6 +25,7 @@ import PlanSection from "./PlanSection";
 import { QuickActions } from "./QuickActions";
 import StatusSection from "./StatusSection";
 import { MiniAppMetricsSliders } from "./MiniAppMetricsSliders";
+import { MiniAppSection } from "./MiniAppSection";
 
 type TelegramData = {
   user?: {
@@ -383,29 +384,40 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         </div>
       </motion.section>
 
-      <StatusSection telegramData={telegramData} />
+      <MiniAppSection>
+        <StatusSection telegramData={telegramData} />
+      </MiniAppSection>
 
-      <MiniAppMetricsSliders
-        metrics={metrics}
-        insights={insights}
-        deskTimeLabel={deskClock.formatted}
-        lastSyncedLabel={lastSyncedLabel}
-      />
+      <MiniAppSection>
+        <MiniAppMetricsSliders
+          metrics={metrics}
+          insights={insights}
+          deskTimeLabel={deskClock.formatted}
+          lastSyncedLabel={lastSyncedLabel}
+        />
+      </MiniAppSection>
 
-      <QuickActions />
+      <MiniAppSection>
+        <QuickActions />
+      </MiniAppSection>
 
-      <PlanSection />
+      <MiniAppSection contentClassName="gap-6">
+        <PlanSection />
+      </MiniAppSection>
 
-      <Card className="glass-motion-card">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold tracking-tight text-foreground">
-            What you get with VIP access
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <MiniAppSection>
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">
+              What you get with VIP access
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Explore the benefits included with every VIP membership tier.
+            </p>
+          </div>
           <ServiceStackCarousel services={services} />
-        </CardContent>
-      </Card>
+        </div>
+      </MiniAppSection>
 
       <FAQSection />
 

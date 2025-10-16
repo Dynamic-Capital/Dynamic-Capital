@@ -4,13 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Interactive3DCard,
   StaggeredGrid,
 } from "@/components/ui/interactive-cards";
@@ -272,190 +265,183 @@ export function QuickActions() {
 
   return (
     <motion.div
+      className="relative isolate flex flex-col gap-6"
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }}
     >
-      <Card className="bg-gradient-to-br from-card/50 to-background border-border/50 relative overflow-hidden">
-        {/* Animated background gradient */}
-        <motion.div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/5 via-dc-brand-light/5 to-primary/5"
-          animate={{
-            backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          style={{
-            backgroundSize: "200% 200%",
-          }}
-        />
+      <motion.div
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-primary/5 via-dc-brand-light/5 to-primary/5"
+        animate={{
+          backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+        style={{
+          backgroundSize: "200% 200%",
+        }}
+      />
 
-        <CardHeader className="pb-4 relative z-10">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="flex flex-col gap-2"
+      >
+        <div className="flex items-center gap-2 text-lg font-semibold">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            whileHover={{ rotate: 360, scale: 1.1 }}
+            transition={{ duration: 0.5 }}
           >
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <motion.div
-                whileHover={{ rotate: 360, scale: 1.1 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Zap className="h-5 w-5 text-primary" />
-              </motion.div>
-              Quick Actions
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Access key features and get support instantly
-            </CardDescription>
+            <Zap className="h-5 w-5 text-primary" />
           </motion.div>
-        </CardHeader>
+          Quick Actions
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Access key features and get support instantly
+        </p>
+      </motion.div>
 
-        <CardContent className="relative z-10">
-          <StaggeredGrid
-            columns={3}
-            staggerDelay={0.1}
-            className="sm:grid-cols-2 xl:grid-cols-3"
-            gapClassName="gap-3 sm:gap-4 lg:gap-5"
-          >
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
+      <StaggeredGrid
+        columns={3}
+        staggerDelay={0.1}
+        className="sm:grid-cols-2 xl:grid-cols-3"
+        gapClassName="gap-3 sm:gap-4 lg:gap-5"
+      >
+        {quickActions.map((action, index) => {
+          const Icon = action.icon;
 
-              return (
-                <Interactive3DCard
-                  key={action.id}
-                  intensity={0.08}
-                  scale={1.03}
-                  glowEffect={action.priority === "high"}
-                  magneticEffect={action.priority === "high"}
-                  onClick={action.action}
-                  className="h-full"
-                  contentClassName="relative h-full"
-                >
-                  <div
-                    className={cn(
-                      "relative flex h-full flex-col justify-center overflow-hidden rounded-xl border p-4 text-center transition-all duration-300 group",
-                      getPriorityStyles(action.priority),
-                    )}
-                  >
-                    <AnimatePresence>
-                      {action.isExternal && (
-                        <motion.div
-                          className="absolute top-2 right-2"
-                          initial={{ opacity: 0, scale: 0, rotate: -180 }}
-                          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                          exit={{ opacity: 0, scale: 0, rotate: 180 }}
-                          transition={{
-                            delay: 0.5 + index * 0.1,
-                            type: "spring",
-                          }}
-                        >
-                          <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    <motion.div
-                      className={cn(
-                        "mb-3 flex justify-center",
-                        getIconStyles(action.priority),
-                      )}
-                      whileHover={{
-                        scale: 1.2,
-                        rotate: action.title === "Signal Alerts"
-                          ? 15
-                          : action.title === "Track Performance"
-                          ? -15
-                          : 5,
-                      }}
-                      transition={{
-                        duration: 0.3,
-                        type: "spring",
-                        stiffness: 400,
-                      }}
-                    >
-                      <motion.div
-                        className="p-2 rounded-full bg-background/50 group-hover:bg-background/80 transition-colors"
-                        whileHover={{
-                          boxShadow: action.priority === "high"
-                            ? "0 0 20px hsl(var(--primary) / 0.3)"
-                            : "0 4px 20px rgba(0,0,0,0.1)",
-                        }}
-                      >
-                        <Icon className="h-5 w-5" />
-                      </motion.div>
-                    </motion.div>
-
-                    <motion.h4
-                      className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors"
-                      initial={{ opacity: 0.8 }}
-                      whileHover={{ opacity: 1, scale: 1.05 }}
-                    >
-                      {action.title}
-                    </motion.h4>
-
-                    <motion.p
-                      className="text-xs text-muted-foreground group-hover:text-foreground transition-colors"
-                      initial={{ opacity: 0.6 }}
-                      whileHover={{ opacity: 1 }}
-                    >
-                      {action.description}
-                    </motion.p>
-
-                    {/* Prismatic overlay effect */}
-                    <motion.div
-                      className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 group-hover:opacity-100"
-                      initial={false}
-                      animate={{ x: "-100%" }}
-                      whileHover={{
-                        x: "100%",
-                        background: action.priority === "high"
-                          ? "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent)"
-                          : "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent)",
-                      }}
-                      transition={{ duration: 0.8, ease: "easeInOut" }}
-                    />
-                  </div>
-                </Interactive3DCard>
-              );
-            })}
-          </StaggeredGrid>
-
-          <motion.div
-            className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-            whileHover={{ scale: 1.02 }}
-          >
-            <motion.div
-              className="flex items-center gap-2 mb-2"
-              whileHover={{ scale: 1.02 }}
+          return (
+            <Interactive3DCard
+              key={action.id}
+              intensity={0.08}
+              scale={1.03}
+              glowEffect={action.priority === "high"}
+              magneticEffect={action.priority === "high"}
+              onClick={action.action}
+              className="h-full"
+              contentClassName="relative h-full"
             >
-              <motion.div
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+              <div
+                className={cn(
+                  "relative flex h-full flex-col justify-center overflow-hidden rounded-xl border p-4 text-center transition-all duration-300 group",
+                  getPriorityStyles(action.priority),
+                )}
               >
-                <Star className="h-4 w-4 text-primary" />
-              </motion.div>
-              <span className="text-sm font-medium text-foreground">
-                Pro Tip
-              </span>
-            </motion.div>
-            <p className="text-xs text-muted-foreground">
-              Join our VIP community for exclusive trading signals, market
-              analysis, and 24/7 priority support.
-            </p>
+                <AnimatePresence>
+                  {action.isExternal && (
+                    <motion.div
+                      className="absolute right-2 top-2"
+                      initial={{ opacity: 0, scale: 0, rotate: -180 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      exit={{ opacity: 0, scale: 0, rotate: 180 }}
+                      transition={{
+                        delay: 0.5 + index * 0.1,
+                        type: "spring",
+                      }}
+                    >
+                      <ExternalLink className="h-3 w-3 text-muted-foreground transition-colors group-hover:text-primary" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <motion.div
+                  className={cn(
+                    "mb-3 flex justify-center",
+                    getIconStyles(action.priority),
+                  )}
+                  whileHover={{
+                    scale: 1.2,
+                    rotate: action.title === "Signal Alerts"
+                      ? 15
+                      : action.title === "Track Performance"
+                      ? -15
+                      : 5,
+                  }}
+                  transition={{
+                    duration: 0.3,
+                    type: "spring",
+                    stiffness: 400,
+                  }}
+                >
+                  <motion.div
+                    className="rounded-full bg-background/50 p-2 transition-colors group-hover:bg-background/80"
+                    whileHover={{
+                      boxShadow: action.priority === "high"
+                        ? "0 0 20px hsl(var(--primary) / 0.3)"
+                        : "0 4px 20px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </motion.div>
+                </motion.div>
+
+                <motion.h4
+                  className="mb-1 text-sm font-semibold transition-colors group-hover:text-primary"
+                  initial={{ opacity: 0.8 }}
+                  whileHover={{ opacity: 1, scale: 1.05 }}
+                >
+                  {action.title}
+                </motion.h4>
+
+                <motion.p
+                  className="text-xs text-muted-foreground transition-colors group-hover:text-foreground"
+                  initial={{ opacity: 0.6 }}
+                  whileHover={{ opacity: 1 }}
+                >
+                  {action.description}
+                </motion.p>
+
+                {/* Prismatic overlay effect */}
+                <motion.div
+                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
+                  initial={false}
+                  animate={{ x: "-100%" }}
+                  whileHover={{
+                    x: "100%",
+                    background: action.priority === "high"
+                      ? "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent)"
+                      : "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent)",
+                  }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                />
+              </div>
+            </Interactive3DCard>
+          );
+        })}
+      </StaggeredGrid>
+
+      <motion.div
+        className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 p-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
+        whileHover={{ scale: 1.02 }}
+      >
+        <motion.div
+          className="mb-2 flex items-center gap-2"
+          whileHover={{ scale: 1.02 }}
+        >
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <Star className="h-4 w-4 text-primary" />
           </motion.div>
-        </CardContent>
-      </Card>
+          <span className="text-sm font-medium text-foreground">Pro Tip</span>
+        </motion.div>
+        <p className="text-xs text-muted-foreground">
+          Join our VIP community for exclusive trading signals, market
+          analysis, and 24/7 priority support.
+        </p>
+      </motion.div>
     </motion.div>
   );
 }
