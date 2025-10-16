@@ -59,7 +59,7 @@ export function SignalsWidget() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(110,80,255,0.12),transparent_75%)]" />
       <div className="relative z-10 space-y-6">
         <div
-          className="flex flex-wrap items-center justify-between gap-4"
+          className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
           aria-labelledby={summaryId}
         >
           <div className="flex items-center gap-3">
@@ -77,7 +77,7 @@ export function SignalsWidget() {
           </div>
           <Badge
             variant="outline"
-            className="border-success/30 bg-success/10 text-success"
+            className="border-success/30 bg-success/10 text-success self-start sm:self-auto"
           >
             {dynamicSignals.status}
           </Badge>
