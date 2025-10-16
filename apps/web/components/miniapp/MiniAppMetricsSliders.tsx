@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { TrendingDown, TrendingUp } from "lucide-react";
@@ -130,12 +129,12 @@ const MiniAppMetricsSlidersComponent = ({
   }, [insights]);
 
   return (
-    <Card className="glass-motion-card">
-      <CardHeader className="space-y-3">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="text-subheading font-semibold tracking-tight text-foreground">
+          <h2 className="text-subheading font-semibold tracking-tight text-foreground">
             Market Pulse & Trading Desk Sync
-          </CardTitle>
+          </h2>
           <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
@@ -164,8 +163,8 @@ const MiniAppMetricsSlidersComponent = ({
             )}
           </p>
         )}
-      </CardHeader>
-      <CardContent className="space-y-6">
+      </div>
+      <div className="flex flex-col gap-6">
         {visibleMetrics.map((metric) => {
           const changeLabel = formatChange(metric.change, metric.changeLabel);
           const isPositive = changeLabel.startsWith("+");
@@ -273,7 +272,7 @@ const MiniAppMetricsSlidersComponent = ({
         })}
 
         {insightGroups.length > 0 && (
-          <div className="space-y-3 border-t border-border/40 pt-4">
+          <div className="flex flex-col gap-3 border-t border-border/40 pt-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Multi-LLM Highlights
             </p>
@@ -303,8 +302,8 @@ const MiniAppMetricsSlidersComponent = ({
             </ul>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

@@ -257,7 +257,7 @@ export default function PlanSection() {
 
   return (
     <FadeInOnView>
-      <div className="ui-stack-base">
+      <div className="ui-stack-base flex flex-col gap-6">
         <LiquidCard className="liquid-glass" color="hsl(var(--primary))">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-subheading">
@@ -268,7 +268,7 @@ export default function PlanSection() {
               Choose your subscription plan and start trading like a pro
             </CardDescription>
           </CardHeader>
-          <CardContent className="ui-stack-base prose">
+          <CardContent className="ui-stack-base flex flex-col gap-6 prose">
             <FadeInOnView delay={100}>
               <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
                 <div>
@@ -282,7 +282,7 @@ export default function PlanSection() {
             </FadeInOnView>
 
             <FadeInOnView delay={200} animation="slide-in-right">
-              <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+              <div className="flex flex-col gap-3 rounded-lg bg-muted/50 p-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">
@@ -599,7 +599,7 @@ export default function PlanSection() {
             </motion.div>
 
             <FadeInOnView delay={800} animation="bounce-in">
-              <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-dc-brand-light/10 rounded-lg">
+              <div className="rounded-lg bg-gradient-to-r from-primary/10 to-dc-brand-light/10 p-4">
                 <div className="text-center">
                   <Sparkles className="h-8 w-8 text-primary mx-auto mb-2 animate-pulse-glow" />
                   <h3 className="font-semibold mb-2">Why Choose VIP?</h3>
