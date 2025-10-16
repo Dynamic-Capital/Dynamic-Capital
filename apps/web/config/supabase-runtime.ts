@@ -116,6 +116,20 @@ export function readSupabaseEnv(key: SupabaseEnvKey): string | undefined {
   return getEnvVar(entry.primary, entry.aliases);
 }
 
+export const SUPABASE_PUBLIC_URL_KEY = SUPABASE_ENV_KEYS.publicUrl.primary;
+export const SUPABASE_PUBLIC_URL_ALIASES = SUPABASE_ENV_KEYS.publicUrl.aliases;
+
+export const SUPABASE_SERVER_URL_KEY = SUPABASE_ENV_KEYS.serverUrl.primary;
+export const SUPABASE_SERVER_URL_ALIASES = SUPABASE_ENV_KEYS.serverUrl.aliases;
+
+export const SUPABASE_PUBLIC_ANON_KEY = SUPABASE_ENV_KEYS.publicAnonKey.primary;
+export const SUPABASE_PUBLIC_ANON_ALIASES =
+  SUPABASE_ENV_KEYS.publicAnonKey.aliases;
+
+export const SUPABASE_SERVER_ANON_KEY = SUPABASE_ENV_KEYS.serverAnonKey.primary;
+export const SUPABASE_SERVER_ANON_ALIASES =
+  SUPABASE_ENV_KEYS.serverAnonKey.aliases;
+
 type ResolvedValue = {
   value: string;
   fromEnv: boolean;
