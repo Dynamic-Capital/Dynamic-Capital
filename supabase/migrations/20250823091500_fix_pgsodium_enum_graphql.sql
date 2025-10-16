@@ -3,9 +3,12 @@ DO $$
 DECLARE
   existing_comment text;
   normalized_comment text;
-  replaced_comment text;
+  updated_comment text;
   needs_update boolean := false;
-  graphql_mapping constant text := '@graphql({"enumValues":{"aead-det":"AEAD_DET","aead-ietf":"AEAD_IETF"}})';
+  mapping jsonb := '{}'::jsonb;
+  mapping_text text;
+  enum_value text;
+  sanitized_name text;
 BEGIN
   IF EXISTS (
     SELECT 1
@@ -13,6 +16,23 @@ BEGIN
     WHERE typnamespace = 'pgsodium'::regnamespace
       AND typname = 'key_type'
   ) THEN
+    FOR enum_value IN
+      SELECT e.enumlabel
+      FROM pg_enum e
+      JOIN pg_type t ON t.oid = e.enumtypid
+      WHERE t.typnamespace = 'pgsodium'::regnamespace
+        AND t.typname = 'key_type'
+    LOOP
+      IF enum_value ~ '[-]' THEN
+        sanitized_name := upper(regexp_replace(enum_value, '[-]', '_', 'g'));
+        mapping := mapping || jsonb_build_object(enum_value, sanitized_name);
+      END IF;
+    END LOOP;
+
+    IF mapping <> '{}'::jsonb THEN
+      mapping_text := '@graphql({"enumValues":' || regexp_replace(mapping::text, '\\s+', '', 'g') || '})';
+    END IF;
+
     SELECT d.description
     INTO existing_comment
     FROM pg_type t
@@ -30,24 +50,33 @@ BEGIN
       needs_update := true;
     END IF;
 
-    replaced_comment := regexp_replace(
-      normalized_comment,
-      '@graphql\([^\n]*\)',
-      graphql_mapping,
-      'g'
-    );
+    IF mapping_text IS NOT NULL THEN
+      IF position(mapping_text in normalized_comment) = 0 THEN
+        updated_comment := regexp_replace(
+          normalized_comment,
+          E'(\\n)?@graphql\\([^\\n]*\\)',
+          '',
+          'g'
+        );
 
-    IF replaced_comment <> normalized_comment THEN
-      normalized_comment := replaced_comment;
-      needs_update := true;
-    END IF;
+        IF updated_comment <> normalized_comment THEN
+          normalized_comment := trim(updated_comment);
+          needs_update := true;
+        END IF;
 
-    IF position(graphql_mapping in normalized_comment) = 0 THEN
-      normalized_comment := normalized_comment || E'\n' || graphql_mapping;
-      needs_update := true;
+        IF normalized_comment = '' THEN
+          normalized_comment := mapping_text;
+        ELSE
+          normalized_comment := normalized_comment || E'\n' || mapping_text;
+        END IF;
+
+        needs_update := true;
+      END IF;
     END IF;
 
     IF needs_update THEN
+      normalized_comment := trim(normalized_comment);
+      normalized_comment := regexp_replace(normalized_comment, E'\n{3,}', E'\n\n', 'g');
       EXECUTE format('COMMENT ON TYPE pgsodium.key_type IS %L', normalized_comment);
     END IF;
   END IF;
