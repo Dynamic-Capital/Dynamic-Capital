@@ -242,15 +242,20 @@ export function QuickActions() {
       }
 
       const webApp = (window as TelegramWindow).Telegram?.WebApp;
+      const shouldShowToast = priority === "high" && Boolean(webApp);
 
       if (url.startsWith("https://t.me/") && webApp?.openTelegramLink) {
-        toast.info(message);
+        if (shouldShowToast) {
+          toast.info(message);
+        }
         webApp.openTelegramLink(url);
         return;
       }
 
       if (webApp?.openLink) {
-        toast.info(message);
+        if (shouldShowToast) {
+          toast.info(message);
+        }
         webApp.openLink(url);
         return;
       }
