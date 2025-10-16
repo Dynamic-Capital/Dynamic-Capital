@@ -7,6 +7,7 @@ import { getEnvVar } from "@/utils/env.ts";
 import {
   SUPABASE_ANON_KEY,
   SUPABASE_CONFIG_FROM_ENV,
+  SUPABASE_FUNCTIONS_URL,
   SUPABASE_URL,
 } from "@/config/supabase-runtime";
 
@@ -44,9 +45,16 @@ const loggingFetch: typeof fetch = async (input, init) => {
 
 export type SupabaseCreateOptions = SupabaseClientOptions<"public">;
 
+type SupabaseCreateOptionsExtended = SupabaseCreateOptions & {
+  functions?: {
+    url?: string;
+    headers?: Record<string, string>;
+  };
+};
+
 export function createClient(
   role: "anon" | "service" = "anon",
-  options: SupabaseCreateOptions = {},
+  options: SupabaseCreateOptionsExtended = {},
 ) {
   const key = role === "service"
     ? getEnvVar("SUPABASE_SERVICE_ROLE_KEY", ["SUPABASE_SERVICE_ROLE"])
@@ -63,10 +71,21 @@ export function createClient(
     ...(options.global ?? {}),
   };
 
-  return createBrowserClient(SUPABASE_URL, key, {
+  const mergedFunctions = {
+    ...(options.functions ?? {}),
+  };
+
+  if (!mergedFunctions.url) {
+    mergedFunctions.url = SUPABASE_FUNCTIONS_URL;
+  }
+
+  const mergedOptions: SupabaseCreateOptionsExtended = {
     ...options,
     global: mergedGlobal,
-  });
+    functions: mergedFunctions,
+  };
+
+  return createBrowserClient(SUPABASE_URL, key, mergedOptions);
 }
 
 export type SupabaseClient = ReturnType<typeof createClient>;
@@ -79,4 +98,4 @@ export function getQueryCounts() {
   return { ...queryCounts };
 }
 
-export { SUPABASE_ANON_KEY, SUPABASE_URL };
+export { SUPABASE_ANON_KEY, SUPABASE_FUNCTIONS_URL, SUPABASE_URL };
