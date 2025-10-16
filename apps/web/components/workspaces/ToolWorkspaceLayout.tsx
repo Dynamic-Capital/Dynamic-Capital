@@ -186,7 +186,7 @@ export function ToolWorkspaceLayout({
 
   const heroContent = (
     <div
-      className="relative flex w-full flex-col items-center overflow-hidden rounded-[2.5rem] border border-border/60 bg-background/85 p-10 text-center shadow-xl backdrop-blur lg:p-14"
+      className="relative flex w-full flex-col items-center overflow-hidden rounded-[2.5rem] border border-border/60 bg-background/85 p-8 text-center shadow-xl backdrop-blur sm:p-10 lg:p-14"
       style={{ boxShadow: heroShadow }}
       data-route-category={route?.categoryId ?? "workspace"}
     >
@@ -195,7 +195,7 @@ export function ToolWorkspaceLayout({
         style={{ backgroundImage: heroGradient }}
         aria-hidden
       />
-      <div className="relative z-10 flex w-full flex-col items-center gap-12">
+      <div className="relative z-10 flex w-full flex-col items-center gap-8 sm:gap-10 lg:gap-12">
         <Column
           as="header"
           id={heroSectionId}

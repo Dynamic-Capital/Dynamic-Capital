@@ -638,11 +638,11 @@ function AuditOverview({ groups }: { groups: AuditGroup[] }) {
             clear, reliable, and well supported.
           </Text>
         </Column>
-        <Column gap="16">
+        <div className="grid gap-8 sm:gap-10 md:grid-cols-2 xl:grid-cols-3">
           {groups.map((group) => (
             <AuditGroupSection key={group.id} group={group} />
           ))}
-        </Column>
+        </div>
       </Column>
     </Card>
   );
@@ -668,7 +668,7 @@ function DeviceSupportCard() {
             without losing workspace guardrails.
           </Text>
         </Column>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PLATFORM_SUPPORT.map((category) => (
             <div
               key={category.id}
@@ -902,19 +902,19 @@ export function DynamicChatLanding() {
       commandBar={<DynamicCommandBar />}
       contentClassName="pb-24"
     >
-      <div className="grid gap-10 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] 2xl:grid-cols-[minmax(0,1.28fr)_minmax(0,0.72fr)]">
         <Column
           gap="20"
-          className="rounded-[32px] border border-border/50 bg-background/85 p-4 shadow-xl shadow-primary/10 backdrop-blur"
+          className="rounded-[32px] border border-border/50 bg-background/85 p-4 shadow-xl shadow-primary/10 backdrop-blur sm:p-6"
         >
           <section
             id="chat-workspace"
             aria-labelledby="dynamic-chat-overview-heading"
-            className="relative overflow-hidden rounded-3xl border border-primary/20 bg-background/90 p-6 sm:p-8"
+            className="relative overflow-hidden rounded-3xl border border-primary/20 bg-background/90 p-5 sm:p-7 lg:p-8"
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(110,80,255,0.18),transparent_70%)]" />
-            <div className="relative z-10 space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="relative z-10 space-y-5 sm:space-y-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-2">
                   <p
                     id="dynamic-chat-overview-label"
@@ -950,7 +950,7 @@ export function DynamicChatLanding() {
                 session.
               </p>
               <ul
-                className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+                className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
                 aria-label="Dynamic chat session metrics"
               >
                 {SESSION_SUMMARY.map((item) => {
