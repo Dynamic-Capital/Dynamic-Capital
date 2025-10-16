@@ -1,6 +1,7 @@
 import {
   SUPABASE_ANON_KEY,
   SUPABASE_CONFIG_FROM_ENV,
+  SUPABASE_FUNCTIONS_URL,
   SUPABASE_URL,
 } from "@/config/supabase-runtime";
 import { getEnvVar } from "@/utils/env";
@@ -21,10 +22,7 @@ if (!SUPABASE_CONFIG_FROM_ENV) {
 export const SUPABASE_CONFIG = {
   URL: SUPABASE_URL,
   ANON_KEY: SUPABASE_ANON_KEY,
-  FUNCTIONS_URL: SUPABASE_URL.replace(
-    ".supabase.co",
-    ".functions.supabase.co",
-  ),
+  FUNCTIONS_URL: SUPABASE_FUNCTIONS_URL,
   FUNCTIONS: SUPABASE_FUNCTIONS,
 } as const;
 
