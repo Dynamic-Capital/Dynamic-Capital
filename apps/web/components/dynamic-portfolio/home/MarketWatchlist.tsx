@@ -79,6 +79,7 @@ type BiasVisual = {
 type CategoryVisual = {
   icon: IconName;
   label: string;
+  description: string;
 };
 
 type InsightTone = "brand" | "neutral" | "danger";
@@ -132,11 +133,31 @@ export const REFRESH_INTERVAL_MS = 30_000;
 const BACKGROUND_REFRESH_INTERVAL_MS = 120_000;
 
 export const CATEGORY_DETAILS: Record<InstrumentCategory, CategoryVisual> = {
-  Crypto: { icon: "sparkles", label: "Crypto currencies" },
-  FX: { icon: "globe", label: "Currencies" },
-  Commodities: { icon: "sparkles", label: "Commodities" },
-  Indices: { icon: "grid", label: "Index" },
-  Stocks: { icon: "building", label: "Stocks" },
+  Crypto: {
+    icon: "sparkles",
+    label: "Crypto assets",
+    description: "Digital assets momentum and funding structure.",
+  },
+  FX: {
+    icon: "globe",
+    label: "Currencies",
+    description: "Major FX pairs and global dollar positioning.",
+  },
+  Commodities: {
+    icon: "sparkles",
+    label: "Commodities",
+    description: "Metals and materials steering macro sentiment.",
+  },
+  Indices: {
+    icon: "grid",
+    label: "Indices",
+    description: "Cross-asset benchmarks and risk proxies.",
+  },
+  Stocks: {
+    icon: "building",
+    label: "Stocks",
+    description: "Equity leaders driving capital rotation.",
+  },
 };
 
 export const CATEGORY_ORDER: InstrumentCategory[] = [
@@ -171,6 +192,51 @@ export const CATEGORY_BY_ASSET_CLASS: Record<AssetClass, InstrumentCategory> = {
   indices: "Indices",
   crypto: "Crypto",
   stocks: "Stocks",
+};
+
+const CATEGORY_ITEM_ORDER: Partial<Record<InstrumentCategory, string[]>> = {
+  FX: [
+    "EURUSD",
+    "GBPUSD",
+    "USDJPY",
+    "USDCAD",
+    "USDCHF",
+    "AUDUSD",
+    "NZDUSD",
+  ],
+  Commodities: ["XAUUSD", "XAGUSD", "UKOil", "USOil", "NGAS"],
+  Crypto: ["BTCUSD", "ETHUSD"],
+  Stocks: ["AAPL", "MSFT"],
+  Indices: ["DXY"],
+};
+
+const sortItemsForCategory = (
+  category: InstrumentCategory,
+  items: MarketWatchlistItem[],
+) => {
+  const explicitOrder = CATEGORY_ITEM_ORDER[category];
+  if (!explicitOrder) {
+    return [...items].sort((a, b) =>
+      a.displaySymbol.localeCompare(b.displaySymbol)
+    );
+  }
+
+  return [...items].sort((a, b) => {
+    const indexA = explicitOrder.indexOf(a.symbol);
+    const indexB = explicitOrder.indexOf(b.symbol);
+
+    if (indexA === -1 && indexB === -1) {
+      return a.displaySymbol.localeCompare(b.displaySymbol);
+    }
+    if (indexA === -1) {
+      return 1;
+    }
+    if (indexB === -1) {
+      return -1;
+    }
+
+    return indexA - indexB;
+  });
 };
 
 const DEFAULT_NUMBER_FORMAT: Intl.NumberFormatOptions = {
@@ -415,10 +481,26 @@ export const WATCHLIST: MarketWatchlistItem[] = WATCHLIST_CONFIG.map((item) => {
 export const WATCHLIST_GROUPS: Array<{
   category: InstrumentCategory;
   items: MarketWatchlistItem[];
-}> = CATEGORY_ORDER.map((category) => ({
-  category,
-  items: WATCHLIST.filter((item) => item.category === category),
-}));
+}> = CATEGORY_ORDER.reduce<
+  Array<{
+    category: InstrumentCategory;
+    items: MarketWatchlistItem[];
+  }>
+>((groups, category) => {
+  const items = WATCHLIST
+    .filter((item) => item.category === category);
+
+  if (items.length === 0) {
+    return groups;
+  }
+
+  groups.push({
+    category,
+    items: sortItemsForCategory(category, items),
+  });
+
+  return groups;
+}, []);
 
 const EQUITY_SYMBOL_OVERRIDES = WATCHLIST
   .filter((item) => item.category === "Stocks")
@@ -1270,21 +1352,64 @@ export function MarketWatchlist({
             )
             : null}
         </Row>
+        {WATCHLIST_GROUPS.length > 0
+          ? (
+            <Column gap="8">
+              <Text
+                variant="body-default-s"
+                onBackground="neutral-weak"
+              >
+                Coverage is segmented by asset class so you can scan the
+                currencies, commodities, indices, crypto, and equities we
+                monitor most closely.
+              </Text>
+              <Row gap="8" wrap>
+                {WATCHLIST_GROUPS.map(({ category, items }) => {
+                  const details = CATEGORY_DETAILS[category];
+                  return (
+                    <Tag
+                      key={category}
+                      size="s"
+                      prefixIcon={details.icon}
+                    >
+                      {details.label} · {items.length}
+                    </Tag>
+                  );
+                })}
+              </Row>
+            </Column>
+          )
+          : null}
       </Column>
       <Column gap="32" align="start" fillWidth>
         {WATCHLIST_GROUPS.map(({ category, items }) => {
           const categoryDetails = CATEGORY_DETAILS[category];
           return (
-            <Column key={category} gap="16" align="start" fillWidth>
-              <Row gap="8" vertical="center">
-                <Icon
-                  name={categoryDetails.icon}
-                  onBackground="brand-strong"
-                />
-                <Heading as="h3" variant="heading-strong-m">
-                  {categoryDetails.label}
-                </Heading>
-              </Row>
+            <Column
+              key={category}
+              id={`market-watchlist-${category.toLowerCase()}`}
+              gap="16"
+              align="start"
+              fillWidth
+            >
+              <Column gap="4" align="start">
+                <Row gap="8" vertical="center">
+                  <Icon
+                    name={categoryDetails.icon}
+                    onBackground="brand-strong"
+                  />
+                  <Heading as="h3" variant="heading-strong-m">
+                    {categoryDetails.label}
+                  </Heading>
+                </Row>
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                >
+                  {categoryDetails.description}
+                </Text>
+              </Column>
+              <Line background="neutral-alpha-weak" />
               <Row gap="16" wrap fillWidth>
                 {items.length > 0
                   ? items.map((item) => {
