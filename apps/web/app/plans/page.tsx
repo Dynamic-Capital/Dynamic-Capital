@@ -2,6 +2,7 @@ import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 
 import { VipPackagesSection } from "@/components/dynamic-portfolio/home/VipPackagesSection";
 import { CheckoutCallout } from "@/components/dynamic-portfolio/home/CheckoutCallout";
+import { PageShellVariant } from "@/components/layout/PageShell";
 
 export const metadata = {
   title: "VIP Plans – Dynamic Capital",
@@ -11,22 +12,25 @@ export const metadata = {
 
 export default function PlansPage() {
   return (
-    <Column gap="32" paddingY="40" align="center" horizontal="center" fillWidth>
-      <Column maxWidth={28} gap="12" align="center" horizontal="center">
-        <Heading variant="display-strong-s" align="center">
-          VIP membership plans
-        </Heading>
-        <Text
-          variant="body-default-m"
-          onBackground="neutral-weak"
-          align="center"
-        >
-          Explore live pricing, compare access levels, and move straight into
-          checkout when you’re ready to join the desk.
-        </Text>
+    <>
+      <PageShellVariant variant="workspace" />
+      <Column gap="32" paddingY="40" horizontal="stretch" fillWidth>
+        <Column maxWidth={36} gap="12" horizontal="stretch">
+          <Heading variant="display-strong-s" align="start">
+            VIP membership plans
+          </Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            align="start"
+          >
+            Explore live pricing, compare access levels, and move straight into
+            checkout when you’re ready to join the desk.
+          </Text>
+        </Column>
+        <VipPackagesSection />
+        <CheckoutCallout />
       </Column>
-      <VipPackagesSection />
-      <CheckoutCallout />
-    </Column>
+    </>
   );
 }

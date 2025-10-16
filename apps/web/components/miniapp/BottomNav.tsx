@@ -19,7 +19,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Mini app primary navigation"
-      className="sticky bottom-0 left-0 right-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3"
+      className="miniapp-bottom-nav"
     >
       <div className="miniapp-bottom-card px-4 py-3">
         <div

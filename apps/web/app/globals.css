@@ -174,20 +174,31 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
     gap: clamp(2rem, 4vw, 3.5rem);
     padding: clamp(3rem, 6vw, 5rem) clamp(1.5rem, 5vw, 3.5rem);
+  }
+
+  .page-shell[data-variant="centered"] {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-shell[data-variant="workspace"] {
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: clamp(2.5rem, 4vw, 3.5rem);
+    padding: clamp(3rem, 5vw, 4.5rem) clamp(1.5rem, 5vw, 4rem)
+      clamp(3rem, 6vw, 5rem);
   }
 
   .page-shell__surface {
     width: min(100%, 72rem);
     margin: 0 auto;
-    border-radius: clamp(1.75rem, 4vw, 2.75rem);
-    border: 1px solid hsl(var(--border) / 0.55);
-    background: hsl(var(--background) / 0.86);
+    border-radius: clamp(1.5rem, 4vw, 2.5rem);
+    border: 1px solid var(--surface-border);
+    background: hsl(var(--surface-translucent));
     padding: clamp(2.5rem, 5vw, 4rem);
-    box-shadow: 0 36px 120px hsl(var(--primary) / 0.18);
+    box-shadow: var(--surface-shadow-soft);
     backdrop-filter: blur(24px);
     display: flex;
     flex-direction: column;
@@ -196,8 +207,38 @@
     text-align: center;
   }
 
+  .page-shell__surface[data-variant="workspace"] {
+    width: min(100%, 88rem);
+    border-radius: clamp(1rem, 3vw, 1.75rem);
+    border: 1px solid var(--surface-border-strong);
+    background: hsl(var(--surface-elevated));
+    box-shadow: var(--surface-shadow-subtle);
+    backdrop-filter: blur(18px);
+    align-items: stretch;
+    gap: clamp(1.75rem, 3vw, 2.5rem);
+    padding: clamp(2rem, 4vw, 3rem);
+    text-align: left;
+  }
+
   .page-shell__surface > * {
     width: 100%;
+  }
+
+  .app-layout {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface-base);
+  }
+
+  .app-layout__main {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: clamp(3rem, 6vw, 4.5rem) clamp(1.5rem, 5vw, 3.5rem)
+      clamp(3.5rem, 7vw, 5rem);
   }
 
   .pattern-circuit {

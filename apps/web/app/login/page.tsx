@@ -1,4 +1,5 @@
 import { AuthForm } from "@/components/auth/AuthForm";
+import { PageShellVariant } from "@/components/layout/PageShell";
 
 export const metadata = {
   title: "Login – Dynamic Capital",
@@ -7,5 +8,10 @@ export const metadata = {
 };
 
 export default function LoginPage() {
-  return <AuthForm />;
+  return (
+    <>
+      <PageShellVariant variant="workspace" />
+      <AuthForm />
+    </>
+  );
 }

@@ -171,7 +171,9 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
           <MotionCard variant="glass" className="border-primary/20">
             <CardContent className="flex items-center justify-center gap-3 p-4 sm:p-6">
               <RefreshCw className="h-4 w-4 animate-spin" />
-              <span className="text-sm text-muted-foreground">Loading status...</span>
+              <span className="text-sm text-muted-foreground">
+                Loading status...
+              </span>
             </CardContent>
           </MotionCard>
         </div>

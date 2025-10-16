@@ -8,6 +8,17 @@
   --radius: 16px;
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
 
+  /* Application surfaces */
+  --surface-base: hsl(var(--background));
+  --surface-muted: hsl(var(--background) / 0.82);
+  --surface-elevated: hsl(var(--background) / 0.9);
+  --surface-translucent: hsl(var(--background) / 0.75);
+  --surface-border: hsl(var(--border) / 0.45);
+  --surface-border-strong: hsl(var(--border) / 0.6);
+  --surface-glow: hsl(var(--primary) / 0.18);
+  --surface-shadow-soft: 0 18px 42px hsl(var(--primary) / 0.15);
+  --surface-shadow-subtle: 0 12px 32px hsl(var(--primary) / 0.1);
+
   /* Layout */
   --safe-bottom: env(safe-area-inset-bottom);
   --safe-top: env(safe-area-inset-top);
@@ -26,11 +37,12 @@
   --tg-accent: hsl(var(--accent));
   --tg-button: hsl(var(--primary));
   --miniapp-grid-color: hsl(var(--primary) / 0.12);
+  --miniapp-footer-height: 112px;
 }
 
 html, body {
   height: 100%;
-  background: var(--tg-bg);
+  background: var(--surface-base);
   color: var(--tg-text);
 }
 * {
@@ -42,46 +54,9 @@ html, body {
   min-height: 100dvh;
   display: grid;
   grid-template-rows: 1fr auto;
-  background: var(--tg-bg);
+  background: transparent;
   color: var(--brand-text);
   overflow: hidden;
-}
-
-.app-shell::before {
-  content: "";
-  position: absolute;
-  inset: -20% -30% 0;
-  background:
-    radial-gradient(
-      circle at 15% 20%,
-      hsl(var(--primary) / 0.2),
-      transparent 65%
-    ),
-    radial-gradient(
-    circle at 85% 5%,
-    hsl(var(--dc-secondary) / 0.18),
-    transparent 60%
-  ),
-    radial-gradient(
-    circle at 50% 100%,
-    hsl(var(--accent) / 0.12),
-    transparent 65%
-  );
-  filter: blur(40px);
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-.app-shell::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(90deg, var(--miniapp-grid-color) 1px, transparent 1px),
-    linear-gradient(0deg, var(--miniapp-grid-color) 1px, transparent 1px);
-  background-size: 140px 140px;
-  opacity: 0.12;
-  pointer-events: none;
 }
 
 .app-shell-body {
@@ -99,7 +74,10 @@ html, body {
   width: min(100%, 720px);
   margin-inline: auto;
   padding-inline: clamp(16px, 4vw, 28px);
-  padding-bottom: clamp(96px, 12vh, 144px);
+  padding-bottom: calc(
+    var(--miniapp-footer-height, clamp(96px, 12vh, 144px))
+      + env(safe-area-inset-bottom)
+  );
   display: grid;
   align-content: start;
   gap: clamp(20px, 5vw, 36px);
@@ -128,6 +106,69 @@ html, body {
     rgba(11, 13, 18, 0)
   );
   backdrop-filter: blur(16px);
+}
+
+.miniapp-grid {
+  scroll-margin-top: clamp(96px, 14vh, 128px);
+}
+
+.miniapp-summary-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0 clamp(16px, 5vw, 28px);
+}
+
+.miniapp-summary-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: hsl(var(--muted-foreground));
+  border: 1px solid color-mix(in srgb, var(--surface-border) 70%, transparent);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--surface-elevated) / 0.92),
+    hsl(var(--surface-translucent))
+  );
+  box-shadow: 0 12px 28px hsl(var(--primary) / 0.12);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.miniapp-summary-nav__link:hover,
+.miniapp-summary-nav__link:focus-visible {
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary) / 0.45);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.28),
+    hsl(var(--dc-secondary) / 0.24)
+  );
+  transform: translateY(-1px);
+}
+
+.app-shell-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  margin-top: auto;
+  margin-bottom: env(safe-area-inset-bottom);
+  padding: clamp(12px, 3vh, 20px) clamp(16px, 5vw, 28px) clamp(18px, 4vh, 28px);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--surface-base) / 0.6),
+    hsl(var(--surface-base))
+  );
+  backdrop-filter: blur(12px);
 }
 
 .miniapp-nav-card {
@@ -427,13 +468,13 @@ html, body {
 .miniapp-panel {
   position: relative;
   border-radius: 20px;
-  border: 1px solid hsl(var(--glass-motion-border));
+  border: 1px solid var(--surface-border);
   background: linear-gradient(
     135deg,
-    hsl(var(--card) / 0.88),
-    hsl(var(--background) / 0.72)
+    hsl(var(--surface-elevated) / 0.95),
+    hsl(var(--surface-translucent))
   );
-  box-shadow: inset 0 1px 0 hsl(var(--foreground) / 0.08);
+  box-shadow: var(--surface-shadow-soft);
   backdrop-filter: blur(18px);
   overflow: hidden;
 }
@@ -445,16 +486,38 @@ html, body {
   border-radius: inherit;
   background: radial-gradient(
     circle at top,
-    hsl(var(--primary) / 0.12),
+    hsl(var(--surface-glow)),
     transparent 65%
   );
-  opacity: 0.8;
+  opacity: 0.55;
   pointer-events: none;
 }
 
 .miniapp-panel > * {
   position: relative;
   z-index: 1;
+}
+
+.miniapp-panel--muted {
+  border-color: color-mix(in srgb, var(--surface-border) 75%, transparent);
+  background: hsl(var(--surface-muted));
+  box-shadow: var(--surface-shadow-subtle);
+  backdrop-filter: none;
+}
+
+.miniapp-panel--muted::before {
+  opacity: 0.2;
+}
+
+.miniapp-panel--plain {
+  border-color: color-mix(in srgb, var(--surface-border) 60%, transparent);
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.miniapp-panel--plain::before {
+  opacity: 0;
 }
 
 .miniapp-chip {
@@ -527,6 +590,12 @@ html, body {
   box-shadow: 0 -18px 50px hsl(var(--dc-brand-dark) / 0.45);
   backdrop-filter: var(--glass-motion-blur);
   overflow: hidden;
+}
+
+.miniapp-bottom-nav {
+  width: min(100%, 720px);
+  margin-inline: auto;
+  padding: 0 clamp(16px, 4vw, 28px);
 }
 
 .miniapp-bottom-card::before {

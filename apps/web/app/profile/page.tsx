@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 import { ProfileSettingsForm } from "@/components/auth/ProfileSettingsForm";
+import { PageShellVariant } from "@/components/layout/PageShell";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { buildMetadata } from "@/lib/seo";
 
@@ -27,29 +28,26 @@ export default async function ProfilePage() {
   }
 
   return (
-    <Column
-      gap="24"
-      paddingY="32"
-      align="center"
-      horizontal="center"
-      fillWidth
-    >
-      <Column maxWidth={28} gap="12" align="center" horizontal="center">
-        <Heading variant="display-strong-s" align="center">
-          Profile settings
-        </Heading>
-        <Text
-          variant="body-default-m"
-          onBackground="neutral-weak"
-          align="center"
-        >
-          Maintain the identity that appears across investor dashboards and
-          administrative tooling.
-        </Text>
+    <>
+      <PageShellVariant variant="workspace" />
+      <Column gap="24" paddingY="32" horizontal="stretch" fillWidth>
+        <Column maxWidth={32} gap="12" horizontal="stretch">
+          <Heading variant="display-strong-s" align="start">
+            Profile settings
+          </Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            align="start"
+          >
+            Maintain the identity that appears across investor dashboards and
+            administrative tooling.
+          </Text>
+        </Column>
+        <Column maxWidth={36} fillWidth horizontal="stretch">
+          <ProfileSettingsForm />
+        </Column>
       </Column>
-      <Column maxWidth={32} fillWidth>
-        <ProfileSettingsForm />
-      </Column>
-    </Column>
+    </>
   );
 }
