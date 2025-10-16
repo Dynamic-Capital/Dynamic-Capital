@@ -2809,7 +2809,7 @@ function ChatLauncher({ compact, onOpen }: ChatLauncherProps) {
         title="Write to start up"
       >
         <span className="chat-launcher__icon" aria-hidden>
-          <svg viewBox="0 0 24 24" role="presentation" aria-hidden>
+          <svg viewBox="0 0 24 24" role="presentation" aria-hidden focusable="false">
             <path
               d="M4.25 4.5h15.5a1.75 1.75 0 0 1 1.75 1.75v8.5a1.75 1.75 0 0 1-1.75 1.75H13l-3.9 3.4a.75.75 0 0 1-1.25-.56V16.5H4.25A1.75 1.75 0 0 1 2.5 14.75v-8.5A1.75 1.75 0 0 1 4.25 4.5Z"
               fill="currentColor"
@@ -3184,6 +3184,7 @@ function HomeIcon({ active }: { active: boolean }) {
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
+      focusable="false"
     >
       <path
         d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-5.5h-5V21H5a1 1 0 0 1-1-1z"
@@ -3203,6 +3204,7 @@ function SparkIcon({ active }: { active: boolean }) {
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
+      focusable="false"
     >
       <path
         d="M12 2.5 13.6 8h5.4l-4.3 3.2L16.3 17 12 13.9 7.7 17l1.3-5.8L4.7 8h5.4z"
@@ -3222,6 +3224,7 @@ function RadarIcon({ active }: { active: boolean }) {
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
+      focusable="false"
     >
       <circle
         cx="12"
@@ -3258,6 +3261,7 @@ function ActivityIcon({ active }: { active: boolean }) {
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
+      focusable="false"
     >
       <path
         d="M4 13.5 8 9l3.5 5L14 6l2.5 8.5L20 11"
@@ -3279,6 +3283,7 @@ function MintIcon({ active }: { active: boolean }) {
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
+      focusable="false"
     >
       <path
         d="M12 3.5c-.4 2-2.5 4.5-3.7 6.3-1.1 1.7-1.8 3-1.8 4.7a5.5 5.5 0 0 0 11 0c0-1.7-.7-3-1.8-4.7-1.2-1.8-3.3-4.3-3.7-6.3Z"
@@ -3306,6 +3311,7 @@ function PaletteIcon({ active }: { active: boolean }) {
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
+      focusable="false"
     >
       <path
         d="M12 3a9 9 0 1 0 0 18c1.6 0 2.6-.92 2.6-2.06 0-1.27-.96-2-2.14-2.3-.94-.25-1.43-.86-1.43-1.62 0-.92.74-1.7 1.7-1.7h1.75c1.43 0 2.52-1.09 2.52-2.52A7 7 0 0 0 12 3Zm-4.4 8a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm2.7-3.9a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm5.4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm1.6 3.9a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Z"
@@ -3325,6 +3331,7 @@ function LifebuoyIcon({ active }: { active: boolean }) {
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
+      focusable="false"
     >
       <circle
         cx="12"
