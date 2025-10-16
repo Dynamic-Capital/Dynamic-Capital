@@ -206,10 +206,10 @@ const WORKFLOW_ACTIONS: WorkflowAction[] = [
 ];
 
 const PRIMARY_WORKFLOW_SCROLLER_CLASSES =
-  "grid auto-cols-[minmax(260px,1fr)] grid-flow-col items-stretch overflow-x-auto gap-4 px-3 pb-4 scroll-px-3 [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-[minmax(0,1fr)] sm:grid-flow-row sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 sm:scroll-px-0 xl:grid-cols-3";
+  "grid auto-cols-[minmax(260px,1fr)] grid-flow-col items-stretch overflow-x-auto gap-4 px-6 pb-5 scroll-px-6 [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-[minmax(0,1fr)] sm:grid-flow-row sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-4 sm:pb-0 sm:scroll-px-4 xl:grid-cols-3 2xl:px-8 2xl:scroll-px-8";
 
 const FALLBACK_WORKFLOW_SCROLLER_CLASSES =
-  "grid auto-cols-[minmax(220px,1fr)] grid-flow-col items-stretch overflow-x-auto gap-3 px-3 pb-3 scroll-px-3 [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-[minmax(0,1fr)] sm:grid-flow-row sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0 sm:scroll-px-0 xl:grid-cols-3";
+  "grid auto-cols-[minmax(220px,1fr)] grid-flow-col items-stretch overflow-x-auto gap-3 px-6 pb-4 scroll-px-6 [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden sm:auto-cols-[minmax(0,1fr)] sm:grid-flow-row sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:px-4 sm:pb-0 sm:scroll-px-4 xl:grid-cols-3 2xl:px-8 2xl:scroll-px-8";
 
 const PLATFORM_SUPPORT: PlatformSupportCategory[] = [
   {
@@ -421,7 +421,7 @@ function ChatFallback({
         </ul>
         <nav aria-label="Workspace quick actions">
           <ul
-            className={`${FALLBACK_WORKFLOW_SCROLLER_CLASSES} scroll-ml-3 scroll-mr-3 snap-x snap-mandatory snap-always [mask-image:linear-gradient(90deg,transparent,black_18%,black_82%,transparent)] sm:scroll-ml-0 sm:scroll-mr-0 sm:snap-none sm:[mask-image:none]`}
+            className={`${FALLBACK_WORKFLOW_SCROLLER_CLASSES} scroll-ml-6 scroll-mr-6 snap-x snap-mandatory snap-always [mask-image:linear-gradient(90deg,transparent,black_18%,black_82%,transparent)] sm:scroll-ml-4 sm:scroll-mr-4 sm:snap-none sm:[mask-image:none]`}
           >
             {WORKFLOW_ACTIONS.map((action) => {
               const descriptionId = createAccessibleId(
@@ -1020,7 +1020,7 @@ export function DynamicChatLanding() {
           </div>
           <nav aria-label="Dynamic workflow shortcuts">
             <ul
-              className={`${PRIMARY_WORKFLOW_SCROLLER_CLASSES} scroll-ml-3 scroll-mr-3 snap-x snap-mandatory snap-always [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)] sm:scroll-ml-0 sm:scroll-mr-0 sm:snap-none sm:[mask-image:none]`}
+              className={`${PRIMARY_WORKFLOW_SCROLLER_CLASSES} scroll-ml-6 scroll-mr-6 snap-x snap-mandatory snap-always [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)] sm:scroll-ml-4 sm:scroll-mr-4 sm:snap-none sm:[mask-image:none]`}
             >
               {WORKFLOW_ACTIONS.map((action) => {
                 const descriptionId = createAccessibleId(
