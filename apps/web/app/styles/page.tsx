@@ -627,6 +627,7 @@ export default function TailwindStylesPage() {
                                         {category.branding.linkLabel}
                                         <svg
                                           aria-hidden="true"
+                                          focusable="false"
                                           className="h-4 w-4 transition-transform duration-200 ease-smooth group-hover:translate-x-0.5"
                                           fill="none"
                                           stroke="currentColor"
