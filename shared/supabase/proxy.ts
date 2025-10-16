@@ -110,6 +110,23 @@ interface BodyResolutionFailure {
 
 type BodyResolutionResult = BodyResolutionSuccess | BodyResolutionFailure;
 
+type SearchParamValue = string | number | boolean | null | undefined;
+
+function appendSearchParams(
+  target: URLSearchParams,
+  params?: Record<string, SearchParamValue>,
+) {
+  if (!params) return;
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    target.set(key, String(value));
+  }
+}
+
 export interface ProxySupabaseOptions {
   readonly request?: Request;
   readonly path: string;
@@ -118,6 +135,7 @@ export interface ProxySupabaseOptions {
   readonly cache?: RequestCache;
   readonly body?: BodyInit | null;
   readonly headers?: HeadersInit;
+  readonly searchParams?: Record<string, SearchParamValue>;
 }
 
 export interface ProxySupabaseFunctionOptions
@@ -299,6 +317,7 @@ export function createSupabaseProxyEnvironment({
     cache,
     body,
     headers: extraHeaders,
+    searchParams,
   }: ProxySupabaseOptions): Promise<Response> {
     const supabaseFnUrl = resolveSupabaseFunctionUrl();
 
@@ -345,10 +364,28 @@ export function createSupabaseProxyEnvironment({
       headers.set("Content-Type", contentType);
     }
 
-    const endpoint = new URL(
+    const endpointUrl = new URL(
       ensureLeadingSlash(path),
       `${supabaseFnUrl}/`,
-    ).toString();
+    );
+
+    if (request) {
+      try {
+        const requestUrl = new URL(request.url);
+        for (const [key, value] of requestUrl.searchParams.entries()) {
+          endpointUrl.searchParams.set(key, value);
+        }
+      } catch (error) {
+        console.error(
+          `${logTag} Failed to read request URL when ${context}`,
+          error,
+        );
+      }
+    }
+
+    appendSearchParams(endpointUrl.searchParams, searchParams);
+
+    const endpoint = endpointUrl.toString();
 
     const fetchOptions:
       & RequestInit
