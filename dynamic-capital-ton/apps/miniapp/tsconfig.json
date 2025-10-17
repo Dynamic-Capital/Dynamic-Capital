@@ -4,9 +4,12 @@
     "module": "ESNext",
     "strict": true,
     "jsx": "preserve",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "baseUrl": ".",
     "paths": {
+      "@/*": [
+        "./src/*"
+      ],
       "@shared/*": [
         "../../../shared/*"
       ]

@@ -27,32 +27,32 @@ import {
   requestTonProofChallenge,
   type TonProofChallenge,
   type TonProofPayload,
-} from "../lib/ton-miniapp-helper";
+} from "@/lib/ton-miniapp-helper";
 import {
   computeTonProofRefreshDelay,
   deriveTonProofUiState,
   type TonProofState,
-} from "../lib/ton-proof-state";
+} from "@/lib/ton-proof-state";
 
 import type {
   LiveIntelSnapshot,
   LiveMetric,
   LiveTimelineEntry,
-} from "../data/live-intel";
-import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
-import { getSupabaseClient } from "../lib/supabase-client";
+} from "@/data/live-intel";
+import { DEFAULT_REFRESH_SECONDS } from "@/data/live-intel";
+import { getSupabaseClient } from "@/lib/supabase-client";
 import {
   DYNAMIC_TON_API_USER_ID,
   OPS_TREASURY_ADDRESS,
   TONCONNECT_TWA_RETURN_URL,
-} from "../lib/config";
-import { THEME_MINT_PLANS, type ThemeMintPlan } from "../data/theme-mints";
+} from "@/lib/config";
+import { THEME_MINT_PLANS, type ThemeMintPlan } from "@/data/theme-mints";
 import {
   TON_MANIFEST_RESOURCE_PATH,
   TON_MANIFEST_URL_CANDIDATES,
 } from "@shared/ton/manifest";
-import { TON_MANIFEST_FALLBACK_DATA_URL } from "../lib/ton-manifest-inline";
-import { resolveTonManifestUrl } from "../lib/ton-manifest-resolver";
+import { TON_MANIFEST_FALLBACK_DATA_URL } from "@/lib/ton-manifest-inline";
+import { resolveTonManifestUrl } from "@/lib/ton-manifest-resolver";
 
 type SectionId =
   | "overview"

@@ -1,4 +1,4 @@
-import { TON_MANIFEST_URL_CANDIDATES } from "../../../../shared/ton/manifest";
+import { TON_MANIFEST_URL_CANDIDATES } from "@shared/ton/manifest";
 
 export type ResolveTonManifestUrlOptions = {
   candidates?: readonly string[];

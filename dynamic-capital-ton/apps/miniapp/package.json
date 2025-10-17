@@ -11,8 +11,13 @@
     "@ton/core": "^0.58.1",
     "@tonconnect/ui-react": "^2.3.1",
     "buffer": "^6.0.3",
-    "next": "^15.5.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@once-ui-system/core": "^1.4.32",
+    "classnames": "^2.5.1",
+    "next": "^15.5.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.5.0",
+    "sass": "^1.77.6",
+    "sharp": "^0.33.4"
   }
 }
