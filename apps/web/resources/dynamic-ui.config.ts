@@ -192,6 +192,8 @@ const schema: SchemaConfig = {
 const sameAs: SameAsConfig = {
   discord: "https://discord.gg/XdK96gzur9",
   telegram: "https://t.me/DynamicCapital_Support",
+  telegramCommunity: "https://t.me/DynamicCapital_Tea",
+  telegramResults: "https://t.me/DynamicCapital_Results",
   instagram: "https://www.instagram.com/dynamic.capital",
   facebook: "https://www.facebook.com/dynamic.capital.fb",
   tradingview: "https://www.tradingview.com/u/DynamicCapital-FX/",

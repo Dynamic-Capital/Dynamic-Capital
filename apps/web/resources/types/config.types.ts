@@ -166,6 +166,8 @@ export type SameAsConfig = {
   discord?: string;
   x?: string;
   telegram?: string;
+  telegramCommunity?: string;
+  telegramResults?: string;
   instagram?: string;
   facebook?: string;
   tradingview?: string;
