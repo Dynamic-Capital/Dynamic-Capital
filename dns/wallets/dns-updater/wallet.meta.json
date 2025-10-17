@@ -6,8 +6,8 @@
   "wallet_id": 698983191,
   "public_key_hex": null,
   "addresses": {
-    "raw": null,
-    "bounceable": null,
-    "non_bounceable": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G"
+    "raw": "0:d29b3e11ac30451be4f58b3c1527bab576902ad662532eb2b0c8c6098a0e96c7",
+    "bounceable": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
+    "non_bounceable": "UQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx6N3"
   }
 }

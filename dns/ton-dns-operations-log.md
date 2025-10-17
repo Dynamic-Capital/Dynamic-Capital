@@ -5,6 +5,40 @@ ownership. Amounts are reported in TON (1 TON = 1,000,000,000 nanotons). Use
 this file alongside [`toncli-dns-runbook.md`](./toncli-dns-runbook.md) when
 preparing governance packets or multisig memos.
 
+## 2025-10-19 – Gateway URL optimisation and verification sweep
+
+- **Objective** — Consolidate the published HTTPS gateway URLs around the
+  DigitalOcean reverse proxy while confirming every bridge serves the current
+  TON Site bundle.
+- **Change set** — Updated `dns/dynamiccapital.ton.json` so the
+  `ton_site.gateways` map now references the user-facing
+  `ton-gateway.dynamic-capital.ondigitalocean.app` host as primary, with the
+  Lovable standby and TON Foundation bridges marked operational. Refreshed the
+  verification block to capture 2025-10-19 probes returning `HTTP 200` across
+  all three endpoints and recorded the same timestamp inside
+  `dynamic-capital-ton/storage/dns-records.txt` and
+  `public/dns/active.json`.
+- **Next steps** — Keep the Lovable standby gateway in the synthetic probe
+  rotation and alert on drift between the DigitalOcean origin bundle and the
+  published TON Storage artefacts.
+
+## 2025-10-18 – Resolver ownership delegated to DAO multisig
+
+- **Objective** — Transfer `dynamiccapital.ton` NFT ownership from the
+  operations treasury wallet to the DAO multisig
+  `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` so future resolver updates
+  can be executed directly through governance.
+- **Change set** — Updated `dns/dynamiccapital.ton.json` so
+  `nft.ownerAddress` reflects the DAO multisig (`EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`,
+  non-bounceable form: `UQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx6N3`),
+  refreshed the helper metadata under `dns/wallets/dns-updater/`, and bumped the
+  published DNS bundles (`dynamic-capital-ton/storage/dns-records.txt` and
+  `public/dns/active.json`) with a new `updated` timestamp marking the transfer.
+- **Next steps** — Rehydrate the DAO-controlled signer in `dns/wallets/dns-updater`
+  before broadcasting subsequent TXT or ADNL updates, and attach the transaction
+  hash from the on-chain ownership transfer to this log once the DAO records the
+  governance vote.
+
 ## 2025-10-12 – Root wallet alias repoint
 
 - **Objective** — Align the `wallet` TXT payload for `dynamiccapital.ton` with
