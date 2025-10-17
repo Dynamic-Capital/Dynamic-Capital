@@ -5,7 +5,7 @@
   "nft": {
     "address": "EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo",
     "collectionAddress": "EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz",
-    "ownerAddress": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
+    "ownerAddress": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "image": "https://dns-image.mytonwallet.org/img?d=dynamiccapital",
     "name": "dynamiccapital.ton",
     "description": null,
@@ -29,10 +29,10 @@
     },
     "gateways": {
       "primary": {
-        "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
-        "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+        "host": "dynamic-capital-qazf2.ondigitalocean.app",
+        "url": "https://dynamic-capital-qazf2.ondigitalocean.app/",
         "provider": "DigitalOcean App Platform",
-        "note": "Primary reverse proxy bridging standard browsers to the TON Site bundle.",
+        "note": "Primary DigitalOcean origin hosting the TON Site bundle for downstream gateways.",
         "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app",
         "status": "operational"
       },

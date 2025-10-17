@@ -5,6 +5,23 @@ ownership. Amounts are reported in TON (1 TON = 1,000,000,000 nanotons). Use
 this file alongside [`toncli-dns-runbook.md`](./toncli-dns-runbook.md) when
 preparing governance packets or multisig memos.
 
+## 2025-10-18 – Resolver ownership delegated to DAO multisig
+
+- **Objective** — Transfer `dynamiccapital.ton` NFT ownership from the
+  operations treasury wallet to the DAO multisig
+  `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y` so future resolver updates
+  can be executed directly through governance.
+- **Change set** — Updated `dns/dynamiccapital.ton.json` so
+  `nft.ownerAddress` reflects the DAO multisig (`EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`,
+  non-bounceable form: `UQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx6N3`),
+  refreshed the helper metadata under `dns/wallets/dns-updater/`, and bumped the
+  published DNS bundles (`dynamic-capital-ton/storage/dns-records.txt` and
+  `public/dns/active.json`) with a new `updated` timestamp marking the transfer.
+- **Next steps** — Rehydrate the DAO-controlled signer in `dns/wallets/dns-updater`
+  before broadcasting subsequent TXT or ADNL updates, and attach the transaction
+  hash from the on-chain ownership transfer to this log once the DAO records the
+  governance vote.
+
 ## 2025-10-12 – Root wallet alias repoint
 
 - **Objective** — Align the `wallet` TXT payload for `dynamiccapital.ton` with
