@@ -5,6 +5,23 @@ ownership. Amounts are reported in TON (1 TON = 1,000,000,000 nanotons). Use
 this file alongside [`toncli-dns-runbook.md`](./toncli-dns-runbook.md) when
 preparing governance packets or multisig memos.
 
+## 2025-10-19 – Gateway URL optimisation and verification sweep
+
+- **Objective** — Consolidate the published HTTPS gateway URLs around the
+  DigitalOcean reverse proxy while confirming every bridge serves the current
+  TON Site bundle.
+- **Change set** — Updated `dns/dynamiccapital.ton.json` so the
+  `ton_site.gateways` map now references the user-facing
+  `ton-gateway.dynamic-capital.ondigitalocean.app` host as primary, with the
+  Lovable standby and TON Foundation bridges marked operational. Refreshed the
+  verification block to capture 2025-10-19 probes returning `HTTP 200` across
+  all three endpoints and recorded the same timestamp inside
+  `dynamic-capital-ton/storage/dns-records.txt` and
+  `public/dns/active.json`.
+- **Next steps** — Keep the Lovable standby gateway in the synthetic probe
+  rotation and alert on drift between the DigitalOcean origin bundle and the
+  published TON Storage artefacts.
+
 ## 2025-10-18 – Resolver ownership delegated to DAO multisig
 
 - **Objective** — Transfer `dynamiccapital.ton` NFT ownership from the

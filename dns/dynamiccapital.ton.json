@@ -29,27 +29,27 @@
     },
     "gateways": {
       "primary": {
-        "host": "dynamic-capital-qazf2.ondigitalocean.app",
-        "url": "https://dynamic-capital-qazf2.ondigitalocean.app/",
-        "provider": "DigitalOcean App Platform",
-        "note": "Primary DigitalOcean origin hosting the TON Site bundle for downstream gateways.",
-        "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app",
+        "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
+        "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+        "provider": "DigitalOcean Reverse Proxy",
+        "note": "Primary HTTPS gateway bridging browsers to the DigitalOcean origin bundle.",
+        "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
         "status": "operational"
       },
       "fallback": {
         "host": "ton-gateway.dynamic-capital.lovable.app",
         "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
         "provider": "Lovable App Platform",
-        "note": "Hot standby reverse proxy mirroring the DigitalOcean gateway.",
-        "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app",
-        "status": "standby"
+        "note": "Warm standby reverse proxy kept in sync with the DigitalOcean origin bundle.",
+        "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
+        "status": "operational"
       },
       "foundation": {
         "host": "ton.site",
         "url": "https://ton.site/dynamiccapital.ton",
         "provider": "TON Foundation",
-        "note": "Official TON Foundation-operated HTTPS bridge kept as fallback coverage.",
-        "status": "standby"
+        "note": "Official TON Foundation-operated HTTPS bridge confirmed for redundancy.",
+        "status": "operational"
       }
     },
     "buttons": [
@@ -66,7 +66,7 @@
       {
         "label": "Open HTTPS Gateway",
         "uri": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-        "note": "Primary DigitalOcean reverse proxy for browsers without TON DNS support."
+        "note": "Primary DigitalOcean-backed HTTPS bridge for environments without TON DNS support."
       },
       {
         "label": "Open TON Foundation Fallback",
@@ -76,7 +76,7 @@
       {
         "label": "Open Lovable Standby",
         "uri": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
-        "note": "Warm standby reverse proxy mirroring the DigitalOcean gateway."
+        "note": "Lovable standby bridge verified against the latest TON Site bundle."
       },
       {
         "label": "Operations Log",
@@ -86,23 +86,23 @@
     ],
     "verification": {
       "https": {
-        "checked_at": "2025-10-15T11:45:00Z",
+        "checked_at": "2025-10-19T12:15:00Z",
         "status": "operational",
         "endpoints": [
           {
             "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
             "http_status": 200,
-            "notes": "DigitalOcean reverse proxy responded with HTTP 200 after redeploy."
+            "notes": "DigitalOcean reverse proxy returned HTTP 200 with the synced TON Site bundle."
           },
           {
             "url": "https://ton.site/dynamiccapital.ton",
             "http_status": 200,
-            "notes": "TON Foundation fallback responded with HTTP 200."
+            "notes": "TON Foundation bridge responded with HTTP 200 and cached bundle headers."
           },
           {
             "url": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
-            "http_status": 503,
-            "notes": "Lovable standby gateway still paused pending warmup test."
+            "http_status": 200,
+            "notes": "Lovable standby reverse proxy returned HTTP 200 after warmup verification."
           }
         ]
       }
@@ -119,22 +119,22 @@
         {
           "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
           "status": "operational",
-          "last_verified": "2025-10-15T11:45:00Z",
-          "depends_on": "https://dynamic-capital-qazf2.ondigitalocean.app",
+          "last_verified": "2025-10-19T12:15:00Z",
+          "depends_on": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
           "notes": "Primary DigitalOcean reverse proxy serving the TON Site bundle."
         },
         {
           "host": "ton.site",
-          "status": "standby",
-          "last_verified": "2025-10-15T11:45:00Z",
+          "status": "operational",
+          "last_verified": "2025-10-19T12:15:00Z",
           "notes": "TON Foundation fallback gateway available for redundancy."
         },
         {
           "host": "ton-gateway.dynamic-capital.lovable.app",
-          "status": "standby",
-          "last_verified": "2025-10-15T11:45:00Z",
-          "depends_on": "https://dynamic-capital-qazf2.ondigitalocean.app",
-          "notes": "Lovable standby reverse proxy awaiting warmup checks."
+          "status": "operational",
+          "last_verified": "2025-10-19T12:15:00Z",
+          "depends_on": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
+          "notes": "Lovable standby reverse proxy kept in lockstep with the DigitalOcean origin."
         }
       ],
       "origin": {
@@ -164,7 +164,7 @@
           "endpoint": "https://ton-gateway.dynamic-capital.lovable.app/dynamiccapital.ton",
           "cadence": "15m",
           "alert_policy": "#dynamiccapital-ton-site",
-          "status": "paused"
+          "status": "active"
         }
       ],
       "runbooks": [
@@ -177,10 +177,10 @@
           "uri": "https://github.com/dynamic-labs/Dynamic-Capital/blob/main/dns/https-gateway-verification-2025-10-08.md"
         }
       ],
-      "last_successful_probe": "2025-10-15T11:45:00Z"
+      "last_successful_probe": "2025-10-19T12:15:00Z"
     },
     "notes": [
-      "2025-10-15: DigitalOcean reverse proxy restored and promoted to primary. TON Foundation bridge kept on standby with Lovable warm spare awaiting validation."
+      "2025-10-19: Gateway URLs consolidated around the DigitalOcean reverse proxy with Lovable and TON Foundation bridges fully verified."
     ]
   },
   "records": [
