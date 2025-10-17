@@ -1,23 +1,87 @@
+import "@once-ui-system/core/css/styles.css";
+import "@once-ui-system/core/css/tokens.css";
 import "./globals.css";
+
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { Meta } from "@once-ui-system/core";
 
-export const metadata: Metadata = {
-  title: "Dynamic Capital Mini App",
-  description: "TON-powered subscriptions with auto-invest and burn",
-};
+import { Providers } from "@/components/Providers";
+import { baseURL, dataStyle, fonts, meta, style } from "@/resources/once-ui.config";
 
-export default function RootLayout(
-  { children }: { children: React.ReactNode },
-) {
+const fontVariables = Object.values(fonts)
+  .map(({ variable }) => variable)
+  .join(" ");
+
+const themeBootstrapScript = `
+  (function() {
+    try {
+      const root = document.documentElement;
+      const defaultTheme = ${JSON.stringify(style.theme)};
+      root.setAttribute('data-neutral', ${JSON.stringify(style.neutral)});
+      root.setAttribute('data-brand', ${JSON.stringify(style.brand)});
+      root.setAttribute('data-accent', ${JSON.stringify(style.accent)});
+      root.setAttribute('data-solid', ${JSON.stringify(style.solid)});
+      root.setAttribute('data-solid-style', ${JSON.stringify(style.solidStyle)});
+      root.setAttribute('data-border', ${JSON.stringify(style.border)});
+      root.setAttribute('data-surface', ${JSON.stringify(style.surface)});
+      root.setAttribute('data-transition', ${JSON.stringify(style.transition)});
+      root.setAttribute('data-scaling', ${JSON.stringify(style.scaling)});
+      root.setAttribute('data-viz-style', ${JSON.stringify(dataStyle.mode)});
+
+      const resolveTheme = (themeValue) => {
+        if (!themeValue || themeValue === 'system') {
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        return themeValue;
+      };
+
+      const storedTheme = window.localStorage.getItem('data-theme');
+      const resolvedTheme = resolveTheme(storedTheme ?? defaultTheme);
+      root.setAttribute('data-theme', resolvedTheme);
+
+      const styleKeys = ['neutral', 'brand', 'accent', 'solid', 'solid-style', 'border', 'surface', 'transition', 'scaling', 'viz-style'];
+      styleKeys.forEach((key) => {
+        const storageKey = 'data-' + key;
+        const storedValue = window.localStorage.getItem(storageKey);
+        if (storedValue) {
+          root.setAttribute(storageKey, storedValue);
+        }
+      });
+    } catch (error) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+`;
+
+export const metadata: Metadata = Meta.generate({
+  ...meta.home,
+  baseURL,
+});
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      data-theme={style.theme}
+      data-neutral={style.neutral}
+      data-brand={style.brand}
+      data-accent={style.accent}
+      data-solid={style.solid}
+      data-solid-style={style.solidStyle}
+      data-border={style.border}
+      data-surface={style.surface}
+      data-transition={style.transition}
+      data-scaling={style.scaling}
+      data-viz-style={dataStyle.mode}
+    >
       <head>
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.14/dist/tailwind.min.css"
-        />
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
       </head>
-      <body>{children}</body>
+      <body className={fontVariables}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
