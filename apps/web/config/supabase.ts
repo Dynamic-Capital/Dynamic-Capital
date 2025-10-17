@@ -4,6 +4,7 @@ import {
   SUPABASE_FUNCTIONS_URL,
   SUPABASE_URL,
 } from "@/config/supabase-runtime";
+import { isDevelopment } from "@/config/node-env";
 import { getEnvVar } from "@/utils/env";
 import {
   SUPABASE_FUNCTIONS,
@@ -46,10 +47,30 @@ type CryptoConfig = {
 function resolveString(
   key: string,
   fallback: string,
-  aliases: string[] = [],
+  aliases: readonly string[] = [],
 ): string {
   const value = getEnvVar(key, aliases);
   return value ?? fallback;
+}
+
+function resolveStrictString(
+  key: string,
+  fallback: string,
+  aliases: readonly string[] = [],
+): string {
+  const value = getEnvVar(key, aliases);
+  if (value) {
+    return value;
+  }
+
+  if (isDevelopment) {
+    return fallback;
+  }
+
+  const aliasSuffix = aliases.length > 0
+    ? ` (aliases: ${aliases.join(", ")})`
+    : "";
+  throw new Error(`Missing required env: ${key}${aliasSuffix}`);
 }
 
 function resolveSupportedCurrencies(): readonly string[] {
@@ -83,15 +104,19 @@ type TelegramConfig = {
 };
 
 export const TELEGRAM_CONFIG: TelegramConfig = {
-  BOT_URL: resolveString("TELEGRAM_BOT_URL", "https://t.me/your_bot"),
-  MINI_APP_URL: resolveString(
+  BOT_URL: resolveStrictString(
+    "TELEGRAM_BOT_URL",
+    "https://t.me/dynamiccapital_dev_bot",
+  ),
+  MINI_APP_URL: resolveStrictString(
     "MINI_APP_URL",
-    "https://your-miniapp.supabase.co",
+    "http://localhost:3000/miniapp",
     ["NEXT_PUBLIC_MINI_APP_URL"],
   ),
-  WEBHOOK_SECRET: resolveString(
+  WEBHOOK_SECRET: resolveStrictString(
     "NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET",
-    "",
+    "local-telegram-webhook-secret",
+    ["TELEGRAM_WEBHOOK_SECRET"],
   ),
 };
 
