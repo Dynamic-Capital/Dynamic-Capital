@@ -51,3 +51,26 @@ You can confirm the proxy guards behave correctly with curl:
    `.env.local`), restart the dev server, and repeat the curl command. This time
    the request should proxy through to the Supabase Edge function and return its
    response.
+
+## Theme synchronization
+
+Wallet-driven themes flow through three layers:
+
+1. `shared/miniapp/theme-loader.ts` exposes the `MiniAppThemeManager`, which
+   fetches Theme NFT metadata and commits any wallet-defined CSS variables
+   (gradients, shadows, custom fonts, etc.) directly to
+   `document.documentElement.style`.
+2. `src/components/Providers.tsx` subscribes to the manager with
+   `useMiniAppThemeManager` and mirrors any `--data-*` variables onto actual
+   `data-*` attributes. The effect seeds deterministic defaults (dark mode when
+   TonConnect has not resolved yet) so Once UI tokens stay stable during SSR, and
+   it restores the baseline Once UI attributes whenever a wallet theme is
+   removed.
+3. Once UI’s `ThemeProvider` and `DataThemeProvider` read those `data-*`
+   attributes to resolve their token maps. Because we only overwrite attributes
+   that a wallet explicitly overrides, the default Once UI palette continues to
+   drive semantic tokens while wallet themes control bespoke CSS variables.
+
+When adding new wallet theme capabilities, extend the provider effect to map
+additional `--data-*` keys and keep this section up to date so contributors know
+which layer owns each responsibility.
