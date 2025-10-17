@@ -15,6 +15,8 @@ const Input = forwardRef(({
   description,
   radius,
   className,
+  surfaceClassName,
+  inputClassName,
   style,
   hasPrefix,
   hasSuffix,
@@ -84,6 +86,7 @@ const Input = forwardRef(({
       [styles.hasChildren]: children,
       [styles.error]: displayError && debouncedValue !== "",
     },
+    inputClassName,
   );
   return (_jsxs(Column, {
     gap: "8",
@@ -114,6 +117,7 @@ const Input = forwardRef(({
             : radius
             ? `radius-l-${radius}`
             : "radius-l",
+          surfaceClassName,
         ),
         children: [
           hasPrefix &&

@@ -18,6 +18,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     | "bottom-right"
     | "bottom-left";
   className?: string;
+  surfaceClassName?: string;
+  inputClassName?: string;
   style?: React.CSSProperties;
   hasPrefix?: ReactNode;
   hasSuffix?: ReactNode;

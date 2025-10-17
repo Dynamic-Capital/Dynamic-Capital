@@ -1,23 +1,72 @@
-import * as React from "react";
+"use client";
 
+import {
+  type ComponentPropsWithoutRef,
+  forwardRef,
+  type ReactNode,
+  useId,
+} from "react";
+
+import { Textarea as OnceTextarea } from "@/components/dynamic-ui-system";
 import { cn } from "@/utils";
 
-export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+type OnceTextareaProps = ComponentPropsWithoutRef<typeof OnceTextarea>;
 
-const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, ...props }, ref) => {
+interface TextareaProps extends
+  Omit<
+    OnceTextareaProps,
+    | "id"
+    | "className"
+    | "hasPrefix"
+    | "hasSuffix"
+    | "surfaceClassName"
+    | "textareaClassName"
+    | "prefix"
+    | "suffix"
+  > {
+  id?: string;
+  className?: string;
+  textareaClassName?: string;
+  surfaceClassName?: string;
+  leading?: ReactNode;
+  trailing?: ReactNode;
+}
+
+const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+  (
+    {
+      id: providedId,
+      className,
+      textareaClassName,
+      surfaceClassName,
+      leading,
+      trailing,
+      lines,
+      radius,
+      ...rest
+    },
+    ref,
+  ) => {
+    const generatedId = useId();
+    const id = providedId ?? generatedId;
+
     return (
-      <textarea
-        className={cn(
-          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          className,
-        )}
+      <OnceTextarea
         ref={ref}
-        {...props}
+        id={id}
+        lines={lines ?? 3}
+        radius={radius}
+        className={cn("w-full", className)}
+        textareaClassName={textareaClassName}
+        surfaceClassName={surfaceClassName}
+        hasPrefix={leading}
+        hasSuffix={trailing}
+        {...rest}
       />
     );
   },
 );
+
 Textarea.displayName = "Textarea";
 
 export { Textarea };

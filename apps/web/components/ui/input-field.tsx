@@ -26,36 +26,35 @@ const inputFieldVariants = cva("", {
   },
 });
 
-const inputVariants = cva(
-  "flex h-10 w-full rounded-md border bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm transition-colors",
-  {
-    variants: {
-      state: {
-        default: "border-input",
-        error: "border-destructive focus-visible:ring-destructive",
-        success: "border-green-500 focus-visible:ring-green-500",
-      },
-      hasStartIcon: {
-        true: "pl-10",
-        false: "",
-      },
-      hasEndIcon: {
-        true: "pr-10",
-        false: "",
-      },
+const inputPadding = cva("min-h-[44px] transition-all duration-200", {
+  variants: {
+    size: {
+      sm: "text-sm",
+      md: "text-base",
+      lg: "text-lg",
     },
-    defaultVariants: {
-      state: "default",
-      hasStartIcon: false,
-      hasEndIcon: false,
+    hasStartIcon: {
+      true: "pl-10",
+      false: "",
+    },
+    hasEndContent: {
+      true: "pr-4",
+      false: "",
     },
   },
-);
+  defaultVariants: {
+    size: "md",
+    hasStartIcon: false,
+    hasEndContent: false,
+  },
+});
 
-export interface InputFieldProps
-  extends
-    Omit<React.ComponentProps<typeof Input>, "className" | "size">,
-    VariantProps<typeof inputFieldVariants> {
+export interface InputFieldProps extends
+  Omit<
+    React.ComponentProps<typeof Input>,
+    "className" | "size" | "leading" | "trailing" | "inputClassName" | "error"
+  >,
+  VariantProps<typeof inputFieldVariants> {
   label?: string;
   description?: string;
   error?: string;
@@ -122,10 +121,9 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
       }
     }, [value]);
 
-    const handleEndIconClick = () => {
-      if (showPasswordToggle) {
-        setShowPassword(!showPassword);
-      }
+    const handleTogglePassword = () => {
+      if (!showPasswordToggle) return;
+      setShowPassword((previous) => !previous);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,56 +139,66 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
           </Label>
         )}
 
-        <div className="relative">
-          {startIcon && (
-            <Icon
-              name={startIcon}
-              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
+        <Input
+          ref={ref}
+          id={fieldId}
+          type={type}
+          value={value}
+          maxLength={maxLength}
+          aria-invalid={state === "error"}
+          aria-describedby={describedBy}
+          height={size === "sm" ? "s" : "m"}
+          inputClassName={cn(
+            inputPadding({
+              size,
+              hasStartIcon: !!startIcon,
+              hasEndContent: Boolean(actualEndIcon || showPasswordToggle),
+            }),
+            inputClassName,
           )}
-
-          <Input
-            ref={ref}
-            type={type}
-            value={value}
-            maxLength={maxLength}
-            id={fieldId}
-            aria-invalid={state === "error"}
-            aria-describedby={describedBy}
-            className={cn(
-              inputVariants({
-                state,
-                hasStartIcon: !!startIcon,
-                hasEndIcon: !!actualEndIcon,
-              }),
-              inputClassName,
-            )}
-            onChange={handleChange}
-            {...props}
-          />
-
-          {actualEndIcon && (
-            <button
-              type="button"
-              onClick={handleEndIconClick}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label={showPasswordToggle
-                ? showPassword ? "Hide password" : "Show password"
-                : undefined}
-              aria-pressed={showPasswordToggle ? showPassword : undefined}
-              title={showPasswordToggle
-                ? showPassword ? "Hide password" : "Show password"
-                : undefined}
-            >
+          leading={startIcon
+            ? (
               <Icon
-                name={actualEndIcon}
-                className="h-4 w-4"
+                name={startIcon}
+                className="h-4 w-4 text-muted-foreground"
                 aria-hidden="true"
               />
-            </button>
-          )}
-        </div>
+            )
+            : undefined}
+          trailing={(actualEndIcon || showPasswordToggle)
+            ? (
+              <div className="flex items-center gap-2">
+                {actualEndIcon && !showPasswordToggle && (
+                  <Icon
+                    name={actualEndIcon}
+                    className="h-4 w-4 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                )}
+                {showPasswordToggle && (
+                  <button
+                    type="button"
+                    onClick={handleTogglePassword}
+                    className="rounded px-1 py-0.5 text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={showPassword
+                      ? "Hide password"
+                      : "Show password"}
+                    aria-pressed={showPassword}
+                  >
+                    <Icon
+                      name={actualEndIcon ?? "Eye"}
+                      className="h-4 w-4"
+                      aria-hidden="true"
+                    />
+                  </button>
+                )}
+              </div>
+            )
+            : undefined}
+          error={state === "error"}
+          onChange={handleChange}
+          {...props}
+        />
 
         {description && !error && !success && (
           <p id={descriptionId} className="mt-1 text-sm text-muted-foreground">
@@ -205,7 +213,7 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
             role="alert"
             aria-live="assertive"
           >
-            <Icon name="Triangle" className="h-3 w-3" aria-hidden="true" />
+            <Icon name="AlertTriangle" className="h-3 w-3" aria-hidden="true" />
             {error}
           </p>
         )}

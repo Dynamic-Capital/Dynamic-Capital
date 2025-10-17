@@ -15,6 +15,8 @@ const Textarea = forwardRef(({
   description,
   radius,
   className,
+  surfaceClassName,
+  textareaClassName,
   hasPrefix,
   hasSuffix,
   resize = "vertical",
@@ -99,6 +101,7 @@ const Textarea = forwardRef(({
       [styles.placeholder]: placeholder,
       [styles.hasChildren]: children,
     },
+    textareaClassName,
   );
   return (_jsxs(Column, {
     gap: "8",
@@ -123,6 +126,7 @@ const Textarea = forwardRef(({
             : radius
             ? `radius-l-${radius}`
             : "radius-l",
+          surfaceClassName,
         ),
         children: [
           hasPrefix &&

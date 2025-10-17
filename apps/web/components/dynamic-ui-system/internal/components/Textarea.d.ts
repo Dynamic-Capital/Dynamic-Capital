@@ -18,6 +18,8 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
     | "bottom-right"
     | "bottom-left";
   className?: string;
+  surfaceClassName?: string;
+  textareaClassName?: string;
   hasPrefix?: ReactNode;
   hasSuffix?: ReactNode;
   resize?: "horizontal" | "vertical" | "both" | "none";

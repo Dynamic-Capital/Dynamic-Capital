@@ -358,7 +358,6 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
 
               <form className="mt-6 space-y-4" onSubmit={handleSubscribe}>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     type="email"
                     value={email}
@@ -374,7 +373,16 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
                     placeholder={content.newsletterPlaceholder}
                     aria-label={content.newsletterPlaceholder ||
                       "Email address"}
-                    className="h-12 rounded-2xl border-border/60 bg-background/90 pl-12 text-base shadow-sm transition focus-visible:border-primary"
+                    height="m"
+                    className="w-full"
+                    surfaceClassName="rounded-2xl border border-border/60 bg-background/90 shadow-sm transition focus-visible:border-primary"
+                    inputClassName="text-base"
+                    leading={
+                      <Mail
+                        className="h-5 w-5 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                    }
                     autoComplete="email"
                     required
                   />

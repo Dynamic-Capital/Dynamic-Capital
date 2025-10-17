@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/types/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -88,6 +82,21 @@ export const AdminDataManager = () => {
   const [loading, setLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const tableOptions = useMemo(
+    () =>
+      AVAILABLE_TABLES.map((table) => ({
+        value: table.key,
+        label: table.name,
+        description: table.description,
+        icon: (
+          <span aria-hidden="true" className="text-lg">
+            {table.icon}
+          </span>
+        ),
+      })),
+    [],
+  );
 
   // Form states for different tables
   const [kvConfigForm, setKvConfigForm] = useState<CreateKvConfigForm>({
@@ -371,19 +380,17 @@ export const AdminDataManager = () => {
               <Label htmlFor="table-select">Select Table</Label>
               <Select
                 value={selectedTable}
-                onValueChange={(value: TableKey) => setSelectedTable(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AVAILABLE_TABLES.map((table) => (
-                    <SelectItem key={table.key} value={table.key}>
-                      {table.icon} {table.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onValueChange={(value) => {
+                  const nextValue = Array.isArray(value) ? value[0] : value;
+                  if (nextValue) {
+                    setSelectedTable(nextValue as TableKey);
+                  }
+                }}
+                options={tableOptions}
+                placeholder="Select table"
+                surfaceClassName="rounded-xl border border-border/60 bg-background"
+                inputClassName="text-sm"
+              />
             </div>
             <div className="flex gap-2 items-end">
               <Button
