@@ -48,8 +48,8 @@ swap.coffee is a TON-native decentralized exchange (DEX) aggregator headquartere
 | Token name | Coffee DEX: TON/DCT LP |
 | Symbol | TON/DCT LP |
 | Decimals | 9 |
-| Contract address | `0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a` |
-| Image | <https://lp.swap.coffee/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a/image> |
+| Contract address | `0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A` |
+| Image | <https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A/image> |
 | Description | LP token for Toncoin and Dynamic Capital Token on swap.coffee DEX. |
 
 *The token metadata above maps to the swap.coffee liquidity pool pairing Toncoin with the Dynamic Capital Token (DCT).*

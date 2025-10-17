@@ -78,12 +78,12 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     poolAddress: TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
     poolExplorerUrl: buildTonviewerAccountUrl(TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL),
     metadataUrl:
-      "https://lp.swap.coffee/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a/metadata",
+      "https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A/metadata",
     jettonWalletAddress: TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
     jettonWalletExplorerUrl: buildTonviewerAccountUrl(
       TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
     ),
     lpJettonExplorerUrl:
-      "https://tonviewer.com/jetton/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a",
+      "https://tonviewer.com/jetton/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A",
   },
 ]);
