@@ -21,13 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -197,6 +191,20 @@ const statusBadgeStyles: Record<Status, string> = {
   Monitoring: "border-amber-500/30 bg-amber-500/10 text-amber-400",
   "On Hold": "border-slate-500/30 bg-slate-500/10 text-slate-300",
 };
+
+const statusOptions: { value: StatusFilter; label: string }[] = [
+  { value: "all", label: "All statuses" },
+  { value: "Active", label: "Active" },
+  { value: "Monitoring", label: "Monitoring" },
+  { value: "On Hold", label: "On hold" },
+];
+
+const riskOptions: { value: RiskFilter; label: string }[] = [
+  { value: "all", label: "All risk levels" },
+  { value: "Low", label: "Low risk" },
+  { value: "Moderate", label: "Moderate risk" },
+  { value: "High", label: "High risk" },
+];
 
 const riskBadgeStyles: Record<RiskLevel, string> = {
   Low: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
@@ -408,34 +416,28 @@ export function DynamicTable() {
           </div>
           <Select
             value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value as StatusFilter)}
-          >
-            <SelectTrigger className="border-slate-800/80 bg-slate-950/40">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="Active">Active</SelectItem>
-              <SelectItem value="Monitoring">Monitoring</SelectItem>
-              <SelectItem value="On Hold">On hold</SelectItem>
-            </SelectContent>
-          </Select>
+            onValueChange={(value) => {
+              const nextValue = Array.isArray(value) ? value[0] : value;
+              setStatusFilter((nextValue ?? "all") as StatusFilter);
+            }}
+            options={statusOptions}
+            placeholder="Status"
+            surfaceClassName="rounded-xl border border-slate-800/80 bg-slate-950/40"
+            inputClassName="text-sm"
+          />
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           <Select
             value={riskFilter}
-            onValueChange={(value) => setRiskFilter(value as RiskFilter)}
-          >
-            <SelectTrigger className="border-slate-800/80 bg-slate-950/40">
-              <SelectValue placeholder="Risk" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All risk levels</SelectItem>
-              <SelectItem value="Low">Low risk</SelectItem>
-              <SelectItem value="Moderate">Moderate risk</SelectItem>
-              <SelectItem value="High">High risk</SelectItem>
-            </SelectContent>
-          </Select>
+            onValueChange={(value) => {
+              const nextValue = Array.isArray(value) ? value[0] : value;
+              setRiskFilter((nextValue ?? "all") as RiskFilter);
+            }}
+            options={riskOptions}
+            placeholder="Risk"
+            surfaceClassName="rounded-xl border border-slate-800/80 bg-slate-950/40"
+            inputClassName="text-sm"
+          />
           <div className="md:col-span-2">
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800/80 bg-slate-950/40 p-2">
               <div className="flex flex-wrap gap-2">

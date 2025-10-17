@@ -1,19 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import { Calendar, MessageSquare, RefreshCw, Send, Users } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
@@ -44,6 +38,16 @@ export function BroadcastManager() {
   const [isSending, setIsSending] = useState(false);
   const { getAdminAuth } = useTelegramAuth();
   const { toast } = useToast();
+
+  const audienceOptions = useMemo(
+    () => [
+      { value: "all", label: "All Users" },
+      { value: "vip", label: "VIP Users Only" },
+      { value: "free", label: "Free Users Only" },
+      { value: "admins", label: "Admins Only" },
+    ],
+    [],
+  );
 
   const loadBroadcasts = useCallback(async () => {
     setLoading(true);
@@ -200,17 +204,16 @@ export function BroadcastManager() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium">Target Audience</label>
-              <Select value={targetAudience} onValueChange={setTargetAudience}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Users</SelectItem>
-                  <SelectItem value="vip">VIP Users Only</SelectItem>
-                  <SelectItem value="free">Free Users Only</SelectItem>
-                  <SelectItem value="admins">Admins Only</SelectItem>
-                </SelectContent>
-              </Select>
+              <Select
+                value={targetAudience}
+                onValueChange={(value) => {
+                  const nextValue = Array.isArray(value) ? value[0] : value;
+                  setTargetAudience(nextValue ?? "all");
+                }}
+                options={audienceOptions}
+                surfaceClassName="rounded-lg border border-border/60 bg-background"
+                inputClassName="text-sm"
+              />
             </div>
 
             <div>

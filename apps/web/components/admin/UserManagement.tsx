@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,13 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -108,6 +102,35 @@ export function UserManagement() {
     notes: "",
     telegram_channels: [] as string[],
   });
+
+  const roleOptions = useMemo(
+    () => [
+      { value: "user", label: "User" },
+      { value: "moderator", label: "Moderator" },
+      { value: "admin", label: "Admin" },
+    ],
+    [],
+  );
+
+  const userOptions = useMemo(
+    () =>
+      users.map((user) => ({
+        value: user.id,
+        label: user.display_name ?? user.username ?? "Unknown user",
+        description: user.email ?? undefined,
+      })),
+    [users],
+  );
+
+  const packageOptions = useMemo(
+    () =>
+      packages.map((pkg) => ({
+        value: pkg.id,
+        label: pkg.name,
+        description: `$${pkg.price} (${pkg.duration_months} months)`,
+      })),
+    [packages],
+  );
 
   const loadData = useCallback(async () => {
     try {
@@ -480,18 +503,17 @@ export function UserManagement() {
                   <Label htmlFor="role">Role</Label>
                   <Select
                     value={newUser.role}
-                    onValueChange={(value) =>
-                      setNewUser((prev) => ({ ...prev, role: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="moderator">Moderator</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    onValueChange={(value) => {
+                      const nextValue = Array.isArray(value) ? value[0] : value;
+                      if (nextValue) {
+                        setNewUser((prev) => ({ ...prev, role: nextValue }));
+                      }
+                    }}
+                    options={roleOptions}
+                    placeholder="Select role"
+                    surfaceClassName="rounded-lg border border-border/60 bg-background"
+                    inputClassName="text-sm"
+                  />
                 </div>
                 <Button
                   onClick={addUser}
@@ -523,46 +545,35 @@ export function UserManagement() {
                   <Label htmlFor="user_select">Select User</Label>
                   <Select
                     value={packageAssignment.user_id}
-                    onValueChange={(value) =>
+                    onValueChange={(value) => {
+                      const nextValue = Array.isArray(value) ? value[0] : value;
                       setPackageAssignment((prev) => ({
                         ...prev,
-                        user_id: value,
-                      }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a user" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {users.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.first_name} {user.last_name} ({user.email})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        user_id: nextValue ?? "",
+                      }));
+                    }}
+                    options={userOptions}
+                    placeholder="Choose a user"
+                    surfaceClassName="rounded-lg border border-border/60 bg-background"
+                    inputClassName="text-sm"
+                  />
                 </div>
                 <div>
                   <Label htmlFor="package_select">Select Package</Label>
                   <Select
                     value={packageAssignment.package_id}
-                    onValueChange={(value) =>
+                    onValueChange={(value) => {
+                      const nextValue = Array.isArray(value) ? value[0] : value;
                       setPackageAssignment((prev) => ({
                         ...prev,
-                        package_id: value,
-                      }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a package" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {packages.map((pkg) => (
-                        <SelectItem key={pkg.id} value={pkg.id}>
-                          {pkg.name} - ${pkg.price} ({pkg.duration_months}{" "}
-                          months)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        package_id: nextValue ?? "",
+                      }));
+                    }}
+                    options={packageOptions}
+                    placeholder="Choose a package"
+                    surfaceClassName="rounded-lg border border-border/60 bg-background"
+                    inputClassName="text-sm"
+                  />
                 </div>
                 <div>
                   <Label htmlFor="expires_at">Expiry Date (Optional)</Label>

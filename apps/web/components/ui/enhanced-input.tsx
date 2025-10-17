@@ -40,23 +40,24 @@ export const EnhancedInput = React.forwardRef<
     type,
     ...props
   }, ref) => {
+    const { height: _ignoredHeight, ...inputProps } = props;
     const [showPassword, setShowPassword] = React.useState(false);
     const [isFocused, setIsFocused] = React.useState(false);
 
     const isPassword = type === "password";
     const inputType = isPassword && showPassword ? "text" : type;
 
-    const variantStyles = {
-      default: "border-input bg-background",
-      glass: "bg-white/10 backdrop-blur-md border-white/20",
-      minimal: "border-0 border-b-2 rounded-none bg-transparent",
+    const variantSurfaceStyles: Record<typeof variant, string> = {
+      default: "border border-input bg-background",
+      glass: "border border-white/20 bg-white/10 backdrop-blur-md",
+      minimal: "border-b-2 border-input rounded-none bg-transparent",
     };
 
-    const stateStyles = {
+    const stateSurfaceStyles: Record<typeof state, string> = {
       default: "",
-      error: "border-destructive focus:border-destructive",
-      success: "border-success focus:border-success",
-      loading: "animate-pulse",
+      error: "border-destructive", // rely on Tailwind palette
+      success: "border-success",
+      loading: "border-primary/60",
     };
 
     const getStateIcon = () => {
@@ -95,76 +96,60 @@ export const EnhancedInput = React.forwardRef<
             }}
             transition={{ duration: 0.2 }}
           >
-            <Label htmlFor={props.id} className="text-sm font-medium">
+            <Label htmlFor={inputProps.id} className="text-sm font-medium">
               {label}
             </Label>
           </motion.div>
         )}
 
-        <div className="relative">
-          <div className="relative flex items-center">
-            {icon && (
-              <motion.div
-                className="absolute left-3 z-10"
-                animate={{
-                  scale: isFocused ? 1.1 : 1,
-                  color: state === "error"
-                    ? "hsl(var(--destructive))"
-                    : state === "success"
-                    ? "hsl(var(--success))"
-                    : isFocused
-                    ? "hsl(var(--primary))"
-                    : "hsl(var(--muted-foreground))",
-                }}
-                transition={{ duration: 0.2 }}
-              >
-                {icon}
-              </motion.div>
-            )}
-
-            <Input
-              ref={ref}
-              type={inputType}
-              className={cn(
-                "touch-target transition-all duration-200",
-                "min-h-[44px] sm:min-h-[40px]", // iOS accessibility
-                "focus:ring-2 focus:ring-primary/20",
-                variantStyles[variant],
-                stateStyles[state],
-                icon && "pl-10",
-                (getStateIcon() || isPassword) && "pr-10",
-                className,
-              )}
-              onFocus={(e) => {
-                setIsFocused(true);
-                props.onFocus?.(e);
-              }}
-              onBlur={(e) => {
-                setIsFocused(false);
-                props.onBlur?.(e);
-              }}
-              {...props}
-            />
-
-            <div className="absolute right-3 flex items-center gap-2">
-              {getStateIcon()}
-
-              {isPassword && showToggle && (
-                <motion.button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="touch-target p-1 hover:bg-accent rounded transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  {showPassword
-                    ? <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    : <Eye className="h-4 w-4 text-muted-foreground" />}
-                </motion.button>
-              )}
-            </div>
-          </div>
-        </div>
+        <Input
+          ref={ref}
+          type={inputType}
+          inputClassName={cn(
+            "touch-target transition-all duration-200 min-h-[44px] sm:min-h-[40px]",
+            icon && "pl-10",
+            (getStateIcon() || isPassword) && "pr-12",
+            className,
+          )}
+          surfaceClassName={cn(
+            "transition-colors duration-200",
+            variantSurfaceStyles[variant],
+            stateSurfaceStyles[state],
+            isFocused && "ring-2 ring-primary/20",
+          )}
+          leading={icon
+            ? <span className="text-muted-foreground">{icon}</span>
+            : undefined}
+          trailing={(getStateIcon() || (isPassword && showToggle))
+            ? (
+              <div className="flex items-center gap-2">
+                {getStateIcon()}
+                {isPassword && showToggle && (
+                  <motion.button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="touch-target rounded p-1 text-muted-foreground hover:text-foreground transition-colors"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    {showPassword
+                      ? <EyeOff className="h-4 w-4" />
+                      : <Eye className="h-4 w-4" />}
+                  </motion.button>
+                )}
+              </div>
+            )
+            : undefined}
+          onFocus={(e) => {
+            setIsFocused(true);
+            inputProps.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setIsFocused(false);
+            inputProps.onBlur?.(e);
+          }}
+          {...inputProps}
+        />
 
         {(description || error || success) && (
           <motion.div
