@@ -1,4 +1,4 @@
-import manifest from "../public/tonconnect-manifest.json";
+import manifest from "../../public/tonconnect-manifest.json";
 
 const manifestJson = JSON.stringify(manifest);
 

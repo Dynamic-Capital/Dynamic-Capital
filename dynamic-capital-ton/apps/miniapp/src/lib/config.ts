@@ -1,4 +1,4 @@
-import { TON_MAINNET_OPERATIONS_TREASURY } from "../../../../shared/ton/mainnet-addresses";
+import { TON_MAINNET_OPERATIONS_TREASURY } from "@shared/ton/mainnet-addresses";
 
 const DEFAULT_OPS_TREASURY_ADDRESS = TON_MAINNET_OPERATIONS_TREASURY;
 

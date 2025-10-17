@@ -8,10 +8,12 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
   experimental: {
     externalDir: true,
+    appDir: true,
   },
   webpack(config) {
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),
+      "@": path.resolve(__dirname, "src"),
       "@shared": path.resolve(__dirname, "../../../shared"),
     };
     config.resolve.fallback = {

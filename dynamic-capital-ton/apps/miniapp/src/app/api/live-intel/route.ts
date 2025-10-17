@@ -5,7 +5,7 @@ import {
   LIVE_INTEL_SNAPSHOTS,
   resolveSnapshotIndex,
   snapshotForTimestamp,
-} from "../../../data/live-intel";
+} from "@/data/live-intel";
 
 function parseIndex(value: string | null): number | null {
   if (!value) {
