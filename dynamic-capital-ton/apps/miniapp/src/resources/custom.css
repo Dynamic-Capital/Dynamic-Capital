@@ -1,0 +1,14 @@
+:root {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.ton-connect-button {
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+}

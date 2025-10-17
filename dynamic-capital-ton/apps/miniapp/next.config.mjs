@@ -9,9 +9,13 @@ const nextConfig = {
   experimental: {
     externalDir: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   webpack(config) {
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),
+      "@": path.resolve(__dirname, "./src"),
       "@shared": path.resolve(__dirname, "../../../shared"),
     };
     config.resolve.fallback = {

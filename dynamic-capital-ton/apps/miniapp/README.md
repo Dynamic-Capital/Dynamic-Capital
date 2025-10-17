@@ -2,7 +2,8 @@
 
 This Next.js application provides a lightweight Telegram mini app experience
 with TON Connect integration, wallet linking, and TON subscription processing
-hooks.
+hooks. The UI is built with the [Once UI design system](https://once-ui.com)
+and lives under `src/` to mirror the official starter layout.
 
 ## Environment variables
 
@@ -28,14 +29,24 @@ the Mini App by connecting directly to Supabase Realtime.
 > [gateway guide](../../../docs/ton-site-gateway-access.md) keep the URLs aligned
 > and list legacy self-hosted proxies.
 
-## Key scripts
+## Local development
 
-- `pnpm install`
-- `pnpm dev`
-- `pnpm build`
+The mini app is wired as a workspace inside the root repository. Install
+dependencies and run the dev server with:
+
+```bash
+npm install --workspace apps/miniapp
+npm run dev --workspace apps/miniapp
+```
+
+The source code resides in `src/`. Global Once UI providers and the ton connect
+bridge live in `src/components/miniapp/home/HomeContent.tsx` and the layout
+shell (`src/app/(main)/layout.tsx`).
 
 API routes proxy the Supabase Edge functions defined under
-`supabase/functions/*`.
+`supabase/functions/*`. The TON Connect manifest resolver surfaces a banner when
+the live manifest is unavailable and automatically falls back to the bundled
+manifest for local testing.
 
 ## Manual verification
 
