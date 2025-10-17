@@ -20,6 +20,7 @@ import { DesktopNav } from "./DesktopNav";
 import { MobileMenu } from "./MobileMenu";
 import { RouteHintTrail } from "./RouteHintTrail";
 import { getAccountLabel } from "./account-label";
+import { HeaderSearchButton } from "./HeaderSearchButton";
 
 function HeaderActions({
   user,
@@ -186,7 +187,10 @@ export function SiteHeader() {
                 className="md:hidden"
               />
             </div>
-            <DesktopNav className="md:col-start-2 md:justify-center" />
+            <div className="hidden items-center gap-3 md:col-start-2 md:flex">
+              <DesktopNav className="md:justify-center" />
+              <HeaderSearchButton className="hidden md:inline-flex lg:min-w-[220px]" />
+            </div>
             <HeaderActions
               user={user}
               accountLabel={accountLabel}
@@ -195,6 +199,12 @@ export function SiteHeader() {
               className="md:col-start-3 md:justify-end md:justify-self-end"
             />
           </div>
+          <HeaderSearchButton
+            className="md:hidden"
+            size="m"
+            fullWidth
+            variant="secondary"
+          />
         </div>
       </div>
       <RouteHintTrail />
