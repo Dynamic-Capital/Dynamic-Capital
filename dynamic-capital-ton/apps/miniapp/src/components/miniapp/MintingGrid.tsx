@@ -5,11 +5,16 @@ import {
   Button,
   Card,
   Column,
+  Grid,
   Heading,
-  ProgressBar,
+  List,
   Row,
+  StatusIndicator,
   Text,
+  type Colors,
 } from "@once-ui-system/core";
+
+import type { ComponentProps } from "react";
 
 import type { ThemeMintPlan } from "@/data/theme-mints";
 
@@ -26,6 +31,20 @@ type MintingGridProps = {
   formatRelativeTime: (iso: string) => string;
 };
 
+type StatusIndicatorColor = ComponentProps<typeof StatusIndicator>["color"];
+
+const MINT_ACCENTS: Record<number, { accent: string; indicator: StatusIndicatorColor }> = {
+  0: { accent: "cyan", indicator: "cyan" },
+  1: { accent: "yellow", indicator: "yellow" },
+  2: { accent: "magenta", indicator: "magenta" },
+};
+
+const MINT_STEPS = [
+  { key: "ready", label: "Queue mint" },
+  { key: "coordinating", label: "Coordinate validators" },
+  { key: "scheduled", label: "Mint scheduled" },
+] as const;
+
 function MintCard({
   plan,
   state,
@@ -40,6 +59,13 @@ function MintCard({
   const isStarting = state.status === "starting";
   const isComplete = state.status === "success";
   const progressValue = Math.min(100, Math.max(0, Math.round(state.progress)));
+  const accent = MINT_ACCENTS[plan.index] ?? MINT_ACCENTS[0];
+  const currentStepIndex = state.status === "success"
+    ? MINT_STEPS.length - 1
+    : state.status === "starting"
+    ? 1
+    : 0;
+  const errorStepIndex = state.status === "error" ? currentStepIndex : null;
 
   const statusLabel = (() => {
     switch (state.status) {
@@ -90,22 +116,38 @@ function MintCard({
     }
   })();
 
+  const statusBadgeTone: { background: Colors; onBackground: Colors } =
+    state.status === "error"
+      ? { background: "danger-alpha-weak", onBackground: "danger-strong" }
+      : state.status === "success"
+      ? { background: "success-alpha-weak", onBackground: "success-strong" }
+      : { background: "accent-alpha-weak", onBackground: "accent-strong" };
+  const helperTone: Colors = state.status === "error"
+    ? "danger-strong"
+    : "neutral-medium";
+
+  const resolveStepColor = (stepIndex: number): StatusIndicatorColor => {
+    if (errorStepIndex !== null && stepIndex === errorStepIndex) {
+      return "red";
+    }
+    if (stepIndex < currentStepIndex) {
+      return "green";
+    }
+    if (stepIndex === currentStepIndex) {
+      return accent.indicator;
+    }
+    return "gray";
+  };
+
   return (
     <Card
       key={plan.index}
       padding="24"
       radius="xl"
-      background="transparent"
+      background="surface"
       border="neutral-alpha-medium"
-      style={{
-        background:
-          "linear-gradient(135deg, var(--mint-sheen), rgba(6,9,18,0.92))",
-        boxShadow: "0 16px 32px var(--mint-glow)",
-        "--mint-accent": plan.accent,
-        "--mint-soft": plan.accentSoft,
-        "--mint-glow": plan.glow,
-        "--mint-sheen": plan.accentSoft,
-      }}
+      gap="16"
+      data-accent={accent.accent}
     >
       <Column gap="16">
         <Row horizontal="between" vertical="center">
@@ -113,86 +155,121 @@ function MintCard({
             <Text variant="label-strong-s" onBackground="accent-strong">
               Mint #{plan.index}
             </Text>
-            <Heading as="h3" size="display-xxs">
+            <Heading as="h3" variant="display-strong-xs">
               {plan.name}
             </Heading>
           </Column>
-          <Badge effect={false} onBackground="accent-strong" background="accent-alpha-weak" aria-label="Default priority">
+          <Badge
+            effect={false}
+            onBackground="accent-strong"
+            background="accent-alpha-weak"
+            aria-label="Default priority"
+          >
             <Text variant="label-strong-s" onBackground="accent-strong">
               Priority {plan.defaultPriority}
             </Text>
           </Badge>
         </Row>
 
-        <Row gap="8" wrap>
-          <Badge effect={false} onBackground="accent-strong" background="accent-alpha-weak">
-            <Text variant="label-s" onBackground="accent-strong">
-              {plan.launchWindow}
-            </Text>
-          </Badge>
-          <Badge effect={false} onBackground="accent-strong" background="transparent">
-            <Text variant="label-s" onBackground="accent-strong">
-              {plan.supply}
-            </Text>
-          </Badge>
-        </Row>
-
-        <Text variant="body-m" onBackground="neutral-strong">
+        <Text variant="body-default-m" onBackground="neutral-strong">
           {plan.description}
         </Text>
 
-        <ProgressBar
-          value={progressValue}
-          min={0}
-          max={100}
-          aria-valuetext={progressText}
-          background="neutral-alpha-weak"
-          barBackground="accent-strong"
-          padding="12"
-          radius="l"
-        />
+        <Column
+          gap="12"
+          role="group"
+          aria-label={`Mint status ${progressText ?? statusLabel}`}
+        >
+          <Row horizontal="between" vertical="center">
+            <Text variant="label-default-s" onBackground="neutral-medium">
+              Mint track
+            </Text>
+            <Badge
+              effect={false}
+              background={statusBadgeTone.background}
+              onBackground={statusBadgeTone.onBackground}
+            >
+              <Text
+                variant="label-strong-s"
+                onBackground={statusBadgeTone.onBackground}
+              >
+                {statusLabel}
+              </Text>
+            </Badge>
+          </Row>
+          <List as="ol" gap="12">
+            {MINT_STEPS.map((step, index) => {
+              const isCurrent = index === currentStepIndex;
+              const indicatorColor = resolveStepColor(index);
+              const stepVariant = isCurrent ? "label-strong-s" : "label-default-s";
+              return (
+                <Row
+                  as="li"
+                  key={step.key}
+                  gap="12"
+                  vertical="center"
+                  aria-current={isCurrent ? "step" : undefined}
+                >
+                  <StatusIndicator
+                    size="s"
+                    color={indicatorColor}
+                    ariaLabel={`${step.label}: ${isCurrent ? statusLabel : index < currentStepIndex ? "Complete" : "Pending"}`}
+                  />
+                  <Text
+                    variant={stepVariant}
+                    onBackground={isCurrent ? "neutral-strong" : "neutral-medium"}
+                  >
+                    {step.label}
+                  </Text>
+                  {isCurrent && state.status === "starting" && (
+                    <Badge effect={false} background="accent-alpha-weak" onBackground="accent-strong">
+                      <Text variant="label-strong-xs" onBackground="accent-strong">
+                        {progressValue}%
+                      </Text>
+                    </Badge>
+                  )}
+                  {isCurrent && state.status === "success" && state.startedAt && (
+                    <Text variant="label-default-s" onBackground="neutral-medium">
+                      {formatRelativeTime(state.startedAt)}
+                    </Text>
+                  )}
+                </Row>
+              );
+            })}
+          </List>
+        </Column>
 
-        <Row horizontal="between" vertical="center">
+        <Grid columns="3" gap="16" m={{ columns: "2" }} s={{ columns: "1" }}>
           <Column gap="4">
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Launch window
             </Text>
-            <Text variant="body-s" weight="strong">
+            <Text variant="body-strong-s">
               {plan.launchWindow}
             </Text>
           </Column>
           <Column gap="4">
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Supply
             </Text>
-            <Text variant="body-s" weight="strong">
+            <Text variant="body-strong-s">
               {plan.supply}
             </Text>
           </Column>
           <Column gap="4">
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Content URI
             </Text>
-            <Text variant="body-s" weight="strong">
+            <Text variant="body-strong-s">
               {plan.contentUri}
             </Text>
           </Column>
-          <Column gap="4">
-            <Text variant="label-s" onBackground="neutral-medium">
-              Status
-            </Text>
-            <Badge effect={false} onBackground="accent-strong" background="transparent">
-              <Text variant="label-strong-s" onBackground="accent-strong">
-                {statusLabel}
-              </Text>
-            </Badge>
-          </Column>
-        </Row>
+        </Grid>
 
         {helperText && (
           <Text
-            variant="body-s"
-            onBackground={state.status === "error" ? "red-strong" : "neutral-medium"}
+            variant="body-default-s"
+            onBackground={helperTone}
             role={messageRole}
             aria-live={messageRole ? "polite" : undefined}
           >
@@ -222,16 +299,23 @@ function MintCard({
 
 export function MintingGrid({ plans, states, onStartMint, formatRelativeTime }: MintingGridProps) {
   return (
-    <Card as="section" id="minting" padding="32" radius="2xl" gap="24" background="surface">
+    <Card
+      as="section"
+      id="minting"
+      padding="32"
+      radius="xl"
+      gap="24"
+      background="surface"
+    >
       <Column gap="12">
-        <Heading as="h2" size="display-xs">
+        <Heading as="h2" variant="display-strong-s">
           Theme minting
         </Heading>
-        <Text variant="body-m" onBackground="neutral-strong">
+        <Text variant="body-default-m" onBackground="neutral-strong">
           Launch each Theme Pass drop with a single tap. Every run is logged to the treasury ledger for auditability.
         </Text>
       </Column>
-      <Row gap="16" wrap>
+      <Grid columns="3" gap="16" l={{ columns: "2" }} s={{ columns: "1" }}>
         {plans.map((plan) => (
           <MintCard
             key={plan.index}
@@ -241,7 +325,7 @@ export function MintingGrid({ plans, states, onStartMint, formatRelativeTime }: 
             formatRelativeTime={formatRelativeTime}
           />
         ))}
-      </Row>
+      </Grid>
     </Card>
   );
 }

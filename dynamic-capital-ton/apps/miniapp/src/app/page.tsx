@@ -12,6 +12,23 @@ import type {
 } from "@tonconnect/ui-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, JSX } from "react";
+import {
+  Badge,
+  Banner,
+  BarChart,
+  Button,
+  Card,
+  Column,
+  Grid,
+  Heading,
+  List,
+  Row,
+  Skeleton,
+  StatusIndicator,
+  Text,
+  useToast,
+  type Colors,
+} from "@once-ui-system/core";
 import { useMiniAppThemeManager } from "@shared/miniapp/use-miniapp-theme";
 import { TONCONNECT_WALLETS_LIST_CONFIGURATION } from "@shared/ton/tonconnect-wallets";
 import type {
@@ -58,7 +75,17 @@ import {
   MintingGrid,
   PlanSelection,
   TimelineView,
+  type PlanVisual,
 } from "@/components/miniapp";
+import type { IconType } from "react-icons";
+import {
+  FiActivity,
+  FiBookOpen,
+  FiLayers,
+  FiMessageCircle,
+  FiShield,
+  FiZap,
+} from "react-icons/fi";
 
 type SectionId =
   | "overview"
@@ -144,10 +171,30 @@ type MintingPlanState =
   | { status: "success"; progress: 100; startedAt?: string }
   | { status: "error"; progress: number; error: string };
 
+type OverviewFeature = {
+  title: string;
+  description: string;
+  icon: IconType;
+};
+
 type SupportOption = {
   title: string;
   description: string;
   action: string;
+  icon: IconType;
+};
+
+type StatusTone = "info" | "success" | "danger";
+
+type StatusNotice = {
+  message: string;
+  tone: StatusTone;
+};
+
+const STATUS_BANNER_TONES: Record<StatusTone, { solid: Colors; onSolid: Colors }> = {
+  info: { solid: "info-medium", onSolid: "info-strong" },
+  success: { solid: "success-medium", onSolid: "success-strong" },
+  danger: { solid: "danger-medium", onSolid: "danger-strong" },
 };
 
 type NavItem = {
@@ -448,68 +495,28 @@ const FALLBACK_PLAN_LOOKUP: Record<Plan, PlanOption> = Object.fromEntries(
   FALLBACK_PLAN_OPTIONS.map((option) => [option.id, option]),
 ) as Record<Plan, PlanOption>;
 
-type PlanVisual = {
-  accent: string;
-  accentStrong: string;
-  soft: string;
-  glow: string;
-  sheen: string;
-  surface: string;
-  shadow: string;
-  tagline: string;
-};
+type PlanAccentScheme = "accent" | "brand" | "info" | "success" | "warning" | "danger";
+
+function createPlanVisual(scheme: PlanAccentScheme, tagline: string): PlanVisual {
+  const base = `var(--${scheme}`;
+  return {
+    accent: `${base}-solid-medium)`,
+    accentStrong: `${base}-solid-strong)`,
+    soft: `${base}-background-weak)`,
+    glow: `${base}-alpha-medium)`,
+    sheen: `${base}-alpha-weak)`,
+    surface: `${base}-background-strong)`,
+    shadow: `${base}-alpha-medium)`,
+    tagline,
+  };
+}
 
 const PLAN_VISUALS: Record<Plan | "default", PlanVisual> = {
-  default: {
-    accent: "#61d1ff",
-    accentStrong: "#3aa5ff",
-    soft: "rgba(97, 209, 255, 0.18)",
-    glow: "rgba(97, 209, 255, 0.35)",
-    sheen: "rgba(58, 165, 255, 0.28)",
-    surface: "rgba(18, 33, 71, 0.85)",
-    shadow: "rgba(15, 23, 42, 0.35)",
-    tagline: "Desk-aligned signal tier",
-  },
-  vip_bronze: {
-    accent: "#f59e0b",
-    accentStrong: "#d97706",
-    soft: "rgba(245, 158, 11, 0.18)",
-    glow: "rgba(245, 158, 11, 0.38)",
-    sheen: "rgba(120, 53, 15, 0.7)",
-    surface: "rgba(24, 16, 8, 0.78)",
-    shadow: "rgba(245, 158, 11, 0.32)",
-    tagline: "Momentum-aligned entries from the desk core",
-  },
-  vip_silver: {
-    accent: "#94a3b8",
-    accentStrong: "#64748b",
-    soft: "rgba(148, 163, 184, 0.2)",
-    glow: "rgba(148, 163, 184, 0.35)",
-    sheen: "rgba(30, 41, 59, 0.68)",
-    surface: "rgba(15, 23, 42, 0.78)",
-    shadow: "rgba(148, 163, 184, 0.28)",
-    tagline: "Leverage-managed mid-cycle rotations",
-  },
-  vip_gold: {
-    accent: "#facc15",
-    accentStrong: "#eab308",
-    soft: "rgba(250, 204, 21, 0.2)",
-    glow: "rgba(250, 204, 21, 0.38)",
-    sheen: "rgba(113, 63, 18, 0.7)",
-    surface: "rgba(32, 24, 8, 0.82)",
-    shadow: "rgba(250, 204, 21, 0.38)",
-    tagline: "Structured products and vault orchestration",
-  },
-  mentorship: {
-    accent: "#c084fc",
-    accentStrong: "#a855f7",
-    soft: "rgba(192, 132, 252, 0.2)",
-    glow: "rgba(192, 132, 252, 0.4)",
-    sheen: "rgba(76, 29, 149, 0.68)",
-    surface: "rgba(32, 12, 72, 0.82)",
-    shadow: "rgba(192, 132, 252, 0.36)",
-    tagline: "Direct mentorship with senior PM alignment",
-  },
+  default: createPlanVisual("accent", "Desk-aligned signal tier"),
+  vip_bronze: createPlanVisual("warning", "Momentum-aligned entries from the desk core"),
+  vip_silver: createPlanVisual("info", "Leverage-managed mid-cycle rotations"),
+  vip_gold: createPlanVisual("success", "Structured products and vault orchestration"),
+  mentorship: createPlanVisual("brand", "Direct mentorship with senior PM alignment"),
 };
 
 function getPlanVisual(plan?: Plan | null): PlanVisual {
@@ -1119,23 +1126,28 @@ function useLiveIntel(
   };
 }
 
-const OVERVIEW_FEATURES = [
+const OVERVIEW_FEATURES: OverviewFeature[] = [
   {
     title: "Live Signal Desk",
     description:
       "High-conviction execution with 24/7 desk monitoring across majors, TON ecosystem, and DeFi rotations.",
+    icon: FiZap,
   },
   {
     title: "Auto-Invest Vaults",
     description:
       "Deploy into curated baskets that rebalance automatically with transparent on-chain attestations.",
+    icon: FiLayers,
   },
   {
     title: "Risk Controls",
     description:
       "Dynamic guardrails, circuit breakers, and managed drawdown ceilings purpose-built for active traders.",
+    icon: FiShield,
   },
 ];
+
+const FEATURE_ACCENTS = ["cyan", "emerald", "magenta"] as const;
 
 const ACTIVITY_FEED: ActivityItem[] = [
   {
@@ -1167,20 +1179,25 @@ const SUPPORT_OPTIONS: SupportOption[] = [
     description:
       "Direct line to our desk managers for allocation or compliance questions.",
     action: "Open Telegram thread",
+    icon: FiMessageCircle,
   },
   {
     title: "Trading playbook",
     description:
       "Step-by-step frameworks and risk tooling to mirror the Dynamic Capital approach.",
     action: "View docs",
+    icon: FiBookOpen,
   },
   {
     title: "Status center",
     description:
       "Check live uptime for deposits, OCR, and auto-invest execution engines.",
     action: "Launch status page",
+    icon: FiActivity,
   },
 ];
+
+const SUPPORT_ACCENTS = ["magenta", "cyan", "emerald"] as const;
 
 function useTelegramId(): string {
   const isBrowser = typeof globalThis !== "undefined" &&
@@ -1275,7 +1292,11 @@ function HomeInner() {
     error: null,
   });
   const [txHash, setTxHash] = useState("");
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const { addToast } = useToast();
+  const [statusNotice, setStatusNotice] = useState<StatusNotice | null>(null);
+  const statusBannerTone = statusNotice
+    ? STATUS_BANNER_TONES[statusNotice.tone]
+    : null;
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
   const [isLinking, setIsLinking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -1302,6 +1323,28 @@ function HomeInner() {
   const mintingProgressTimers = useRef<Record<number, number>>({});
   const tonProofRequestInFlight = useRef(false);
   const lastChallengeTelegramIdRef = useRef<string | null>(null);
+
+  const showStatus = useCallback(
+    (message: string | null, tone: StatusTone = "info", options?: {
+      toast?: boolean;
+    }) => {
+      if (!message) {
+        setStatusNotice(null);
+        return;
+      }
+
+      setStatusNotice({ message, tone });
+
+      const shouldToast = options?.toast ?? tone !== "info";
+      if (shouldToast) {
+        addToast({
+          message,
+          variant: tone === "danger" ? "danger" : "success",
+        });
+      }
+    },
+    [addToast],
+  );
 
   const updatePlanSyncStatus = useCallback(
     (updater: (previous: PlanSyncStatus) => PlanSyncStatus) => {
@@ -1918,13 +1961,15 @@ function HomeInner() {
 
     const currentWallet = tonConnectUI.account;
     if (!currentWallet) {
-      setStatusMessage("Connect a TON wallet to link it to the desk.");
+      showStatus("Connect a TON wallet to link it to the desk.", "info");
       return;
     }
 
     if (!tonProof) {
-      setStatusMessage(
+      showStatus(
         "Wallet verification is not ready yet. Reconnect your TON wallet and try again.",
+        "danger",
+        { toast: true },
       );
       if (tonProofState.status !== "loading") {
         void refreshTonProofChallenge();
@@ -1933,7 +1978,7 @@ function HomeInner() {
     }
 
     setIsLinking(true);
-    setStatusMessage(null);
+    showStatus(null);
 
     const result = await linkTonMiniAppWallet({
       telegramId,
@@ -1950,9 +1995,11 @@ function HomeInner() {
 
     if (!result.ok) {
       console.error("[miniapp] Wallet link failed", result.error);
-      setStatusMessage(
+      showStatus(
         result.error ??
           "Unable to link your wallet right now. Please retry in a few moments.",
+        "danger",
+        { toast: true },
       );
       setWalletVerified(false);
       if (result.status === 401 || result.status === 400) {
@@ -1965,7 +2012,9 @@ function HomeInner() {
     setTonProofState({ status: "verified" });
     setTonProofChallenge(null);
     tonConnectUI.setConnectRequestParameters?.(null);
-    setStatusMessage("Wallet linked successfully. Desk access unlocked.");
+    showStatus("Wallet linked successfully. Desk access unlocked.", "success", {
+      toast: true,
+    });
   }
 
   async function startSubscription() {
@@ -1975,13 +2024,15 @@ function HomeInner() {
 
     const currentWallet = tonConnectUI.account;
     if (!currentWallet) {
-      setStatusMessage("Connect a TON wallet to continue.");
+      showStatus("Connect a TON wallet to continue.", "info");
       return;
     }
 
     if (!walletVerified) {
-      setStatusMessage(
+      showStatus(
         "Verify your TON wallet with the desk before starting a subscription.",
+        "danger",
+        { toast: true },
       );
       if (tonProofState.status !== "ready") {
         void refreshTonProofChallenge();
@@ -1991,22 +2042,25 @@ function HomeInner() {
 
     const tonAmount = selectedPlan?.meta.tonAmount;
     if (!tonAmount || !Number.isFinite(tonAmount) || tonAmount <= 0) {
-      setStatusMessage(
+      showStatus(
         "Subscription pricing unavailable right now. Refresh and try again shortly.",
+        "danger",
       );
       return;
     }
 
     const treasuryAddress = OPS_TREASURY_ADDRESS;
     if (!treasuryAddress) {
-      setStatusMessage(
+      showStatus(
         "Desk intake wallet unavailable. Please contact support to continue.",
+        "danger",
+        { toast: true },
       );
       return;
     }
 
     setIsProcessing(true);
-    setStatusMessage("Confirm the transfer in your TON wallet…");
+    showStatus("Confirm the transfer in your TON wallet…", "info");
     setTxHash("");
 
     const nanotons = BigInt(Math.ceil(tonAmount * 1_000_000_000));
@@ -2036,7 +2090,9 @@ function HomeInner() {
       }
 
       setTxHash(derivedHash);
-      setStatusMessage("Transaction broadcasted. Verifying with the desk…");
+      showStatus("Transaction broadcasted. Verifying with the desk…", "success", {
+        toast: true,
+      });
 
       const result = await processTonMiniAppSubscription({
         telegramId,
@@ -2046,17 +2102,21 @@ function HomeInner() {
 
       if (!result.ok) {
         console.error("[miniapp] Subscription request failed", result.error);
-        setStatusMessage(
+        showStatus(
           result.error ??
             "We couldn't start the subscription. Give it another try after checking your connection.",
+          "danger",
+          { toast: true },
         );
         return;
       }
 
-      setStatusMessage(
+      showStatus(
         `Subscription for ${
           selectedPlan?.name ?? "your plan"
         } submitted. Desk will confirm shortly.`,
+        "success",
+        { toast: true },
       );
     } catch (error) {
       console.error("[miniapp] TON transaction request failed", error);
@@ -2066,9 +2126,11 @@ function HomeInner() {
           ? "Transaction cancelled in wallet. No funds were moved."
           : null;
 
-      setStatusMessage(
+      showStatus(
         rejection ??
           "We couldn't start the subscription. Give it another try after checking your connection.",
+        "danger",
+        { toast: true },
       );
     } finally {
       setIsProcessing(false);
@@ -2139,7 +2201,7 @@ function HomeInner() {
           description="Unlock the same tooling our desk uses daily. Each tier adds deeper access, more detailed reporting, and quicker capital cycling."
           options={planOptions}
           selectedPlanId={plan}
-          onSelectPlan={setPlan}
+          onSelectPlan={(planId) => setPlan(planId)}
           planSyncStatus={{
             ...planSyncStatus,
             updatedAt: planSyncUpdatedLabel,
@@ -2290,31 +2352,116 @@ function HomeInner() {
           </div>
         </section>
 
-        <section className="section-card" id="support">
-          <h2 className="section-title">What you unlock</h2>
-          <div className="feature-grid">
-            {OVERVIEW_FEATURES.map((feature) => (
-              <article key={feature.title} className="feature-card">
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
-              </article>
-            ))}
-          </div>
+        <Card
+          as="section"
+          id="support"
+          padding="32"
+          radius="xl"
+          gap="32"
+          background="surface"
+        >
+          <Column gap="12">
+            <Heading as="h2" variant="display-strong-s">
+              What you unlock
+            </Heading>
+            <Text variant="body-default-m" onBackground="neutral-strong">
+              Desk-level operators, structured playbooks, and real-time visibility to keep every cycle accountable.
+            </Text>
+          </Column>
 
-          <div className="support-grid">
-            {SUPPORT_OPTIONS.map((option) => (
-              <div key={option.title} className="support-card">
-                <div>
-                  <h3>{option.title}</h3>
-                  <p>{option.description}</p>
-                </div>
-                <button className="button button-ghost">{option.action}</button>
-              </div>
-            ))}
-          </div>
-        </section>
+          <Grid columns="3" gap="16" m={{ columns: "2" }} s={{ columns: "1" }}>
+            {OVERVIEW_FEATURES.map((feature, index) => {
+              const FeatureIcon = feature.icon;
+              const accent = FEATURE_ACCENTS[index] ?? FEATURE_ACCENTS[0];
+              return (
+                <Card
+                  key={feature.title}
+                  as="article"
+                  padding="24"
+                  radius="xl"
+                  background="surface"
+                  border="neutral-alpha-medium"
+                  gap="12"
+                  data-accent={accent}
+                >
+                  <Row gap="12" vertical="center">
+                    <Badge
+                      effect={false}
+                      background="accent-alpha-weak"
+                      onBackground="accent-strong"
+                      aria-hidden
+                    >
+                      <FeatureIcon size={18} />
+                    </Badge>
+                    <Heading as="h3" variant="display-strong-xs">
+                      {feature.title}
+                    </Heading>
+                  </Row>
+                  <Text variant="body-default-s" onBackground="neutral-strong">
+                    {feature.description}
+                  </Text>
+                </Card>
+              );
+            })}
+          </Grid>
 
-        {statusMessage && <div className="status-banner">{statusMessage}</div>}
+          <Grid columns="3" gap="16" m={{ columns: "2" }} s={{ columns: "1" }}>
+            {SUPPORT_OPTIONS.map((option, index) => {
+              const SupportIcon = option.icon;
+              const accent = SUPPORT_ACCENTS[index] ?? SUPPORT_ACCENTS[0];
+              return (
+                <Card
+                  key={option.title}
+                  as="article"
+                  padding="24"
+                  radius="xl"
+                  background="surface"
+                  border="neutral-alpha-medium"
+                  gap="12"
+                  data-accent={accent}
+                >
+                  <Column gap="12">
+                    <Row gap="12" vertical="center">
+                      <Badge
+                        effect={false}
+                        background="accent-alpha-weak"
+                        onBackground="accent-strong"
+                        aria-hidden
+                      >
+                        <SupportIcon size={18} />
+                      </Badge>
+                      <Heading as="h3" variant="display-strong-xs">
+                        {option.title}
+                      </Heading>
+                    </Row>
+                    <Text variant="body-default-s" onBackground="neutral-strong">
+                      {option.description}
+                    </Text>
+                    <Text variant="label-strong-s" onBackground="accent-strong">
+                      {option.action}
+                    </Text>
+                  </Column>
+                </Card>
+              );
+            })}
+          </Grid>
+        </Card>
+
+        {statusNotice && statusBannerTone && (
+          <Banner
+            role="status"
+            aria-live={statusNotice.tone === "danger" ? "assertive" : "polite"}
+            solid={statusBannerTone.solid}
+            onSolid={statusBannerTone.onSolid}
+          >
+            <Text
+              variant="label-default-s"
+              onBackground={statusBannerTone.onSolid}
+            >
+              {statusNotice.message}
+            </Text>
+          </Banner>
+        )}
       </main>
 
       <ChatLauncher
@@ -2400,162 +2547,249 @@ function LiveIntelligenceSection({
   const alerts = intel?.alerts ?? [];
   const opportunities = intel?.opportunities ?? [];
   const risks = intel?.risks ?? [];
+  const actions = intel?.recommendedActions ?? [];
   const hasIntel = Boolean(intel);
 
+  const syncLabel = isSyncing
+    ? "Syncing…"
+    : countdown !== null
+    ? `Next sync in ${countdown}s`
+    : updatedAt
+    ? `Updated ${formatRelativeTime(updatedAt)}`
+    : "Awaiting sync";
+
+  const deepseek = intel?.models.deepseek;
+  const confidenceScore =
+    typeof intel?.confidence === "number" && !Number.isNaN(intel.confidence)
+      ? Math.min(Math.max(intel.confidence, 0), 1)
+      : null;
+  const riskScore =
+    typeof deepseek?.riskScore === "number" && !Number.isNaN(deepseek.riskScore)
+      ? Math.min(Math.max(deepseek.riskScore, 0), 1)
+      : null;
+  const chartData =
+    confidenceScore === null && riskScore === null
+      ? []
+      : [
+          { label: "Confidence", score: Math.round((confidenceScore ?? 0) * 100) },
+          { label: "Risk", score: Math.round((riskScore ?? 0) * 100) },
+        ];
+
   return (
-    <section className="section-card" id="intel">
-      <div className="section-header">
-        <div>
-          <h2 className="section-title">Live desk intelligence</h2>
-          <p className="section-description">
-            Grok-1 strategy briefs are auto-synced with DeepSeek-V2 risk
-            arbitration so every decision stays in lockstep with the desk.
-          </p>
-        </div>
-        <div className="selected-plan-pill">
-          {isSyncing
-            ? "Syncing…"
-            : countdown !== null
-            ? `Next sync in ${countdown}s`
-            : updatedAt
-            ? `Updated ${formatRelativeTime(updatedAt)}`
-            : "Awaiting sync"}
-        </div>
-      </div>
+    <Card as="section" id="intel" padding="32" radius="xl" gap="24" background="surface">
+      <Row horizontal="between" vertical="center" wrap gap="16">
+        <Column gap="8" flex={1} minWidth={20}>
+          <Heading as="h2" variant="display-strong-s">
+            Live desk intelligence
+          </Heading>
+          <Text variant="body-default-m" onBackground="neutral-strong">
+            Grok-1 strategy briefs are auto-synced with DeepSeek-V2 risk arbitration so every decision stays in lockstep with the desk.
+          </Text>
+        </Column>
+        <Badge effect={false} background="neutral-alpha-weak" onBackground="neutral-strong">
+          <Text variant="label-strong-s" onBackground="neutral-strong">
+            {syncLabel}
+          </Text>
+        </Badge>
+      </Row>
 
       {error && status === "error" && (
-        <div className="status-banner status-banner--error">
-          Unable to reach the intelligence feed right now. We'll retry
-          automatically.
-          <button
-            type="button"
-            className="button button-ghost"
-            onClick={onRefresh}
-          >
-            Retry now
-          </button>
-        </div>
-      )}
-
-      <div className="intel-grid">
-        <div className="intel-card intel-card--primary">
-          <div className="intel-meta">
-            <span className="intel-updated">
-              {isSyncing
-                ? "Streaming Grok-1 update…"
-                : updatedAt
-                ? `Last sync ${formatRelativeTime(updatedAt)}`
-                : "Waiting for first sync"}
-            </span>
-            {confidenceLabel && (
-              <span className="confidence-chip">{confidenceLabel}</span>
-            )}
-          </div>
-          {hasIntel
-            ? (
-              <>
-                <p className="intel-narrative">{intel?.narrative}</p>
-                {alerts.length > 0
-                  ? (
-                    <ul className="alert-list">
-                      {alerts.map((alert) => (
-                        <li key={alert} className="alert-pill">
-                          <span aria-hidden>⚠️</span>
-                          {alert}
-                        </li>
-                      ))}
-                    </ul>
-                  )
-                  : (
-                    <p className="intel-muted">
-                      No blocking alerts flagged by DeepSeek-V2 sentinel.
-                    </p>
-                  )}
-              </>
-            )
-            : (
-              <div className="skeleton-group">
-                <div className="skeleton skeleton--text skeleton--wide" />
-                <div className="skeleton skeleton--text skeleton--wide" />
-                <div className="skeleton skeleton--text skeleton--medium" />
-              </div>
-            )}
-        </div>
-
-        <div className="intel-card">
-          <h3>Opportunities</h3>
-          {hasIntel
-            ? (
-              <ul className="intel-list">
-                {opportunities.map((item) => (
-                  <li key={item}>
-                    <span
-                      className="intel-bullet intel-bullet--opportunity"
-                      aria-hidden
-                    />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            )
-            : <IntelListSkeleton />}
-        </div>
-
-        <div className="intel-card">
-          <h3>Risks</h3>
-          {hasIntel
-            ? (
-              <ul className="intel-list">
-                {risks.map((item) => (
-                  <li key={item}>
-                    <span
-                      className="intel-bullet intel-bullet--risk"
-                      aria-hidden
-                    />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            )
-            : <IntelListSkeleton />}
-        </div>
-      </div>
-
-      {intel ? <ModelBreakdown intel={intel} /> : (
-        <div className="model-grid">
-          <div className="model-card">
-            <div className="skeleton skeleton--text skeleton--medium" />
-            <div className="skeleton skeleton--block" />
-            <div className="skeleton skeleton--text skeleton--medium" />
-          </div>
-          <div className="model-card">
-            <div className="skeleton skeleton--text skeleton--medium" />
-            <div className="skeleton skeleton--block" />
-            <div className="skeleton skeleton--text skeleton--medium" />
-          </div>
-        </div>
+        <Banner padding="16" radius="l" background="danger-alpha-weak" border="danger-alpha-medium" gap="12" wrap vertical="center">
+          <Text variant="body-default-s" onBackground="danger-strong">
+            Unable to reach the intelligence feed right now. We'll retry automatically.
+          </Text>
+          <Button type="button" variant="secondary" onClick={onRefresh} label="Retry now" />
+        </Banner>
       )}
 
       {error && status !== "error" && (
-        <div className="status-banner status-banner--error">
-          Brief network hiccup detected. Showing the last Grok-1 + DeepSeek-V2
-          sync while we refresh in the background.
-        </div>
+        <Banner padding="12" radius="l" background="warning-alpha-weak" border="warning-alpha-medium">
+          <Text variant="body-default-s" onBackground="warning-strong">
+            Brief network hiccup detected. Showing the last Grok-1 + DeepSeek-V2 sync while we refresh in the background.
+          </Text>
+        </Banner>
       )}
-    </section>
+
+      <Column gap="16">
+        <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="16" data-accent="cyan">
+          <Row horizontal="between" vertical="center" wrap gap="12">
+            <Heading as="h3" variant="display-strong-xs">
+              Desk narrative
+            </Heading>
+            {confidenceLabel && (
+              <Badge effect={false} background="accent-alpha-weak" onBackground="accent-strong">
+                <Text variant="label-strong-xs" onBackground="accent-strong">
+                  {confidenceLabel}
+                </Text>
+              </Badge>
+            )}
+          </Row>
+          {hasIntel ? (
+            <Text variant="body-default-m" onBackground="neutral-strong">
+              {intel?.narrative}
+            </Text>
+          ) : (
+            <Column gap="8">
+              <Skeleton shape="line" width="xl" />
+              <Skeleton shape="line" width="l" />
+              <Skeleton shape="line" width="m" />
+            </Column>
+          )}
+          {hasIntel ? (
+            alerts.length > 0 ? (
+              <List as="ul" gap="8">
+                {alerts.map((alert) => (
+                  <Row as="li" key={alert} gap="8" vertical="center">
+                    <StatusIndicator size="s" color="orange" />
+                    <Text variant="label-default-s" onBackground="neutral-strong">
+                      {alert}
+                    </Text>
+                  </Row>
+                ))}
+              </List>
+            ) : (
+              <Text variant="label-default-s" onBackground="neutral-medium">
+                No blocking alerts flagged by DeepSeek-V2 sentinel.
+              </Text>
+            )
+          ) : (
+            <IntelListSkeleton />
+          )}
+        </Card>
+
+        <Grid columns="2" gap="16" s={{ columns: "1" }}>
+          <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12" data-accent="emerald">
+            <Heading as="h3" variant="display-strong-xs">
+              Opportunities
+            </Heading>
+            {hasIntel ? (
+              opportunities.length > 0 ? (
+                <List as="ul" gap="8">
+                  {opportunities.map((item) => (
+                    <Row as="li" key={item} gap="8" vertical="center">
+                      <StatusIndicator size="s" color="green" />
+                      <Text variant="label-default-s" onBackground="neutral-strong">
+                        {item}
+                      </Text>
+                    </Row>
+                  ))}
+                </List>
+              ) : (
+                <Text variant="label-default-s" onBackground="neutral-medium">
+                  Grok-1 has not surfaced new opportunities yet.
+                </Text>
+              )
+            ) : (
+              <IntelListSkeleton />
+            )}
+          </Card>
+
+          <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12" data-accent="magenta">
+            <Heading as="h3" variant="display-strong-xs">
+              Risks
+            </Heading>
+            {hasIntel ? (
+              risks.length > 0 ? (
+                <List as="ul" gap="8">
+                  {risks.map((item) => (
+                    <Row as="li" key={item} gap="8" vertical="center">
+                      <StatusIndicator size="s" color="red" />
+                      <Text variant="label-default-s" onBackground="neutral-strong">
+                        {item}
+                      </Text>
+                    </Row>
+                  ))}
+                </List>
+              ) : (
+                <Text variant="label-default-s" onBackground="neutral-medium">
+                  DeepSeek-V2 has not flagged immediate risks.
+                </Text>
+              )
+            ) : (
+              <IntelListSkeleton />
+            )}
+          </Card>
+        </Grid>
+
+        <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12">
+          <Heading as="h3" variant="display-strong-xs">
+            Recommended actions
+          </Heading>
+          {hasIntel ? (
+            actions.length > 0 ? (
+              <List as="ul" gap="8">
+                {actions.map((item) => (
+                  <Row as="li" key={item} gap="8" vertical="center">
+                    <StatusIndicator size="s" color="cyan" />
+                    <Text variant="label-default-s" onBackground="neutral-strong">
+                      {item}
+                    </Text>
+                  </Row>
+                ))}
+              </List>
+            ) : (
+              <Text variant="label-default-s" onBackground="neutral-medium">
+                Desk actions will populate once the next cycle begins.
+              </Text>
+            )
+          ) : (
+            <IntelListSkeleton />
+          )}
+        </Card>
+
+        {chartData.length > 0 && (
+          <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12">
+            <Row horizontal="between" vertical="center" wrap gap="8">
+              <Heading as="h3" variant="display-strong-xs">
+                Signal cadence
+              </Heading>
+              <Text variant="label-default-s" onBackground="neutral-medium">
+                Confidence vs. DeepSeek risk index
+              </Text>
+            </Row>
+            <BarChart
+              data={chartData}
+              series={{ key: "score" }}
+              legend={{ display: false }}
+              axis="x"
+              grid="none"
+              height="160"
+            />
+          </Card>
+        )}
+
+        {intel ? (
+          <ModelBreakdown intel={intel} />
+        ) : (
+          <Grid columns="2" gap="16" s={{ columns: "1" }}>
+            {Array.from({ length: 2 }).map((_, index) => (
+              <Card
+                key={`model-skeleton-${index}`}
+                padding="24"
+                radius="xl"
+                background="surface"
+                border="neutral-alpha-medium"
+                gap="12"
+              >
+                <Skeleton shape="line" width="m" />
+                <Skeleton shape="line" width="xl" />
+                <IntelListSkeleton />
+              </Card>
+            ))}
+          </Grid>
+        )}
+      </Column>
+    </Card>
   );
 }
 
 function IntelListSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <div className="skeleton-group">
+    <Column gap="8">
       {Array.from({ length: count }).map((_, index) => (
-        <div
-          key={`intel-skeleton-${index}`}
-          className="skeleton skeleton--text skeleton--wide"
-        />
+        <Skeleton key={`intel-skeleton-${index}`} shape="line" width="xl" />
       ))}
-    </div>
+    </Column>
   );
 }
 
@@ -2568,17 +2802,34 @@ function SnapshotMetric({
   value: string;
   tone?: "positive" | "negative";
 }) {
+  const background =
+    tone === "negative"
+      ? "danger-alpha-weak"
+      : tone === "positive"
+      ? "success-alpha-weak"
+      : "neutral-alpha-weak";
+  const border =
+    tone === "negative"
+      ? "danger-alpha-medium"
+      : tone === "positive"
+      ? "success-alpha-medium"
+      : "neutral-alpha-medium";
+  const textTone =
+    tone === "negative"
+      ? "danger-strong"
+      : tone === "positive"
+      ? "success-strong"
+      : "neutral-strong";
+
   return (
-    <div className="plan-snapshot__metric">
-      <span className="plan-snapshot__metric-label">{label}</span>
-      <span
-        className={`plan-snapshot__metric-value${
-          tone ? ` plan-snapshot__metric-value--${tone}` : ""
-        }`}
-      >
+    <Column padding="16" radius="l" background={background} border={border} gap="4">
+      <Text variant="label-default-s" onBackground="neutral-medium">
+        {label}
+      </Text>
+      <Text variant="label-strong-m" onBackground={textTone}>
         {value}
-      </span>
-    </div>
+      </Text>
+    </Column>
   );
 }
 
@@ -2624,22 +2875,27 @@ function PlanSnapshotCard({
   const adjustments = snapshot.adjustments.slice(0, 4);
 
   return (
-    <section className="plan-snapshot" aria-label="Live pricing snapshot">
-      <div className="plan-snapshot__header">
-        <h3 className="plan-snapshot__title">Live pricing snapshot</h3>
+    <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="16" data-accent="cyan">
+      <Row horizontal="between" vertical="center" wrap gap="12">
+        <Column gap="4">
+          <Heading as="h3" variant="display-strong-xs">
+            Live pricing snapshot
+          </Heading>
+          <Text variant="label-default-s" onBackground="neutral-medium">
+            Supabase desk feed
+          </Text>
+        </Column>
         {computedLabel && (
-          <span className="plan-snapshot__timestamp">
-            Updated {computedLabel}
-          </span>
+          <Badge effect={false} background="neutral-alpha-weak" onBackground="neutral-strong">
+            <Text variant="label-strong-xs" onBackground="neutral-strong">
+              Updated {computedLabel}
+            </Text>
+          </Badge>
         )}
-      </div>
-      <div className="plan-snapshot__grid">
-        {displayLabel && (
-          <SnapshotMetric label="Display price" value={displayLabel} />
-        )}
-        {dynamicLabel && (
-          <SnapshotMetric label="Dynamic price" value={dynamicLabel} />
-        )}
+      </Row>
+      <Grid columns="2" gap="12" s={{ columns: "1" }}>
+        {displayLabel && <SnapshotMetric label="Display price" value={displayLabel} />}
+        {dynamicLabel && <SnapshotMetric label="Dynamic price" value={dynamicLabel} />}
         {baseLabel && <SnapshotMetric label="Baseline" value={baseLabel} />}
         {deltaLabel && (
           <SnapshotMetric
@@ -2656,74 +2912,116 @@ function PlanSnapshotCard({
             value={`${tonRateLabel} / TON`}
           />
         )}
-      </div>
+      </Grid>
       {adjustments.length > 0 && (
-        <div className="plan-snapshot__adjustments">
-          <span className="plan-snapshot__adjustments-label">
+        <Column gap="12">
+          <Text variant="label-strong-s" onBackground="neutral-medium">
             Adjustment mix
-          </span>
-          <ul className="plan-snapshot__adjustments-list">
+          </Text>
+          <List as="ul" gap="8">
             {adjustments.map((item) => {
               const percentLabel = formatPercent(item.value * 100, 1);
-              const tone = item.value < 0 ? "negative" : "positive";
+              const isNegative = item.value < 0;
               return (
-                <li key={item.key} className="plan-snapshot__adjustment">
-                  <span className="plan-snapshot__adjustment-name">
+                <Row as="li" key={item.key} horizontal="between" vertical="center">
+                  <Text variant="label-default-s" onBackground="neutral-strong">
                     {formatAdjustmentLabel(item.key)}
-                  </span>
+                  </Text>
                   {percentLabel && (
-                    <span
-                      className={`plan-snapshot__adjustment-value plan-snapshot__adjustment-value--${tone}`}
+                    <Text
+                      variant="label-strong-s"
+                      onBackground={isNegative ? "danger-strong" : "success-strong"}
                     >
                       {percentLabel}
-                    </span>
+                    </Text>
                   )}
-                </li>
+                </Row>
               );
             })}
-          </ul>
-        </div>
+          </List>
+        </Column>
       )}
-    </section>
+    </Card>
   );
 }
 
 function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
   const grok = intel.models.grok;
   const deepseek = intel.models.deepseek;
-  const riskScore = typeof deepseek.riskScore === "number"
-    ? Math.min(Math.max(deepseek.riskScore, 0), 1)
-    : null;
+  const riskScore =
+    typeof deepseek.riskScore === "number" && !Number.isNaN(deepseek.riskScore)
+      ? Math.min(Math.max(deepseek.riskScore, 0), 1)
+      : null;
   const riskLevel = riskSeverity(riskScore ?? undefined);
   const riskLabel = riskScore === null
     ? "Risk scan"
     : `${Math.round(riskScore * 100)}% risk`;
+  const riskAccent = riskLevel === "high" ? "red" : riskLevel === "medium" ? "yellow" : "emerald";
+  const riskIndicatorColor = riskLevel === "high" ? "red" : riskLevel === "medium" ? "yellow" : "green";
 
   return (
-    <div className="model-grid">
-      <div className="model-card">
-        <div className="model-header">
-          <span className="model-name">Grok-1 strategist</span>
-          <span className="model-tag">{grok.focus}</span>
-        </div>
-        <p className="model-summary">{grok.summary}</p>
-        <ul className="model-highlights">
-          {grok.highlights.map((item) => <li key={item}>{item}</li>)}
-        </ul>
-      </div>
-      <div className="model-card">
-        <div className="model-header">
-          <span className="model-name">DeepSeek-V2 sentinel</span>
-          <span className={`model-risk model-risk--${riskLevel}`}>
-            {riskLabel}
-          </span>
-        </div>
-        <p className="model-summary">{deepseek.summary}</p>
-        <ul className="model-highlights">
-          {deepseek.highlights.map((item) => <li key={item}>{item}</li>)}
-        </ul>
-      </div>
-    </div>
+    <Grid columns="2" gap="16" s={{ columns: "1" }}>
+      <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12" data-accent="cyan">
+        <Column gap="12">
+          <Row horizontal="between" vertical="center" wrap gap="12">
+            <Column gap="4">
+              <Text variant="label-strong-s" onBackground="neutral-medium">
+                Grok-1 strategist
+              </Text>
+              <Heading as="h3" variant="display-strong-xs">
+                {grok.focus}
+              </Heading>
+            </Column>
+          </Row>
+          <Text variant="body-default-m" onBackground="neutral-strong">
+            {grok.summary}
+          </Text>
+          <List as="ul" gap="8">
+            {grok.highlights.map((item) => (
+              <Row as="li" key={item} gap="8" vertical="center">
+                <StatusIndicator size="s" color="cyan" />
+                <Text variant="label-default-s" onBackground="neutral-strong">
+                  {item}
+                </Text>
+              </Row>
+            ))}
+          </List>
+        </Column>
+      </Card>
+
+      <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12" data-accent={riskAccent}>
+        <Column gap="12">
+          <Row horizontal="between" vertical="center" wrap gap="12">
+            <Column gap="4">
+              <Text variant="label-strong-s" onBackground="neutral-medium">
+                DeepSeek-V2 sentinel
+              </Text>
+              <Heading as="h3" variant="display-strong-xs">
+                {deepseek.focus}
+              </Heading>
+            </Column>
+            <Badge effect={false} background="accent-alpha-weak" onBackground="accent-strong">
+              <Text variant="label-strong-xs" onBackground="accent-strong">
+                {riskLabel}
+              </Text>
+            </Badge>
+          </Row>
+          <Text variant="body-default-m" onBackground="neutral-strong">
+            {deepseek.summary}
+          </Text>
+          <List as="ul" gap="8">
+            {deepseek.highlights.map((item) => (
+              <Row as="li" key={item} gap="8" vertical="center">
+                <StatusIndicator size="s" color={riskIndicatorColor} />
+                <Text variant="label-default-s" onBackground="neutral-strong">
+                  {item}
+                </Text>
+              </Row>
+            ))}
+          </List>
+        </Column>
+      </Card>
+    </Grid>
   );
 }
 

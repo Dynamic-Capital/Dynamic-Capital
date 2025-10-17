@@ -109,7 +109,7 @@ export function deriveTonProofUiState({
     title: "Prepare TON wallet verification",
     description: "Tap retry if your wallet did not receive the proof request.",
     showRetry: true,
-    retryDisabled: state.status === "loading",
+    retryDisabled: false,
     linkDisabled: true,
   };
 }
