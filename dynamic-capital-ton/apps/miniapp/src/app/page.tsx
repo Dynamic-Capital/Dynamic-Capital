@@ -53,6 +53,12 @@ import {
 } from "@shared/ton/manifest";
 import { TON_MANIFEST_FALLBACK_DATA_URL } from "@/lib/ton-manifest-inline";
 import { resolveTonManifestUrl } from "@/lib/ton-manifest-resolver";
+import {
+  HeroSection,
+  MintingGrid,
+  PlanSelection,
+  TimelineView,
+} from "@/components/miniapp";
 
 type SectionId =
   | "overview"
@@ -1668,6 +1674,34 @@ function HomeInner() {
 
   const metrics = liveIntel.report?.metrics ?? FALLBACK_METRICS;
   const timeline = liveIntel.report?.timeline ?? ACTIVITY_FEED;
+  const heroPlanStatusText = planSyncStatus.error
+    ? "Needs attention"
+    : planSyncStatus.isLoading
+    ? "Syncing…"
+    : planSyncStatus.isRealtimeSyncing
+    ? "Refreshing…"
+    : planSyncStatus.updatedAt
+    ? formatRelativeTime(planSyncStatus.updatedAt)
+    : "Live";
+  const heroSelectedPlanSummary = selectedPlan
+    ? {
+      name: selectedPlan.name,
+      price: selectedPlan.meta.amount !== null ? selectedPlan.price : undefined,
+      cadence: selectedPlan.cadence,
+      amountAvailable: selectedPlan.meta.amount !== null,
+    }
+    : null;
+  const planSyncUpdatedLabel = planSyncStatus.updatedAt
+    ? formatRelativeTime(planSyncStatus.updatedAt)
+    : undefined;
+  const planSnapshotCard = planSnapshot && planSnapshotCurrency
+    ? (
+      <PlanSnapshotCard
+        snapshot={planSnapshot}
+        currency={planSnapshotCurrency}
+      />
+    )
+    : null;
 
   useEffect(() => {
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
@@ -2067,535 +2101,70 @@ function HomeInner() {
         style={dynamicAccentStyles}
         data-selected-plan={selectedPlan?.id ?? "default"}
       >
-        <section className="hero-card" id="overview">
-          <div className="sync-banner">
-            <span
-              className={`sync-indicator${
-                liveIntel.isSyncing ? " sync-indicator--pulse" : ""
-              }`}
-              aria-hidden
-            />
-            <span className="sync-text">
-              Auto-syncing Grok-1 + DeepSeek-V2 feed
-            </span>
-            {countdown !== null && (
-              <span className="sync-countdown" aria-live="polite">
-                {liveIntel.isSyncing
-                  ? "Updating…"
-                  : `Next sync in ${countdown}s`}
-              </span>
-            )}
-            <button
-              type="button"
-              className="button button-ghost sync-refresh"
-              onClick={() => liveIntel.refresh()}
-              disabled={liveIntel.isSyncing}
-            >
-              Refresh
-            </button>
-          </div>
+        <HeroSection
+          syncDescription="Auto-syncing Grok-1 + DeepSeek-V2 feed"
+          syncCountdown={countdown}
+          syncDisabled={liveIntel.isSyncing}
+          isSyncing={liveIntel.isSyncing}
+          onSyncRefresh={liveIntel.refresh}
+          metrics={metrics}
+          eyebrow="Dynamic Capital Desk"
+          title="Signal-driven growth with TON settlements."
+          subtitle="Seamlessly connect your TON wallet, auto-invest alongside our trading desk, and stay informed with every cycle."
+          tonConnectButton={<TonConnectButton />}
+          walletButtonLabel={walletVerified
+            ? "Wallet verified"
+            : isLinking
+            ? "Linking…"
+            : "Link wallet to desk"}
+          onWalletButtonPress={linkWallet}
+          walletButtonDisabled={isLinking || tonProofUi.linkDisabled}
+          tonProofStatus={tonProofUi}
+          onTonProofRetry={handleTonProofRetry}
+          planTagline={activePlanVisual.tagline}
+          walletLabel={formatWalletAddress(walletAddress)}
+          telegramLabel={telegramId}
+          planStatusLabel={heroPlanStatusText}
+          planStatusTone={planSyncStatus.error ? "error" : "default"}
+          liveFeedLabel={
+            liveIntel.isSyncing
+              ? "Syncing…"
+              : formatRelativeTime(liveIntel.updatedAt)
+          }
+          selectedPlan={heroSelectedPlanSummary}
+        />
 
-          <div className="hero-header">
-            <div>
-              <p className="eyebrow">Dynamic Capital Desk</p>
-              <h1 className="hero-title">
-                Signal-driven growth with TON settlements.
-              </h1>
-              <p className="hero-subtitle">
-                Seamlessly connect your TON wallet, auto-invest alongside our
-                trading desk, and stay informed with every cycle.
-              </p>
-            </div>
-            <div className="hero-metrics">
-              {metrics.map((metric) => (
-                <div className="metric" key={metric.label}>
-                  <span className="metric-label">{metric.label}</span>
-                  <span className="metric-value">
-                    {metric.value}
-                    {metric.change && (
-                      <span
-                        className={`metric-change metric-change--${
-                          metric.trend ?? "steady"
-                        }`}
-                      >
-                        {metric.trend === "down"
-                          ? "▼"
-                          : metric.trend === "up"
-                          ? "▲"
-                          : "•"} {metric.change}
-                      </span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+        <PlanSelection
+          title="Choose your runway"
+          description="Unlock the same tooling our desk uses daily. Each tier adds deeper access, more detailed reporting, and quicker capital cycling."
+          options={planOptions}
+          selectedPlanId={plan}
+          onSelectPlan={setPlan}
+          planSyncStatus={{
+            ...planSyncStatus,
+            updatedAt: planSyncUpdatedLabel,
+          }}
+          planVisuals={PLAN_VISUALS}
+          selectedPlan={selectedPlan ?? null}
+          planDetailMeta={{
+            tonLabel: planTonLabel,
+            dctLabel: planDctLabel,
+            updatedLabel: planUpdatedLabel,
+          }}
+          planSnapshotCard={planSnapshotCard}
+          onStartSubscription={startSubscription}
+          isProcessing={isProcessing}
+          walletVerified={walletVerified}
+          walletHint="Verify your TON wallet above to unlock auto-invest routing."
+          txHash={txHash}
+        />
 
-          <div className="hero-actions">
-            <TonConnectButton className="ton-button" />
-            <button
-              className="button button-secondary"
-              onClick={linkWallet}
-              disabled={isLinking || tonProofUi.linkDisabled}
-            >
-              {walletVerified
-                ? "Wallet verified"
-                : isLinking
-                ? "Linking…"
-                : "Link wallet to desk"}
-            </button>
-          </div>
-
-          <div
-            className={`ton-proof-status ton-proof-status--${tonProofUi.variant}`}
-            role="status"
-            aria-live="polite"
-          >
-            <span className="ton-proof-status__indicator" aria-hidden />
-            <div className="ton-proof-status__content">
-              <p className="ton-proof-status__title">{tonProofUi.title}</p>
-              {tonProofUi.description && (
-                <p className="ton-proof-status__description">
-                  {tonProofUi.description}
-                </p>
-              )}
-            </div>
-            {tonProofUi.showRetry && (
-              <button
-                type="button"
-                className="ton-proof-status__action"
-                onClick={handleTonProofRetry}
-                disabled={tonProofUi.retryDisabled}
-              >
-                Retry
-              </button>
-            )}
-          </div>
-
-          {activePlanVisual.tagline && (
-            <p className="hero-plan-tagline">{activePlanVisual.tagline}</p>
-          )}
-
-          <div className="hero-status">
-            <div>
-              <p className="status-label">Wallet</p>
-              <p className="status-value">
-                {formatWalletAddress(walletAddress)}
-              </p>
-            </div>
-            <div>
-              <p className="status-label">Telegram ID</p>
-              <p className="status-value">{telegramId}</p>
-            </div>
-            <div>
-              <p className="status-label">Plans</p>
-              <p
-                className={`status-value${
-                  planSyncStatus.error ? " status-value--error" : ""
-                }`}
-              >
-                {planSyncStatus.error
-                  ? "Needs attention"
-                  : planSyncStatus.isLoading
-                  ? "Syncing…"
-                  : planSyncStatus.isRealtimeSyncing
-                  ? "Refreshing…"
-                  : planSyncStatus.updatedAt
-                  ? formatRelativeTime(planSyncStatus.updatedAt)
-                  : "Live"}
-              </p>
-            </div>
-            <div>
-              <p className="status-label">Live feed</p>
-              <p className="status-value">
-                {liveIntel.isSyncing
-                  ? "Syncing…"
-                  : formatRelativeTime(liveIntel.updatedAt)}
-              </p>
-            </div>
-            {selectedPlan && (
-              <div>
-                <p className="status-label">Selected plan</p>
-                <p className="status-value">
-                  {selectedPlan.name}
-                  {selectedPlan.meta.amount !== null
-                    ? ` • ${selectedPlan.price}`
-                    : ""}
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="section-card" id="plans">
-          <div className="section-header">
-            <div>
-              <h2 className="section-title">Choose your runway</h2>
-              <p className="section-description">
-                Unlock the same tooling our desk uses daily. Each tier adds
-                deeper access, more detailed reporting, and quicker capital
-                cycling.
-              </p>
-            </div>
-            {selectedPlan && (
-              <div className="selected-plan-pill">{selectedPlan.cadence}</div>
-            )}
-          </div>
-
-          <div className="plan-sync-row" role="status">
-            <span
-              className={`plan-sync-indicator${
-                planSyncStatus.isLoading || planSyncStatus.isRealtimeSyncing
-                  ? " plan-sync-indicator--pulse"
-                  : ""
-              }`}
-              aria-hidden
-            />
-            <span className="plan-sync-text">
-              {planSyncStatus.error
-                ? "Live pricing offline – showing cached tiers"
-                : planSyncStatus.isLoading
-                ? "Syncing latest pricing…"
-                : planSyncStatus.isRealtimeSyncing
-                ? "Refreshing live pricing…"
-                : planSyncStatus.updatedAt
-                ? `Synced ${formatRelativeTime(planSyncStatus.updatedAt)}`
-                : "Live pricing ready"}
-            </span>
-          </div>
-
-          {planSyncStatus.error && (
-            <div className="plan-sync-alert" role="alert">
-              {planSyncStatus.error}
-            </div>
-          )}
-
-          <div className="plan-grid">
-            {planOptions.map((option) => {
-              const isActive = option.id === plan;
-              const visual = getPlanVisual(option.id);
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  className={`plan-card${isActive ? " plan-card--active" : ""}`}
-                  onClick={() => setPlan(option.id)}
-                  aria-pressed={isActive}
-                  style={{
-                    "--plan-card-accent": visual.accent,
-                    "--plan-card-soft": visual.soft,
-                    "--plan-card-glow": visual.glow,
-                    "--plan-card-sheen": visual.sheen,
-                    "--plan-card-surface": visual.surface,
-                    "--plan-card-shadow": visual.shadow,
-                  } as CSSProperties}
-                >
-                  <div className="plan-card-header">
-                    <span className="plan-name">{option.name}</span>
-                    <div className="plan-price-block">
-                      <span className="plan-price">{option.price}</span>
-                      {typeof option.meta.tonAmount === "number" &&
-                        option.meta.tonAmount > 0 && (
-                        <span className="plan-secondary-meta">
-                          ≈ {option.meta.tonAmount.toFixed(2)} TON
-                        </span>
-                      )}
-                      {typeof option.meta.dctAmount === "number" &&
-                        option.meta.dctAmount > 0 && (
-                        <span className="plan-secondary-meta">
-                          ≈ {option.meta.dctAmount.toFixed(0)} DCT
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <p className="plan-description">{option.description}</p>
-                  <ul className="plan-highlights">
-                    {option.highlights.map((highlight) => (
-                      <li key={highlight}>{highlight}</li>
-                    ))}
-                  </ul>
-                  {visual.tagline && (
-                    <span className="plan-tagline">{visual.tagline}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {selectedPlan && (
-            <aside
-              className="plan-detail"
-              aria-live="polite"
-              style={{
-                "--plan-detail-accent": activePlanVisual.accent,
-                "--plan-detail-soft": activePlanVisual.soft,
-                "--plan-detail-glow": activePlanVisual.glow,
-              } as CSSProperties}
-            >
-              <header className="plan-detail__header">
-                <span className="plan-detail__label">Currently selected</span>
-                <div className="plan-detail__name">
-                  {selectedPlan.name}
-                  <span className="plan-detail__badge">
-                    {selectedPlan.cadence}
-                  </span>
-                </div>
-              </header>
-              <div className="plan-detail__grid">
-                <div>
-                  <p className="plan-detail__metric-label">Desk contribution</p>
-                  <p className="plan-detail__metric-value">
-                    {selectedPlan.price}
-                  </p>
-                </div>
-                {planTonLabel && (
-                  <div>
-                    <p className="plan-detail__metric-label">TON equivalent</p>
-                    <p className="plan-detail__metric-value">
-                      {planTonLabel} TON
-                    </p>
-                  </div>
-                )}
-                {planDctLabel && (
-                  <div>
-                    <p className="plan-detail__metric-label">Desk credit</p>
-                    <p className="plan-detail__metric-value">
-                      {planDctLabel} DCT
-                    </p>
-                  </div>
-                )}
-              </div>
-              {planUpdatedLabel && (
-                <p className="plan-detail__footnote">
-                  Last repriced {planUpdatedLabel}
-                </p>
-              )}
-            </aside>
-          )}
-
-          {planSnapshot && planSnapshotCurrency && (
-            <PlanSnapshotCard
-              snapshot={planSnapshot}
-              currency={planSnapshotCurrency}
-            />
-          )}
-
-          <div className="plan-actions">
-            <button
-              className="button button-primary"
-              onClick={startSubscription}
-              disabled={isProcessing || !walletVerified}
-            >
-              {isProcessing ? "Submitting…" : "Start auto-invest"}
-            </button>
-            {!walletVerified && (
-              <p className="plan-actions__hint">
-                Verify your TON wallet above to unlock auto-invest routing.
-              </p>
-            )}
-            {txHash && (
-              <p className="plan-hash">Latest transaction request: {txHash}</p>
-            )}
-          </div>
-        </section>
-
-        <section className="section-card" id="minting">
-          <div className="section-header">
-            <div>
-              <h2 className="section-title">Theme minting</h2>
-              <p className="section-description">
-                Launch each Theme Pass drop with a single tap. Every run is
-                logged to the treasury ledger so governance can audit who
-                triggered the mint and when.
-              </p>
-            </div>
-          </div>
-
-          <div className="mint-grid">
-            {THEME_MINT_PLANS.map((mintPlan) => {
-              const state = mintingStates[mintPlan.index] ?? {
-                status: "idle",
-                progress: 0,
-              };
-              const isStarting = state.status === "starting";
-              const isComplete = state.status === "success";
-              const progressValue = Math.min(
-                100,
-                Math.max(0, Math.round(state.progress)),
-              );
-              const statusLabel = (() => {
-                switch (state.status) {
-                  case "starting":
-                    return "Coordinating";
-                  case "success":
-                    return "Mint scheduled";
-                  case "error":
-                    return "Failed";
-                  default:
-                    return "Ready";
-                }
-              })();
-              const helperText = (() => {
-                switch (state.status) {
-                  case "starting":
-                    return progressValue >= 95
-                      ? "Awaiting treasury confirmation…"
-                      : `Coordinating validators • ${progressValue}%`;
-                  case "success":
-                    return state.startedAt
-                      ? `Started ${formatRelativeTime(state.startedAt)}`
-                      : "Mint run started.";
-                  case "error":
-                    return state.error ??
-                      "Mint run could not start. Try again.";
-                  default:
-                    return "Tap start to dispatch this theme run.";
-                }
-              })();
-              const messageRole = state.status === "error"
-                ? "alert"
-                : state.status === "starting" || state.status === "success"
-                ? "status"
-                : undefined;
-              const progressAriaText = (() => {
-                switch (state.status) {
-                  case "starting":
-                    return `Mint progress ${progressValue}%`;
-                  case "success":
-                    return "Mint scheduled";
-                  case "error":
-                    return "Mint failed";
-                  default:
-                    return undefined;
-                }
-              })();
-              const cardClassName = `mint-card${
-                state.status !== "idle" ? ` mint-card--${state.status}` : ""
-              }`;
-
-              return (
-                <article
-                  key={mintPlan.index}
-                  className={cardClassName}
-                  style={{
-                    "--mint-accent": mintPlan.accent,
-                    "--mint-accent-soft": mintPlan.accentSoft,
-                    "--mint-glow": mintPlan.glow,
-                  } as CSSProperties}
-                >
-                  <header className="mint-card__header">
-                    <div>
-                      <p className="mint-card__eyebrow">
-                        Mint #{mintPlan.index}
-                      </p>
-                      <h3 className="mint-card__title">{mintPlan.name}</h3>
-                    </div>
-                    <span
-                      className="mint-card__priority"
-                      aria-label="Default priority"
-                    >
-                      Priority {mintPlan.defaultPriority}
-                    </span>
-                  </header>
-
-                  <div className="mint-card__tags">
-                    <span className="mint-card__tag">
-                      {mintPlan.launchWindow}
-                    </span>
-                    <span className="mint-card__tag mint-card__tag--outline">
-                      {mintPlan.supply}
-                    </span>
-                  </div>
-
-                  <p className="mint-card__description">
-                    {mintPlan.description}
-                  </p>
-
-                  <div
-                    className="mint-card__progress"
-                    data-status={state.status}
-                    role="progressbar"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={progressValue}
-                    aria-valuetext={progressAriaText ?? undefined}
-                  >
-                    <div className="mint-card__progress-track">
-                      <div
-                        className="mint-card__progress-bar"
-                        style={{ width: `${progressValue}%` }}
-                      />
-                    </div>
-                    <div className="mint-card__progress-footer">
-                      <span className="mint-card__progress-state">
-                        {statusLabel}
-                      </span>
-                      {state.status !== "idle" && (
-                        <span className="mint-card__progress-value">
-                          {progressValue}%
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <dl className="mint-card__meta">
-                    <div>
-                      <dt>Launch window</dt>
-                      <dd>{mintPlan.launchWindow}</dd>
-                    </div>
-                    <div>
-                      <dt>Supply</dt>
-                      <dd>{mintPlan.supply}</dd>
-                    </div>
-                    <div>
-                      <dt>Content URI</dt>
-                      <dd>{mintPlan.contentUri}</dd>
-                    </div>
-                    <div>
-                      <dt>Status</dt>
-                      <dd>
-                        <span
-                          className={`mint-card__status mint-card__status--${state.status}`}
-                        >
-                          {statusLabel}
-                        </span>
-                      </dd>
-                    </div>
-                  </dl>
-
-                  {helperText && (
-                    <p
-                      className={`mint-card__message${
-                        state.status === "error"
-                          ? " mint-card__message--error"
-                          : ""
-                      }`}
-                      role={messageRole}
-                      aria-live={messageRole ? "polite" : undefined}
-                    >
-                      {helperText}
-                    </p>
-                  )}
-
-                  <button
-                    type="button"
-                    className="button button-secondary mint-card__action"
-                    onClick={() => startThemeMint(mintPlan)}
-                    disabled={isStarting || isComplete}
-                  >
-                    {isStarting
-                      ? "Starting…"
-                      : isComplete
-                      ? "Mint scheduled"
-                      : state.status === "error"
-                      ? "Retry mint"
-                      : "Start minting"}
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-        </section>
+        <MintingGrid
+          plans={THEME_MINT_PLANS}
+          states={mintingStates}
+          onStartMint={startThemeMint}
+          formatRelativeTime={formatRelativeTime}
+        />
 
         <LiveIntelligenceSection
           intel={liveIntel.report}
@@ -2607,26 +2176,7 @@ function HomeInner() {
           onRefresh={liveIntel.refresh}
         />
 
-        <section className="section-card" id="activity">
-          <h2 className="section-title">Desk timeline</h2>
-          <ul className="activity-list">
-            {timeline.map((item) => (
-              <li
-                key={`${item.title}-${item.timestamp}`}
-                className={`activity-item activity-item--${item.status}`}
-              >
-                <div className="activity-marker" aria-hidden />
-                <div>
-                  <div className="activity-header">
-                    <span className="activity-title">{item.title}</span>
-                    <span className="activity-timestamp">{item.timestamp}</span>
-                  </div>
-                  <p className="activity-description">{item.description}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <TimelineView entries={timeline} />
 
         <section className="section-card" id="appearance">
           <div className="section-header">
