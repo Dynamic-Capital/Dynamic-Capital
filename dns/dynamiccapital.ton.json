@@ -29,11 +29,11 @@
     },
     "gateways": {
       "primary": {
-        "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
-        "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-        "provider": "DigitalOcean Reverse Proxy",
-        "note": "Primary HTTPS gateway bridging browsers to the DigitalOcean origin bundle.",
-        "upstream": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
+        "host": "dynamic-capital-qazf2.ondigitalocean.app",
+        "url": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
+        "provider": "DigitalOcean App Platform",
+        "note": "Primary HTTPS origin serving the TON Site bundle without an intermediary proxy.",
+        "upstream": null,
         "status": "operational"
       },
       "fallback": {
@@ -65,8 +65,8 @@
       },
       {
         "label": "Open HTTPS Gateway",
-        "uri": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
-        "note": "Primary DigitalOcean-backed HTTPS bridge for environments without TON DNS support."
+        "uri": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
+        "note": "Primary DigitalOcean origin endpoint for environments without TON DNS support."
       },
       {
         "label": "Open TON Foundation Fallback",
@@ -90,9 +90,9 @@
         "status": "operational",
         "endpoints": [
           {
-            "url": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+            "url": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
             "http_status": 200,
-            "notes": "DigitalOcean reverse proxy returned HTTP 200 with the synced TON Site bundle."
+            "notes": "DigitalOcean origin returned HTTP 200 with the synced TON Site bundle."
           },
           {
             "url": "https://ton.site/dynamiccapital.ton",
@@ -117,11 +117,10 @@
       },
       "https": [
         {
-          "host": "ton-gateway.dynamic-capital.ondigitalocean.app",
+          "host": "dynamic-capital-qazf2.ondigitalocean.app",
           "status": "operational",
           "last_verified": "2025-10-19T12:15:00Z",
-          "depends_on": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
-          "notes": "Primary DigitalOcean reverse proxy serving the TON Site bundle."
+          "notes": "Primary DigitalOcean origin serving the TON Site bundle."
         },
         {
           "host": "ton.site",
@@ -148,8 +147,8 @@
     "monitoring": {
       "synthetic_probes": [
         {
-          "name": "DigitalOcean Gateway",
-          "endpoint": "https://ton-gateway.dynamic-capital.ondigitalocean.app/dynamiccapital.ton",
+          "name": "DigitalOcean Origin",
+          "endpoint": "https://dynamic-capital-qazf2.ondigitalocean.app/dynamiccapital.ton",
           "cadence": "5m",
           "alert_policy": "#dynamiccapital-ton-site"
         },
@@ -180,7 +179,7 @@
       "last_successful_probe": "2025-10-19T12:15:00Z"
     },
     "notes": [
-      "2025-10-19: Gateway URLs consolidated around the DigitalOcean reverse proxy with Lovable and TON Foundation bridges fully verified."
+      "2025-10-19: Gateway URLs consolidated around the DigitalOcean origin with Lovable and TON Foundation bridges fully verified."
     ]
   },
   "records": [
