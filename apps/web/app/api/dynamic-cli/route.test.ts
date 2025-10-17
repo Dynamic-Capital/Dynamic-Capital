@@ -52,7 +52,7 @@ const ADMIN_SECRET = "test-admin-secret";
 function base64UrlEncode(input: string | Buffer): string {
   const buffer = typeof input === "string"
     ? Buffer.from(input)
-    : Buffer.from(input);
+    : input;
 
   return buffer
     .toString("base64")

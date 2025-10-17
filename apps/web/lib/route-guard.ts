@@ -13,7 +13,7 @@ const safeEqual = (a: Buffer, b: Buffer) => {
     return false;
   }
 
-  return timingSafeEqual(a, b);
+  return timingSafeEqual(new Uint8Array(a), new Uint8Array(b));
 };
 
 export const passwordsMatch = (candidate: string, secret: string) => {

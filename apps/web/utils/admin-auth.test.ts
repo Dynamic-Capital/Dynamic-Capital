@@ -13,7 +13,8 @@ const ADMIN_SECRET = "test-admin-secret";
 const originalAdminSecret = process.env.ADMIN_API_SECRET;
 
 function base64UrlEncode(input: string | Buffer): string {
-  return Buffer.from(input)
+  const buffer = typeof input === "string" ? Buffer.from(input) : input;
+  return buffer
     .toString("base64")
     .replace(/=/g, "")
     .replace(/\+/g, "-")

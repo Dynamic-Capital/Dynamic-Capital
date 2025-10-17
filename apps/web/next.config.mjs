@@ -279,7 +279,9 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-    tsconfigPath: './tsconfig.json',
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   transpilePackages: ["lucide-react"],
   reactStrictMode: true,

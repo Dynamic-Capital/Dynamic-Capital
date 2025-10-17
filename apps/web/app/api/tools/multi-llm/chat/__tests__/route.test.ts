@@ -28,7 +28,7 @@ function assertEquals<T>(actual: T, expected: T, message?: string): void {
 function base64UrlEncode(input: string | Buffer): string {
   const buffer = typeof input === "string"
     ? Buffer.from(input)
-    : Buffer.from(input);
+    : input;
 
   return buffer
     .toString("base64")
