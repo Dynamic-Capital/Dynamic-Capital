@@ -57,9 +57,9 @@ spec:
       environment_slug: node-js
       instance_count: 1
       instance_size_slug: basic-xxs
-      build_command: node scripts/digitalocean-build.mjs
+      build_command: npm run build:web
       run_command: npm run start:do
-      http_port: 8080
+      http_port: 3000
       routes:
         - path: /
       health_check:

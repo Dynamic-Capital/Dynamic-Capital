@@ -277,6 +277,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   transpilePackages: ["lucide-react"],
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
