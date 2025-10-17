@@ -158,7 +158,8 @@ addresses so the link works regardless of which representation a wallet shows.
 | DYOR      | Token intelligence profile | [dyor.io/token/EQDSm…x_6y](https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y)                                                        |
 | STON.fi   | pTON/DCT liquidity         | [Pool wallet](https://tonviewer.com/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI) · [LP jetton](https://tonviewer.com/jetton/0:31876bc3dd431f36b176f692a5e96b0ecf1aedebfa76497acd2f3661d6fbacd3) |
 | Dedust    | TON/DCT liquidity          | [Pool wallet](https://tonviewer.com/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm) · [LP jetton](https://tonviewer.com/jetton/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98) |
-| DEX Screener | Liquidity analytics | [Token hub](https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [STON.fi pair](https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi) · [DeDust pair](https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm) |
+| swap.coffee | Aggregated TON/DCT liquidity | [Pool wallet](https://tonviewer.com/EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D) · [LP jetton](https://tonviewer.com/jetton/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A) |
+| DEX Screener | Liquidity analytics | [Token hub](https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y) · [STON.fi pair](https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi) · [DeDust pair](https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm) · [swap.coffee pair](https://dexscreener.com/ton/eqad5wgum2uwnkbq30pbs_rmlwp5vaj-kzxa3lj9jjkfaj-d) |
 
 ### Metadata guardrails
 

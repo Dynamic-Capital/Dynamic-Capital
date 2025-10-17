@@ -155,6 +155,9 @@ mirrors the canonical structure:
     "dedust_pool": "EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
     "dedust_pool_metadata": "https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata",
     "dedust_jetton_wallet": "EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
+    "swapcoffee_pool": "EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D",
+    "swapcoffee_pool_metadata": "https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A/metadata",
+    "swapcoffee_jetton_wallet": "EQAT363NPdduFnHRL3cP96cbxhbtMZ7vJCiuH7lt7tcwjH9l",
     "dao_contract": "EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "jetton_tonviewer": "https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "jetton_tonscan": "https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
@@ -163,6 +166,7 @@ mirrors the canonical structure:
     "dexscreener_token": "https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "dexscreener_stonfi": "https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi",
     "dexscreener_dedust": "https://dexscreener.com/ton/eqdtj4lhut6bdtyeio99umznc9hzlq-tfoa9thrvyrlumefm",
+    "dexscreener_swapcoffee": "https://dexscreener.com/ton/eqad5wgum2uwnkbq30pbs_rmlwp5vaj-kzxa3lj9jjkfaj-d",
     "x1000_token": "https://x1000.finance/tokens/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y",
     "metadata": "https://dynamiccapital.ton/jetton-metadata.json",
     "metadata_fallback": "https://dynamic.capital/jetton-metadata.json",
@@ -172,6 +176,9 @@ mirrors the canonical structure:
     "manifest_fallback": "https://dynamic.capital/tonconnect-manifest.json",
     "docs": "https://dynamiccapital.ton/docs",
     "docs_fallback": "https://dynamic.capital/docs",
+    "geckoterminal_stonfi": "https://www.geckoterminal.com/ton/pools/EQAxh2vD3UMfNrF29pKl6WsOzxrt6_p2SXrNLzZh1vus0_MI",
+    "geckoterminal_dedust": "https://www.geckoterminal.com/ton/pools/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
+    "geckoterminal_swapcoffee": "https://www.geckoterminal.com/ton/pools/EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D",
     "updated": "2025-10-09"
   },
   "signatures": {
