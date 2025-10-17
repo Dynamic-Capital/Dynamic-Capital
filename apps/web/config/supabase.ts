@@ -4,6 +4,7 @@ import {
   SUPABASE_FUNCTIONS_URL,
   SUPABASE_URL,
 } from "@/config/supabase-runtime";
+import { isDevelopment } from "@/config/node-env";
 import { getEnvVar } from "@/utils/env";
 import {
   SUPABASE_FUNCTIONS,
@@ -43,13 +44,10 @@ type CryptoConfig = {
   NETWORK: string;
 };
 
-const isDevelopment = typeof process !== "undefined" &&
-  process.env?.NODE_ENV === "development";
-
 function resolveString(
   key: string,
   fallback: string,
-  aliases: string[] = [],
+  aliases: readonly string[] = [],
 ): string {
   const value = getEnvVar(key, aliases);
   return value ?? fallback;
@@ -58,7 +56,7 @@ function resolveString(
 function resolveStrictString(
   key: string,
   fallback: string,
-  aliases: string[] = [],
+  aliases: readonly string[] = [],
 ): string {
   const value = getEnvVar(key, aliases);
   if (value) {

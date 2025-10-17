@@ -2,10 +2,8 @@ import { SupabaseAdapter } from "@auth/supabase-adapter";
 import GitHub from "next-auth/providers/github";
 import type { NextAuthOptions } from "next-auth";
 
+import { isDevelopment } from "@/config/node-env";
 import { requireEnvVar } from "@/utils/env";
-
-const isDevelopment = typeof process !== "undefined" &&
-  process.env?.NODE_ENV === "development";
 
 function resolveRequiredEnv(
   key: string,
