@@ -30,6 +30,8 @@ const TON_VIEWER_JETTON_URL =
   `https://tonviewer.com/jetton/${TON_MAINNET_JETTON_MASTER}`;
 const TONSCAN_JETTON_URL =
   `https://tonscan.org/jetton/${TON_MAINNET_JETTON_MASTER}`;
+const TON_VERIFIER_JETTON_URL =
+  `https://verifier.ton.org/${TON_MAINNET_JETTON_MASTER}`;
 const DYOR_JETTON_URL = `https://dyor.io/token/${TON_MAINNET_JETTON_MASTER}`;
 const DEX_SCREENER_TOKEN_URL =
   `https://dexscreener.com/ton/${TON_MAINNET_JETTON_MASTER}`;
@@ -157,6 +159,7 @@ async function main() {
     wallet_v5r1: TON_MAINNET_DCT_WALLET_V5R1,
     jetton_tonviewer: TON_VIEWER_JETTON_URL,
     jetton_tonscan: TONSCAN_JETTON_URL,
+    jetton_verifier: TON_VERIFIER_JETTON_URL,
     jetton_dyor: DYOR_JETTON_URL,
     dao_contract: TON_MAINNET_DAO_MULTISIG,
     metadata: METADATA_URL,

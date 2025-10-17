@@ -45,6 +45,7 @@ auto-discover Dynamic Capital contracts and services when resolving
 | `dao_contract`                                                                                    | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                           | Dedicated DAO governance multisig executing resolver and configuration proposals |
 | `jetton_tonviewer`                                                                                | `https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                              | Jetton explorer (Tonviewer)                                                      |
 | `jetton_tonscan`                                                                                  | `https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                | Jetton explorer (Tonscan)                                                        |
+| `jetton_verifier`                                                                                 | `https://verifier.ton.org/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                  | TON Contract Verifier proof                                                      |
 | `jetton_dyor`                                                                                     | `https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                     | Jetton intelligence profile (DYOR)                                               |
 | `dexscreener_token`                                                                               | `https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                               | Unified token analytics hub (DEX Screener)                                       |
 | `dexscreener_stonfi`                                                                              | `https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi`                               | STON.fi pair analytics (DEX Screener)                                            |
@@ -143,6 +144,7 @@ dedust_jetton_wallet=EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz
 dao_contract=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 jetton_tonviewer=https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 jetton_tonscan=https://tonscan.org/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
+jetton_verifier=https://verifier.ton.org/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 jetton_dyor=https://dyor.io/token/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 dexscreener_token=https://dexscreener.com/ton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 dexscreener_stonfi=https://dexscreener.com/ton/eqaxh2vd3umfnrf29pkl6wsozxrt6_p2sxrnlzzh1vus0_mi
