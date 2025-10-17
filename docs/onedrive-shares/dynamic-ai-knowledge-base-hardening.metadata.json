@@ -1,42 +1,48 @@
 {
   "id": "dynamic-ai-knowledge-base-hardening",
-  "captured_at": "2025-11-07T09:30:00Z",
-  "description": "Internal promotion package for the Dynamic AI knowledge base hardening drop. Tracks lineage to the OneDrive operations workspace.",
+  "captured_at": "2025-10-17T09:45:00Z",
+  "refreshed_at": "2025-10-17T10:05:30Z",
+  "description": "Internal promotion package for the Dynamic AI knowledge base hardening drop refreshed for the October 17 cut. Tracks lineage to the OneDrive operations workspace and verifies artefact integrity.",
   "source": {
-    "workspace": "OneDrive/DynamicAI_DB/knowledge_base/hardening/2025-11-07",
+    "workspace": "OneDrive/DynamicAI_DB/knowledge_base/hardening/2025-10-17",
     "owner": "Knowledge Operations",
     "contact": "knowledge-ops@dynamic.capital"
   },
   "artifacts": [
     {
       "path": "hardening-overview.md",
-      "checksum": "c68a3c4e7331158e37ad8fb0aec09b3b91cf33c1da77d5cca7fe181c1c818cde",
+      "checksum": "0aaf2d8f77ac2db21b5466f6b3f6e0d0f4de0f3f9d9bcdcf6069e60d91c24d3b",
       "type": "markdown"
     },
     {
       "path": "enrichment-checklist.md",
-      "checksum": "a0fd081ae971a59f354c7d8f7c836d2799ad450a4171036ca8aec90de13d0dc4",
+      "checksum": "4c7414c827be6de2f6b3f541e96f842fb5803f3b602403a0c5e0a8a9fd4b7d1f",
       "type": "markdown"
     },
     {
       "path": "rag-sanity-playbook.md",
-      "checksum": "0cca4133b23e96838fb739b01adb1ce93e929cfe1ee1bfd983746f1ec21d4a02",
+      "checksum": "cb6f85d5b372c6c576d2a521216e2c3bc75791133c68d8a82af29a2e926cb47e",
       "type": "markdown"
     },
     {
       "path": "ingestion-metrics.json",
-      "checksum": "ab66d6d3b35d8ecefcaca6470686ed1f4ee64ee3c271dddaaccc1f0ebfd777e0",
+      "checksum": "b90f572db8fc3a5f88a0335380f91c49513af1d91ba2242555e64cf903dbbeaa",
       "type": "json"
     },
     {
       "path": "embedding-evaluation-template.csv",
-      "checksum": "279ffbe58dbdf59788dcc3cc5c8eaf0cc4a84d505b9f297c8b8632f8abc52b9f",
+      "checksum": "f87277e238bb1cefa0fce89d2749f1a4b9ce0f5753f35c2d0567707e3a3d8cfe",
       "type": "csv"
+    },
+    {
+      "path": "hardening-kpi-dashboard.png",
+      "checksum": "7ec479e3a5dba1275ec31a3c5568a7969ddf8e232e2933c2f416ba67bc5e9e9f",
+      "type": "image"
     }
   ],
   "next_actions": [
     "Mirror artefacts into Supabase cold storage with identical checksums.",
     "Schedule follow-up regression run after vector refresh to confirm metrics hold.",
-    "Backfill legacy drops with the new schema identifiers by 2025-12-01."
+    "Publish dashboard snapshot to analytics workspace with October deltas annotated."
   ]
 }

@@ -1,7 +1,8 @@
 {
   "name": "EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg",
   "webUrl": "https://1drv.ms/f/c/2ff0428a2f57c7a4/EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg",
-  "lastModifiedDateTime": "2025-10-15T12:00:00Z",
+  "lastModifiedDateTime": "2025-10-17T12:20:00Z",
+  "refreshed_at": "2025-10-17T12:35:15Z",
   "folder": {
     "childCount": 2
   },
@@ -11,19 +12,19 @@
       "folder": {
         "childCount": 1
       },
-      "lastModifiedDateTime": "2025-10-15T11:55:00Z",
+      "lastModifiedDateTime": "2025-10-17T12:10:00Z",
       "children": [
         {
-          "name": "2025-10-15",
+          "name": "2025-10-17",
           "folder": {
-            "childCount": 3
+            "childCount": 4
           },
-          "lastModifiedDateTime": "2025-10-15T11:50:00Z",
+          "lastModifiedDateTime": "2025-10-17T12:05:00Z",
           "children": [
             {
               "name": "modeling-overview.md",
-              "lastModifiedDateTime": "2025-10-15T11:32:10Z",
-              "size": 1542,
+              "lastModifiedDateTime": "2025-10-17T11:42:10Z",
+              "size": 1586,
               "file": {
                 "mimeType": "text/markdown"
               },
@@ -31,8 +32,8 @@
             },
             {
               "name": "rag-prompts.csv",
-              "lastModifiedDateTime": "2025-10-15T11:40:05Z",
-              "size": 2048,
+              "lastModifiedDateTime": "2025-10-17T11:50:05Z",
+              "size": 2112,
               "file": {
                 "mimeType": "text/csv"
               },
@@ -40,12 +41,21 @@
             },
             {
               "name": "eval-window.json",
-              "lastModifiedDateTime": "2025-10-15T11:44:52Z",
-              "size": 1024,
+              "lastModifiedDateTime": "2025-10-17T11:54:52Z",
+              "size": 1088,
               "file": {
                 "mimeType": "application/json"
               },
               "webUrl": "https://1drv.ms/t/some-eval-window"
+            },
+            {
+              "name": "hardening-kpi-dashboard.png",
+              "lastModifiedDateTime": "2025-10-17T11:57:31Z",
+              "size": 389124,
+              "file": {
+                "mimeType": "image/png"
+              },
+              "webUrl": "https://1drv.ms/i/some-dashboard"
             }
           ]
         }
@@ -56,8 +66,8 @@
       "file": {
         "mimeType": "text/markdown"
       },
-      "size": 512,
-      "lastModifiedDateTime": "2025-10-10T09:15:00Z",
+      "size": 518,
+      "lastModifiedDateTime": "2025-10-12T09:15:00Z",
       "webUrl": "https://1drv.ms/t/some-root-readme"
     }
   ]
