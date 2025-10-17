@@ -8,6 +8,7 @@ import {
   Row,
   Text,
   Button,
+  type Colors,
 } from "@once-ui-system/core";
 import { useMemo, useState } from "react";
 
@@ -26,8 +27,8 @@ const FILTERS: ReadonlyArray<{ id: TimelineFilter; label: string }> = [
   { id: "upcoming", label: "Upcoming" },
 ];
 
-const STATUS_COLOR: Record<LiveTimelineEntry["status"], string> = {
-  complete: "green-strong",
+const STATUS_COLOR: Record<LiveTimelineEntry["status"], Colors> = {
+  complete: "success-strong",
   pending: "brand-strong",
   upcoming: "neutral-strong",
 };
@@ -69,9 +70,9 @@ export function TimelineView({ entries }: TimelineViewProps) {
   }, [entries, activeTab]);
 
   return (
-    <Card as="section" id="activity" padding="32" radius="2xl" gap="24" background="surface">
+    <Card as="section" id="activity" padding="32" radius="xl" gap="24" background="surface">
       <Row horizontal="between" wrap gap="16" vertical="center">
-        <Heading as="h2" size="display-xs">
+        <Heading as="h2" variant="display-strong-s">
           Desk timeline
         </Heading>
         <Tabs value={activeTab} onChange={setActiveTab} />
@@ -81,10 +82,10 @@ export function TimelineView({ entries }: TimelineViewProps) {
           <Card key={`${item.title}-${item.timestamp}`} as="li" padding="20" radius="xl" background="transparent" border="neutral-alpha-medium">
             <Row horizontal="between" vertical="center" gap="12">
               <Column gap="4">
-                <Text variant="label-strong-m" weight="strong">
+                <Text variant="label-strong-m">
                   {item.title}
                 </Text>
-                <Text variant="body-m" onBackground="neutral-strong">
+                <Text variant="body-default-m" onBackground="neutral-strong">
                   {item.description}
                 </Text>
               </Column>
@@ -98,7 +99,7 @@ export function TimelineView({ entries }: TimelineViewProps) {
                       : "Upcoming"}
                   </Text>
                 </Badge>
-                <Text variant="label-s" onBackground="neutral-medium">
+                <Text variant="label-default-s" onBackground="neutral-medium">
                   {item.timestamp}
                 </Text>
               </Column>

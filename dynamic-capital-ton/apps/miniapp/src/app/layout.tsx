@@ -54,8 +54,11 @@ const themeBootstrapScript = `
   })();
 `;
 
+const { alternates, ...homeMeta } = meta.home;
+
 export const metadata: Metadata = Meta.generate({
-  ...meta.home,
+  ...homeMeta,
+  alternates: alternates ? [...alternates] : undefined,
   baseURL,
 });
 

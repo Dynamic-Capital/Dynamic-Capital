@@ -8,6 +8,7 @@ import {
   Heading,
   Row,
   Text,
+  type Colors,
 } from "@once-ui-system/core";
 import type { ReactNode } from "react";
 
@@ -59,7 +60,7 @@ type HeroSectionProps = {
   selectedPlan?: HeroPlanSummary | null;
 };
 
-function metricTrendColor(trend?: HeroMetric["trend"]): string {
+function metricTrendColor(trend?: HeroMetric["trend"]): Colors {
   switch (trend) {
     case "up":
       return "success-strong";
@@ -90,7 +91,7 @@ function MetricTiles({ metrics }: { metrics: readonly HeroMetric[] }) {
             <Text variant="label-strong-s" onBackground="neutral-medium">
               {metric.label}
             </Text>
-            <Text variant="display-s" weight="strong">
+            <Text variant="display-strong-s">
               {metric.value}
             </Text>
             {metric.change && (
@@ -114,31 +115,35 @@ function MetricTiles({ metrics }: { metrics: readonly HeroMetric[] }) {
   );
 }
 
-function resolveProofColors(variant: TonProofVariant) {
+function resolveProofColors(variant: TonProofVariant): {
+  background: Colors;
+  border: Colors;
+  text: Colors;
+} {
   switch (variant) {
     case "success":
       return {
-        background: "green-alpha-weak" as const,
-        border: "green-alpha-medium" as const,
-        text: "green-strong" as const,
+        background: "success-alpha-weak",
+        border: "success-alpha-medium",
+        text: "success-strong",
       };
     case "error":
       return {
-        background: "red-alpha-weak" as const,
-        border: "red-alpha-medium" as const,
-        text: "red-strong" as const,
+        background: "danger-alpha-weak",
+        border: "danger-alpha-medium",
+        text: "danger-strong",
       };
     case "loading":
       return {
-        background: "brand-alpha-weak" as const,
-        border: "brand-alpha-medium" as const,
-        text: "brand-strong" as const,
+        background: "brand-alpha-weak",
+        border: "brand-alpha-medium",
+        text: "brand-strong",
       };
     default:
       return {
-        background: "neutral-alpha-weak" as const,
-        border: "neutral-alpha-medium" as const,
-        text: "neutral-strong" as const,
+        background: "neutral-alpha-weak",
+        border: "neutral-alpha-medium",
+        text: "neutral-strong",
       };
   }
 }
@@ -174,7 +179,7 @@ export function HeroSection({
       as="section"
       id="overview"
       padding="32"
-      radius="2xl"
+      radius="xl"
       gap="24"
       background="transparent"
       style={{
@@ -200,10 +205,10 @@ export function HeroSection({
             <Text variant="label-strong-s" style={{ letterSpacing: "0.22em" }}>
               {eyebrow}
             </Text>
-            <Heading as="h1" size="display-xs">
+            <Heading as="h1" variant="display-strong-s">
               {title}
             </Heading>
-            <Text variant="body-l" onBackground="neutral-strong">
+            <Text variant="body-default-l" onBackground="neutral-strong">
               {subtitle}
             </Text>
           </Column>
@@ -241,7 +246,7 @@ export function HeroSection({
               {tonProofStatus.title}
             </Text>
             {tonProofStatus.description && (
-              <Text variant="body-s" onBackground={proofColors.text}>
+              <Text variant="body-default-s" onBackground={proofColors.text}>
                 {tonProofStatus.description}
               </Text>
             )}
@@ -274,47 +279,46 @@ export function HeroSection({
           horizontal="between"
         >
           <Column gap="4" minWidth={16}>
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Wallet
             </Text>
-            <Text variant="body-m" weight="strong">
+            <Text variant="body-strong-m">
               {walletLabel}
             </Text>
           </Column>
           <Column gap="4" minWidth={16}>
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Telegram ID
             </Text>
-            <Text variant="body-m" weight="strong">
+            <Text variant="body-strong-m">
               {telegramLabel}
             </Text>
           </Column>
           <Column gap="4" minWidth={16}>
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Plans
             </Text>
             <Text
-              variant="body-m"
-              weight="strong"
-              onBackground={planStatusTone === "error" ? "red-strong" : undefined}
+              variant="body-strong-m"
+              onBackground={planStatusTone === "error" ? "danger-strong" : undefined}
             >
               {planStatusLabel}
             </Text>
           </Column>
           <Column gap="4" minWidth={16}>
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Live feed
             </Text>
-            <Text variant="body-m" weight="strong">
+            <Text variant="body-strong-m">
               {liveFeedLabel}
             </Text>
           </Column>
           {selectedPlan && (
             <Column gap="4" minWidth={16}>
-              <Text variant="label-s" onBackground="neutral-medium">
+              <Text variant="label-default-s" onBackground="neutral-medium">
                 Selected plan
               </Text>
-              <Text variant="body-m" weight="strong">
+              <Text variant="body-strong-m">
                 {selectedPlan.price && selectedPlan.amountAvailable !== false
                   ? `${selectedPlan.name} • ${selectedPlan.price}`
                   : selectedPlan.name}

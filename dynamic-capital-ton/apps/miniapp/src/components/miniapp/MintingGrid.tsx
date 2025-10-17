@@ -11,6 +11,7 @@ import {
   Row,
   StatusIndicator,
   Text,
+  type Colors,
 } from "@once-ui-system/core";
 
 import type { ComponentProps } from "react";
@@ -115,11 +116,15 @@ function MintCard({
     }
   })();
 
-  const statusBadgeTone = state.status === "error"
-    ? { background: "red-alpha-weak", onBackground: "red-strong" as const }
-    : state.status === "success"
-    ? { background: "green-alpha-weak", onBackground: "green-strong" as const }
-    : { background: "accent-alpha-weak", onBackground: "accent-strong" as const };
+  const statusBadgeTone: { background: Colors; onBackground: Colors } =
+    state.status === "error"
+      ? { background: "danger-alpha-weak", onBackground: "danger-strong" }
+      : state.status === "success"
+      ? { background: "success-alpha-weak", onBackground: "success-strong" }
+      : { background: "accent-alpha-weak", onBackground: "accent-strong" };
+  const helperTone: Colors = state.status === "error"
+    ? "danger-strong"
+    : "neutral-medium";
 
   const resolveStepColor = (stepIndex: number): StatusIndicatorColor => {
     if (errorStepIndex !== null && stepIndex === errorStepIndex) {
@@ -150,7 +155,7 @@ function MintCard({
             <Text variant="label-strong-s" onBackground="accent-strong">
               Mint #{plan.index}
             </Text>
-            <Heading as="h3" size="display-xxs">
+            <Heading as="h3" variant="display-strong-xs">
               {plan.name}
             </Heading>
           </Column>
@@ -166,7 +171,7 @@ function MintCard({
           </Badge>
         </Row>
 
-        <Text variant="body-m" onBackground="neutral-strong">
+        <Text variant="body-default-m" onBackground="neutral-strong">
           {plan.description}
         </Text>
 
@@ -176,7 +181,7 @@ function MintCard({
           aria-label={`Mint status ${progressText ?? statusLabel}`}
         >
           <Row horizontal="between" vertical="center">
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Mint track
             </Text>
             <Badge
@@ -196,6 +201,7 @@ function MintCard({
             {MINT_STEPS.map((step, index) => {
               const isCurrent = index === currentStepIndex;
               const indicatorColor = resolveStepColor(index);
+              const stepVariant = isCurrent ? "label-strong-s" : "label-default-s";
               return (
                 <Row
                   as="li"
@@ -210,8 +216,7 @@ function MintCard({
                     ariaLabel={`${step.label}: ${isCurrent ? statusLabel : index < currentStepIndex ? "Complete" : "Pending"}`}
                   />
                   <Text
-                    variant="label-s"
-                    weight={isCurrent ? "strong" : "regular"}
+                    variant={stepVariant}
                     onBackground={isCurrent ? "neutral-strong" : "neutral-medium"}
                   >
                     {step.label}
@@ -224,7 +229,7 @@ function MintCard({
                     </Badge>
                   )}
                   {isCurrent && state.status === "success" && state.startedAt && (
-                    <Text variant="label-s" onBackground="neutral-medium">
+                    <Text variant="label-default-s" onBackground="neutral-medium">
                       {formatRelativeTime(state.startedAt)}
                     </Text>
                   )}
@@ -236,26 +241,26 @@ function MintCard({
 
         <Grid columns="3" gap="16" m={{ columns: "2" }} s={{ columns: "1" }}>
           <Column gap="4">
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Launch window
             </Text>
-            <Text variant="body-s" weight="strong">
+            <Text variant="body-strong-s">
               {plan.launchWindow}
             </Text>
           </Column>
           <Column gap="4">
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Supply
             </Text>
-            <Text variant="body-s" weight="strong">
+            <Text variant="body-strong-s">
               {plan.supply}
             </Text>
           </Column>
           <Column gap="4">
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               Content URI
             </Text>
-            <Text variant="body-s" weight="strong">
+            <Text variant="body-strong-s">
               {plan.contentUri}
             </Text>
           </Column>
@@ -263,8 +268,8 @@ function MintCard({
 
         {helperText && (
           <Text
-            variant="body-s"
-            onBackground={state.status === "error" ? "red-strong" : "neutral-medium"}
+            variant="body-default-s"
+            onBackground={helperTone}
             role={messageRole}
             aria-live={messageRole ? "polite" : undefined}
           >
@@ -298,15 +303,15 @@ export function MintingGrid({ plans, states, onStartMint, formatRelativeTime }: 
       as="section"
       id="minting"
       padding="32"
-      radius="2xl"
+      radius="xl"
       gap="24"
       background="surface"
     >
       <Column gap="12">
-        <Heading as="h2" size="display-xs">
+        <Heading as="h2" variant="display-strong-s">
           Theme minting
         </Heading>
-        <Text variant="body-m" onBackground="neutral-strong">
+        <Text variant="body-default-m" onBackground="neutral-strong">
           Launch each Theme Pass drop with a single tap. Every run is logged to the treasury ledger for auditability.
         </Text>
       </Column>

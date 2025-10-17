@@ -10,10 +10,13 @@ import {
   StatusIndicator,
   Text,
 } from "@once-ui-system/core";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+
+import type { Plan } from "@/lib/ton-miniapp-helper";
+import type { Colors } from "@once-ui-system/core";
 
 type PlanOptionCard = {
-  id: string;
+  id: Plan;
   name: string;
   price: string;
   cadence: string;
@@ -26,7 +29,7 @@ type PlanOptionCard = {
   };
 };
 
-type PlanVisual = {
+export type PlanVisual = {
   accent: string;
   accentStrong: string;
   soft: string;
@@ -36,6 +39,8 @@ type PlanVisual = {
   shadow: string;
   tagline?: string | null;
 };
+
+type CSSVariableStyle = CSSProperties & Record<string, string>;
 
 type PlanSyncStatusLite = {
   isLoading: boolean;
@@ -54,8 +59,8 @@ type PlanSelectionProps = {
   title: string;
   description: string;
   options: readonly PlanOptionCard[];
-  selectedPlanId: string;
-  onSelectPlan: (planId: string) => void;
+  selectedPlanId: Plan;
+  onSelectPlan: (planId: Plan) => void;
   planSyncStatus: PlanSyncStatusLite;
   planVisuals: Record<string, PlanVisual>;
   selectedPlan?: PlanOptionCard | null;
@@ -80,31 +85,32 @@ function PlanCard({
   isActive: boolean;
   onSelect: () => void;
 }) {
+  const cardStyle: CSSVariableStyle = {
+    cursor: "pointer",
+    textAlign: "left",
+    background:
+      "linear-gradient(135deg, var(--card-sheen), var(--card-surface) 58%, rgba(6,9,18,0.82))",
+    boxShadow: isActive
+      ? "0 18px 40px var(--card-shadow)"
+      : "0 8px 24px rgba(15, 23, 42, 0.35)",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    transform: isActive ? "translateY(-4px)" : "none",
+    "--card-accent": visual.accent,
+    "--card-shadow": visual.shadow,
+    "--card-sheen": visual.sheen,
+    "--card-surface": visual.surface,
+  };
+
   return (
     <Card
       as="button"
-      type="button"
       onClick={onSelect}
       aria-pressed={isActive}
       padding="24"
       radius="xl"
       background="transparent"
       border={isActive ? "accent-strong" : "neutral-alpha-medium"}
-      style={{
-        cursor: "pointer",
-        textAlign: "left",
-        background:
-          "linear-gradient(135deg, var(--card-sheen), var(--card-surface) 58%, rgba(6,9,18,0.82))",
-        boxShadow: isActive
-          ? "0 18px 40px var(--card-shadow)"
-          : "0 8px 24px rgba(15, 23, 42, 0.35)",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-        transform: isActive ? "translateY(-4px)" : "none",
-        "--card-accent": visual.accent,
-        "--card-shadow": visual.shadow,
-        "--card-sheen": visual.sheen,
-        "--card-surface": visual.surface,
-      }}
+      style={cardStyle}
     >
       <Column gap="16">
         <Row horizontal="between" vertical="center">
@@ -112,21 +118,26 @@ function PlanCard({
             {option.name}
           </Text>
           <Column align="end" gap="4">
-            <Text variant="display-xs" weight="strong">
+            <Text variant="display-strong-xs">
               {option.price}
             </Text>
-            <Text variant="label-s" onBackground="neutral-medium">
+            <Text variant="label-default-s" onBackground="neutral-medium">
               {option.cadence}
             </Text>
           </Column>
         </Row>
-        <Text variant="body-m" onBackground="neutral-strong">
+        <Text variant="body-default-m" onBackground="neutral-strong">
           {option.description}
         </Text>
         {option.highlights.length > 0 && (
           <Column as="ul" gap="8">
             {option.highlights.map((highlight) => (
-              <Text as="li" key={highlight} variant="label-s" onBackground="neutral-medium">
+              <Text
+                as="li"
+                key={highlight}
+                variant="label-default-s"
+                onBackground="neutral-medium"
+              >
                 {highlight}
               </Text>
             ))}
@@ -161,15 +172,19 @@ export function PlanSelection({
   txHash,
 }: PlanSelectionProps) {
   const isStatusError = Boolean(planSyncStatus.error);
+  const statusTone: Colors = isStatusError ? "danger-strong" : "neutral-strong";
+  const selectedVisual = selectedPlan
+    ? planVisuals[selectedPlan.id] ?? planVisuals.default
+    : null;
 
   return (
-    <Card as="section" id="plans" padding="32" radius="2xl" gap="24" background="surface">
+    <Card as="section" id="plans" padding="32" radius="xl" gap="24" background="surface">
       <Row horizontal="between" wrap gap="16">
         <Column gap="8" flex={1} minWidth={20}>
-          <Heading as="h2" size="display-xs">
+          <Heading as="h2" variant="display-strong-s">
             {title}
           </Heading>
-          <Text variant="body-m" onBackground="neutral-strong">
+          <Text variant="body-default-m" onBackground="neutral-strong">
             {description}
           </Text>
         </Column>
@@ -199,7 +214,7 @@ export function PlanSelection({
             : undefined}
           ariaLabel={isStatusError ? "Plan sync offline" : "Plan sync status"}
         />
-        <Text variant="label-strong-s" onBackground={isStatusError ? "red-strong" : "neutral-strong"}>
+        <Text variant="label-strong-s" onBackground={statusTone}>
           {planSyncStatus.error
             ? "Live pricing offline – showing cached tiers"
             : planSyncStatus.isLoading
@@ -213,8 +228,14 @@ export function PlanSelection({
       </Row>
 
       {planSyncStatus.error && (
-        <Card role="alert" padding="16" radius="l" background="red-alpha-weak" border="red-alpha-medium">
-          <Text variant="body-s" onBackground="red-strong">
+        <Card
+          role="alert"
+          padding="16"
+          radius="l"
+          background="danger-alpha-weak"
+          border="danger-alpha-medium"
+        >
+          <Text variant="body-default-s" onBackground="danger-strong">
             {planSyncStatus.error}
           </Text>
         </Card>
@@ -232,20 +253,20 @@ export function PlanSelection({
         ))}
       </Row>
 
-      {selectedPlan && (
+      {selectedPlan && selectedVisual && (
         <Card
           padding="24"
           radius="xl"
           background="transparent"
           border="accent-alpha-medium"
           style={{
-            "--card-shadow": planVisuals[selectedPlan.id]?.shadow ?? "rgba(97,209,255,0.32)",
-            "--card-sheen": planVisuals[selectedPlan.id]?.sheen ?? "rgba(97,209,255,0.18)",
-            "--card-surface": planVisuals[selectedPlan.id]?.surface ?? "rgba(10,17,35,0.85)",
+            "--card-shadow": selectedVisual.shadow,
+            "--card-sheen": selectedVisual.sheen,
+            "--card-surface": selectedVisual.surface,
             background:
               "linear-gradient(135deg, var(--card-sheen), var(--card-surface) 58%, rgba(6,9,18,0.85))",
             boxShadow: "0 18px 36px var(--card-shadow)",
-          }}
+          } as CSSVariableStyle}
         >
           <Column gap="16">
             <Row horizontal="between" vertical="center">
@@ -253,7 +274,7 @@ export function PlanSelection({
                 Currently selected
               </Text>
               <Row gap="8" vertical="center">
-                <Text variant="body-m" weight="strong">
+                <Text variant="body-strong-m">
                   {selectedPlan.name}
                 </Text>
                 <Badge effect={false} onBackground="accent-strong" background="accent-alpha-weak">
@@ -265,36 +286,36 @@ export function PlanSelection({
             </Row>
             <Row gap="24" wrap>
               <Column minWidth={16} gap="4">
-                <Text variant="label-s" onBackground="neutral-medium">
+                <Text variant="label-default-s" onBackground="neutral-medium">
                   Desk contribution
                 </Text>
-                <Text variant="body-m" weight="strong">
+                <Text variant="body-strong-m">
                   {selectedPlan.price}
                 </Text>
               </Column>
               {planDetailMeta?.tonLabel && (
                 <Column minWidth={16} gap="4">
-                  <Text variant="label-s" onBackground="neutral-medium">
+                  <Text variant="label-default-s" onBackground="neutral-medium">
                     TON equivalent
                   </Text>
-                  <Text variant="body-m" weight="strong">
+                  <Text variant="body-strong-m">
                     {planDetailMeta.tonLabel} TON
                   </Text>
                 </Column>
               )}
               {planDetailMeta?.dctLabel && (
                 <Column minWidth={16} gap="4">
-                  <Text variant="label-s" onBackground="neutral-medium">
+                  <Text variant="label-default-s" onBackground="neutral-medium">
                     Desk credit
                   </Text>
-                  <Text variant="body-m" weight="strong">
+                  <Text variant="body-strong-m">
                     {planDetailMeta.dctLabel} DCT
                   </Text>
                 </Column>
               )}
             </Row>
             {planDetailMeta?.updatedLabel && (
-              <Text variant="body-s" onBackground="neutral-medium">
+              <Text variant="body-default-s" onBackground="neutral-medium">
                 Last repriced {planDetailMeta.updatedLabel}
               </Text>
             )}
@@ -313,12 +334,12 @@ export function PlanSelection({
           label={isProcessing ? "Submitting…" : startLabel}
         />
         {!walletVerified && walletHint && (
-          <Text variant="body-s" onBackground="neutral-medium">
+          <Text variant="body-default-s" onBackground="neutral-medium">
             {walletHint}
           </Text>
         )}
         {txHash && (
-          <Text variant="body-s" onBackground="neutral-medium">
+          <Text variant="body-default-s" onBackground="neutral-medium">
             Latest transaction request: {txHash}
           </Text>
         )}

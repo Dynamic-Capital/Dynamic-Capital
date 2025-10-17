@@ -6,7 +6,7 @@ import { resolveTonManifestUrl } from "./ton-manifest-resolver";
 describe("resolveTonManifestUrl", () => {
   it("returns the first candidate whose HEAD response looks like JSON", async () => {
     const fetchMock = mock.fn(
-      async () =>
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
         new Response(null, {
           status: 200,
           headers: { "content-type": "application/json" },
@@ -20,14 +20,16 @@ describe("resolveTonManifestUrl", () => {
 
     assert.equal(result, "https://example.ton/manifest.json");
     assert.equal(fetchMock.mock.calls.length, 1);
-    const [url, init] = fetchMock.mock.calls[0].arguments;
+    const firstCall = fetchMock.mock.calls[0];
+    assert.ok(firstCall);
+    const [url, init] = firstCall.arguments;
     assert.equal(url, "https://example.ton/manifest.json");
     assert.equal(init?.method, "HEAD");
     assert.equal(init?.cache, "no-store");
   });
 
   it("falls back to GET when HEAD is rejected with 405", async () => {
-    const fetchMock = mock.fn(async (_input, init) => {
+    const fetchMock = mock.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
       if (init?.method === "HEAD") {
         return new Response(null, { status: 405 });
       }
@@ -52,7 +54,7 @@ describe("resolveTonManifestUrl", () => {
   });
 
   it("ignores non-JSON responses and continues to later candidates", async () => {
-    const fetchMock = mock.fn(async (input, init) => {
+    const fetchMock = mock.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       if (input === "https://bad.example/manifest.json") {
         if (init?.method === "HEAD") {
           return new Response(null, { status: 405 });
@@ -86,7 +88,7 @@ describe("resolveTonManifestUrl", () => {
   });
 
   it("returns null when every attempt fails", async () => {
-    const fetchMock = mock.fn(async (_input, init) => {
+    const fetchMock = mock.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
       if (init?.method === "HEAD") {
         throw new Error("timeout");
       }

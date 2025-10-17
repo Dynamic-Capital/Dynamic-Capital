@@ -49,8 +49,9 @@ const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 function resolvePreferredTheme(): "dark" | "light" {
-  if (style.theme === "dark" || style.theme === "light") {
-    return style.theme;
+  const configuredTheme = style.theme as "system" | "dark" | "light";
+  if (configuredTheme === "dark" || configuredTheme === "light") {
+    return configuredTheme;
   }
   if (typeof window !== "undefined") {
     return window.matchMedia("(prefers-color-scheme: dark)").matches

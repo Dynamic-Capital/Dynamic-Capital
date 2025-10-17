@@ -27,6 +27,7 @@ import {
   StatusIndicator,
   Text,
   useToast,
+  type Colors,
 } from "@once-ui-system/core";
 import { useMiniAppThemeManager } from "@shared/miniapp/use-miniapp-theme";
 import { TONCONNECT_WALLETS_LIST_CONFIGURATION } from "@shared/ton/tonconnect-wallets";
@@ -190,10 +191,10 @@ type StatusNotice = {
   tone: StatusTone;
 };
 
-const STATUS_BANNER_TONES: Record<StatusTone, { solid: string; onSolid: string }> = {
-  info: { solid: "brand-medium", onSolid: "brand-strong" },
-  success: { solid: "green-medium", onSolid: "green-strong" },
-  danger: { solid: "red-medium", onSolid: "red-strong" },
+const STATUS_BANNER_TONES: Record<StatusTone, { solid: Colors; onSolid: Colors }> = {
+  info: { solid: "info-medium", onSolid: "info-strong" },
+  success: { solid: "success-medium", onSolid: "success-strong" },
+  danger: { solid: "danger-medium", onSolid: "danger-strong" },
 };
 
 type NavItem = {
@@ -494,47 +495,28 @@ const FALLBACK_PLAN_LOOKUP: Record<Plan, PlanOption> = Object.fromEntries(
   FALLBACK_PLAN_OPTIONS.map((option) => [option.id, option]),
 ) as Record<Plan, PlanOption>;
 
+type PlanAccentScheme = "accent" | "brand" | "info" | "success" | "warning" | "danger";
+
+function createPlanVisual(scheme: PlanAccentScheme, tagline: string): PlanVisual {
+  const base = `var(--${scheme}`;
+  return {
+    accent: `${base}-solid-medium)`,
+    accentStrong: `${base}-solid-strong)`,
+    soft: `${base}-background-weak)`,
+    glow: `${base}-alpha-medium)`,
+    sheen: `${base}-alpha-weak)`,
+    surface: `${base}-background-strong)`,
+    shadow: `${base}-alpha-medium)`,
+    tagline,
+  };
+}
+
 const PLAN_VISUALS: Record<Plan | "default", PlanVisual> = {
-  default: {
-    accent: "cyan",
-    background: "surface",
-    activeBackground: "accent-alpha-weak",
-    border: "neutral-alpha-medium",
-    activeBorder: "accent-border-medium",
-    tagline: "Desk-aligned signal tier",
-  },
-  vip_bronze: {
-    accent: "orange",
-    background: "surface",
-    activeBackground: "accent-alpha-weak",
-    border: "neutral-alpha-medium",
-    activeBorder: "accent-border-medium",
-    tagline: "Momentum-aligned entries from the desk core",
-  },
-  vip_silver: {
-    accent: "indigo",
-    background: "surface",
-    activeBackground: "accent-alpha-weak",
-    border: "neutral-alpha-medium",
-    activeBorder: "accent-border-medium",
-    tagline: "Leverage-managed mid-cycle rotations",
-  },
-  vip_gold: {
-    accent: "yellow",
-    background: "surface",
-    activeBackground: "accent-alpha-weak",
-    border: "neutral-alpha-medium",
-    activeBorder: "accent-border-medium",
-    tagline: "Structured products and vault orchestration",
-  },
-  mentorship: {
-    accent: "violet",
-    background: "surface",
-    activeBackground: "accent-alpha-weak",
-    border: "neutral-alpha-medium",
-    activeBorder: "accent-border-medium",
-    tagline: "Direct mentorship with senior PM alignment",
-  },
+  default: createPlanVisual("accent", "Desk-aligned signal tier"),
+  vip_bronze: createPlanVisual("warning", "Momentum-aligned entries from the desk core"),
+  vip_silver: createPlanVisual("info", "Leverage-managed mid-cycle rotations"),
+  vip_gold: createPlanVisual("success", "Structured products and vault orchestration"),
+  mentorship: createPlanVisual("brand", "Direct mentorship with senior PM alignment"),
 };
 
 function getPlanVisual(plan?: Plan | null): PlanVisual {
@@ -2219,7 +2201,7 @@ function HomeInner() {
           description="Unlock the same tooling our desk uses daily. Each tier adds deeper access, more detailed reporting, and quicker capital cycling."
           options={planOptions}
           selectedPlanId={plan}
-          onSelectPlan={setPlan}
+          onSelectPlan={(planId) => setPlan(planId)}
           planSyncStatus={{
             ...planSyncStatus,
             updatedAt: planSyncUpdatedLabel,
@@ -2374,15 +2356,15 @@ function HomeInner() {
           as="section"
           id="support"
           padding="32"
-          radius="2xl"
+          radius="xl"
           gap="32"
           background="surface"
         >
           <Column gap="12">
-            <Heading as="h2" size="display-xs">
+            <Heading as="h2" variant="display-strong-s">
               What you unlock
             </Heading>
-            <Text variant="body-m" onBackground="neutral-strong">
+            <Text variant="body-default-m" onBackground="neutral-strong">
               Desk-level operators, structured playbooks, and real-time visibility to keep every cycle accountable.
             </Text>
           </Column>
@@ -2411,11 +2393,11 @@ function HomeInner() {
                     >
                       <FeatureIcon size={18} />
                     </Badge>
-                    <Heading as="h3" size="display-xxs">
+                    <Heading as="h3" variant="display-strong-xs">
                       {feature.title}
                     </Heading>
                   </Row>
-                  <Text variant="body-s" onBackground="neutral-strong">
+                  <Text variant="body-default-s" onBackground="neutral-strong">
                     {feature.description}
                   </Text>
                 </Card>
@@ -2448,11 +2430,11 @@ function HomeInner() {
                       >
                         <SupportIcon size={18} />
                       </Badge>
-                      <Heading as="h3" size="display-xxs">
+                      <Heading as="h3" variant="display-strong-xs">
                         {option.title}
                       </Heading>
                     </Row>
-                    <Text variant="body-s" onBackground="neutral-strong">
+                    <Text variant="body-default-s" onBackground="neutral-strong">
                       {option.description}
                     </Text>
                     <Text variant="label-strong-s" onBackground="accent-strong">
@@ -2473,7 +2455,7 @@ function HomeInner() {
             onSolid={statusBannerTone.onSolid}
           >
             <Text
-              variant="label-s"
+              variant="label-default-s"
               onBackground={statusBannerTone.onSolid}
             >
               {statusNotice.message}
@@ -2594,13 +2576,13 @@ function LiveIntelligenceSection({
         ];
 
   return (
-    <Card as="section" id="intel" padding="32" radius="2xl" gap="24" background="surface">
+    <Card as="section" id="intel" padding="32" radius="xl" gap="24" background="surface">
       <Row horizontal="between" vertical="center" wrap gap="16">
         <Column gap="8" flex={1} minWidth={20}>
-          <Heading as="h2" size="display-xs">
+          <Heading as="h2" variant="display-strong-s">
             Live desk intelligence
           </Heading>
-          <Text variant="body-m" onBackground="neutral-strong">
+          <Text variant="body-default-m" onBackground="neutral-strong">
             Grok-1 strategy briefs are auto-synced with DeepSeek-V2 risk arbitration so every decision stays in lockstep with the desk.
           </Text>
         </Column>
@@ -2613,7 +2595,7 @@ function LiveIntelligenceSection({
 
       {error && status === "error" && (
         <Banner padding="16" radius="l" background="danger-alpha-weak" border="danger-alpha-medium" gap="12" wrap vertical="center">
-          <Text variant="body-s" onBackground="danger-strong">
+          <Text variant="body-default-s" onBackground="danger-strong">
             Unable to reach the intelligence feed right now. We'll retry automatically.
           </Text>
           <Button type="button" variant="secondary" onClick={onRefresh} label="Retry now" />
@@ -2622,7 +2604,7 @@ function LiveIntelligenceSection({
 
       {error && status !== "error" && (
         <Banner padding="12" radius="l" background="warning-alpha-weak" border="warning-alpha-medium">
-          <Text variant="body-s" onBackground="warning-strong">
+          <Text variant="body-default-s" onBackground="warning-strong">
             Brief network hiccup detected. Showing the last Grok-1 + DeepSeek-V2 sync while we refresh in the background.
           </Text>
         </Banner>
@@ -2631,7 +2613,7 @@ function LiveIntelligenceSection({
       <Column gap="16">
         <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="16" data-accent="cyan">
           <Row horizontal="between" vertical="center" wrap gap="12">
-            <Heading as="h3" size="display-xxs">
+            <Heading as="h3" variant="display-strong-xs">
               Desk narrative
             </Heading>
             {confidenceLabel && (
@@ -2643,7 +2625,7 @@ function LiveIntelligenceSection({
             )}
           </Row>
           {hasIntel ? (
-            <Text variant="body-m" onBackground="neutral-strong">
+            <Text variant="body-default-m" onBackground="neutral-strong">
               {intel?.narrative}
             </Text>
           ) : (
@@ -2659,14 +2641,14 @@ function LiveIntelligenceSection({
                 {alerts.map((alert) => (
                   <Row as="li" key={alert} gap="8" vertical="center">
                     <StatusIndicator size="s" color="orange" />
-                    <Text variant="label-s" onBackground="neutral-strong">
+                    <Text variant="label-default-s" onBackground="neutral-strong">
                       {alert}
                     </Text>
                   </Row>
                 ))}
               </List>
             ) : (
-              <Text variant="label-s" onBackground="neutral-medium">
+              <Text variant="label-default-s" onBackground="neutral-medium">
                 No blocking alerts flagged by DeepSeek-V2 sentinel.
               </Text>
             )
@@ -2677,7 +2659,7 @@ function LiveIntelligenceSection({
 
         <Grid columns="2" gap="16" s={{ columns: "1" }}>
           <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12" data-accent="emerald">
-            <Heading as="h3" size="display-xxs">
+            <Heading as="h3" variant="display-strong-xs">
               Opportunities
             </Heading>
             {hasIntel ? (
@@ -2686,14 +2668,14 @@ function LiveIntelligenceSection({
                   {opportunities.map((item) => (
                     <Row as="li" key={item} gap="8" vertical="center">
                       <StatusIndicator size="s" color="green" />
-                      <Text variant="label-s" onBackground="neutral-strong">
+                      <Text variant="label-default-s" onBackground="neutral-strong">
                         {item}
                       </Text>
                     </Row>
                   ))}
                 </List>
               ) : (
-                <Text variant="label-s" onBackground="neutral-medium">
+                <Text variant="label-default-s" onBackground="neutral-medium">
                   Grok-1 has not surfaced new opportunities yet.
                 </Text>
               )
@@ -2703,7 +2685,7 @@ function LiveIntelligenceSection({
           </Card>
 
           <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12" data-accent="magenta">
-            <Heading as="h3" size="display-xxs">
+            <Heading as="h3" variant="display-strong-xs">
               Risks
             </Heading>
             {hasIntel ? (
@@ -2712,14 +2694,14 @@ function LiveIntelligenceSection({
                   {risks.map((item) => (
                     <Row as="li" key={item} gap="8" vertical="center">
                       <StatusIndicator size="s" color="red" />
-                      <Text variant="label-s" onBackground="neutral-strong">
+                      <Text variant="label-default-s" onBackground="neutral-strong">
                         {item}
                       </Text>
                     </Row>
                   ))}
                 </List>
               ) : (
-                <Text variant="label-s" onBackground="neutral-medium">
+                <Text variant="label-default-s" onBackground="neutral-medium">
                   DeepSeek-V2 has not flagged immediate risks.
                 </Text>
               )
@@ -2730,7 +2712,7 @@ function LiveIntelligenceSection({
         </Grid>
 
         <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12">
-          <Heading as="h3" size="display-xxs">
+          <Heading as="h3" variant="display-strong-xs">
             Recommended actions
           </Heading>
           {hasIntel ? (
@@ -2739,14 +2721,14 @@ function LiveIntelligenceSection({
                 {actions.map((item) => (
                   <Row as="li" key={item} gap="8" vertical="center">
                     <StatusIndicator size="s" color="cyan" />
-                    <Text variant="label-s" onBackground="neutral-strong">
+                    <Text variant="label-default-s" onBackground="neutral-strong">
                       {item}
                     </Text>
                   </Row>
                 ))}
               </List>
             ) : (
-              <Text variant="label-s" onBackground="neutral-medium">
+              <Text variant="label-default-s" onBackground="neutral-medium">
                 Desk actions will populate once the next cycle begins.
               </Text>
             )
@@ -2758,10 +2740,10 @@ function LiveIntelligenceSection({
         {chartData.length > 0 && (
           <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="12">
             <Row horizontal="between" vertical="center" wrap gap="8">
-              <Heading as="h3" size="display-xxs">
+              <Heading as="h3" variant="display-strong-xs">
                 Signal cadence
               </Heading>
-              <Text variant="label-s" onBackground="neutral-medium">
+              <Text variant="label-default-s" onBackground="neutral-medium">
                 Confidence vs. DeepSeek risk index
               </Text>
             </Row>
@@ -2841,7 +2823,7 @@ function SnapshotMetric({
 
   return (
     <Column padding="16" radius="l" background={background} border={border} gap="4">
-      <Text variant="label-s" onBackground="neutral-medium">
+      <Text variant="label-default-s" onBackground="neutral-medium">
         {label}
       </Text>
       <Text variant="label-strong-m" onBackground={textTone}>
@@ -2896,10 +2878,10 @@ function PlanSnapshotCard({
     <Card padding="24" radius="xl" background="surface" border="neutral-alpha-medium" gap="16" data-accent="cyan">
       <Row horizontal="between" vertical="center" wrap gap="12">
         <Column gap="4">
-          <Heading as="h3" size="display-xxs">
+          <Heading as="h3" variant="display-strong-xs">
             Live pricing snapshot
           </Heading>
-          <Text variant="label-s" onBackground="neutral-medium">
+          <Text variant="label-default-s" onBackground="neutral-medium">
             Supabase desk feed
           </Text>
         </Column>
@@ -2942,7 +2924,7 @@ function PlanSnapshotCard({
               const isNegative = item.value < 0;
               return (
                 <Row as="li" key={item.key} horizontal="between" vertical="center">
-                  <Text variant="label-s" onBackground="neutral-strong">
+                  <Text variant="label-default-s" onBackground="neutral-strong">
                     {formatAdjustmentLabel(item.key)}
                   </Text>
                   {percentLabel && (
@@ -2986,19 +2968,19 @@ function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
               <Text variant="label-strong-s" onBackground="neutral-medium">
                 Grok-1 strategist
               </Text>
-              <Heading as="h3" size="display-xxs">
+              <Heading as="h3" variant="display-strong-xs">
                 {grok.focus}
               </Heading>
             </Column>
           </Row>
-          <Text variant="body-m" onBackground="neutral-strong">
+          <Text variant="body-default-m" onBackground="neutral-strong">
             {grok.summary}
           </Text>
           <List as="ul" gap="8">
             {grok.highlights.map((item) => (
               <Row as="li" key={item} gap="8" vertical="center">
                 <StatusIndicator size="s" color="cyan" />
-                <Text variant="label-s" onBackground="neutral-strong">
+                <Text variant="label-default-s" onBackground="neutral-strong">
                   {item}
                 </Text>
               </Row>
@@ -3014,7 +2996,7 @@ function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
               <Text variant="label-strong-s" onBackground="neutral-medium">
                 DeepSeek-V2 sentinel
               </Text>
-              <Heading as="h3" size="display-xxs">
+              <Heading as="h3" variant="display-strong-xs">
                 {deepseek.focus}
               </Heading>
             </Column>
@@ -3024,14 +3006,14 @@ function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
               </Text>
             </Badge>
           </Row>
-          <Text variant="body-m" onBackground="neutral-strong">
+          <Text variant="body-default-m" onBackground="neutral-strong">
             {deepseek.summary}
           </Text>
           <List as="ul" gap="8">
             {deepseek.highlights.map((item) => (
               <Row as="li" key={item} gap="8" vertical="center">
                 <StatusIndicator size="s" color={riskIndicatorColor} />
-                <Text variant="label-s" onBackground="neutral-strong">
+                <Text variant="label-default-s" onBackground="neutral-strong">
                   {item}
                 </Text>
               </Row>
