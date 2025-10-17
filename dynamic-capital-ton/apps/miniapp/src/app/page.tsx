@@ -71,9 +71,11 @@ import {
 import { TON_MANIFEST_FALLBACK_DATA_URL } from "@/lib/ton-manifest-inline";
 import { resolveTonManifestUrl } from "@/lib/ton-manifest-resolver";
 import {
+  ChatLauncher,
   HeroSection,
   MintingGrid,
   PlanSelection,
+  SectionNavigation,
   TimelineView,
   type PlanVisual,
 } from "@/components/miniapp";
@@ -200,7 +202,7 @@ const STATUS_BANNER_TONES: Record<StatusTone, { solid: Colors; onSolid: Colors }
 type NavItem = {
   id: SectionId;
   label: string;
-  icon: (props: { active: boolean }) => JSX.Element;
+  icon: (props: { active: boolean; className?: string }) => JSX.Element;
 };
 
 type TonConnectManifestState = {
@@ -2469,59 +2471,12 @@ function HomeInner() {
         onOpen={handleChatLauncherClick}
       />
 
-      <nav aria-label="Mini app sections" className="bottom-nav">
-        {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-          const isActive = activeSection === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => scrollToSection(id)}
-              aria-current={isActive ? "page" : undefined}
-              className={`nav-button${isActive ? " nav-button--active" : ""}`}
-            >
-              <Icon active={isActive} />
-              <span className="nav-button__label">{label}</span>
-            </button>
-          );
-        })}
-      </nav>
-    </div>
-  );
-}
-
-type ChatLauncherProps = {
-  compact: boolean;
-  onOpen: () => void;
-};
-
-function ChatLauncher({ compact, onOpen }: ChatLauncherProps) {
-  return (
-    <div className={`chat-launcher${compact ? " chat-launcher--compact" : ""}`}>
-      <button
-        type="button"
-        className="chat-launcher__button"
-        onClick={onOpen}
-        aria-label="Write to start up"
-        title="Write to start up"
-      >
-        <span className="chat-launcher__icon" aria-hidden>
-          <svg viewBox="0 0 24 24" role="presentation" aria-hidden focusable="false">
-            <path
-              d="M4.25 4.5h15.5a1.75 1.75 0 0 1 1.75 1.75v8.5a1.75 1.75 0 0 1-1.75 1.75H13l-3.9 3.4a.75.75 0 0 1-1.25-.56V16.5H4.25A1.75 1.75 0 0 1 2.5 14.75v-8.5A1.75 1.75 0 0 1 4.25 4.5Z"
-              fill="currentColor"
-              fillRule="evenodd"
-              clipRule="evenodd"
-            />
-          </svg>
-        </span>
-        <span className="chat-launcher__text" aria-hidden={compact}>
-          <span className="chat-launcher__title">Write to start up</span>
-          <span className="chat-launcher__subtitle">
-            Chat with desk concierge
-          </span>
-        </span>
-      </button>
+      <SectionNavigation
+        ariaLabel="Mini app sections"
+        items={NAV_ITEMS}
+        activeId={activeSection}
+        onSelect={(value) => scrollToSection(value as SectionId)}
+      />
     </div>
   );
 }
@@ -3025,10 +2980,14 @@ function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
   );
 }
 
-function HomeIcon({ active }: { active: boolean }) {
+function HomeIcon({
+  active,
+  className,
+}: { active: boolean; className?: string }) {
   return (
     <svg
-      className={`nav-icon${active ? " nav-icon--active" : ""}`}
+      className={className}
+      data-active={active ? "true" : "false"}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -3045,10 +3004,14 @@ function HomeIcon({ active }: { active: boolean }) {
   );
 }
 
-function SparkIcon({ active }: { active: boolean }) {
+function SparkIcon({
+  active,
+  className,
+}: { active: boolean; className?: string }) {
   return (
     <svg
-      className={`nav-icon${active ? " nav-icon--active" : ""}`}
+      className={className}
+      data-active={active ? "true" : "false"}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -3065,10 +3028,14 @@ function SparkIcon({ active }: { active: boolean }) {
   );
 }
 
-function RadarIcon({ active }: { active: boolean }) {
+function RadarIcon({
+  active,
+  className,
+}: { active: boolean; className?: string }) {
   return (
     <svg
-      className={`nav-icon${active ? " nav-icon--active" : ""}`}
+      className={className}
+      data-active={active ? "true" : "false"}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -3102,10 +3069,14 @@ function RadarIcon({ active }: { active: boolean }) {
   );
 }
 
-function ActivityIcon({ active }: { active: boolean }) {
+function ActivityIcon({
+  active,
+  className,
+}: { active: boolean; className?: string }) {
   return (
     <svg
-      className={`nav-icon${active ? " nav-icon--active" : ""}`}
+      className={className}
+      data-active={active ? "true" : "false"}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -3124,10 +3095,14 @@ function ActivityIcon({ active }: { active: boolean }) {
   );
 }
 
-function MintIcon({ active }: { active: boolean }) {
+function MintIcon({
+  active,
+  className,
+}: { active: boolean; className?: string }) {
   return (
     <svg
-      className={`nav-icon${active ? " nav-icon--active" : ""}`}
+      className={className}
+      data-active={active ? "true" : "false"}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -3152,10 +3127,14 @@ function MintIcon({ active }: { active: boolean }) {
   );
 }
 
-function PaletteIcon({ active }: { active: boolean }) {
+function PaletteIcon({
+  active,
+  className,
+}: { active: boolean; className?: string }) {
   return (
     <svg
-      className={`nav-icon${active ? " nav-icon--active" : ""}`}
+      className={className}
+      data-active={active ? "true" : "false"}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -3172,10 +3151,14 @@ function PaletteIcon({ active }: { active: boolean }) {
   );
 }
 
-function LifebuoyIcon({ active }: { active: boolean }) {
+function LifebuoyIcon({
+  active,
+  className,
+}: { active: boolean; className?: string }) {
   return (
     <svg
-      className={`nav-icon${active ? " nav-icon--active" : ""}`}
+      className={className}
+      data-active={active ? "true" : "false"}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
