@@ -108,6 +108,21 @@ const social: Social = [
     link: "https://t.me/DynamicCapital_Support",
   },
   {
+    name: "Telegram (Community)",
+    icon: "telegram",
+    link: "https://t.me/DynamicCapital_Tea",
+  },
+  {
+    name: "Telegram (Results)",
+    icon: "telegram",
+    link: "https://t.me/DynamicCapital_Results",
+  },
+  {
+    name: "Discord",
+    icon: "discord",
+    link: "https://discord.gg/XdK96gzur9",
+  },
+  {
     name: "Instagram",
     icon: "instagram",
     link: "https://www.instagram.com/dynamic.capital",
