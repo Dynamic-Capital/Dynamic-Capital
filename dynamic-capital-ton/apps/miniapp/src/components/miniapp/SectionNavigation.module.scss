@@ -1,0 +1,89 @@
+.container {
+  position: fixed;
+  left: 50%;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(520px, calc(100% - 32px));
+  z-index: 60;
+  padding-inline: 8px;
+}
+
+.card {
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: linear-gradient(135deg, rgba(7, 12, 24, 0.88), rgba(7, 12, 24, 0.72));
+  box-shadow: 0 18px 46px rgba(7, 12, 24, 0.45);
+  backdrop-filter: blur(20px);
+  padding: 10px;
+}
+
+.segmentRoot {
+  display: flex;
+}
+
+.segmentRoot :global(.button) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  color: rgba(226, 232, 240, 0.76);
+  transition:
+    color 160ms ease,
+    transform 160ms ease,
+    background 160ms ease,
+    box-shadow 180ms ease;
+}
+
+.segmentRoot :global(.button:hover),
+.segmentRoot :global(.button:focus-visible) {
+  color: #e2e8f0;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.segmentRoot :global(.button.selected) {
+  background: rgba(97, 209, 255, 0.2);
+  color: var(--ui-accent, #61d1ff);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(7, 12, 24, 0.32);
+}
+
+.buttonContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  color: inherit;
+  transition: color 160ms ease, filter 200ms ease;
+}
+
+.icon[data-active='true'] {
+  filter: drop-shadow(0 0 8px rgba(97, 209, 255, 0.35));
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 680px) {
+  .container {
+    width: min(100%, calc(100% - 24px));
+    bottom: calc(22px + env(safe-area-inset-bottom));
+  }
+
+  .card {
+    padding: 8px;
+  }
+}
