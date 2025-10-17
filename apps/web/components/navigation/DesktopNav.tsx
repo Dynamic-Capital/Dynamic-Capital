@@ -106,7 +106,7 @@ export function DesktopNav({ className }: DesktopNavProps) {
                 className="w-72 space-y-1 rounded-xl border-border/80 bg-background/95 p-2 shadow-xl"
               >
                 <DropdownMenuLabel className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  AI copilots
+                  {menu.label}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="mx-3" />
                 {menu.items.map((child: ResolvedHeaderNavLink) => {
