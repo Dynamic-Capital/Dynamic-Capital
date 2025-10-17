@@ -2,6 +2,7 @@ import {
   TON_MAINNET_DEDUST_DCT_TON_POOL,
   TON_MAINNET_JETTON_MASTER,
   TON_MAINNET_STONFI_DCT_TON_POOL,
+  TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
 } from "@shared/ton/mainnet-addresses.ts";
 
 const canonicalize = (value: string): string =>
@@ -19,6 +20,7 @@ export const DCT_SYMBOL_CANONICALS = Object.freeze(
     canonicalize(TON_MAINNET_JETTON_MASTER),
     canonicalize(TON_MAINNET_STONFI_DCT_TON_POOL),
     canonicalize(TON_MAINNET_DEDUST_DCT_TON_POOL),
+    canonicalize(TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL),
   ]),
 );
 
@@ -26,6 +28,7 @@ const TRACKED_PAIR_ADDRESSES = Object.freeze(
   new Set<string>([
     TON_MAINNET_STONFI_DCT_TON_POOL.toLowerCase(),
     TON_MAINNET_DEDUST_DCT_TON_POOL.toLowerCase(),
+    TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL.toLowerCase(),
   ]),
 );
 

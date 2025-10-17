@@ -44,6 +44,14 @@ describe("fetchDctMarketSnapshot", () => {
           liquidity: { usd: 400000 },
           baseToken: { symbol: "DCT", name: "Dynamic Capital Token" },
         },
+        {
+          pairAddress: "EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D",
+          priceUsd: "1.50",
+          priceChange: { h24: 4 },
+          volume: { h24: 90000 },
+          liquidity: { usd: 250000 },
+          baseToken: { symbol: "DCT", name: "Dynamic Capital Token" },
+        },
       ],
     };
 
@@ -55,11 +63,11 @@ describe("fetchDctMarketSnapshot", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(snapshot).toMatchObject<DctMarketSnapshot>({
-      price: expect.closeTo(1.68, 1e-6),
-      changePercent: expect.closeTo(-2.4, 1e-6),
-      change: expect.closeTo(-0.0413114754, 1e-6),
-      previousClose: expect.closeTo(1.7213114754, 1e-6),
-      volume24h: expect.closeTo(400000, 1e-6),
+      price: expect.closeTo(1.62, 1e-6),
+      changePercent: expect.closeTo(-0.2666667, 1e-6),
+      change: expect.closeTo(-0.0043315508, 1e-6),
+      previousClose: expect.closeTo(1.6243315508, 1e-6),
+      volume24h: expect.closeTo(490000, 1e-6),
       sourceSymbol: "DCT",
       name: "Dynamic Capital Token",
       timestamp: "2024-07-01T12:00:00.000Z",
@@ -95,6 +103,11 @@ describe("DCT symbol canonical set", () => {
     expect(
       DCT_SYMBOL_CANONICALS.has(
         canonicalize("EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y"),
+      ),
+    ).toBe(true);
+    expect(
+      DCT_SYMBOL_CANONICALS.has(
+        canonicalize("EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D"),
       ),
     ).toBe(true);
   });

@@ -68,22 +68,28 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     dexScreenerId: "dedust",
     dexScreenerPairUrl:
       `https://dexscreener.com/ton/${TON_MAINNET_DEDUST_DCT_TON_POOL.toLowerCase()}`,
+    geckoTerminalPoolUrl:
+      "https://www.geckoterminal.com/ton/pools/EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm",
   },
   {
     dex: "swap.coffee",
-    pair: "TON/DCT",
+    pair: "DCT/TON",
     swapUrl: "https://swap.coffee/swap?from=TON&to=DCT",
     description:
       "Aggregator route that blends venue quotes while exposing native TON⇄DCT liquidity for partners and bots.",
     poolAddress: TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
     poolExplorerUrl: buildTonviewerAccountUrl(TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL),
     metadataUrl:
-      "https://lp.swap.coffee/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a/metadata",
+      "https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A/metadata",
     jettonWalletAddress: TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
     jettonWalletExplorerUrl: buildTonviewerAccountUrl(
       TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
     ),
     lpJettonExplorerUrl:
-      "https://tonviewer.com/jetton/0:03e561ae336bb09e406adf43c14bf4669703f95408fe2b35dade58fd8c99056a",
+      "https://tonviewer.com/jetton/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A",
+    dexScreenerPairUrl:
+      `https://dexscreener.com/ton/${TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL.toLowerCase()}`,
+    geckoTerminalPoolUrl:
+      "https://www.geckoterminal.com/ton/pools/EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D",
   },
 ]);
