@@ -125,16 +125,28 @@ const ROUTE_DEFINITIONS = [
         "Launch AI copilots, review trade signals, and open TON actions without leaving the conversation.",
     },
     workspace: {
-      eyebrow: "Dynamic intelligence",
+      eyebrow: "Control tower",
       title: "Dynamic chat control tower",
       description:
-        "Coordinate AGI copilots, TON wallet intents, and desk automations from a single conversational surface.",
+        "Launch copilots, signal streams, and human oversight from a single conversational cockpit.",
       tags: [
         { label: "TON-native", tone: "brand" },
         { label: "AI orchestration", tone: "accent" },
         { label: "Signal streaming", tone: "neutral" },
       ],
       actions: [
+        {
+          label: "Launch control tower",
+          href: "https://t.me/DynamicCapitalBot/app",
+          icon: MessageSquareText,
+          emphasis: "primary",
+        },
+        {
+          label: "Open market workspace",
+          href: "#market-review",
+          icon: Radar,
+          emphasis: "ghost",
+        },
         {
           label: "View routing map",
           href: "/tools/dynamic-visual",
