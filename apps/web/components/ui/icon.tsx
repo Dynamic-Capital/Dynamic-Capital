@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { LucideIcon, LucideProps } from "lucide-react";
 import { icons as lucideIcons } from "lucide-react/dist/esm/lucide-react";
+
 import { cn } from "@/utils";
 
 const iconLibrary: Record<string, LucideIcon> = lucideIcons as Record<
@@ -9,6 +10,15 @@ const iconLibrary: Record<string, LucideIcon> = lucideIcons as Record<
 >;
 
 export type IconName = keyof typeof iconLibrary;
+
+const FALLBACK_ICON_NAME = "Circle" satisfies IconName;
+const FALLBACK_ICON = iconLibrary[FALLBACK_ICON_NAME];
+
+if (!FALLBACK_ICON) {
+  throw new Error(
+    `Icon component fallback "${FALLBACK_ICON_NAME}" is not available in lucide-react.`,
+  );
+}
 
 // Standardized icon sizes based on universal theme
 const iconSizes = {
@@ -31,7 +41,14 @@ const Icon = React.forwardRef<SVGSVGElement, IconProps>(
     { name, size = "base", animation = "none", title, className, ...props },
     ref,
   ) => {
-    const LucideIcon = iconLibrary[name];
+    const resolvedIcon = iconLibrary[name];
+    const LucideIcon = resolvedIcon ?? FALLBACK_ICON;
+
+    if (!resolvedIcon && process.env.NODE_ENV !== "production") {
+      console.warn(
+        `Icon "${name}" is not registered in lucide-react. Falling back to "${FALLBACK_ICON_NAME}".`,
+      );
+    }
 
     const animationClasses = {
       none: "",
