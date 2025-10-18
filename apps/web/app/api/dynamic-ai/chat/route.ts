@@ -16,7 +16,6 @@ import {
   chatRequestPayloadSchema,
   telegramAuthSchema,
 } from "@/services/dynamic-ai/schema";
-import { SUPABASE_URL } from "@/config/supabase-runtime";
 import type { Database } from "@/integrations/supabase/types";
 import {
   bad,
@@ -26,16 +25,21 @@ import {
   oops,
   unauth,
 } from "@/utils/http.ts";
-import { getEnvVar } from "@/utils/env.ts";
 import {
   isAdminVerificationFailure,
   verifyAdminRequest,
 } from "@/utils/admin-auth.ts";
+import {
+  getServiceRoleSupabaseClient,
+  type ServiceRoleSupabaseClient,
+} from "@/core/supabase/service-role-client";
+import { enforceDynamicAiRateLimit } from "@/services/rate-limit/dynamic-ai";
+import {
+  logAiChatTelemetry,
+  type RateLimitDecisionSummary,
+} from "@/core/telemetry/ai-chat";
 
 const ROUTE_NAME = "/api/dynamic-ai/chat";
-const SUPABASE_SERVICE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY", [
-  "SUPABASE_SERVICE_ROLE",
-]);
 
 const SUPPORTED_LANGUAGES = new Set(["en", "dv"]);
 const LANGUAGE_PROMPTS: Record<string, string> = {
@@ -52,46 +56,22 @@ function normaliseLanguage(
   return SUPPORTED_LANGUAGES.has(trimmed) ? trimmed : undefined;
 }
 
-const SUPABASE_OVERRIDE_SYMBOL = Symbol.for(
-  "dynamic-capital.dynamic-ai.supabase",
-);
+function resolveClientIp(req: Request): string | undefined {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const [first] = forwarded.split(",");
+    const candidate = first?.trim();
+    if (candidate) {
+      return candidate;
+    }
+  }
+  const realIp = req.headers.get("x-real-ip")?.trim();
+  return realIp || undefined;
+}
 
 const SESSION_OVERRIDE_SYMBOL = Symbol.for(
   "dynamic-capital.dynamic-ai.session",
 );
-
-type UserInteractionInsert =
-  Database["public"]["Tables"]["user_interactions"]["Insert"];
-type UserInteractionRow = Pick<
-  Database["public"]["Tables"]["user_interactions"]["Row"],
-  "interaction_data"
->;
-
-interface SupabaseSelectBuilder<Row> {
-  eq(column: string, value: unknown): SupabaseSelectBuilder<Row>;
-  order(
-    column: string,
-    options: { ascending: boolean },
-  ): SupabaseSelectBuilder<Row>;
-  limit(count: number): Promise<{
-    data: Row[] | null;
-    error: unknown | null;
-  }>;
-}
-
-interface SupabaseUserInteractionsTable {
-  insert(values: UserInteractionInsert): Promise<{ error: unknown | null }>;
-  select(columns: string): SupabaseSelectBuilder<UserInteractionRow>;
-}
-
-interface ServiceSupabaseClient {
-  from(table: string): SupabaseUserInteractionsTable;
-}
-
-let cachedClient: ServiceSupabaseClient | null = null;
-let supabaseModulePromise:
-  | Promise<{ createClient: (...args: unknown[]) => unknown }>
-  | null = null;
 
 type SessionLike =
   | { user?: { id?: string | null } | null }
@@ -134,43 +114,23 @@ async function loadAuthOptions(): Promise<AuthOptionsModule["authOptions"]> {
   return authOptionsPromise;
 }
 
-async function loadSupabaseModule(): Promise<
-  { createClient: (...args: unknown[]) => unknown }
-> {
-  if (!supabaseModulePromise) {
-    supabaseModulePromise = (async () => {
-      const { createClient } = await import("@supabase/supabase-js");
-      return { createClient } as {
-        createClient: (...args: unknown[]) => unknown;
-      };
-    })();
-  }
+type UserInteractionInsert =
+  Database["public"]["Tables"]["user_interactions"]["Insert"];
+type UserInteractionRow = Pick<
+  Database["public"]["Tables"]["user_interactions"]["Row"],
+  "interaction_data"
+>;
 
-  return supabaseModulePromise;
-}
+type SupabaseClient = ServiceRoleSupabaseClient<
+  UserInteractionRow,
+  UserInteractionInsert
+>;
 
-async function getSupabaseClient(): Promise<ServiceSupabaseClient> {
-  const override = (globalThis as Record<PropertyKey, unknown>)[
-    SUPABASE_OVERRIDE_SYMBOL
-  ];
-  if (override) {
-    return override as ServiceSupabaseClient;
-  }
-
-  if (cachedClient) {
-    return cachedClient;
-  }
-
-  if (!SUPABASE_SERVICE_KEY) {
-    throw new Error("Supabase service role key is not configured");
-  }
-
-  const { createClient } = await loadSupabaseModule();
-  const client = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-    auth: { persistSession: false },
-  }) as unknown as ServiceSupabaseClient;
-  cachedClient = client;
-  return client;
+async function getSupabaseClient(): Promise<SupabaseClient> {
+  return await getServiceRoleSupabaseClient<
+    UserInteractionRow,
+    UserInteractionInsert
+  >();
 }
 
 async function resolveSession(): Promise<SessionLike> {
@@ -405,8 +365,20 @@ function chunkAnswer(answer: string): string[] {
   return tokens;
 }
 
-function streamChatResponse(payload: ChatRequestPayload, req: Request) {
+interface ChatTelemetryContext {
+  userId?: string;
+  telegramUserId?: string;
+  ipAddress?: string;
+  rateLimits: RateLimitDecisionSummary[];
+}
+
+function streamChatResponse(
+  payload: ChatRequestPayload,
+  req: Request,
+  telemetryContext: ChatTelemetryContext,
+) {
   const encoder = new TextEncoder();
+  const startedAt = Date.now();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -472,11 +444,36 @@ function streamChatResponse(payload: ChatRequestPayload, req: Request) {
           history,
           metadata: response.metadata,
         });
+
+        await logAiChatTelemetry({
+          event: "completion",
+          success: true,
+          sessionId: payload.sessionId,
+          userId: telemetryContext.userId,
+          telegramUserId: telemetryContext.telegramUserId,
+          ipAddress: telemetryContext.ipAddress,
+          rateLimits: telemetryContext.rateLimits,
+          latencyMs: Date.now() - startedAt,
+          metadata: response.metadata ?? undefined,
+          streamed: true,
+        });
       } catch (error) {
         console.error("Dynamic AI chat stream failed", error);
         const message = error instanceof Error
           ? error.message
           : "Dynamic AI chat failed";
+        await logAiChatTelemetry({
+          event: "completion",
+          success: false,
+          sessionId: payload.sessionId,
+          userId: telemetryContext.userId,
+          telegramUserId: telemetryContext.telegramUserId,
+          ipAddress: telemetryContext.ipAddress,
+          rateLimits: telemetryContext.rateLimits,
+          latencyMs: Date.now() - startedAt,
+          errorMessage: message,
+          streamed: true,
+        });
         send({ type: "error", message });
       } finally {
         controller.close();
@@ -525,6 +522,52 @@ export async function POST(req: Request) {
       payload = { ...payload, language: normalisedLanguage };
     }
 
+    const ipAddress = resolveClientIp(req);
+    const telegramUserId = payload.telegram?.id
+      ? String(payload.telegram.id)
+      : undefined;
+
+    const rateLimitResult = await enforceDynamicAiRateLimit({
+      userId: authResult.userId,
+      sessionId: payload.sessionId,
+    });
+
+    const telemetryBase = {
+      sessionId: payload.sessionId,
+      userId: authResult.userId,
+      telegramUserId,
+      ipAddress,
+      rateLimits: rateLimitResult.decisions,
+    } as const;
+
+    await logAiChatTelemetry({
+      event: "rate_limit",
+      status: rateLimitResult.allowed ? "allowed" : "blocked",
+      ...telemetryBase,
+      context: "ai_chat_rate_limit",
+    });
+
+    if (!rateLimitResult.allowed) {
+      const retryAfter = rateLimitResult.decisions
+        .filter((decision) => decision.blocked)
+        .reduce((max, decision) => Math.max(max, decision.resetSeconds), 0);
+
+      const init: ResponseInit = { status: 429 };
+      if (retryAfter > 0) {
+        init.headers = { "retry-after": String(retryAfter) };
+      }
+
+      return jsonResponse(
+        {
+          ok: false,
+          error: "Rate limit exceeded. Please try again later.",
+          limits: rateLimitResult.decisions,
+        },
+        init,
+        req,
+      );
+    }
+
     try {
       await persistMessage({
         sessionId: payload.sessionId,
@@ -542,8 +585,15 @@ export async function POST(req: Request) {
     const stream = url.searchParams.get("stream") === "1";
 
     if (stream) {
-      return streamChatResponse(payload, req);
+      return streamChatResponse(payload, req, {
+        userId: authResult.userId,
+        telegramUserId,
+        ipAddress,
+        rateLimits: rateLimitResult.decisions,
+      });
     }
+
+    const startedAt = Date.now();
 
     try {
       const prompt = buildPrompt(payload);
@@ -586,6 +636,18 @@ export async function POST(req: Request) {
       ]
         .slice(-MAX_HISTORY);
 
+      await logAiChatTelemetry({
+        event: "completion",
+        success: true,
+        sessionId: payload.sessionId,
+        userId: authResult.userId,
+        telegramUserId,
+        ipAddress,
+        rateLimits: rateLimitResult.decisions,
+        latencyMs: Date.now() - startedAt,
+        metadata: response.metadata ?? undefined,
+      });
+
       return jsonResponse(
         {
           ok: true,
@@ -598,6 +660,17 @@ export async function POST(req: Request) {
       );
     } catch (error) {
       console.error("Dynamic AI chat failed", error);
+      await logAiChatTelemetry({
+        event: "completion",
+        success: false,
+        sessionId: payload.sessionId,
+        userId: authResult.userId,
+        telegramUserId,
+        ipAddress,
+        rateLimits: rateLimitResult.decisions,
+        latencyMs: Date.now() - startedAt,
+        errorMessage: error instanceof Error ? error.message : undefined,
+      });
       return oops("Dynamic AI chat failed", error, req);
     }
   });
