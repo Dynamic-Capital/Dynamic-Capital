@@ -3,13 +3,20 @@
 import type { ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { Column, Heading, Line, Tag, Text } from "@/components/dynamic-ui-system";
+import {
+  Column,
+  Heading,
+  Line,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
 import type { TagProps } from "@/components/dynamic-ui-system/internal/components/Tag";
 import { Button as DynamicButton } from "@/components/dynamic-ui-system";
 import {
   getRouteById,
   getWorkspaceMeta,
   ROUTE_CATEGORY_STYLES,
+  type RouteCategoryId,
   type RouteId,
   type WorkspaceAction,
   type WorkspaceMeta,
@@ -18,6 +25,8 @@ import { cn } from "@/utils";
 import { LastMoveTicker } from "@/components/navigation/LastMoveTicker";
 import { dynamicBranding } from "@/resources";
 import { SkipLink, VisuallyHidden } from "@/components/ui/accessibility-utils";
+import { type BreadcrumbItem, Breadcrumbs } from "@/components/ui/breadcrumbs";
+import type { IconName } from "@/components/ui/icon";
 
 interface ToolWorkspaceLayoutProps {
   routeId: RouteId;
@@ -64,6 +73,16 @@ type LayoutTag = {
   tone?: WorkspaceTagTone;
 };
 
+const CATEGORY_ICON_MAP: Record<RouteCategoryId, IconName> = {
+  foundations: "Layers",
+  products: "ShoppingBag",
+  insights: "BarChart3",
+  operations: "Cog",
+  community: "Users",
+};
+
+const TOOLS_ICON: IconName = "LayoutGrid";
+
 function resolveActionVariant(
   emphasis: WorkspaceAction["emphasis"],
 ): "primary" | "secondary" | "tertiary" {
@@ -75,6 +94,15 @@ function resolveActionVariant(
     default:
       return "secondary";
   }
+}
+
+function toTitleCase(value: string) {
+  return value
+    .split(/[-_]/)
+    .map((segment) =>
+      segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
+    )
+    .join(" ");
 }
 
 function renderHeroTags(
@@ -146,7 +174,10 @@ function renderHeroActions(
   );
 }
 
-function renderHeroMetadata(route: ReturnType<typeof getRouteById>) {
+function renderHeroMetadata(
+  route: ReturnType<typeof getRouteById>,
+  labelId: string,
+) {
   if (!route) {
     return null;
   }
@@ -194,7 +225,15 @@ function renderHeroMetadata(route: ReturnType<typeof getRouteById>) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5" aria-labelledby={labelId}>
+      <Text
+        as="span"
+        id={labelId}
+        variant="label-default-s"
+        className="uppercase tracking-[0.28em] text-xs text-muted-foreground"
+      >
+        Workspace context
+      </Text>
       <Line background="neutral-alpha-weak" />
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
@@ -263,6 +302,7 @@ export function ToolWorkspaceLayout({
   const heroSectionId = `${routeId}-workspace-hero`;
   const mainRegionId = `${routeId}-workspace-main`;
   const utilitiesLabelId = `${routeId}-workspace-utilities`;
+  const heroContextLabelId = `${routeId}-workspace-context`;
   const heroTagsLabel = "Workspace focus areas";
   const heroActionsLabel = "Workspace quick actions";
   const skipLinkLabel = "Skip to workspace content";
@@ -278,9 +318,74 @@ export function ToolWorkspaceLayout({
     "Operate your Dynamic Capital workspace.";
   const heroEyebrow = meta?.eyebrow ?? route?.hint?.title ?? "Workspace";
   const fallbackTags = route?.tags ?? [];
-  const heroTagsContent = renderHeroTags(meta?.tags, fallbackTags, heroTagsLabel);
+  const heroBreadcrumbItems: BreadcrumbItem[] = [
+    {
+      label: "Dynamic tools",
+      href: "/tools",
+      icon: TOOLS_ICON,
+      status: "completed",
+    },
+  ];
+
+  if (route?.categoryId) {
+    heroBreadcrumbItems.push({
+      label: categoryStyle?.label ?? toTitleCase(route.categoryId),
+      icon: CATEGORY_ICON_MAP[route.categoryId],
+      status: "completed",
+    });
+  }
+
+  heroBreadcrumbItems.push({
+    label: heroTitle,
+    status: "current",
+  });
+
+  const heroIcon = route?.icon
+    ? (
+      <span
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-background/70 shadow-inner shadow-primary/10"
+        aria-hidden
+      >
+        <route.icon className="h-4 w-4 text-primary" aria-hidden />
+      </span>
+    )
+    : null;
+  const heroTagsContent = renderHeroTags(
+    meta?.tags,
+    fallbackTags,
+    heroTagsLabel,
+  );
   const heroActionsContent = renderHeroActions(meta?.actions, heroActionsLabel);
-  const heroMetadataContent = renderHeroMetadata(route);
+  const heroHintTitle = route?.hint?.title ?? "Workspace primer";
+  const heroHintDescription = route?.hint?.description;
+  const heroHintContent = heroHintDescription
+    ? (
+      <div className="max-w-xl rounded-2xl border border-white/10 bg-background/70 p-4 shadow-inner shadow-primary/5 backdrop-blur">
+        <Text
+          variant="label-default-s"
+          className="mb-2 uppercase tracking-[0.28em] text-xs text-muted-foreground"
+        >
+          {heroHintTitle}
+        </Text>
+        <Text
+          as="p"
+          variant="body-default-s"
+          onBackground="neutral-weak"
+          align="start"
+        >
+          {heroHintDescription}
+        </Text>
+      </div>
+    )
+    : null;
+  const heroMetadataContent = renderHeroMetadata(route, heroContextLabelId);
+  const commandMeta = route?.commandBar;
+  const commandGroupLabel = commandMeta
+    ? toTitleCase(commandMeta.group)
+    : undefined;
+  const commandMetaIcon = commandMeta?.icon
+    ? <commandMeta.icon className="h-4 w-4 text-primary" aria-hidden />
+    : null;
 
   const heroContent = (
     <div
@@ -318,7 +423,13 @@ export function ToolWorkspaceLayout({
       >
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-6 lg:max-w-3xl">
+            <Breadcrumbs
+              items={heroBreadcrumbItems}
+              size="compact"
+              className="max-w-full text-left"
+            />
             <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.28em] text-muted-foreground">
+              {heroIcon}
               <span className="rounded-full border border-white/20 bg-background/70 px-3 py-1">
                 {heroEyebrow}
               </span>
@@ -356,6 +467,7 @@ export function ToolWorkspaceLayout({
               </Text>
             </div>
             {heroTagsContent}
+            {heroHintContent}
           </div>
           {heroActionsContent
             ? (
@@ -426,9 +538,7 @@ export function ToolWorkspaceLayout({
             <VisuallyHidden id={utilitiesLabelId}>
               {utilitiesLabel}
             </VisuallyHidden>
-            <div
-              className="relative overflow-hidden rounded-[2.25rem] border border-border/60 bg-background/80 p-6 shadow-xl shadow-primary/10 backdrop-blur"
-            >
+            <div className="relative overflow-hidden rounded-[2.25rem] border border-border/60 bg-background/80 p-6 shadow-xl shadow-primary/10 backdrop-blur">
               <div
                 className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-primary/10 opacity-60"
                 aria-hidden
@@ -444,21 +554,45 @@ export function ToolWorkspaceLayout({
                   >
                     {utilitiesLabel}
                   </Text>
-                  {route?.surfaces?.length
-                    ? (
-                      <Tag
-                        size="s"
-                        background="neutral-alpha-weak"
-                        border="neutral-alpha-medium"
-                      >
-                        {route.surfaces.length} surfaces
-                      </Tag>
-                    )
-                    : null}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {commandGroupLabel
+                      ? (
+                        <Tag
+                          size="s"
+                          background="neutral-alpha-weak"
+                          border="neutral-alpha-medium"
+                        >
+                          {commandGroupLabel}
+                        </Tag>
+                      )
+                      : null}
+                    {route?.surfaces?.length
+                      ? (
+                        <Tag
+                          size="s"
+                          background="neutral-alpha-weak"
+                          border="neutral-alpha-medium"
+                        >
+                          {route.surfaces.length} surfaces
+                        </Tag>
+                      )
+                      : null}
+                  </div>
                 </div>
                 {commandBar
                   ? (
                     <div className="rounded-2xl border border-white/10 bg-background/70 p-4 shadow-inner shadow-primary/5">
+                      <div className="mb-3 flex items-center gap-2 text-left">
+                        {commandMetaIcon}
+                        <Text
+                          as="span"
+                          variant="body-default-xs"
+                          onBackground="neutral-weak"
+                          className="font-medium"
+                        >
+                          {commandMeta?.ctaLabel ?? "Workspace commands"}
+                        </Text>
+                      </div>
                       {commandBar}
                     </div>
                   )
