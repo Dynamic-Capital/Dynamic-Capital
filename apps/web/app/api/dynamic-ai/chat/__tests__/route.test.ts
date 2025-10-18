@@ -35,12 +35,20 @@ const SESSION_OVERRIDE_SYMBOL = Symbol.for(
   "dynamic-capital.dynamic-ai.session",
 );
 
+const AI_CHAT_TELEMETRY_OVERRIDE_SYMBOL = Symbol.for(
+  "dynamic-capital.ai-chat.telemetry",
+);
+
+const { resetDynamicAiRateLimiters } = await import(
+  "../../../../../services/rate-limit/dynamic-ai.ts"
+);
+
 interface SupabaseInsert {
   interaction_type: string;
   telegram_user_id: string;
   session_id: string;
   page_context: string;
-  interaction_data: { role: string; content: string; language?: string };
+  interaction_data: Record<string, unknown>;
 }
 
 function createSupabaseMock() {
@@ -78,6 +86,11 @@ function setEnv() {
   Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
   Deno.env.set("DYNAMIC_AI_CHAT_URL", "https://api.dynamiccapital.ton/chat");
   Deno.env.set("DYNAMIC_AI_CHAT_KEY", "dynamic-secret");
+  Deno.env.set("DYNAMIC_AI_CHAT_USER_LIMIT", "5");
+  Deno.env.set("DYNAMIC_AI_CHAT_USER_WINDOW_SECONDS", "60");
+  Deno.env.set("DYNAMIC_AI_CHAT_SESSION_LIMIT", "10");
+  Deno.env.set("DYNAMIC_AI_CHAT_SESSION_WINDOW_SECONDS", "300");
+  resetDynamicAiRateLimiters();
 }
 
 Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () => {
@@ -89,6 +102,13 @@ Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () =
     createNoopApiMetrics();
   (globalThis as Record<PropertyKey, unknown>)[SESSION_OVERRIDE_SYMBOL] =
     async () => ({ user: { id: "session-user" } });
+
+  const telemetryEvents: Record<string, unknown>[] = [];
+  (globalThis as Record<PropertyKey, unknown>)[
+    AI_CHAT_TELEMETRY_OVERRIDE_SYMBOL
+  ] = async (event: Record<string, unknown>) => {
+    telemetryEvents.push(event);
+  };
 
   const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> =
     [];
@@ -114,56 +134,87 @@ Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () =
     language: "dv",
   } as const;
 
-  const response = await POST(
-    new Request("http://localhost/api/dynamic-ai/chat", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: { "content-type": "application/json" },
-    }),
-  );
+  try {
+    const response = await POST(
+      new Request("http://localhost/api/dynamic-ai/chat", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "content-type": "application/json" },
+      }),
+    );
 
-  assertEquals(response.status, 200);
-  const payload = await response.json() as {
-    ok?: boolean;
-    assistantMessage?: { role: string; content: string };
-    history?: Array<{ role: string; content: string }>;
-    metadata?: Record<string, unknown>;
-  };
+    assertEquals(response.status, 200);
+    const payload = await response.json() as {
+      ok?: boolean;
+      assistantMessage?: { role: string; content: string };
+      history?: Array<{ role: string; content: string }>;
+      metadata?: Record<string, unknown>;
+    };
 
-  assertCondition(payload.ok === true, "expected ok response");
-  assertEquals(payload.assistantMessage?.content, "Desk is online");
-  assertEquals(
-    (payload.assistantMessage as { language?: string } | undefined)?.language,
-    "dv",
-  );
-  assertCondition(
-    payload.history?.length === 2,
-    "expected history to include user and assistant",
-  );
-  assertEquals(supabaseMock.inserts.length, 2);
-  assertEquals(supabaseMock.inserts[0]?.interaction_data.content, "Hello desk");
-  assertEquals(supabaseMock.inserts[0]?.interaction_data.language, "dv");
-  assertEquals(
-    supabaseMock.inserts[1]?.interaction_data.content,
-    "Desk is online",
-  );
-  assertEquals(supabaseMock.inserts[1]?.interaction_data.language, "dv");
-  assertEquals(fetchCalls.length, 1, "dynamic AI should be called once");
-  const requestPayload = JSON.parse(
-    String(fetchCalls[0]?.init?.body ?? "{}"),
-  ) as Record<string, unknown>;
-  assertEquals(requestPayload.language, "dv");
+    assertCondition(payload.ok === true, "expected ok response");
+    assertEquals(payload.assistantMessage?.content, "Desk is online");
+    assertEquals(
+      (payload.assistantMessage as { language?: string } | undefined)?.language,
+      "dv",
+    );
+    assertCondition(
+      payload.history?.length === 2,
+      "expected history to include user and assistant",
+    );
 
-  delete (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL];
-  delete (globalThis as Record<PropertyKey, unknown>)[
-    DYNAMIC_AI_FETCH_OVERRIDE
-  ];
-  delete (globalThis as Record<PropertyKey, unknown>)[
-    API_METRICS_OVERRIDE_SYMBOL
-  ];
-  delete (globalThis as Record<PropertyKey, unknown>)[
-    SESSION_OVERRIDE_SYMBOL
-  ];
+    const chatInserts = supabaseMock.inserts.filter((insert) =>
+      insert.interaction_type === "ai_chat"
+    );
+    assertEquals(chatInserts.length, 2);
+    const firstEntry = chatInserts[0]?.interaction_data as {
+      content?: string;
+      language?: string;
+    };
+    const secondEntry = chatInserts[1]?.interaction_data as {
+      content?: string;
+      language?: string;
+    };
+    assertEquals(firstEntry?.content, "Hello desk");
+    assertEquals(firstEntry?.language, "dv");
+    assertEquals(secondEntry?.content, "Desk is online");
+    assertEquals(secondEntry?.language, "dv");
+
+    assertEquals(fetchCalls.length, 1, "dynamic AI should be called once");
+    const requestPayload = JSON.parse(
+      String(fetchCalls[0]?.init?.body ?? "{}"),
+    ) as Record<string, unknown>;
+    assertEquals(requestPayload.language, "dv");
+
+    const rateEvent = telemetryEvents.find((event) =>
+      (event.event as string | undefined) === "rate_limit"
+    );
+    assertCondition(rateEvent !== undefined, "expected rate limit telemetry");
+    assertEquals(rateEvent?.status, "allowed");
+    const completionEvent = telemetryEvents.find((event) =>
+      (event.event as string | undefined) === "completion"
+    );
+    assertCondition(
+      completionEvent !== undefined,
+      "expected completion telemetry",
+    );
+    assertEquals(completionEvent?.success, true);
+  } finally {
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      SUPABASE_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      DYNAMIC_AI_FETCH_OVERRIDE
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      API_METRICS_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      SESSION_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      AI_CHAT_TELEMETRY_OVERRIDE_SYMBOL
+    ];
+  }
 });
 
 async function collectSseEvents(response: Response) {
@@ -209,6 +260,13 @@ Deno.test("POST /api/dynamic-ai/chat streams realtime updates", async () => {
   (globalThis as Record<PropertyKey, unknown>)[SESSION_OVERRIDE_SYMBOL] =
     async () => ({ user: { id: "session-user" } });
 
+  const telemetryEvents: Record<string, unknown>[] = [];
+  (globalThis as Record<PropertyKey, unknown>)[
+    AI_CHAT_TELEMETRY_OVERRIDE_SYMBOL
+  ] = async (event: Record<string, unknown>) => {
+    telemetryEvents.push(event);
+  };
+
   (globalThis as Record<PropertyKey, unknown>)[DYNAMIC_AI_FETCH_OVERRIDE] =
     async () =>
       new Response(
@@ -227,53 +285,73 @@ Deno.test("POST /api/dynamic-ai/chat streams realtime updates", async () => {
     history: [],
   } as const;
 
-  const response = await POST(
-    new Request("http://localhost/api/dynamic-ai/chat?stream=1", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: { "content-type": "application/json" },
-    }),
-  );
+  try {
+    const response = await POST(
+      new Request("http://localhost/api/dynamic-ai/chat?stream=1", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "content-type": "application/json" },
+      }),
+    );
 
-  assertEquals(response.status, 200);
-  const contentType = response.headers.get("content-type") ?? "";
-  assertCondition(
-    contentType.includes("text/event-stream"),
-    "expected SSE content type",
-  );
+    assertEquals(response.status, 200);
+    const contentType = response.headers.get("content-type") ?? "";
+    assertCondition(
+      contentType.includes("text/event-stream"),
+      "expected SSE content type",
+    );
 
-  const events = await collectSseEvents(response);
-  assertCondition(events.length >= 2, "expected multiple SSE events");
-  assertEquals(events[0]?.type, "ack");
+    const events = await collectSseEvents(response);
+    assertCondition(events.length >= 2, "expected multiple SSE events");
+    assertEquals(events[0]?.type, "ack");
 
-  const tokenEvents = events.filter((event) => event.type === "token");
-  const doneEvent = events.find((event) => event.type === "done");
-  assertCondition(tokenEvents.length > 0, "expected token events");
-  const finalContent = tokenEvents[tokenEvents.length - 1]?.content;
-  assertEquals(finalContent, "Desk is online");
-  assertCondition(doneEvent !== undefined, "expected done event");
-  assertEquals(Array.isArray(doneEvent?.history), true, "done history array");
-  assertCondition(
-    (doneEvent?.history as unknown[] | undefined)?.length === 2,
-    "expected streamed history",
-  );
+    const tokenEvents = events.filter((event) => event.type === "token");
+    const doneEvent = events.find((event) => event.type === "done");
+    assertCondition(tokenEvents.length > 0, "expected token events");
+    const finalContent = tokenEvents[tokenEvents.length - 1]?.content;
+    assertEquals(finalContent, "Desk is online");
+    assertCondition(doneEvent !== undefined, "expected done event");
+    assertEquals(Array.isArray(doneEvent?.history), true, "done history array");
+    assertCondition(
+      (doneEvent?.history as unknown[] | undefined)?.length === 2,
+      "expected streamed history",
+    );
 
-  assertEquals(supabaseMock.inserts.length, 2);
-  assertEquals(
-    supabaseMock.inserts[1]?.interaction_data.content,
-    "Desk is online",
-  );
+    const chatInserts = supabaseMock.inserts.filter((insert) =>
+      insert.interaction_type === "ai_chat"
+    );
+    assertEquals(chatInserts.length, 2);
+    const assistantInsert = chatInserts[1]?.interaction_data as {
+      content?: string;
+    };
+    assertEquals(assistantInsert?.content, "Desk is online");
 
-  delete (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL];
-  delete (globalThis as Record<PropertyKey, unknown>)[
-    DYNAMIC_AI_FETCH_OVERRIDE
-  ];
-  delete (globalThis as Record<PropertyKey, unknown>)[
-    API_METRICS_OVERRIDE_SYMBOL
-  ];
-  delete (globalThis as Record<PropertyKey, unknown>)[
-    SESSION_OVERRIDE_SYMBOL
-  ];
+    const completionEvent = telemetryEvents.find((event) =>
+      (event.event as string | undefined) === "completion"
+    );
+    assertCondition(
+      completionEvent !== undefined,
+      "expected completion telemetry",
+    );
+    assertEquals(completionEvent?.success, true);
+    assertEquals(completionEvent?.streamed, true);
+  } finally {
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      SUPABASE_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      DYNAMIC_AI_FETCH_OVERRIDE
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      API_METRICS_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      SESSION_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      AI_CHAT_TELEMETRY_OVERRIDE_SYMBOL
+    ];
+  }
 });
 
 Deno.test("GET /api/dynamic-ai/chat returns persisted history", async () => {
@@ -355,6 +433,109 @@ Deno.test(
     ];
   },
 );
+
+Deno.test("POST /api/dynamic-ai/chat enforces rate limits", async () => {
+  setEnv();
+  Deno.env.set("DYNAMIC_AI_CHAT_USER_LIMIT", "1");
+  Deno.env.set("DYNAMIC_AI_CHAT_SESSION_LIMIT", "1");
+  resetDynamicAiRateLimiters();
+
+  const supabaseMock = createSupabaseMock();
+  (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL] =
+    supabaseMock;
+  (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
+    createNoopApiMetrics();
+  (globalThis as Record<PropertyKey, unknown>)[SESSION_OVERRIDE_SYMBOL] =
+    async () => ({ user: { id: "rate-user" } });
+
+  const telemetryEvents: Record<string, unknown>[] = [];
+  (globalThis as Record<PropertyKey, unknown>)[
+    AI_CHAT_TELEMETRY_OVERRIDE_SYMBOL
+  ] = async (event: Record<string, unknown>) => {
+    telemetryEvents.push(event);
+  };
+
+  const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> =
+    [];
+  (globalThis as Record<PropertyKey, unknown>)[DYNAMIC_AI_FETCH_OVERRIDE] =
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      fetchCalls.push({ input, init });
+      return new Response(
+        JSON.stringify({ answer: "OK", metadata: {} }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      );
+    };
+
+  const { POST } = await import("../route.ts");
+
+  const request = () =>
+    new Request("http://localhost/api/dynamic-ai/chat", {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: "limited-session",
+        message: "Ping",
+        history: [],
+      }),
+      headers: { "content-type": "application/json" },
+    });
+
+  try {
+    const first = await POST(request());
+    assertEquals(first.status, 200);
+    await first.json();
+
+    const second = await POST(request());
+    assertEquals(second.status, 429);
+    const payload = await second.json() as {
+      ok?: boolean;
+      error?: string;
+      limits?: Array<{ blocked?: boolean }>;
+    };
+
+    assertCondition(payload.ok === false, "expected rate limit failure");
+    assertEquals(
+      payload.error,
+      "Rate limit exceeded. Please try again later.",
+    );
+    assertCondition(Array.isArray(payload.limits), "expected limits array");
+    assertCondition(
+      payload.limits?.some((entry) => entry.blocked === true) ?? false,
+      "expected blocked limiter",
+    );
+
+    assertEquals(fetchCalls.length, 1, "second call should not reach backend");
+
+    const chatInserts = supabaseMock.inserts.filter((insert) =>
+      insert.interaction_type === "ai_chat"
+    );
+    assertEquals(chatInserts.length, 2);
+
+    const blockedEvent = telemetryEvents.find((event) =>
+      (event.event as string | undefined) === "rate_limit" &&
+      event.status === "blocked"
+    );
+    assertCondition(blockedEvent !== undefined, "expected blocked telemetry");
+  } finally {
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      SUPABASE_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      DYNAMIC_AI_FETCH_OVERRIDE
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      API_METRICS_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      SESSION_OVERRIDE_SYMBOL
+    ];
+    delete (globalThis as Record<PropertyKey, unknown>)[
+      AI_CHAT_TELEMETRY_OVERRIDE_SYMBOL
+    ];
+  }
+});
 
 Deno.test(
   "POST /api/dynamic-ai/chat rejects whitespace-only inputs",
