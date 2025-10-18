@@ -743,8 +743,11 @@ async function handler(req, res) {
   );
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "authorization, x-client-info, apikey, content-type, x-admin-secret, x-requested-with, accept, origin",
+    "authorization, x-client-info, apikey, content-type, x-admin-token, x-admin-secret, x-telegram-init-data, x-requested-with, accept, origin",
   );
+  if (!allowAllOrigins) {
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
   res.setHeader("Access-Control-Max-Age", "86400");
   res.setHeader(
     "Strict-Transport-Security",
