@@ -12,8 +12,6 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-
-import { callEdgeFunction } from "@/config/supabase";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
@@ -27,17 +25,17 @@ export function AdminGate({ children, fallback }: AdminGateProps) {
     isAdmin,
     initData,
     loading,
-    validatedAdminToken,
-    validatingAdminToken,
-    adminTokenError,
-    refreshValidatedAdminToken,
+    adminSession,
+    validatingAdminSession,
+    adminSessionError,
+    establishAdminSession,
   } = useTelegramAuth();
   const { toast } = useToast();
   const [manualInitData, setManualInitData] = useState("");
   const [manualAdminToken, setManualAdminToken] = useState("");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  const isCheckingAccess = loading || validatingAdminToken;
+  const isCheckingAccess = loading || validatingAdminSession;
 
   if (isCheckingAccess) {
     return (
@@ -55,40 +53,22 @@ export function AdminGate({ children, fallback }: AdminGateProps) {
     );
   }
 
-  if ((isAdmin && initData) || validatedAdminToken) {
+  if (isAdmin && (initData || adminSession)) {
     return <>{children}</>;
   }
 
   const authenticateWithInitData = async (data: string) => {
     setIsAuthenticating(true);
     try {
-      const { data: response, error } = await callEdgeFunction<
-        { token?: string; error?: string }
-      >("ADMIN_SESSION", {
-        method: "POST",
-        body: { initData: data },
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (response?.token) {
-        const { valid, error: validationError } =
-          await refreshValidatedAdminToken(response.token);
-        if (valid) {
-          setManualInitData("");
-          toast({
-            title: "Authenticated",
-            description: "Admin privileges unlocked",
-          });
-        } else {
-          throw new Error(
-            validationError ?? "Admin token rejected by server",
-          );
-        }
+      const result = await establishAdminSession({ initData: data });
+      if (result.ok) {
+        setManualInitData("");
+        toast({
+          title: "Authenticated",
+          description: "Admin privileges unlocked",
+        });
       } else {
-        throw new Error(response?.error || "Authentication failed");
+        throw new Error(result.error ?? "Authentication failed");
       }
     } catch (err) {
       console.error("Admin auth failed", err);
@@ -127,8 +107,8 @@ export function AdminGate({ children, fallback }: AdminGateProps) {
       return;
     }
 
-    const result = await refreshValidatedAdminToken(trimmedToken);
-    if (result.valid) {
+    const result = await establishAdminSession({ token: trimmedToken });
+    if (result.ok) {
       setManualAdminToken("");
       toast({
         title: "Admin token accepted",
@@ -192,14 +172,14 @@ export function AdminGate({ children, fallback }: AdminGateProps) {
             Authenticate with Telegram initData or an existing admin token to
             open the control room.
           </Text>
-          {adminTokenError
+          {adminSessionError
             ? (
               <Text
                 variant="body-default-s"
                 onBackground="neutral-strong"
                 align="center"
               >
-                {adminTokenError}
+                {adminSessionError}
               </Text>
             )
             : null}
@@ -240,7 +220,7 @@ export function AdminGate({ children, fallback }: AdminGateProps) {
                   variant="secondary"
                   data-border="rounded"
                   onClick={() => authenticateWithInitData(initData)}
-                  disabled={isAuthenticating || validatingAdminToken}
+                  disabled={isAuthenticating || validatingAdminSession}
                 >
                   {isAuthenticating
                     ? "Authenticating…"
@@ -266,7 +246,7 @@ export function AdminGate({ children, fallback }: AdminGateProps) {
               data-border="rounded"
               onClick={handleManualAuth}
               disabled={!manualInitData.trim() || isAuthenticating ||
-                validatingAdminToken}
+                validatingAdminSession}
             >
               {isAuthenticating ? "Authenticating…" : "Manual authentication"}
             </Button>
@@ -276,9 +256,6 @@ export function AdminGate({ children, fallback }: AdminGateProps) {
               <Text variant="body-default-s" onBackground="neutral-weak">
                 Use admin token
               </Text>
-              <Tag size="s" prefixIcon="shield">
-                ADMIN
-              </Tag>
             </Row>
             <Input
               id="manual-admin-token"
@@ -287,18 +264,14 @@ export function AdminGate({ children, fallback }: AdminGateProps) {
               placeholder="Enter admin token"
               aria-label="Manual admin token"
             />
-            <Text variant="body-default-xs" onBackground="neutral-weak">
-              Tip: use <code>ADMIN</code>{" "}
-              for local development without Telegram initData.
-            </Text>
             <Button
               size="m"
               variant="secondary"
               data-border="rounded"
               onClick={handleManualTokenAuth}
-              disabled={!manualAdminToken.trim() || validatingAdminToken}
+              disabled={!manualAdminToken.trim() || validatingAdminSession}
             >
-              {validatingAdminToken ? "Validating…" : "Validate admin token"}
+              {validatingAdminSession ? "Validating…" : "Validate admin token"}
             </Button>
           </Column>
         </Column>

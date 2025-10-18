@@ -7,22 +7,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DynamicCliWorkbench } from "../DynamicCliWorkbench";
 import { DEFAULT_DYNAMIC_CLI_SCENARIO } from "@/services/dynamic-cli";
 
-const getAdminAuthMock = vi.fn<
-  () => { initData?: string; token?: string } | null
->(
-  () => ({ token: "test-admin-token" }),
-);
+let isAdminMock = true;
 
 vi.mock("@/hooks/useTelegramAuth", () => ({
   useTelegramAuth: () => ({
     telegramUser: null,
-    isAdmin: true,
     isVip: true,
     loading: false,
     initData: null,
+    adminSession: isAdminMock ? { userId: "123" } : null,
+    validatingAdminSession: false,
+    adminSessionError: null,
     verifyTelegramAuth: vi.fn(),
     checkAdminStatus: vi.fn(),
-    getAdminAuth: getAdminAuthMock,
+    isAdmin: isAdminMock,
+    refreshAdminSession: vi.fn(),
+    establishAdminSession: vi.fn(),
+    clearAdminSession: vi.fn(),
   }),
 }));
 
@@ -95,8 +96,7 @@ describe("DynamicCliWorkbench", () => {
     fetchMock.mockReset();
     createObjectUrlMock.mockReset();
     revokeObjectUrlMock.mockReset();
-    getAdminAuthMock.mockReset();
-    getAdminAuthMock.mockReturnValue({ token: "test-admin-token" });
+    isAdminMock = true;
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
     globalThis.URL.createObjectURL = createObjectUrlMock;
     globalThis.URL.revokeObjectURL = revokeObjectUrlMock;
@@ -135,9 +135,6 @@ describe("DynamicCliWorkbench", () => {
     expect(payload.format).toBe("text");
     expect(payload.exportDataset).toBe(false);
     expect(payload.scenario).toEqual(DEFAULT_DYNAMIC_CLI_SCENARIO);
-    expect((init?.headers as Record<string, string>).Authorization).toBe(
-      "Bearer test-admin-token",
-    );
 
     const report = await screen.findByLabelText(/dynamic cli report/i);
     expect(report).toHaveTextContent("CLI report");
@@ -175,8 +172,8 @@ describe("DynamicCliWorkbench", () => {
     expect(alert).toHaveTextContent(/invalid dynamic cli payload/i);
   });
 
-  it("blocks access when admin token is unavailable", () => {
-    getAdminAuthMock.mockReturnValue(null);
+  it("blocks access when admin session is unavailable", () => {
+    isAdminMock = false;
 
     render(<DynamicCliWorkbench />);
 

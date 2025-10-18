@@ -31,8 +31,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { callEdgeFunction } from "@/config/supabase";
+import { callAdminFunction } from "@/utils/admin-client";
 import { formatIsoDate, formatIsoTime } from "@/utils/isoFormat";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 interface Payment {
   id: string;
@@ -63,6 +64,7 @@ export function PaymentReview() {
   const [processing, setProcessing] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const { isAdmin } = useTelegramAuth();
 
   const fetchPayments = async () => {
     try {
@@ -96,7 +98,11 @@ export function PaymentReview() {
       setProcessing(paymentId);
       const { data: { user } } = await supabase.auth.getUser();
 
-      const { data, error } = await callEdgeFunction("ADMIN_REVIEW_PAYMENT", {
+      if (!isAdmin) {
+        throw new Error("No admin authentication available");
+      }
+
+      const { data, error } = await callAdminFunction("ADMIN_REVIEW_PAYMENT", {
         method: "POST",
         body: {
           payment_id: paymentId,

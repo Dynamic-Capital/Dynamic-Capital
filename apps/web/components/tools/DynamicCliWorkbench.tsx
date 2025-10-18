@@ -19,7 +19,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   DEFAULT_DYNAMIC_CLI_SCENARIO,
   type DynamicCliReportFormat,
-  type DynamicCliRequestOptions,
   type DynamicCliResponsePayload,
   type DynamicCliScenario,
   type DynamicCliScenarioDiagnostics,
@@ -64,9 +63,8 @@ function buildDefaultScenarioText(): string {
 }
 
 export function DynamicCliWorkbench() {
-  const { loading: adminLoading, getAdminAuth } = useTelegramAuth();
-  const adminAuth = useMemo(() => getAdminAuth?.() ?? null, [getAdminAuth]);
-  const hasAdminToken = Boolean(adminAuth?.token);
+  const { loading: adminLoading, isAdmin } = useTelegramAuth();
+  const hasAdminToken = isAdmin;
 
   const [scenarioText, setScenarioText] = useState(() =>
     buildDefaultScenarioText()
@@ -148,24 +146,17 @@ export function DynamicCliWorkbench() {
 
     setIsSubmitting(true);
     try {
-      const auth = getAdminAuth?.();
-      if (!auth?.token) {
-        setError(
-          "Admin session expired. Refresh your admin token and try again.",
-        );
+      if (!isAdmin) {
+        setError("Admin session expired. Refresh and try again.");
         return;
       }
-      const requestOptions: DynamicCliRequestOptions = {
-        adminToken: auth.token,
-        adminInitData: auth.initData,
-      };
       const response = await runDynamicCli({
         scenario: typedScenario,
         format,
         indent,
         fineTuneTags,
         exportDataset: resolvedDatasetPreference,
-      }, requestOptions);
+      });
       setResult(response);
     } catch (cliError) {
       const message = cliError instanceof Error
@@ -181,7 +172,7 @@ export function DynamicCliWorkbench() {
     resolvedDatasetPreference,
     fineTuneTags,
     scenarioDiagnostics,
-    getAdminAuth,
+    isAdmin,
   ]);
 
   const handleIndentChange = useCallback(

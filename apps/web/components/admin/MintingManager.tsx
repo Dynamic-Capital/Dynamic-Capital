@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { callEdgeFunction } from "@/config/supabase";
+import { callAdminFunction } from "@/utils/admin-client";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { formatIsoDateTime } from "@/utils/isoFormat";
@@ -77,7 +77,7 @@ const MINTING_DISABLED_MESSAGE =
   "DCT minting is permanently disabled after the jetton admin ownership was renounced. Supply remains hard-capped at 100M DCT.";
 
 export function MintingManager() {
-  const { getAdminAuth } = useTelegramAuth();
+  const { isAdmin } = useTelegramAuth();
   const { toast } = useToast();
   const [mintIndex, setMintIndex] = useState("");
   const [planName, setPlanName] = useState("");
@@ -89,9 +89,8 @@ export function MintingManager() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const adminAuth = useMemo(() => getAdminAuth(), [getAdminAuth]);
   const mintingDisabled = true;
-  const submitDisabled = mintingDisabled || !adminAuth || isSubmitting;
+  const submitDisabled = mintingDisabled || !isAdmin || isSubmitting;
 
   const handleReset = () => {
     setPlanName("");
@@ -111,15 +110,14 @@ export function MintingManager() {
       return;
     }
 
-    const parsedMintIndex = Number.parseInt(mintIndex, 10);
-    if (!Number.isInteger(parsedMintIndex) || parsedMintIndex < 0) {
-      setError("Mint index must be a non-negative integer.");
+    if (!isAdmin) {
+      setError("Admin authentication is required to start a mint.");
       return;
     }
 
-    const auth = getAdminAuth();
-    if (!auth) {
-      setError("Admin authentication is required to start a mint.");
+    const parsedMintIndex = Number.parseInt(mintIndex, 10);
+    if (!Number.isInteger(parsedMintIndex) || parsedMintIndex < 0) {
+      setError("Mint index must be a non-negative integer.");
       return;
     }
 
@@ -157,26 +155,14 @@ export function MintingManager() {
       payload.priority = Math.trunc(numericPriority);
     }
 
-    if (auth.initData) {
-      payload.initData = auth.initData;
-    }
-
-    const headers = auth.token
-      ? { "Authorization": `Bearer ${auth.token}` }
-      : undefined;
-
     setIsSubmitting(true);
     try {
-      const { data, error: functionError } = await callEdgeFunction<
+      const { data, error: functionError } = await callAdminFunction<
         StartMintingResponse
-      >(
-        "START_MINTING",
-        {
-          method: "POST",
-          headers,
-          body: payload,
-        },
-      );
+      >("START_MINTING", {
+        method: "POST",
+        body: payload,
+      });
 
       if (functionError) {
         throw new Error(functionError.message);
@@ -242,7 +228,7 @@ export function MintingManager() {
                 <AlertDescription>{MINTING_DISABLED_MESSAGE}</AlertDescription>
               </Alert>
             )
-            : !adminAuth
+            : !isAdmin
             ? (
               <Alert variant="destructive">
                 <AlertDescription>
