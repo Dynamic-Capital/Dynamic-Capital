@@ -45,4 +45,14 @@ if ! command -v deno >/dev/null 2>&1; then
   cmd="${BIN_PATH}"
 fi
 
-echo "env DENO_TLS_CA_STORE=system ${cmd}"
+extra_env="DENO_TLS_CA_STORE=system"
+
+# Deno 2 automatically inspects package.json when resolving bare specifiers,
+# which can trigger large npm downloads for commands that only target vendored
+# modules. Opt out of that behavior so scripted tasks stay fast and avoid the
+# UnknownIssuer TLS errors that motivated the OCR removal.
+if [ -z "${DENO_NO_PACKAGE_JSON:-}" ]; then
+  extra_env="${extra_env} DENO_NO_PACKAGE_JSON=1"
+fi
+
+echo "env ${extra_env} ${cmd}"
