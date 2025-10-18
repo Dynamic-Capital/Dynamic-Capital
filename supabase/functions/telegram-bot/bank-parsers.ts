@@ -16,6 +16,8 @@ export interface ParsedSlip {
   rawText: string;
 }
 
+type SlipStatus = Exclude<ParsedSlip["status"], null>;
+
 function toIsoFromDmy(dateStr: string): string | null {
   const m = dateStr.match(
     /(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}:\d{2}(?::\d{2})?)/,
@@ -67,7 +69,7 @@ export function parseBankSlip(ocrText: string): ParsedSlip {
     return m ? m[0].toUpperCase() : null;
   };
 
-  let status: "SUCCESS" | "FAILED" | "PENDING" | null = null;
+  let status: ParsedSlip["status"] = null;
   let reference: string | null = null;
   let fromName: string | null = null;
   let toName: string | null = null;
@@ -100,7 +102,7 @@ export function parseBankSlip(ocrText: string): ParsedSlip {
       }
     }
   } else if (bank === "MIB") {
-    const statusMatchers: Array<{ regex: RegExp; value: typeof status }> = [
+    const statusMatchers: Array<{ regex: RegExp; value: SlipStatus }> = [
       {
         regex: /Status\s*:?\s*(Successful|Sucessful|Completed)/i,
         value: "SUCCESS",

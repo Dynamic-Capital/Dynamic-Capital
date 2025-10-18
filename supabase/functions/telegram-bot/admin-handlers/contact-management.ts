@@ -16,6 +16,13 @@ type InlineKeyboard = {
   inline_keyboard: Array<Array<{ text: string; callback_data: string }>>;
 };
 
+function toContactArray(
+  input: ContactLink | ContactLink[] | null,
+): ContactLink[] {
+  if (!input) return [];
+  return Array.isArray(input) ? input : [input];
+}
+
 // Handle Contact Links Management
 export async function handleContactLinksManagement(
   chatId: number,
@@ -52,8 +59,10 @@ export async function handleContactLinksManagement(
 
 🔗 *Current Contact Links:*`;
 
-    if (contacts && contacts.length > 0) {
-      contacts.forEach((contact, index) => {
+    const contactList = toContactArray(contacts);
+
+    if (contactList.length > 0) {
+      contactList.forEach((contact, index) => {
         const status = contact.is_active ? "✅" : "❌";
         const emoji = contact.icon_emoji || "🔗";
         contactMessage += `
@@ -138,7 +147,9 @@ export async function handleEditContactLink(
       .order("display_order", { ascending: true })
       .limit(20);
 
-    if (error || !contacts || contacts.length === 0) {
+    const contactList = toContactArray(contacts);
+
+    if (error || contactList.length === 0) {
       await sendMessage(chatId, "❌ No contact links found to edit.");
       return;
     }
@@ -151,7 +162,7 @@ Select a contact link to edit:
 
     const keyboard: InlineKeyboard = { inline_keyboard: [] };
 
-    contacts.forEach((contact, index) => {
+    contactList.forEach((contact, index) => {
       const status = contact.is_active ? "✅" : "❌";
       const emoji = contact.icon_emoji || "🔗";
       message += `${
@@ -188,7 +199,9 @@ export async function handleToggleContactLink(
       .order("display_order", { ascending: true })
       .limit(20);
 
-    if (error || !contacts || contacts.length === 0) {
+    const contactList = toContactArray(contacts);
+
+    if (error || contactList.length === 0) {
       await sendMessage(chatId, "❌ No contact links found to toggle.");
       return;
     }
@@ -201,7 +214,7 @@ Select a contact link to toggle:
 
     const keyboard: InlineKeyboard = { inline_keyboard: [] };
 
-    contacts.forEach((contact, index) => {
+    contactList.forEach((contact, index) => {
       const status = contact.is_active ? "✅ Active" : "❌ Inactive";
       const emoji = contact.icon_emoji || "🔗";
       message += `${index + 1}. ${status} ${emoji} ${contact.display_name}\n`;
@@ -239,7 +252,9 @@ export async function handleDeleteContactLink(
       .order("display_order", { ascending: true })
       .limit(20);
 
-    if (error || !contacts || contacts.length === 0) {
+    const contactList = toContactArray(contacts);
+
+    if (error || contactList.length === 0) {
       await sendMessage(chatId, "❌ No contact links found to delete.");
       return;
     }
@@ -254,7 +269,7 @@ Select a contact link to delete:
 
     const keyboard: InlineKeyboard = { inline_keyboard: [] };
 
-    contacts.forEach((contact, index) => {
+    contactList.forEach((contact, index) => {
       const status = contact.is_active ? "✅" : "❌";
       const emoji = contact.icon_emoji || "🔗";
       message += `${
@@ -316,14 +331,18 @@ export async function processContactLinkOperation(
           .eq("id", contactId)
           .single();
 
-        if (fetchError || !contact) {
+        const contactRecord = Array.isArray(contact)
+          ? contact[0] ?? null
+          : contact;
+
+        if (fetchError || !contactRecord) {
           await sendMessage(chatId, "❌ Contact link not found.");
           return;
         }
 
         const { error: updateError } = await supabaseAdmin
           .from("contact_links")
-          .update({ is_active: !contact.is_active })
+          .update({ is_active: !contactRecord.is_active })
           .eq("id", contactId);
 
         if (updateError) {
@@ -334,15 +353,17 @@ export async function processContactLinkOperation(
         await logAdminAction(
           userId,
           "toggle_contact_link",
-          `Toggled contact link: ${contact.display_name}`,
+          `Toggled contact link: ${contactRecord.display_name}`,
           "contact_links",
           contactId,
         );
 
-        const newStatus = !contact.is_active ? "activated" : "deactivated";
+        const newStatus = !contactRecord.is_active
+          ? "activated"
+          : "deactivated";
         await sendMessage(
           chatId,
-          `✅ Contact link "${contact.display_name}" has been ${newStatus}.`,
+          `✅ Contact link "${contactRecord.display_name}" has been ${newStatus}.`,
         );
         break;
       }
@@ -356,7 +377,11 @@ export async function processContactLinkOperation(
           .returns<ContactLink>()
           .single();
 
-        if (deleteError) {
+        const deleteRecord = Array.isArray(deleteContact)
+          ? deleteContact[0] ?? null
+          : deleteContact;
+
+        if (deleteError || !deleteRecord) {
           await sendMessage(chatId, "❌ Failed to delete contact link.");
           return;
         }
@@ -364,14 +389,14 @@ export async function processContactLinkOperation(
         await logAdminAction(
           userId,
           "delete_contact_link",
-          `Deleted contact link: ${deleteContact.display_name}`,
+          `Deleted contact link: ${deleteRecord.display_name}`,
           "contact_links",
           contactId,
         );
 
         await sendMessage(
           chatId,
-          `✅ Contact link "${deleteContact.display_name}" has been deleted.`,
+          `✅ Contact link "${deleteRecord.display_name}" has been deleted.`,
         );
         break;
       }

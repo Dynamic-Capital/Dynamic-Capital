@@ -50,6 +50,7 @@ import {
   parseBankSlip as defaultParseBankSlip,
   type ParsedSlip,
 } from "./bank-parsers.ts";
+import { ocrTextFromBlob as defaultOcrTextFromBlob } from "./ocr.ts";
 // Type definition moved inline to avoid import issues
 interface Promotion {
   code: string;
@@ -188,26 +189,27 @@ function normalizeParseMode(parseMode: unknown): string {
 }
 
 function shouldEscapeHtml(parseMode: string): boolean {
-  return parseMode.toLowerCase() === "html";
+  // Preserve HTML tags when Telegram is explicitly rendering HTML and escape
+  // only for Markdown or other parse modes to avoid leaking markup.
+  return parseMode.toLowerCase() !== "html";
 }
 
 type OcrTextFromBlob = (blob: Blob) => Promise<string>;
 
-let cachedOcrTextFromBlob: OcrTextFromBlob | null = null;
+let cachedOcrTextFromBlob: OcrTextFromBlob | null = defaultOcrTextFromBlob;
 let ocrTextOverride: OcrTextFromBlob | null = null;
 let parseBankSlipImpl = defaultParseBankSlip;
 
 async function getOcrTextFromBlob(): Promise<OcrTextFromBlob> {
   if (ocrTextOverride) return ocrTextOverride;
   if (!cachedOcrTextFromBlob) {
-    const mod = await import("./ocr.ts");
-    cachedOcrTextFromBlob = mod.ocrTextFromBlob;
+    cachedOcrTextFromBlob = defaultOcrTextFromBlob;
   }
   return cachedOcrTextFromBlob;
 }
 
 export function __setReceiptParsingOverrides(overrides: {
-  ocrTextFromBlob?: typeof defaultOcrTextFromBlob;
+  ocrTextFromBlob?: OcrTextFromBlob;
   parseBankSlip?: typeof defaultParseBankSlip;
 }): void {
   if (overrides.ocrTextFromBlob) {
@@ -220,7 +222,7 @@ export function __setReceiptParsingOverrides(overrides: {
 
 export function __resetReceiptParsingOverrides(): void {
   ocrTextOverride = null;
-  cachedOcrTextFromBlob = null;
+  cachedOcrTextFromBlob = defaultOcrTextFromBlob;
   parseBankSlipImpl = defaultParseBankSlip;
 }
 
@@ -1932,8 +1934,11 @@ export async function startReceiptPipeline(
 
     let parsedSlip: ParsedSlip | null = null;
     try {
-      const ocrText = await (await getOcrTextFromBlob())(blob);
-      parsedSlip = parseBankSlipImpl(ocrText);
+      const ocrTextProvider = await getOcrTextFromBlob();
+      const ocrText = await ocrTextProvider(blob);
+      if (ocrText.trim()) {
+        parsedSlip = parseBankSlipImpl(ocrText);
+      }
     } catch (error) {
       console.error("Failed to OCR/parse bank slip", error);
     }

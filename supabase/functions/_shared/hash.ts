@@ -11,6 +11,9 @@ export async function hashBlob(blob: Blob): Promise<string> {
 }
 
 export async function hashBytes(data: Uint8Array): Promise<string> {
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    data as unknown as BufferSource,
+  );
   return bufferToHex(hashBuffer);
 }
