@@ -108,7 +108,7 @@ function printProviderSummary(summary: ProviderSummary): void {
       otherProviders.join(", "),
     );
     console.log(
-      "    Run `npm run env:sync` once Supabase secrets are up to date to propagate values.",
+      "    Run `npm run env:sync` to inspect provider state (append `-- --apply` to auto-fill missing Supabase secrets).",
     );
   }
 
