@@ -22,6 +22,7 @@ export interface SupabaseQueryBuilder<T = any>
   error: any;
   count: number | null;
   select: (...args: any[]) => SupabaseQueryBuilder<T>;
+  returns: <R = T>() => SupabaseQueryBuilder<R>;
   eq: (column: string, value: any) => SupabaseQueryBuilder<T>;
   gt: (column: string, value: any) => SupabaseQueryBuilder<T>;
   gte: (column: string, value: any) => SupabaseQueryBuilder<T>;
@@ -41,18 +42,45 @@ export interface SupabaseQueryBuilder<T = any>
   insert: (values: any, options?: any) => SupabaseQueryBuilder<T>;
   update: (values: any, options?: any) => SupabaseQueryBuilder<T>;
   upsert: (values: any, options?: any) => SupabaseQueryBuilder<T>;
+  delete: (...args: any[]) => SupabaseQueryBuilder<T>;
   then: SupabaseQueryResult<T>["then"];
   catch: SupabaseQueryResult<T>["catch"];
   finally: SupabaseQueryResult<T>["finally"];
 }
 
-export type SupabaseClient = {
-  from: (table: string) => SupabaseQueryBuilder;
-  rpc: (fn: string, params?: Record<string, unknown>) => SupabaseQueryResult;
+export type SupabaseStorageBucketApi = {
+  upload: (
+    path: string,
+    body: Blob | ArrayBuffer | Uint8Array,
+    options?: Record<string, unknown>,
+  ) => Promise<{ data: { path: string } | null; error: any }>;
+  remove: (
+    paths: string[],
+  ) => Promise<{ data: Array<{ path: string }> | null; error: any }>;
 };
 
-export const createClient = runtimeCreateClient as (
+export type SupabaseStorageClient = {
+  from: (bucket: string) => SupabaseStorageBucketApi;
+};
+
+export type SupabaseFunctionsClient = {
+  invoke: <T = unknown>(
+    fn: string,
+    options?: { body?: unknown; headers?: Record<string, string> },
+  ) => Promise<{ data: T | null; error: any }>;
+};
+
+export type SupabaseClient = {
+  from: <T = any>(table: string) => SupabaseQueryBuilder<T>;
+  rpc: (fn: string, params?: Record<string, unknown>) => SupabaseQueryResult;
+  storage: SupabaseStorageClient;
+  functions: SupabaseFunctionsClient;
+};
+
+export function createClient(
   url?: string,
   key?: string,
   options?: SupabaseClientOptions,
-) => SupabaseClient;
+): SupabaseClient {
+  return runtimeCreateClient(url, key, options) as unknown as SupabaseClient;
+}
