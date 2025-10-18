@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar, FileText, RefreshCw, Search } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
-import { callEdgeFunction } from "@/config/supabase";
+import { callAdminFunction } from "@/utils/admin-client";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 import { AdminListSkeleton } from "./AdminListSkeleton";
 
@@ -30,24 +30,21 @@ export function AdminLogs() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [limit, setLimit] = useState(50);
-  const { getAdminAuth } = useTelegramAuth();
+  const { isAdmin } = useTelegramAuth();
   const { toast } = useToast();
 
   const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
-        throw new Error("No admin authentication available");
+      if (!isAdmin) {
+        setLogs([]);
+        setLoading(false);
+        return;
       }
 
-      const { data, error } = await callEdgeFunction("ADMIN_LOGS", {
+      const { data, error } = await callAdminFunction("ADMIN_LOGS", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
         body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
           limit,
           offset: 0,
         },
@@ -72,7 +69,7 @@ export function AdminLogs() {
     } finally {
       setLoading(false);
     }
-  }, [getAdminAuth, limit, toast]);
+  }, [isAdmin, limit, toast]);
 
   useEffect(() => {
     loadLogs();

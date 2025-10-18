@@ -156,7 +156,10 @@ function verifyAdminToken(
 
   if (
     expectedSignature.length !== providedSignature.length ||
-    !timingSafeEqual(new Uint8Array(expectedSignature), new Uint8Array(providedSignature))
+    !timingSafeEqual(
+      new Uint8Array(expectedSignature),
+      new Uint8Array(providedSignature),
+    )
   ) {
     return null;
   }

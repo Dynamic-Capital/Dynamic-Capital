@@ -9,6 +9,11 @@ import {
 } from "react";
 import { buildFunctionUrl, callEdgeFunction } from "@/config/supabase";
 import {
+  clearAdminClientAuth,
+  setAdminClientInitData,
+  setAdminClientToken,
+} from "@/utils/admin-client";
+import {
   AdminCheckResponse,
   VerifyInitDataResponse,
   VipStatusResponse,
@@ -44,32 +49,6 @@ interface TelegramAuthContextType {
     options?: { silent?: boolean },
   ) => Promise<{ ok: boolean; error?: string }>;
   clearAdminSession: () => Promise<void>;
-}
-
-interface TelegramButtonControl {
-  show?: () => void;
-  hide?: () => void;
-  onClick?: (handler: () => void) => void;
-  offClick?: (handler: () => void) => void;
-  [key: string]: unknown;
-}
-
-interface TelegramInitDataUnsafe {
-  user?: TelegramUser;
-  [key: string]: unknown;
-}
-
-interface TelegramWebApp {
-  initData: string;
-  initDataUnsafe: TelegramInitDataUnsafe;
-  ready: () => void;
-  expand: () => void;
-  colorScheme: "light" | "dark";
-  onEvent?: (event: string, handler: () => void) => void;
-  offEvent?: (event: string, handler: () => void) => void;
-  MainButton: TelegramButtonControl;
-  BackButton: TelegramButtonControl;
-  [key: string]: unknown;
 }
 
 const TelegramAuthContext = createContext<TelegramAuthContextType | undefined>(
@@ -229,6 +208,7 @@ export function TelegramAuthProvider(
             : "Failed to establish admin session";
           setAdminSession(null);
           setIsAdmin(false);
+          clearAdminClientAuth();
           if (!silent) {
             setAdminSessionError(message);
           }
@@ -243,6 +223,23 @@ export function TelegramAuthProvider(
         });
         setAdminSessionError(null);
         setIsAdmin(true);
+        if (input.initData) {
+          setInitData(input.initData);
+          setAdminClientInitData(input.initData);
+        } else {
+          const inferredInitData = typeof data?.initData === "string"
+            ? data.initData
+            : typeof data?.init_data === "string"
+            ? data.init_data
+            : undefined;
+          if (inferredInitData) {
+            setInitData(inferredInitData);
+            setAdminClientInitData(inferredInitData);
+          }
+        }
+        if (input.token) {
+          setAdminClientToken(input.token);
+        }
         return { ok: true };
       } catch (error) {
         const message = error instanceof Error
@@ -251,6 +248,7 @@ export function TelegramAuthProvider(
         console.error("Failed to establish admin session:", error);
         setAdminSession(null);
         setIsAdmin(false);
+        clearAdminClientAuth();
         if (!silent) {
           setAdminSessionError(message);
         }
@@ -322,6 +320,7 @@ export function TelegramAuthProvider(
           setAdminSession(null);
           setIsAdmin(false);
           setAdminSessionError(message);
+          clearAdminClientAuth();
           return { ok: false, error: message };
         }
 
@@ -333,6 +332,15 @@ export function TelegramAuthProvider(
         });
         setAdminSessionError(null);
         setIsAdmin(true);
+        const initDataValue = typeof data?.initData === "string"
+          ? data.initData
+          : typeof data?.init_data === "string"
+          ? data.init_data
+          : undefined;
+        if (initDataValue) {
+          setInitData(initDataValue);
+          setAdminClientInitData(initDataValue);
+        }
         return { ok: true };
       } catch (error) {
         const message = error instanceof Error
@@ -342,6 +350,7 @@ export function TelegramAuthProvider(
         setAdminSession(null);
         setIsAdmin(false);
         setAdminSessionError(message);
+        clearAdminClientAuth();
         return { ok: false, error: message };
       } finally {
         setValidatingAdminSession(false);
@@ -362,6 +371,7 @@ export function TelegramAuthProvider(
       setAdminSession(null);
       setAdminSessionError(null);
       setIsAdmin(false);
+      clearAdminClientAuth();
     }
   }, []);
 
@@ -370,6 +380,7 @@ export function TelegramAuthProvider(
       const tg = globalThis.Telegram.WebApp;
       const telegramInitData = tg.initData;
       setInitData(telegramInitData);
+      setAdminClientInitData(telegramInitData);
 
       if (telegramInitData && tg.initDataUnsafe?.user) {
         const user = tg.initDataUnsafe.user as TelegramUser;
@@ -418,13 +429,4 @@ export function useTelegramAuth() {
     );
   }
   return context;
-}
-
-// Type declaration for window.Telegram
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: TelegramWebApp;
-    };
-  }
 }

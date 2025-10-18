@@ -50,9 +50,7 @@ declare const Deno: {
 const ADMIN_SECRET = "test-admin-secret";
 
 function base64UrlEncode(input: string | Buffer): string {
-  const buffer = typeof input === "string"
-    ? Buffer.from(input)
-    : input;
+  const buffer = typeof input === "string" ? Buffer.from(input) : input;
 
   return buffer
     .toString("base64")

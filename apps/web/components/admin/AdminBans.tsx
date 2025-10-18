@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar, Plus, RefreshCw, Shield, UserX } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
-import { callEdgeFunction } from "@/config/supabase";
+import { callAdminFunction } from "@/utils/admin-client";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 import { AdminListSkeleton } from "./AdminListSkeleton";
 
@@ -30,26 +30,21 @@ export function AdminBans() {
   const [newReason, setNewReason] = useState("");
   const [newExpiration, setNewExpiration] = useState("");
   const [isAddingBan, setIsAddingBan] = useState(false);
-  const { getAdminAuth } = useTelegramAuth();
+  const { isAdmin } = useTelegramAuth();
   const { toast } = useToast();
 
   const loadBans = useCallback(async () => {
     setLoading(true);
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
-        throw new Error("No admin authentication available");
+      if (!isAdmin) {
+        setBans([]);
+        setLoading(false);
+        return;
       }
 
-      const { data, error } = await callEdgeFunction("ADMIN_BANS", {
+      const { data, error } = await callAdminFunction("ADMIN_BANS", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
-        body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
-          action: "list",
-        },
+        body: { action: "list" },
       });
 
       if (error) {
@@ -67,7 +62,7 @@ export function AdminBans() {
     } finally {
       setLoading(false);
     }
-  }, [getAdminAuth]);
+  }, [isAdmin]);
 
   const addBan = async () => {
     if (!newTelegramId.trim()) {
@@ -81,18 +76,13 @@ export function AdminBans() {
 
     setIsAddingBan(true);
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
+      if (!isAdmin) {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction("ADMIN_BANS", {
+      const { data, error } = await callAdminFunction("ADMIN_BANS", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
         body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
           action: "add",
           telegram_id: newTelegramId,
           reason: newReason || undefined,
@@ -132,18 +122,13 @@ export function AdminBans() {
 
   const removeBan = async (banId: string) => {
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
+      if (!isAdmin) {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction("ADMIN_BANS", {
+      const { data, error } = await callAdminFunction("ADMIN_BANS", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
         body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
           action: "remove",
           ban_id: banId,
         },
