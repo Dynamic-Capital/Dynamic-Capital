@@ -212,16 +212,20 @@ async function waitForNextArtifacts({
 }
 
 async function runCopyStatic({ copyOnly, extraEnv = {} }) {
+  const env = {
+    ALLOW_NEXT_RUNTIME_FALLBACKS: "1",
+    ...extraEnv,
+  };
   if (copyOnly) {
     return runCommand(npmCommand, ["run", "copy-static"], {
       cwd: webWorkspace,
-      env: extraEnv,
+      env,
     });
   }
 
   return runCommand(npxCommand, ["tsx", "../../scripts/copy-static.ts"], {
     cwd: webWorkspace,
-    env: extraEnv,
+    env,
   });
 }
 

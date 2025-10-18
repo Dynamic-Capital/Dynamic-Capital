@@ -9,6 +9,10 @@ if (!process.env.DISABLE_HTTP_REDIRECTS) {
   process.env.DISABLE_HTTP_REDIRECTS = "true";
 }
 
+if (!process.env.ALLOW_NEXT_RUNTIME_FALLBACKS) {
+  process.env.ALLOW_NEXT_RUNTIME_FALLBACKS = "true";
+}
+
 const root = process.cwd();
 const projectRoot = join(root, "..", "..");
 const runNextBuildScript = join(projectRoot, "scripts", "run-next-build.mjs");
