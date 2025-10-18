@@ -58,12 +58,25 @@ function resolveStrictString(
   fallback: string,
   aliases: readonly string[] = [],
 ): string {
+  const isBuildPhase =
+    typeof process !== "undefined" &&
+    typeof process.env?.NEXT_PHASE === "string" &&
+    process.env.NEXT_PHASE === "phase-production-build";
+  const allowRuntimeFallbacks =
+    typeof process !== "undefined" &&
+    typeof process.env?.ALLOW_NEXT_RUNTIME_FALLBACKS === "string" &&
+    /^(1|true|yes)$/i.test(process.env.ALLOW_NEXT_RUNTIME_FALLBACKS);
   const value = getEnvVar(key, aliases);
   if (value) {
     return value;
   }
 
-  if (isDevelopment) {
+  if (isDevelopment || isBuildPhase || allowRuntimeFallbacks) {
+    if (isBuildPhase || allowRuntimeFallbacks) {
+      console.warn(
+        `Missing required env: ${key}. Using build fallback to allow Next.js compilation.`,
+      );
+    }
     return fallback;
   }
 

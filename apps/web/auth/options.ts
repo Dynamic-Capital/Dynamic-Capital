@@ -10,12 +10,32 @@ function resolveRequiredEnv(
   aliases: readonly string[] = [],
   devFallback?: string,
 ): string {
+  const isBuildPhase =
+    typeof process !== "undefined" &&
+    typeof process.env?.NEXT_PHASE === "string" &&
+    process.env.NEXT_PHASE === "phase-production-build";
+  const allowRuntimeFallbacks =
+    typeof process !== "undefined" &&
+    typeof process.env?.ALLOW_NEXT_RUNTIME_FALLBACKS === "string" &&
+    /^(1|true|yes)$/i.test(process.env.ALLOW_NEXT_RUNTIME_FALLBACKS);
   try {
     return requireEnvVar(key, aliases);
   } catch (error) {
-    if (isDevelopment && devFallback !== undefined) {
+    if (devFallback === undefined) {
+      throw error;
+    }
+
+    if (isDevelopment || allowRuntimeFallbacks) {
       return devFallback;
     }
+
+    if (isBuildPhase) {
+      console.warn(
+        `Missing required env: ${key}. Using build fallback to allow Next.js compilation.`,
+      );
+      return devFallback;
+    }
+
     throw error;
   }
 }
