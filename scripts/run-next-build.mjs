@@ -82,6 +82,10 @@ const augmentedEnv = {
   PATH: existingPathEntries.join(path.delimiter),
 };
 
+if (typeof augmentedEnv.ALLOW_NEXT_RUNTIME_FALLBACKS !== "string") {
+  augmentedEnv.ALLOW_NEXT_RUNTIME_FALLBACKS = "1";
+}
+
 async function pathExists(targetPath) {
   try {
     await stat(targetPath);
