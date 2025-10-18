@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { Column, Heading, Tag, Text } from "@/components/dynamic-ui-system";
+import { Column, Heading, Line, Tag, Text } from "@/components/dynamic-ui-system";
 import type { TagProps } from "@/components/dynamic-ui-system/internal/components/Tag";
 import { Button as DynamicButton } from "@/components/dynamic-ui-system";
 import {
@@ -92,7 +92,7 @@ function renderHeroTags(
 
   return (
     <ul
-      className="flex flex-wrap items-center justify-center gap-2"
+      className="flex flex-wrap items-center gap-2 md:justify-start"
       aria-label={ariaLabel}
     >
       {content.map((tag) => {
@@ -122,14 +122,15 @@ function renderHeroActions(
   }
 
   return (
-    <nav aria-label={ariaLabel} className="flex justify-center">
-      <ul className="flex flex-wrap items-center justify-center gap-3">
+    <nav aria-label={ariaLabel} className="w-full">
+      <ul className="flex flex-col gap-3">
         {actions.map((action) => (
           <li key={action.href} className="flex">
             <DynamicButton
               size="s"
               variant={resolveActionVariant(action.emphasis)}
               href={action.href}
+              className="w-full justify-between"
             >
               <span className="flex items-center gap-2">
                 {action.icon
@@ -142,6 +143,100 @@ function renderHeroActions(
         ))}
       </ul>
     </nav>
+  );
+}
+
+function renderHeroMetadata(route: ReturnType<typeof getRouteById>) {
+  if (!route) {
+    return null;
+  }
+
+  type HeroMetaCard = {
+    key: string;
+    label: string;
+    value: string;
+    items?: string[];
+  };
+
+  const surfaces = route.surfaces ?? [];
+  const tonSignals = route.tonSignals ?? [];
+
+  const cards: HeroMetaCard[] = [];
+
+  if (route.owner) {
+    cards.push({
+      key: "owner",
+      label: "Owner",
+      value: route.owner,
+    });
+  }
+
+  if (surfaces.length) {
+    cards.push({
+      key: "surfaces",
+      label: "Surfaces",
+      value: `${surfaces.length} surface${surfaces.length === 1 ? "" : "s"}`,
+      items: surfaces,
+    });
+  }
+
+  if (tonSignals.length) {
+    cards.push({
+      key: "signals",
+      label: "TON signals",
+      value: `${tonSignals.length} signal${tonSignals.length === 1 ? "" : "s"}`,
+      items: tonSignals,
+    });
+  }
+
+  if (!cards.length) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <Line background="neutral-alpha-weak" />
+      <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((card) => (
+          <div
+            key={card.key}
+            className="rounded-2xl border border-white/10 bg-background/75 p-4 shadow-inner shadow-primary/5 backdrop-blur"
+          >
+            <Text
+              as="dt"
+              variant="label-default-xs"
+              className="uppercase tracking-[0.28em] text-xs text-muted-foreground"
+            >
+              {card.label}
+            </Text>
+            <Heading
+              as="dd"
+              variant="heading-strong-xs"
+              className="mt-3 text-foreground"
+            >
+              {card.value}
+            </Heading>
+            {card.items?.length
+              ? (
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {card.items.map((item) => (
+                    <li key={item}>
+                      <Tag
+                        size="s"
+                        background="neutral-alpha-weak"
+                        border="neutral-alpha-medium"
+                      >
+                        {item}
+                      </Tag>
+                    </li>
+                  ))}
+                </ul>
+              )
+              : null}
+          </div>
+        ))}
+      </dl>
+    </div>
   );
 }
 
@@ -183,60 +278,103 @@ export function ToolWorkspaceLayout({
     "Operate your Dynamic Capital workspace.";
   const heroEyebrow = meta?.eyebrow ?? route?.hint?.title ?? "Workspace";
   const fallbackTags = route?.tags ?? [];
+  const heroTagsContent = renderHeroTags(meta?.tags, fallbackTags, heroTagsLabel);
+  const heroActionsContent = renderHeroActions(meta?.actions, heroActionsLabel);
+  const heroMetadataContent = renderHeroMetadata(route);
 
   const heroContent = (
     <div
-      className="relative flex w-full flex-col items-center overflow-hidden rounded-[2.5rem] border border-border/60 bg-background/85 p-8 text-center shadow-xl backdrop-blur sm:p-10 lg:p-14"
+      className="relative w-full overflow-hidden rounded-[2.75rem] border border-border/60 bg-background/90 shadow-xl shadow-primary/15 backdrop-blur"
       style={{ boxShadow: heroShadow }}
       data-route-category={route?.categoryId ?? "workspace"}
     >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-55 mix-blend-plus-lighter"
-        style={{ backgroundImage: heroGradient }}
-        aria-hidden
-      />
-      <div className="relative z-10 flex w-full flex-col items-center gap-8 sm:gap-10 lg:gap-12">
-        <Column
-          as="header"
-          id={heroSectionId}
-          gap="20"
-          paddingY="32"
-          horizontal="center"
-          aria-labelledby={heroHeadingId}
-          aria-describedby={heroDescriptionId}
-        >
-          <Column gap="12" maxWidth={72} horizontal="center">
-            <Text
-              as="span"
-              variant="label-default-s"
-              className="uppercase tracking-[0.28em] text-xs text-muted-foreground"
-              align="center"
-            >
-              {heroEyebrow}
-            </Text>
-            <Heading
-              as="h1"
-              id={heroHeadingId}
-              variant="display-strong-s"
-              align="center"
-            >
-              {heroTitle}
-            </Heading>
-            <Text
-              as="p"
-              id={heroDescriptionId}
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              align="center"
-              wrap="balance"
-            >
-              {heroDescription}
-            </Text>
-            {renderHeroTags(meta?.tags, fallbackTags, heroTagsLabel)}
-          </Column>
-          {renderHeroActions(meta?.actions, heroActionsLabel)}
-        </Column>
+      <div className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-0 opacity-60"
+          style={{ backgroundImage: heroGradient }}
+          aria-hidden
+        />
+        <div
+          className="absolute -inset-32 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.35),transparent_60%)] opacity-40"
+          aria-hidden
+        />
       </div>
+      {categoryStyle
+        ? (
+          <span
+            className={cn(
+              "pointer-events-none absolute right-8 top-8 h-3 w-3 rounded-full shadow-[0_0_0_4px_rgba(15,23,42,0.45)]",
+              categoryStyle.indicatorClass,
+            )}
+            aria-hidden
+          />
+        )
+        : null}
+      <header
+        id={heroSectionId}
+        aria-labelledby={heroHeadingId}
+        aria-describedby={heroDescriptionId}
+        className="relative z-10 flex flex-col gap-10 p-8 text-left sm:p-10 lg:p-14"
+      >
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-6 lg:max-w-3xl">
+            <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.28em] text-muted-foreground">
+              <span className="rounded-full border border-white/20 bg-background/70 px-3 py-1">
+                {heroEyebrow}
+              </span>
+              {categoryStyle
+                ? (
+                  <span
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-semibold tracking-[0.28em]",
+                      categoryStyle.badgeClass,
+                    )}
+                  >
+                    {categoryStyle.label}
+                  </span>
+                )
+                : null}
+            </div>
+            <div className="space-y-4">
+              <Heading
+                as="h1"
+                id={heroHeadingId}
+                variant="display-strong-s"
+                align="start"
+              >
+                {heroTitle}
+              </Heading>
+              <Text
+                as="p"
+                id={heroDescriptionId}
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                align="start"
+                wrap="balance"
+              >
+                {heroDescription}
+              </Text>
+            </div>
+            {heroTagsContent}
+          </div>
+          {heroActionsContent
+            ? (
+              <div className="w-full max-w-xs flex-shrink-0">
+                <div className="rounded-3xl border border-white/10 bg-background/70 p-5 shadow-lg shadow-primary/10 backdrop-blur">
+                  <Text
+                    variant="label-default-s"
+                    className="mb-2 uppercase tracking-[0.28em] text-xs text-muted-foreground"
+                  >
+                    Quick actions
+                  </Text>
+                  {heroActionsContent}
+                </div>
+              </div>
+            )
+            : null}
+        </div>
+        {heroMetadataContent}
+      </header>
     </div>
   );
 
@@ -247,7 +385,7 @@ export function ToolWorkspaceLayout({
       aria-labelledby={heroHeadingId}
       aria-describedby={heroDescriptionId}
       className={cn(
-        "w-full flex flex-col items-center gap-16",
+        "w-full flex flex-col items-center gap-16 lg:gap-20",
         className,
       )}
     >
@@ -255,12 +393,12 @@ export function ToolWorkspaceLayout({
       <div
         className={cn(
           workspaceShellClassName,
-          "flex flex-col items-center text-center",
+          "flex flex-col items-center",
         )}
       >
         {reduceMotion
           ? (
-            <div className="flex w-full flex-col items-center text-center">
+            <div className="flex w-full flex-col items-center">
               {heroContent}
             </div>
           )
@@ -268,7 +406,7 @@ export function ToolWorkspaceLayout({
             <AnimatePresence mode="wait">
               <motion.div
                 key={routeId}
-                className="flex w-full flex-col items-center text-center"
+                className="flex w-full flex-col items-center"
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -16 }}
@@ -282,20 +420,52 @@ export function ToolWorkspaceLayout({
       {showCommandRail
         ? (
           <aside
-            className={cn(workspaceShellClassName, "pb-6 text-center")}
+            className={cn(workspaceShellClassName, "pb-6")}
             aria-labelledby={utilitiesLabelId}
           >
             <VisuallyHidden id={utilitiesLabelId}>
               {utilitiesLabel}
             </VisuallyHidden>
-            <Column
-              gap="16"
-              horizontal="center"
-              className="w-full text-left sm:text-center"
+            <div
+              className="relative overflow-hidden rounded-[2.25rem] border border-border/60 bg-background/80 p-6 shadow-xl shadow-primary/10 backdrop-blur"
             >
-              {commandBar ?? null}
-              {showLastMove ? <LastMoveTicker /> : null}
-            </Column>
+              <div
+                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-primary/10 opacity-60"
+                aria-hidden
+              />
+              <Column
+                gap="16"
+                className="relative z-10 w-full text-left"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <Text
+                    variant="label-default-s"
+                    className="uppercase tracking-[0.28em] text-xs text-muted-foreground"
+                  >
+                    {utilitiesLabel}
+                  </Text>
+                  {route?.surfaces?.length
+                    ? (
+                      <Tag
+                        size="s"
+                        background="neutral-alpha-weak"
+                        border="neutral-alpha-medium"
+                      >
+                        {route.surfaces.length} surfaces
+                      </Tag>
+                    )
+                    : null}
+                </div>
+                {commandBar
+                  ? (
+                    <div className="rounded-2xl border border-white/10 bg-background/70 p-4 shadow-inner shadow-primary/5">
+                      {commandBar}
+                    </div>
+                  )
+                  : null}
+                {showLastMove ? <LastMoveTicker className="w-full" /> : null}
+              </Column>
+            </div>
           </aside>
         )
         : null}
@@ -304,7 +474,7 @@ export function ToolWorkspaceLayout({
         aria-labelledby={heroHeadingId}
         className={cn(
           workspaceShellClassName,
-          "pb-16 space-y-16",
+          "pb-16 space-y-16 lg:space-y-20",
           contentClassName,
         )}
       >
