@@ -76,7 +76,7 @@ type LayoutTag = {
 const CATEGORY_ICON_MAP: Record<RouteCategoryId, IconName> = {
   foundations: "Layers",
   products: "ShoppingBag",
-  insights: "BarChart3",
+  insights: "ChartBar",
   operations: "Cog",
   community: "Users",
 };
