@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { type HTMLMotionProps, motion } from "framer-motion";
 import {
   ArrowUpRight,
@@ -76,6 +82,18 @@ type ModuleId =
   | "learn"
   | "prop";
 
+interface ModuleCardProps {
+  id: ModuleId;
+  label: string;
+  title: string;
+  description: string;
+  accentClassName: string;
+  badge?: { label: string; className: string };
+  activeModule: ModuleId;
+  onActivate: (module: ModuleId) => void;
+  children: ReactNode;
+}
+
 const MODULE_MOTION_PROPS: Pick<
   HTMLMotionProps<"div">,
   "initial" | "animate" | "transition"
@@ -84,6 +102,70 @@ const MODULE_MOTION_PROPS: Pick<
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
 };
+
+function ModuleCard({
+  id,
+  label,
+  title,
+  description,
+  accentClassName,
+  badge,
+  activeModule,
+  onActivate,
+  children,
+}: ModuleCardProps) {
+  return (
+    <motion.div
+      {...MODULE_MOTION_PROPS}
+      whileHover={{ scale: 1.02 }}
+      className={cn(
+        "group focus-within:scale-[1.01] focus-within:outline-none rounded-xl transition",
+        activeModule === id
+          ? "ring-1 ring-cyan-500/40"
+          : "ring-1 ring-transparent",
+      )}
+      onMouseEnter={() => onActivate(id)}
+      onFocusCapture={() => onActivate(id)}
+      tabIndex={0}
+    >
+      <Card
+        className={cn(
+          "relative overflow-hidden border border-white/5 bg-[#010304]/80 text-white shadow-inner backdrop-blur-lg",
+          accentClassName,
+        )}
+      >
+        <CardHeader className="space-y-3 pb-2">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
+                {label}
+              </p>
+              <CardTitle className="font-manrope text-lg font-semibold tracking-wide text-white">
+                {title}
+              </CardTitle>
+              <CardDescription className="text-white/70">
+                {description}
+              </CardDescription>
+            </div>
+            {badge
+              ? (
+                <Badge
+                  variant="secondary"
+                  className={cn("text-[11px] font-semibold", badge.className)}
+                >
+                  {badge.label}
+                </Badge>
+              )
+              : null}
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 pt-0">
+          {children}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
 
 const NFT_TIERS: Array<{
   name: string;
@@ -324,840 +406,562 @@ export default function OverviewPage() {
       </header>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <motion.div
-          {...MODULE_MOTION_PROPS}
-          whileHover={{ scale: 1.02 }}
-          className={cn(
-            "group focus-within:scale-[1.01] focus-within:outline-none",
-            activeModule === "watchlist"
-              ? "ring-1 ring-cyan-500/40"
-              : "ring-1 ring-transparent",
-            "rounded-xl transition",
-          )}
-          onMouseEnter={() => setActiveModule("watchlist")}
-          onFocusCapture={() => setActiveModule("watchlist")}
-          tabIndex={0}
+        <ModuleCard
+          id="watchlist"
+          label="Watchlist"
+          title="Dynamic Watchlist"
+          description="Cross-asset liquidity pulse synced to desk automation."
+          accentClassName="before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#38bdf8_0%,transparent_60%)]"
+          badge={{
+            label: "Live feed",
+            className:
+              "border border-emerald-400/40 bg-emerald-500/15 text-emerald-100",
+          }}
+          activeModule={activeModule}
+          onActivate={setActiveModule}
         >
-          <Card
-            className={cn(
-              "bg-[#010304]/80 backdrop-blur-lg text-white shadow-inner transition-colors",
-              "border border-white/5",
-              "relative overflow-hidden",
-              "before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#38bdf8_0%,transparent_60%)]",
-            )}
-          >
-            <CardHeader className="space-y-3 pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
-                    Watchlist
-                  </p>
-                  <CardTitle className="font-manrope text-lg font-semibold text-white tracking-wide">
-                    Dynamic Watchlist
-                  </CardTitle>
-                  <CardDescription className="text-white/70">
-                    Cross-asset liquidity pulse synced to desk automation.
-                  </CardDescription>
+          <div className="space-y-3">
+            {watchlistRows.map((row) => (
+              <div
+                key={row.key}
+                className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/5 px-3 py-2"
+              >
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-white">
+                    {row.display}
+                  </span>
+                  <span className="text-xs text-white/60">{row.name}</span>
                 </div>
-                <Badge
-                  variant="secondary"
-                  className="border border-emerald-400/40 bg-emerald-500/15 text-[11px] font-semibold text-emerald-100"
-                >
-                  Live feed
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="gap-4 pt-0">
-              <div className="space-y-3">
-                {watchlistRows.map((row) => (
-                  <div
-                    key={row.key}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/5/5 px-3 py-2"
-                  >
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-white">
-                        {row.display}
-                      </span>
-                      <span className="text-xs text-white/60">
-                        {row.name}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-white tabular-nums">
-                        {row.price}
-                      </p>
-                      <p
-                        className={cn(
-                          "text-xs font-semibold tabular-nums",
-                          row.change == null
-                            ? "text-white/50"
-                            : row.change >= 0
-                            ? "text-emerald-300"
-                            : "text-rose-300",
-                        )}
-                      >
-                        {row.change == null
-                          ? "—"
-                          : `${row.change >= 0 ? "+" : ""}${
-                            row.change.toFixed(2)
-                          }%`}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="glass"
-                  size="sm"
-                  className="gap-2 text-white"
-                  onClick={handleWatchlistAction}
-                >
-                  Open board
-                  <ArrowUpRight className="h-4 w-4" aria-hidden />
-                </Button>
-                <span className="text-xs text-white/60">
-                  {watchlistStatus}
-                </span>
-              </div>
-              {watchlistError
-                ? (
-                  <p className="text-xs text-amber-200">
-                    {watchlistError}
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-white tabular-nums">
+                    {row.price}
                   </p>
-                )
-                : null}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          {...MODULE_MOTION_PROPS}
-          whileHover={{ scale: 1.02 }}
-          className={cn(
-            "group focus-within:scale-[1.01] focus-within:outline-none",
-            activeModule === "token"
-              ? "ring-1 ring-cyan-500/40"
-              : "ring-1 ring-transparent",
-            "rounded-xl transition",
-          )}
-          onMouseEnter={() => setActiveModule("token")}
-          onFocusCapture={() => setActiveModule("token")}
-          tabIndex={0}
-        >
-          <Card
-            className={cn(
-              "bg-[#010304]/80 backdrop-blur-lg text-white shadow-inner",
-              "border border-white/5",
-              "relative overflow-hidden",
-              "before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#6366f1_0%,transparent_65%)]",
-            )}
-          >
-            <CardHeader className="space-y-3 pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
-                    Token
-                  </p>
-                  <CardTitle className="font-manrope text-lg font-semibold text-white tracking-wide">
-                    Dynamic Token Utility
-                  </CardTitle>
-                  <CardDescription className="text-white/70">
-                    Capital coverage, win-rate velocity, and VIP allocation.
-                  </CardDescription>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="border border-white/15 bg-white/10 text-[11px] font-semibold text-white/80"
-                >
-                  {baseCurrency}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="gap-4 pt-0">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-white/5 bg-white/5/5 p-3">
-                  <p className="text-xs text-white/60">Treasury value</p>
-                  <p className="mt-1 text-lg font-semibold text-white tabular-nums">
-                    {totalCapitalDisplay}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-white/5 bg-white/5/5 p-3">
-                  <p className="text-xs text-white/60">Desk velocity</p>
-                  <p className="mt-1 text-lg font-semibold text-white tabular-nums">
-                    {deskVelocityDisplay}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-white/5 bg-white/5/5 p-3">
-                  <p className="text-xs text-white/60">PnL momentum</p>
-                  <p className="mt-1 text-lg font-semibold tabular-nums text-emerald-300">
-                    {pnlPercentDisplay}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-white/5 bg-white/5/5 p-3">
-                  <p className="text-xs text-white/60">Win rate</p>
-                  <p className="mt-1 text-lg font-semibold tabular-nums text-cyan-300">
-                    {winRateDisplay}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  variant="premium"
-                  size="sm"
-                  className="gap-2"
-                  onClick={handleTokenAction}
-                >
-                  Manage token flows
-                  <TrendingUp className="h-4 w-4" aria-hidden />
-                </Button>
-                <span className="text-xs text-white/60">
-                  VIP share {vipShareDisplay}
-                </span>
-              </div>
-              {data?.isFallback
-                ? (
-                  <p className="text-xs text-amber-200">
-                    Using cached metrics until live sync resumes.
-                  </p>
-                )
-                : null}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          {...MODULE_MOTION_PROPS}
-          whileHover={{ scale: 1.02 }}
-          className={cn(
-            "group focus-within:scale-[1.01] focus-within:outline-none",
-            activeModule === "treasury"
-              ? "ring-1 ring-cyan-500/40"
-              : "ring-1 ring-transparent",
-            "rounded-xl transition",
-          )}
-          onMouseEnter={() => setActiveModule("treasury")}
-          onFocusCapture={() => setActiveModule("treasury")}
-          tabIndex={0}
-        >
-          <Card
-            className={cn(
-              "bg-[#010304]/80 backdrop-blur-lg text-white shadow-inner",
-              "border border-white/5",
-              "relative overflow-hidden",
-              "before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#22d3ee_0%,transparent_70%)]",
-            )}
-          >
-            <CardHeader className="space-y-3 pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
-                    Treasury
-                  </p>
-                  <CardTitle className="font-manrope text-lg font-semibold text-white tracking-wide">
-                    Multi-chain treasury posture
-                  </CardTitle>
-                  <CardDescription className="text-white/70">
-                    Guardrails and allocations refreshed with every session
-                    hand-off.
-                  </CardDescription>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="border border-cyan-300/40 bg-cyan-300/15 text-[11px] font-semibold text-cyan-100"
-                >
-                  Guarded
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="gap-4 pt-0">
-              <div className="space-y-3">
-                {(loading && displayedKpis.length === 0
-                  ? Array.from({ length: 3 }).map((_, index) => ({
-                    id: `kpi-skeleton-${index}`,
-                    label: "Loading",
-                    value: "—",
-                    deltaLabel: "—",
-                  }))
-                  : displayedKpis.slice(0, 3)).map((kpi) => (
-                    <div
-                      key={kpi.id}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/5/5 px-3 py-2"
-                    >
-                      <div>
-                        <p className="text-xs text-white/60">{kpi.label}</p>
-                        <p className="text-sm font-semibold text-white tabular-nums">
-                          {kpi.value}
-                        </p>
-                      </div>
-                      <span className="text-xs font-medium text-cyan-200">
-                        {"deltaLabel" in kpi ? kpi.deltaLabel : "Syncing"}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {TIMEFRAME_OPTIONS.map((option) => {
-                  const isActiveTimeframe = option.id === timeframe;
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => setTimeframe(option.id)}
-                      className={cn(
-                        "rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] transition",
-                        isActiveTimeframe
-                          ? "border-cyan-400/60 bg-cyan-400/20 text-cyan-100"
-                          : "border-white/10 bg-white/5 text-white/60 hover:border-white/30 hover:text-white",
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
-                <Button
-                  variant="glass"
-                  size="sm"
-                  className="ml-auto gap-2 text-white"
-                  onClick={handleTreasuryAction}
-                >
-                  Review guardrails
-                  <ShieldCheck className="h-4 w-4" aria-hidden />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          {...MODULE_MOTION_PROPS}
-          whileHover={{ scale: 1.02 }}
-          className={cn(
-            "group focus-within:scale-[1.01] focus-within:outline-none",
-            activeModule === "pool"
-              ? "ring-1 ring-cyan-500/40"
-              : "ring-1 ring-transparent",
-            "rounded-xl transition",
-          )}
-          onMouseEnter={() => setActiveModule("pool")}
-          onFocusCapture={() => setActiveModule("pool")}
-          tabIndex={0}
-        >
-          <Card
-            className={cn(
-              "bg-[#010304]/80 backdrop-blur-lg text-white shadow-inner",
-              "border border-white/5",
-              "relative overflow-hidden",
-              "before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#0ea5e9_0%,transparent_65%)]",
-            )}
-          >
-            <CardHeader className="space-y-3 pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
-                    Pool
-                  </p>
-                  <CardTitle className="font-manrope text-lg font-semibold text-white tracking-wide">
-                    Liquidity pools &amp; automation
-                  </CardTitle>
-                  <CardDescription className="text-white/70">
-                    Sparkline mirrors desk allocation curve for the selected
-                    timeframe.
-                  </CardDescription>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="border border-emerald-400/40 bg-emerald-400/15 text-[11px] font-semibold text-emerald-100"
-                >
-                  Active
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="gap-4 pt-0">
-              <div className="h-40 rounded-2xl border border-white/5 bg-white/5/5 p-4">
-                {loading || !equityPoints
-                  ? (
-                    <div className="h-full w-full animate-pulse rounded-xl bg-white/10" />
-                  )
-                  : (
-                    <svg viewBox="0 0 100 40" className="h-full w-full">
-                      <defs>
-                        <linearGradient
-                          id="pool-spark"
-                          x1="0%"
-                          y1="0%"
-                          x2="0%"
-                          y2="100%"
-                        >
-                          <stop offset="0%" stopColor="rgba(34,211,238,0.55)" />
-                          <stop
-                            offset="100%"
-                            stopColor="rgba(34,211,238,0.05)"
-                          />
-                        </linearGradient>
-                      </defs>
-                      <polyline
-                        fill="none"
-                        stroke="url(#pool-spark)"
-                        strokeWidth={2.6}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        points={equityPoints}
-                      />
-                    </svg>
-                  )}
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs text-white/60">PnL delta</p>
-                  <p className="text-lg font-semibold tabular-nums text-emerald-300">
-                    {pnlPercentDisplay}
-                  </p>
-                </div>
-                <Button
-                  variant="glass"
-                  size="sm"
-                  className="gap-2 text-white"
-                  onClick={handlePoolAction}
-                >
-                  Review pools
-                  <BarChart3 className="h-4 w-4" aria-hidden />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          {...MODULE_MOTION_PROPS}
-          whileHover={{ scale: 1.02 }}
-          className={cn(
-            "group focus-within:scale-[1.01] focus-within:outline-none",
-            activeModule === "nft"
-              ? "ring-1 ring-cyan-500/40"
-              : "ring-1 ring-transparent",
-            "rounded-xl transition",
-          )}
-          onMouseEnter={() => setActiveModule("nft")}
-          onFocusCapture={() => setActiveModule("nft")}
-          tabIndex={0}
-        >
-          <Card
-            className={cn(
-              "bg-[#010304]/80 backdrop-blur-lg text-white shadow-inner",
-              "border border-white/5",
-              "relative overflow-hidden",
-              "before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#f472b6_0%,transparent_70%)]",
-            )}
-          >
-            <CardHeader className="space-y-3 pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
-                    NFT
-                  </p>
-                  <CardTitle className="font-manrope text-lg font-semibold text-white tracking-wide">
-                    NFT access tiers
-                  </CardTitle>
-                  <CardDescription className="text-white/70">
-                    Membership layers blend automation access with treasury
-                    rewards.
-                  </CardDescription>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="border border-pink-400/40 bg-pink-400/15 text-[11px] font-semibold text-pink-100"
-                >
-                  Minting
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="gap-4 pt-0">
-              <div className="space-y-3">
-                {NFT_TIERS.map((tier) => (
-                  <div
-                    key={tier.name}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/5/5 px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-white">
-                        {tier.name}
-                      </p>
-                      <p className="text-xs text-white/60">{tier.supply}</p>
-                    </div>
-                    <span className="text-sm font-semibold text-cyan-200 tabular-nums">
-                      {tier.yield}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-white/60">
-                  New drops unlock automation boosts.
-                </span>
-                <Button variant="glass" size="sm" className="text-white">
-                  View tiers
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          {...MODULE_MOTION_PROPS}
-          whileHover={{ scale: 1.02 }}
-          className={cn(
-            "group focus-within:scale-[1.01] focus-within:outline-none",
-            activeModule === "dao"
-              ? "ring-1 ring-cyan-500/40"
-              : "ring-1 ring-transparent",
-            "rounded-xl transition",
-          )}
-          onMouseEnter={() => setActiveModule("dao")}
-          onFocusCapture={() => setActiveModule("dao")}
-          tabIndex={0}
-        >
-          <Card
-            className={cn(
-              "bg-[#010304]/80 backdrop-blur-lg text-white shadow-inner",
-              "border border-white/5",
-              "relative overflow-hidden",
-              "before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#38bdf8_0%,transparent_70%)]",
-            )}
-          >
-            <CardHeader className="space-y-3 pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
-                    DAO
-                  </p>
-                  <CardTitle className="font-manrope text-lg font-semibold text-white tracking-wide">
-                    Governance board
-                  </CardTitle>
-                  <CardDescription className="text-white/70">
-                    Priorities queued for snapshot with automation-ready
-                    guardrails.
-                  </CardDescription>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="border border-white/15 bg-white/10 text-[11px] font-semibold text-white/80"
-                >
-                  Voting soon
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="gap-4 pt-0">
-              <div className="space-y-3">
-                {(loading && daoPriorities.length === 0
-                  ? Array.from({ length: 3 }).map((_, index) => ({
-                    id: `priority-skeleton-${index}`,
-                    title: "Loading",
-                    description: "Updating governance priorities…",
-                    owner: "Desk lead",
-                  }))
-                  : daoPriorities.slice(0, 3)).map((priority) => (
-                    <div
-                      key={priority.id}
-                      className="rounded-lg border border-white/5 bg-white/5/5 p-3"
-                    >
-                      <p className="text-sm font-semibold text-white">
-                        {priority.title}
-                      </p>
-                      <p className="mt-1 text-xs text-white/65">
-                        {priority.description}
-                      </p>
-                      <span className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60">
-                        <Brain className="h-3.5 w-3.5" aria-hidden />
-                        {priority.owner}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {DAO_BADGES.map((badge) => (
-                  <span
-                    key={badge.label}
+                  <p
                     className={cn(
-                      "inline-flex items-center gap-2 rounded-full border px-2 py-0.5 text-[11px]",
-                      BADGE_TONE_CLASS[badge.tone],
+                      "text-xs font-semibold tabular-nums",
+                      row.change == null
+                        ? "text-white/50"
+                        : row.change >= 0
+                        ? "text-emerald-300"
+                        : "text-rose-300",
                     )}
                   >
-                    <Sparkles className="h-3 w-3" aria-hidden />
-                    {badge.label}
+                    {row.change == null
+                      ? "—"
+                      : `${row.change >= 0 ? "+" : ""}${
+                        row.change.toFixed(2)
+                      }%`}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between">
+            <Button
+              variant="glass"
+              size="sm"
+              className="gap-2 text-white"
+              onClick={handleWatchlistAction}
+            >
+              Open board
+              <ArrowUpRight className="h-4 w-4" aria-hidden />
+            </Button>
+            <span className="text-xs text-white/60">{watchlistStatus}</span>
+          </div>
+          {watchlistError
+            ? <p className="text-xs text-amber-200">{watchlistError}</p>
+            : null}
+        </ModuleCard>
+
+        <ModuleCard
+          id="token"
+          label="Token"
+          title="Dynamic Token Utility"
+          description="Capital coverage, win-rate velocity, and VIP allocation."
+          accentClassName="before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#6366f1_0%,transparent_65%)]"
+          badge={{
+            label: baseCurrency,
+            className: "border border-white/15 bg-white/10 text-white/80",
+          }}
+          activeModule={activeModule}
+          onActivate={setActiveModule}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+              <p className="text-xs text-white/60">Treasury value</p>
+              <p className="mt-1 text-lg font-semibold text-white tabular-nums">
+                {totalCapitalDisplay}
+              </p>
+            </div>
+            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+              <p className="text-xs text-white/60">Desk velocity</p>
+              <p className="mt-1 text-lg font-semibold text-white tabular-nums">
+                {deskVelocityDisplay}
+              </p>
+            </div>
+            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+              <p className="text-xs text-white/60">PnL momentum</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-emerald-300">
+                {pnlPercentDisplay}
+              </p>
+            </div>
+            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+              <p className="text-xs text-white/60">Win rate</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-cyan-300">
+                {winRateDisplay}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="premium"
+              size="sm"
+              className="gap-2"
+              onClick={handleTokenAction}
+            >
+              Manage token flows
+              <TrendingUp className="h-4 w-4" aria-hidden />
+            </Button>
+            <span className="text-xs text-white/60">
+              VIP share {vipShareDisplay}
+            </span>
+          </div>
+          {data?.isFallback
+            ? (
+              <p className="text-xs text-amber-200">
+                Using cached metrics until live sync resumes.
+              </p>
+            )
+            : null}
+        </ModuleCard>
+
+        <ModuleCard
+          id="treasury"
+          label="Treasury"
+          title="Multi-chain treasury posture"
+          description="Guardrails and allocations refreshed with every session hand-off."
+          accentClassName="before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#22d3ee_0%,transparent_70%)]"
+          badge={{
+            label: "Guarded",
+            className: "border border-cyan-300/40 bg-cyan-300/15 text-cyan-100",
+          }}
+          activeModule={activeModule}
+          onActivate={setActiveModule}
+        >
+          <div className="space-y-3">
+            {(loading && displayedKpis.length === 0
+              ? Array.from({ length: 3 }).map((_, index) => ({
+                id: `kpi-skeleton-${index}`,
+                label: "Loading",
+                value: "—",
+                deltaLabel: "—",
+              }))
+              : displayedKpis.slice(0, 3)).map((kpi) => (
+                <div
+                  key={kpi.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/5 px-3 py-2"
+                >
+                  <div>
+                    <p className="text-xs text-white/60">{kpi.label}</p>
+                    <p className="text-sm font-semibold text-white tabular-nums">
+                      {kpi.value}
+                    </p>
+                  </div>
+                  <span className="text-xs font-medium text-cyan-200">
+                    {"deltaLabel" in kpi ? kpi.deltaLabel : "Syncing"}
                   </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+                </div>
+              ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {TIMEFRAME_OPTIONS.map((option) => {
+              const isActiveTimeframe = option.id === timeframe;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setTimeframe(option.id)}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] transition",
+                    isActiveTimeframe
+                      ? "border-cyan-400/60 bg-cyan-400/20 text-cyan-100"
+                      : "border-white/10 bg-white/5 text-white/60 hover:border-white/30 hover:text-white",
+                  )}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+            <Button
+              variant="glass"
+              size="sm"
+              className="ml-auto gap-2 text-white"
+              onClick={handleTreasuryAction}
+            >
+              Review guardrails
+              <ShieldCheck className="h-4 w-4" aria-hidden />
+            </Button>
+          </div>
+        </ModuleCard>
 
-        <motion.div
-          {...MODULE_MOTION_PROPS}
-          whileHover={{ scale: 1.02 }}
-          className={cn(
-            "group focus-within:scale-[1.01] focus-within:outline-none",
-            activeModule === "learn"
-              ? "ring-1 ring-cyan-500/40"
-              : "ring-1 ring-transparent",
-            "rounded-xl transition",
-          )}
-          onMouseEnter={() => setActiveModule("learn")}
-          onFocusCapture={() => setActiveModule("learn")}
-          tabIndex={0}
+        <ModuleCard
+          id="pool"
+          label="Pool"
+          title="Liquidity pools & automation"
+          description="Sparkline mirrors desk allocation curve for the selected timeframe."
+          accentClassName="before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#0ea5e9_0%,transparent_65%)]"
+          badge={{
+            label: "Active",
+            className:
+              "border border-emerald-400/40 bg-emerald-400/15 text-emerald-100",
+          }}
+          activeModule={activeModule}
+          onActivate={setActiveModule}
         >
-          <Card
-            className={cn(
-              "bg-[#010304]/80 backdrop-blur-lg text-white shadow-inner",
-              "border border-white/5",
-              "relative overflow-hidden",
-              "before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top_left,#7c3aed_0%,rgba(6,182,212,0.35)_55%,transparent_80%)]",
-            )}
-          >
-            <CardHeader className="space-y-3 pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
-                    Learn &amp; Earn
-                  </p>
-                  <CardTitle className="font-manrope text-lg font-semibold text-white tracking-wide">
-                    Dynamic Learn &amp; Earn
-                  </CardTitle>
-                  <CardDescription className="text-white/70">
-                    Continue your lesson track and convert XP streaks into DCT
-                    rewards.
-                  </CardDescription>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="border border-cyan-300/40 bg-cyan-400/15 text-[11px] font-semibold text-cyan-100"
-                >
-                  Earned DCT
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="gap-4 pt-0">
-              <div className="flex items-center gap-4">
-                <div className="relative flex h-28 w-28 items-center justify-center">
-                  <svg className="h-28 w-28" viewBox="0 0 120 120">
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r={LEARN_RING_RADIUS}
-                      stroke="rgba(148,163,255,0.25)"
-                      strokeWidth={10}
-                      fill="none"
-                    />
-                    <motion.circle
-                      cx="60"
-                      cy="60"
-                      r={LEARN_RING_RADIUS}
-                      stroke="url(#learn-gradient)"
-                      strokeWidth={10}
-                      strokeLinecap="round"
-                      fill="none"
-                      strokeDasharray={LEARN_RING_CIRCUMFERENCE}
-                      strokeDashoffset={LEARN_RING_CIRCUMFERENCE}
-                      animate={{
-                        strokeDashoffset: LEARN_RING_CIRCUMFERENCE *
-                          (1 - LEARN_PROGRESS),
-                      }}
-                      transition={{
-                        duration: 0.8,
-                        ease: [0.16, 1, 0.3, 1],
-                      }}
-                    />
-                    <defs>
-                      <linearGradient
-                        id="learn-gradient"
-                        x1="0"
-                        x2="1"
-                        y1="0"
-                        y2="1"
-                      >
-                        <stop offset="0%" stopColor="#7c3aed" />
-                        <stop offset="100%" stopColor="#06b6d4" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                    <span className="text-xs text-white/60">Progress</span>
-                    <span className="text-xl font-semibold text-white tabular-nums">
-                      {Math.round(LEARN_PROGRESS * 100)}%
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-xs text-white/60">Current streak</p>
-                    <p className="text-lg font-semibold text-white tabular-nums">
-                      {LEARN_STREAK_DAYS} days
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/60">XP bank</p>
-                    <p className="text-lg font-semibold text-white tabular-nums">
-                      {LEARN_XP.toLocaleString()} /{" "}
-                      {LEARN_GOAL_XP.toLocaleString()} XP
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  variant="premium"
-                  size="sm"
-                  className="gap-2"
-                  onClick={handleLearnContinue}
-                >
-                  Continue lesson
-                  <GraduationCap className="h-4 w-4" aria-hidden />
-                </Button>
-                <Button
-                  variant="glass"
-                  size="sm"
-                  className="text-white"
-                  onClick={handleLearnRewards}
-                >
-                  View rewards
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+          <div className="h-40 rounded-2xl border border-white/5 bg-white/5 p-4">
+            {loading || !equityPoints
+              ? (
+                <div className="h-full w-full animate-pulse rounded-xl bg-white/10" />
+              )
+              : (
+                <svg viewBox="0 0 100 40" className="h-full w-full">
+                  <defs>
+                    <linearGradient
+                      id="pool-spark"
+                      x1="0%"
+                      y1="0%"
+                      x2="0%"
+                      y2="100%"
+                    >
+                      <stop offset="0%" stopColor="rgba(34,211,238,0.55)" />
+                      <stop offset="100%" stopColor="rgba(34,211,238,0.05)" />
+                    </linearGradient>
+                  </defs>
+                  <polyline
+                    fill="none"
+                    stroke="url(#pool-spark)"
+                    strokeWidth={2.6}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    points={equityPoints}
+                  />
+                </svg>
+              )}
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-xs text-white/60">PnL delta</p>
+              <p className="text-lg font-semibold tabular-nums text-emerald-300">
+                {pnlPercentDisplay}
+              </p>
+            </div>
+            <Button
+              variant="glass"
+              size="sm"
+              className="gap-2 text-white"
+              onClick={handlePoolAction}
+            >
+              Review pools
+              <BarChart3 className="h-4 w-4" aria-hidden />
+            </Button>
+          </div>
+        </ModuleCard>
 
-        <motion.div
-          {...MODULE_MOTION_PROPS}
-          whileHover={{ scale: 1.02 }}
-          className={cn(
-            "group focus-within:scale-[1.01] focus-within:outline-none",
-            activeModule === "prop"
-              ? "ring-1 ring-cyan-500/40"
-              : "ring-1 ring-transparent",
-            "rounded-xl transition",
-          )}
-          onMouseEnter={() => setActiveModule("prop")}
-          onFocusCapture={() => setActiveModule("prop")}
-          tabIndex={0}
+        <ModuleCard
+          id="nft"
+          label="NFT"
+          title="NFT access tiers"
+          description="Membership layers blend automation access with treasury rewards."
+          accentClassName="before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#f472b6_0%,transparent_70%)]"
+          badge={{
+            label: "Minting",
+            className: "border border-pink-400/40 bg-pink-400/15 text-pink-100",
+          }}
+          activeModule={activeModule}
+          onActivate={setActiveModule}
         >
-          <Card
-            className={cn(
-              "bg-[#010304]/80 backdrop-blur-lg text-white shadow-inner",
-              "border border-white/5",
-              "relative overflow-hidden",
-              "before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top_left,#fbbf24_0%,rgba(59,130,246,0.4)_60%,transparent_85%)]",
-            )}
-          >
-            <CardHeader className="space-y-3 pb-2">
-              <div className="flex items-start justify-between gap-3">
+          <div className="space-y-3">
+            {NFT_TIERS.map((tier) => (
+              <div
+                key={tier.name}
+                className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/5 px-3 py-2"
+              >
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/55">
-                    Prop firm
+                  <p className="text-sm font-semibold text-white">
+                    {tier.name}
                   </p>
-                  <CardTitle className="font-manrope text-lg font-semibold text-white tracking-wide">
-                    Dynamic Prop Firm desk
-                  </CardTitle>
-                  <CardDescription className="text-white/70">
-                    Track funded account guardrails and challenge progress in
-                    real time.
-                  </CardDescription>
+                  <p className="text-xs text-white/60">{tier.supply}</p>
                 </div>
-                <Badge
-                  variant="secondary"
-                  className="border border-white/20 bg-white/10 text-[11px] font-semibold text-white/80"
+                <span className="text-sm font-semibold text-cyan-200 tabular-nums">
+                  {tier.yield}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-white/60">
+              New drops unlock automation boosts.
+            </span>
+            <Button variant="glass" size="sm" className="text-white">
+              View tiers
+            </Button>
+          </div>
+        </ModuleCard>
+
+        <ModuleCard
+          id="dao"
+          label="DAO"
+          title="Governance board"
+          description="Priorities queued for snapshot with automation-ready guardrails."
+          accentClassName="before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top,#38bdf8_0%,transparent_70%)]"
+          badge={{
+            label: "Voting soon",
+            className: "border border-white/15 bg-white/10 text-white/80",
+          }}
+          activeModule={activeModule}
+          onActivate={setActiveModule}
+        >
+          <div className="space-y-3">
+            {(loading && daoPriorities.length === 0
+              ? Array.from({ length: 3 }).map((_, index) => ({
+                id: `priority-skeleton-${index}`,
+                title: "Loading",
+                description: "Updating governance priorities…",
+                owner: "Desk lead",
+              }))
+              : daoPriorities.slice(0, 3)).map((priority) => (
+                <div
+                  key={priority.id}
+                  className="rounded-lg border border-white/5 bg-white/5 p-3"
                 >
-                  Funded
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="gap-4 pt-0">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-lg border border-white/5 bg-white/5/5 p-3">
-                  <p className="text-xs text-white/60">Account size</p>
-                  <p className="mt-1 text-sm font-semibold text-white tabular-nums">
-                    {formatCurrency(PROP_FIRM_METRICS.accountSize, "USD")}
+                  <p className="text-sm font-semibold text-white">
+                    {priority.title}
                   </p>
-                </div>
-                <div className="rounded-lg border border-white/5 bg-white/5/5 p-3">
-                  <p className="text-xs text-white/60">Max drawdown</p>
-                  <p className="mt-1 text-sm font-semibold text-amber-200 tabular-nums">
-                    {formatPercent(-PROP_FIRM_METRICS.maxDrawdown * 100)}
+                  <p className="mt-1 text-xs text-white/65">
+                    {priority.description}
                   </p>
+                  <span className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60">
+                    <Brain className="h-3.5 w-3.5" aria-hidden />
+                    {priority.owner}
+                  </span>
                 </div>
-                <div className="rounded-lg border border-white/5 bg-white/5/5 p-3">
-                  <p className="text-xs text-white/60">Profit target</p>
-                  <p className="mt-1 text-sm font-semibold text-emerald-200 tabular-nums">
-                    {formatPercent(PROP_FIRM_METRICS.profitTarget * 100)}
-                  </p>
-                </div>
+              ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {DAO_BADGES.map((badge) => (
+              <span
+                key={badge.label}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full border px-2 py-0.5 text-[11px]",
+                  BADGE_TONE_CLASS[badge.tone],
+                )}
+              >
+                <Sparkles className="h-3 w-3" aria-hidden />
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        </ModuleCard>
+
+        <ModuleCard
+          id="learn"
+          label="Learn & Earn"
+          title="Dynamic Learn & Earn"
+          description="Continue your lesson track and convert XP streaks into DCT rewards."
+          accentClassName="before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top_left,#7c3aed_0%,rgba(6,182,212,0.35)_55%,transparent_80%)]"
+          badge={{
+            label: "Earned DCT",
+            className: "border border-cyan-300/40 bg-cyan-400/15 text-cyan-100",
+          }}
+          activeModule={activeModule}
+          onActivate={setActiveModule}
+        >
+          <div className="flex items-center gap-4">
+            <div className="relative flex h-28 w-28 items-center justify-center">
+              <svg className="h-28 w-28" viewBox="0 0 120 120">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r={LEARN_RING_RADIUS}
+                  stroke="rgba(148,163,255,0.25)"
+                  strokeWidth={10}
+                  fill="none"
+                />
+                <motion.circle
+                  cx="60"
+                  cy="60"
+                  r={LEARN_RING_RADIUS}
+                  stroke="url(#learn-gradient)"
+                  strokeWidth={10}
+                  strokeLinecap="round"
+                  fill="none"
+                  strokeDasharray={LEARN_RING_CIRCUMFERENCE}
+                  strokeDashoffset={LEARN_RING_CIRCUMFERENCE}
+                  animate={{
+                    strokeDashoffset: LEARN_RING_CIRCUMFERENCE *
+                      (1 - LEARN_PROGRESS),
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                />
+                <defs>
+                  <linearGradient
+                    id="learn-gradient"
+                    x1="0"
+                    x2="1"
+                    y1="0"
+                    y2="1"
+                  >
+                    <stop offset="0%" stopColor="#7c3aed" />
+                    <stop offset="100%" stopColor="#06b6d4" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                <span className="text-xs text-white/60">Progress</span>
+                <span className="text-xl font-semibold text-white tabular-nums">
+                  {Math.round(LEARN_PROGRESS * 100)}%
+                </span>
               </div>
-              <div className="space-y-3">
-                <div>
-                  <div className="flex items-center justify-between text-xs text-white/60">
-                    <span>Daily progress</span>
-                    <span className="tabular-nums text-white">
-                      {Math.round(PROP_FIRM_METRICS.dailyProgress * 100)}%
-                    </span>
-                  </div>
-                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/10">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400"
-                      initial={{ width: 0 }}
-                      animate={{
-                        width: `${PROP_FIRM_METRICS.dailyProgress * 100}%`,
-                      }}
-                      transition={{
-                        duration: 0.8,
-                        ease: [0.16, 1, 0.3, 1],
-                      }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between text-xs text-white/60">
-                    <span>Total challenge</span>
-                    <span className="tabular-nums text-white">
-                      {Math.round(PROP_FIRM_METRICS.totalProgress * 100)}%
-                    </span>
-                  </div>
-                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/10">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-amber-300 via-rose-300 to-purple-400"
-                      initial={{ width: 0 }}
-                      animate={{
-                        width: `${PROP_FIRM_METRICS.totalProgress * 100}%`,
-                      }}
-                      transition={{
-                        duration: 0.8,
-                        ease: [0.16, 1, 0.3, 1],
-                        delay: 0.1,
-                      }}
-                    />
-                  </div>
-                </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs text-white/60">Current streak</p>
+                <p className="text-lg font-semibold text-white tabular-nums">
+                  {LEARN_STREAK_DAYS} days
+                </p>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  variant="premium"
-                  size="sm"
-                  className="gap-2"
-                  onClick={handlePropFirmConnect}
-                >
-                  Connect MT5
-                  <LineChart className="h-4 w-4" aria-hidden />
-                </Button>
-                <Button
-                  variant="glass"
-                  size="sm"
-                  className="text-white"
-                  onClick={handlePropFirmStats}
-                >
-                  View challenge stats
-                </Button>
+              <div>
+                <p className="text-xs text-white/60">XP bank</p>
+                <p className="text-lg font-semibold text-white tabular-nums">
+                  {LEARN_XP.toLocaleString()} / {LEARN_GOAL_XP.toLocaleString()}
+                  {" "}
+                  XP
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="premium"
+              size="sm"
+              className="gap-2"
+              onClick={handleLearnContinue}
+            >
+              Continue lesson
+              <GraduationCap className="h-4 w-4" aria-hidden />
+            </Button>
+            <Button
+              variant="glass"
+              size="sm"
+              className="text-white"
+              onClick={handleLearnRewards}
+            >
+              View rewards
+            </Button>
+          </div>
+        </ModuleCard>
+
+        <ModuleCard
+          id="prop"
+          label="Prop firm"
+          title="Dynamic Prop Firm desk"
+          description="Track funded account guardrails and challenge progress in real time."
+          accentClassName="before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_top_left,#fbbf24_0%,rgba(59,130,246,0.4)_60%,transparent_85%)]"
+          badge={{
+            label: "Funded",
+            className: "border border-white/20 bg-white/10 text-white/80",
+          }}
+          activeModule={activeModule}
+          onActivate={setActiveModule}
+        >
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+              <p className="text-xs text-white/60">Account size</p>
+              <p className="mt-1 text-sm font-semibold text-white tabular-nums">
+                {formatCurrency(PROP_FIRM_METRICS.accountSize, "USD")}
+              </p>
+            </div>
+            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+              <p className="text-xs text-white/60">Max drawdown</p>
+              <p className="mt-1 text-sm font-semibold text-amber-200 tabular-nums">
+                {formatPercent(-PROP_FIRM_METRICS.maxDrawdown * 100)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+              <p className="text-xs text-white/60">Profit target</p>
+              <p className="mt-1 text-sm font-semibold text-emerald-200 tabular-nums">
+                {formatPercent(PROP_FIRM_METRICS.profitTarget * 100)}
+              </p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <div className="flex items-center justify-between text-xs text-white/60">
+                <span>Daily progress</span>
+                <span className="tabular-nums text-white">
+                  {Math.round(PROP_FIRM_METRICS.dailyProgress * 100)}%
+                </span>
+              </div>
+              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/10">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400"
+                  initial={{ width: 0 }}
+                  animate={{
+                    width: `${PROP_FIRM_METRICS.dailyProgress * 100}%`,
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between text-xs text-white/60">
+                <span>Total challenge</span>
+                <span className="tabular-nums text-white">
+                  {Math.round(PROP_FIRM_METRICS.totalProgress * 100)}%
+                </span>
+              </div>
+              <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/10">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-300 via-rose-300 to-purple-400"
+                  initial={{ width: 0 }}
+                  animate={{
+                    width: `${PROP_FIRM_METRICS.totalProgress * 100}%`,
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    ease: [0.16, 1, 0.3, 1],
+                    delay: 0.1,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="premium"
+              size="sm"
+              className="gap-2"
+              onClick={handlePropFirmConnect}
+            >
+              Connect MT5
+              <LineChart className="h-4 w-4" aria-hidden />
+            </Button>
+            <Button
+              variant="glass"
+              size="sm"
+              className="text-white"
+              onClick={handlePropFirmStats}
+            >
+              View challenge stats
+            </Button>
+          </div>
+        </ModuleCard>
       </div>
 
       {error
