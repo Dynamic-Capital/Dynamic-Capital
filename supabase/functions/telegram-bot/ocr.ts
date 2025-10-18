@@ -1,35 +1,13 @@
-import { createWorker } from "https://esm.sh/tesseract.js@5?dts";
-import type { Worker as TesseractWorker } from "https://esm.sh/tesseract.js@5?dts";
+let warned = false;
 
-type OCRWorker = TesseractWorker & {
-  loadLanguage: (lang: string) => Promise<unknown>;
-  initialize?: (lang: string) => Promise<unknown>;
-  reinitialize?: (lang: string) => Promise<unknown>;
-  setParameters: (params: Record<string, string>) => Promise<unknown>;
-  recognize: (blob: Blob) => Promise<{ data: { text: string } }>;
-};
-
-export async function ocrTextFromBlob(blob: Blob): Promise<string> {
-  const worker: OCRWorker = await createWorker();
-
-  try {
-    await worker.load();
-    await worker.loadLanguage("eng");
-    if (worker.initialize) {
-      await worker.initialize("eng");
-    } else if (worker.reinitialize) {
-      await worker.reinitialize("eng");
-    }
-    await worker.setParameters({
-      tessedit_char_whitelist: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$€₹:. -/()",
-      preserve_interword_spaces: "1",
-      user_defined_dpi: "300",
-    });
-    const { data } = await worker.recognize(blob);
-    return data.text;
-  } finally {
-    await worker.terminate();
+export async function ocrTextFromBlob(_blob: Blob): Promise<string> {
+  if (!warned) {
+    console.warn(
+      "[telegram-bot] OCR support is disabled in this environment; returning empty text.",
+    );
+    warned = true;
   }
+  return "";
 }
 
 export function parseReceipt(text: string) {
