@@ -25,7 +25,7 @@ import { AdminBans } from "./AdminBans";
 import { BroadcastManager } from "./BroadcastManager";
 import { BotDiagnostics } from "./BotDiagnostics";
 import { MintingManager } from "./MintingManager";
-import { callEdgeFunction } from "@/config/supabase";
+import { callAdminFunction } from "@/utils/admin-client";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 import { DynamicButton, DynamicContainer } from "@/components/dynamic-ui";
 import {
@@ -238,10 +238,10 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const { supabase } = useSupabase();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { telegramUser, getAdminAuth } = useTelegramAuth();
+  const { telegramUser, isAdmin: hasAdminSession } = useTelegramAuth();
 
   const getUserId = () => {
     return telegramUser?.id?.toString() || telegramData?.user?.id?.toString() ||
@@ -286,29 +286,24 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
     setLoading(true);
     const hasAccess = await checkAdminAccess();
     if (!hasAccess) {
-      setIsAdmin(false);
+      setHasAdminAccess(false);
       setLoading(false);
       return;
     }
 
-    setIsAdmin(true);
+    setHasAdminAccess(true);
 
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
+      if (!hasAdminSession) {
         throw new Error("No admin authentication available");
       }
 
       // Load admin stats
-      const { data: statsData, error: statsError } = await callEdgeFunction<
+      const { data: statsData, error: statsError } = await callAdminFunction<
         AdminStats
       >("ANALYTICS_DATA", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
         body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
           timeframe: "today",
         },
       });
@@ -323,13 +318,9 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
 
       // Load pending payments
       const { data: paymentsData, error: paymentsError } =
-        await callEdgeFunction("ADMIN_LIST_PENDING", {
+        await callAdminFunction("ADMIN_LIST_PENDING", {
           method: "POST",
-          headers: {
-            ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-          },
           body: {
-            ...(auth.initData ? { initData: auth.initData } : {}),
             limit: 20,
             offset: 0,
           },
@@ -352,7 +343,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
     } finally {
       setLoading(false);
     }
-  }, [checkAdminAccess, getAdminAuth, toast]);
+  }, [checkAdminAccess, hasAdminSession, toast]);
 
   useEffect(() => {
     loadAdminData();
@@ -376,18 +367,13 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
     decision: "approve" | "reject",
   ) => {
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
+      if (!hasAdminSession) {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction("ADMIN_ACT_ON_PAYMENT", {
+      const { data, error } = await callAdminFunction("ADMIN_ACT_ON_PAYMENT", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
         body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
           payment_id: paymentId,
           decision: decision,
           message: `Payment ${decision}d by admin`,
@@ -425,7 +411,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
     return <AdminDashboardSkeleton />;
   }
 
-  if (!isAdmin) {
+  if (!hasAdminAccess || !hasAdminSession) {
     return (
       <DynamicContainer
         variant="slideUp"

@@ -48,11 +48,6 @@ export interface DynamicCliResponsePayload {
   dataset?: Record<string, unknown>;
 }
 
-export interface DynamicCliRequestOptions {
-  adminToken?: string;
-  adminInitData?: string;
-}
-
 export interface DynamicCliScenarioSummary {
   nodeCount: number;
   pulseCount: number;
@@ -374,18 +369,10 @@ export function validateDynamicCliScenario(
 
 export async function runDynamicCli(
   payload: DynamicCliRequestPayload,
-  options: DynamicCliRequestOptions = {},
 ): Promise<DynamicCliResponsePayload> {
   const headers: Record<string, string> = {
     "content-type": "application/json",
   };
-  if (options.adminToken) {
-    headers["Authorization"] = `Bearer ${options.adminToken}`;
-    headers["x-admin-token"] = options.adminToken;
-  }
-  if (options.adminInitData) {
-    headers["x-telegram-init-data"] = options.adminInitData;
-  }
 
   const response = await fetch("/api/dynamic-cli", {
     method: "POST",

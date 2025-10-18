@@ -198,14 +198,14 @@ export function DynamicChat() {
   >({});
   const copyResetTimeoutRef = useRef<number | null>(null);
 
-  const { loading: adminLoading, getAdminAuth } = useTelegramAuth();
-  const resolveAdminAuth = useCallback(
-    () => getAdminAuth?.() ?? null,
-    [getAdminAuth],
-  );
-  const adminAuth = resolveAdminAuth();
-  const hasAdminCredentials = Boolean(
-    adminAuth?.token ?? adminAuth?.initData,
+  const {
+    loading: adminLoading,
+    isAdmin,
+    adminSession,
+  } = useTelegramAuth();
+  const hasAdminSession = useMemo(
+    () => Boolean(isAdmin && adminSession),
+    [adminSession, isAdmin],
   );
 
   const selectedProvider = useMemo(() => {
@@ -250,8 +250,7 @@ export function DynamicChat() {
       throw new Error("Select a provider before sending a message.");
     }
 
-    const auth = resolveAdminAuth();
-    if (!auth?.token && !auth?.initData) {
+    if (!hasAdminSession) {
       throw new Error(
         "Admin authentication required. Refresh your admin session and try again.",
       );
@@ -260,15 +259,6 @@ export function DynamicChat() {
     const headers: Record<string, string> = {
       "content-type": "application/json",
     };
-
-    if (auth.token) {
-      headers["Authorization"] = `Bearer ${auth.token}`;
-      headers["x-admin-token"] = auth.token;
-    }
-
-    if (auth.initData) {
-      headers["x-telegram-init-data"] = auth.initData;
-    }
 
     const response = await fetch("/api/tools/multi-llm/chat", {
       method: "POST",
@@ -299,7 +289,7 @@ export function DynamicChat() {
   }, [
     languageOption.lang,
     maxTokens,
-    resolveAdminAuth,
+    hasAdminSession,
     selectedProvider,
     temperature,
   ]);
@@ -543,8 +533,7 @@ export function DynamicChat() {
       return;
     }
 
-    const auth = resolveAdminAuth();
-    if (!auth?.token && !auth?.initData) {
+    if (!hasAdminSession) {
       setError(
         "Admin authentication required. Refresh your admin session and try again.",
       );
@@ -561,7 +550,7 @@ export function DynamicChat() {
     await sendMessage();
   }, [
     input,
-    resolveAdminAuth,
+    hasAdminSession,
     selectedProvider,
     sendMessage,
     setError,
@@ -1228,7 +1217,7 @@ export function DynamicChat() {
                 disabled={!input.trim() ||
                   isLoading ||
                   adminLoading ||
-                  !hasAdminCredentials}
+                  !hasAdminSession}
                 className="rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-[0.18em]"
               >
                 <Send className="mr-2 h-4 w-4" aria-hidden="true" />

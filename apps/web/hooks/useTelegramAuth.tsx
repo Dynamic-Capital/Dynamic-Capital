@@ -14,32 +14,6 @@ import {
   VipStatusResponse,
 } from "@/types/api";
 
-const ADMIN_STORAGE_KEY = "dc_admin_token";
-
-export async function validateAdminToken(token: string): Promise<boolean> {
-  if (process.env.NODE_ENV !== "production" && token === "ADMIN") {
-    return true;
-  }
-
-  const { data, error } = await callEdgeFunction<AdminCheckResponse>(
-    "ADMIN_CHECK",
-    {
-      method: "GET",
-      token,
-    },
-  );
-
-  if (error) {
-    if (error.status >= 400 && error.status < 500) {
-      return false;
-    }
-
-    throw new Error(error.message);
-  }
-
-  return data?.ok === true || data?.is_admin === true;
-}
-
 interface TelegramUser {
   id: number;
   first_name: string;
@@ -56,18 +30,20 @@ interface TelegramAuthContextType {
   isVip: boolean;
   loading: boolean;
   initData: string | null;
-  validatedAdminToken: string | null;
-  validatingAdminToken: boolean;
-  adminTokenError: string | null;
+  adminSession: { userId?: string; exp?: number } | null;
+  validatingAdminSession: boolean;
+  adminSessionError: string | null;
   verifyTelegramAuth: () => Promise<boolean>;
   checkAdminStatus: (
     userId?: string,
     initDataOverride?: string,
   ) => Promise<boolean>;
-  refreshValidatedAdminToken: (
-    token?: string,
-  ) => Promise<{ valid: boolean; error?: string }>;
-  getAdminAuth: () => { initData?: string; token?: string } | null;
+  refreshAdminSession: () => Promise<{ ok: boolean; error?: string }>;
+  establishAdminSession: (
+    input: { initData?: string; token?: string },
+    options?: { silent?: boolean },
+  ) => Promise<{ ok: boolean; error?: string }>;
+  clearAdminSession: () => Promise<void>;
 }
 
 interface TelegramButtonControl {
@@ -108,11 +84,13 @@ export function TelegramAuthProvider(
   const [isVip, setIsVip] = useState(false);
   const [loading, setLoading] = useState(true);
   const [initData, setInitData] = useState<string | null>(null);
-  const [validatedAdminToken, setValidatedAdminToken] = useState<string | null>(
+  const [adminSession, setAdminSession] = useState<
+    { userId?: string; exp?: number } | null
+  >(null);
+  const [validatingAdminSession, setValidatingAdminSession] = useState(false);
+  const [adminSessionError, setAdminSessionError] = useState<string | null>(
     null,
   );
-  const [validatingAdminToken, setValidatingAdminToken] = useState(false);
-  const [adminTokenError, setAdminTokenError] = useState<string | null>(null);
 
   const verifyTelegramAuth = useCallback(
     async (initDataString?: string): Promise<boolean> => {
@@ -217,6 +195,75 @@ export function TelegramAuthProvider(
     [],
   );
 
+  const establishAdminSession = useCallback(
+    async (
+      input: { initData?: string; token?: string },
+      options: { silent?: boolean } = {},
+    ): Promise<{ ok: boolean; error?: string }> => {
+      const { silent = false } = options;
+      if (!silent) {
+        setValidatingAdminSession(true);
+        setAdminSessionError(null);
+      }
+
+      try {
+        const response = await fetch("/api/admin/session", {
+          method: "POST",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(input),
+        });
+
+        let data: Record<string, unknown> = {};
+        try {
+          data = await response.json();
+        } catch {
+          data = {};
+        }
+
+        if (!response.ok) {
+          const message = typeof data?.error === "string"
+            ? data.error
+            : response.status === 401
+            ? "Admin session rejected"
+            : "Failed to establish admin session";
+          setAdminSession(null);
+          setIsAdmin(false);
+          if (!silent) {
+            setAdminSessionError(message);
+          }
+          return { ok: false, error: message };
+        }
+
+        const userIdValue = data?.userId ?? data?.user_id;
+        const expValue = data?.exp;
+        setAdminSession({
+          userId: typeof userIdValue === "string" ? userIdValue : undefined,
+          exp: typeof expValue === "number" ? expValue : undefined,
+        });
+        setAdminSessionError(null);
+        setIsAdmin(true);
+        return { ok: true };
+      } catch (error) {
+        const message = error instanceof Error
+          ? error.message
+          : "Failed to establish admin session";
+        console.error("Failed to establish admin session:", error);
+        setAdminSession(null);
+        setIsAdmin(false);
+        if (!silent) {
+          setAdminSessionError(message);
+        }
+        return { ok: false, error: message };
+      } finally {
+        if (!silent) {
+          setValidatingAdminSession(false);
+        }
+      }
+    },
+    [],
+  );
+
   const verifyAndCheckStatus = useCallback(
     async (userId: string, initDataString: string) => {
       try {
@@ -226,6 +273,11 @@ export function TelegramAuthProvider(
           await syncUser(initDataString);
           const adminStatus = await checkAdminStatus(userId, initDataString);
           setIsAdmin(adminStatus);
+          if (adminStatus) {
+            await establishAdminSession({ initData: initDataString }, {
+              silent: true,
+            });
+          }
           const vipStatus = await checkVipStatus(userId);
           setIsVip(vipStatus);
         }
@@ -235,56 +287,83 @@ export function TelegramAuthProvider(
         setLoading(false);
       }
     },
-    [verifyTelegramAuth, syncUser, checkAdminStatus, checkVipStatus],
+    [
+      verifyTelegramAuth,
+      syncUser,
+      checkAdminStatus,
+      checkVipStatus,
+      establishAdminSession,
+    ],
   );
 
-  const refreshValidatedAdminToken = useCallback(
-    async (token?: string): Promise<{ valid: boolean; error?: string }> => {
-      const tokenToCheck = token ?? localStorage.getItem(ADMIN_STORAGE_KEY);
-
-      if (!tokenToCheck) {
-        setValidatedAdminToken(null);
-        setAdminTokenError(null);
-        setIsAdmin(false);
-        setValidatingAdminToken(false);
-        return { valid: false };
-      }
-
-      setValidatingAdminToken(true);
-      setAdminTokenError(null);
-
+  const refreshAdminSession = useCallback(
+    async (): Promise<{ ok: boolean; error?: string }> => {
+      setValidatingAdminSession(true);
       try {
-        const isValid = await validateAdminToken(tokenToCheck);
+        const response = await fetch("/api/admin/session", {
+          method: "GET",
+          credentials: "include",
+          headers: { accept: "application/json" },
+        });
 
-        if (!isValid) {
-          localStorage.removeItem(ADMIN_STORAGE_KEY);
-          setValidatedAdminToken(null);
-          setIsAdmin(false);
-          const message = "Admin token rejected";
-          setAdminTokenError(message);
-          return { valid: false, error: message };
+        let data: Record<string, unknown> = {};
+        try {
+          data = await response.json();
+        } catch {
+          data = {};
         }
 
-        localStorage.setItem(ADMIN_STORAGE_KEY, tokenToCheck);
-        setValidatedAdminToken(tokenToCheck);
+        if (!response.ok) {
+          const message = typeof data?.error === "string"
+            ? data.error
+            : response.status === 401
+            ? "Admin session expired"
+            : "Failed to verify admin session";
+          setAdminSession(null);
+          setIsAdmin(false);
+          setAdminSessionError(message);
+          return { ok: false, error: message };
+        }
+
+        const userIdValue = data?.userId ?? data?.user_id;
+        const expValue = data?.exp;
+        setAdminSession({
+          userId: typeof userIdValue === "string" ? userIdValue : undefined,
+          exp: typeof expValue === "number" ? expValue : undefined,
+        });
+        setAdminSessionError(null);
         setIsAdmin(true);
-        return { valid: true };
+        return { ok: true };
       } catch (error) {
-        console.error("Failed to validate admin token:", error);
-        localStorage.removeItem(ADMIN_STORAGE_KEY);
-        setValidatedAdminToken(null);
-        setIsAdmin(false);
         const message = error instanceof Error
           ? error.message
-          : "Failed to validate admin token";
-        setAdminTokenError(message);
-        return { valid: false, error: message };
+          : "Failed to verify admin session";
+        console.error("Failed to refresh admin session:", error);
+        setAdminSession(null);
+        setIsAdmin(false);
+        setAdminSessionError(message);
+        return { ok: false, error: message };
       } finally {
-        setValidatingAdminToken(false);
+        setValidatingAdminSession(false);
       }
     },
     [],
   );
+
+  const clearAdminSession = useCallback(async () => {
+    try {
+      await fetch("/api/admin/session", {
+        method: "DELETE",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Failed to clear admin session:", error);
+    } finally {
+      setAdminSession(null);
+      setAdminSessionError(null);
+      setIsAdmin(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (globalThis.Telegram?.WebApp) {
@@ -305,20 +384,8 @@ export function TelegramAuthProvider(
   }, [verifyAndCheckStatus]);
 
   useEffect(() => {
-    void refreshValidatedAdminToken();
-  }, [refreshValidatedAdminToken]);
-
-  const getAdminAuth = () => {
-    if (validatedAdminToken) {
-      return { token: validatedAdminToken };
-    }
-
-    if (initData) {
-      return { initData };
-    }
-
-    return null;
-  };
+    void refreshAdminSession();
+  }, [refreshAdminSession]);
 
   const value: TelegramAuthContextType = {
     telegramUser,
@@ -326,13 +393,14 @@ export function TelegramAuthProvider(
     isVip,
     loading,
     initData,
-    validatedAdminToken,
-    validatingAdminToken,
-    adminTokenError,
+    adminSession,
+    validatingAdminSession,
+    adminSessionError,
     verifyTelegramAuth,
     checkAdminStatus,
-    refreshValidatedAdminToken,
-    getAdminAuth,
+    refreshAdminSession,
+    establishAdminSession,
+    clearAdminSession,
   };
 
   return (
