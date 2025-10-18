@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
-import { callEdgeFunction } from "@/config/supabase";
+import { callAdminFunction } from "@/utils/admin-client";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 
 interface BotStatus {
@@ -30,25 +30,20 @@ export function BotDiagnostics() {
   const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRotating, setIsRotating] = useState(false);
-  const { getAdminAuth } = useTelegramAuth();
+  const { isAdmin } = useTelegramAuth();
   const { toast } = useToast();
 
   const loadBotStatus = useCallback(async () => {
     setLoading(true);
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
-        throw new Error("No admin authentication available");
+      if (!isAdmin) {
+        setBotStatus(null);
+        setLoading(false);
+        return;
       }
 
-      const { data, error } = await callEdgeFunction("BOT_STATUS_CHECK", {
+      const { data, error } = await callAdminFunction("BOT_STATUS_CHECK", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
-        body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
-        },
       });
 
       if (error) {
@@ -66,24 +61,17 @@ export function BotDiagnostics() {
     } finally {
       setLoading(false);
     }
-  }, [getAdminAuth]);
+  }, [isAdmin]);
 
   const rotateWebhookSecret = async () => {
     setIsRotating(true);
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
+      if (!isAdmin) {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction("ROTATE_WEBHOOK_SECRET", {
+      const { data, error } = await callAdminFunction("ROTATE_WEBHOOK_SECRET", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
-        body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
-        },
       });
 
       if (error) {
@@ -117,19 +105,12 @@ export function BotDiagnostics() {
 
   const resetBot = async () => {
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
+      if (!isAdmin) {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction("RESET_BOT", {
+      const { data, error } = await callAdminFunction("RESET_BOT", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
-        body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
-        },
       });
 
       if (error) {

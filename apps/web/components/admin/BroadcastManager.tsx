@@ -11,7 +11,7 @@ import { Select } from "@/components/ui/select";
 import { Calendar, MessageSquare, RefreshCw, Send, Users } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
-import { callEdgeFunction } from "@/config/supabase";
+import { callAdminFunction } from "@/utils/admin-client";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 
 interface BroadcastMessage {
@@ -36,7 +36,7 @@ export function BroadcastManager() {
   const [targetAudience, setTargetAudience] = useState("all");
   const [scheduledTime, setScheduledTime] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const { getAdminAuth } = useTelegramAuth();
+  const { isAdmin } = useTelegramAuth();
   const { toast } = useToast();
 
   const audienceOptions = useMemo(
@@ -52,18 +52,15 @@ export function BroadcastManager() {
   const loadBroadcasts = useCallback(async () => {
     setLoading(true);
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
-        throw new Error("No admin authentication available");
+      if (!isAdmin) {
+        setMessages([]);
+        setLoading(false);
+        return;
       }
 
-      const { data, error } = await callEdgeFunction("BROADCAST_DISPATCH", {
+      const { data, error } = await callAdminFunction("BROADCAST_DISPATCH", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
         body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
           action: "list",
         },
       });
@@ -83,7 +80,7 @@ export function BroadcastManager() {
     } finally {
       setLoading(false);
     }
-  }, [getAdminAuth]);
+  }, [isAdmin]);
 
   const sendBroadcast = async () => {
     if (!newTitle.trim() || !newContent.trim()) {
@@ -97,18 +94,13 @@ export function BroadcastManager() {
 
     setIsSending(true);
     try {
-      const auth = getAdminAuth();
-      if (!auth) {
+      if (!isAdmin) {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction("BROADCAST_DISPATCH", {
+      const { data, error } = await callAdminFunction("BROADCAST_DISPATCH", {
         method: "POST",
-        headers: {
-          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
-        },
         body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
           action: "send",
           title: newTitle,
           content: newContent,
