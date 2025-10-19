@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  supabase,
+  SUPABASE_FUNCTIONS_URL,
+} from "@/integrations/supabase/client";
+import { scheduleIdleTask } from "@/utils/scheduleIdleTask";
 
 // Client-only hook: interacts with window, document, and navigator
 
@@ -21,6 +25,7 @@ interface AnalyticsEvent {
 }
 
 const SESSION_STORAGE_KEY = "analytics_session_id";
+const ANALYTICS_ENDPOINT = `${SUPABASE_FUNCTIONS_URL}/web-app-analytics`;
 
 const getRuntimeCrypto = (): Crypto | undefined => {
   if (typeof globalThis === "undefined") return undefined;
@@ -94,6 +99,43 @@ export const useAnalytics = () => {
     ensureSessionId();
   }, [ensureSessionId]);
 
+  const dispatchAnalyticsEvent = useCallback(
+    async (payload: AnalyticsEvent) => {
+      try {
+        if (
+          typeof navigator !== "undefined" &&
+          typeof navigator.sendBeacon === "function"
+        ) {
+          try {
+            const blob = new Blob([JSON.stringify(payload)], {
+              type: "application/json",
+            });
+            const dispatched = navigator.sendBeacon(ANALYTICS_ENDPOINT, blob);
+            if (dispatched) {
+              return;
+            }
+          } catch (error) {
+            if (process.env.NODE_ENV !== "production") {
+              console.warn("Falling back to fetch analytics delivery", error);
+            }
+          }
+        }
+
+        const { error } = await supabase.functions.invoke(
+          "web-app-analytics",
+          { body: payload },
+        );
+
+        if (error) {
+          console.error("Analytics tracking error:", error);
+        }
+      } catch (error) {
+        console.error("Failed to dispatch analytics payload:", error);
+      }
+    },
+    [],
+  );
+
   const trackEvent = useCallback(async (event: AnalyticsEvent) => {
     try {
       const sessionIdentifier = ensureSessionId();
@@ -119,21 +161,14 @@ export const useAnalytics = () => {
         }
       }
 
-      // Call analytics edge function
-      const { error } = await supabase.functions.invoke(
-        "web-app-analytics",
-        {
-          body: eventWithContext,
-        },
+      await scheduleIdleTask(
+        () => dispatchAnalyticsEvent(eventWithContext),
+        { timeout: 2000 },
       );
-
-      if (error) {
-        console.error("Analytics tracking error:", error);
-      }
     } catch (error) {
       console.error("Failed to track analytics event:", error);
     }
-  }, [ensureSessionId]);
+  }, [dispatchAnalyticsEvent, ensureSessionId]);
 
   const trackPageView = useCallback((
     page?: string,

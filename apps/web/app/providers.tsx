@@ -30,6 +30,7 @@ import { iconLibrary } from "@/resources/icons";
 import { TonConnectProvider } from "@/integrations/tonconnect";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/config/supabase-runtime";
 import { RouteAnalytics } from "@/components/analytics/RouteAnalytics";
+import { RealExperienceMetricsReporter } from "@/components/analytics/RealExperienceMetricsReporter";
 
 const {
   basics: basicsConfig,
@@ -81,6 +82,9 @@ export default function Providers({ children }: { children: ReactNode }) {
                           <TonConnectProvider>
                             <Suspense fallback={null}>
                               <RouteAnalytics />
+                            </Suspense>
+                            <Suspense fallback={null}>
+                              <RealExperienceMetricsReporter />
                             </Suspense>
                             {children}
                           </TonConnectProvider>
