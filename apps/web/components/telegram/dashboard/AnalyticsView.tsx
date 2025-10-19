@@ -48,12 +48,14 @@ export function AnalyticsView({ onBack }: AnalyticsViewProps) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
     const fetchAnalytics = async () => {
       try {
         setLoading(true);
+        setError(null);
         const { data, error: fnError } = await supabase.functions.invoke(
           "analytics-data",
           { body: { timeframe } },
@@ -82,7 +84,7 @@ export function AnalyticsView({ onBack }: AnalyticsViewProps) {
     return () => {
       isMounted = false;
     };
-  }, [timeframe]);
+  }, [timeframe, refreshKey]);
 
   const packageStats = useMemo(() => {
     if (!analytics) {
@@ -101,8 +103,7 @@ export function AnalyticsView({ onBack }: AnalyticsViewProps) {
   }, [analytics]);
 
   const handleRefresh = () => {
-    // Trigger re-fetch by setting same timeframe (force state update)
-    setTimeframe((prev) => prev);
+    setRefreshKey((prev) => prev + 1);
   };
 
   const renderSkeleton = () => (
