@@ -4,7 +4,7 @@ import {
   SUPABASE_FUNCTIONS_URL,
   SUPABASE_URL,
 } from "@/config/supabase-runtime";
-import { isDevelopment } from "@/config/node-env";
+import { isDevelopment, isTest } from "@/config/node-env";
 import { getEnvVar } from "@/utils/env";
 import {
   SUPABASE_FUNCTIONS,
@@ -69,7 +69,13 @@ function resolveStrictString(
     return value;
   }
 
-  if (isDevelopment || isBuildPhase || allowRuntimeFallbacks) {
+  const allowBakedFallbacks = !SUPABASE_CONFIG_FROM_ENV ||
+    isDevelopment ||
+    isTest ||
+    isBuildPhase ||
+    allowRuntimeFallbacks;
+
+  if (allowBakedFallbacks) {
     if (isBuildPhase || allowRuntimeFallbacks) {
       console.warn(
         `Missing required env: ${key}. Using build fallback to allow Next.js compilation.`,
@@ -117,16 +123,16 @@ type TelegramConfig = {
 export const TELEGRAM_CONFIG: TelegramConfig = {
   BOT_URL: resolveStrictString(
     "TELEGRAM_BOT_URL",
-    "https://t.me/dynamiccapital_dev_bot",
+    "https://t.me/your_bot",
   ),
   MINI_APP_URL: resolveStrictString(
     "MINI_APP_URL",
-    "http://localhost:3000/miniapp",
+    "https://your-miniapp.supabase.co",
     ["NEXT_PUBLIC_MINI_APP_URL"],
   ),
   WEBHOOK_SECRET: resolveStrictString(
     "NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET",
-    "local-telegram-webhook-secret",
+    "",
     ["TELEGRAM_WEBHOOK_SECRET"],
   ),
 };
