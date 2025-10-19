@@ -24,6 +24,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
 import { AdminGate } from "@/components/admin/AdminGate";
 
+import { LazyMarketReviewSection } from "./LazyMarketReviewSection";
+
 const DynamicChat = dynamic(
   () => import("@/components/tools/DynamicChat").then((mod) => mod.DynamicChat),
   {
@@ -447,71 +449,87 @@ function DynamicChatLanding() {
           </div>
 
           <div className="flex flex-col gap-6">
-            <section
-              id="signal-telemetry"
-              className={`${PANEL_BASE_CLASS} p-6`}
-              aria-labelledby="signal-telemetry-heading"
-            >
-              <div className={PANEL_ACCENT_LAYER} />
-              <div className="relative z-10 flex flex-col gap-4">
-                <div className="space-y-2">
-                  <p
-                    id="signal-telemetry-heading"
-                    className="text-sm font-semibold uppercase tracking-[0.26em] text-muted-foreground/70"
+            <LazyMarketReviewSection className="flex flex-col gap-6">
+              {(isReady) => (
+                <>
+                  <section
+                    id="signal-telemetry"
+                    className={`${PANEL_BASE_CLASS} p-6`}
+                    aria-labelledby="signal-telemetry-heading"
                   >
-                    Signal telemetry
-                  </p>
-                  <p className="text-lg font-semibold text-foreground">
-                    Desk alerts, minimal noise
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Monitor curated TON and FX triggers without leaving the
-                    workspace shell.
-                  </p>
-                </div>
-                <div
-                  aria-live="polite"
-                  aria-atomic="false"
-                  className="rounded-[20px] border border-border/30 bg-background/80 p-3 shadow-inner"
-                >
-                  <SignalsWidget />
-                </div>
-              </div>
-            </section>
+                    <div className={PANEL_ACCENT_LAYER} />
+                    <div className="relative z-10 flex flex-col gap-4">
+                      <div className="space-y-2">
+                        <p
+                          id="signal-telemetry-heading"
+                          className="text-sm font-semibold uppercase tracking-[0.26em] text-muted-foreground/70"
+                        >
+                          Signal telemetry
+                        </p>
+                        <p className="text-lg font-semibold text-foreground">
+                          Desk alerts, minimal noise
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Monitor curated TON and FX triggers without leaving
+                          the workspace shell.
+                        </p>
+                      </div>
+                      <div
+                        aria-live="polite"
+                        aria-atomic="false"
+                        className="rounded-[20px] border border-border/30 bg-background/80 p-3 shadow-inner"
+                      >
+                        {isReady ? <SignalsWidget /> : (
+                          <LoadingPanel
+                            title="Calibrating signal feed"
+                            description="Streaming desk alerts and automation health checks."
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </section>
 
-            <section
-              className={`${PANEL_BASE_CLASS} p-0`}
-              aria-labelledby="market-review-heading"
-            >
-              <div className={PANEL_ACCENT_LAYER} />
-              <div className="relative z-10 overflow-hidden rounded-[30px]">
-                <div className="flex items-center justify-between px-6 pt-6">
-                  <div>
-                    <p
-                      id="market-review-heading"
-                      className="text-sm font-semibold uppercase tracking-[0.26em] text-muted-foreground/70"
-                    >
-                      Market workspace
-                    </p>
-                    <p className="text-lg font-semibold text-foreground">
-                      Minimal macro surface
-                    </p>
-                  </div>
-                  <DynamicButton
-                    size="s"
-                    variant="tertiary"
-                    href="/tools/dynamic-market-review"
-                    suffixIcon="arrowUpRight"
+                  <section
+                    className={`${PANEL_BASE_CLASS} p-0`}
+                    aria-labelledby="market-review-heading"
                   >
-                    Open
-                    <NewTabAnnouncement />
-                  </DynamicButton>
-                </div>
-                <div className="mt-4 border-t border-border/30 bg-background/90 p-3">
-                  <DynamicMarketReview />
-                </div>
-              </div>
-            </section>
+                    <div className={PANEL_ACCENT_LAYER} />
+                    <div className="relative z-10 overflow-hidden rounded-[30px]">
+                      <div className="flex items-center justify-between px-6 pt-6">
+                        <div>
+                          <p
+                            id="market-review-heading"
+                            className="text-sm font-semibold uppercase tracking-[0.26em] text-muted-foreground/70"
+                          >
+                            Market workspace
+                          </p>
+                          <p className="text-lg font-semibold text-foreground">
+                            Minimal macro surface
+                          </p>
+                        </div>
+                        <DynamicButton
+                          size="s"
+                          variant="tertiary"
+                          href="/tools/dynamic-market-review"
+                          suffixIcon="arrowUpRight"
+                        >
+                          Open
+                          <NewTabAnnouncement />
+                        </DynamicButton>
+                      </div>
+                      <div className="mt-4 border-t border-border/30 bg-background/90 p-3">
+                        {isReady ? <DynamicMarketReview /> : (
+                          <LoadingPanel
+                            title="Syncing market workspace"
+                            description="Fetching macro notes and currency telemetry."
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                </>
+              )}
+            </LazyMarketReviewSection>
 
             <section
               className={`${PANEL_BASE_CLASS} p-6`}
