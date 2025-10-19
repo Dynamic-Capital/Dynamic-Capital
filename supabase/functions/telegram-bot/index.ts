@@ -188,12 +188,6 @@ function normalizeParseMode(parseMode: unknown): string {
   return trimmed.toLowerCase() === "html" ? "HTML" : trimmed;
 }
 
-function shouldEscapeHtml(parseMode: string): boolean {
-  // Preserve HTML tags when Telegram is explicitly rendering HTML and escape
-  // only for Markdown or other parse modes to avoid leaking markup.
-  return parseMode.toLowerCase() !== "html";
-}
-
 type OcrTextFromBlob = (blob: Blob) => Promise<string>;
 
 let cachedOcrTextFromBlob: OcrTextFromBlob | null = defaultOcrTextFromBlob;
@@ -271,9 +265,10 @@ async function sendMessage(
   try {
     const { parse_mode: rawParseMode, ...rest } = extra;
     const parseMode = normalizeParseMode(rawParseMode);
+    const safeText = escapeHtml(text);
     const r = await telegramFetch("sendMessage", {
       chat_id: chatId,
-      text: shouldEscapeHtml(parseMode) ? escapeHtml(text) : text,
+      text: safeText,
       disable_web_page_preview: true,
       allow_sending_without_reply: true,
       parse_mode: parseMode,
@@ -303,10 +298,11 @@ async function editMessage(
   try {
     const { parse_mode: rawParseMode, ...rest } = extra;
     const parseMode = normalizeParseMode(rawParseMode);
+    const safeText = escapeHtml(text);
     const r = await telegramFetch("editMessageText", {
       chat_id: chatId,
       message_id: messageId,
-      text: shouldEscapeHtml(parseMode) ? escapeHtml(text) : text,
+      text: safeText,
       parse_mode: parseMode,
       ...rest,
     });
