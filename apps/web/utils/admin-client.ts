@@ -43,6 +43,11 @@ type AdminFunctionResult<T> = {
 let cachedInitData: string | null = null;
 let cachedAdminToken: string | null = null;
 
+export type AdminClientAuth = {
+  initData: string | null;
+  adminToken: string | null;
+};
+
 function normalizeString(value: string | null | undefined): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -105,6 +110,13 @@ function resolveInitData(): string | null {
 
 function resolveAdminToken(): string | null {
   return cachedAdminToken;
+}
+
+export function getAdminClientAuth(): AdminClientAuth {
+  return {
+    initData: resolveInitData(),
+    adminToken: resolveAdminToken(),
+  };
 }
 
 function mergeInitData(body: RequestBody | undefined, initData: string) {

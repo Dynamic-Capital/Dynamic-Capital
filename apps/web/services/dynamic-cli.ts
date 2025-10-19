@@ -1,3 +1,5 @@
+import { getAdminClientAuth } from "@/utils/admin-client";
+
 export type DynamicCliReportFormat = "text" | "json" | "fine-tune";
 
 export interface DynamicCliNode {
@@ -373,6 +375,14 @@ export async function runDynamicCli(
   const headers: Record<string, string> = {
     "content-type": "application/json",
   };
+
+  const { adminToken, initData } = getAdminClientAuth();
+
+  if (adminToken) {
+    headers["x-admin-token"] = adminToken;
+  } else if (initData) {
+    headers["x-telegram-init-data"] = initData;
+  }
 
   const response = await fetch("/api/dynamic-cli", {
     method: "POST",

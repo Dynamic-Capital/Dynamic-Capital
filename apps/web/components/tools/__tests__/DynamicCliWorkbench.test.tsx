@@ -1,3 +1,18 @@
+process.env.TELEGRAM_BOT_URL = process.env.TELEGRAM_BOT_URL ??
+  "t.me/Dynamic_VIP_BOT/dynamic_pay";
+
+vi.mock("@/config/supabase", () => ({
+  SUPABASE_CONFIG: { FUNCTIONS: {} },
+}));
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn(async () => ({ data: { session: null } })),
+    },
+  },
+}));
+
 import "@testing-library/jest-dom/vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -5,7 +20,15 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DynamicCliWorkbench } from "../DynamicCliWorkbench";
-import { DEFAULT_DYNAMIC_CLI_SCENARIO } from "@/services/dynamic-cli";
+import {
+  DEFAULT_DYNAMIC_CLI_SCENARIO,
+  runDynamicCli,
+} from "@/services/dynamic-cli";
+import {
+  clearAdminClientAuth,
+  setAdminClientInitData,
+  setAdminClientToken,
+} from "@/utils/admin-client";
 
 let isAdminMock = true;
 
@@ -97,6 +120,7 @@ describe("DynamicCliWorkbench", () => {
     createObjectUrlMock.mockReset();
     revokeObjectUrlMock.mockReset();
     isAdminMock = true;
+    clearAdminClientAuth();
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
     globalThis.URL.createObjectURL = createObjectUrlMock;
     globalThis.URL.revokeObjectURL = revokeObjectUrlMock;
@@ -201,6 +225,67 @@ describe("DynamicCliWorkbench", () => {
     expect(
       screen.getByTestId("dynamic-cli-scenario-errors"),
     ).toHaveTextContent(/scenario json must be valid/i);
+  });
+
+  it("forwards the cached admin token when available", async () => {
+    setAdminClientToken("secure-admin-token");
+
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          report: "CLI report",
+          reportFormat: "text",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    await runDynamicCli({
+      scenario: DEFAULT_DYNAMIC_CLI_SCENARIO,
+      format: "text",
+      indent: 2,
+      fineTuneTags: [],
+      exportDataset: false,
+    });
+
+    const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1] as
+      | [RequestInfo, RequestInit]
+      | undefined;
+    const [, init] = lastCall ?? [];
+    expect(init?.headers).toMatchObject({
+      "x-admin-token": "secure-admin-token",
+    });
+  });
+
+  it("falls back to telegram init data when admin token is missing", async () => {
+    setAdminClientInitData("telegram-init-data");
+
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          report: "CLI report",
+          reportFormat: "text",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    await runDynamicCli({
+      scenario: DEFAULT_DYNAMIC_CLI_SCENARIO,
+      format: "text",
+      indent: 2,
+      fineTuneTags: [],
+      exportDataset: false,
+    });
+
+    const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1] as
+      | [RequestInfo, RequestInit]
+      | undefined;
+    const [, init] = lastCall ?? [];
+    expect(init?.headers).toMatchObject({
+      "x-telegram-init-data": "telegram-init-data",
+    });
+    expect(init?.headers).not.toHaveProperty("x-admin-token");
   });
 
   it("highlights scenario warnings for out-of-range maturity", () => {
