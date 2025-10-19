@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
@@ -23,6 +21,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
 import { AdminGate } from "@/components/admin/AdminGate";
+import { ShortcutScrollButton } from "./ShortcutScrollButton";
 
 import { LazyMarketReviewSection } from "./LazyMarketReviewSection";
 
@@ -259,17 +258,13 @@ function ShortcutCard({ shortcut }: { shortcut: Shortcut }) {
 
   if (shortcut.href.startsWith("#")) {
     return (
-      <button
-        type="button"
-        onClick={() => {
-          const element = document.querySelector(shortcut.href);
-          element?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }}
+      <ShortcutScrollButton
+        href={shortcut.href}
         aria-describedby={descriptionId}
         className="group w-full text-left"
       >
         {content}
-      </button>
+      </ShortcutScrollButton>
     );
   }
 
