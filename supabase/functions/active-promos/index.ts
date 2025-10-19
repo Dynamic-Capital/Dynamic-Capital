@@ -1,4 +1,4 @@
-import { createClient } from "../_shared/client.ts";
+import { createClient, type SupabaseClient } from "../_shared/client.ts";
 import { mna, ok, oops } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 import { registerHandler } from "../_shared/serve.ts";
@@ -23,13 +23,19 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const supa = createClient("anon");
+    const testClient = (globalThis as {
+      __TEST_SUPABASE_CLIENT__?: SupabaseClient;
+    }).__TEST_SUPABASE_CLIENT__;
+
+    const supa = testClient ?? createClient("anon");
+
+    const nowIso = new Date().toISOString();
 
     const { data, error } = await supa
       .from("promotions")
       .select("code, description, discount_type, discount_value, valid_until")
       .eq("is_active", true)
-      .gte("valid_until", new Date().toISOString())
+      .or(`(valid_until.is.null,valid_until.gte.${nowIso})`)
       .order("created_at", { ascending: false });
 
     if (error) {
