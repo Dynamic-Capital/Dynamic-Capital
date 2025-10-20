@@ -43,7 +43,7 @@ auto-discover Dynamic Capital contracts and services when resolving
 | `dedust_pool_metadata`                                                                            | `https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata` | DeDust LP metadata JSON                                                          |
 | `dedust_jetton_wallet`                                                                            | `EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz`                                                           | DeDust jetton wallet for DCT                                                     |
 | `swapcoffee_pool`                                                                                 | `EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D`                                                           | swap.coffee DCT/TON pool                                                         |
-| `swapcoffee_pool_metadata`                                                                        | `https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A/metadata`         | swap.coffee LP metadata JSON                                                     |
+| `swapcoffee_pool_metadata`                                                                        | `https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A.json`             | swap.coffee LP metadata JSON                                                     |
 | `swapcoffee_jetton_wallet`                                                                        | `EQAT363NPdduFnHRL3cP96cbxhbtMZ7vJCiuH7lt7tcwjH9l`                                                           | swap.coffee jetton wallet for DCT                                                |
 | `dao_contract`                                                                                    | `EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                                                           | Dedicated DAO governance multisig executing resolver and configuration proposals |
 | `jetton_tonviewer`                                                                                | `https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y`                              | Jetton explorer (Tonviewer)                                                      |
@@ -116,7 +116,7 @@ auto-discover Dynamic Capital contracts and services when resolving
     "dedust_pool_metadata": "https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata",
     "dedust_jetton_wallet": "EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz",
     "swapcoffee_pool": "EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D",
-    "swapcoffee_pool_metadata": "https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A/metadata",
+    "swapcoffee_pool_metadata": "https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A.json",
     "swapcoffee_jetton_wallet": "EQAT363NPdduFnHRL3cP96cbxhbtMZ7vJCiuH7lt7tcwjH9l",
     "treasury": "EQAmzcKg3eybUNzsT4llJrjoDe7FwC51nSRhJEMACCdniYhq"
   }
@@ -152,7 +152,7 @@ dedust_pool=EQDTJ4lHuT6BdTYEio99UMZNC9hzlQ-TfoA9THrvyrLumEFm
 dedust_pool_metadata=https://api.dedust.io/v2/pools/0:d3278947b93e817536048a8f7d50c64d0bd873950f937e803d4c7aefcab2ee98/metadata
 dedust_jetton_wallet=EQC_W1HQhQhf3XyyNd-FW-K6lWFfSbDi5L2GqbJ7Px2eZzVz
 swapcoffee_pool=EQAD5WGuM2uwnkBq30PBS_RmlwP5VAj-KzXa3lj9jJkFaj-D
-swapcoffee_pool_metadata=https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A/metadata
+swapcoffee_pool_metadata=https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A.json
 swapcoffee_jetton_wallet=EQAT363NPdduFnHRL3cP96cbxhbtMZ7vJCiuH7lt7tcwjH9l
 dao_contract=EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
 jetton_tonviewer=https://tonviewer.com/jetton/EQDSmz4RrDBFG-T1izwVJ7q1dpAq1mJTLrKwyMYJig6Wx_6y
