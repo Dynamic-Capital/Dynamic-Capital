@@ -3,15 +3,15 @@
 import { useMemo } from "react";
 import type { ReactNode } from "react";
 
-import {
-  Column,
-  Heading,
-  Row,
-  Tag,
-  Text,
-} from "@/components/dynamic-ui-system";
+import { Column, Heading, Tag, Text } from "@/components/dynamic-ui-system";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CountUp } from "@/components/ui/enhanced-typography";
+import {
+  WORKSPACE_MOBILE_CARD,
+  WORKSPACE_MOBILE_RAIL_CONTAINER,
+  WORKSPACE_MOBILE_RAIL_PADDING,
+} from "@/components/workspaces/workspace-mobile";
+import { cn } from "@/utils";
 import {
   Bar,
   BarChart,
@@ -89,11 +89,19 @@ interface ChartCardProps {
   title: string;
   description: string;
   children: ReactNode;
+  className?: string;
 }
 
-function ChartCard({ title, description, children }: ChartCardProps) {
+function ChartCard(
+  { title, description, children, className }: ChartCardProps,
+) {
   return (
-    <Card className="h-full border-border/60 bg-background/60 backdrop-blur">
+    <Card
+      className={cn(
+        "h-full border-border/60 bg-background/60 shadow-sm shadow-primary/5 backdrop-blur",
+        className,
+      )}
+    >
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold text-foreground">
           {title}
@@ -165,9 +173,16 @@ interface SummaryStatProps {
   value: number;
   suffix: string;
   description: string;
+  className?: string;
 }
 
-function SummaryStat({ label, value, suffix, description }: SummaryStatProps) {
+function SummaryStat({
+  label,
+  value,
+  suffix,
+  description,
+  className,
+}: SummaryStatProps) {
   return (
     <Column
       gap="8"
@@ -175,7 +190,7 @@ function SummaryStat({ label, value, suffix, description }: SummaryStatProps) {
       radius="m"
       border="neutral-alpha-weak"
       background="surface"
-      className="min-w-[160px]"
+      className={cn("min-w-[160px]", className)}
     >
       <Text variant="label-default-s" onBackground="neutral-medium">
         {label}
@@ -219,23 +234,32 @@ export function DynamicUiOptimizer() {
         </Text>
       </Column>
 
-      <Row gap="20" wrap>
-        {SUMMARY_STATS.map((stat) => (
-          <SummaryStat
-            key={stat.label}
-            label={stat.label}
-            value={stat.value}
-            suffix={stat.suffix}
-            description={stat.description}
-          />
-        ))}
-      </Row>
+      <div className={cn(WORKSPACE_MOBILE_RAIL_PADDING, "md:m-0")}>
+        <div
+          className={cn(
+            WORKSPACE_MOBILE_RAIL_CONTAINER,
+            "px-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0 lg:grid-cols-3",
+          )}
+        >
+          {SUMMARY_STATS.map((stat) => (
+            <SummaryStat
+              key={stat.label}
+              label={stat.label}
+              value={stat.value}
+              suffix={stat.suffix}
+              description={stat.description}
+              className={cn(WORKSPACE_MOBILE_CARD, "sm:min-w-[200px]")}
+            />
+          ))}
+        </div>
+      </div>
 
       <Column gap="24">
-        <Row gap="24" wrap>
+        <div className="grid gap-6 lg:grid-cols-2">
           <ChartCard
             title="Readiness velocity"
             description="Weekly readiness score showing compounded automation coverage."
+            className="min-h-[320px]"
           >
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={ACTIVATION_TREND}>
@@ -266,6 +290,7 @@ export function DynamicUiOptimizer() {
           <ChartCard
             title="Pipeline conversion"
             description="How many members land in each automation milestone this month."
+            className="min-h-[320px]"
           >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={PIPELINE_DATA}>
@@ -286,11 +311,12 @@ export function DynamicUiOptimizer() {
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
-        </Row>
+        </div>
 
         <ChartCard
           title="Activation sources"
           description="Distribution of where qualified operators originate before joining the desk."
+          className="min-h-[360px]"
         >
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>

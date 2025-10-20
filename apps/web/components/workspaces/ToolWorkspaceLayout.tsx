@@ -419,10 +419,10 @@ export function ToolWorkspaceLayout({
         id={heroSectionId}
         aria-labelledby={heroHeadingId}
         aria-describedby={heroDescriptionId}
-        className="relative z-10 flex flex-col gap-10 p-8 text-left sm:p-10 lg:p-14"
+        className="relative z-10 flex flex-col gap-8 p-6 text-left sm:gap-10 sm:p-10 lg:p-14"
       >
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-6 lg:max-w-3xl">
+        <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-5 sm:space-y-6 lg:max-w-3xl">
             <Breadcrumbs
               items={heroBreadcrumbItems}
               size="compact"
@@ -471,7 +471,7 @@ export function ToolWorkspaceLayout({
           </div>
           {heroActionsContent
             ? (
-              <div className="w-full max-w-xs flex-shrink-0">
+              <div className="w-full max-w-md flex-shrink-0 sm:max-w-xs">
                 <div className="rounded-3xl border border-white/10 bg-background/70 p-5 shadow-lg shadow-primary/10 backdrop-blur">
                   <Text
                     variant="label-default-s"
@@ -497,7 +497,7 @@ export function ToolWorkspaceLayout({
       aria-labelledby={heroHeadingId}
       aria-describedby={heroDescriptionId}
       className={cn(
-        "w-full flex flex-col items-center gap-16 lg:gap-20",
+        "w-full flex flex-col items-center gap-12 sm:gap-16 lg:gap-20",
         className,
       )}
     >
@@ -538,7 +538,7 @@ export function ToolWorkspaceLayout({
             <VisuallyHidden id={utilitiesLabelId}>
               {utilitiesLabel}
             </VisuallyHidden>
-            <div className="relative overflow-hidden rounded-[2.25rem] border border-border/60 bg-background/80 p-6 shadow-xl shadow-primary/10 backdrop-blur">
+            <div className="relative overflow-hidden rounded-[2.25rem] border border-border/60 bg-background/80 p-4 shadow-xl shadow-primary/10 backdrop-blur sm:p-6">
               <div
                 className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-primary/10 opacity-60"
                 aria-hidden
@@ -608,7 +608,7 @@ export function ToolWorkspaceLayout({
         aria-labelledby={heroHeadingId}
         className={cn(
           workspaceShellClassName,
-          "pb-16 space-y-16 lg:space-y-20",
+          "pb-12 space-y-12 sm:pb-16 sm:space-y-16 lg:space-y-20",
           contentClassName,
         )}
       >
