@@ -4,6 +4,8 @@
   "domains": {
     "DAGI": {
       "files": 50,
+      "records": 50,
+      "dataset_path": "processed/dagi_metadata.jsonl",
       "total_bytes": 555049934,
       "extensions": {
         "docx": 21,
@@ -18,6 +20,8 @@
     },
     "DAGS": {
       "files": 13,
+      "records": 13,
+      "dataset_path": "processed/dags_metadata.jsonl",
       "total_bytes": 2195513,
       "extensions": {
         "pdf": 13
@@ -30,6 +34,8 @@
     },
     "DAI": {
       "files": 52,
+      "records": 52,
+      "dataset_path": "processed/dai_metadata.jsonl",
       "total_bytes": 111439622,
       "extensions": {
         "json": 2,
@@ -43,5 +49,6 @@
     }
   },
   "total_files": 115,
+  "total_records": 115,
   "total_bytes": 668685069
 }

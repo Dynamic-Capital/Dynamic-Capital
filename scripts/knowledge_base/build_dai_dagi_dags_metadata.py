@@ -114,11 +114,14 @@ def build_metadata(input_root: Path, output_root: Path, *, share_id: str) -> Non
     source_url = f"https://drive.google.com/drive/folders/{share_id}"
     all_records: list[MetadataRecord] = []
     summary: dict[str, dict[str, object]] = {}
+    domain_records: dict[str, list[MetadataRecord]] = {}
 
     for file_path in _iter_files(input_root):
         record = _build_record(file_path, source_url=source_url, root=input_root)
         all_records.append(record)
         domain = record.metadata["domain"]  # type: ignore[index]
+        bucket_records = domain_records.setdefault(domain, [])
+        bucket_records.append(record)
         bucket = summary.setdefault(
             domain,
             {"files": 0, "total_bytes": 0, "extensions": {}},
@@ -133,9 +136,11 @@ def build_metadata(input_root: Path, output_root: Path, *, share_id: str) -> Non
     processed_root = output_root / "processed"
     processed_root.mkdir(parents=True, exist_ok=True)
 
+    record_counts: dict[str, int] = {}
     for domain in ("DAI", "DAGI", "DAGS"):
-        domain_records = [record for record in all_records if record.metadata["domain"] == domain]  # type: ignore[index]
-        _write_jsonl(processed_root / f"{domain.lower()}_metadata.jsonl", domain_records)
+        records = domain_records.get(domain, [])
+        output_path = processed_root / f"{domain.lower()}_metadata.jsonl"
+        record_counts[domain] = _write_jsonl(output_path, records)
 
     summary_payload = {
         "generated_at": datetime.now(UTC).isoformat(),
@@ -143,6 +148,8 @@ def build_metadata(input_root: Path, output_root: Path, *, share_id: str) -> Non
         "domains": {
             domain: {
                 "files": bucket["files"],
+                "records": record_counts.get(domain, 0),
+                "dataset_path": f"processed/{domain.lower()}_metadata.jsonl",
                 "total_bytes": bucket["total_bytes"],
                 "extensions": dict(sorted(bucket["extensions"].items())),  # type: ignore[arg-type]
                 "tags": list(DOMAIN_TAGS.get(domain, (domain.lower(),))),
@@ -150,6 +157,7 @@ def build_metadata(input_root: Path, output_root: Path, *, share_id: str) -> Non
             for domain, bucket in sorted(summary.items())
         },
         "total_files": len(all_records),
+        "total_records": sum(record_counts.values()),
         "total_bytes": sum(int(bucket["total_bytes"]) for bucket in summary.values()),
     }
 
