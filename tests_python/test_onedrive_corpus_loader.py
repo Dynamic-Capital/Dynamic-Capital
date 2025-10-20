@@ -197,6 +197,35 @@ def test_loader_supports_custom_extensions():
     assert [document.identifier for document in documents] == ["events.log"]
 
 
+def test_loader_skips_configured_drive_item_ids():
+    fake_client = FakeClient()
+    loader = build_onedrive_share_loader(
+        "https://example/share",
+        client_factory=lambda: fake_client,
+        skip_drive_item_ids=("readme",),
+    )
+    context = CorpusExtractionContext(source="share", limit=None, metadata={})
+    documents = list(loader(context))
+
+    assert [document.identifier for document in documents] == ["Notes/notes.txt"]
+
+
+def test_loader_skips_metadata_identifiers():
+    fake_client = FakeClient()
+    loader = build_onedrive_share_loader(
+        "https://example/share",
+        client_factory=lambda: fake_client,
+    )
+    context = CorpusExtractionContext(
+        source="share",
+        limit=None,
+        metadata={"skip_identifiers": ("Notes/notes.txt",)},
+    )
+    documents = list(loader(context))
+
+    assert [document.identifier for document in documents] == ["README.md"]
+
+
 def test_loader_normalises_allowed_mime_configuration():
     fake_client = CustomMimeClient()
     loader = build_onedrive_share_loader(
