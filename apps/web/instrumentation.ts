@@ -1,8 +1,23 @@
-import process from "node:process";
 import { metrics } from "@opentelemetry/api";
 import type { MeterProvider } from "@opentelemetry/sdk-metrics";
 import type { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
 import { isProduction } from "@/config/node-env";
+
+type ProcessEnvLike = Record<string, string | undefined>;
+
+type ProcessLike = {
+  env?: ProcessEnvLike;
+  versions?: { node?: string };
+};
+
+const processLike = typeof globalThis === "object" &&
+    typeof (globalThis as { process?: unknown }).process === "object" &&
+    (globalThis as { process?: unknown }).process !== null
+  ? (globalThis as { process: ProcessLike }).process
+  : undefined;
+
+const processEnv: ProcessEnvLike = processLike?.env ?? {};
+const nodeVersion = processLike?.versions?.node;
 
 const SERVICE_NAME = "dynamic-capital-web";
 
@@ -92,7 +107,7 @@ let getPrometheusExporterImpl: () => Promise<PrometheusExporter | undefined> =
   () => Promise.resolve(undefined);
 
 const registerImpl: () => Promise<void> = (() => {
-  if (process.env.NEXT_RUNTIME === "edge") {
+  if (processEnv.NEXT_RUNTIME === "edge") {
     getPrometheusExporterImpl = () => Promise.resolve(undefined);
 
     return function registerEdgeRuntime(): Promise<void> {
@@ -106,8 +121,8 @@ const registerImpl: () => Promise<void> = (() => {
     };
   }
 
-  const isNodeRuntime = typeof process !== "undefined" &&
-    !!process.versions?.node;
+  const isNodeRuntime = typeof nodeVersion === "string" &&
+    nodeVersion.length > 0;
 
   const dynamicImport = new Function(
     "specifier",
@@ -488,7 +503,7 @@ const registerImpl: () => Promise<void> = (() => {
       new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: SERVICE_NAME,
         [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
-          process.env.VERCEL_ENV || process.env.NODE_ENV || "development",
+          processEnv.VERCEL_ENV || processEnv.NODE_ENV || "development",
       }),
     );
 
@@ -525,7 +540,7 @@ const registerImpl: () => Promise<void> = (() => {
       return;
     }
 
-    const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
+    const dsn = processEnv.SENTRY_DSN || processEnv.NEXT_PUBLIC_SENTRY_DSN;
     if (!dsn) {
       return;
     }
@@ -548,12 +563,12 @@ const registerImpl: () => Promise<void> = (() => {
       if (typeof sentry.init === "function" && !hasClient) {
         sentry.init({
           dsn,
-          environment: process.env.SENTRY_ENV ||
-            process.env.VERCEL_ENV ||
-            process.env.NODE_ENV ||
+          environment: processEnv.SENTRY_ENV ||
+            processEnv.VERCEL_ENV ||
+            processEnv.NODE_ENV ||
             "development",
-          release: process.env.SENTRY_RELEASE ||
-            process.env.VERCEL_GIT_COMMIT_SHA,
+          release: processEnv.SENTRY_RELEASE ||
+            processEnv.VERCEL_GIT_COMMIT_SHA,
           enableTracing: true,
           tracesSampleRate: 1.0,
           profilesSampleRate: 1.0,

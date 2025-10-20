@@ -1,13 +1,20 @@
 import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
-import process from "node:process";
+
+const processEnv = typeof globalThis === "object" &&
+    typeof globalThis.process === "object" &&
+    globalThis.process !== null &&
+    typeof globalThis.process.env === "object" &&
+    globalThis.process.env !== null
+  ? globalThis.process.env
+  : {};
 
 export default defineConfig({
   schema: "./db/schema.ts",
   out: "./drizzle",
   driver: "pg",
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL ??
-      `postgresql://postgres:${process.env.SUPABASE_DB_PASSWORD}@db.${process.env.SUPABASE_PROJECT_ID}.supabase.co:5432/postgres`,
+    connectionString: processEnv.DATABASE_URL ??
+      `postgresql://postgres:${processEnv.SUPABASE_DB_PASSWORD}@db.${processEnv.SUPABASE_PROJECT_ID}.supabase.co:5432/postgres`,
   },
 });
