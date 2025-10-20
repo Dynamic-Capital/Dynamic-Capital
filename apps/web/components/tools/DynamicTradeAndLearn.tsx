@@ -15,6 +15,12 @@ import { StrengthMeter } from "@/components/trading/StrengthMeter";
 import { WalletCard } from "@/components/trading/WalletCard";
 import { Card } from "@/components/ui/card";
 import { DeskSection } from "@/components/workspaces/DeskSection";
+import {
+  WORKSPACE_MOBILE_CARD,
+  WORKSPACE_MOBILE_RAIL_CONTAINER,
+  WORKSPACE_MOBILE_RAIL_PADDING,
+} from "@/components/workspaces/workspace-mobile";
+import { cn } from "@/utils";
 
 interface ProgressMetric {
   id: string;
@@ -289,10 +295,21 @@ function ReadinessSection() {
           <StrengthMeter />
         </div>
       </div>
-      <div className="grid w-full gap-6 md:grid-cols-3">
-        {PROGRESS_METRICS.map((metric) => (
-          <Card key={metric.id} className="h-full p-6">
-            <div className="flex flex-col gap-2">
+      <div className={cn(WORKSPACE_MOBILE_RAIL_PADDING, "md:m-0")}>
+        <div
+          className={cn(
+            WORKSPACE_MOBILE_RAIL_CONTAINER,
+            "px-1 sm:grid sm:grid-cols-2 sm:gap-6 sm:px-0 lg:grid-cols-3",
+          )}
+        >
+          {PROGRESS_METRICS.map((metric) => (
+            <Card
+              key={metric.id}
+              className={cn(
+                WORKSPACE_MOBILE_CARD,
+                "flex h-full min-h-[180px] flex-col justify-between gap-3 border-border/60 bg-background/70 p-6 shadow-sm shadow-primary/5 backdrop-blur",
+              )}
+            >
               <span className="text-sm font-medium text-muted-foreground">
                 {metric.label}
               </span>
@@ -302,9 +319,9 @@ function ReadinessSection() {
               <p className="text-sm text-muted-foreground">
                 {metric.description}
               </p>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))}
+        </div>
       </div>
     </Column>
   );
@@ -357,9 +374,23 @@ function CadenceSection({
   return (
     <Column gap="20" fillWidth>
       <SectionHeader title={title} description={description} />
-      <Column gap="16">
-        {items.map((item) => <CadenceCard key={item.id} {...item} />)}
-      </Column>
+      <div className={cn(WORKSPACE_MOBILE_RAIL_PADDING, "md:m-0")}>
+        <div
+          className={cn(
+            WORKSPACE_MOBILE_RAIL_CONTAINER,
+            "px-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0",
+          )}
+        >
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className={cn(WORKSPACE_MOBILE_CARD, "sm:min-w-0")}
+            >
+              <CadenceCard {...item} />
+            </div>
+          ))}
+        </div>
+      </div>
     </Column>
   );
 }
@@ -404,27 +435,37 @@ function ResourceLinksSection() {
         title="Launch the next action"
         description="Explore the surfaces that power the Dynamic Trade &amp; Learn experience."
       />
-      <div className="grid w-full gap-6 md:grid-cols-3">
-        {RESOURCE_LINKS.map((resource) => (
-          <Card
-            key={resource.id}
-            className="flex h-full flex-col justify-between gap-4 p-6"
-          >
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">{resource.label}</h3>
-              <p className="text-sm text-muted-foreground">
-                {resource.description}
-              </p>
-            </div>
-            <Button
-              href={resource.href}
-              variant="secondary"
-              data-border="rounded"
+      <div className={cn(WORKSPACE_MOBILE_RAIL_PADDING, "md:m-0")}>
+        <div
+          className={cn(
+            WORKSPACE_MOBILE_RAIL_CONTAINER,
+            "px-1 sm:grid sm:grid-cols-2 sm:gap-6 sm:px-0 lg:grid-cols-3",
+          )}
+        >
+          {RESOURCE_LINKS.map((resource) => (
+            <Card
+              key={resource.id}
+              className={cn(
+                WORKSPACE_MOBILE_CARD,
+                "flex h-full flex-col justify-between gap-4 border-border/60 bg-background/70 p-6 shadow-sm shadow-primary/5 backdrop-blur",
+              )}
             >
-              Explore
-            </Button>
-          </Card>
-        ))}
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">{resource.label}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {resource.description}
+                </p>
+              </div>
+              <Button
+                href={resource.href}
+                variant="secondary"
+                data-border="rounded"
+              >
+                Explore
+              </Button>
+            </Card>
+          ))}
+        </div>
       </div>
     </Column>
   );

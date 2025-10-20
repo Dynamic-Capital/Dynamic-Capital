@@ -22,10 +22,16 @@ import {
 } from "@/components/ui/accessibility-utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToolWorkspaceLayout } from "@/components/workspaces/ToolWorkspaceLayout";
+import {
+  WORKSPACE_MOBILE_CARD,
+  WORKSPACE_MOBILE_RAIL_CONTAINER,
+  WORKSPACE_MOBILE_RAIL_PADDING,
+} from "@/components/workspaces/workspace-mobile";
 import { AdminGate } from "@/components/admin/AdminGate";
 import { ShortcutScrollButton } from "./ShortcutScrollButton";
 
 import { LazyMarketReviewSection } from "./LazyMarketReviewSection";
+import { cn } from "@/utils";
 
 const DynamicChat = dynamic(
   () => import("@/components/tools/DynamicChat").then((mod) => mod.DynamicChat),
@@ -235,7 +241,10 @@ function LoadingPanel({
   );
 }
 
-function ShortcutCard({ shortcut }: { shortcut: Shortcut }) {
+function ShortcutCard({
+  shortcut,
+  className,
+}: { shortcut: Shortcut; className?: string }) {
   const descriptionId = createAccessibleId("shortcut", shortcut.label);
   const content = (
     <div
@@ -263,7 +272,11 @@ function ShortcutCard({ shortcut }: { shortcut: Shortcut }) {
       <ShortcutScrollButton
         href={shortcut.href}
         aria-describedby={descriptionId}
-        className="group w-full text-left"
+        className={cn(
+          "group w-full shrink-0 text-left",
+          WORKSPACE_MOBILE_CARD,
+          className,
+        )}
       >
         {content}
       </ShortcutScrollButton>
@@ -275,7 +288,11 @@ function ShortcutCard({ shortcut }: { shortcut: Shortcut }) {
       href={shortcut.href}
       prefetch={false}
       aria-describedby={descriptionId}
-      className="group block"
+      className={cn(
+        "group block shrink-0",
+        WORKSPACE_MOBILE_CARD,
+        className,
+      )}
       target={shortcut.external ? "_blank" : undefined}
       rel={shortcut.external ? "noreferrer noopener" : undefined}
     >
@@ -311,7 +328,10 @@ function HighlightCard({ highlight }: { highlight: Highlight }) {
 
   return (
     <li
-      className="flex flex-col gap-3 rounded-[22px] border border-border/40 bg-white/75 p-5 shadow-[0_24px_45px_-38px_rgba(15,23,42,0.55)] backdrop-blur-xl dark:bg-slate-950/70"
+      className={cn(
+        WORKSPACE_MOBILE_CARD,
+        "flex flex-col gap-3 rounded-[22px] border border-border/40 bg-white/75 p-5 shadow-[0_24px_45px_-38px_rgba(15,23,42,0.55)] backdrop-blur-xl dark:bg-slate-950/70",
+      )}
       aria-labelledby={`${labelId} ${metricId}`}
       aria-describedby={descriptionId}
     >
@@ -333,7 +353,13 @@ function HighlightCard({ highlight }: { highlight: Highlight }) {
 
 function FocusAreaCard({ focus }: { focus: FocusArea }) {
   return (
-    <div className={`${CARD_CLASS} h-full`}>
+    <div
+      className={cn(
+        WORKSPACE_MOBILE_CARD,
+        CARD_CLASS,
+        "h-full",
+      )}
+    >
       <div className="relative z-10 flex h-full flex-col gap-4">
         <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
           <focus.icon className="h-5 w-5 text-primary" aria-hidden />
@@ -356,8 +382,8 @@ function DynamicChatLanding() {
       <div className="flex flex-col gap-16">
         <section className={`${PANEL_BASE_CLASS} px-6 py-10 sm:px-10 sm:py-14`}>
           <div className={PANEL_ACCENT_LAYER} />
-          <div className="relative z-10 flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-6 max-w-xl">
+          <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-xl space-y-6">
               <p className="text-xs font-semibold uppercase tracking-[0.32em] text-muted-foreground/70">
                 Dynamic chat control tower
               </p>
@@ -389,21 +415,34 @@ function DynamicChatLanding() {
                 </Link>
               </div>
             </div>
-            <ul
-              className="grid gap-4 sm:grid-cols-3 lg:max-w-sm"
-              aria-label="Dynamic chat workspace highlights"
-            >
-              {HIGHLIGHTS.map((highlight) => (
-                <HighlightCard key={highlight.label} highlight={highlight} />
-              ))}
-            </ul>
+            <div className={cn("lg:max-w-sm", WORKSPACE_MOBILE_RAIL_PADDING)}>
+              <ul
+                className={cn(
+                  WORKSPACE_MOBILE_RAIL_CONTAINER,
+                  "px-1 sm:grid-cols-3 sm:px-0",
+                )}
+                aria-label="Dynamic chat workspace highlights"
+              >
+                {HIGHLIGHTS.map((highlight) => (
+                  <HighlightCard key={highlight.label} highlight={highlight} />
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {FOCUS_AREAS.map((focus) => (
-            <FocusAreaCard key={focus.title} focus={focus} />
-          ))}
+        <section className={WORKSPACE_MOBILE_RAIL_PADDING}>
+          <div
+            className={cn(
+              WORKSPACE_MOBILE_RAIL_CONTAINER,
+              "px-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0 xl:grid-cols-4",
+            )}
+            role="list"
+          >
+            {FOCUS_AREAS.map((focus) => (
+              <FocusAreaCard key={focus.title} focus={focus} />
+            ))}
+          </div>
         </section>
 
         <section
@@ -437,10 +476,17 @@ function DynamicChatLanding() {
                   </div>
                 </AdminGate>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {SHORTCUTS.slice(0, 2).map((shortcut) => (
-                  <ShortcutCard key={shortcut.label} shortcut={shortcut} />
-                ))}
+              <div className={WORKSPACE_MOBILE_RAIL_PADDING}>
+                <div
+                  className={cn(
+                    WORKSPACE_MOBILE_RAIL_CONTAINER,
+                    "px-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0",
+                  )}
+                >
+                  {SHORTCUTS.slice(0, 2).map((shortcut) => (
+                    <ShortcutCard key={shortcut.label} shortcut={shortcut} />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -545,10 +591,17 @@ function DynamicChatLanding() {
                     Stay in the flow
                   </p>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {SHORTCUTS.slice(2).map((shortcut) => (
-                    <ShortcutCard key={shortcut.label} shortcut={shortcut} />
-                  ))}
+                <div className={WORKSPACE_MOBILE_RAIL_PADDING}>
+                  <div
+                    className={cn(
+                      WORKSPACE_MOBILE_RAIL_CONTAINER,
+                      "px-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0",
+                    )}
+                  >
+                    {SHORTCUTS.slice(2).map((shortcut) => (
+                      <ShortcutCard key={shortcut.label} shortcut={shortcut} />
+                    ))}
+                  </div>
                 </div>
               </div>
             </section>
