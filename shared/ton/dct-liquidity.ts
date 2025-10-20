@@ -80,7 +80,7 @@ export const DCT_DEX_POOLS: readonly DctDexPoolDefinition[] = Object.freeze([
     poolAddress: TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL,
     poolExplorerUrl: buildTonviewerAccountUrl(TON_MAINNET_SWAPCOFFEE_DCT_TON_POOL),
     metadataUrl:
-      "https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A/metadata",
+      "https://dynamiccapital.ton/liquidity/swapcoffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A.json",
     jettonWalletAddress: TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,
     jettonWalletExplorerUrl: buildTonviewerAccountUrl(
       TON_MAINNET_SWAPCOFFEE_DCT_JETTON_WALLET,

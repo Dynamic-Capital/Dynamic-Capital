@@ -38,6 +38,7 @@ swap.coffee is a TON-native decentralized exchange (DEX) aggregator headquartere
   STON.fi and DeDust.
 - Treasury runbooks and the DCT action pad include swap.coffee swap, explorer, and jetton wallet links so operations staff can
   reconcile liquidity across all supported venues without manual lookups.
+- Dynamic Capital now mirrors the TON/DCT LP metadata JSON at https://dynamiccapital.ton/liquidity/swapcoffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A.json to satisfy `addressWithJson` validation requirements.
 - DNS inventory scripts publish the swap.coffee pool, metadata, and jetton wallet references, keeping downstream integrations in
   sync with the new venue and making the records auditable.
 
@@ -51,6 +52,8 @@ swap.coffee is a TON-native decentralized exchange (DEX) aggregator headquartere
 | Contract address | `0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A` |
 | Image | <https://lp.swap.coffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A/image> |
 | Description | LP token for Toncoin and Dynamic Capital Token on swap.coffee DEX. |
+| Metadata JSON | <https://dynamiccapital.ton/liquidity/swapcoffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A.json> |
+| Metadata (fallback) | <https://dynamic.capital/liquidity/swapcoffee/0:03E561AE336BB09E406ADF43C14BF4669703F95408FE2B35DADE58FD8C99056A.json> |
 
 *The token metadata above maps to the swap.coffee liquidity pool pairing Toncoin with the Dynamic Capital Token (DCT).*
 
