@@ -20,6 +20,7 @@ import { HideOnMiniApp } from "@/components/navigation/HideOnMiniApp";
 import { canonicalSiteUrl, getMetadataBase } from "@/lib/seo";
 import { dynamicBranding, dynamicUI } from "@/resources";
 import { PageShell } from "@/components/layout/PageShell";
+import { ResourceHints } from "@/components/performance/ResourceHints";
 
 const SITE_URL = canonicalSiteUrl;
 const THEME_SCRIPT_ID = "theme-init";
@@ -225,6 +226,7 @@ export default async function RootLayout(
         <link rel="apple-touch-icon" href={brandingAssets.appleTouchIcon} />
         <link rel="icon" type="image/svg+xml" href={DC_ICON_MARK_URL} />
         <link rel="icon" type="image/x-icon" href={brandingAssets.favicon} />
+        <ResourceHints />
         <style
           id={BRANDING_STYLE_ELEMENT_ID}
           suppressHydrationWarning
