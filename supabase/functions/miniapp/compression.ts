@@ -1,7 +1,7 @@
 import { optionalEnv } from "../_shared/env.ts";
 
 export const DISABLE_HTML_COMPRESSION = optionalEnv(
-  "DISABLE_HTML_COMPRESSION" as any,
+  "DISABLE_HTML_COMPRESSION",
 ) === "true";
 
 export function smartCompress(

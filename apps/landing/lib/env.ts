@@ -1,5 +1,19 @@
 import { z } from "zod";
 
+type ProcessEnvLike = Record<string, string | undefined>;
+
+type ProcessLike = {
+  env?: ProcessEnvLike;
+};
+
+const processLike = typeof globalThis === "object" &&
+    typeof (globalThis as { process?: unknown }).process === "object" &&
+    (globalThis as { process?: unknown }).process !== null
+  ? (globalThis as { process: ProcessLike }).process
+  : undefined;
+
+const processEnv: ProcessEnvLike = processLike?.env ?? {};
+
 type Mode = "throw" | "report";
 
 type MissingMap = {
@@ -48,25 +62,27 @@ function extractMissing(error: z.ZodError): string[] {
 
 function validatePublicEnv(): MissingMap["public"] {
   const result = publicSchema.safeParse({
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ??
-      process.env.SITE_URL ?? undefined,
+    NEXT_PUBLIC_SITE_URL: processEnv.NEXT_PUBLIC_SITE_URL ??
+      processEnv.SITE_URL ?? undefined,
   });
 
   return result.success ? [] : extractMissing(result.error);
 }
 
 function validateServerEnv(): MissingMap["server"] {
-  const resolvedSiteUrl = process.env.SITE_URL ??
-    process.env.NEXT_PUBLIC_SITE_URL ?? undefined;
+  const resolvedSiteUrl = processEnv.SITE_URL ??
+    processEnv.NEXT_PUBLIC_SITE_URL ?? undefined;
   const result = serverSchema.safeParse({
     SITE_URL: resolvedSiteUrl,
   });
 
   if (
     result.success && typeof resolvedSiteUrl === "string" &&
-    process.env.SITE_URL === undefined
+    processEnv.SITE_URL === undefined
   ) {
-    process.env.SITE_URL = resolvedSiteUrl;
+    if (processLike?.env) {
+      processLike.env.SITE_URL = resolvedSiteUrl;
+    }
   }
 
   return result.success ? [] : extractMissing(result.error);
@@ -104,5 +120,5 @@ export function checkRuntimeEnv(mode: Mode = "throw"): ValidationResult {
   return { success, missing };
 }
 
-const shouldThrow = process.env.DC_SKIP_RUNTIME_ENV_CHECK !== "true";
+const shouldThrow = processEnv.DC_SKIP_RUNTIME_ENV_CHECK !== "true";
 checkRuntimeEnv(shouldThrow ? "throw" : "report");

@@ -21,6 +21,7 @@ import { canonicalSiteUrl, getMetadataBase } from "@/lib/seo";
 import { dynamicBranding, dynamicUI } from "@/resources";
 import { PageShell } from "@/components/layout/PageShell";
 import { ResourceHints } from "@/components/performance/ResourceHints";
+import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
 
 const SITE_URL = canonicalSiteUrl;
 const THEME_SCRIPT_ID = "theme-init";
@@ -255,6 +256,7 @@ export default async function RootLayout(
               <SiteFooter />
             </HideOnMiniApp>
           </div>
+          <PwaInstallPrompt />
         </Providers>
         {IS_PRODUCTION ? <SpeedInsights /> : null}
       </body>

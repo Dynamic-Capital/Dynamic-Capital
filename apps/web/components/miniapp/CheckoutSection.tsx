@@ -9,7 +9,6 @@ import {
 import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { InputField } from "@/components/ui/input-field";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -47,8 +46,37 @@ interface Plan {
 interface CheckoutSectionProps {
   selectedPlanId?: string;
   promoCode?: string;
-  onBack: () => void;
+  onBack?: () => void;
 }
+
+interface BankDetails {
+  bank_name: string;
+  account_name: string;
+  account_number: string;
+  [key: string]: unknown;
+}
+
+interface PaymentInstructionsBase {
+  type: "bank_transfer" | "crypto";
+  [key: string]: unknown;
+}
+
+interface BankTransferInstructions extends PaymentInstructionsBase {
+  type: "bank_transfer";
+  banks?: BankDetails[];
+}
+
+interface CryptoInstructions extends PaymentInstructionsBase {
+  type: "crypto";
+}
+
+type PaymentInstructions = BankTransferInstructions | CryptoInstructions | null;
+
+type PlansResponse = { plans: Plan[] };
+
+type CheckoutInitResponse =
+  | { ok: true; instructions: Exclude<PaymentInstructions, null> }
+  | { ok: false; error?: string };
 
 export default function CheckoutSection(
   { selectedPlanId, promoCode, onBack }: CheckoutSectionProps,
@@ -59,7 +87,9 @@ export default function CheckoutSection(
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(
     null,
   );
-  const [paymentInstructions, setPaymentInstructions] = useState<any>(null);
+  const [paymentInstructions, setPaymentInstructions] = useState<
+    PaymentInstructions
+  >(null);
   const [loading, setLoading] = useState(true);
   const [initiatingCheckout, setInitiatingCheckout] = useState(false);
   const [step, setStep] = useState<"select" | "payment" | "instructions">(
@@ -70,17 +100,19 @@ export default function CheckoutSection(
     promoCode ?? null,
   );
 
-  const isInTelegram = typeof window !== "undefined" && window.Telegram?.WebApp;
+  const isInTelegram = typeof window !== "undefined" &&
+    globalThis.Telegram?.WebApp;
 
   useEffect(() => {
     // Fetch plans
-    callEdgeFunction("PLANS")
+    callEdgeFunction<PlansResponse>("PLANS")
       .then(({ data }) => {
-        setPlans((data as any)?.plans || []);
+        const resolvedPlans = data?.plans ?? [];
+        setPlans(resolvedPlans);
 
         if (selectedPlanId) {
-          const plan = ((data as any)?.plans || []).find((p: Plan) =>
-            p.id === selectedPlanId
+          const plan = resolvedPlans.find((candidate) =>
+            candidate.id === selectedPlanId
           );
           setSelectedPlan(plan || null);
           setStep("payment");
@@ -160,21 +192,24 @@ export default function CheckoutSection(
 
     setInitiatingCheckout(true);
     try {
-      const { data } = await callEdgeFunction("CHECKOUT_INIT", {
-        method: "POST",
-        body: {
-          plan_id: selectedPlan.id,
-          method: paymentMethod,
-          currency,
-          amount: getDisplayPrice(selectedPlan),
-          promo_code: activePromoCode ?? undefined,
-          initData: isInTelegram
-            ? window.Telegram?.WebApp?.initData
-            : undefined,
+      const { data, error } = await callEdgeFunction<CheckoutInitResponse>(
+        "CHECKOUT_INIT",
+        {
+          method: "POST",
+          body: {
+            plan_id: selectedPlan.id,
+            method: paymentMethod,
+            currency,
+            amount: getDisplayPrice(selectedPlan),
+            promo_code: activePromoCode ?? undefined,
+            initData: isInTelegram
+              ? globalThis.Telegram?.WebApp?.initData
+              : undefined,
+          },
         },
-      });
-      if ((data as any)?.ok) {
-        setPaymentInstructions((data as any).instructions);
+      );
+      if (data?.ok) {
+        setPaymentInstructions(data.instructions);
         setStep("instructions");
         pushToast({
           title: "Payment initiated",
@@ -182,13 +217,15 @@ export default function CheckoutSection(
           duration: 4000,
         });
       } else {
+        const errorMessage = data?.error ?? error?.message ??
+          "Failed to initiate payment";
         pushToast({
           title: "Checkout failed",
-          description: (data as any)?.error || "Failed to initiate payment",
+          description: errorMessage,
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       pushToast({
         title: "Checkout error",
         description: "Something went wrong while preparing payment.",
@@ -269,7 +306,7 @@ export default function CheckoutSection(
             onSelectPlan={handleWelcomePlanSelect}
             onPromoApply={handlePromoApplied}
           />
-          <MotionCard variant="glass" animate={true}>
+          <MotionCard variant="glass" animate>
             <CardContent className="p-6 text-center">
               <div className="text-muted-foreground">Loading checkout...</div>
             </CardContent>
@@ -323,7 +360,7 @@ export default function CheckoutSection(
         </div>
 
         {step === "select" && (
-          <MotionCard variant="glass" hover={true} animate={true}>
+          <MotionCard variant="glass" hover animate>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5" />
@@ -344,8 +381,8 @@ export default function CheckoutSection(
                   <MotionCard
                     key={plan.id}
                     variant="interactive"
-                    hover={true}
-                    animate={true}
+                    hover
+                    animate
                     className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
                       selectedPlan?.id === plan.id
                         ? "border-primary ring-2 ring-primary/20"
@@ -398,14 +435,17 @@ export default function CheckoutSection(
           <div className="space-y-4">
             <Button
               variant="outline"
-              onClick={() => setStep("select")}
+              onClick={() => {
+                setStep("select");
+                onBack?.();
+              }}
               className="w-fit"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Plans
             </Button>
 
-            <MotionCard variant="glass" hover={true} animate={true} delay={0.2}>
+            <MotionCard variant="glass" hover animate delay={0.2}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
@@ -494,10 +534,7 @@ export default function CheckoutSection(
                       </p>
                     </div>
 
-                    {paymentInstructions.banks?.map((
-                      bank: any,
-                      index: number,
-                    ) => (
+                    {paymentInstructions.banks?.map((bank, index) => (
                       <Card key={index} className="border-l-4 border-l-primary">
                         <CardContent className="p-4">
                           <h4 className="font-semibold mb-3">
@@ -633,7 +670,7 @@ export default function CheckoutSection(
                     size="lg"
                     className="min-h-[48px] touch-manipulation flex-1"
                     onClick={() =>
-                      window.open(
+                      globalThis.open(
                         "https://t.me/DynamicCapital_Support",
                         "_blank",
                       )}
@@ -647,7 +684,7 @@ export default function CheckoutSection(
                     size="lg"
                     className="min-h-[48px] touch-manipulation sm:flex-none sm:w-auto"
                     onClick={() =>
-                      window.open(
+                      globalThis.open(
                         "https://t.me/DynamicCapital_Support",
                         "_blank",
                       )}
