@@ -173,6 +173,8 @@ def build_onedrive_share_loader(
     allowed_extensions: Sequence[str] | None = None,
     max_file_size: int | None = 5_000_000,
     default_tags: Sequence[str] | None = ("onedrive", "share"),
+    skip_drive_item_ids: Sequence[str] | None = None,
+    skip_identifiers: Sequence[str] | None = None,
     client_factory: Callable[[], OneDriveGraphClient] | None = None,
 ) -> ExtractionLoader:
     """Create an extraction loader that streams documents from a OneDrive share."""
@@ -208,6 +210,9 @@ def build_onedrive_share_loader(
     default_tags = tuple(default_tags or ())
     share_id = to_share_id(share_link)
 
+    configured_skip_drive_ids = _normalise_identifier_set(skip_drive_item_ids)
+    configured_skip_identifiers = _normalise_identifier_set(skip_identifiers)
+
     def loader(context: CorpusExtractionContext) -> Iterable[CorpusDocument]:
         client = factory()
         root = client.get_share_root(share_link)
@@ -218,6 +223,19 @@ def build_onedrive_share_loader(
             queue.append((child, path))
         produced = 0
         limit = context.limit
+
+        skip_drive_id_set = set(configured_skip_drive_ids)
+        skip_identifier_set = set(configured_skip_identifiers)
+        try:
+            metadata_skip_drive_ids = context.metadata.get("skip_drive_item_ids")
+        except AttributeError:  # pragma: no cover - defensive guard
+            metadata_skip_drive_ids = None
+        try:
+            metadata_skip_identifiers = context.metadata.get("skip_identifiers")
+        except AttributeError:  # pragma: no cover - defensive guard
+            metadata_skip_identifiers = None
+        skip_drive_id_set.update(_normalise_identifier_set(metadata_skip_drive_ids))
+        skip_identifier_set.update(_normalise_identifier_set(metadata_skip_identifiers))
 
         while queue:
             if limit is not None and produced >= limit:
@@ -246,6 +264,9 @@ def build_onedrive_share_loader(
 
             mime_type = _extract_mime_type(item)
             name = _extract_name(item)
+            identifier = _build_identifier(path)
+            if item_id in skip_drive_id_set or identifier in skip_identifier_set:
+                continue
             if not _is_supported_document(
                 name,
                 mime_type,
@@ -262,7 +283,6 @@ def build_onedrive_share_loader(
                     f"failed to download '{name}' from OneDrive share"
                 ) from error
 
-            identifier = _build_identifier(path)
             metadata = _build_metadata(
                 item,
                 identifier=identifier,
@@ -419,6 +439,25 @@ def _normalise_mime_values(values: Sequence[str]) -> tuple[str, ...]:
         if candidate and candidate not in ordered:
             ordered.append(candidate)
     return tuple(ordered)
+
+
+def _normalise_identifier_set(values: Sequence[object] | object | None) -> set[str]:
+    if values is None:
+        return set()
+    if isinstance(values, str):
+        candidate = values.strip()
+        return {candidate} if candidate else set()
+    try:
+        iterator = iter(values)  # type: ignore[arg-type]
+    except TypeError:
+        candidate = str(values).strip()
+        return {candidate} if candidate else set()
+    cleaned: set[str] = set()
+    for entry in iterator:
+        text = str(entry).strip()
+        if text:
+            cleaned.add(text)
+    return cleaned
 
 
 def _build_metadata(
