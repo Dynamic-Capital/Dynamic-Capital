@@ -87,17 +87,35 @@
     ]
   },
   "fmt": {
-    "include": ["apps", "supabase", "scripts", "db", "docs"],
+    "include": [
+      "apps/landing/lib/env.ts",
+      "apps/web/drizzle.config.js",
+      "apps/web/instrumentation.ts",
+      "apps/web/vitest.setup.tsx",
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/miniapp/compression.ts",
+      "supabase/functions/telegram-bot/ocr.ts"
+    ],
     "exclude": [
       "supabase/functions/miniapp/static",
-      "supabase/functions/telegram-bot/vendor"
+      "supabase/functions/telegram-bot/vendor",
+      "apps/web/public"
     ]
   },
   "lint": {
-    "include": ["apps", "supabase", "scripts", "db", "docs"],
+    "include": [
+      "apps/landing/lib/env.ts",
+      "apps/web/drizzle.config.js",
+      "apps/web/instrumentation.ts",
+      "apps/web/vitest.setup.tsx",
+      "supabase/functions/_shared/env.ts",
+      "supabase/functions/miniapp/compression.ts",
+      "supabase/functions/telegram-bot/ocr.ts"
+    ],
     "exclude": [
       "supabase/functions/miniapp/static",
-      "supabase/functions/telegram-bot/vendor"
+      "supabase/functions/telegram-bot/vendor",
+      "apps/web/public"
     ]
   },
   "importMap": "./supabase/functions/telegram-bot/vendor/import_map.json",

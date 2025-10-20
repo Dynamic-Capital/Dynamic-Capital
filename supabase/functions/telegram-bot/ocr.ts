@@ -1,13 +1,13 @@
 let warned = false;
 
-export async function ocrTextFromBlob(_blob: Blob): Promise<string> {
+export function ocrTextFromBlob(_blob: Blob): Promise<string> {
   if (!warned) {
     console.warn(
       "[telegram-bot] OCR support is disabled in this environment; returning empty text.",
     );
     warned = true;
   }
-  return "";
+  return Promise.resolve("");
 }
 
 export function parseReceipt(text: string) {

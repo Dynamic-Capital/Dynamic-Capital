@@ -1,17 +1,20 @@
 import "@testing-library/jest-dom/vitest";
 import React from "react";
+import type { ComponentPropsWithoutRef, ElementRef } from "react";
 import { vi } from "vitest";
 
-const createPrimitive = (tag: string) =>
-  React.forwardRef<any, any>(({ children, ...props }, ref) =>
-    React.createElement(tag, { ref, ...props }, children)
+const createPrimitive = <T extends keyof JSX.IntrinsicElements>(tag: T) =>
+  React.forwardRef<ElementRef<T>, ComponentPropsWithoutRef<T>>(
+    ({ children, ...props }, ref) =>
+      React.createElement(tag, { ref, ...props }, children),
   );
 
 vi.mock("framer-motion", () => {
   const motion = new Proxy(
     {},
     {
-      get: (_target, key: string) => createPrimitive(key),
+      get: (_target, key: string) =>
+        createPrimitive(key as keyof JSX.IntrinsicElements),
     },
   );
 
