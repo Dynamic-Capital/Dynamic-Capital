@@ -57,7 +57,7 @@ Run `npx tsx scripts/knowledge_base/sync-readme.ts` after updating `index.json` 
 
 | Relative path | Purpose |
 | --- | --- |
-| `dai_dagi_dags/metadata_summary.json` | Domain-level counts, byte totals, and extension tallies for the corpus snapshot. |
+| `dai_dagi_dags/metadata_summary.json` | Domain-level counts, record totals, dataset paths, byte totals, and extension tallies for the corpus snapshot. |
 | `dai_dagi_dags/processed/dai_metadata.jsonl` | Per-file metadata records aligned to the Dynamic AI (DAI) knowledge base. |
 | `dai_dagi_dags/processed/dagi_metadata.jsonl` | Per-file metadata records aligned to the Dynamic AGI (DAGI) knowledge base. |
 | `dai_dagi_dags/processed/dags_metadata.jsonl` | Per-file metadata records aligned to the Dynamic AGS (DAGS) governance catalogue. |

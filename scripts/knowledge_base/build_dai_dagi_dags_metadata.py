@@ -9,7 +9,7 @@ import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, TextIO, cast
 
 DOMAIN_TAGS: Mapping[str, tuple[str, ...]] = {
     "DAI": ("trading-knowledge", "dai"),
@@ -98,44 +98,54 @@ def _build_record(path: Path, *, source_url: str, root: Path) -> MetadataRecord:
     )
 
 
-def _write_jsonl(path: Path, records: Iterable[MetadataRecord]) -> int:
-    count = 0
-    with path.open("w", encoding="utf-8") as handle:
-        for record in records:
-            handle.write(record.to_json())
-            handle.write("\n")
-            count += 1
-    return count
-
-
 def build_metadata(input_root: Path, output_root: Path, *, share_id: str) -> None:
     if not input_root.exists():
         raise FileNotFoundError(f"input directory '{input_root}' does not exist")
     source_url = f"https://drive.google.com/drive/folders/{share_id}"
-    all_records: list[MetadataRecord] = []
     summary: dict[str, dict[str, object]] = {}
-
-    for file_path in _iter_files(input_root):
-        record = _build_record(file_path, source_url=source_url, root=input_root)
-        all_records.append(record)
-        domain = record.metadata["domain"]  # type: ignore[index]
-        bucket = summary.setdefault(
-            domain,
-            {"files": 0, "total_bytes": 0, "extensions": {}},
-        )
-        bucket["files"] = int(bucket["files"]) + 1
-        bucket["total_bytes"] = int(bucket["total_bytes"]) + int(record.metadata["file_size_bytes"])  # type: ignore[index]
-        extensions: dict[str, int] = bucket.setdefault("extensions", {})  # type: ignore[assignment]
-        extension = record.metadata["file_extension"]  # type: ignore[index]
-        extensions[extension] = extensions.get(extension, 0) + 1
+    record_counts: dict[str, int] = {}
+    total_files = 0
 
     output_root.mkdir(parents=True, exist_ok=True)
     processed_root = output_root / "processed"
     processed_root.mkdir(parents=True, exist_ok=True)
 
-    for domain in ("DAI", "DAGI", "DAGS"):
-        domain_records = [record for record in all_records if record.metadata["domain"] == domain]  # type: ignore[index]
-        _write_jsonl(processed_root / f"{domain.lower()}_metadata.jsonl", domain_records)
+    domain_writers: dict[str, TextIO] = {}
+
+    def get_writer(domain: str) -> TextIO:
+        writer = domain_writers.get(domain)
+        if writer is None:
+            output_path = processed_root / f"{domain.lower()}_metadata.jsonl"
+            writer = output_path.open("w", encoding="utf-8")
+            domain_writers[domain] = writer
+            record_counts.setdefault(domain, 0)
+        return writer
+
+    try:
+        for domain in ("DAI", "DAGI", "DAGS"):
+            get_writer(domain)
+
+        for file_path in _iter_files(input_root):
+            record = _build_record(file_path, source_url=source_url, root=input_root)
+            domain = cast(str, record.metadata["domain"])
+            writer = get_writer(domain)
+            writer.write(record.to_json())
+            writer.write("\n")
+            record_counts[domain] = record_counts.get(domain, 0) + 1
+            bucket = summary.setdefault(
+                domain,
+                {"files": 0, "total_bytes": 0, "extensions": {}},
+            )
+            bucket["files"] = int(bucket["files"]) + 1
+            file_size = cast(int, record.metadata["file_size_bytes"])
+            bucket["total_bytes"] = int(bucket["total_bytes"]) + file_size
+            extensions: dict[str, int] = bucket.setdefault("extensions", {})  # type: ignore[assignment]
+            extension = cast(str, record.metadata["file_extension"])
+            extensions[extension] = extensions.get(extension, 0) + 1
+            total_files += 1
+    finally:
+        for writer in domain_writers.values():
+            writer.close()
 
     summary_payload = {
         "generated_at": datetime.now(UTC).isoformat(),
@@ -143,13 +153,16 @@ def build_metadata(input_root: Path, output_root: Path, *, share_id: str) -> Non
         "domains": {
             domain: {
                 "files": bucket["files"],
+                "records": record_counts.get(domain, 0),
+                "dataset_path": f"processed/{domain.lower()}_metadata.jsonl",
                 "total_bytes": bucket["total_bytes"],
                 "extensions": dict(sorted(bucket["extensions"].items())),  # type: ignore[arg-type]
                 "tags": list(DOMAIN_TAGS.get(domain, (domain.lower(),))),
             }
             for domain, bucket in sorted(summary.items())
         },
-        "total_files": len(all_records),
+        "total_files": total_files,
+        "total_records": sum(record_counts.values()),
         "total_bytes": sum(int(bucket["total_bytes"]) for bucket in summary.values()),
     }
 

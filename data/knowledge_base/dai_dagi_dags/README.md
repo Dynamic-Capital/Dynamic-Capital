@@ -8,8 +8,7 @@ support downstream ingestion planning.
 
 ## Contents
 
-- `metadata_summary.json` &mdash; High-level counts, byte volumes, and extension
-  tallies for each domain derived from the 115 mirrored files.
+- `metadata_summary.json` &mdash; High-level counts, byte volumes, extension tallies, record totals, and dataset paths for each Dynamic AI, Dynamic AGI, and Dynamic AGS domain derived from the 115 mirrored files.
 - `processed/dai_metadata.jsonl` &mdash; Per-file metadata records for trading and
   telemetry artefacts aligned with the DAI knowledge base.
 - `processed/dagi_metadata.jsonl` &mdash; Metadata records for cross-domain
