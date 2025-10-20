@@ -38,7 +38,7 @@ jobs:
         run: npm run docs:summary
 
       - name: Open pull request with refreshed summary
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.PAT_WORKFLOW }}
           branch: automation/repo-summary-refresh
