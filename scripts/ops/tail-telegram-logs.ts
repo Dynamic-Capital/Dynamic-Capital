@@ -44,6 +44,15 @@ const functions = flags._.length > 0
 
 const sinceIso = new Date(Date.now() - sinceMinutes * 60_000).toISOString();
 
+const LOG_SELECT_COLUMNS = [
+  "timestamp",
+  "event_message",
+  "metadata",
+  "context",
+  "request_id",
+  "level",
+];
+
 interface FunctionDescriptor {
   id: string | null;
   name: string;
@@ -141,57 +150,167 @@ function formatStatusCounts(counts: Map<number, number>): string {
   return entries.join(", ");
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function mergeRecords(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>,
+): void {
+  for (const [key, value] of Object.entries(source)) {
+    const existing = target[key];
+    if (isRecord(value)) {
+      if (isRecord(existing)) {
+        mergeRecords(existing, value);
+      } else if (existing === undefined) {
+        const clone: Record<string, unknown> = {};
+        mergeRecords(clone, value);
+        target[key] = clone;
+      }
+      continue;
+    }
+    if (existing === undefined) {
+      target[key] = value;
+    }
+  }
+}
+
+function coerceContext(
+  value: unknown,
+): Record<string, unknown> | undefined {
+  if (!value) return undefined;
+  const segments = Array.isArray(value) ? value : [value];
+  const merged: Record<string, unknown> = {};
+  for (const segment of segments) {
+    if (!isRecord(segment)) continue;
+    mergeRecords(merged, segment);
+  }
+  return Object.keys(merged).length > 0 ? merged : undefined;
+}
+
+function readValue(
+  source: Record<string, unknown>,
+  key: string,
+): unknown {
+  if (key.includes(".")) {
+    const parts = key.split(".");
+    let current: unknown = source;
+    for (const part of parts) {
+      if (Array.isArray(current)) {
+        const index = Number(part);
+        if (!Number.isInteger(index) || index < 0 || index >= current.length) {
+          return undefined;
+        }
+        current = current[index];
+        continue;
+      }
+      if (!isRecord(current)) return undefined;
+      current = current[part];
+      if (current === undefined) return undefined;
+    }
+    return current;
+  }
+  return source[key];
+}
+
+function pickString(
+  keys: string[],
+  sources: Array<Record<string, unknown> | undefined>,
+): string | null {
+  for (const source of sources) {
+    if (!source) continue;
+    for (const key of keys) {
+      const value = readValue(source, key);
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (trimmed.length > 0) {
+          return trimmed;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function pickNumber(
+  keys: string[],
+  sources: Array<Record<string, unknown> | undefined>,
+): number | null {
+  for (const source of sources) {
+    if (!source) continue;
+    for (const key of keys) {
+      const value = readValue(source, key);
+      if (typeof value === "number" && Number.isFinite(value)) {
+        return value;
+      }
+      if (typeof value === "string") {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) {
+          return parsed;
+        }
+      }
+    }
+  }
+  return null;
+}
+
 function normalizeLog(
   entry: Record<string, unknown>,
   fallbackFunction: string,
 ): NormalizedLog {
-  const metadata = typeof entry.metadata === "object" && entry.metadata !== null
-    ? entry.metadata as Record<string, unknown>
-    : undefined;
-  const timestamp = typeof entry.timestamp === "string"
-    ? entry.timestamp
-    : typeof entry.time === "string"
-    ? entry.time
-    : typeof entry.inserted_at === "string"
-    ? entry.inserted_at
-    : typeof metadata?.timestamp === "string"
-    ? metadata.timestamp
-    : null;
-  const status = typeof entry.status === "number"
-    ? entry.status
-    : typeof metadata?.status_code === "number"
-    ? metadata.status_code
-    : typeof metadata?.status === "number"
-    ? metadata.status
-    : null;
-  const method = typeof entry.method === "string"
-    ? entry.method
-    : typeof metadata?.method === "string"
-    ? metadata.method
-    : typeof metadata?.http_method === "string"
-    ? metadata.http_method
-    : null;
-  const path = typeof entry.path === "string"
-    ? entry.path
-    : typeof metadata?.path === "string"
-    ? metadata.path
-    : typeof metadata?.request_path === "string"
-    ? metadata.request_path
-    : null;
-  const message = typeof entry.event_message === "string"
-    ? entry.event_message
-    : typeof entry.message === "string"
-    ? entry.message
-    : typeof metadata?.event_message === "string"
-    ? metadata.event_message
-    : typeof metadata?.error === "string"
-    ? metadata.error
-    : null;
-  const functionName = typeof entry.function_name === "string"
-    ? entry.function_name
-    : typeof metadata?.function_name === "string"
-    ? metadata.function_name
-    : fallbackFunction;
+  const metadata = isRecord(entry.metadata) ? { ...entry.metadata } : undefined;
+  const context = coerceContext(entry.context);
+  const sources: Array<Record<string, unknown> | undefined> = [
+    entry,
+    metadata,
+    context,
+  ];
+
+  const timestamp = pickString([
+    "timestamp",
+    "time",
+    "inserted_at",
+    "event_timestamp",
+    "datetime",
+  ], sources);
+  const status = pickNumber([
+    "status",
+    "status_code",
+    "statusCode",
+    "http_status",
+    "httpRequest.status",
+    "http.response.status_code",
+  ], sources);
+  const method = pickString([
+    "method",
+    "http_method",
+    "http.method",
+    "httpRequest.requestMethod",
+    "request.method",
+  ], sources);
+  const path = pickString([
+    "path",
+    "request_path",
+    "httpRequest.requestUrl",
+    "http.request.url",
+    "request.path",
+    "request.url",
+  ], sources);
+  const message = pickString([
+    "event_message",
+    "message",
+    "text",
+    "body",
+    "error",
+    "error_message",
+  ], sources);
+  const functionName = pickString([
+    "function_name",
+    "function",
+    "labels.function_name",
+    "httpRequest.server",
+  ], sources) ?? fallbackFunction;
 
   return {
     timestamp,
@@ -234,6 +353,7 @@ async function fetchLogs(functionName: string): Promise<FetchLogsResult> {
   url.searchParams.set("since", sinceIso);
   url.searchParams.set("limit", String(limit));
   url.searchParams.set("order", "desc");
+  url.searchParams.set("select", LOG_SELECT_COLUMNS.join(","));
 
   const response = await fetch(url, {
     headers: {
