@@ -115,7 +115,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@eslint/js": "^9.35.0",
+    "@eslint/js": "^9.38.0",
     "@next/bundle-analyzer": "^15.5.4",
     "@next/eslint-plugin-next": "^15.5.4",
     "@playwright/test": "^1.55.1",
