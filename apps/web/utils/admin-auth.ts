@@ -1,7 +1,13 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import {
+  createHmac,
+  createPublicKey,
+  createVerify,
+  type JsonWebKey as CryptoJsonWebKey,
+  timingSafeEqual,
+} from "node:crypto";
 
 import { buildFunctionUrl } from "@/config/supabase";
-import { SUPABASE_ANON_KEY } from "@/config/supabase-runtime";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/config/supabase-runtime";
 import { getEnvVar } from "@/utils/env.ts";
 
 type AdminVerificationSuccess = {
@@ -30,6 +36,137 @@ interface AdminTokenClaims {
   sub?: string;
   exp?: number;
   admin?: boolean;
+}
+
+interface JwtHeader {
+  alg?: string;
+  kid?: string;
+}
+
+type SupabaseJwk = CryptoJsonWebKey & Record<string, unknown> & {
+  kid?: string;
+};
+
+const JWKS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+let jwksCache: { fetchedAt: number; keys: readonly SupabaseJwk[] } | null =
+  null;
+let jwksFetchPromise: Promise<readonly SupabaseJwk[]> | null = null;
+
+function stripTrailingSlash(value: string): string {
+  return value.replace(/\/+$/u, "");
+}
+
+function buildSupabaseJwksUrl(): string | null {
+  try {
+    const base = new URL(SUPABASE_URL);
+    const normalizedPath = stripTrailingSlash(base.pathname);
+    base.pathname = normalizedPath.length > 0 ? normalizedPath : "/";
+    return `${stripTrailingSlash(base.toString())}/auth/v1/keys`;
+  } catch {
+    return null;
+  }
+}
+
+async function loadSupabaseJwks(): Promise<readonly SupabaseJwk[]> {
+  const now = Date.now();
+  if (jwksCache && now - jwksCache.fetchedAt < JWKS_CACHE_TTL_MS) {
+    return jwksCache.keys;
+  }
+
+  if (!jwksFetchPromise) {
+    const jwksUrl = buildSupabaseJwksUrl();
+    if (!jwksUrl) {
+      jwksFetchPromise = Promise.resolve([]);
+    } else {
+      jwksFetchPromise = (async () => {
+        const response = await fetch(jwksUrl, {
+          headers: { accept: "application/json" },
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch Supabase JWKS: ${response.status}`);
+        }
+        const body = await response.json().catch(() => ({}));
+        const keys = Array.isArray(body?.keys)
+          ? (body.keys as SupabaseJwk[])
+          : [];
+        jwksCache = { fetchedAt: Date.now(), keys };
+        return keys;
+      })()
+        .catch((error) => {
+          console.error("Failed to refresh Supabase JWKS", error);
+          if (jwksCache) {
+            return jwksCache.keys;
+          }
+          throw error;
+        })
+        .finally(() => {
+          jwksFetchPromise = null;
+        });
+    }
+  }
+
+  return await jwksFetchPromise;
+}
+
+async function getSupabaseJwk(
+  kid: string | undefined,
+): Promise<SupabaseJwk | null> {
+  if (!kid) return null;
+  try {
+    const keys = await loadSupabaseJwks();
+    const match = keys.find((key) => key.kid === kid);
+    if (
+      match &&
+      match.kty === "EC" &&
+      match.crv === "P-256" &&
+      typeof match.x === "string" &&
+      typeof match.y === "string"
+    ) {
+      return match;
+    }
+  } catch (error) {
+    console.error("Failed to resolve Supabase JWK", error);
+  }
+  return null;
+}
+
+function stripKid(jwk: SupabaseJwk): CryptoJsonWebKey {
+  const { kid: _kid, ...rest } = jwk;
+  return rest as CryptoJsonWebKey;
+}
+
+async function verifyEs256Signature(
+  signingInput: string,
+  signatureSegment: string,
+  header: JwtHeader,
+): Promise<boolean> {
+  const signature = base64UrlDecodeStrict(signatureSegment);
+  if (!signature || signature.length === 0) {
+    return false;
+  }
+
+  const jwk = await getSupabaseJwk(header.kid);
+  if (!jwk) {
+    return false;
+  }
+
+  try {
+    const publicKey = createPublicKey({
+      key: stripKid(jwk),
+      format: "jwk",
+    });
+    const verifier = createVerify("sha256");
+    verifier.update(signingInput);
+    verifier.end();
+    return verifier.verify({
+      key: publicKey,
+      dsaEncoding: "ieee-p1363",
+    }, signature);
+  } catch (error) {
+    console.error("Failed to verify ES256 admin token", error);
+    return false;
+  }
 }
 
 function normalizeBase64Url(segment: string): string {
@@ -114,13 +251,22 @@ function splitJwt(token: string):
   return [headerSegment, payloadSegment, signatureSegment];
 }
 
-function verifyAdminToken(
+type AdminTokenVerificationSuccess = { ok: true; claims: AdminTokenClaims };
+type AdminTokenVerificationFailure =
+  | { ok: false; reason: "invalid" }
+  | { ok: false; reason: "missing-secret" };
+
+type AdminTokenVerificationResult =
+  | AdminTokenVerificationSuccess
+  | AdminTokenVerificationFailure;
+
+async function verifyAdminToken(
   token: string,
-  secret: string,
-): AdminTokenClaims | null {
+  secret: string | null,
+): Promise<AdminTokenVerificationResult> {
   const segments = splitJwt(token);
   if (!segments) {
-    return null;
+    return { ok: false, reason: "invalid" };
   }
   const [headerSegment, payloadSegment, signatureSegment] = segments;
 
@@ -128,73 +274,91 @@ function verifyAdminToken(
   try {
     const decodedHeader = base64UrlDecodeStrict(headerSegment);
     if (!decodedHeader) {
-      return null;
+      return { ok: false, reason: "invalid" };
     }
     headerRaw = JSON.parse(decodedHeader.toString("utf-8"));
   } catch {
-    return null;
+    return { ok: false, reason: "invalid" };
   }
 
   if (!headerRaw || typeof headerRaw !== "object" || Array.isArray(headerRaw)) {
-    return null;
+    return { ok: false, reason: "invalid" };
   }
 
-  const header = headerRaw as { alg?: string };
-
-  if (header.alg !== "HS256") {
-    return null;
-  }
+  const header = headerRaw as JwtHeader;
 
   const signingInput = `${headerSegment}.${payloadSegment}`;
-  const expectedSignature = createHmac("sha256", secret)
-    .update(signingInput)
-    .digest();
-  const providedSignature = base64UrlDecodeStrict(signatureSegment);
-  if (!providedSignature) {
-    return null;
-  }
 
-  if (
-    expectedSignature.length !== providedSignature.length ||
-    !timingSafeEqual(
-      new Uint8Array(expectedSignature),
-      new Uint8Array(providedSignature),
-    )
-  ) {
-    return null;
+  switch (header.alg) {
+    case "HS256": {
+      if (!secret) {
+        return { ok: false, reason: "missing-secret" };
+      }
+      const expectedSignature = createHmac("sha256", secret)
+        .update(signingInput)
+        .digest();
+      const providedSignature = base64UrlDecodeStrict(signatureSegment);
+      if (!providedSignature) {
+        return { ok: false, reason: "invalid" };
+      }
+
+      if (
+        expectedSignature.length !== providedSignature.length ||
+        !timingSafeEqual(
+          new Uint8Array(expectedSignature),
+          new Uint8Array(providedSignature),
+        )
+      ) {
+        return { ok: false, reason: "invalid" };
+      }
+      break;
+    }
+    case "ES256": {
+      const ok = await verifyEs256Signature(
+        signingInput,
+        signatureSegment,
+        header,
+      );
+      if (!ok) {
+        return { ok: false, reason: "invalid" };
+      }
+      break;
+    }
+    default:
+      return { ok: false, reason: "invalid" };
   }
 
   let payloadRaw: unknown;
   try {
     const decodedPayload = base64UrlDecodeStrict(payloadSegment);
     if (!decodedPayload) {
-      return null;
+      return { ok: false, reason: "invalid" };
     }
     payloadRaw = JSON.parse(decodedPayload.toString("utf-8"));
   } catch {
-    return null;
+    return { ok: false, reason: "invalid" };
   }
 
   if (
     !payloadRaw || typeof payloadRaw !== "object" || Array.isArray(payloadRaw)
   ) {
-    return null;
+    return { ok: false, reason: "invalid" };
   }
 
   const payload = payloadRaw as AdminTokenClaims;
 
   if (payload.admin !== true) {
-    return null;
+    return { ok: false, reason: "invalid" };
   }
 
   if (
     typeof payload.exp === "number" &&
     payload.exp <= Math.floor(Date.now() / 1000)
   ) {
-    return null;
+    return { ok: false, reason: "invalid" };
   }
 
-  return payload;
+  return { ok: true, claims: payload };
 }
 
 async function verifyAdminInitData(
@@ -255,20 +419,20 @@ export async function verifyAdminRequest(
   );
 
   if (token) {
-    const secret = getEnvVar("ADMIN_API_SECRET");
-    if (!secret) {
-      console.error(
-        "ADMIN_API_SECRET is not configured; refusing admin-only request.",
-      );
-      return {
-        ok: false,
-        status: 500,
-        message: "Admin verification unavailable.",
-      };
-    }
+    const secret = getEnvVar("ADMIN_API_SECRET") ?? null;
 
-    const payload = verifyAdminToken(token, secret);
-    if (!payload) {
+    const verification = await verifyAdminToken(token, secret);
+    if (!verification.ok) {
+      if (verification.reason === "missing-secret") {
+        console.error(
+          "ADMIN_API_SECRET is not configured; refusing admin-only request.",
+        );
+        return {
+          ok: false,
+          status: 500,
+          message: "Admin verification unavailable.",
+        };
+      }
       return {
         ok: false,
         status: 401,
@@ -276,9 +440,10 @@ export async function verifyAdminRequest(
       };
     }
 
+    const { claims } = verification;
     return {
       ok: true,
-      userId: typeof payload.sub === "string" ? payload.sub : undefined,
+      userId: typeof claims.sub === "string" ? claims.sub : undefined,
     };
   }
 

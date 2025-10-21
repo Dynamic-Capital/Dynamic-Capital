@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import React from "react";
-import type { ComponentPropsWithoutRef, ElementRef } from "react";
+import type { ComponentPropsWithoutRef, ElementRef, JSX } from "react";
 import { vi } from "vitest";
 
 const createPrimitive = <T extends keyof JSX.IntrinsicElements>(tag: T) =>

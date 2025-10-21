@@ -23,10 +23,13 @@ function canUseWindow(): boolean {
 
 function isStandaloneDisplay(): boolean {
   if (!canUseWindow()) return false;
-  return window.matchMedia("(display-mode: standalone)").matches ||
-    ("standalone" in window.navigator &&
-      // @ts-expect-error - `standalone` is defined by Safari
-      Boolean(window.navigator.standalone));
+  if (window.matchMedia("(display-mode: standalone)").matches) {
+    return true;
+  }
+  const navigatorWithStandalone = window.navigator as
+    & Navigator
+    & { standalone?: boolean };
+  return Boolean(navigatorWithStandalone.standalone);
 }
 
 function getLastDismissedAt(): number | null {

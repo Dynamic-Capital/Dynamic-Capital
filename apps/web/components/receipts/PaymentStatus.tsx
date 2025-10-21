@@ -30,7 +30,7 @@ interface PaymentStatusProps {
 
 interface PaymentWebhookData {
   storage_path?: string | null;
-  ocr?: unknown;
+  ocr?: boolean | string | null;
   [key: string]: unknown;
 }
 
@@ -66,19 +66,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from<{
-          id: string;
-          amount: number;
-          currency: string;
-          status: string;
-          payment_method: string;
-          created_at: string;
-          webhook_data: PaymentWebhookData | null;
-          subscription_plans:
-            | SubscriptionPlan
-            | SubscriptionPlan[]
-            | null;
-        }>("payments")
+        .from("payments")
         .select(`
           id,
           amount,
