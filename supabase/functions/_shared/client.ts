@@ -96,10 +96,35 @@ export interface RequestClientOptions extends SupabaseClientOptions<"public"> {
   requireAuthorization?: boolean;
 }
 
+type CreateClientFn = (
+  role: "anon" | "service",
+  options?: SupabaseClientOptions<"public">,
+) => SupabaseClient;
+
+let createClientOverride: CreateClientFn | null = null;
+
+export function __setCreateClientOverrideForTests(
+  override: CreateClientFn | null,
+) {
+  createClientOverride = override;
+  if (!override) {
+    anonClient = null;
+    serviceClient = null;
+  }
+}
+
+export function __resetCreateClientOverrideForTests() {
+  __setCreateClientOverrideForTests(null);
+}
+
 export function createClient(
   role: "anon" | "service" = "anon",
   options?: SupabaseClientOptions<"public">,
 ): SupabaseClient {
+  if (createClientOverride) {
+    return createClientOverride(role, options);
+  }
+
   const key = role === "service"
     ? SUPABASE_SERVICE_ROLE_KEY
     : SUPABASE_ANON_KEY;

@@ -114,6 +114,20 @@ interface PaymentIntent {
   pay_code?: string | null;
 }
 
+interface ReceiptSubmitResponse {
+  ok: boolean;
+  error?: string;
+  message?: string;
+}
+
+interface ReceiptSubmitPayload {
+  telegram_id: string;
+  payment_id: string;
+  file_path: string;
+  bucket: string;
+  parsed_slip?: ParsedSlip;
+}
+
 const REQUIRED_ENV_KEYS = [
   "SUPABASE_URL",
   "SUPABASE_SERVICE_ROLE_KEY",
@@ -154,7 +168,20 @@ if (bot) {
 const _OPENAI_ENABLED = optionalEnv("OPENAI_ENABLED") === "true";
 const _FAQ_ENABLED = optionalEnv("FAQ_ENABLED") === "true";
 let supabaseAdmin: SupabaseClient | null = null;
+let supabaseOverride: SupabaseClient | null = null;
+
+export function __setSupabaseForTests(client: SupabaseClient | null) {
+  supabaseOverride = client;
+  supabaseAdmin = client;
+}
+
+export function __resetSupabaseForTests() {
+  supabaseOverride = null;
+  supabaseAdmin = null;
+}
+
 export function getSupabase(): SupabaseClient {
+  if (supabaseOverride) return supabaseOverride;
   if (supabaseAdmin) return supabaseAdmin;
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     const msg = "Missing Supabase credentials";
@@ -1120,6 +1147,101 @@ async function storeReceiptImage(
   }
 }
 
+type TimeoutHandle = { signal: AbortSignal; cancel(): void };
+
+function createTimeoutSignal(ms: number): TimeoutHandle | null {
+  if (typeof AbortSignal === "undefined") return null;
+  const abortSignal = AbortSignal as typeof AbortSignal & {
+    timeout?: (timeout: number) => AbortSignal;
+  };
+  if (typeof abortSignal.timeout === "function") {
+    try {
+      const signal = abortSignal.timeout(ms);
+      return { signal, cancel: () => {} };
+    } catch {
+      // fall through to controller-based timeout
+    }
+  }
+  if (typeof AbortController === "function") {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    const cancel = () => {
+      clearTimeout(timer);
+    };
+    return { signal: controller.signal, cancel };
+  }
+  return null;
+}
+
+function isReceiptSubmitResponse(
+  value: unknown,
+): value is ReceiptSubmitResponse {
+  if (!value || typeof value !== "object") return false;
+  const maybe = value as { ok?: unknown };
+  return typeof maybe.ok === "boolean";
+}
+
+async function submitReceipt(
+  payload: ReceiptSubmitPayload,
+): Promise<ReceiptSubmitResponse | null> {
+  if (!SUPABASE_SERVICE_ROLE_KEY) return null;
+  const supabase = getSupabase();
+  const timeout = createTimeoutSignal(15_000);
+  try {
+    const { data, error } = await supabase.functions.invoke<
+      ReceiptSubmitResponse
+    >(
+      "receipt-submit",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+        },
+        body: payload,
+        ...(timeout ? { signal: timeout.signal } : {}),
+      },
+    );
+    if (!error && data && isReceiptSubmitResponse(data)) {
+      return data;
+    }
+    if (error) {
+      console.error("receipt-submit invoke error", error);
+    }
+  } catch (err) {
+    console.error("receipt-submit invoke threw", err);
+  } finally {
+    timeout?.cancel();
+  }
+
+  if (!SUPABASE_URL) return null;
+  const fallbackTimeout = createTimeoutSignal(15_000);
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/receipt-submit`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+        },
+        body: JSON.stringify(payload),
+        ...(fallbackTimeout ? { signal: fallbackTimeout.signal } : {}),
+      },
+    );
+    const jsonResponse = await response.json().catch(() => null);
+    if (isReceiptSubmitResponse(jsonResponse)) {
+      return jsonResponse;
+    }
+  } catch (err) {
+    console.error("receipt-submit fetch error", err);
+  } finally {
+    fallbackTimeout?.cancel();
+  }
+  return null;
+}
+
 /** Ensure bot user exists and report whether this is a new user */
 async function ensureBotUserExists(
   telegramUserId: string,
@@ -1924,11 +2046,21 @@ export async function startReceiptPipeline(
       await notifyUser(chatId, msg);
       return;
     }
-    const { data: session } = await supa
-      .from("user_sessions")
-      .select("id,awaiting_input")
-      .eq("telegram_user_id", String(chatId))
-      .maybeSingle();
+    const [sessionResult, userResult] = await Promise.all([
+      supa.from("user_sessions")
+        .select("id,awaiting_input")
+        .eq("telegram_user_id", String(chatId))
+        .maybeSingle(),
+      supa.from("bot_users")
+        .select("id")
+        .eq("telegram_id", chatId)
+        .maybeSingle(),
+    ]);
+
+    const session = sessionResult.data;
+    if (sessionResult.error) {
+      console.error("Failed to load user session", sessionResult.error);
+    }
     const awaiting = session?.awaiting_input || "";
     if (!awaiting.startsWith("receipt:")) {
       const msg = await getContent("no_pending_purchase") ??
@@ -1937,11 +2069,18 @@ export async function startReceiptPipeline(
       return;
     }
     const planId = awaiting.split(":")[1];
-    const { data: user } = await supa
-      .from("bot_users")
-      .select("id")
-      .eq("telegram_id", chatId)
-      .maybeSingle();
+    if (!planId) {
+      console.error("Invalid awaiting_input plan id", { awaiting });
+      const msg = await getContent("receipt_processing_unavailable") ??
+        "Receipt processing unavailable.";
+      await notifyUser(chatId, msg);
+      return;
+    }
+
+    const user = userResult.data;
+    if (userResult.error) {
+      console.error("Failed to load bot user", userResult.error);
+    }
     if (!user?.id) {
       const msg = await getContent("start_before_receipts") ??
         "Please use /start before sending receipts.";
@@ -1981,6 +2120,29 @@ export async function startReceiptPipeline(
 
     const hash = await hashBlob(blob);
     const storagePath = `receipts/${chatId}/${hash}`;
+
+    const [duplicateCheck, planResult] = await Promise.all([
+      supa.from("receipts")
+        .select("id")
+        .eq("image_sha256", hash)
+        .limit(1)
+        .maybeSingle(),
+      supa.from("subscription_plans")
+        .select("price, currency")
+        .eq("id", planId)
+        .maybeSingle(),
+    ]);
+
+    if (duplicateCheck.error) {
+      console.error("Receipt duplicate pre-check error", duplicateCheck.error);
+    }
+    if (duplicateCheck.data) {
+      const dupMsg = await getContent("duplicate_receipt_detected") ??
+        "We already received this receipt. Please upload a different image.";
+      await notifyUser(chatId, dupMsg);
+      return;
+    }
+
     try {
       await storeReceiptImage(blob, storagePath);
     } catch (error) {
@@ -1991,11 +2153,10 @@ export async function startReceiptPipeline(
       return;
     }
 
-    // Get plan details for proper amount
-    const { data: plan } = await supa.from("subscription_plans")
-      .select("price, currency")
-      .eq("id", planId)
-      .maybeSingle();
+    const plan = planResult.data;
+    if (planResult.error) {
+      console.error("Failed to load plan for receipt", planResult.error);
+    }
 
     const { data: pay } = await supa.from("payments")
       .insert({
@@ -2014,20 +2175,13 @@ export async function startReceiptPipeline(
       await notifyUser(chatId, msg);
       return;
     }
-    const rs = await fetch(`${SUPABASE_URL}/functions/v1/receipt-submit`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({
-        telegram_id: String(chatId),
-        payment_id: pay.id,
-        file_path: storagePath,
-        bucket: "payment-receipts",
-        ...(parsedSlip ? { parsed_slip: parsedSlip } : {}),
-      }),
-    }).then((r) => r.json()).catch(() => null);
+    const rs = await submitReceipt({
+      telegram_id: String(chatId),
+      payment_id: pay.id,
+      file_path: storagePath,
+      bucket: "payment-receipts",
+      ...(parsedSlip ? { parsed_slip: parsedSlip } : {}),
+    });
     if (!rs?.ok) {
       if (rs?.error === "duplicate_receipt") {
         const dupMsg = typeof rs.message === "string" && rs.message

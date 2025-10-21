@@ -82,16 +82,25 @@ async function setConfig(key: string, val: unknown): Promise<void> {
   memStore.set(key, val);
 }
 
-export async function getFlag(
+type GetFlagFn = (
   name: string,
+  def?: boolean,
+) => Promise<boolean>;
+
+export let getFlag: GetFlagFn = async (
+  name,
   def = getFeatureFlagDefault(name, false),
-): Promise<boolean> {
+) => {
   const snap = await getConfig<{ data: Record<string, boolean> }>(
     "features:published",
     { data: {} },
   );
   const fallback = getFeatureFlagDefault(name, def);
   return snap.data[name] ?? fallback;
+};
+
+export function __setGetFlag(fn: GetFlagFn) {
+  getFlag = fn;
 }
 
 export async function setFlag(name: string, val: boolean): Promise<void> {
