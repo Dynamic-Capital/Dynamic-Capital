@@ -114,6 +114,16 @@ export const DEFAULT_SECURITY = {
     "frame-ancestors 'self';",
 } as const;
 
+async function sha256Hex(data: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  const bytes = new Uint8Array(digest);
+  let hex = "";
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, "0");
+  }
+  return hex;
+}
+
 async function readFileFrom(
   rootDir: URL,
   relPath: string,
@@ -140,7 +150,14 @@ async function readFileFrom(
       "cache-control": relPath.endsWith(".html")
         ? "no-cache"
         : "public, max-age=31536000, immutable",
+      Vary: "Accept-Encoding",
     });
+    try {
+      const etag = await sha256Hex(data);
+      h.set("ETag", `W/"${etag}"`);
+    } catch (e) {
+      console.warn("[static] failed to compute ETag", e);
+    }
     console.log(
       `[static] Successfully read file: ${url.pathname}, size: ${data.length}`,
     );
@@ -197,7 +214,10 @@ export async function serveStatic(
       const f = await readFileFrom(opts.rootDir, url.pathname);
       if (f) {
         const h = new Headers(f.headers);
-        return setSec(new Response(null, { headers: h, status: f.status }));
+        const inm = req.headers.get("if-none-match");
+        const etag = h.get("etag");
+        const status = inm && etag && inm === etag ? 304 : f.status;
+        return setSec(new Response(null, { headers: h, status }));
       }
       return setSec(new Response(null, { status: 404 }));
     }
@@ -220,13 +240,27 @@ export async function serveStatic(
   // Serve explicitly allowed root files first (e.g., robots.txt, sitemap.xml)
   if (extra.has(url.pathname)) {
     const f = await readFileFrom(opts.rootDir, url.pathname);
-    return f ? setSec(f) : nf("Not Found");
+    if (!f) return nf("Not Found");
+    const inm = req.headers.get("if-none-match");
+    const etag = f.headers.get("etag");
+    if (inm && etag && inm === etag) {
+      const h = new Headers(f.headers);
+      return setSec(new Response(null, { headers: h, status: 304 }));
+    }
+    return setSec(f);
   }
 
   // Serve /assets/* before falling back to SPA handling
   if (url.pathname.startsWith("/assets/")) {
     const f = await readFileFrom(opts.rootDir, url.pathname);
-    return f ? setSec(f) : nf("Not Found");
+    if (!f) return nf("Not Found");
+    const inm = req.headers.get("if-none-match");
+    const etag = f.headers.get("etag");
+    if (inm && etag && inm === etag) {
+      const h = new Headers(f.headers);
+      return setSec(new Response(null, { headers: h, status: 304 }));
+    }
+    return setSec(f);
   }
 
   // Serve SPA index for configured roots and their subpaths
@@ -239,9 +273,15 @@ export async function serveStatic(
     console.log(`[static] Serving index.html for SPA root: ${url.pathname}`);
     const idx = await readFileFrom(opts.rootDir, "index.html");
     if (idx) {
+      const inm = req.headers.get("if-none-match");
+      const etag = idx.headers.get("etag");
       const h = new Headers(idx.headers);
       for (const [k, v] of Object.entries(sec)) h.set(k, v);
-      return new Response(idx.body, { headers: h, status: idx.status });
+      const status = inm && etag && inm === etag ? 304 : idx.status;
+      return new Response(status === 304 ? null : idx.body, {
+        headers: h,
+        status,
+      });
     }
     console.error(
       `[static] index.html not found in rootDir: ${opts.rootDir.pathname}`,
@@ -253,9 +293,15 @@ export async function serveStatic(
   console.log(`[static] Path not found: ${url.pathname}`);
   const notFound = await readFileFrom(opts.rootDir, "404.html");
   if (notFound) {
+    const inm = req.headers.get("if-none-match");
+    const etag = notFound.headers.get("etag");
     const h = new Headers(notFound.headers);
     for (const [k, v] of Object.entries(sec)) h.set(k, v);
-    return new Response(notFound.body, { headers: h, status: 404 });
+    const status = inm && etag && inm === etag ? 304 : 404;
+    return new Response(status === 304 ? null : notFound.body, {
+      headers: h,
+      status,
+    });
   }
   return nf("Not Found");
 }
