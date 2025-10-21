@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,13 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   CheckCircle,
   Clock,
-  CreditCard,
   Loader2,
   Receipt,
   RefreshCw,
@@ -29,6 +28,18 @@ interface PaymentStatusProps {
   paymentId?: string;
 }
 
+interface PaymentWebhookData {
+  storage_path?: string | null;
+  ocr?: unknown;
+  [key: string]: unknown;
+}
+
+interface SubscriptionPlan {
+  name: string;
+  duration_months: number;
+  is_lifetime: boolean;
+}
+
 interface PaymentData {
   id: string;
   amount: number;
@@ -41,7 +52,7 @@ interface PaymentData {
     duration_months: number;
     is_lifetime: boolean;
   };
-  webhook_data?: any;
+  webhook_data?: PaymentWebhookData;
 }
 
 export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
@@ -55,7 +66,19 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from("payments")
+        .from<{
+          id: string;
+          amount: number;
+          currency: string;
+          status: string;
+          payment_method: string;
+          created_at: string;
+          webhook_data: PaymentWebhookData | null;
+          subscription_plans:
+            | SubscriptionPlan
+            | SubscriptionPlan[]
+            | null;
+        }>("payments")
         .select(`
           id,
           amount,
@@ -74,26 +97,37 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
         .single();
 
       if (error) throw error;
+      if (!data) throw new Error("Payment not found");
+
+      const planData = Array.isArray(data.subscription_plans)
+        ? data.subscription_plans[0]
+        : data.subscription_plans;
+      const plan: SubscriptionPlan = planData ?? {
+        name: "Custom plan",
+        duration_months: 0,
+        is_lifetime: false,
+      };
 
       const paymentData: PaymentData = {
         ...data,
-        plan: Array.isArray(data.subscription_plans)
-          ? data.subscription_plans[0]
-          : data.subscription_plans,
-        webhook_data: data.webhook_data as any,
+        plan,
+        webhook_data: data.webhook_data ?? undefined,
       };
 
       setPayment(paymentData);
 
       // Show uploader if payment is pending and no receipt uploaded yet
-      const webhookData = data.webhook_data as any;
+      const webhookData = data.webhook_data ?? undefined;
       const needsResubmit = ["pending_review", "failed"].includes(data.status);
       setShowUploader(
         (data.status === "pending" && !webhookData?.storage_path) ||
           needsResubmit,
       );
-    } catch (error: any) {
-      toast.error(error.message || "Failed to fetch payment status");
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : "Failed to fetch payment status";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -212,7 +246,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
                 Payment Method
               </div>
               <div className="font-medium capitalize">
-                {payment.payment_method.replace("_", " ")}
+                {payment.payment_method.replace(/_/g, " ")}
               </div>
             </div>
             <div>

@@ -3,6 +3,22 @@ import type { MeterProvider } from "@opentelemetry/sdk-metrics";
 import type { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
 import { isProduction } from "@/config/node-env";
 
+type ProcessEnvLike = Record<string, string | undefined>;
+
+type ProcessLike = {
+  env?: ProcessEnvLike;
+  versions?: { node?: string };
+};
+
+const processLike = typeof globalThis === "object" &&
+    typeof (globalThis as { process?: unknown }).process === "object" &&
+    (globalThis as { process?: unknown }).process !== null
+  ? (globalThis as { process: ProcessLike }).process
+  : undefined;
+
+const processEnv: ProcessEnvLike = processLike?.env ?? {};
+const nodeVersion = processLike?.versions?.node;
+
 const SERVICE_NAME = "dynamic-capital-web";
 
 type TelemetryState = {
@@ -88,24 +104,25 @@ globalTelemetryState.__dynamicCapitalTelemetry ??= {};
 const telemetryState = globalTelemetryState.__dynamicCapitalTelemetry;
 
 let getPrometheusExporterImpl: () => Promise<PrometheusExporter | undefined> =
-  async () => undefined;
+  () => Promise.resolve(undefined);
 
 const registerImpl: () => Promise<void> = (() => {
-  if (process.env.NEXT_RUNTIME === "edge") {
-    getPrometheusExporterImpl = async () => undefined;
+  if (processEnv.NEXT_RUNTIME === "edge") {
+    getPrometheusExporterImpl = () => Promise.resolve(undefined);
 
-    return async function registerEdgeRuntime() {
+    return function registerEdgeRuntime(): Promise<void> {
       if (telemetryState.meterProvider) {
-        return;
+        return Promise.resolve();
       }
 
       telemetryState.meterProvider = metrics
         .getMeterProvider() as unknown as MeterProvider;
+      return Promise.resolve();
     };
   }
 
-  const isNodeRuntime = typeof process !== "undefined" &&
-    !!process.versions?.node;
+  const isNodeRuntime = typeof nodeVersion === "string" &&
+    nodeVersion.length > 0;
 
   const dynamicImport = new Function(
     "specifier",
@@ -255,45 +272,59 @@ const registerImpl: () => Promise<void> = (() => {
     | Promise<SemanticConventionsModule>
     | undefined;
 
-  async function loadSDKMetricsModule() {
-    sdkMetricsModulePromise ??= dynamicImport<
-      typeof import("@opentelemetry/sdk-metrics")
-    >(modulePaths.sdkMetrics);
+  function loadSDKMetricsModule(): Promise<SDKMetricsModule> {
+    if (!sdkMetricsModulePromise) {
+      sdkMetricsModulePromise = dynamicImport<
+        typeof import("@opentelemetry/sdk-metrics")
+      >(modulePaths.sdkMetrics);
+    }
     return sdkMetricsModulePromise;
   }
 
-  async function loadInstrumentationModule() {
-    instrumentationModulePromise ??= dynamicImport<
-      typeof import("@opentelemetry/instrumentation")
-    >(modulePaths.instrumentation);
+  function loadInstrumentationModule(): Promise<InstrumentationModule> {
+    if (!instrumentationModulePromise) {
+      instrumentationModulePromise = dynamicImport<
+        typeof import("@opentelemetry/instrumentation")
+      >(modulePaths.instrumentation);
+    }
     return instrumentationModulePromise;
   }
 
-  async function loadHttpInstrumentationModule() {
-    httpInstrumentationModulePromise ??= dynamicImport<
-      typeof import("@opentelemetry/instrumentation-http")
-    >(modulePaths.instrumentationHttp);
+  function loadHttpInstrumentationModule(): Promise<HttpInstrumentationModule> {
+    if (!httpInstrumentationModulePromise) {
+      httpInstrumentationModulePromise = dynamicImport<
+        typeof import("@opentelemetry/instrumentation-http")
+      >(modulePaths.instrumentationHttp);
+    }
     return httpInstrumentationModulePromise;
   }
 
-  async function loadFetchInstrumentationModule() {
-    fetchInstrumentationModulePromise ??= dynamicImport<
-      typeof import("@opentelemetry/instrumentation-fetch")
-    >(modulePaths.instrumentationFetch);
+  function loadFetchInstrumentationModule(): Promise<
+    FetchInstrumentationModule
+  > {
+    if (!fetchInstrumentationModulePromise) {
+      fetchInstrumentationModulePromise = dynamicImport<
+        typeof import("@opentelemetry/instrumentation-fetch")
+      >(modulePaths.instrumentationFetch);
+    }
     return fetchInstrumentationModulePromise;
   }
 
-  async function loadResourcesModule() {
-    resourcesModulePromise ??= dynamicImport<
-      typeof import("@opentelemetry/resources")
-    >(modulePaths.resources);
+  function loadResourcesModule(): Promise<ResourcesModule> {
+    if (!resourcesModulePromise) {
+      resourcesModulePromise = dynamicImport<
+        typeof import("@opentelemetry/resources")
+      >(modulePaths.resources);
+    }
     return resourcesModulePromise;
   }
 
-  async function loadSemanticConventionsModule() {
-    semanticConventionsModulePromise ??= dynamicImport<
-      typeof import("@opentelemetry/semantic-conventions")
-    >(modulePaths.semanticConventions);
+  function loadSemanticConventionsModule(): Promise<SemanticConventionsModule> {
+    if (!semanticConventionsModulePromise) {
+      semanticConventionsModulePromise = dynamicImport<
+        typeof import("@opentelemetry/semantic-conventions")
+      >(modulePaths.semanticConventions);
+    }
     return semanticConventionsModulePromise;
   }
 
@@ -472,7 +503,7 @@ const registerImpl: () => Promise<void> = (() => {
       new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: SERVICE_NAME,
         [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
-          process.env.VERCEL_ENV || process.env.NODE_ENV || "development",
+          processEnv.VERCEL_ENV || processEnv.NODE_ENV || "development",
       }),
     );
 
@@ -509,7 +540,7 @@ const registerImpl: () => Promise<void> = (() => {
       return;
     }
 
-    const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
+    const dsn = processEnv.SENTRY_DSN || processEnv.NEXT_PUBLIC_SENTRY_DSN;
     if (!dsn) {
       return;
     }
@@ -532,12 +563,12 @@ const registerImpl: () => Promise<void> = (() => {
       if (typeof sentry.init === "function" && !hasClient) {
         sentry.init({
           dsn,
-          environment: process.env.SENTRY_ENV ||
-            process.env.VERCEL_ENV ||
-            process.env.NODE_ENV ||
+          environment: processEnv.SENTRY_ENV ||
+            processEnv.VERCEL_ENV ||
+            processEnv.NODE_ENV ||
             "development",
-          release: process.env.SENTRY_RELEASE ||
-            process.env.VERCEL_GIT_COMMIT_SHA,
+          release: processEnv.SENTRY_RELEASE ||
+            processEnv.VERCEL_GIT_COMMIT_SHA,
           enableTracing: true,
           tracesSampleRate: 1.0,
           profilesSampleRate: 1.0,
@@ -562,6 +593,6 @@ export async function register() {
   await registerImpl();
 }
 
-export async function getPrometheusExporter() {
+export function getPrometheusExporter() {
   return getPrometheusExporterImpl();
 }
