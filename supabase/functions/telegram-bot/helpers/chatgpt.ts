@@ -1,6 +1,13 @@
 import { createClient } from "../../_shared/client.ts";
 
-const supabaseAdmin = createClient("service");
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    supabaseAdmin = createClient("service");
+  }
+  return supabaseAdmin;
+}
 
 const FUNCTION_TIMEOUT_MS = 12_000;
 
@@ -41,7 +48,7 @@ function sanitizeAnswer(answer: unknown): string | null {
 async function invokeAiFaq(question: string): Promise<string | null> {
   const startedAt = performance.now();
   const result = await withTimeout(
-    supabaseAdmin.functions.invoke<AskResponse>("ai-faq-assistant", {
+    getSupabaseAdmin().functions.invoke<AskResponse>("ai-faq-assistant", {
       body: { question },
     }),
     FUNCTION_TIMEOUT_MS,
@@ -63,7 +70,7 @@ async function invokeAiFaq(question: string): Promise<string | null> {
 async function invokeChatGptProxy(question: string): Promise<string | null> {
   const startedAt = performance.now();
   const result = await withTimeout(
-    supabaseAdmin.functions.invoke<ProxyResponse>("chatgpt-proxy", {
+    getSupabaseAdmin().functions.invoke<ProxyResponse>("chatgpt-proxy", {
       body: { prompt: question },
     }),
     FUNCTION_TIMEOUT_MS,

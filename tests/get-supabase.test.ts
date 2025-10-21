@@ -30,9 +30,20 @@ function cleanup() {
 
 test("getSupabase throws when credentials missing", async () => {
   setEnv();
+  
+  // Set up a mock createClient that throws the expected error
+  const clientModule = await import("../supabase/functions/_shared/client.ts");
+  const mockCreateClient = () => {
+    throw new Error("Missing Supabase credentials");
+  };
+  clientModule.__setCreateClientOverrideForTests(mockCreateClient);
+  
   const mod = await freshImport(
     new URL("../supabase/functions/telegram-bot/index.ts", import.meta.url),
   );
   throws(() => mod.getSupabase(), /Missing Supabase credentials/);
+  
+  // Clean up the mock
+  clientModule.__resetCreateClientOverrideForTests();
   cleanup();
 });
