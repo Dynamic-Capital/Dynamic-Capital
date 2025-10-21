@@ -55,6 +55,7 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     Icon: Home,
     analyticsEvent: "nav_dynamic_hq",
     badge: { label: "New", tone: "accent" },
+    showInBottomNav: true,
   },
   {
     id: "dynamic-market",
@@ -65,6 +66,7 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     Icon: LineChart,
     analyticsEvent: "nav_dynamic_market",
     meta: { label: "Live", icon: Sparkles, tone: "accent" },
+    showInBottomNav: true,
   },
   {
     id: "dynamic-watchlist",
@@ -74,6 +76,7 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     description: "Core assets with catalysts and automation hooks.",
     Icon: Radar,
     analyticsEvent: "nav_dynamic_watchlist",
+    showInBottomNav: true,
   },
   {
     id: "dynamic-pool-trading",
@@ -83,6 +86,7 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     description: "Fund transparency, supply allocation, and epochs.",
     Icon: CandlestickChart,
     analyticsEvent: "nav_dynamic_pool_trading",
+    showInBottomNav: false,
   },
   {
     id: "dynamic-signals",
@@ -93,6 +97,7 @@ export const MINIAPP_TABS: MiniAppTab[] = [
     Icon: Activity,
     analyticsEvent: "nav_dynamic_signals",
     meta: { label: "Streaming", icon: Sparkles, tone: "accent" },
+    showInBottomNav: true,
   },
   {
     id: "dynamic-learn",

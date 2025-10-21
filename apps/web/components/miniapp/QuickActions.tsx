@@ -426,7 +426,7 @@ export function QuickActions() {
             >
               <div
                 className={cn(
-                  "relative flex h-full flex-col justify-center overflow-hidden rounded-xl border p-4 text-center transition-all duration-300 group",
+                  "relative flex h-full flex-col justify-center overflow-hidden rounded-xl border p-4 text-center transition-all duration-300 group touch-target",
                   getPriorityStyles(action.priority),
                 )}
               >

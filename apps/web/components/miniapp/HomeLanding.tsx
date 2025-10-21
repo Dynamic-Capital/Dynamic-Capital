@@ -413,6 +413,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             insights={insights}
             deskTimeLabel={deskClock.formatted}
             lastSyncedLabel={lastSyncedLabel}
+            loading={loading}
           />
         </MiniAppSection>
       </MiniAppGrid>

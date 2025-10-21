@@ -23,6 +23,7 @@ interface MiniAppMetricsSlidersProps {
   deskTimeLabel: string;
   lastSyncedLabel?: string;
   sectionReason?: string;
+  loading?: boolean;
 }
 
 const MAX_METRICS_VISIBLE = 4;
@@ -112,6 +113,7 @@ const MiniAppMetricsSlidersComponent = ({
   deskTimeLabel,
   lastSyncedLabel,
   sectionReason,
+  loading = false,
 }: MiniAppMetricsSlidersProps) => {
   const visibleMetrics = metrics.slice(0, MAX_METRICS_VISIBLE);
 
@@ -127,6 +129,34 @@ const MiniAppMetricsSlidersComponent = ({
       emphasis: insight.emphasis ?? "neutral",
     }));
   }, [insights]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-subheading font-semibold tracking-tight text-foreground">
+              Market Pulse & Trading Desk Sync
+            </h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant="outline"
+                className="border-border/40 bg-background/40 text-xs font-semibold uppercase tracking-wide"
+              >
+                Desk time: {deskTimeLabel}
+              </Badge>
+            </div>
+          </div>
+        </div>
+        <div className="miniapp-panel space-y-4 p-5">
+          <div className="flex items-center justify-center gap-3 text-muted-foreground">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Loading market data...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
