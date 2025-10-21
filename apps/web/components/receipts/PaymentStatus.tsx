@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import ReceiptUploader from "./ReceiptUploader";
 import { formatIsoDate } from "@/utils/isoFormat";
 
@@ -55,6 +56,14 @@ interface PaymentData {
   webhook_data?: PaymentWebhookData;
 }
 
+type PaymentQueryRow = Database["public"]["Tables"]["payments"]["Row"] & {
+  webhook_data: PaymentWebhookData | null;
+  subscription_plans:
+    | Database["public"]["Tables"]["subscription_plans"]["Row"]
+    | Database["public"]["Tables"]["subscription_plans"]["Row"][]
+    | null;
+};
+
 export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
   const [payment, setPayment] = useState<PaymentData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -66,19 +75,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from<{
-          id: string;
-          amount: number;
-          currency: string;
-          status: string;
-          payment_method: string;
-          created_at: string;
-          webhook_data: PaymentWebhookData | null;
-          subscription_plans:
-            | SubscriptionPlan
-            | SubscriptionPlan[]
-            | null;
-        }>("payments")
+        .from("payments")
         .select(`
           id,
           amount,
@@ -99,9 +96,11 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
       if (error) throw error;
       if (!data) throw new Error("Payment not found");
 
-      const planData = Array.isArray(data.subscription_plans)
-        ? data.subscription_plans[0]
-        : data.subscription_plans;
+      const paymentRow = data as unknown as PaymentQueryRow;
+
+      const planData = Array.isArray(paymentRow.subscription_plans)
+        ? paymentRow.subscription_plans[0]
+        : paymentRow.subscription_plans;
       const plan: SubscriptionPlan = planData ?? {
         name: "Custom plan",
         duration_months: 0,
@@ -109,18 +108,20 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
       };
 
       const paymentData: PaymentData = {
-        ...data,
+        ...paymentRow,
         plan,
-        webhook_data: data.webhook_data ?? undefined,
+        webhook_data: paymentRow.webhook_data ?? undefined,
       };
 
       setPayment(paymentData);
 
       // Show uploader if payment is pending and no receipt uploaded yet
-      const webhookData = data.webhook_data ?? undefined;
-      const needsResubmit = ["pending_review", "failed"].includes(data.status);
+      const webhookData = paymentRow.webhook_data ?? undefined;
+      const needsResubmit = ["pending_review", "failed"].includes(
+        paymentRow.status,
+      );
       setShowUploader(
-        (data.status === "pending" && !webhookData?.storage_path) ||
+        (paymentRow.status === "pending" && !webhookData?.storage_path) ||
           needsResubmit,
       );
     } catch (error) {
@@ -316,7 +317,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
               Refresh Status
             </Button>
 
-            {payment.webhook_data?.ocr && (
+            {Boolean(payment.webhook_data?.ocr) && (
               <Button
                 variant="outline"
                 size="sm"
