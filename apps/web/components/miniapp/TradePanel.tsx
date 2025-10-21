@@ -88,144 +88,147 @@ export default function TradePanel() {
   }, []);
 
   return (
-    <div className="grid gap-4">
-      <section className="card" style={{ display: "grid", gap: 16 }}>
-        <header style={{ display: "flex", justifyContent: "space-between" }}>
-          <div>
-            <h2 style={{ margin: 0 }}>Trade Panel</h2>
-            <p className="muted" style={{ margin: 0 }}>
+    <div className="space-y-6">
+      <section className="miniapp-panel space-y-4 p-6">
+        <header className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-foreground">Trade Panel</h2>
+            <p className="text-sm text-muted-foreground">
               Deploy house-tested playbooks with dynamic sizing.
             </p>
           </div>
-          <ArrowUpRight size={18} />
+          <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
         </header>
 
-        <div style={{ display: "grid", gap: 12 }}>
-          <span className="muted" style={{ fontSize: 12 }}>
+        <div className="space-y-3">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Select a position template
           </span>
-          <div style={{ display: "grid", gap: 10 }}>
+          <fieldset className="space-y-3">
+            <legend className="sr-only">Position template options</legend>
             {POSITION_TEMPLATES.map((template) => {
               const isActive = template.id === selectedTemplate;
               return (
                 <button
                   key={template.id}
-                  className="btn"
-                  style={{
-                    justifyContent: "space-between",
-                    background: isActive
-                      ? "rgba(110,231,183,0.16)"
-                      : "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    color: "var(--brand-text)",
-                  }}
+                  className={`w-full p-4 rounded-lg border transition-all duration-200 text-left touch-target ${
+                    isActive
+                      ? "bg-primary/10 border-primary/30 text-primary"
+                      : "bg-muted/30 border-border hover:border-primary/20 hover:bg-muted/50"
+                  }`}
                   onClick={() => {
                     setSelectedTemplate(template.id);
                     haptic("medium");
                     void track("trade_select_template");
                   }}
+                  aria-pressed={isActive}
+                  role="radio"
+                  aria-label={`Select ${template.title} position template`}
                 >
-                  <div style={{ display: "grid", gap: 6, textAlign: "left" }}>
-                    <strong>{template.title}</strong>
-                    <span className="muted" style={{ fontSize: 12 }}>
-                      Size {template.size}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "grid",
-                      textAlign: "right",
-                      fontSize: 12,
-                    }}
-                  >
-                    <span>Stop {template.stop}</span>
-                    <span>Target {template.target}</span>
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="space-y-1">
+                      <div className="font-semibold text-sm">{template.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Size {template.size}
+                      </div>
+                    </div>
+                    <div className="text-right text-xs space-y-1">
+                      <div className="text-muted-foreground">Stop {template.stop}</div>
+                      <div className="text-muted-foreground">Target {template.target}</div>
+                    </div>
                   </div>
                 </button>
               );
             })}
-          </div>
+          </fieldset>
         </div>
       </section>
 
-      <section className="card" style={{ display: "grid", gap: 16 }}>
-        <header style={{ display: "flex", justifyContent: "space-between" }}>
-          <div>
-            <h3 style={{ margin: 0 }}>Risk Controls</h3>
-            <p className="muted" style={{ margin: 0 }}>
+      <section className="miniapp-panel space-y-4 p-6">
+        <header className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-foreground">Risk Controls</h3>
+            <p className="text-sm text-muted-foreground">
               Configure stop discipline and trade routing.
             </p>
           </div>
-          <BarChart3 size={18} />
+          <BarChart3 className="h-5 w-5 text-muted-foreground" />
         </header>
-        <div style={{ display: "grid", gap: 12 }}>
+        <fieldset className="space-y-3">
+          <legend className="sr-only">Risk control options</legend>
           {RISK_SCENARIOS.map((scenario) => {
             const isActive = scenario.id === riskProfile;
             return (
               <button
                 key={scenario.id}
-                className="btn"
-                style={{
-                  justifyContent: "space-between",
-                  background: isActive
-                    ? "rgba(96,165,250,0.16)"
-                    : "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "var(--brand-text)",
-                }}
+                className={`w-full p-4 rounded-lg border transition-all duration-200 text-left flex justify-between items-center touch-target ${
+                  isActive
+                    ? "bg-primary/10 border-primary/30 text-primary"
+                    : "bg-muted/30 border-border hover:border-primary/20 hover:bg-muted/50"
+                }`}
                 onClick={() => {
                   setRiskProfile(scenario.id);
                   haptic("light");
                   void track("trade_select_risk");
                 }}
+                aria-pressed={isActive}
+                role="radio"
+                aria-label={`Select ${scenario.label} risk profile`}
               >
-                <div style={{ display: "grid", textAlign: "left" }}>
-                  <strong>{scenario.label}</strong>
-                  <span className="muted" style={{ fontSize: 12 }}>
+                <div className="space-y-1">
+                  <div className="font-semibold text-sm">{scenario.label}</div>
+                  <div className="text-xs text-muted-foreground">
                     {scenario.description}
-                  </span>
+                  </div>
                 </div>
-                <Radio size={16} opacity={isActive ? 1 : 0.4} />
+                <Radio className={`h-4 w-4 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
               </button>
             );
           })}
-        </div>
+        </fieldset>
       </section>
 
       {summary.template && summary.risk && (
-        <section className="card" style={{ display: "grid", gap: 14 }}>
-          <header style={{ display: "flex", justifyContent: "space-between" }}>
-            <div>
-              <h3 style={{ margin: 0 }}>Execution Summary</h3>
-              <p className="muted" style={{ margin: 0 }}>
+        <section className="miniapp-panel space-y-4 p-6 border-primary/20 bg-primary/5">
+          <header className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-foreground">Execution Summary</h3>
+              <p className="text-sm text-muted-foreground">
                 Desk will confirm sizing before routing to exchange.
               </p>
             </div>
-            <ShieldAlert size={18} />
+            <ShieldAlert className="h-5 w-5 text-primary" />
           </header>
-          <div style={{ display: "grid", gap: 8, fontSize: 13 }}>
-            <span>
-              Template <strong>{summary.template.title}</strong>
-            </span>
-            <span>
-              Risk profile <strong>{summary.risk.label}</strong>
-            </span>
-            <span>
-              Stop <strong>{summary.template.stop}</strong> · Target{" "}
-              <strong>{summary.template.target}</strong>
-            </span>
-            <span>
-              Size <strong>{summary.template.size}</strong>
-            </span>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Template:</span>
+              <span className="font-medium">{summary.template.title}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Risk profile:</span>
+              <span className="font-medium">{summary.risk.label}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Stop:</span>
+              <span className="font-medium">{summary.template.stop}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Target:</span>
+              <span className="font-medium">{summary.template.target}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Size:</span>
+              <span className="font-medium">{summary.template.size}</span>
+            </div>
           </div>
           <button
-            className="btn"
+            className="w-full px-4 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 touch-target"
             onClick={() => {
               haptic("medium");
               void track("trade_confirm_signal");
             }}
           >
-            <ArrowUpRight size={18} />
+            <ArrowUpRight className="h-4 w-4" />
             Confirm & route
           </button>
         </section>

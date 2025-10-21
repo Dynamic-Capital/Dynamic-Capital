@@ -2028,6 +2028,71 @@
     font-weight: 600;
   }
 
+  /* === MINI APP SPECIFIC STYLES === */
+  .miniapp-panel {
+    @apply rounded-xl border border-border/20 bg-card/50 backdrop-blur-sm;
+    @apply shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .miniapp-hero {
+    @apply relative overflow-hidden;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--background)) 0%,
+      hsl(var(--primary) / 0.05) 50%,
+      hsl(var(--dc-brand-light) / 0.03) 100%
+    );
+  }
+
+  .miniapp-summary-nav {
+    @apply flex gap-4 overflow-x-auto pb-2;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .miniapp-summary-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .miniapp-summary-nav__link {
+    @apply whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium;
+    @apply bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary;
+    @apply transition-all duration-200;
+  }
+
+  .miniapp-bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 z-50;
+    @apply bg-background/95 backdrop-blur-md border-t border-border/20;
+    @apply safe-area-bottom;
+  }
+
+  .miniapp-bottom-card {
+    @apply rounded-t-2xl border border-border/20 bg-card/80 backdrop-blur-sm;
+    @apply shadow-lg;
+  }
+
+  .miniapp-bottom-tab {
+    @apply relative flex flex-col items-center gap-1 p-2 rounded-lg;
+    @apply text-xs font-medium text-muted-foreground hover:text-foreground;
+    @apply transition-all duration-200 touch-target;
+  }
+
+  .miniapp-bottom-tab--active {
+    @apply text-primary;
+  }
+
+  .miniapp-bottom-tab__indicator {
+    @apply absolute inset-0 rounded-lg bg-primary/10;
+  }
+
+  .miniapp-bottom-tab__icon {
+    @apply flex items-center justify-center;
+  }
+
+  .miniapp-bottom-tab__label {
+    @apply text-[10px] font-medium;
+  }
+
   /* === RED GRADIENT UTILITIES === */
   .bg-gradient-red {
     @apply bg-gradient-to-r from-primary to-dc-brand-light;

@@ -90,17 +90,24 @@ export function FAQSection() {
               <div className="border rounded-lg overflow-hidden">
                 <Button
                   variant="ghost"
-                  className="w-full p-4 justify-between text-left hover:bg-muted/50"
+                  className="w-full p-4 justify-between text-left hover:bg-muted/50 touch-target"
                   onClick={() =>
                     toggleExpanded(index)}
+                  aria-expanded={expandedIndex === index}
+                  aria-controls={`faq-answer-${index}`}
                 >
-                  <span className="font-medium">{item.question}</span>
+                  <span id={`faq-question-${index}`} className="font-medium">{item.question}</span>
                   {expandedIndex === index
                     ? <ChevronUp className="h-4 w-4" />
                     : <ChevronDown className="h-4 w-4" />}
                 </Button>
                 {expandedIndex === index && (
-                  <div className="px-4 pb-4 border-t bg-muted/20">
+                  <div 
+                    id={`faq-answer-${index}`}
+                    className="px-4 pb-4 border-t bg-muted/20"
+                    role="region"
+                    aria-labelledby={`faq-question-${index}`}
+                  >
                     <p className="text-sm text-muted-foreground pt-3 leading-relaxed">
                       {item.answer}
                     </p>
