@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -37,43 +37,99 @@ interface SubscriptionStatus {
   is_expired: boolean;
 }
 
-interface StatusSectionProps {
-  telegramData: any;
+interface TelegramMiniAppUser {
+  id?: number | string | null;
 }
 
-export default function StatusSection({ telegramData }: StatusSectionProps) {
+interface TelegramMiniAppData {
+  user?: TelegramMiniAppUser | null;
+}
+
+interface StatusSectionProps {
+  telegramData?: TelegramMiniAppData | null;
+}
+
+export default function StatusSection({
+  telegramData,
+}: StatusSectionProps) {
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(
     null,
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const isInTelegram = typeof window !== "undefined" &&
+    Boolean(window.Telegram?.WebApp);
 
-  const isInTelegram = typeof window !== "undefined" && window.Telegram?.WebApp;
+  const isMountedRef = useRef(true);
 
-  const fetchSubscriptionStatus = useCallback(async () => {
-    if (!isInTelegram || !telegramData?.user?.id) {
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-    try {
-      const { data, status } = await callEdgeFunction("SUBSCRIPTION_STATUS", {
-        method: "POST",
-        body: { telegram_id: telegramData.user.id },
-      });
+  const fetchSubscriptionStatus = useCallback(
+    async ({ showLoading = true } = {}): Promise<boolean> => {
+      const rawUserId = telegramData?.user?.id;
 
-      if (status !== 200 || !data) {
-        throw new Error("Failed to fetch subscription status");
+      if (rawUserId === undefined || rawUserId === null) {
+        if (showLoading && isMountedRef.current) {
+          setLoading(false);
+        }
+        if (isMountedRef.current) {
+          setSubscription(null);
+        }
+        return false;
       }
 
-      setSubscription(data as SubscriptionStatus);
-    } catch (error) {
-      console.error("Error fetching subscription:", error);
-      toast.error("Failed to load subscription status");
-    } finally {
-      setLoading(false);
-    }
-  }, [isInTelegram, telegramData?.user?.id]);
+      const telegramUserId = String(rawUserId);
+
+      if (showLoading && isMountedRef.current) {
+        setLoading(true);
+      }
+
+      try {
+        const { data, error, status } = await callEdgeFunction<
+          SubscriptionStatus
+        >(
+          "SUBSCRIPTION_STATUS",
+          {
+            method: "POST",
+            body: { telegram_user_id: telegramUserId },
+            cache: "no-store",
+          },
+        );
+
+        if (error || status !== 200 || !data) {
+          throw new Error(
+            error?.message ?? "Failed to fetch subscription status",
+          );
+        }
+
+        if (!isMountedRef.current) {
+          return false;
+        }
+
+        setSubscription(data);
+        return true;
+      } catch (error) {
+        if (!isMountedRef.current) {
+          return false;
+        }
+
+        console.error("Error fetching subscription:", error);
+        setSubscription(null);
+        toast.error("Failed to load subscription status");
+        return false;
+      } finally {
+        if (showLoading && isMountedRef.current) {
+          setLoading(false);
+        }
+      }
+    },
+    [telegramData?.user?.id],
+  );
 
   useEffect(() => {
     fetchSubscriptionStatus();
@@ -81,9 +137,11 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchSubscriptionStatus();
+    const success = await fetchSubscriptionStatus({ showLoading: false });
     setRefreshing(false);
-    toast.success("Status refreshed");
+    if (success) {
+      toast.success("Status refreshed");
+    }
   };
 
   const getStatusBadge = () => {
