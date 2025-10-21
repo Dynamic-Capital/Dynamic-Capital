@@ -393,6 +393,30 @@ async function fetchLogs(functionName: string): Promise<FetchLogsResult> {
   return { logs };
 }
 
+interface FunctionLogs {
+  functionName: string;
+  logs: NormalizedLog[];
+  warning?: string;
+  durationMs: number;
+}
+
+function formatDuration(ms: number): string {
+  if (!Number.isFinite(ms)) return "?";
+  if (ms < 1) return `${ms.toFixed(2)}ms`;
+  if (ms < 1_000) return `${ms.toFixed(0)}ms`;
+  return `${(ms / 1_000).toFixed(2)}s`;
+}
+
+async function fetchAllLogs(functionNames: string[]): Promise<FunctionLogs[]> {
+  const tasks = functionNames.map(async (fn) => {
+    const start = performance.now();
+    const result = await fetchLogs(fn);
+    const durationMs = performance.now() - start;
+    return { functionName: fn, durationMs, ...result } satisfies FunctionLogs;
+  });
+  return await Promise.all(tasks);
+}
+
 function formatLog(log: NormalizedLog): string {
   const timestamp = log.timestamp ?? "unknown-time";
   const status = log.status !== null ? String(log.status) : "?";
@@ -403,8 +427,25 @@ function formatLog(log: NormalizedLog): string {
 }
 
 async function main() {
-  for (const fn of functions) {
-    const { logs, warning } = await fetchLogs(fn);
+  const results = await fetchAllLogs(functions);
+
+  const totalEntries = results.reduce(
+    (sum, entry) => sum + entry.logs.length,
+    0,
+  );
+  const totalDuration = results.reduce(
+    (sum, entry) => sum + entry.durationMs,
+    0,
+  );
+  if (!flags.json) {
+    console.log(
+      `Fetched ${totalEntries} logs across ${results.length} functions in ${
+        formatDuration(totalDuration)
+      } (parallel).`,
+    );
+  }
+
+  for (const { functionName: fn, logs, warning, durationMs } of results) {
     if (warning) {
       console.warn(warning);
     }
@@ -416,7 +457,9 @@ async function main() {
     const statusCounts = summarizeStatusCounts(logs);
 
     console.log(
-      `\n=== ${fn} (${total} entries, ${unauthorized} status 401) ===`,
+      `\n=== ${fn} (${total} entries, ${unauthorized} status 401, fetched in ${
+        formatDuration(durationMs)
+      }) ===`,
     );
     if (flags.json) {
       console.log(JSON.stringify({ function: fn, entries: logs }, null, 2));
