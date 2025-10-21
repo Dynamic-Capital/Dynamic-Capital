@@ -4,6 +4,31 @@ Supabase Edge Functions can connect to the project's Postgres database through a
 few supported client libraries. The sections below outline the recommended
 options, sample code, and SSL guidance for production and local development.
 
+## Import specifiers at a glance
+
+Supabase's Deno runtime supports multiple module ecosystems. When you see code
+samples in this guide, they rely on the following specifier prefixes:
+
+```ts
+// NPM packages (recommended)
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+// Node.js built-ins
+import process from "node:process";
+
+// JSR modules (Deno's registry)
+import path from "jsr:@std/path@1.0.8";
+```
+
+- `npm:` pulls from the public npm registry and is the suggested way to load
+  first-party Supabase clients.
+- `node:` reaches Node.js built-in modules that Deno polyfills for Edge
+  Functions.
+- `jsr:` references the modern Deno standard library hosted on the JSR registry.
+
+Use the prefix that matches the source of your dependency and keep version
+specifiers pinned so deployments remain reproducible.
+
 ## Using `supabase-js`
 
 `supabase-js` is the default option for most Edge Functions. The client handles
