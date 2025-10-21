@@ -18,6 +18,8 @@ const config = {
       "hooks/**/*.test.tsx",
       "services/**/*.test.ts",
       "resources/**/*.test.ts",
+      "utils/**/*.test.ts",
+      "utils/**/*.test.tsx",
     ],
     environment: "jsdom",
     globals: true,

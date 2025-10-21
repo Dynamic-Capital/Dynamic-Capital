@@ -53,6 +53,11 @@ let jwksCache: { fetchedAt: number; keys: readonly SupabaseJwk[] } | null =
   null;
 let jwksFetchPromise: Promise<readonly SupabaseJwk[]> | null = null;
 
+export function resetSupabaseJwksCacheForTests(): void {
+  jwksCache = null;
+  jwksFetchPromise = null;
+}
+
 function stripTrailingSlash(value: string): string {
   return value.replace(/\/+$/u, "");
 }

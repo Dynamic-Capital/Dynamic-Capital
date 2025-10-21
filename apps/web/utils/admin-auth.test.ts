@@ -6,6 +6,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import {
   getAdminHeaders,
   isAdminVerificationFailure,
+  resetSupabaseJwksCacheForTests,
   verifyAdminRequest,
 } from "./admin-auth.ts";
 
@@ -61,6 +62,7 @@ afterEach(() => {
     process.env.ADMIN_API_SECRET = originalAdminSecret;
   }
   global.fetch = originalFetch;
+  resetSupabaseJwksCacheForTests();
 });
 
 test("accepts bearer admin token from Authorization header", async () => {
