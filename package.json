@@ -157,7 +157,8 @@
     "sonner": "^2.0.7",
     "ton-core": "^0.53.0",
     "ton-crypto": "^3.2.0",
-    "undici": "^6.22.0"
+    "undici": "^6.22.0",
+    "vite": "^7.1.11"
   },
   "devDependencies": {
     "@babel/types": "^7.28.4",
@@ -182,30 +183,30 @@
     "yaml": "^2.8.1"
   },
   "overrides": {
-    "esbuild": "^0.25.10",
+    "esbuild": "^0.25.11",
     "@esbuild-kit/core-utils": {
-      "esbuild": "0.25.10"
+      "esbuild": "0.25.11"
     },
     "@esbuild-kit/core-utils@3.3.2": {
-      "esbuild": "0.25.10"
+      "esbuild": "0.25.11"
     },
     "@esbuild-kit/esm-loader": {
-      "esbuild": "npm:esbuild@0.25.10"
+      "esbuild": "npm:esbuild@0.25.11"
     },
     "@esbuild-kit/esm-loader@2.6.5": {
-      "esbuild": "npm:esbuild@0.25.10"
+      "esbuild": "npm:esbuild@0.25.11"
     },
     "drizzle-kit": {
-      "esbuild": "npm:esbuild@0.25.10",
+      "esbuild": "npm:esbuild@0.25.11",
       "@esbuild-kit/core-utils": {
-        "esbuild": "npm:esbuild@0.25.10"
+        "esbuild": "npm:esbuild@0.25.11"
       },
       "esbuild-register": {
-        "esbuild": "npm:esbuild@0.25.10"
+        "esbuild": "npm:esbuild@0.25.11"
       }
     },
     "esbuild-register": {
-      "esbuild": "npm:esbuild@0.25.10"
+      "esbuild": "npm:esbuild@0.25.11"
     },
     "@auth/core": "^0.36.0",
     "elliptic": "^6.6.1",
