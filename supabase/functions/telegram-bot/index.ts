@@ -2046,15 +2046,24 @@ export async function startReceiptPipeline(
       await notifyUser(chatId, msg);
       return;
     }
-    const [sessionResult, userResult] = await Promise.all([
-      supa.from("user_sessions")
-        .select("id,awaiting_input")
-        .eq("telegram_user_id", String(chatId))
-        .maybeSingle(),
-      supa.from("bot_users")
-        .select("id")
-        .eq("telegram_id", chatId)
-        .maybeSingle(),
+    const sessionPromise = supa.from("user_sessions")
+      .select("id,awaiting_input")
+      .eq("telegram_user_id", String(chatId))
+      .maybeSingle();
+    const userPromise = supa.from("bot_users")
+      .select("id")
+      .eq("telegram_id", chatId)
+      .maybeSingle();
+    const fileInfoPromise = BOT_TOKEN
+      ? fetch(
+        `https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`,
+      ).then((r) => r.json()).catch(() => null)
+      : Promise.resolve(null);
+
+    const [sessionResult, userResult, fileInfo] = await Promise.all([
+      sessionPromise,
+      userPromise,
+      fileInfoPromise,
     ]);
 
     const session = sessionResult.data;
@@ -2093,9 +2102,6 @@ export async function startReceiptPipeline(
       await notifyUser(chatId, msg);
       return;
     }
-    const fileInfo = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`,
-    ).then((r) => r.json()).catch(() => null);
     const path = fileInfo?.result?.file_path;
     if (!path) {
       const msg = await getContent("cannot_fetch_receipt") ??
@@ -2103,22 +2109,33 @@ export async function startReceiptPipeline(
       await notifyUser(chatId, msg);
       return;
     }
+    const planPromise = supa.from("subscription_plans")
+      .select("price, currency")
+      .eq("id", planId)
+      .maybeSingle();
+
     const blob = await fetch(
       `https://api.telegram.org/file/bot${BOT_TOKEN}/${path}`,
     ).then((r) => r.blob());
 
-    let parsedSlip: ParsedSlip | null = null;
-    try {
-      const ocrTextProvider = await getOcrTextFromBlob();
-      const ocrText = await ocrTextProvider(blob);
-      if (ocrText.trim()) {
-        parsedSlip = parseBankSlipImpl(ocrText);
+    const hashPromise = hashBlob(blob);
+    const parsedSlipPromise = (async (): Promise<ParsedSlip | null> => {
+      try {
+        const ocrTextProvider = await getOcrTextFromBlob();
+        const ocrText = await ocrTextProvider(blob);
+        if (ocrText.trim()) {
+          return parseBankSlipImpl(ocrText);
+        }
+      } catch (error) {
+        console.error("Failed to OCR/parse bank slip", error);
       }
-    } catch (error) {
-      console.error("Failed to OCR/parse bank slip", error);
-    }
+      return null;
+    })();
 
-    const hash = await hashBlob(blob);
+    const [hash, parsedSlip] = await Promise.all([
+      hashPromise,
+      parsedSlipPromise,
+    ]);
     const storagePath = `receipts/${chatId}/${hash}`;
 
     const [duplicateCheck, planResult] = await Promise.all([
@@ -2127,10 +2144,7 @@ export async function startReceiptPipeline(
         .eq("image_sha256", hash)
         .limit(1)
         .maybeSingle(),
-      supa.from("subscription_plans")
-        .select("price, currency")
-        .eq("id", planId)
-        .maybeSingle(),
+      planPromise,
     ]);
 
     if (duplicateCheck.error) {
@@ -2201,11 +2215,18 @@ export async function startReceiptPipeline(
       }
       return;
     }
-    await supa.from("user_sessions").update({ awaiting_input: null }).eq(
-      "id",
-      session?.id,
-    );
-    const msg = await getContent("receipt_received") ??
+    const receiptMessagePromise = getContent("receipt_received");
+    try {
+      const { error: updateError } = await supa.from("user_sessions")
+        .update({ awaiting_input: null })
+        .eq("id", session?.id);
+      if (updateError) {
+        console.error("Failed to clear awaiting_input", updateError);
+      }
+    } catch (updateErr) {
+      console.error("Failed to clear awaiting_input", updateErr);
+    }
+    const msg = await receiptMessagePromise ??
       "✅ Receipt received. We'll review it shortly.";
     await notifyUser(chatId, msg);
   } catch (err) {
