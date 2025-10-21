@@ -283,6 +283,43 @@ async function sendMessage(
   }
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const TYPING_ACTION_INTERVAL_MS = 4_500;
+
+function startTypingIndicator(chatId: number): () => Promise<void> {
+  if (!BOT_TOKEN) {
+    return async () => {};
+  }
+
+  let active = true;
+  const worker = (async () => {
+    while (active) {
+      try {
+        await telegramFetch("sendChatAction", {
+          chat_id: chatId,
+          action: "typing",
+        });
+      } catch (error) {
+        console.error("sendChatAction error", error);
+        break;
+      }
+      await delay(TYPING_ACTION_INTERVAL_MS);
+    }
+  })();
+
+  return async () => {
+    active = false;
+    try {
+      await worker;
+    } catch (error) {
+      console.error("typing indicator worker error", error);
+    }
+  };
+}
+
 async function editMessage(
   chatId: number,
   messageId: number,
@@ -560,6 +597,7 @@ async function handleAskCommand(ctx: CommandContext): Promise<void> {
     await notifyUser(ctx.chatId, usage);
     return;
   }
+  const stopTyping = startTypingIndicator(ctx.chatId);
   try {
     const answer = await askChatGPT(question) ??
       (await getContent("ask_no_answer")) ??
@@ -569,6 +607,8 @@ async function handleAskCommand(ctx: CommandContext): Promise<void> {
     const msg = await getContent("ask_failed") ??
       "The coaching assistant is unavailable right now. Please try again shortly.";
     await notifyUser(ctx.chatId, msg);
+  } finally {
+    await stopTyping();
   }
 }
 
