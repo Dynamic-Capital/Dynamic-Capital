@@ -1,4 +1,5 @@
 import { createClient, createClientForRequest } from "../_shared/client.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { bad, json, oops, unauth } from "../_shared/http.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { registerHandler } from "../_shared/serve.ts";
@@ -40,11 +41,33 @@ export const handler = registerHandler(async (req) => {
     }
   }
 
-  let body;
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
     return bad("Invalid JSON");
+  }
+
+  // Validate payload with Zod
+  const PayloadSchema = z.object({
+    payment_id: z.string().min(1, "payment_id is required"),
+    file_path: z.string().min(1, "file_path is required"),
+    bucket: z.string().min(1).optional(),
+    initData: z.string().optional(),
+    telegram_id: z.union([z.string(), z.number()]).optional(),
+    parsed_slip: z.record(z.any()).optional(),
+    order_id: z.string().optional(),
+    reference_code: z.string().optional(),
+  });
+
+  const parsed = PayloadSchema.safeParse(body);
+  if (!parsed.success) {
+    return bad(
+      JSON.stringify({
+        error: "invalid_payload",
+        details: parsed.error.flatten(),
+      }),
+    );
   }
 
   const {
@@ -56,7 +79,7 @@ export const handler = registerHandler(async (req) => {
     parsed_slip,
     order_id,
     reference_code,
-  } = body;
+  } = parsed.data;
 
   // If no auth, try Telegram initData
   if (!telegramId && initData) {
@@ -80,9 +103,7 @@ export const handler = registerHandler(async (req) => {
     telegramId = String(telegram_id);
   }
 
-  if (!payment_id || !file_path) {
-    return bad("Missing required fields");
-  }
+  // At this point payment_id and file_path are guaranteed by schema
 
   console.log("Receipt submission:", {
     telegramId,

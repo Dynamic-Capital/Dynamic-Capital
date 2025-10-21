@@ -1,6 +1,4 @@
 // supabase/functions/_shared/static.ts
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 import { mna, nf, ok } from "./http.ts";
 
 type MimeResolver = (path: string) => string | undefined;
@@ -126,9 +124,17 @@ async function readFileFrom(
     if (!url.pathname.startsWith(rootDir.pathname)) return null; // prevent path traversal
 
     console.log(`[static] Attempting to read file: ${url.pathname}`);
-    const data = await Deno.readFile
-      ? await Deno.readFile(url)
-      : await (await import("node:fs/promises")).readFile(url);
+    // Deno.readFile exists in Deno, but this file may also run in Node during tests.
+    let data: Uint8Array;
+    if (typeof (globalThis as { Deno?: typeof Deno }).Deno?.readFile ===
+      "function") {
+      // deno-lint-ignore no-explicit-any
+      const D = (globalThis as any).Deno as typeof Deno;
+      data = await D.readFile(url);
+    } else {
+      const { readFile } = await import("node:fs/promises");
+      data = await readFile(url);
+    }
     const h = new Headers({
       "content-type": await mime(relPath),
       "cache-control": relPath.endsWith(".html")

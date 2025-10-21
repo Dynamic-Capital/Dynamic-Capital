@@ -1,6 +1,14 @@
-import { createClient } from "../../_shared/client.ts";
+import { createClient, type SupabaseClient } from "../../_shared/client.ts";
 
-const supabaseAdmin = createClient("service");
+let supabaseAdmin: SupabaseClient | null = null;
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (supabaseAdmin) return supabaseAdmin;
+  // Lazily create the service client to avoid import-time crashes
+  // in environments where the service key is not configured (e.g. tests).
+  supabaseAdmin = createClient("service");
+  return supabaseAdmin;
+}
 
 const FUNCTION_TIMEOUT_MS = 12_000;
 
@@ -40,8 +48,9 @@ function sanitizeAnswer(answer: unknown): string | null {
 
 async function invokeAiFaq(question: string): Promise<string | null> {
   const startedAt = performance.now();
+  const client = getSupabaseAdmin();
   const result = await withTimeout(
-    supabaseAdmin.functions.invoke<AskResponse>("ai-faq-assistant", {
+    client.functions.invoke<AskResponse>("ai-faq-assistant", {
       body: { question },
     }),
     FUNCTION_TIMEOUT_MS,
@@ -62,8 +71,9 @@ async function invokeAiFaq(question: string): Promise<string | null> {
 
 async function invokeChatGptProxy(question: string): Promise<string | null> {
   const startedAt = performance.now();
+  const client = getSupabaseAdmin();
   const result = await withTimeout(
-    supabaseAdmin.functions.invoke<ProxyResponse>("chatgpt-proxy", {
+    client.functions.invoke<ProxyResponse>("chatgpt-proxy", {
       body: { prompt: question },
     }),
     FUNCTION_TIMEOUT_MS,
