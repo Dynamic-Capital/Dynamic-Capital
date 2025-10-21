@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/interactive-cards";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, CreditCard, Sparkles, Star, TrendingUp } from "lucide-react";
+import { AlertCircle, Check, CreditCard, RefreshCw, Sparkles, Star, TrendingUp } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { CurrencySelector } from "./CurrencySelector";
 import { useCurrency } from "@/hooks/useCurrency";
@@ -247,8 +247,33 @@ export default function PlanSection() {
     return (
       <MotionCard variant="glass" animate={true}>
         <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">
-            Loading plans...
+          <div className="flex items-center justify-center gap-3 text-muted-foreground">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            <span>Loading subscription plans...</span>
+          </div>
+        </CardContent>
+      </MotionCard>
+    );
+  }
+
+  if (plansError) {
+    return (
+      <MotionCard variant="glass" className="border-destructive/20">
+        <CardContent className="p-6">
+          <div className="text-center space-y-3">
+            <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
+            <div>
+              <h3 className="font-semibold text-destructive">Failed to load plans</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {plansError}
+              </p>
+            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              Try again
+            </button>
           </div>
         </CardContent>
       </MotionCard>

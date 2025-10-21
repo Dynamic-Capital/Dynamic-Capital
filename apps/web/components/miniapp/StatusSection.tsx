@@ -57,6 +57,7 @@ export default function StatusSection({
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const isInTelegram = typeof window !== "undefined" &&
     Boolean(window.Telegram?.WebApp);
 
@@ -112,6 +113,7 @@ export default function StatusSection({
         }
 
         setSubscription(data);
+        setError(null);
         return true;
       } catch (error) {
         if (!isMountedRef.current) {
@@ -120,6 +122,7 @@ export default function StatusSection({
 
         console.error("Error fetching subscription:", error);
         setSubscription(null);
+        setError(error instanceof Error ? error.message : "Failed to load subscription status");
         toast.error("Failed to load subscription status");
         return false;
       } finally {
@@ -228,10 +231,28 @@ export default function StatusSection({
         <div className="flex flex-col gap-6">
           <MotionCard variant="glass" className="border-primary/20">
             <CardContent className="flex items-center justify-center gap-3 p-4 sm:p-6">
-              <RefreshCw className="h-4 w-4 animate-spin" />
+              <RefreshCw className="h-4 w-4 animate-spin text-primary" />
               <span className="text-sm text-muted-foreground">
-                Loading status...
+                Loading subscription status...
               </span>
+            </CardContent>
+          </MotionCard>
+        </div>
+      </FadeInOnView>
+    );
+  }
+
+  if (error && !subscription) {
+    return (
+      <FadeInOnView>
+        <div className="flex flex-col gap-6">
+          <MotionCard variant="glass" className="border-destructive/20">
+            <CardContent className="flex items-center justify-center gap-3 p-4 sm:p-6">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <div className="text-center">
+                <p className="text-sm text-destructive font-medium">Failed to load status</p>
+                <p className="text-xs text-muted-foreground mt-1">{error}</p>
+              </div>
             </CardContent>
           </MotionCard>
         </div>
@@ -303,7 +324,7 @@ export default function StatusSection({
               {getStatusBadge()}
             </div>
 
-            {subscription && (
+            {subscription ? (
               <>
                 {/* Plan Details */}
                 <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
@@ -364,6 +385,15 @@ export default function StatusSection({
                   </div>
                 )}
               </>
+            ) : (
+              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Plan:
+                </span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Unable to load subscription data
+                </span>
+              </div>
             )}
 
             {/* Action Buttons */}
