@@ -3,7 +3,7 @@ import React from "react";
 import type { ComponentPropsWithoutRef, ElementRef } from "react";
 import { vi } from "vitest";
 
-const createPrimitive = <T extends keyof JSX.IntrinsicElements>(tag: T) =>
+const createPrimitive = <T extends keyof React.JSX.IntrinsicElements>(tag: T) =>
   React.forwardRef<ElementRef<T>, ComponentPropsWithoutRef<T>>(
     ({ children, ...props }, ref) =>
       React.createElement(tag, { ref, ...props }, children),
@@ -14,7 +14,7 @@ vi.mock("framer-motion", () => {
     {},
     {
       get: (_target, key: string) =>
-        createPrimitive(key as keyof JSX.IntrinsicElements),
+        createPrimitive(key as keyof React.JSX.IntrinsicElements),
     },
   );
 

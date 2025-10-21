@@ -14,6 +14,10 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+interface StandaloneCapableNavigator extends Navigator {
+  standalone?: boolean;
+}
+
 const INSTALL_DISMISSED_AT_KEY = "dynamic-capital::pwa-install-dismissed-at";
 const DISMISSAL_COOLDOWN_MS = 1000 * 60 * 60 * 24; // 24 hours
 
@@ -25,8 +29,9 @@ function isStandaloneDisplay(): boolean {
   if (!canUseWindow()) return false;
   return window.matchMedia("(display-mode: standalone)").matches ||
     ("standalone" in window.navigator &&
-      // @ts-expect-error - `standalone` is defined by Safari
-      Boolean(window.navigator.standalone));
+      Boolean(
+        (window.navigator as StandaloneCapableNavigator).standalone,
+      ));
 }
 
 function getLastDismissedAt(): number | null {
