@@ -98,6 +98,10 @@ apps/web/public/apple-touch-icon.png
 apps/web/public/icon-mark-512.png
 apps/web/public/favicon.ico
 apps/web/public/.brand-icons.json
+# Generated PWA artifacts (created by next-pwa during build)
+apps/web/public/sw.js
+apps/web/public/workbox-*.js
+apps/web/public/fallback-*.js
 
 # Generated issuer statement exports
 exports/*.pdf

@@ -373,9 +373,13 @@ if (nextConfig.output !== "export") {
   ];
 }
 
+const shouldDisablePwa = process.env.NEXT_DISABLE_PWA === "true" ||
+  (process.env.NODE_ENV === "development" &&
+    process.env.NEXT_ENABLE_PWA !== "true");
+
 const withPWA = nextPWA({
   dest: "public",
-  disable: process.env.NODE_ENV === "development",
+  disable: shouldDisablePwa,
   register: true,
   skipWaiting: true,
   scope: "/",

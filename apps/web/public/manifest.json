@@ -4,9 +4,11 @@
   "short_name": "DynamicCap",
   "description": "Dynamic Capital delivers institutional trading intelligence, TON-native automation, and mentorship for ambitious operators.",
   "lang": "en",
+  "dir": "ltr",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
   "background_color": "#050713",
   "theme_color": "#1F398E",
@@ -17,12 +19,12 @@
   ],
   "icons": [
     {
-      "src": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/icon-mark.svg",
+      "src": "/icon-mark.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     },
     {
-      "src": "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/miniapp/dynamic-logo.svg",
+      "src": "/logo-mark.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -53,5 +55,6 @@
       "platform": "webapp",
       "url": "https://dynamiccapital.ton"
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }
