@@ -128,11 +128,14 @@ const coreProviderDefinitions: ProviderDefinition[] = [
     defaultModel: "gpt-4.1-mini",
     contextWindow: 128_000,
     maxOutputTokens: 4_096,
-    envKeys: ["OPENAI_API_KEY"],
+    envKeys: ["OPENAI_API_KEY", "OPENAI_BASE_URL"],
     async invoke(
       { messages, temperature = 0.7, maxTokens, language: _language },
     ): Promise<Omit<ChatResult, "provider">> {
-      const client = new OpenAIClient();
+      const client = new OpenAIClient({
+        apiKey: optionalEnvVar("OPENAI_API_KEY"),
+        apiBaseUrl: optionalEnvVar("OPENAI_BASE_URL"),
+      });
       const { system, conversation } = normalizeMessages(messages);
       const resolvedMaxTokens = maxTokens ?? this.maxOutputTokens;
       const response = await client.createChatCompletion({
