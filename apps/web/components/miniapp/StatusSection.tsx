@@ -122,7 +122,11 @@ export default function StatusSection({
 
         console.error("Error fetching subscription:", error);
         setSubscription(null);
-        setError(error instanceof Error ? error.message : "Failed to load subscription status");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load subscription status",
+        );
         toast.error("Failed to load subscription status");
         return false;
       } finally {
@@ -250,7 +254,9 @@ export default function StatusSection({
             <CardContent className="flex items-center justify-center gap-3 p-4 sm:p-6">
               <AlertCircle className="h-4 w-4 text-destructive" />
               <div className="text-center">
-                <p className="text-sm text-destructive font-medium">Failed to load status</p>
+                <p className="text-sm text-destructive font-medium">
+                  Failed to load status
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">{error}</p>
               </div>
             </CardContent>
@@ -324,77 +330,79 @@ export default function StatusSection({
               {getStatusBadge()}
             </div>
 
-            {subscription ? (
-              <>
-                {/* Plan Details */}
+            {subscription
+              ? (
+                <>
+                  {/* Plan Details */}
+                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Plan:
+                    </span>
+                    <span className="text-sm font-medium">
+                      {subscription.plan_name || "No active plan"}
+                    </span>
+                  </div>
+
+                  {/* Expiry Date */}
+                  {subscription.subscription_end_date && (
+                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Expires:
+                      </span>
+                      <span className="text-sm font-medium">
+                        {formatDate(subscription.subscription_end_date)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Days Remaining */}
+                  {subscription.days_remaining !== null && (
+                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Days remaining:
+                      </span>
+                      <span
+                        className={`text-sm font-medium ${
+                          getDaysRemainingColor(subscription.days_remaining)
+                        }`}
+                      >
+                        {subscription.days_remaining} days
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Payment Status */}
+                  {subscription.payment_status && (
+                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Payment:
+                      </span>
+                      <Badge
+                        variant={subscription.payment_status === "completed"
+                          ? "default"
+                          : "secondary"}
+                        className={subscription.payment_status === "completed"
+                          ? "bg-green-500/10 text-green-600 border-green-500/30"
+                          : subscription.payment_status === "pending"
+                          ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/30"
+                          : "bg-dc-brand/10 text-dc-brand-dark border-dc-brand/30"}
+                      >
+                        {subscription.payment_status}
+                      </Badge>
+                    </div>
+                  )}
+                </>
+              )
+              : (
                 <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                   <span className="text-sm font-medium text-muted-foreground">
                     Plan:
                   </span>
-                  <span className="text-sm font-medium">
-                    {subscription.plan_name || "No active plan"}
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Unable to load subscription data
                   </span>
                 </div>
-
-                {/* Expiry Date */}
-                {subscription.subscription_end_date && (
-                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Expires:
-                    </span>
-                    <span className="text-sm font-medium">
-                      {formatDate(subscription.subscription_end_date)}
-                    </span>
-                  </div>
-                )}
-
-                {/* Days Remaining */}
-                {subscription.days_remaining !== null && (
-                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Days remaining:
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
-                        getDaysRemainingColor(subscription.days_remaining)
-                      }`}
-                    >
-                      {subscription.days_remaining} days
-                    </span>
-                  </div>
-                )}
-
-                {/* Payment Status */}
-                {subscription.payment_status && (
-                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Payment:
-                    </span>
-                    <Badge
-                      variant={subscription.payment_status === "completed"
-                        ? "default"
-                        : "secondary"}
-                      className={subscription.payment_status === "completed"
-                        ? "bg-green-500/10 text-green-600 border-green-500/30"
-                        : subscription.payment_status === "pending"
-                        ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/30"
-                        : "bg-dc-brand/10 text-dc-brand-dark border-dc-brand/30"}
-                    >
-                      {subscription.payment_status}
-                    </Badge>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Plan:
-                </span>
-                <span className="text-sm font-medium text-muted-foreground">
-                  Unable to load subscription data
-                </span>
-              </div>
-            )}
+              )}
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-2 pt-2">

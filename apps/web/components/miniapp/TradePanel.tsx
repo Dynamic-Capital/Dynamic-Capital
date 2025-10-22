@@ -92,7 +92,9 @@ export default function TradePanel() {
       <section className="miniapp-panel space-y-4 p-6">
         <header className="flex items-start justify-between gap-4">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-foreground">Trade Panel</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              Trade Panel
+            </h2>
             <p className="text-sm text-muted-foreground">
               Deploy house-tested playbooks with dynamic sizing.
             </p>
@@ -127,14 +129,20 @@ export default function TradePanel() {
                 >
                   <div className="flex justify-between items-start gap-4">
                     <div className="space-y-1">
-                      <div className="font-semibold text-sm">{template.title}</div>
+                      <div className="font-semibold text-sm">
+                        {template.title}
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         Size {template.size}
                       </div>
                     </div>
                     <div className="text-right text-xs space-y-1">
-                      <div className="text-muted-foreground">Stop {template.stop}</div>
-                      <div className="text-muted-foreground">Target {template.target}</div>
+                      <div className="text-muted-foreground">
+                        Stop {template.stop}
+                      </div>
+                      <div className="text-muted-foreground">
+                        Target {template.target}
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -147,7 +155,9 @@ export default function TradePanel() {
       <section className="miniapp-panel space-y-4 p-6">
         <header className="flex items-start justify-between gap-4">
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-foreground">Risk Controls</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              Risk Controls
+            </h3>
             <p className="text-sm text-muted-foreground">
               Configure stop discipline and trade routing.
             </p>
@@ -181,7 +191,11 @@ export default function TradePanel() {
                     {scenario.description}
                   </div>
                 </div>
-                <Radio className={`h-4 w-4 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                <Radio
+                  className={`h-4 w-4 ${
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  }`}
+                />
               </button>
             );
           })}
@@ -192,7 +206,9 @@ export default function TradePanel() {
         <section className="miniapp-panel space-y-4 p-6 border-primary/20 bg-primary/5">
           <header className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-foreground">Execution Summary</h3>
+              <h3 className="text-lg font-semibold text-foreground">
+                Execution Summary
+              </h3>
               <p className="text-sm text-muted-foreground">
                 Desk will confirm sizing before routing to exchange.
               </p>

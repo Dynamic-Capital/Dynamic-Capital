@@ -96,13 +96,15 @@ export function FAQSection() {
                   aria-expanded={expandedIndex === index}
                   aria-controls={`faq-answer-${index}`}
                 >
-                  <span id={`faq-question-${index}`} className="font-medium">{item.question}</span>
+                  <span id={`faq-question-${index}`} className="font-medium">
+                    {item.question}
+                  </span>
                   {expandedIndex === index
                     ? <ChevronUp className="h-4 w-4" />
                     : <ChevronDown className="h-4 w-4" />}
                 </Button>
                 {expandedIndex === index && (
-                  <div 
+                  <div
                     id={`faq-answer-${index}`}
                     className="px-4 pb-4 border-t bg-muted/20"
                     role="region"
