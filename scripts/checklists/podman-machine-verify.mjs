@@ -313,8 +313,10 @@ async function verifyConnection(connection) {
     const match = connections.find((item) => item?.Name === connection);
 
     if (!match) {
+      const windowsPipeUri = `npipe://\\\\.\\pipe\\${connection}`;
+      const posixPipeUri = `npipe://./pipe/${connection}`;
       error(
-        `Connection ${connection} not registered. Register it with \`podman system connection add --default ${connection} npipe://./pipe/${connection}\`.`,
+        `Connection ${connection} not registered. Register it with \`podman system connection add --default ${connection} "${windowsPipeUri}"\` (the POSIX-style path \`${posixPipeUri}\` also works).`,
       );
       return false;
     }

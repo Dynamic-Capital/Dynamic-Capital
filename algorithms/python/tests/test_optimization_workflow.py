@@ -14,6 +14,7 @@ if str(ROOT) not in sys.path:
 from algorithms.python.data_pipeline import InstrumentMeta, MarketDataIngestionJob, RawBar
 from algorithms.python.optimization_workflow import (
     OptimizationPlan,
+    _normalize_search_space,
     optimize_trading_stack,
 )
 from algorithms.python.realtime import InMemoryStateStore
@@ -184,4 +185,19 @@ def test_optimize_trading_stack_deduplicates_search_space_when_parallel():
     assert len(plan.history) == 2
     evaluated_neighbors = {config.neighbors for config, _ in plan.history}
     assert evaluated_neighbors == {1, 2}
+
+
+def test_normalize_search_space_preserves_order_and_uniqueness():
+    shared_a = {"window": 3, "weights": [0.1, 0.9]}
+    shared_b = {"window": 5, "weights": [0.2, 0.8]}
+
+    normalized = _normalize_search_space(
+        {
+            "neighbors": [1, 1, 2, 2],
+            "smoothers": [shared_a, {"window": 3, "weights": [0.1, 0.9]}, shared_b],
+        }
+    )
+
+    assert normalized["neighbors"] == (1, 2)
+    assert normalized["smoothers"] == (shared_a, shared_b)
 

@@ -2,7 +2,7 @@
 
 This checklist audits and operationalizes the workflow for connecting a cloned
 GitHub repository to a Podman machine running on Windows via the
-`podman-machine-default` named pipe (`npipe://./pipe/podman-machine-default`).
+`podman-machine-default` named pipe (`npipe://\\.\pipe\podman-machine-default`).
 Use it when onboarding a new project or hardening local development.
 
 ## Automation helper
@@ -31,10 +31,16 @@ Use it when onboarding a new project or hardening local development.
   - `podman machine list --format "{{.Name}}\t{{.Running}}\t{{.LastUp}}"`
   - `podman machine inspect podman-machine-default --format '{{.LastUp}}'`
 - [ ] Register the default connection if missing:
-  - `podman system connection add --default podman-machine-default npipe://./pipe/podman-machine-default`
+  - `podman system connection add --default podman-machine-default "npipe://\\.\pipe\podman-machine-default"`
+    - The CLI also accepts the POSIX-style URI
+      `npipe://./pipe/podman-machine-default` if you prefer forward slashes.
   - `podman system connection ls --format "{{.Name}}\t{{if .Default}}(default){{end}}"`
 - [ ] Verify the machine is reachable:
   - `podman info`
+- [ ] Configure local host aliases so containers can reach Windows services:
+  - `node scripts/podman/configure-local-host.mjs`
+  - `podman machine ssh podman-machine-default getent hosts host.docker.internal`
+  - `podman machine ssh podman-machine-default getent hosts gateway.docker.internal`
 
 ### Quick PowerShell verification script
 
