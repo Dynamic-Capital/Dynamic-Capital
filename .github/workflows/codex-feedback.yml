@@ -110,7 +110,7 @@ jobs:
             pr-summary.md
 
       - name: Post/Update PR comment
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ steps.context.outputs.pr-number }}
           body-file: pr-summary.md

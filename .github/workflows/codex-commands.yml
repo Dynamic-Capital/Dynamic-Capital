@@ -37,7 +37,7 @@ jobs:
             });
       - name: Respond - summary
         if: steps.parse.outputs.cmd == 'summary'
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
@@ -45,7 +45,7 @@ jobs:
             _Tip: add label **codex:verbose** for more detail, or **codex:quiet** to reduce noise._
       - name: Respond - logs
         if: steps.parse.outputs.cmd == 'logs'
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
