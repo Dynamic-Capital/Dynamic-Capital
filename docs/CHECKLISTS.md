@@ -86,7 +86,8 @@ key.
   testing, and build expectations. Includes optional automation for production
   builds and mini app packaging.
 - **[`Podman GitHub Integration Checklist`](./podman-github-integration-checklist.md)**
-  – audits Windows-based Podman machine connectivity and documents the
+  – audits Windows-based Podman machine connectivity via the
+  `npipe://\\.\pipe\podman-machine-default` endpoint and documents the
   repository workflow so local development stays aligned with container
   lifecycle tasks. Use the `podman-github` automation key to trigger the machine
   validation helper.
