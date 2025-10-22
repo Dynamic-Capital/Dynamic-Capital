@@ -88,10 +88,14 @@ def _prepare_pipeline(
     snapshots: Sequence[MarketSnapshot],
     *,
     state: Optional[Dict[str, object]] = None,
+    assume_state_frozen: bool = False,
 ) -> FeaturePipeline:
     pipeline = FeaturePipeline()
     if state is not None:
-        pipeline.load_state_dict(copy.deepcopy(state))
+        if assume_state_frozen:
+            pipeline.load_state_dict(state)
+        else:
+            pipeline.load_state_dict(copy.deepcopy(state))
         return pipeline
     feature_rows = (snapshot.feature_vector() for snapshot in snapshots)
     pipeline.fit(feature_rows)
@@ -302,11 +306,19 @@ def _normalize_search_space(search_space: Mapping[str, Iterable]) -> Dict[str, T
         if values is None:
             raise ValueError(f"search_space[{key!r}] cannot be None")
 
-        materialized = tuple(values)
-        if not materialized:
+        seen: set[object] = set()
+        unique_values: list[object] = []
+        for value in values:
+            frozen = HyperparameterSearch._freeze_value(value)
+            if frozen in seen:
+                continue
+            seen.add(frozen)
+            unique_values.append(value)
+
+        if not unique_values:
             raise ValueError(f"search_space[{key!r}] must provide at least one value")
 
-        normalized[key] = materialized
+        normalized[key] = tuple(unique_values)
 
     return normalized
 
@@ -339,8 +351,12 @@ def optimize_trading_stack(
     if reuse_pipeline:
         cached_state = previous_plan.pipeline_state
         if cached_state:
-            pipeline = _prepare_pipeline(snapshot_list, state=cached_state)
             pipeline_state = copy.deepcopy(cached_state)
+            pipeline = _prepare_pipeline(
+                snapshot_list,
+                state=pipeline_state,
+                assume_state_frozen=True,
+            )
         else:
             pipeline = _prepare_pipeline(snapshot_list)
             pipeline_state = pipeline.state_dict()
