@@ -1,4 +1,7 @@
-import { createSupabaseClient } from "../_shared/client.ts";
+import {
+  createSupabaseClient,
+  type SupabaseClient,
+} from "../_shared/client.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
@@ -15,7 +18,7 @@ interface TelegramBotSyncRequest {
     | "sync_subscription"
     | "get_user_status";
   telegram_user_id: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export const handler = registerHandler(async (req) => {
@@ -91,11 +94,13 @@ export const handler = registerHandler(async (req) => {
   }
 });
 
+type JsonLike = Record<string, unknown> | null | undefined;
+
 async function syncUser(
-  supabase: any,
+  supabase: SupabaseClient,
   telegram_user_id: string,
-  userData: any,
-) {
+  userData: Record<string, unknown> = {},
+): Promise<Response> {
   try {
     // Check if user exists
     const { data: existingUser, error: fetchError } = await supabase
@@ -113,9 +118,9 @@ async function syncUser(
       const { data, error } = await supabase
         .from("bot_users")
         .update({
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          username: userData.username,
+          first_name: String(userData.first_name ?? ""),
+          last_name: String(userData.last_name ?? ""),
+          username: String(userData.username ?? ""),
           updated_at: new Date().toISOString(),
         })
         .eq("telegram_id", telegram_user_id)
@@ -134,9 +139,9 @@ async function syncUser(
         .from("bot_users")
         .insert({
           telegram_id: telegram_user_id,
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          username: userData.username,
+          first_name: String(userData.first_name ?? ""),
+          last_name: String(userData.last_name ?? ""),
+          username: String(userData.username ?? ""),
         })
         .select()
         .single();
@@ -161,10 +166,10 @@ async function syncUser(
 }
 
 async function syncPayment(
-  supabase: any,
+  supabase: SupabaseClient,
   telegram_user_id: string,
-  paymentData: any,
-) {
+  paymentData: Record<string, unknown> = {},
+): Promise<Response> {
   try {
     // Get user ID
     const { data: user, error: userError } = await supabase
@@ -182,13 +187,13 @@ async function syncPayment(
       .from("payments")
       .upsert({
         user_id: user.id,
-        plan_id: paymentData.plan_id,
-        amount: paymentData.amount,
-        currency: paymentData.currency || "USD",
-        payment_method: paymentData.payment_method,
-        payment_provider_id: paymentData.payment_provider_id,
-        status: paymentData.status || "pending",
-        webhook_data: paymentData.webhook_data || {},
+        plan_id: paymentData.plan_id as string | number | null,
+        amount: Number(paymentData.amount ?? 0),
+        currency: String(paymentData.currency ?? "USD"),
+        payment_method: String(paymentData.payment_method ?? ""),
+        payment_provider_id: String(paymentData.payment_provider_id ?? ""),
+        status: String(paymentData.status ?? "pending"),
+        webhook_data: (paymentData.webhook_data as JsonLike) ?? {},
       })
       .select()
       .single();
@@ -221,24 +226,30 @@ async function syncPayment(
 }
 
 async function syncSubscription(
-  supabase: any,
+  supabase: SupabaseClient,
   telegram_user_id: string,
-  subscriptionData: any,
-) {
+  subscriptionData: Record<string, unknown> = {},
+): Promise<Response> {
   try {
     // Create or update subscription
     const { data, error } = await supabase
       .from("user_subscriptions")
       .upsert({
         telegram_user_id: telegram_user_id,
-        plan_id: subscriptionData.plan_id,
-        payment_status: subscriptionData.payment_status || "pending",
-        is_active: subscriptionData.is_active || false,
-        subscription_start_date: subscriptionData.subscription_start_date,
-        subscription_end_date: subscriptionData.subscription_end_date,
-        payment_method: subscriptionData.payment_method,
-        payment_instructions: subscriptionData.payment_instructions,
-        bank_details: subscriptionData.bank_details,
+        plan_id: subscriptionData.plan_id as string | number | null,
+        payment_status: String(subscriptionData.payment_status ?? "pending"),
+        is_active: Boolean(subscriptionData.is_active ?? false),
+        subscription_start_date: String(
+          subscriptionData.subscription_start_date ?? "",
+        ),
+        subscription_end_date: String(
+          subscriptionData.subscription_end_date ?? "",
+        ),
+        payment_method: String(subscriptionData.payment_method ?? ""),
+        payment_instructions: String(
+          subscriptionData.payment_instructions ?? "",
+        ),
+        bank_details: (subscriptionData.bank_details as JsonLike) ?? {},
       }, { onConflict: "telegram_user_id" })
       .select()
       .single();
@@ -246,13 +257,15 @@ async function syncSubscription(
     if (error) throw error;
 
     // Update bot_users table if subscription is active
-    if (subscriptionData.is_active) {
+    if (Boolean(subscriptionData.is_active)) {
       await supabase
         .from("bot_users")
         .update({
           is_vip: true,
-          current_plan_id: subscriptionData.plan_id,
-          subscription_expires_at: subscriptionData.subscription_end_date,
+          current_plan_id: subscriptionData.plan_id as string | number | null,
+          subscription_expires_at: String(
+            subscriptionData.subscription_end_date ?? "",
+          ),
         })
         .eq("telegram_id", telegram_user_id);
     }
@@ -282,7 +295,10 @@ async function syncSubscription(
   }
 }
 
-async function getUserStatus(supabase: any, telegram_user_id: string) {
+async function getUserStatus(
+  supabase: SupabaseClient,
+  telegram_user_id: string,
+): Promise<Response> {
   try {
     // Get comprehensive user status
     const { data: userData, error: userError } = await supabase

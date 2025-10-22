@@ -88,6 +88,25 @@ Write-Host "Connection default:`t$($connection.Default)"
       Desktop output.
 - [ ] Capture logs and follow-up items for cross-platform quirks.
 
+## Podman Desktop resources (optional)
+
+- [ ] Confirm Podman Desktop is connected to the same `podman-machine-default`
+      endpoint used in this checklist. Open **Settings → Podman Machine** and
+      verify the named pipe is `npipe://./pipe/podman-machine-default`. Re-link
+      the machine if the connection is missing.
+- [ ] Install the
+      [AI Lab extension](https://github.com/containers/podman-desktop-extension-ai-lab)
+      from the **Extensions** marketplace to rehearse containerized AI workloads
+      that resemble production jobs.
+  - Launch Podman Desktop, choose **Extensions → Marketplace**, search for "AI
+    Lab", and select **Install**.
+  - Open the extension after installation and run one of the sample notebooks to
+    confirm GPU and CPU profiles execute against your Podman machine.
+  - Export any generated Podman commands or Compose files from the extension and
+    store them with the checklist notes so they can be automated later.
+- [ ] Document the extension outcome (success, failures, follow-ups) in the
+      project wiki before closing the checklist.
+
 ## Documentation handoff
 
 - [ ] Record completion notes in the project wiki or onboarding doc.

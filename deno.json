@@ -63,7 +63,8 @@
     "edge:env:sync": "deno run -A scripts/generate-functions-env.ts",
     "edge:deploy:bot": "npx supabase functions deploy telegram-bot",
     "edge:deploy:mini": "npx supabase functions deploy miniapp",
-    "make:initdata": "deno run -A scripts/make-initdata.ts"
+    "make:initdata": "deno run -A scripts/make-initdata.ts",
+    "kb:extract": "deno run -A scripts/extract-kb.ts"
   },
   // Schedules:
   // Retention: daily at 03:10 (server time)
