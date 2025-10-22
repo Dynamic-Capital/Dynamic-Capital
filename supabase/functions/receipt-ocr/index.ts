@@ -1,18 +1,35 @@
 import { createClient } from "../_shared/client.ts";
+import { optionalEnv } from "../_shared/env.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 type Body = { payment_id: string };
 
-const need = (k: string) =>
-  Deno.env.get(k) || (() => {
-    throw new Error(`Missing env ${k}`);
-  })();
+const OPENAI_API_KEY = optionalEnv("OPENAI_API_KEY");
+const OPENAI_BASE_URL = optionalEnv("OPENAI_BASE_URL") ??
+  "https://api.openai.com/v1";
+
+const ensureTrailingSlash = (value: string) =>
+  value.endsWith("/") ? value : `${value}/`;
+
+const chatCompletionsUrl = new URL(
+  "chat/completions",
+  ensureTrailingSlash(OPENAI_BASE_URL),
+).toString();
+
+const buildOpenAIHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+  };
+  if (OPENAI_API_KEY) {
+    headers["authorization"] = `Bearer ${OPENAI_API_KEY}`;
+  }
+  return headers;
+};
 
 async function openAiExtract(
   imageUrl: string,
   hints: Record<string, string | number>,
 ) {
-  const api = need("OPENAI_API_KEY");
   // Ask for strict JSON back
   const sys =
     "You are an extraction engine. Return strict JSON with keys: amount (number), currency (string, ISO code), date (yyyy-mm-dd), reference (string|null), payer_name (string|null), bank_name (string|null), confidence (0..1). If uncertain, set fields null and lower confidence.";
@@ -26,12 +43,9 @@ async function openAiExtract(
     { type: "image_url", image_url: { url: imageUrl } },
   ];
 
-  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+  const r = await fetch(chatCompletionsUrl, {
     method: "POST",
-    headers: {
-      "authorization": `Bearer ${api}`,
-      "content-type": "application/json",
-    },
+    headers: buildOpenAIHeaders(),
     body: JSON.stringify({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },

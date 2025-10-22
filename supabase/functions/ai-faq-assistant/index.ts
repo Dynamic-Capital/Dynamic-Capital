@@ -1,9 +1,36 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { requireEnv } from "../_shared/env.ts";
+import { optionalEnv } from "../_shared/env.ts";
 import { createClient } from "../_shared/client.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
-const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
+const OPENAI_API_KEY = optionalEnv("OPENAI_API_KEY");
+const OPENAI_BASE_URL = optionalEnv("OPENAI_BASE_URL") ??
+  "https://api.openai.com/v1";
+const OPENAI_EMBEDDINGS_BASE_URL = optionalEnv("OPENAI_EMBEDDINGS_BASE_URL") ??
+  OPENAI_BASE_URL;
+
+const ensureTrailingSlash = (value: string) =>
+  value.endsWith("/") ? value : `${value}/`;
+
+const chatCompletionsUrl = new URL(
+  "chat/completions",
+  ensureTrailingSlash(OPENAI_BASE_URL),
+).toString();
+
+const embeddingsUrl = new URL(
+  "embeddings",
+  ensureTrailingSlash(OPENAI_EMBEDDINGS_BASE_URL),
+).toString();
+
+const buildOpenAIHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (OPENAI_API_KEY) {
+    headers["Authorization"] = `Bearer ${OPENAI_API_KEY}`;
+  }
+  return headers;
+};
 const supabase = createClient("service");
 
 async function fetchWithTimeout(
@@ -35,13 +62,10 @@ async function fetchWithTimeout(
 
 async function getEmbedding(text: string): Promise<number[]> {
   const res = await fetchWithTimeout(
-    "https://api.openai.com/v1/embeddings",
+    embeddingsUrl,
     {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: buildOpenAIHeaders(),
       body: JSON.stringify({
         model: "text-embedding-3-small",
         input: text,
@@ -149,13 +173,10 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
     messages.push({ role: "user", content: question });
 
     const response = await fetchWithTimeout(
-      "https://api.openai.com/v1/chat/completions",
+      chatCompletionsUrl,
       {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
+        headers: buildOpenAIHeaders(),
         body: JSON.stringify({
           model: "gpt-4o-mini",
           messages,

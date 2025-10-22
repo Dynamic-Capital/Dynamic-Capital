@@ -1,10 +1,30 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { requireEnv } from "../_shared/env.ts";
+import { optionalEnv } from "../_shared/env.ts";
 import { json, mna } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
-const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
+const OPENAI_API_KEY = optionalEnv("OPENAI_API_KEY");
+const OPENAI_BASE_URL = optionalEnv("OPENAI_BASE_URL") ??
+  "https://api.openai.com/v1";
+
+const ensureTrailingSlash = (value: string) =>
+  value.endsWith("/") ? value : `${value}/`;
+
+const chatCompletionsUrl = new URL(
+  "chat/completions",
+  ensureTrailingSlash(OPENAI_BASE_URL),
+).toString();
+
+const buildOpenAIHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (OPENAI_API_KEY) {
+    headers["Authorization"] = `Bearer ${OPENAI_API_KEY}`;
+  }
+  return headers;
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,12 +104,9 @@ Please analyze:
 
 Remember to keep this educational and include proper risk disclaimers.`;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(chatCompletionsUrl, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: buildOpenAIHeaders(),
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
