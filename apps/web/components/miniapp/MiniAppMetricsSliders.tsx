@@ -3,7 +3,7 @@
 import { memo, useMemo } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import {
   Area,
   AreaChart,
