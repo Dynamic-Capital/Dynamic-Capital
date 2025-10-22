@@ -90,6 +90,9 @@ key.
   repository workflow so local development stays aligned with container
   lifecycle tasks. Use the `podman-github` automation key to trigger the machine
   validation helper.
+- **[`Podman Local Host Configuration`](./podman-local-host-setup.md)** – shows
+  how to mirror `host.containers.internal` to Docker-compatible hostnames so
+  local Windows services are reachable from Podman containers.
 
 ## Launch & production hardening (priorities 5–8)
 

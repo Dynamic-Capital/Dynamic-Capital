@@ -35,6 +35,10 @@ Use it when onboarding a new project or hardening local development.
   - `podman system connection ls --format "{{.Name}}\t{{if .Default}}(default){{end}}"`
 - [ ] Verify the machine is reachable:
   - `podman info`
+- [ ] Configure local host aliases so containers can reach Windows services:
+  - `node scripts/podman/configure-local-host.mjs`
+  - `podman machine ssh podman-machine-default getent hosts host.docker.internal`
+  - `podman machine ssh podman-machine-default getent hosts gateway.docker.internal`
 
 ### Quick PowerShell verification script
 

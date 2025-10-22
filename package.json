@@ -83,6 +83,7 @@
     "doctl:install": "node scripts/doctl/install-doctl.mjs",
     "doctl:sync-site": "node scripts/doctl/sync-site-config.mjs",
     "checklists": "node scripts/run-checklists.js",
+    "podman:configure-host": "node scripts/podman/configure-local-host.mjs",
     "sync:onedrive": "tsx scripts/onedrive/sync.ts",
     "generate:route": "tsx scripts/project/generate-route.ts",
     "go-live": "node scripts/run-checklists.js --checklist go-live",
