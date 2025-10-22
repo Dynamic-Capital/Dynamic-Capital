@@ -31,6 +31,7 @@
     "codex:build": "node scripts/codex-workflow.js build",
     "codex:verify": "node scripts/codex-workflow.js verify",
     "lint": "node scripts/npm-safe.mjs -w apps/web run lint",
+    "lint:paths": "node scripts/ci/check-windows-filenames.mjs",
     "format": "deno fmt apps supabase scripts db docs",
     "typecheck": "node scripts/npm-safe.mjs -w apps/web run typecheck",
     "review": "python -m pytest algorithms/python/tests/test_review_and_optimize.py",

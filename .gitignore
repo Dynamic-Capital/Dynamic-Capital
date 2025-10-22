@@ -91,6 +91,22 @@ miniapp/
 bun.lockb
 .codex-workflow-state.json
 .project-cache/
+# Editor/IDE artifacts
+.cursor/
+Dynamic-Capital.code-workspace
+
+# Local data and blobs
+blobs/
+data/*.jsonl
+dynamic-cluster-control-plane.tar
+manifests/
+
+# Local helper scripts/artifacts
+_ON
+scripts/extract-kb.ps1
+scripts/extract-kb.ts
+scripts/merge-kb.ps1
+scripts/fixtures/telegram-webhook-info.json
 # Python bytecode cache directories
 __pycache__/
 dynamic-capital-ton/build/
