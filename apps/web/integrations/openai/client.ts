@@ -43,26 +43,27 @@ export interface ChatCompletionResponse {
 }
 
 export class OpenAIClient {
-  readonly apiKey: string;
+  readonly apiKey?: string;
   readonly baseUrl: string;
 
   constructor(options: OpenAIClientOptions = {}) {
-    const apiKey = options.apiKey ?? getEnvVar("OPENAI_API_KEY");
-    if (!apiKey) {
-      throw new Error("Missing OPENAI_API_KEY");
-    }
-    this.apiKey = apiKey;
-    const base = options.apiBaseUrl ?? OPENAI_API_URL;
+    this.apiKey = options.apiKey ?? getEnvVar("OPENAI_API_KEY");
+    const base = options.apiBaseUrl ?? getEnvVar("OPENAI_BASE_URL") ??
+      OPENAI_API_URL;
     this.baseUrl = base.replace(/\/$/, "");
   }
 
   private async request<T>(path: string, payload: unknown): Promise<T> {
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+    };
+    if (this.apiKey) {
+      headers.authorization = `Bearer ${this.apiKey}`;
+    }
+
     const res = await fetch(`${this.baseUrl}${path}`, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${this.apiKey}`,
-      },
+      headers,
       body: JSON.stringify(payload ?? {}),
     });
     if (!res.ok) {

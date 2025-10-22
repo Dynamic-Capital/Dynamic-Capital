@@ -82,3 +82,18 @@ gear menu to pin frequently used actions (e.g., _Explain diff_, _Generate
 tests_) and keep the optimized workflow close at hand.
 
 For the exhaustive key list, review the Codex configuration reference on GitHub.
+
+## Dynamic Capital web UI OpenAI overrides
+
+To target a self-hosted or proxy-compatible OpenAI endpoint from the Dynamic
+Capital web UI, add the following environment variables to your `.env.local`:
+
+| Variable          | Purpose                                                     |
+| ----------------- | ----------------------------------------------------------- |
+| `OPENAI_BASE_URL` | Optional. Override the default `https://api.openai.com/v1`. |
+| `OPENAI_API_KEY`  | Optional. API key to send as a Bearer token when required.  |
+
+When `OPENAI_BASE_URL` is defined, requests are routed to that base URL while
+preserving the standard `/chat/completions` path. If `OPENAI_API_KEY` is not
+set, the Authorization header is omitted—useful for local gateways that trust
+network boundaries instead of bearer tokens.
