@@ -16,7 +16,15 @@ import {
 } from "@/components/ui/interactive-cards";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Check, CreditCard, RefreshCw, Sparkles, Star, TrendingUp } from "lucide-react";
+import {
+  AlertCircle,
+  Check,
+  CreditCard,
+  RefreshCw,
+  Sparkles,
+  Star,
+  TrendingUp,
+} from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { CurrencySelector } from "./CurrencySelector";
 import { useCurrency } from "@/hooks/useCurrency";
@@ -263,7 +271,9 @@ export default function PlanSection() {
           <div className="text-center space-y-3">
             <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
             <div>
-              <h3 className="font-semibold text-destructive">Failed to load plans</h3>
+              <h3 className="font-semibold text-destructive">
+                Failed to load plans
+              </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 {plansError}
               </p>

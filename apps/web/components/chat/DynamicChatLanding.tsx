@@ -106,11 +106,11 @@ type SupportLink = {
 };
 
 const PANEL_BASE_CLASS =
-  "relative overflow-hidden rounded-[30px] border border-border/40 bg-white/70 p-6 shadow-[0_30px_60px_-40px_rgba(15,23,42,0.65)] backdrop-blur-xl transition-transform duration-300 dark:bg-slate-950/70";
+  "group relative overflow-hidden rounded-[30px] border border-border/40 bg-gradient-to-br from-white/80 via-white/70 to-white/60 p-6 shadow-[0_30px_60px_-40px_rgba(15,23,42,0.65)] backdrop-blur-xl transition-transform duration-300 dark:from-slate-950/80 dark:via-slate-950/75 dark:to-slate-950/70";
 const PANEL_ACCENT_LAYER =
-  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),transparent_70%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),transparent_75%)]";
+  "pointer-events-none absolute inset-0 scale-[1.01] bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.22),transparent_70%)] opacity-60 transition duration-500 group-hover:scale-105 group-hover:opacity-90 motion-reduce:transform-none motion-reduce:transition-none dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),transparent_75%)]";
 const CARD_CLASS =
-  "group relative overflow-hidden rounded-[22px] border border-border/40 bg-white/70 p-5 shadow-[0_24px_45px_-36px_rgba(15,23,42,0.45)] backdrop-blur-lg dark:bg-slate-950/70";
+  "group relative overflow-hidden rounded-[22px] border border-border/40 bg-gradient-to-br from-white/80 via-white/70 to-white/60 p-5 shadow-[0_24px_45px_-36px_rgba(15,23,42,0.45)] backdrop-blur-lg transition-transform duration-300 motion-reduce:transform-none motion-reduce:transition-none dark:from-slate-950/80 dark:via-slate-950/75 dark:to-slate-950/70";
 
 const HIGHLIGHTS: Highlight[] = [
   {
@@ -248,12 +248,14 @@ function ShortcutCard({
   const descriptionId = createAccessibleId("shortcut", shortcut.label);
   const content = (
     <div
-      className={`${CARD_CLASS} h-full transition-transform duration-300 hover:-translate-y-1`}
+      className={`${CARD_CLASS} h-full hover:-translate-y-1`}
     >
       <div className="relative z-10 flex h-full flex-col gap-4">
         <div className="flex items-center gap-3 text-sm font-medium text-foreground">
-          <shortcut.icon className="h-5 w-5 text-primary" aria-hidden />
-          {shortcut.label}
+          <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-inner">
+            <shortcut.icon className="h-4 w-4" aria-hidden />
+          </span>
+          <span>{shortcut.label}</span>
         </div>
         <p id={descriptionId} className="text-sm text-muted-foreground">
           {shortcut.description}
@@ -273,7 +275,7 @@ function ShortcutCard({
         href={shortcut.href}
         aria-describedby={descriptionId}
         className={cn(
-          "group w-full shrink-0 text-left",
+          "group w-full shrink-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           WORKSPACE_MOBILE_CARD,
           className,
         )}
@@ -289,7 +291,7 @@ function ShortcutCard({
       prefetch={false}
       aria-describedby={descriptionId}
       className={cn(
-        "group block shrink-0",
+        "group block shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         WORKSPACE_MOBILE_CARD,
         className,
       )}
@@ -309,7 +311,7 @@ function SupportLinkCard({ link }: { link: SupportLink }) {
       prefetch={false}
       target={link.external ? "_blank" : undefined}
       rel={link.external ? "noreferrer noopener" : undefined}
-      className="group flex flex-col gap-2 rounded-[20px] border border-border/40 bg-white/70 p-4 text-left shadow-[0_18px_40px_-36px_rgba(15,23,42,0.45)] backdrop-blur-lg transition-transform duration-300 hover:-translate-y-1 dark:bg-slate-950/70"
+      className="group flex flex-col gap-2 rounded-[20px] border border-border/40 bg-gradient-to-br from-white/80 via-white/70 to-white/60 p-4 text-left shadow-[0_18px_40px_-36px_rgba(15,23,42,0.45)] backdrop-blur-lg transition-transform duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:from-slate-950/80 dark:via-slate-950/75 dark:to-slate-950/70"
     >
       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
         <span>{link.label}</span>
@@ -330,7 +332,7 @@ function HighlightCard({ highlight }: { highlight: Highlight }) {
     <li
       className={cn(
         WORKSPACE_MOBILE_CARD,
-        "flex flex-col gap-3 rounded-[22px] border border-border/40 bg-white/75 p-5 shadow-[0_24px_45px_-38px_rgba(15,23,42,0.55)] backdrop-blur-xl dark:bg-slate-950/70",
+        "relative flex flex-col gap-3 overflow-hidden rounded-[22px] border border-border/40 bg-gradient-to-br from-white/80 via-white/70 to-white/60 p-5 shadow-[0_24px_45px_-38px_rgba(15,23,42,0.55)] backdrop-blur-xl transition-transform duration-500 before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:scale-105 before:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.16),transparent_75%)] before:opacity-70 before:transition before:duration-500 before:content-[''] dark:from-slate-950/80 dark:via-slate-950/75 dark:to-slate-950/70 dark:before:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),transparent_80%)]",
       )}
       aria-labelledby={`${labelId} ${metricId}`}
       aria-describedby={descriptionId}
@@ -362,8 +364,10 @@ function FocusAreaCard({ focus }: { focus: FocusArea }) {
     >
       <div className="relative z-10 flex h-full flex-col gap-4">
         <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
-          <focus.icon className="h-5 w-5 text-primary" aria-hidden />
-          {focus.title}
+          <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-inner">
+            <focus.icon className="h-4 w-4" aria-hidden />
+          </span>
+          <span>{focus.title}</span>
         </div>
         <p className="text-sm text-muted-foreground">{focus.description}</p>
         <p className="text-sm text-muted-foreground/80">{focus.detail}</p>
@@ -382,9 +386,13 @@ function DynamicChatLanding() {
       <div className="flex flex-col gap-16">
         <section className={`${PANEL_BASE_CLASS} px-6 py-10 sm:px-10 sm:py-14`}>
           <div className={PANEL_ACCENT_LAYER} />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -top-24 right-10 hidden h-60 w-60 rounded-full bg-primary/20 opacity-70 blur-3xl transition-opacity duration-500 sm:block group-hover:opacity-90 dark:bg-cyan-500/20"
+          />
           <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-xl space-y-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-muted-foreground/70">
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-muted-foreground/70">
                 Dynamic chat control tower
               </p>
               <h1 className="text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
@@ -435,7 +443,7 @@ function DynamicChatLanding() {
           <div
             className={cn(
               WORKSPACE_MOBILE_RAIL_CONTAINER,
-              "px-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0 xl:grid-cols-4",
+              "px-1 sm:grid sm:auto-rows-fr sm:grid-cols-2 sm:gap-4 sm:px-0 xl:grid-cols-4",
             )}
             role="list"
           >
