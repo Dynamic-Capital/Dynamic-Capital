@@ -143,6 +143,7 @@
     "class-variance-authority": "^0.7.1",
     "compressorjs": "^1.2.1",
     "framer-motion": "^12.23.22",
+    "geist": "^1.5.1",
     "grammy": "^1.38.2",
     "inngest": "^3.40.3",
     "lovable-tagger": "^1.1.10",

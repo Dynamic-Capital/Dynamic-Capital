@@ -57,32 +57,16 @@ const display: DisplayConfig = {
 
 const protectedRoutes: ProtectedRoutesConfig = {};
 
-import { Geist } from "next/font/google";
-import { Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 
-const heading = Geist({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  display: "swap",
-});
+const heading = GeistSans;
 
-const body = Geist({
-  variable: "--font-body",
-  subsets: ["latin"],
-  display: "swap",
-});
+const body = GeistSans;
 
-const label = Geist({
-  variable: "--font-label",
-  subsets: ["latin"],
-  display: "swap",
-});
+const label = GeistSans;
 
-const code = Geist_Mono({
-  variable: "--font-code",
-  subsets: ["latin"],
-  display: "swap",
-});
+const code = GeistMono;
 
 const fonts: FontsConfig = {
   heading,

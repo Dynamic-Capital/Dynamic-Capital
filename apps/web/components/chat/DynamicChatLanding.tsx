@@ -3,14 +3,17 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
+  Activity,
   ArrowRight,
   Brain,
+  Cpu,
   Layers,
   MessageSquareText,
   Radar,
   ShieldCheck,
   Sparkles,
   Timer,
+  Wifi,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -105,10 +108,18 @@ type SupportLink = {
   external?: boolean;
 };
 
+type StatusIndicator = {
+  label: string;
+  status: string;
+  description: string;
+  icon: LucideIcon;
+  tone: "positive" | "info" | "neutral";
+};
+
 const PANEL_BASE_CLASS =
-  "relative overflow-hidden rounded-[30px] border border-border/40 bg-white/70 p-6 shadow-[0_30px_60px_-40px_rgba(15,23,42,0.65)] backdrop-blur-xl transition-transform duration-300 dark:bg-slate-950/70";
+  "relative overflow-hidden rounded-[30px] border border-border/40 bg-gradient-to-br from-white/90 via-white/70 to-white/40 p-6 shadow-[0_30px_60px_-40px_rgba(15,23,42,0.65)] transition-transform duration-300 supports-[backdrop-filter]:backdrop-blur-2xl dark:from-slate-950/85 dark:via-slate-950/70 dark:to-slate-950/50";
 const PANEL_ACCENT_LAYER =
-  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),transparent_70%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),transparent_75%)]";
+  "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),transparent_70%)] opacity-70 transition-opacity duration-500 dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),transparent_75%)]";
 const CARD_CLASS =
   "group relative overflow-hidden rounded-[22px] border border-border/40 bg-white/70 p-5 shadow-[0_24px_45px_-36px_rgba(15,23,42,0.45)] backdrop-blur-lg dark:bg-slate-950/70";
 
@@ -206,6 +217,62 @@ const SUPPORT_LINKS: SupportLink[] = [
     href: "/docs/workspaces/dynamic-chat",
   },
 ];
+
+const STATUS_INDICATORS: StatusIndicator[] = [
+  {
+    label: "Automation uptime",
+    status: "99.8%",
+    description:
+      "Trade, treasury, and compliance copilots remain orchestrated.",
+    icon: Activity,
+    tone: "positive",
+  },
+  {
+    label: "Desk connectivity",
+    status: "Live",
+    description: "Telegram concierge and market feeds are online.",
+    icon: Wifi,
+    tone: "info",
+  },
+  {
+    label: "Approval window",
+    status: "On schedule",
+    description: "Multisig signers available with push fallback routes.",
+    icon: ShieldCheck,
+    tone: "neutral",
+  },
+  {
+    label: "Sync cadence",
+    status: "45s cadence",
+    description:
+      "Macro notes and compliance snapshots refresh in the workspace.",
+    icon: Cpu,
+    tone: "info",
+  },
+];
+
+const STATUS_STYLES: Record<
+  StatusIndicator["tone"],
+  { icon: string; glow: string }
+> = {
+  positive: {
+    icon:
+      "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300",
+    glow:
+      "bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.25),transparent_70%)]",
+  },
+  info: {
+    icon: "bg-sky-500/10 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300",
+    glow:
+      "bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.2),transparent_75%)]",
+  },
+  neutral: {
+    icon:
+      "bg-slate-500/10 text-slate-600 dark:bg-slate-400/10 dark:text-slate-200",
+    glow:
+      "bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.18),transparent_75%)]",
+  },
+};
 
 function createAccessibleId(prefix: string, label: string) {
   return `${prefix}-${label}`
@@ -372,6 +439,48 @@ function FocusAreaCard({ focus }: { focus: FocusArea }) {
   );
 }
 
+function StatusIndicatorPill({ indicator }: { indicator: StatusIndicator }) {
+  const styles = STATUS_STYLES[indicator.tone];
+
+  return (
+    <div
+      className={cn(
+        "group relative overflow-hidden rounded-[24px] border border-border/50 bg-white/80 p-4 transition-transform duration-300 supports-[backdrop-filter]:backdrop-blur-xl hover:-translate-y-[2px] dark:bg-slate-950/70",
+      )}
+      role="presentation"
+    >
+      <div className="relative z-10 flex items-start gap-3">
+        <span
+          className={cn(
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl",
+            styles.icon,
+          )}
+        >
+          <indicator.icon className="h-5 w-5" aria-hidden />
+        </span>
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/70">
+            {indicator.label}
+          </p>
+          <p className="text-sm font-semibold text-foreground sm:text-base">
+            {indicator.status}
+          </p>
+          <p className="text-xs text-muted-foreground/90 sm:text-sm">
+            {indicator.description}
+          </p>
+        </div>
+      </div>
+      <span
+        className={cn(
+          "pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100",
+          styles.glow,
+        )}
+        aria-hidden
+      />
+    </div>
+  );
+}
+
 function DynamicChatLanding() {
   return (
     <ToolWorkspaceLayout
@@ -382,30 +491,33 @@ function DynamicChatLanding() {
       <div className="flex flex-col gap-16">
         <section className={`${PANEL_BASE_CLASS} px-6 py-10 sm:px-10 sm:py-14`}>
           <div className={PANEL_ACCENT_LAYER} />
-          <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-xl space-y-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-muted-foreground/70">
-                Dynamic chat control tower
-              </p>
-              <h1 className="text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
-                Minimal glass workspace for decisive operators
-              </h1>
-              <p className="text-sm text-muted-foreground sm:text-base">
-                Coordinate copilots, approvals, and market telemetry in a
-                refined, iOS-inspired layout that keeps focus on the actions
-                that matter.
-              </p>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative z-10 flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-xl space-y-7">
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.32em] text-muted-foreground/80">
+                  Dynamic chat control tower
+                </p>
+                <h1 className="text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
+                  Minimal glass workspace for decisive operators
+                </h1>
+                <p className="text-sm text-muted-foreground sm:text-base">
+                  Coordinate copilots, approvals, and market telemetry in a
+                  refined, iOS-inspired layout that keeps focus on the actions
+                  that matter.
+                </p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                 <DynamicButton
                   size="m"
                   variant="primary"
                   href="/tools/dynamic-chat"
+                  className="justify-center"
                 >
                   Launch workspace
                 </DynamicButton>
                 <Link
                   href="#live-workspace"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border/60 px-4 py-2 text-sm font-semibold text-primary transition-colors duration-300 hover:border-primary/60"
                 >
                   Preview live session
                   <ArrowRight className="h-4 w-4" aria-hidden />
@@ -413,6 +525,14 @@ function DynamicChatLanding() {
                     Jump to the live workspace section
                   </VisuallyHidden>
                 </Link>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {STATUS_INDICATORS.map((indicator) => (
+                  <StatusIndicatorPill
+                    key={indicator.label}
+                    indicator={indicator}
+                  />
+                ))}
               </div>
             </div>
             <div className={cn("lg:max-w-sm", WORKSPACE_MOBILE_RAIL_PADDING)}>

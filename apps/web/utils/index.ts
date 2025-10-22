@@ -1,8 +1,33 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+const loggedTwMergeFailures = new Set<string>();
+
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  const classes = clsx(inputs);
+
+  try {
+    return twMerge(classes);
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      const message = error instanceof Error
+        ? error.message
+        : "Unknown Tailwind merge error";
+      const signature = `${message}::${classes}`;
+
+      if (!loggedTwMergeFailures.has(signature)) {
+        loggedTwMergeFailures.add(signature);
+        console.warn(
+          `[cn] Falling back to clsx due to tailwind-merge error: ${message}`,
+          {
+            classes,
+          },
+        );
+      }
+    }
+
+    return classes;
+  }
 }
 
 export { formatPrice } from "./format-price.ts";
