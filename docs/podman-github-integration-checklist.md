@@ -96,12 +96,12 @@ Write-Host "Connection default:`t$($connection.Default)"
       the machine if the connection is missing.
 - [ ] Install the
       [AI Lab extension](https://github.com/containers/podman-desktop-extension-ai-lab)
-      from the **Extensions** marketplace to rehearse containerized AI workloads
-      that resemble production jobs.
-  - Launch Podman Desktop, choose **Extensions → Marketplace**, search for "AI
-    Lab", and select **Install**.
-  - Open the extension after installation and run one of the sample notebooks to
-    confirm GPU and CPU profiles execute against your Podman machine.
+      from the **Extensions** marketplace to rehearse containerized AI
+      workloads that resemble production jobs.
+  - Launch Podman Desktop, choose **Extensions → Marketplace**, search for
+    "AI Lab", and select **Install**.
+  - Open the extension after installation and run one of the sample notebooks
+    to confirm GPU and CPU profiles execute against your Podman machine.
   - Export any generated Podman commands or Compose files from the extension and
     store them with the checklist notes so they can be automated later.
 - [ ] Document the extension outcome (success, failures, follow-ups) in the
