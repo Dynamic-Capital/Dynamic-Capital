@@ -1,0 +1,41 @@
+# Cursor Rules for Dynamic Capital
+
+## Repository Overview
+- Monorepo managed with **npm workspaces** targeting Node.js 20 (see `package.json`).
+- Primary web surfaces live in `apps/web` (Next.js) and `apps/landing`; scripts and tooling reside under `scripts`, `tools`, `supabase`, and `db`.
+- A large collection of domain-specific modules exist under `dynamic_*` directories. Prefer discovering and reusing existing helpers before creating new ones.
+
+## Environment & Setup
+- Install dependencies with `npm install` (npm@11.x is pinned via `package.json`).
+- Enable Deno (used for formatting, docs, and some scripts). Ensure `deno` is available when running tooling commands.
+- Python utilities live under `automation/`, `algorithms/`, and `tests_python/`; create virtual environments when interacting with them.
+
+## Development Workflow
+1. Format: `npm run format` (runs `deno fmt` on key directories).
+2. Lint: `npm run lint`.
+3. Type-check: `npm run typecheck`.
+4. Execute targeted tests relevant to the area touched (e.g., `npm run test`, or Python `pytest` under `tests_python/`).
+5. For web changes, use `npm run dev` (Next.js) or `npm run start:web` for production verification.
+
+## Coding Conventions
+- Use **TypeScript/TSX** for new code and maintain ESM syntax (`import/export`).
+- React components should be function components; include the `"use client";` directive when using hooks or browser APIs.
+- Keep Tailwind class names ordered semantically (layout → spacing → typography → visual) and split long class lists over multiple lines for clarity.
+- Avoid introducing `any`; define explicit interfaces/types. Use `@ts-ignore` only with short justifications.
+- Scripts in `scripts/`, `tools/`, `supabase/`, and `db/` must be idempotent and handle filesystem/network errors gracefully.
+
+## Documentation Practices
+- Use meaningful headings (`##`, `###`) and prefer lists for procedures.
+- Wrap code samples in fenced blocks with the appropriate language tag for syntax highlighting.
+
+## Pull Request Expectations
+- Keep commits focused and reference the commands run.
+- Include summaries and testing notes aligning with repository contributing guidelines.
+- Do not commit secrets; leverage `.env.example` patterns when configuration is required.
+
+## Additional Tips for Cursor
+- When exploring unfamiliar domains (e.g., `dynamic_*` modules), run `rg` to locate prior art instead of `ls -R` or `grep -R`.
+- Respect any nested `AGENTS.md` files; their instructions override repo-wide guidance for files within their scope.
+- Prefer absolute import aliases (e.g., `@/components/...`) within the web apps instead of deep relative paths.
+- Large automation scripts may depend on external CLIs (Supabase, ngrok, Playwright). Review scripts for prerequisites before running them.
+- For TON tooling inside `dynamic-capital-ton`, rely on the provided `npm run ton:*` scripts rather than invoking binaries directly.
