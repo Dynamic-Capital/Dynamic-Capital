@@ -201,12 +201,16 @@ class DynamicBranchPlanner:
                 ahead_commits = minimum_ahead
             else:
                 metadata = dict(status.metadata)
-                metadata.setdefault("auto_mode", "full_auto")
+                metadata["auto_mode"] = "full_auto"
                 resolved_last_commit = status.last_commit_at
-                ahead_commits = status.ahead if status.ahead > 0 else minimum_ahead
+                ahead_commits = max(status.ahead, minimum_ahead)
                 existing_note = status.notes.strip()
                 if existing_note and automation_note:
-                    resolved_note = f"{existing_note} {automation_note}" if automation_note not in existing_note else existing_note
+                    resolved_note = (
+                        existing_note
+                        if automation_note in existing_note
+                        else f"{existing_note} {automation_note}"
+                    )
                 else:
                     resolved_note = existing_note or automation_note
 

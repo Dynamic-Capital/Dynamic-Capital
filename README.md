@@ -198,6 +198,15 @@ system and automation layer.
 Operational telemetry feeds Dynamic Codex with prompt, test, and deployment
 history to recommend optimal workflows and remediation steps.
 
+### Windows Shell Setup
+
+- Default terminal: VS Code is configured to prefer `PowerShell 7 (pwsh)` on Windows. If not installed, add it with: `winget install --id Microsoft.Powershell --source winget`.
+- Enable script execution: run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, then restart your terminal.
+- Unblock downloaded scripts when needed: `Unblock-File .\\scripts\\*.ps1`.
+- Bash-based npm scripts: some `package.json` tasks use `bash`. Run them from Git Bash/WSL or adapt to PowerShell equivalents (e.g., `verify`, `build:miniapp`, `ton:build-verifier`).
+
+Quick bootstrap: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/windows/bootstrap-powershell.ps1`
+
 ### Dynamic Theme System
 
 A theming layer ensures brand consistency between Mini App, marketing site, and

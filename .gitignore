@@ -121,3 +121,4 @@ apps/web/public/fallback-*.js
 
 # Generated issuer statement exports
 exports/*.pdf
+.vercel
