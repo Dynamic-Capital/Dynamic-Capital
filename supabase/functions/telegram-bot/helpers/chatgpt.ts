@@ -10,6 +10,7 @@ function getSupabaseAdmin() {
 }
 
 const FUNCTION_TIMEOUT_MS = 12_000;
+const OLLAMA_TIMEOUT_MS = 12_000;
 
 interface AskResponse {
   answer?: string | null;
@@ -109,6 +110,46 @@ export async function askChatGPT(prompt: string): Promise<string | null> {
     return await invokeChatGptProxy(question);
   } catch (error) {
     console.error("[askChatGPT] chatgpt-proxy error", error);
-    return null;
+  }
+
+  // Optional local/self-hosted fallback via Ollama HTTP API
+  try {
+    const enabled = (Deno.env.get("OLLAMA_ENABLED") ?? "false").toLowerCase();
+    if (enabled === "true" || enabled === "1" || enabled === "yes") {
+      return await invokeOllama(question);
+    }
+  } catch (error) {
+    console.error("[askChatGPT] ollama fallback error", error);
+  }
+  return null;
+}
+
+async function invokeOllama(question: string): Promise<string | null> {
+  const host = Deno.env.get("OLLAMA_HOST") ?? "http://127.0.0.1:11434";
+  const model = Deno.env.get("OLLAMA_MODEL_AI") ?? "deepseek-r1-codex:8b";
+  const url = `${host.replace(/\/$/, "")}/api/generate`;
+  const startedAt = performance.now();
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), OLLAMA_TIMEOUT_MS);
+  try {
+    const resp = await fetch(url, {
+      method: "POST",
+      signal: controller.signal,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ model, prompt: question, stream: false, options: { temperature: 0.2 } }),
+    });
+    if (!resp.ok) {
+      console.error("[askChatGPT] ollama HTTP", resp.status);
+      return null;
+    }
+    const data = await resp.json();
+    const answer = sanitizeAnswer(data?.response ?? null);
+    if (answer) {
+      const duration = Math.round(performance.now() - startedAt);
+      console.info(`[askChatGPT] ollama(${model}) answered in ${duration}ms`);
+    }
+    return answer ?? null;
+  } finally {
+    clearTimeout(id);
   }
 }

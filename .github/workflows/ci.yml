@@ -56,6 +56,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --prefer-offline
 
+      - name: Windows filename check
+        run: |
+          set -euo pipefail
+          npm run lint:paths 2>&1 | tee lint-paths.log
+
       - name: Build
         if: steps.script-flags.outputs.build == 'true'
         run: |
@@ -90,6 +95,7 @@ jobs:
             build.log
             typecheck.log
             lint.log
+            lint-paths.log
             test.log
 
   python-tests:

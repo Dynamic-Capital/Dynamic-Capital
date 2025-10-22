@@ -1,11 +1,5 @@
 import { spawnSync } from "node:child_process";
-import {
-  type CommitPayload,
-  type CommitRecord,
-  loadCommitPayload,
-  loadReleaseMeta,
-  type ReleaseMeta,
-} from "./shared.ts";
+import { loadCommitPayload, loadReleaseMeta } from "./shared.ts";
 
 interface ProjectFieldOption {
   id: string;

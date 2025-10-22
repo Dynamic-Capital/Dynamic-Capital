@@ -31,6 +31,8 @@
     "codex:build": "node scripts/codex-workflow.js build",
     "codex:verify": "node scripts/codex-workflow.js verify",
     "lint": "node scripts/npm-safe.mjs -w apps/web run lint",
+    "lint:paths": "node scripts/ci/check-windows-filenames.mjs",
+    "fix:windows-filenames": "node scripts/maintenance/auto-rename-windows-invalid.mjs",
     "format": "deno fmt apps supabase scripts db docs",
     "typecheck": "node scripts/npm-safe.mjs -w apps/web run typecheck",
     "review": "python -m pytest algorithms/python/tests/test_review_and_optimize.py",
@@ -77,6 +79,9 @@
     "scan:build-modules": "tsx scripts/python/scan-missing-build-modules.ts",
     "create:build-modules": "tsx scripts/python/create-missing-build-modules.ts",
     "scan:checklists": "tsx scripts/scan-checklists.ts",
+    "openwebui:up": "docker compose -f tools/openwebui/docker-compose.yml up -d",
+    "openwebui:down": "docker compose -f tools/openwebui/docker-compose.yml down",
+    "openwebui:logs": "docker compose -f tools/openwebui/docker-compose.yml logs -f",
     "crawlers:install": "node scripts/install-crawlers.mjs",
     "do:sync-site": "node scripts/digitalocean/sync-site-config.mjs",
     "do:sync-cdn": "node scripts/digitalocean/sync-cdn-config.mjs",
@@ -109,6 +114,8 @@
     "ton:build-site-predeploy": "tsx tools/ton/build-site-predeploy.ts",
     "ton:build-contracts": "tsx tools/ton/build-contract-suite.ts",
     "ton:build-verifier": "$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/build-ton-verifier.ts"
+    ,
+    "windows:sanitize": "node scripts/windows/sparse-checkout-sanitize.mjs"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.10.0",

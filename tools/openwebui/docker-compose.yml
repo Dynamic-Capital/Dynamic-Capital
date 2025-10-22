@@ -1,0 +1,30 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama:/root/.ollama
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    environment:
+      # Point Open WebUI at the Ollama service on the same Docker network
+      - OLLAMA_BASE_URL=http://ollama:11434
+      # Uncomment to disable builtin auth for local dev
+      # - WEBUI_AUTH=false
+    ports:
+      - "${OPEN_WEBUI_PORT:-8090}:8080"
+    volumes:
+      - open-webui:/app/backend/data
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+volumes:
+  open-webui:
+  ollama:
+

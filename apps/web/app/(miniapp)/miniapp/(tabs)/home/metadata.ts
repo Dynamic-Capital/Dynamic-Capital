@@ -1,9 +1,9 @@
 import { createMiniAppMetadata } from "../metadata-utils";
 import { MINIAPP_MARKS } from "../marks";
 
-const TITLE = "Home – Dynamic Capital Mini App";
+const TITLE = "Home — Dynamic Capital Mini App";
 const DESCRIPTION =
-  "Welcome members to real-time trading insights, VIP offers, and concierge updates curated for Telegram.";
+  "Welcome to real-time trading insights, VIP offers, and concierge updates curated for Telegram.";
 
 export const metadata = createMiniAppMetadata({
   title: TITLE,

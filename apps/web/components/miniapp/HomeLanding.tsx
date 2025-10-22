@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { ArrowRight, Clock, Gift, Megaphone, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -260,10 +261,15 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     }
   }, [activePromo?.code]);
 
-  const serviceHighlights = useMemo(
-    () => parseServiceHighlights(services),
-    [services],
-  );
+  const serviceHighlights = useMemo(() => {
+    const list = parseServiceHighlights(services).map(sanitizeServiceLine);
+    return list.length > 0 ? list : [
+      "Real-time Trading Signals",
+      "Daily Market Analysis",
+      "Risk Management Guidance",
+      "Personal Trading Mentor",
+    ];
+  }, [services]);
 
   const lastSyncedLabel = useMemo(() => {
     if (!lastSyncedAt) {
@@ -340,9 +346,19 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                 {announcement}
               </p>
-              <span className="inline-flex items-center gap-2 text-xs font-semibold text-primary/90">
+              <Link
+                href="/miniapp/dynamic-signals"
+                className="inline-flex items-center gap-2 text-xs font-semibold text-primary/90 hover:text-primary"
+                onClick={() => {
+                  // Light haptic feedback, if available
+                  try {
+                    (window as any)?.Telegram?.WebApp?.HapticFeedback
+                      ?.impactOccurred?.("light");
+                  } catch {}
+                }}
+              >
                 View updates <ArrowRight className="h-3 w-3" aria-hidden />
-              </span>
+              </Link>
             </div>
 
             <div className="miniapp-panel space-y-4 p-6">
@@ -459,4 +475,11 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       </MiniAppGrid>
     </div>
   );
+}
+function sanitizeServiceLine(line: string): string {
+  return line
+    .replace(/\uFFFD/g, "")
+    .replace(/^[^A-Za-z0-9•\-]+/, "")
+    .replace(/^[•\-\u2013\u2014]\s*/, "")
+    .trim();
 }

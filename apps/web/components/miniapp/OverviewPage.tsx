@@ -388,6 +388,10 @@ export default function OverviewPage() {
     void track("miniapp_ecosystem_prop_stats");
   }, []);
 
+  const deskVelocityValue = data?.hero
+    ? `${data.hero.deskVelocity} trades`
+    : "—";
+
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 p-6">
       <header className="flex flex-col gap-3 text-center sm:text-left">

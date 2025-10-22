@@ -1,0 +1,50 @@
+name: Windows-invalid filenames
+description: Report and track files that are invalid on Windows (e.g., contain ':' or other prohibited characters)
+title: "fix(windows): sanitize invalid filenames"
+labels: ["area:ci", "area:windows", "type:cleanup"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Windows cannot handle certain characters in file and directory names (e.g. `< > : " / \ | ? *`) and trailing spaces or dots. Use this issue to track renames and avoid breaking clones on Windows.
+
+  - type: textarea
+    id: offending
+    attributes:
+      label: Offending paths
+      description: List the full paths that fail on Windows (one per line).
+      placeholder: |
+        public/liquidity/swapcoffee/0:03E561AE....json
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed sanitized names
+      description: Provide suggested replacements (e.g., replace ':' with '-'). Keep extensions the same.
+      placeholder: |
+        public/liquidity/swapcoffee/0-03E561AE....json
+
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Sanitization rules to apply
+      options:
+        - label: Replace invalid characters `< > : " / \ | ? *` with '-'
+          required: false
+        - label: Trim trailing spaces and dots from file and folder names
+          required: false
+        - label: Avoid reserved names (CON, PRN, AUX, NUL, COM1..9, LPT1..9)
+          required: false
+
+  - type: input
+    id: branch
+    attributes:
+      label: Target base branch
+      description: Branch to open the pull request against.
+      placeholder: main
+    validations:
+      required: false
+
