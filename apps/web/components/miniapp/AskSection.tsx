@@ -68,7 +68,9 @@ export function AskSection() {
       console.error("Failed to get AI answer:", error);
       toast({
         title: "Unable to get answer",
-        description: error instanceof Error ? error.message : "Please try again or contact support",
+        description: error instanceof Error
+          ? error.message
+          : "Please try again or contact support",
         variant: "destructive",
       });
     } finally {

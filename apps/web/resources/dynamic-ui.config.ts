@@ -57,8 +57,7 @@ const display: DisplayConfig = {
 
 const protectedRoutes: ProtectedRoutesConfig = {};
 
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+import { GeistMono, GeistSans } from "geist/font";
 
 const heading = GeistSans;
 
