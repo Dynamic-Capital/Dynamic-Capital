@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import type { LiveIntelSnapshot } from "@/data/live-intel";
+
 import type {
   Plan,
   TonProofChallenge,
@@ -35,6 +37,10 @@ export type OpenWebUIHandshake = {
   config: {
     publicUrl: string | null;
     internalUrl: string | null;
+  };
+  intel: {
+    nextUpdateInSeconds: number | null;
+    error: string | null;
   };
 };
 
@@ -70,6 +76,10 @@ type Props = {
   walletVerified: boolean;
   isLinking: boolean;
   isProcessing: boolean;
+  intelSnapshot: LiveIntelSnapshot;
+  intelNextUpdateInSeconds: number | null;
+  intelError: string | null;
+  onRequestIntelRefresh: () => Promise<{ ok: boolean; error?: string }>;
 };
 
 type OpenWebUIMessage =
@@ -78,7 +88,9 @@ type OpenWebUIMessage =
   | { type: "openwebui:request-link-wallet" }
   | { type: "openwebui:request-proof-refresh" }
   | { type: "openwebui:request-subscription"; payload?: unknown }
-  | { type: "openwebui:emit-toast"; payload?: unknown };
+  | { type: "openwebui:emit-toast"; payload?: unknown }
+  | { type: "openwebui:request-intel-snapshot" }
+  | { type: "openwebui:request-intel-refresh" };
 
 type SubscriptionPayload = {
   plan?: unknown;
@@ -104,6 +116,10 @@ export default function OpenWebUIContainer({
   walletVerified,
   isLinking,
   isProcessing,
+  intelSnapshot,
+  intelNextUpdateInSeconds,
+  intelError,
+  onRequestIntelRefresh,
 }: Props) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const lastHandshakeFingerprintRef = useRef<string | null>(null);
@@ -111,10 +127,26 @@ export default function OpenWebUIContainer({
   const [targetOrigin, setTargetOrigin] = useState<string>("*");
   const targetOriginRef = useRef<string>("*");
   const [frameReady, setFrameReady] = useState(false);
+  const intelSnapshotRef = useRef<LiveIntelSnapshot>(intelSnapshot);
+  const intelNextUpdateRef = useRef<number | null>(intelNextUpdateInSeconds);
+  const intelErrorRef = useRef<string | null>(intelError);
+  const lastIntelSnapshotFingerprintRef = useRef<string | null>(null);
 
   useEffect(() => {
     handshakeRef.current = handshake;
   }, [handshake]);
+
+  useEffect(() => {
+    intelSnapshotRef.current = intelSnapshot;
+  }, [intelSnapshot]);
+
+  useEffect(() => {
+    intelNextUpdateRef.current = intelNextUpdateInSeconds;
+  }, [intelNextUpdateInSeconds]);
+
+  useEffect(() => {
+    intelErrorRef.current = intelError;
+  }, [intelError]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -162,12 +194,54 @@ export default function OpenWebUIContainer({
     [postMessage],
   );
 
+  const sendIntelSnapshot = useCallback(
+    ({ force }: { force?: boolean } = {}) => {
+      const frame = iframeRef.current;
+      if (!frame || !frame.contentWindow) {
+        return;
+      }
+      const fingerprint = JSON.stringify({
+        snapshot: intelSnapshotRef.current,
+        nextUpdateInSeconds: intelNextUpdateRef.current,
+        error: intelErrorRef.current,
+      });
+      if (!force && fingerprint === lastIntelSnapshotFingerprintRef.current) {
+        return;
+      }
+      lastIntelSnapshotFingerprintRef.current = fingerprint;
+      const payload = {
+        snapshot: intelSnapshotRef.current,
+        nextUpdateInSeconds: intelNextUpdateRef.current,
+        error: intelErrorRef.current,
+        ...intelSnapshotRef.current,
+      };
+      postMessage({
+        type: "miniapp:intel-snapshot",
+        payload,
+      });
+    },
+    [postMessage],
+  );
+
   useEffect(() => {
     if (!frameReady) {
       return;
     }
     sendHandshake();
   }, [frameReady, sendHandshake, handshake]);
+
+  useEffect(() => {
+    if (!frameReady) {
+      return;
+    }
+    sendIntelSnapshot();
+  }, [
+    frameReady,
+    sendIntelSnapshot,
+    intelSnapshot,
+    intelNextUpdateInSeconds,
+    intelError,
+  ]);
 
   const handleLinkWallet = useCallback(async () => {
     try {
@@ -225,6 +299,24 @@ export default function OpenWebUIContainer({
     [onRequestSubscription, postMessage],
   );
 
+  const handleIntelRefresh = useCallback(async () => {
+    try {
+      const result = await onRequestIntelRefresh();
+      postMessage({ type: "miniapp:intel-refresh-result", payload: result });
+    } catch (error) {
+      postMessage({
+        type: "miniapp:intel-refresh-result",
+        payload: {
+          ok: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to refresh intel right now.",
+        },
+      });
+    }
+  }, [onRequestIntelRefresh, postMessage]);
+
   const messageHandler = useCallback(
     (event: MessageEvent<OpenWebUIMessage>) => {
       const expectedOrigin = targetOriginRef.current;
@@ -245,6 +337,7 @@ export default function OpenWebUIContainer({
         case "openwebui:ready":
           setFrameReady(true);
           sendHandshake({ force: true });
+          sendIntelSnapshot({ force: true });
           break;
         case "openwebui:request-handshake":
           setFrameReady(true);
@@ -273,11 +366,25 @@ export default function OpenWebUIContainer({
           }
           break;
         }
+        case "openwebui:request-intel-snapshot":
+          sendIntelSnapshot({ force: true });
+          break;
+        case "openwebui:request-intel-refresh":
+          void handleIntelRefresh();
+          break;
         default:
           break;
       }
     },
-    [handleLinkWallet, handleSubscription, onRequestProofRefresh, onToast, sendHandshake],
+    [
+      handleLinkWallet,
+      handleSubscription,
+      onRequestProofRefresh,
+      onToast,
+      sendHandshake,
+      sendIntelSnapshot,
+      handleIntelRefresh,
+    ],
   );
 
   useEffect(() => {

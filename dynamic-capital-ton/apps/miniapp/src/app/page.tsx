@@ -22,6 +22,7 @@ import { useToast } from "@once-ui-system/core";
 import { useMiniAppThemeManager } from "@shared/miniapp/use-miniapp-theme";
 import { TONCONNECT_WALLETS_LIST_CONFIGURATION } from "@shared/ton/tonconnect-wallets";
 
+import { LiveIntelPanel } from "@/components/miniapp";
 import {
   OpenWebUIContainer,
   type LinkWalletResult,
@@ -30,6 +31,11 @@ import {
   type SubscriptionResult,
   type ToastPayload,
 } from "@/components/openwebui";
+import {
+  DEFAULT_REFRESH_SECONDS,
+  snapshotForTimestamp,
+  type LiveIntelSnapshot,
+} from "@/data/live-intel";
 import {
   ensureOpenWebUIAvailable,
   getOpenWebUIEmbedUrl,
@@ -183,10 +189,19 @@ function HomeInner() {
     OpenWebUIAvailabilityState
   >("checking");
   const [openWebUIError, setOpenWebUIError] = useState<string | null>(null);
+  const [intelSnapshot, setIntelSnapshot] = useState<LiveIntelSnapshot>(() =>
+    snapshotForTimestamp(new Date())
+  );
+  const [intelNextUpdateInSeconds, setIntelNextUpdateInSeconds] =
+    useState<number | null>(null);
+  const [intelRefreshing, setIntelRefreshing] = useState(false);
+  const [intelError, setIntelError] = useState<string | null>(null);
   const tonProofRequestInFlight = useRef(false);
   const lastChallengeTelegramIdRef = useRef<string | null>(null);
   const availabilityControllerRef = useRef<AbortController | null>(null);
   const handshakeVersionRef = useRef(0);
+  const intelFetchInFlightRef = useRef(false);
+  const intelFetchControllerRef = useRef<AbortController | null>(null);
 
   const rawOpenWebUIUrl = getOpenWebUIEmbedUrl();
   const openWebUIEmbedUrl = useMemo(() => {
@@ -241,6 +256,125 @@ function HomeInner() {
     themeState.isReady,
     themeState.availableThemes.length,
   ]);
+
+  const loadIntelSnapshot = useCallback(
+    async (
+      { force, silent }: { force?: boolean; silent?: boolean } = {},
+    ): Promise<{ ok: boolean; error?: string }> => {
+      if (intelFetchInFlightRef.current) {
+        return { ok: true };
+      }
+      intelFetchInFlightRef.current = true;
+      if (!silent) {
+        setIntelRefreshing(true);
+      }
+      const controller = new AbortController();
+      intelFetchControllerRef.current?.abort();
+      intelFetchControllerRef.current = controller;
+
+      try {
+        const url = force ? "/api/live-intel?force=1" : "/api/live-intel";
+        const response = await fetch(url, {
+          method: "GET",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to load live intel (${response.status})`);
+        }
+        const payload = (await response.json()) as {
+          report?: LiveIntelSnapshot;
+          nextUpdateInSeconds?: number;
+        };
+        if (!payload || typeof payload !== "object" || !payload.report) {
+          throw new Error("Live intel response missing report data.");
+        }
+        setIntelSnapshot(payload.report);
+        const nextSeconds =
+          typeof payload.nextUpdateInSeconds === "number" &&
+            Number.isFinite(payload.nextUpdateInSeconds)
+            ? Math.max(1, Math.round(payload.nextUpdateInSeconds))
+            : DEFAULT_REFRESH_SECONDS;
+        setIntelNextUpdateInSeconds(nextSeconds);
+        setIntelError(null);
+        return { ok: true };
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return { ok: false, error: "Live intel request cancelled." };
+        }
+        const fallback = snapshotForTimestamp(new Date());
+        setIntelSnapshot(fallback);
+        setIntelNextUpdateInSeconds(DEFAULT_REFRESH_SECONDS);
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to load live intel data.";
+        setIntelError(message);
+        if (!silent) {
+          addToast({ message, variant: "danger" });
+        }
+        return { ok: false, error: message };
+      } finally {
+        intelFetchInFlightRef.current = false;
+        if (!silent) {
+          setIntelRefreshing(false);
+        }
+        if (intelFetchControllerRef.current === controller) {
+          intelFetchControllerRef.current = null;
+        }
+      }
+    },
+    [addToast],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    void loadIntelSnapshot({ force: true, silent: true });
+    return () => {
+      intelFetchControllerRef.current?.abort();
+    };
+  }, [loadIntelSnapshot]);
+
+  const countdownActive = intelNextUpdateInSeconds !== null;
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    if (!countdownActive) {
+      return undefined;
+    }
+    const interval = window.setInterval(() => {
+      setIntelNextUpdateInSeconds((prev) => {
+        if (prev === null) {
+          return prev;
+        }
+        return prev > 0 ? prev - 1 : 0;
+      });
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [countdownActive]);
+
+  useEffect(() => {
+    if (intelNextUpdateInSeconds !== 0) {
+      return;
+    }
+    if (intelFetchInFlightRef.current) {
+      return;
+    }
+    void loadIntelSnapshot({ force: true, silent: true });
+  }, [intelNextUpdateInSeconds, loadIntelSnapshot]);
+
+  const requestIntelRefresh = useCallback(
+    () => loadIntelSnapshot({ force: true }),
+    [loadIntelSnapshot],
+  );
+
+  const handleManualIntelRefresh = useCallback(() => {
+    void requestIntelRefresh();
+  }, [requestIntelRefresh]);
 
   useEffect(() => {
     if (!rawOpenWebUIUrl) {
@@ -721,6 +855,10 @@ function HomeInner() {
         publicUrl: openWebUIPublicUrl,
         internalUrl: openWebUIInternalUrl,
       },
+      intel: {
+        nextUpdateInSeconds: intelNextUpdateInSeconds,
+        error: intelError,
+      },
     };
   }, [
     telegramInitData.raw,
@@ -740,11 +878,13 @@ function HomeInner() {
     designTokenFingerprint,
     openWebUIPublicUrl,
     openWebUIInternalUrl,
+    intelNextUpdateInSeconds,
+    intelError,
   ]);
 
   return (
     <div className="flex min-h-screen flex-col bg-black text-white">
-      <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8">
         <section className="mb-6 space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -809,25 +949,40 @@ function HomeInner() {
             </div>
           </div>
         </section>
-        <section className="space-y-4">
-          <OpenWebUIContainer
-            src={openWebUIEmbedUrl}
-            handshake={handshake}
-            availabilityStatus={openWebUIStatus}
-            availabilityError={openWebUIError}
-            onRetryAvailability={retryOpenWebUI}
-            onRequestLinkWallet={linkWallet}
-            onRequestSubscription={handleSubscriptionRequest}
-            onRequestProofRefresh={() => void refreshTonProofChallenge()}
-            onToast={handleToastFromIframe}
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] xl:grid-cols-[minmax(0,7fr)_minmax(0,4fr)]">
+          <section className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+            <OpenWebUIContainer
+              src={openWebUIEmbedUrl}
+              handshake={handshake}
+              availabilityStatus={openWebUIStatus}
+              availabilityError={openWebUIError}
+              onRetryAvailability={retryOpenWebUI}
+              onRequestLinkWallet={linkWallet}
+              onRequestSubscription={handleSubscriptionRequest}
+              onRequestProofRefresh={() => void refreshTonProofChallenge()}
+              onToast={handleToastFromIframe}
+              walletVerified={walletVerified}
+              isLinking={isLinking}
+              isProcessing={isProcessing}
+              intelSnapshot={intelSnapshot}
+              intelNextUpdateInSeconds={intelNextUpdateInSeconds}
+              intelError={intelError}
+              onRequestIntelRefresh={requestIntelRefresh}
+            />
+            <p className="text-xs text-white/50">
+              The Open WebUI embed mirrors your verified TON identity. Actions triggered inside the workspace share this session and can initiate subscriptions through the secure messaging bridge.
+            </p>
+          </section>
+          <LiveIntelPanel
+            snapshot={intelSnapshot}
             walletVerified={walletVerified}
-            isLinking={isLinking}
-            isProcessing={isProcessing}
+            designTokens={designTokens}
+            nextUpdateInSeconds={intelNextUpdateInSeconds}
+            refreshing={intelRefreshing}
+            onRefresh={handleManualIntelRefresh}
+            error={intelError}
           />
-          <p className="text-xs text-white/50">
-            The Open WebUI embed mirrors your verified TON identity. Actions triggered inside the workspace share this session and can initiate subscriptions through the secure messaging bridge.
-          </p>
-        </section>
+        </div>
       </div>
     </div>
   );
