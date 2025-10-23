@@ -10,6 +10,7 @@ import {
   Text,
   type Colors,
 } from "@once-ui-system/core";
+import { OpenWebUiBadge, openWebUiGlowStyle, openWebUiPanelStyle } from "@shared/openwebui";
 import type { ReactNode } from "react";
 
 import type { LiveMetric } from "@/data/live-intel";
@@ -173,6 +174,9 @@ export function HeroSection({
   selectedPlan,
 }: HeroSectionProps) {
   const proofColors = resolveProofColors(tonProofStatus.variant);
+  const heroCardStyle = openWebUiPanelStyle({
+    backgroundBlendMode: "soft-light",
+  });
 
   return (
     <Card
@@ -182,16 +186,25 @@ export function HeroSection({
       radius="xl"
       gap="24"
       background="transparent"
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        background:
-          "linear-gradient(135deg, var(--ui-sheen, rgba(58,165,255,0.28)), var(--ui-surface, rgba(18,33,71,0.85)) 58%, rgba(6,9,18,0.9))",
-        boxShadow: "0 22px 48px var(--ui-shadow, rgba(15, 23, 42, 0.35))",
-      }}
+      style={heroCardStyle}
       border="accent-strong"
     >
+      <div aria-hidden style={openWebUiGlowStyle()} />
       <Column gap="24">
+        <Row gap="12" wrap horizontal="start" vertical="center">
+          <OpenWebUiBadge
+            aria-label="Optimized for Open WebUI surfaces"
+            style={{ marginBottom: "0.25rem" }}
+          />
+          <Text
+            variant="label-default-s"
+            onBackground="brand-strong"
+            style={{ maxWidth: "28rem" }}
+          >
+            A shared workspace between the Telegram mini app and the Open WebUI
+            console keeps watchlists, quick actions, and plan controls aligned.
+          </Text>
+        </Row>
         <SyncBanner
           description={syncDescription}
           isSyncing={isSyncing}

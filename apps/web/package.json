@@ -83,6 +83,7 @@
     "drizzle-orm": "^0.44.5",
     "embla-carousel-react": "^8.3.0",
     "framer-motion": "^12.23.22",
+    "geist": "^1.5.1",
     "grammy": "^1.38.2",
     "gray-matter": "^4.0.3",
     "input-otp": "^1.2.4",
