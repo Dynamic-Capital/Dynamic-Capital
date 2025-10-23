@@ -2,7 +2,8 @@
   "name": "dynamic-capital-miniapp",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev-with-openwebui.mjs",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "next start"
   },

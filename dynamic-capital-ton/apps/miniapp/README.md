@@ -6,7 +6,8 @@ hooks.
 
 ## Environment variables
 
-Create a `.env.local` file with the following values:
+Copy `.env.example` to `.env.local` (or export the variables in your shell) and
+fill in the following values:
 
 ```bash
 NEXT_PUBLIC_APP_URL=https://dynamiccapital.ton
@@ -17,10 +18,17 @@ SUPABASE_FN_URL=https://<project>.functions.supabase.co
 SUPABASE_ANON_KEY=<anon-key>
 # Optional override if the operations treasury rotates
 NEXT_PUBLIC_TON_OPS_TREASURY=<ops-treasury-wallet>
+NEXT_PUBLIC_OPEN_WEBUI_URL=https://miniapp-openwebui.example.com
+OPEN_WEBUI_INTERNAL_URL=http://open-webui:8080
+# Optional: customise the availability probe path if your deployment differs
+# OPEN_WEBUI_HEALTH_PATH=/healthz
 ```
 
 The `NEXT_PUBLIC_SUPABASE_*` values enable live subscription plan updates inside
-the Mini App by connecting directly to Supabase Realtime.
+the Mini App by connecting directly to Supabase Realtime. The Open WebUI values
+tell the embed where to load the UI from (`NEXT_PUBLIC_OPEN_WEBUI_URL`) and how
+the Next.js server should proxy requests when running in Docker or serverless
+environments (`OPEN_WEBUI_INTERNAL_URL`).
 
 > **Note:** When testing in browsers without native TON DNS support, use the
 > TON Foundation gateway (`https://ton.site/dynamiccapital.ton`) instead of the
@@ -36,6 +44,11 @@ the Mini App by connecting directly to Supabase Realtime.
 
 API routes proxy the Supabase Edge functions defined under
 `supabase/functions/*`.
+
+When running locally you can automatically boot the embedded Open WebUI stack by
+leaving `START_OPEN_WEBUI` unset (defaults to `1`) before `pnpm dev`. Set
+`START_OPEN_WEBUI=0` if you already have an Open WebUI instance running and only
+want the Next.js server.
 
 ## Manual verification
 
