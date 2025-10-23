@@ -113,8 +113,7 @@
     "ton:mainnet-status": "tsx tools/ton/check-mainnet-status.ts",
     "ton:build-site-predeploy": "tsx tools/ton/build-site-predeploy.ts",
     "ton:build-contracts": "tsx tools/ton/build-contract-suite.ts",
-    "ton:build-verifier": "$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/build-ton-verifier.ts"
-    ,
+    "ton:build-verifier": "$(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/build-ton-verifier.ts",
     "windows:sanitize": "node scripts/windows/sparse-checkout-sanitize.mjs"
   },
   "dependencies": {
@@ -139,6 +138,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/ssr": "^0.7.0",
+    "@tailwindcss/filters": "npm:tailwindcss-filters@^3.0.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@tanstack/react-query": "^5.90.2",
     "@ton/core": "^0.62.0",

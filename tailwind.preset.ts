@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import plugin from "tailwindcss/plugin";
+import filters from "@tailwindcss/filters";
 import typography from "@tailwindcss/typography";
 import animate from "tailwindcss-animate";
 
@@ -11,6 +12,23 @@ const sharedPreset = {
       screens: {
         "2xl": "1400px",
       },
+    },
+    filter: {
+      none: "none",
+      blur: "blur(12px)",
+      brightness: "brightness(1.1)",
+      contrast: "contrast(1.1)",
+      grayscale: "grayscale(100%)",
+      invert: "invert(100%)",
+      saturate: "saturate(1.15)",
+      sepia: "sepia(100%)",
+    },
+    backdropFilter: {
+      none: "none",
+      blur: "blur(18px)",
+      brightness: "brightness(1.05)",
+      contrast: "contrast(1.05)",
+      saturate: "saturate(1.05)",
     },
     extend: {
       typography: () => ({
@@ -445,6 +463,7 @@ const sharedPreset = {
   plugins: [
     animate,
     typography,
+    filters,
     plugin(({ addUtilities, addComponents }) => {
       addUtilities({
         ".will-change-transform": {
