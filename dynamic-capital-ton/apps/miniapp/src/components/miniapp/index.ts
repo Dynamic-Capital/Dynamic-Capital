@@ -5,3 +5,4 @@ export * from "./SectionNavigation";
 export * from "./ChatLauncher";
 export * from "./SyncBanner";
 export * from "./TimelineView";
+export * from "./LiveIntelPanel";
