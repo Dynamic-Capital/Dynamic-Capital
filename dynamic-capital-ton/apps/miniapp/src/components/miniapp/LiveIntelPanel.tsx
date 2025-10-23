@@ -1,5 +1,7 @@
 import type { LiveIntelSnapshot } from "@/data/live-intel";
 
+type SnapshotModel = LiveIntelSnapshot["models"][keyof LiveIntelSnapshot["models"]];
+
 type LiveIntelPanelProps = {
   snapshot: LiveIntelSnapshot;
   walletVerified: boolean;
@@ -24,7 +26,11 @@ function resolveToken(
   return fallback;
 }
 
-function formatTimestamp(timestamp: string): string {
+function formatTimestamp(timestamp: string | null | undefined): string {
+  if (!timestamp) {
+    return "Timestamp unavailable";
+  }
+
   const parsed = new Date(timestamp);
   if (Number.isNaN(parsed.getTime())) {
     return timestamp;
@@ -61,6 +67,22 @@ export function LiveIntelPanel({
   onRefresh,
   error,
 }: LiveIntelPanelProps) {
+  const alerts = Array.isArray(snapshot.alerts) ? snapshot.alerts : [];
+  const metrics = Array.isArray(snapshot.metrics) ? snapshot.metrics : [];
+  const timeline = Array.isArray(snapshot.timeline) ? snapshot.timeline : [];
+  const opportunities = Array.isArray(snapshot.opportunities)
+    ? snapshot.opportunities
+    : [];
+  const risks = Array.isArray(snapshot.risks) ? snapshot.risks : [];
+  const recommendedActions = Array.isArray(snapshot.recommendedActions)
+    ? snapshot.recommendedActions
+    : [];
+  const models = snapshot.models && typeof snapshot.models === "object"
+    ? Object.values(snapshot.models).filter(
+      (model): model is SnapshotModel => Boolean(model),
+    )
+    : [];
+
   const accent = resolveToken(
     designTokens,
     ["--once-color-accent", "--once-color-brand", "--accent"],
@@ -82,11 +104,13 @@ export function LiveIntelPanel({
     "rgba(56, 189, 248, 0.2)",
   );
 
-  const formattedTimestamp = formatTimestamp(snapshot.timestamp);
+  const formattedTimestamp = formatTimestamp(snapshot.timestamp ?? null);
   const confidenceLabel = typeof snapshot.confidence === "number"
     ? `${Math.round(snapshot.confidence * 100)}% confidence`
     : null;
   const countdownLabel = formatCountdown(nextUpdateInSeconds);
+
+  const narrative = snapshot.narrative?.trim() || "Live intel update";
 
   return (
     <aside
@@ -103,7 +127,7 @@ export function LiveIntelPanel({
               Live intel snapshot
             </p>
             <h2 className="mt-1 text-lg font-semibold leading-snug text-white">
-              {snapshot.narrative}
+              {narrative}
             </h2>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -163,12 +187,12 @@ export function LiveIntelPanel({
           : null}
       </div>
 
-      {snapshot.alerts.length > 0
+      {alerts.length > 0
         ? (
           <div className="space-y-2 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 text-xs text-rose-100">
             <p className="text-sm font-semibold text-rose-100">Alerts</p>
             <ul className="space-y-2">
-              {snapshot.alerts.map((alert) => (
+              {alerts.map((alert) => (
                 <li key={alert} className="leading-relaxed">
                   {alert}
                 </li>
@@ -179,7 +203,7 @@ export function LiveIntelPanel({
         : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {snapshot.metrics.map((metric) => (
+        {metrics.map((metric) => (
           <div
             key={metric.label}
             className="rounded-2xl border border-white/10 bg-black/30 p-4"
@@ -211,7 +235,7 @@ export function LiveIntelPanel({
           Timeline
         </h3>
         <ul className="space-y-3">
-          {snapshot.timeline.map((entry) => (
+          {timeline.map((entry) => (
             <li
               key={`${entry.title}-${entry.timestamp}`}
               className="rounded-2xl border border-white/10 bg-black/40 p-4"
@@ -234,7 +258,7 @@ export function LiveIntelPanel({
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
-        {Object.values(snapshot.models).map((model) => (
+        {models.map((model) => (
           <div
             key={model.model}
             className="rounded-2xl border border-white/10 bg-black/40 p-4"
@@ -246,7 +270,7 @@ export function LiveIntelPanel({
               {model.summary}
             </p>
             <ul className="mt-3 space-y-2 text-xs text-white/60">
-              {model.highlights.map((highlight) => (
+              {(Array.isArray(model.highlights) ? model.highlights : []).map((highlight) => (
                 <li key={highlight} className="flex gap-2">
                   <span className="text-white/40">•</span>
                   <span className="leading-relaxed">{highlight}</span>
@@ -268,14 +292,14 @@ export function LiveIntelPanel({
         <div className="grid gap-3 md:grid-cols-2">
           <GatedList
             title="Opportunities"
-            items={snapshot.opportunities}
+            items={opportunities}
             accent={accent}
             walletVerified={walletVerified}
             gated={false}
           />
           <GatedList
             title="Risks"
-            items={snapshot.risks}
+            items={risks}
             accent="#f97316"
             walletVerified={walletVerified}
             gated={false}
@@ -283,7 +307,7 @@ export function LiveIntelPanel({
         </div>
         <GatedList
           title="Recommended actions"
-          items={snapshot.recommendedActions}
+          items={recommendedActions}
           accent={accent}
           walletVerified={walletVerified}
           gated
@@ -302,9 +326,10 @@ type GatedListProps = {
 };
 
 function GatedList({ title, items, accent, walletVerified, gated }: GatedListProps) {
+  const entries = Array.isArray(items) ? items : [];
   const content = (
     <ul className="space-y-2 text-sm text-white/70">
-      {items.map((item) => (
+      {entries.map((item) => (
         <li key={item} className="flex gap-3">
           <span className="relative mt-1 h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: accent }} />
           <span className="leading-relaxed">{item}</span>
