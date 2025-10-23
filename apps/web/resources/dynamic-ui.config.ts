@@ -57,32 +57,23 @@ const display: DisplayConfig = {
 
 const protectedRoutes: ProtectedRoutesConfig = {};
 
-import { Geist } from "next/font/google";
-import { Geist_Mono } from "next/font/google";
+import { GeistMono, GeistSans } from "geist/font";
 
-const heading = Geist({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  display: "swap",
+const withVariable = <T extends { className: string; variable: string }>(
+  font: T,
+  variable: string,
+) => ({
+  ...font,
+  variable,
 });
 
-const body = Geist({
-  variable: "--font-body",
-  subsets: ["latin"],
-  display: "swap",
-});
+const heading = withVariable(GeistSans, "--font-heading");
 
-const label = Geist({
-  variable: "--font-label",
-  subsets: ["latin"],
-  display: "swap",
-});
+const body = withVariable(GeistSans, "--font-body");
 
-const code = Geist_Mono({
-  variable: "--font-code",
-  subsets: ["latin"],
-  display: "swap",
-});
+const label = withVariable(GeistSans, "--font-label");
+
+const code = withVariable(GeistMono, "--font-code");
 
 const fonts: FontsConfig = {
   heading,

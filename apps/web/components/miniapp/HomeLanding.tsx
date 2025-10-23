@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
 import { callEdgeFunction } from "@/config/supabase";
 import { useDeskClock } from "@/hooks/useDeskClock";
+import { OpenWebUiBadge } from "@shared/openwebui";
 import {
   DEFAULT_MARKET_PULSE_METRICS,
   fetchDynamicHomeSync,
@@ -28,6 +29,7 @@ import StatusSection from "./StatusSection";
 import { MiniAppMetricsSliders } from "./MiniAppMetricsSliders";
 import { MiniAppSection } from "./MiniAppSection";
 import { MiniAppGrid } from "./MiniAppGrid";
+import { OpenWebUiShowcase } from "./OpenWebUiShowcase";
 
 type TelegramData = {
   user?: {
@@ -311,6 +313,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       >
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
+            <OpenWebUiBadge style={{ marginRight: "0.4rem" }} />
             <Badge
               variant="outline"
               className="border-primary/30 bg-primary/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-primary"
@@ -406,6 +409,8 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           )}
         </div>
       </motion.section>
+
+      <OpenWebUiShowcase />
 
       <nav className="miniapp-summary-nav" aria-label="Mini app overview">
         {SECTION_LINKS.map(({ id, label }) => (

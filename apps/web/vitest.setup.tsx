@@ -47,16 +47,16 @@ vi.mock("@/components/dynamic-ui-system", () => ({
   Text: createPrimitive("span"),
 }));
 
-vi.mock("next/font/google", () => {
-  const createFont = (className: string) => () => ({
+vi.mock("geist/font", () => {
+  const createFont = (className: string) => ({
     className,
     style: { fontFamily: className },
     variable: `--${className}`,
   });
 
   return {
-    Geist: createFont("geist"),
-    Geist_Mono: createFont("geist-mono"),
+    GeistSans: createFont("geist-sans"),
+    GeistMono: createFont("geist-mono"),
   };
 });
 
