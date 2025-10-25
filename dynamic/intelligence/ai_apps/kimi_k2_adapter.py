@@ -85,6 +85,7 @@ class KimiK2Adapter:
         base_reasoning: str,
         market_context: Mapping[str, Any],
         prior_dialogue: Sequence[tuple[str, str]] | None = None,
+        model: str | None = None,
     ) -> str:
         """Call the configured Kimi-K2 endpoint and return refined reasoning."""
 
@@ -99,8 +100,9 @@ class KimiK2Adapter:
 
         RequestException = getattr(requests, "RequestException", Exception)
 
+        selected_model = model.strip() if isinstance(model, str) else None
         payload: Dict[str, Any] = {
-            "model": self.config.model,
+            "model": selected_model or self.config.model,
             "messages": self.prompt_template.build_messages(
                 action=action,
                 confidence=confidence,

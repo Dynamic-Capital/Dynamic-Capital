@@ -227,6 +227,7 @@ def test_sentiment_lobe_handles_generator_feeds() -> None:
 class DummyAdapter:
     def __init__(self) -> None:
         self.calls = 0
+        self.models: list[str | None] = []
 
     def enhance_reasoning(
         self,
@@ -236,8 +237,10 @@ class DummyAdapter:
         base_reasoning: str,
         market_context: dict[str, Any],
         prior_dialogue: Iterable[tuple[str, str]] | None = None,
+        model: str | None = None,
     ) -> str:
         self.calls += 1
+        self.models.append(model)
         return f"enhanced-{self.calls}-{action}-{confidence:.2f}"
 
 
@@ -262,3 +265,77 @@ def test_reasoning_cache_respects_disabled_configuration() -> None:
     algo.generate_signal(payload)
 
     assert adapter.calls == 2
+
+
+def test_dynamic_model_override_is_forwarded_to_adapter() -> None:
+    adapter = DummyAdapter()
+    algo = DynamicFusionAlgo(llm_adapter=adapter)
+    payload = {
+        "signal": "BUY",
+        "confidence": 0.6,
+        "volatility": 0.1,
+        "reasoning_model": "dynamic-llama",
+    }
+
+    algo.generate_signal(payload)
+
+    assert adapter.calls == 1
+    assert adapter.models == ["dynamic-llama"]
+
+
+def test_dynamic_model_override_supports_nested_provider_mapping() -> None:
+    adapter = DummyAdapter()
+    algo = DynamicFusionAlgo(llm_adapter=adapter)
+    payload = {
+        "signal": "BUY",
+        "confidence": 0.55,
+        "volatility": 0.2,
+        "providers": {
+            "ollama": {"config": {"model": "llama-nested"}},
+        },
+    }
+
+    algo.generate_signal(payload)
+
+    assert adapter.calls == 1
+    assert adapter.models == ["llama-nested"]
+
+
+def test_dynamic_model_override_reads_llm_provider_list() -> None:
+    adapter = DummyAdapter()
+    algo = DynamicFusionAlgo(llm_adapter=adapter)
+    payload = {
+        "signal": "SELL",
+        "confidence": 0.42,
+        "volatility": 0.3,
+        "llm": {
+            "providers": [
+                {"provider": "kimi", "config": {"model": "kimi-k2"}},
+                {"provider": "ollama", "config": {"model": "llama-list"}},
+            ]
+        },
+    }
+
+    algo.generate_signal(payload)
+
+    assert adapter.calls == 1
+    assert adapter.models == ["llama-list"]
+
+
+def test_dynamic_model_override_ignores_unrelated_model_keys() -> None:
+    adapter = DummyAdapter()
+    algo = DynamicFusionAlgo(llm_adapter=adapter)
+    payload = {
+        "signal": "HOLD",
+        "confidence": 0.5,
+        "volatility": 0.15,
+        "providers": {
+            "liquidity": {"model": "inventory-v1"},
+        },
+        "technical_model": "sma-cross",
+    }
+
+    algo.generate_signal(payload)
+
+    assert adapter.calls == 1
+    assert adapter.models == [None]
