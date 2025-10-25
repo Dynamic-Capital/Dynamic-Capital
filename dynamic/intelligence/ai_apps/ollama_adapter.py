@@ -80,6 +80,7 @@ class OllamaAdapter:
         base_reasoning: str,
         market_context: Mapping[str, Any],
         prior_dialogue: Sequence[tuple[str, str]] | None = None,
+        model: str | None = None,
     ) -> str:
         """Call the Ollama generate endpoint and return enhanced reasoning."""
 
@@ -94,8 +95,9 @@ class OllamaAdapter:
 
         RequestException = getattr(requests, "RequestException", Exception)
 
+        selected_model = model.strip() if isinstance(model, str) else None
         payload: Dict[str, Any] = {
-            "model": self.config.model,
+            "model": selected_model or self.config.model,
             "prompt": self.prompt_template.build_prompt(
                 action=action,
                 confidence=confidence,

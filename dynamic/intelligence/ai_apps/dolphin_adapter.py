@@ -137,6 +137,7 @@ class DolphinLlamaCppAdapter:
         base_reasoning: str,
         market_context: Mapping[str, Any],
         prior_dialogue: Sequence[tuple[str, str]] | None = None,
+        model: str | None = None,
     ) -> str:
         """Return refined reasoning produced by the Dolphin agent."""
 
