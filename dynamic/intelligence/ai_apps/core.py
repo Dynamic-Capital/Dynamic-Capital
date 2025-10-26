@@ -39,6 +39,7 @@ class ReasoningAdapter(Protocol):
         base_reasoning: str,
         market_context: Dict[str, Any],
         prior_dialogue: Sequence[tuple[str, str]] | None = None,
+        model: str | None = None,
     ) -> str:
         ...
 
@@ -631,12 +632,15 @@ class DynamicFusionAlgo:
                 self._reasoning_cache.move_to_end(cache_key)
                 return cached
 
+        model_override = self._resolve_reasoning_model(market_data)
+
         try:
             enhanced = self.llm_adapter.enhance_reasoning(
                 action=action,
                 confidence=confidence,
                 base_reasoning=base_reasoning,
                 market_context=market_data,
+                model=model_override,
             )
         except LLMIntegrationError:
             return base_reasoning
@@ -647,6 +651,257 @@ class DynamicFusionAlgo:
                 self._reasoning_cache.popitem(last=False)
 
         return enhanced
+
+    def _resolve_reasoning_model(self, market_data: Mapping[str, Any]) -> str | None:
+        """Inspect ``market_data`` for an override to the default reasoning model.
+
+        Callers can embed hints such as ``{"reasoning_model": "dynamic-llama"}``
+        or ``{"ollama": {"model": "llama3.3"}}`` in the payload.  The helper
+        inspects a few common shapes so adapters can switch models without
+        manual reconfiguration.
+        """
+
+        def _hint_allows_model(context_hint: str | None) -> bool:
+            if context_hint is None:
+                return False
+            lowered = context_hint.lower()
+            tokens = ("ollama", "llm", "reasoning", "adapter", "provider", "engine")
+            return any(token in lowered for token in tokens)
+
+        def _hint_allows_name(context_hint: str | None) -> bool:
+            if context_hint is None:
+                return False
+            lowered = context_hint.lower()
+            tokens = ("ollama", "llm", "reasoning", "adapter", "provider")
+            return any(token in lowered for token in tokens)
+
+        def _should_traverse(key_lower: str, context_hint: str | None) -> bool:
+            traversal_tokens = (
+                "ollama",
+                "llm",
+                "reasoning",
+                "adapter",
+                "provider",
+                "providers",
+                "backend",
+                "engine",
+                "routing",
+            )
+
+            if any(token in key_lower for token in traversal_tokens):
+                return True
+
+            if context_hint is None:
+                return False
+
+            parent = context_hint.lower()
+            provider_tokens = ("ollama", "llm", "reasoning", "adapter", "provider")
+            if any(token in parent for token in provider_tokens):
+                if key_lower in {
+                    "config",
+                    "settings",
+                    "options",
+                    "parameters",
+                    "models",
+                    "choices",
+                    "engines",
+                }:
+                    return True
+                # Allow intermediary keys such as "default" or "primary" so long as
+                # we remain under a provider-oriented branch.
+                return True
+
+            return False
+
+        def _merge_context(context_hint: str | None, key_lower: str) -> str:
+            if context_hint:
+                return f"{context_hint}.{key_lower}"
+            return key_lower
+
+        def _extract_provider_hint(
+            payload: Mapping[str, Any],
+            *,
+            context_hint: str | None,
+        ) -> str | None:
+            provider_keys = (
+                "provider",
+                "backend",
+                "engine",
+                "id",
+                "name",
+                "type",
+                "source",
+            )
+
+            for key in provider_keys:
+                if key not in payload:
+                    continue
+                raw = payload.get(key)
+                if not isinstance(raw, str):
+                    continue
+                stripped = raw.strip().lower()
+                if not stripped:
+                    continue
+                if key == "name" and not _hint_allows_name(context_hint):
+                    continue
+                return stripped
+
+            return None
+
+        def _coerce_model_hint(
+            value: Any,
+            *,
+            context_hint: str | None = None,
+            depth: int = 0,
+            provider_allowed: bool = True,
+        ) -> str | None:
+            """Attempt to coerce ``value`` to a reasoning model name."""
+
+            if depth > 6:
+                return None
+
+            if isinstance(value, str):
+                candidate = value.strip()
+                if not candidate:
+                    return None
+                if not provider_allowed:
+                    if not context_hint or "ollama" not in context_hint.lower():
+                        return None
+                if context_hint:
+                    segment = context_hint.lower().split(".")[-1]
+                    if segment == "provider":
+                        return None
+                    if segment not in {
+                        "model",
+                        "model_id",
+                        "modelid",
+                        "model_name",
+                        "modelname",
+                        "ollama_model",
+                        "reasoning_model",
+                        "llm_model",
+                        "task_model",
+                        "task_model_external",
+                    } and not _hint_allows_model(context_hint):
+                        return None
+                return candidate
+
+            if isinstance(value, Mapping):
+                provider_hint_value = _extract_provider_hint(value, context_hint=context_hint)
+                context_has_ollama = bool(context_hint and "ollama" in context_hint.lower())
+                child_context_base = context_hint
+                if provider_hint_value:
+                    child_context_base = _merge_context(context_hint, provider_hint_value)
+
+                next_provider_allowed = provider_allowed or context_has_ollama
+                if provider_hint_value is not None:
+                    next_provider_allowed = "ollama" in provider_hint_value
+
+                model_key_candidates = (
+                    "reasoning_model",
+                    "ollama_model",
+                    "llm_model",
+                    "target_model",
+                    "model_name",
+                    "modelname",
+                    "model_id",
+                    "modelid",
+                    "model",
+                    "task_model",
+                    "task_model_external",
+                )
+
+                for key in model_key_candidates:
+                    if key not in value:
+                        continue
+                    key_lower = key.lower()
+                    if (not next_provider_allowed and key_lower == "model"):
+                        continue
+                    if key_lower == "model" and not _hint_allows_model(child_context_base):
+                        continue
+                    if (
+                        key_lower in {"model_name", "modelname"}
+                        and not next_provider_allowed
+                    ):
+                        continue
+                    if key_lower in {"model_name", "modelname"} and not _hint_allows_model(child_context_base):
+                        continue
+                    nested = value[key]
+                    result = _coerce_model_hint(
+                        nested,
+                        context_hint=_merge_context(child_context_base, key_lower),
+                        depth=depth + 1,
+                        provider_allowed=next_provider_allowed,
+                    )
+                    if result:
+                        return result
+
+                for key, nested in value.items():
+                    key_lower = str(key).lower()
+                    if key_lower == "provider":
+                        continue
+                    if key_lower == "name" and not _hint_allows_name(child_context_base):
+                        continue
+                    if _hint_allows_model(key_lower) or _should_traverse(key_lower, child_context_base):
+                        result = _coerce_model_hint(
+                            nested,
+                            context_hint=_merge_context(child_context_base, key_lower),
+                            depth=depth + 1,
+                            provider_allowed=next_provider_allowed,
+                        )
+                        if result:
+                            return result
+
+                return None
+
+            if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+                for item in value:
+                    result = _coerce_model_hint(
+                        item,
+                        context_hint=context_hint,
+                        depth=depth + 1,
+                        provider_allowed=provider_allowed,
+                    )
+                    if result:
+                        return result
+
+            return None
+
+        primary_hints = (
+            "reasoning_model",
+            "ollama_model",
+            "llm_model",
+        )
+
+        for key in primary_hints:
+            if key not in market_data:
+                continue
+            result = _coerce_model_hint(market_data[key], context_hint=key)
+            if result:
+                return result
+
+        secondary_roots = (
+            "ollama",
+            "llm",
+            "llm_adapter",
+            "reasoning",
+            "reasoning_adapter",
+            "adapters",
+            "providers",
+        )
+
+        for key in secondary_roots:
+            if key not in market_data:
+                continue
+            result = _coerce_model_hint(
+                market_data[key],
+                context_hint=key,
+                provider_allowed=False,
+            )
+            if result:
+                return result
+
+        return None
 
     def _reasoning_cache_key(
         self,
