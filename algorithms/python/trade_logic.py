@@ -1719,8 +1719,19 @@ class RiskManager:
         if len(open_positions) >= self.params.max_total_positions:
             return False
 
-        symbol_positions = [pos for pos in open_positions if pos.symbol == symbol]
-        if len(symbol_positions) >= self.params.max_positions_per_symbol:
+        max_per_symbol = self.params.max_positions_per_symbol
+        symbol_count = 0
+        opposing_count = 0
+        for pos in open_positions:
+            if pos.symbol != symbol:
+                continue
+            symbol_count += 1
+            if pos.direction != direction:
+                opposing_count += 1
+            if symbol_count >= max_per_symbol:
+                break
+
+        if symbol_count >= max_per_symbol:
             return False
 
         if self.params.max_daily_drawdown_pct is not None and self._daily_start_equity:
@@ -1728,8 +1739,7 @@ class RiskManager:
             if self.params.balance <= threshold:
                 return False
 
-        opposing_positions = [pos for pos in symbol_positions if pos.direction != direction]
-        if opposing_positions and len(symbol_positions) >= self.params.max_positions_per_symbol:
+        if opposing_count and symbol_count >= max_per_symbol:
             return False
 
         return True
@@ -2012,21 +2022,25 @@ class TradeLogic:
         managed: List[ActivePosition] = []
 
         for pos in open_positions:
+            normalised_stop = self._normalise_stop_value(pos.stop_loss, pip_size)
             if pos.symbol != snapshot.symbol or pos.direction == 0:
-                managed.append(
-                    ActivePosition(
-                        symbol=pos.symbol,
-                        direction=pos.direction,
-                        size=pos.size,
-                        entry_price=pos.entry_price,
-                        stop_loss=self._normalise_stop_value(pos.stop_loss, pip_size),
-                        take_profit=pos.take_profit,
-                        opened_at=pos.opened_at,
+                if self._stops_equivalent(pos.stop_loss, normalised_stop, tolerance):
+                    managed.append(pos)
+                else:
+                    managed.append(
+                        ActivePosition(
+                            symbol=pos.symbol,
+                            direction=pos.direction,
+                            size=pos.size,
+                            entry_price=pos.entry_price,
+                            stop_loss=normalised_stop,
+                            take_profit=pos.take_profit,
+                            opened_at=pos.opened_at,
+                        )
                     )
-                )
                 continue
 
-            previous_stop = self._normalise_stop_value(pos.stop_loss, pip_size)
+            previous_stop = normalised_stop
             new_stop = previous_stop
             changed = False
             components: List[str] = []
@@ -2066,16 +2080,20 @@ class TradeLogic:
                             if "trailing" not in components:
                                 components.append("trailing")
 
-            updated_pos = ActivePosition(
-                symbol=pos.symbol,
-                direction=pos.direction,
-                size=pos.size,
-                entry_price=pos.entry_price,
-                stop_loss=new_stop,
-                take_profit=pos.take_profit,
-                opened_at=pos.opened_at,
-            )
-            managed.append(updated_pos)
+            if self._stops_equivalent(pos.stop_loss, new_stop, tolerance):
+                managed.append(pos)
+            else:
+                managed.append(
+                    ActivePosition(
+                        symbol=pos.symbol,
+                        direction=pos.direction,
+                        size=pos.size,
+                        entry_price=pos.entry_price,
+                        stop_loss=new_stop,
+                        take_profit=pos.take_profit,
+                        opened_at=pos.opened_at,
+                    )
+                )
 
             if changed and (
                 previous_stop is None
@@ -2128,16 +2146,18 @@ class TradeLogic:
                 continue
 
             direction = pos.direction
+            stop_level = pos.stop_loss
+            take_level = pos.take_profit
 
-            def _level_hit(level: Optional[float], *, is_stop: bool) -> bool:
-                if level is None or direction == 0:
-                    return False
-                if direction > 0:
-                    return low <= level if is_stop else high >= level
-                return high >= level if is_stop else low <= level
-
-            stop_triggered = _level_hit(pos.stop_loss, is_stop=True)
-            take_triggered = _level_hit(pos.take_profit, is_stop=False)
+            if direction > 0:
+                stop_triggered = stop_level is not None and low <= stop_level
+                take_triggered = take_level is not None and high >= take_level
+            elif direction < 0:
+                stop_triggered = stop_level is not None and high >= stop_level
+                take_triggered = take_level is not None and low <= take_level
+            else:
+                stop_triggered = False
+                take_triggered = False
 
             trigger: Optional[str] = None
             exit_price: Optional[float] = None
@@ -2255,6 +2275,18 @@ class TradeLogic:
         if math.isclose(value, 0.0, abs_tol=threshold):
             return None
         return value
+
+    @staticmethod
+    def _stops_equivalent(
+        current: Optional[float],
+        target: Optional[float],
+        tolerance: float,
+    ) -> bool:
+        if current is None and target is None:
+            return True
+        if current is None or target is None:
+            return False
+        return math.isclose(current, target, rel_tol=0.0, abs_tol=tolerance)
 
     def _format_management_reason(
         self,
