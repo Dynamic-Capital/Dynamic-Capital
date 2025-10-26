@@ -696,15 +696,19 @@ class DynamicFusionAlgo:
 
             parent = context_hint.lower()
             provider_tokens = ("ollama", "llm", "reasoning", "adapter", "provider")
-            if any(token in parent for token in provider_tokens) and key_lower in {
-                "config",
-                "settings",
-                "options",
-                "parameters",
-                "models",
-                "choices",
-                "engines",
-            }:
+            if any(token in parent for token in provider_tokens):
+                if key_lower in {
+                    "config",
+                    "settings",
+                    "options",
+                    "parameters",
+                    "models",
+                    "choices",
+                    "engines",
+                }:
+                    return True
+                # Allow intermediary keys such as "default" or "primary" so long as
+                # we remain under a provider-oriented branch.
                 return True
 
             return False
@@ -713,6 +717,36 @@ class DynamicFusionAlgo:
             if context_hint:
                 return f"{context_hint}.{key_lower}"
             return key_lower
+
+        def _extract_provider_hint(
+            payload: Mapping[str, Any],
+            *,
+            context_hint: str | None,
+        ) -> str | None:
+            provider_keys = (
+                "provider",
+                "backend",
+                "engine",
+                "id",
+                "name",
+                "type",
+                "source",
+            )
+
+            for key in provider_keys:
+                if key not in payload:
+                    continue
+                raw = payload.get(key)
+                if not isinstance(raw, str):
+                    continue
+                stripped = raw.strip().lower()
+                if not stripped:
+                    continue
+                if key == "name" and not _hint_allows_name(context_hint):
+                    continue
+                return stripped
+
+            return None
 
         def _coerce_model_hint(
             value: Any,
@@ -731,26 +765,35 @@ class DynamicFusionAlgo:
                 if not candidate:
                     return None
                 if not provider_allowed:
-                    return None
+                    if not context_hint or "ollama" not in context_hint.lower():
+                        return None
                 if context_hint:
                     segment = context_hint.lower().split(".")[-1]
                     if segment == "provider":
                         return None
+                    if segment not in {
+                        "model",
+                        "model_id",
+                        "modelid",
+                        "model_name",
+                        "modelname",
+                        "ollama_model",
+                        "reasoning_model",
+                        "llm_model",
+                        "task_model",
+                        "task_model_external",
+                    } and not _hint_allows_model(context_hint):
+                        return None
                 return candidate
 
             if isinstance(value, Mapping):
-                provider_hint_value: str | None = None
-                provider_raw = value.get("provider")
-                if isinstance(provider_raw, str):
-                    stripped = provider_raw.strip().lower()
-                    if stripped:
-                        provider_hint_value = stripped
-
+                provider_hint_value = _extract_provider_hint(value, context_hint=context_hint)
+                context_has_ollama = bool(context_hint and "ollama" in context_hint.lower())
                 child_context_base = context_hint
                 if provider_hint_value:
                     child_context_base = _merge_context(context_hint, provider_hint_value)
 
-                next_provider_allowed = provider_allowed
+                next_provider_allowed = provider_allowed or context_has_ollama
                 if provider_hint_value is not None:
                     next_provider_allowed = "ollama" in provider_hint_value
 
@@ -764,6 +807,8 @@ class DynamicFusionAlgo:
                     "model_id",
                     "modelid",
                     "model",
+                    "task_model",
+                    "task_model_external",
                 )
 
                 for key in model_key_candidates:
@@ -848,7 +893,11 @@ class DynamicFusionAlgo:
         for key in secondary_roots:
             if key not in market_data:
                 continue
-            result = _coerce_model_hint(market_data[key], context_hint=key)
+            result = _coerce_model_hint(
+                market_data[key],
+                context_hint=key,
+                provider_allowed=False,
+            )
             if result:
                 return result
 

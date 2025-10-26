@@ -301,6 +301,48 @@ def test_dynamic_model_override_supports_nested_provider_mapping() -> None:
     assert adapter.models == ["llama-nested"]
 
 
+def test_dynamic_model_override_handles_default_provider_branch() -> None:
+    adapter = DummyAdapter()
+    algo = DynamicFusionAlgo(llm_adapter=adapter)
+    payload = {
+        "signal": "BUY",
+        "confidence": 0.51,
+        "volatility": 0.25,
+        "providers": {
+            "default": {
+                "provider": "ollama",
+                "model": "llama-default",
+            }
+        },
+    }
+
+    algo.generate_signal(payload)
+
+    assert adapter.calls == 1
+    assert adapter.models == ["llama-default"]
+
+
+def test_dynamic_model_override_reads_task_model_field() -> None:
+    adapter = DummyAdapter()
+    algo = DynamicFusionAlgo(llm_adapter=adapter)
+    payload = {
+        "signal": "SELL",
+        "confidence": 0.48,
+        "volatility": 0.18,
+        "providers": {
+            "default": {
+                "provider": "ollama",
+                "config": {"task_model": "dynamic-task-model"},
+            }
+        },
+    }
+
+    algo.generate_signal(payload)
+
+    assert adapter.calls == 1
+    assert adapter.models == ["dynamic-task-model"]
+
+
 def test_dynamic_model_override_reads_llm_provider_list() -> None:
     adapter = DummyAdapter()
     algo = DynamicFusionAlgo(llm_adapter=adapter)

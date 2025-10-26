@@ -41,8 +41,9 @@ for the full AGI toolchain.【F:dynamic.intelligence.agi/**init**.py†L1-L29】
   host, headers, options, keep-alive, timeout, or a fully custom adapter.
   Callers can now switch Ollama (or other ReasoningAdapter implementations)
   per-evaluation by embedding a `reasoning_model`, `ollama_model`, or
-  structured hint such as `{"ollama": {"model": ...}}` or
-  `{"llm": {"providers": [{"provider": "ollama", "config": {"model": ...}}]}}`
+  structured hint such as `{"ollama": {"model": ...}}`,
+  `{"llm": {"providers": [{"provider": "ollama", "config": {"model": ...}}]}}`,
+  or `{"providers": {"default": {"provider": "ollama", "config": {"task_model": ...}}}}`
   in `market_data`, letting
   workloads opt into bespoke Dynamic models without reconfiguring the
   orchestrator. The orchestrator also scales the fusion engine’s reasoning
