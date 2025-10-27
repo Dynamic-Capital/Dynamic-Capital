@@ -70,7 +70,7 @@ jobs:
             --allow-drift
 
       - name: Upload schema report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: toncenter-schema-report
           path: schema-report.json
