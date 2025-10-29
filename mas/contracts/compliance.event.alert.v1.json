@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamic.capital/schemas/compliance.event.alert.v1.json",
+  "title": "Compliance Alert Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["envelope", "payload"],
+  "properties": {
+    "envelope": {"$ref": "./envelope.v1.json"},
+    "payload": {
+      "type": "object",
+      "required": [
+        "alert_id",
+        "order_id",
+        "symbol",
+        "severity",
+        "rule_id",
+        "description",
+        "idempotency_key"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "alert_id": {"type": "string", "format": "uuid"},
+        "order_id": {"type": "string", "format": "uuid"},
+        "symbol": {"type": "string", "pattern": "^[A-Z0-9_.-]{1,20}$"},
+        "severity": {"type": "string", "enum": ["INFO", "WARN", "CRITICAL"]},
+        "rule_id": {"type": "string"},
+        "description": {"type": "string", "maxLength": 2048},
+        "remediation_required": {"type": "boolean"},
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "location"],
+            "properties": {
+              "type": {"type": "string"},
+              "location": {"type": "string", "format": "uri"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "idempotency_key": {"type": "string", "minLength": 16, "maxLength": 64}
+      }
+    }
+  }
+}

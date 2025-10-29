@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamic.capital/schemas/envelope.v1.json",
+  "title": "Dynamic MAS Envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "msg_id",
+    "type",
+    "version",
+    "ts",
+    "ttl_ms",
+    "sender",
+    "payload",
+    "idempotency_key",
+    "sig"
+  ],
+  "properties": {
+    "msg_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this message instance"
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.-]+$",
+      "description": "Topic-style message type (e.g. order.intent)"
+    },
+    "version": {
+      "type": "string",
+      "enum": ["v1"],
+      "description": "Semantic version tag for the envelope"
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event creation timestamp (UTC)"
+    },
+    "ttl_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 600000,
+      "description": "Time-to-live in milliseconds"
+    },
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Correlation identifier linking related envelopes"
+    },
+    "causation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifier of the upstream envelope that triggered this message"
+    },
+    "sender": {
+      "type": "string",
+      "pattern": "^agent\\.[a-z0-9_.-]+$",
+      "description": "Canonical agent name"
+    },
+    "intent": {
+      "type": "string",
+      "description": "Optional verb describing the requested action"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "description": "Deterministic key used for deduplication"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Message body defined by domain schema"
+    },
+    "sig": {
+      "type": "string",
+      "pattern": "^ed25519:[A-Za-z0-9+/=]+$",
+      "description": "Detached signature over canonical envelope"
+    }
+  }
+}

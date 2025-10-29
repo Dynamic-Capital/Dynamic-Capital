@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamic.capital/schemas/signal.event.opportunity.v1.json",
+  "title": "Signal Opportunity Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "envelope",
+    "payload"
+  ],
+  "properties": {
+    "envelope": {
+      "$ref": "./envelope.v1.json"
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "symbol",
+        "score",
+        "confidence",
+        "horizon_ms",
+        "features",
+        "idempotency_key"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_.-]{1,20}$",
+          "description": "Instrument identifier"
+        },
+        "score": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10,
+          "description": "Signed score representing expected return"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Model confidence in score"
+        },
+        "horizon_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 86400000,
+          "description": "Holding horizon in milliseconds"
+        },
+        "features": {
+          "type": "object",
+          "description": "Top explanatory features",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 64
+        },
+        "partition_key": {
+          "type": "string",
+          "description": "Kafka partition key (default symbol)"
+        },
+        "model_version": {
+          "type": "string",
+          "description": "Semantic version of generating model"
+        },
+        "explanations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["feature", "weight"],
+            "properties": {
+              "feature": {"type": "string"},
+              "weight": {"type": "number"}
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  }
+}
