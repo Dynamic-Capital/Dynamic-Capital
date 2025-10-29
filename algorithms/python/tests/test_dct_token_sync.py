@@ -149,6 +149,24 @@ def test_allocation_engine_respects_weights_and_multipliers() -> None:
     assert pytest.approx(vip.per_member or 0.0, rel=1e-4) == 720
 
 
+def test_allocation_engine_scales_when_minimums_exceed_budget() -> None:
+    engine = DCTAllocationEngine(
+        rules=[
+            DCTAllocationRule("VIP", weight=3, multiplier=1.0, min_allocation=80_000),
+            DCTAllocationRule("Labs", weight=2, multiplier=1.0, min_allocation=40_000),
+        ]
+    )
+    allocations = engine.distribute(100_000)
+    assert len(allocations) == 2
+    total_base = sum(entry.base_allocation for entry in allocations)
+    assert total_base == pytest.approx(100_000, rel=1e-6)
+    vip_allocation, labs_allocation = allocations
+    expected_vip = 100_000 * (80_000 / 120_000)
+    expected_labs = 100_000 * (40_000 / 120_000)
+    assert vip_allocation.base_allocation == pytest.approx(expected_vip, rel=1e-6)
+    assert labs_allocation.base_allocation == pytest.approx(expected_labs, rel=1e-6)
+
+
 def test_sync_job_compiles_payload_and_writes_to_supabase() -> None:
     calculator = DCTPriceCalculator()
     planner = DCTProductionPlanner()

@@ -290,14 +290,40 @@ class DCTAllocationEngine:
 
     def distribute(self, total_dct: float) -> List[DCTAllocationResult]:
         total_dct = max(0.0, total_dct)
-        weight_total = sum(rule.weight for rule in self.rules if rule.weight > 0)
-        results: MutableSequence[DCTAllocationResult] = []
-        if weight_total <= 0:
-            return list(results)
+        if not self.rules:
+            return []
 
-        for rule in self.rules:
-            weight_share = rule.weight / weight_total
-            base_allocation = max(rule.min_allocation, total_dct * weight_share)
+        min_allocations = [max(0.0, rule.min_allocation) for rule in self.rules]
+        total_minimum = sum(min_allocations)
+        results: MutableSequence[DCTAllocationResult] = []
+
+        if total_dct == 0.0:
+            base_allocations = [0.0 for _ in self.rules]
+        elif total_minimum > 0.0 and total_minimum >= total_dct:
+            scale = total_dct / total_minimum
+            base_allocations = [min_alloc * scale for min_alloc in min_allocations]
+        else:
+            remaining = max(0.0, total_dct - total_minimum)
+            weight_total = sum(rule.weight for rule in self.rules if rule.weight > 0)
+            if weight_total > 0:
+                base_allocations = []
+                for rule, min_alloc in zip(self.rules, min_allocations):
+                    share = rule.weight / weight_total if rule.weight > 0 else 0.0
+                    base_allocations.append(min_alloc + remaining * share)
+            elif total_minimum > 0.0:
+                scale = total_dct / total_minimum
+                base_allocations = [min_alloc * scale for min_alloc in min_allocations]
+            else:
+                equal_share = total_dct / len(self.rules)
+                base_allocations = [equal_share for _ in self.rules]
+
+        if base_allocations:
+            discrepancy = total_dct - sum(base_allocations)
+            if abs(discrepancy) > 1e-9:
+                base_allocations[-1] += discrepancy
+
+        for rule, base_allocation in zip(self.rules, base_allocations):
+            base_allocation = max(0.0, base_allocation)
             adjusted_allocation = base_allocation * max(rule.multiplier, 0.0)
             per_member = None
             if rule.member_count and rule.member_count > 0:
