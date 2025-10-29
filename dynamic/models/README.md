@@ -40,6 +40,7 @@ control, and calibration details to your scenario.
 | `dynamic/models/dynamic_forecast/schema.md` | Linear-Gaussian state estimation using Kalman filter structure. |
 | `dynamic/models/dynamic_message_queue/schema.md` | Queue length management via controllable service rates. |
 | `dynamic/models/dynamic_thinking/schema.md` | Multi-armed bandit tracking of posterior means and counts. |
+| `dynamic/models/dynamic_rlhf/schema.md` | RLHF reward optimisation with rolling preference memory and harvest guardrails. |
 | `dynamic/models/dynamic_token/schema.md` | Token market clearing with linear demand and supply curves (module exported as `dynamic.platform.token`). |
 | `dynamic/models/dynamic_troposphere/schema.md` | Tropospheric pressure profiling with lapse-rate adjustments. |
 
@@ -55,6 +56,8 @@ new module. Update variable names and calibration notes as needed.
 | `dynamic/models/dynamic_cache/eq_che.md` | Che approximation for cache hit probabilities and cache sizing. |
 | `dynamic/models/dynamic_message_queue/eq_mm1.md` | M/M/1 queue steady-state utilization, wait time, and queue length relationships. |
 | `dynamic/models/dynamic_forecast/eq_kalman.md` | Kalman filter prediction and update recursions for linear-Gaussian state space models. |
+| `dynamic/models/dynamic_rlhf/eq_reward_model.md` | Logistic preference learning update with L2 regularisation tuned for human feedback datasets. |
+| `dynamic/models/dynamic_rlhf/eq_policy_update.md` | Harvest policy translating reward probabilities into fine-tune priorities. |
 | `dynamic/models/dynamic_troposphere/eq_barometric.md` | Barometric formula relating altitude to pressure under an isothermal assumption. |
 | `dynamic/models/dynamic_token/eq_equilibrium.md` | Linear demand/supply equilibrium condition for market-clearing token prices (module exported as `dynamic.platform.token`). |
 | `dynamic/models/dynamic_thinking/eq_ucb.md` | Upper Confidence Bound (UCB) policy for exploration in multi-armed bandits. |
