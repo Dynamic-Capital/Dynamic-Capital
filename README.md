@@ -469,6 +469,26 @@ feeds into Supabase for downstream strategy modeling.
 `dynamic_crawl/` provides modular crawlers with embeddings, summarization, and
 signal tagging pipelines.
 
+### Crawl4AI snapshot
+
+Dynamic Capital now vendors [Crawl4AI](https://github.com/unclecode/crawl4ai)
+under `third_party/crawl4ai` so advanced crawling workflows can run without
+initialising a git submodule. The snapshot tracks upstream commit
+`e651e045c44201c83ae68f3ef4858303533f18d9`.
+
+- **Dependencies** – install the Python packages listed in
+  `third_party/crawl4ai/requirements.txt` (Playwright, aiohttp, litellm, etc.).
+  Optional extras such as PDF parsing match the upstream project. The
+  dependencies are not installed automatically to keep the core workspace
+  lightweight.
+- **CLI helper** – use `python tools/crawl4ai_runner.py <URL>` to fetch a page
+  and emit markdown or HTML. The helper adds the vendored package to
+  `sys.path`, exposes basic flags (cache, CSS selectors, fit output), and
+  writes the output to stdout or a file.
+- **Upgrades** – replace the contents of
+  `third_party/crawl4ai/crawl4ai/` with a newer upstream copy and update the
+  README in that directory when bumping versions.
+
 ### Dynamic Hedge Model
 
 `dynamic_hedge_model/` orchestrates hedging strategies with risk guardrails and
