@@ -264,6 +264,12 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_quote": ("QuoteContext", "QuoteDigest", "QuoteIdea"),
     "dynamic_reference": ("ReferenceContext", "ReferenceDigest", "ReferenceEntry"),
     "dynamic_self_awareness": ("AwarenessContext", "SelfAwarenessReport", "SelfAwarenessSignal"),
+    "dynamic_seasonality": (
+        "SeasonalObservation",
+        "SeasonalityProfile",
+        "SeasonalitySnapshot",
+        "DynamicSeasonality",
+    ),
     "dynamic_skeleton": ("AuditLogEntry", "Proposal", "Vote", "ComplianceCheck", "ComplianceReport"),
     "dynamic_states": ("StateSignal", "StateDefinition", "StateSnapshot"),
     "dynamic_stem_cell": ("StemCellContext", "StemCellProfile", "StemCellSignal"),
