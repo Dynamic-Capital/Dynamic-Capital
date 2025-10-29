@@ -58,6 +58,140 @@ _DRAWDOWN_CONFIDENCE_CAP = 0.35
 _DRAWDOWN_HOLD_THRESHOLD = 0.09
 _DRAWDOWN_NEUTRAL_THRESHOLD = 0.12
 
+_CRYPTO_TICKER_HINTS = (
+    "BTC",
+    "XBT",
+    "ETH",
+    "XRP",
+    "BNB",
+    "SOL",
+    "ADA",
+    "DOGE",
+    "DOT",
+    "LTC",
+    "XLM",
+    "TON",
+    "AVAX",
+    "SHIB",
+    "MATIC",
+    "USDT",
+    "USDC",
+    "BUSD",
+    "DAI",
+    "BCH",
+    "XMR",
+    "LINK",
+    "ATOM",
+    "NEAR",
+    "APT",
+    "ARB",
+    "OP",
+    "PERP",
+)
+
+_CRYPTO_TICKER_HINTS_SET: Set[str] = frozenset(_CRYPTO_TICKER_HINTS)
+
+_COMMON_QUOTE_TOKENS = {
+    "USD",
+    "USDT",
+    "USDC",
+    "USDK",
+    "USDD",
+    "USDP",
+    "USDX",
+    "EUR",
+    "GBP",
+    "JPY",
+    "CNY",
+    "KRW",
+    "TRY",
+    "AUD",
+    "CAD",
+    "CHF",
+    "SGD",
+    "HKD",
+    "NZD",
+    "ZAR",
+    "BRL",
+    "MXN",
+    "IDR",
+    "RUB",
+    "INR",
+    "BTC",
+    "ETH",
+    "BNB",
+    "BUSD",
+    "DAI",
+    "PERP",
+}
+
+
+_DERIVATIVE_SUFFIXES: Tuple[str, ...] = (
+    "PERP",
+    "SWAP",
+    "THISWEEK",
+    "NEXTWEEK",
+    "QUARTER",
+    "F0",
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9",
+    "1S",
+    "2S",
+    "3S",
+    "4S",
+    "5S",
+    "10S",
+    "1L",
+    "2L",
+    "3L",
+    "4L",
+    "5L",
+    "10L",
+    "UP",
+    "DOWN",
+    "BULL",
+    "BEAR",
+    "LONG",
+    "SHORT",
+    "M",
+    "H",
+)
+
+
+def _strip_quote_suffix(token: str) -> str:
+    """Remove derivative suffixes and numeric settlements from quote tokens."""
+
+    candidate = token
+    while candidate:
+        stripped = False
+        for suffix in _DERIVATIVE_SUFFIXES:
+            if candidate.endswith(suffix):
+                next_candidate = candidate[: -len(suffix)]
+                # Keep recognised quote tokens such as "PERP" intact instead of
+                # stripping them down to an empty string.
+                if not next_candidate and candidate in _COMMON_QUOTE_TOKENS:
+                    return candidate
+                candidate = next_candidate
+                stripped = True
+                break
+        if stripped:
+            continue
+
+        truncated = candidate.rstrip("0123456789")
+        if truncated != candidate:
+            candidate = truncated
+            continue
+        break
+
+    return candidate
+
 
 @dataclass(frozen=True)
 class CompositeComponent:
@@ -155,6 +289,8 @@ class PreparedMarketContext:
     resistance_level: Any
     human_bias: Optional[str]
     human_weight: Optional[float]
+    symbol: Optional[str]
+    asset_class: Optional[str]
     circuit_breaker: bool
 
     def __post_init__(self) -> None:
@@ -213,7 +349,9 @@ class DynamicFusionAlgo:
 
         consensus_lookup = self._build_consensus_provider(prepared)
 
-        ai_action = self._refine_action(prepared)
+        ai_action, strategy_note = self._refine_action(prepared)
+        if strategy_note:
+            extra_notes.append(strategy_note)
         confidence, consensus = self._calculate_confidence(prepared, ai_action, consensus_lookup)
         consensus_action = ai_action
 
@@ -250,12 +388,14 @@ class DynamicFusionAlgo:
         composite_score = self._derive_composite_score(context)
         consensus_lookup = self._build_consensus_provider(context)
 
-        base_action = self._refine_action(context)
+        base_action, strategy_note = self._refine_action(context)
         base_confidence, base_consensus = self._calculate_confidence(
             context, base_action, consensus_lookup
         )
 
         annotations: List[str] = []
+        if strategy_note:
+            annotations.append(strategy_note)
         final_action = base_action
         final_confidence = base_confidence
 
@@ -304,6 +444,9 @@ class DynamicFusionAlgo:
     def _prepare_context(self, market_data: Dict[str, Any]) -> PreparedMarketContext:
         raw_signal = str(market_data.get("signal", "NEUTRAL")).upper()
         resolved_signal = raw_signal if raw_signal in VALID_SIGNALS else "NEUTRAL"
+
+        symbol = self._resolve_symbol(market_data)
+        asset_class = self._resolve_asset_class(market_data, symbol)
 
         momentum = self._safe_float(market_data.get("momentum"))
         trend_value = market_data.get("trend")
@@ -411,30 +554,188 @@ class DynamicFusionAlgo:
             resistance_level=resistance_level,
             human_bias=human_bias,
             human_weight=human_weight,
+            symbol=symbol,
+            asset_class=asset_class,
             circuit_breaker=circuit_breaker,
         )
 
-    def _refine_action(self, context: "PreparedMarketContext") -> str:
+    @staticmethod
+    def _resolve_symbol(market_data: Mapping[str, Any]) -> str | None:
+        for key in ("symbol", "ticker", "instrument", "pair", "market_symbol"):
+            candidate = market_data.get(key)
+            if candidate is None:
+                continue
+            text = str(candidate).strip().upper()
+            if text:
+                return text
+        return None
+
+    @classmethod
+    def _resolve_asset_class(
+        cls, market_data: Mapping[str, Any], symbol: str | None
+    ) -> str | None:
+        for key in (
+            "asset_class",
+            "assetClass",
+            "asset_type",
+            "assetType",
+            "asset_category",
+            "assetCategory",
+            "category",
+            "instrument_class",
+            "market",
+        ):
+            candidate = market_data.get(key)
+            if candidate is None:
+                continue
+            text = str(candidate).strip().lower()
+            if text:
+                return text
+        if cls._is_crypto_symbol(symbol):
+            return "crypto"
+        return None
+
+    @staticmethod
+    def _symbol_token(symbol: str | None) -> str:
+        if not symbol:
+            return ""
+        token = str(symbol).upper()
+        for char in ("/", "-", "_", ":", ".", " ", "!"):
+            token = token.replace(char, "")
+        return token
+
+    @classmethod
+    def _is_crypto_symbol(cls, symbol: str | None) -> bool:
+        token = cls._symbol_token(symbol)
+        if not token:
+            return False
+
+        hints = _CRYPTO_TICKER_HINTS_SET
+        if token in hints:
+            return True
+
+        segments: List[str] = []
+        current = []
+        for char in token:
+            if char.isalpha():
+                current.append(char)
+            else:
+                if current:
+                    segments.append("".join(current))
+                    current = []
+        if current:
+            segments.append("".join(current))
+
+        if segments:
+            for segment in segments:
+                if segment in hints:
+                    return True
+
+        for hint in hints:
+            if token.startswith(hint):
+                suffix = token[len(hint) :]
+                if suffix and cls._token_looks_like_quote(suffix):
+                    return True
+            if token.endswith(hint):
+                prefix = token[: -len(hint)]
+                if prefix and cls._token_looks_like_quote(prefix):
+                    return True
+
+        return False
+
+    @staticmethod
+    def _token_looks_like_quote(token: str) -> bool:
+        if not token or token.isdigit():
+            return False
+        candidate = _strip_quote_suffix(token)
+        if not candidate:
+            return False
+        return candidate in _COMMON_QUOTE_TOKENS
+
+    def _is_crypto_context(self, context: "PreparedMarketContext") -> bool:
+        if context.asset_class and context.asset_class.lower() == "crypto":
+            return True
+        if self._is_crypto_symbol(context.symbol):
+            return True
+        return False
+
+    def _refine_action(self, context: "PreparedMarketContext") -> tuple[str, Optional[str]]:
+        strategy_note: Optional[str] = None
+        action = context.resolved_signal
+
         composite_score = self._derive_composite_score(context)
         if composite_score is not None:
             composite_action = self._score_to_action(composite_score)
             if composite_action != "NEUTRAL" or context.resolved_signal in {"BUY", "SELL"}:
-                return composite_action
+                action = composite_action
 
         momentum = context.momentum or 0.0
         trend = context.trend or ""
 
         if momentum > 0.6 and context.resolved_signal == "BUY":
-            return "BUY"
+            action = "BUY"
         if momentum < -0.6 and context.resolved_signal == "SELL":
-            return "SELL"
+            action = "SELL"
 
         if trend in {"bullish", "uptrend"} and context.resolved_signal in {"BUY", "HOLD", "NEUTRAL"}:
-            return "BUY"
+            action = "BUY"
         if trend in {"bearish", "downtrend"} and context.resolved_signal in {"SELL", "HOLD", "NEUTRAL"}:
-            return "SELL"
+            action = "SELL"
 
-        return context.resolved_signal
+        action, dip_note = self._apply_crypto_buy_the_dip(action, context)
+        if dip_note:
+            strategy_note = dip_note
+
+        return action, strategy_note
+
+    def _apply_crypto_buy_the_dip(
+        self, action: str, context: "PreparedMarketContext"
+    ) -> tuple[str, Optional[str]]:
+        if not self._is_crypto_context(context):
+            return action, None
+        if context.circuit_breaker:
+            return action, None
+
+        drawdown = context.drawdown
+        if drawdown is None or drawdown >= -0.03:
+            return action, None
+
+        dip_magnitude = abs(drawdown)
+        if dip_magnitude < 0.04:
+            return action, None
+
+        long_term_bias = 0.0
+        if context.trend in {"bullish", "uptrend"}:
+            long_term_bias += 0.4
+        if context.composite_trimmed_mean is not None and context.composite_trimmed_mean > 0:
+            long_term_bias += min(0.3, context.composite_trimmed_mean)
+        if context.sentiment_value is not None and context.sentiment_value > 0:
+            long_term_bias += min(0.2, context.sentiment_value)
+        if context.alignment is not None and context.alignment > 0:
+            long_term_bias += min(0.15, context.alignment * 0.5)
+        if context.support_level:
+            long_term_bias += 0.1
+
+        short_term_pressure = 0.0
+        if context.momentum is not None and context.momentum < 0:
+            short_term_pressure += min(0.3, abs(context.momentum))
+        if context.sentiment_value is not None and context.sentiment_value < 0:
+            short_term_pressure += min(0.2, abs(context.sentiment_value))
+
+        conviction = long_term_bias - short_term_pressure
+        if conviction < 0.15:
+            return action, None
+
+        if action == "SELL" and conviction < 0.25:
+            return action, None
+
+        if action != "BUY":
+            note = (
+                f"Crypto buy-the-dip heuristic promoted BUY after {dip_magnitude:.1%} drawdown."
+            )
+            return "BUY", note
+
+        return action, None
 
     def _composite_components(self, context: "PreparedMarketContext") -> Tuple[CompositeComponent, ...]:
         components: List[CompositeComponent] = []
@@ -557,6 +858,19 @@ class DynamicFusionAlgo:
                     reduction += _DRAWDOWN_CONFIDENCE_EXTRA
                 reduction = min(_DRAWDOWN_CONFIDENCE_CAP, reduction)
                 confidence = max(0.0, confidence - reduction)
+
+        dip_recovery = (
+            action == "BUY"
+            and context.drawdown is not None
+            and context.drawdown < -0.04
+            and self._is_crypto_context(context)
+            and context.resolved_signal != "BUY"
+        )
+        if dip_recovery:
+            bonus = min(0.2, abs(context.drawdown) * 0.6)
+            if context.trend in {"bullish", "uptrend"}:
+                bonus += 0.05
+            confidence = min(1.0, confidence + bonus)
 
         if consensus_provider is None:
             consensus = self._indicator_consensus(context, action)
