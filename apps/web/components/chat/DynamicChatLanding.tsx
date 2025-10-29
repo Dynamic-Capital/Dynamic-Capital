@@ -521,8 +521,9 @@ function DynamicChatLanding() {
                           Desk alerts, minimal noise
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Monitor curated TON and FX triggers without leaving
-                          the workspace shell.
+                          Monitor curated automation tone alongside live
+                          CoinGecko telemetry streamed straight into the
+                          workspace shell.
                         </p>
                       </div>
                       <div
