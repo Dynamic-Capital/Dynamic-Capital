@@ -113,6 +113,50 @@ A `200`/`202` response indicates the alert was accepted; `401` or `400`
 responses call out secret mismatches or schema issues. Monitor Supabase logs and
 the MT5 bridge listener for claimed signals to ensure the pipeline is healthy.
 
+### Remote debugging with local MT5 terminals
+
+Use the following workflow when a teammate has connected their local MT5
+terminal to the automation stack via webhook but the engineering team cannot
+access the workstation directly:
+
+1. **Capture the webhook exchange**
+   - Save the raw JSON payload that TradingView (or the upstream service)
+     delivered to the webhook. Mask account identifiers before sharing.
+   - Record the HTTP response status and body returned by the webhook handler.
+   - If the webhook is proxied through a tunnel (e.g., ngrok, Cloudflare
+     Tunnel), export the request trace or HAR for reference.
+2. **Collect MT5 bridge telemetry**
+   - Run the MT5 bridge worker with `LOG_LEVEL=DEBUG` so order routing steps and
+     Supabase RPC calls are logged.
+   - Copy the relevant log excerpt for the affected signal, including ticket
+     IDs, rejection codes, and retry attempts.
+   - If the Expert Advisor surfaces an alert inside MT5, take a screenshot or
+     export the journal text and redact sensitive balances.
+3. **Share Supabase context**
+   - Query the `signals`, `mt5_trade_logs`, and `automation_events` tables for
+     the signal identifier to confirm the state transitions the webhook
+     recorded.
+   - Include any error payloads from the `webhook_failures` or `automation_jobs`
+     tables if retries were triggered.
+4. **Report environment details**
+   - Note the MT5 account type (demo vs. live), broker server, and EA version or
+     Git commit.
+   - Provide the tunnel or webhook URL (sans secrets) so engineers can replay
+     requests against staging if needed.
+5. **Provide reproducible backtests or replays**
+   - Run the MT5 Strategy Tester (or your preferred backtesting harness) with
+     the same symbol, timeframe, and date range that triggered the issue, then
+     export the HTML/CSV report and zip the `tester/logs` directory.
+   - Share the applied set file or configuration template so engineers can
+     replay the scenario against the automation codebase.
+   - If a Python backtest script drove the webhook, include the exact commit and
+     command (for example `pytest tests/test_dynamic_*`) used to produce the
+     signals so the automation team can reproduce the sequence locally.
+
+Sharing the above artifacts allows reviewers to debug webhook failures and MT5
+execution issues asynchronously without requiring remote access to the local
+terminal.
+
 ## OpenAI Webhook
 
 The `openai-webhook` function receives event callbacks from OpenAI. Every
