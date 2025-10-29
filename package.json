@@ -17,6 +17,7 @@
     "build:web": "node scripts/npm-safe.mjs -w apps/web run build",
     "build:dynamic-ai": "node scripts/dynamic-ai-phased-build.mjs",
     "build:miniapp": "bash scripts/build-miniapp.sh",
+    "build:dtl": "tsx scripts/dtl/build.ts",
     "build:dev": "vite build --mode development",
     "build:legacy": "node lovable-build.js",
     "analyze": "ANALYZE=true node scripts/npm-safe.mjs -w apps/web run build",
