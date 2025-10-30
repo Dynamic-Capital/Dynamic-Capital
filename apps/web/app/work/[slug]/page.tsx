@@ -79,6 +79,7 @@ export default async function Project({ params }: WorkPageProps) {
 
   if (!post) {
     notFound();
+    return null;
   }
 
   const avatars = post.metadata.team?.map((person) => ({

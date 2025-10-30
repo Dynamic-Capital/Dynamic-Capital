@@ -11,7 +11,15 @@ import {
   Theme,
   TransitionStyle,
 } from "../../components/dynamic-ui-system";
-import { NextFontWithVariable } from "next/dist/compiled/@next/font";
+type NextFontWithVariable = {
+  className: string;
+  variable: string;
+  style: {
+    fontFamily: string;
+    fontWeight?: number;
+    fontStyle?: string;
+  };
+};
 
 /**
  * Display configuration for UI elements.

@@ -1,14 +1,24 @@
 # Dynamic Ecosystem Network Manifest (DENM v1.0)
 
 ## Overview
-The Dynamic Ecosystem Network Manifest (DENM) consolidates all active cores, agents, personas, and governance pathways that power the Dynamic Capital Intelligence Suite. It expands upon the prior AI, AGI, and AGS summaries to provide a single source of truth across analytical, cognitive, governance, and quantum layers.
 
-- **Version:** 1.0  
-- **Maintainer:** Dynamic Capital Foundation  
-- **Scope:** Dynamic AI (DAI), Dynamic AGI (DAGI), Dynamic AGS (DAGS), Dynamic Quantum Agents (DQA), subsystems, personas, and governance metadata.
+The Dynamic Ecosystem Network Manifest (DENM) consolidates all active cores,
+agents, personas, and governance pathways that power the Dynamic Capital
+Intelligence Suite. It expands upon the prior AI, AGI, and AGS summaries to
+provide a single source of truth across analytical, cognitive, governance, and
+quantum layers.
+
+- **Version:** 1.0
+- **Maintainer:** Dynamic Capital Foundation
+- **Scope:** Dynamic AI (DAI), Dynamic AGI (DAGI), Dynamic AGS (DAGS), Dynamic
+  Quantum Agents (DQA), subsystems, personas, and governance metadata.
 
 ## Human-Readable Master Map
-The manifest is authored in YAML so it can be ingested by tooling while remaining accessible to stakeholders. The structure mirrors the layer hierarchy outlined by the D.Y.N.A.M.I.C. principle (Driving Yield of New Advancements in Minds, Innovation & Creation).
+
+The manifest is authored in YAML so it can be ingested by tooling while
+remaining accessible to stakeholders. The structure mirrors the layer hierarchy
+outlined by the D.Y.N.A.M.I.C. principle (Driving Yield of New Advancements in
+Minds, Innovation & Creation).
 
 ```yaml
 # ============================================================
@@ -36,15 +46,15 @@ core_network:
     type: Analytical / Operational
     total_cores: 11
     cores:
-      DCM1:  Data Processing
-      DCM2:  Pattern Recognition
-      DCM3:  Predictive Modeling
-      DCM4:  Risk Assessment
-      DCM5:  Optimization
-      DCM6:  Adaptive Learning
-      DCM7:  Decision Logic
-      DCM8:  Memory Management
-      DCM9:  Context Analysis
+      DCM1: Data Processing
+      DCM2: Pattern Recognition
+      DCM3: Predictive Modeling
+      DCM4: Risk Assessment
+      DCM5: Optimization
+      DCM6: Adaptive Learning
+      DCM7: Decision Logic
+      DCM8: Memory Management
+      DCM9: Context Analysis
       DCM10: Validation
       DCM11: Integration
     adapters:
@@ -59,7 +69,16 @@ core_network:
       - MiniMax M1
       - Zhipu AI
       - Hunyuan
-    personas: [Watcher, Agent, Planner, Builder, Helper, Keeper, Manager, Developer]
+    personas: [
+      Watcher,
+      Agent,
+      Planner,
+      Builder,
+      Helper,
+      Keeper,
+      Manager,
+      Developer,
+    ]
 
   DAGI:
     name: Dynamic_AGI
@@ -90,7 +109,17 @@ core_network:
       DCR4: Observability
       DCR5: Reliability
     pattern: LLM-as-Judge / Critic with redundant reviewers
-    personas: [Bot, Watcher, Agent, Keeper, Planner, Manager, Developer, Assistant, Helper]
+    personas: [
+      Bot,
+      Watcher,
+      Agent,
+      Keeper,
+      Planner,
+      Manager,
+      Developer,
+      Assistant,
+      Helper,
+    ]
 
   totals:
     analytic_cores: 11
@@ -234,12 +263,21 @@ summary:
 ```
 
 ## Rollup Metrics
-- **Core inventory:** 25 total cores split across analytical (11), cognitive (9), and governance (5) responsibilities.
-- **Quantum roster:** 12 Dynamic Quantum Agents mapped to mission-specific mandates.
-- **Operational breadth:** 12 subsystems and 10 persona agents deliver 59 active nodes across the network.
-- **Governance chain:** Weekly reporting from Dynamic AI through Dynamic AGS with Zeus DQA arbitration and Athena DQA ethics gating.
+
+- **Core inventory:** 25 total cores split across analytical (11), cognitive
+  (9), and governance (5) responsibilities.
+- **Quantum roster:** 12 Dynamic Quantum Agents mapped to mission-specific
+  mandates.
+- **Operational breadth:** 12 subsystems and 10 persona agents deliver 59 active
+  nodes across the network.
+- **Governance chain:** Weekly reporting from Dynamic AI through Dynamic AGS
+  with Zeus DQA arbitration and Athena DQA ethics gating.
 
 ## Usage Notes
-- The YAML manifest can be imported by orchestration tools to programmatically discover capabilities, personas, and fallback rules.
-- Update the `meta.created` field when rolling out new revisions and increment the `version` tag accordingly.
-- Extend the `subsystems` or `personas` arrays with additional definitions as new products, services, or roles come online.
+
+- The YAML manifest can be imported by orchestration tools to programmatically
+  discover capabilities, personas, and fallback rules.
+- Update the `meta.created` field when rolling out new revisions and increment
+  the `version` tag accordingly.
+- Extend the `subsystems` or `personas` arrays with additional definitions as
+  new products, services, or roles come online.

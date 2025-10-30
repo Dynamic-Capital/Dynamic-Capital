@@ -76,6 +76,7 @@ export default async function Blog({ params }: BlogPageProps) {
 
   if (!post) {
     notFound();
+    return null;
   }
 
   const avatars = post.metadata.team?.map((person) => ({
