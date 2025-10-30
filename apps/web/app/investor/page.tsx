@@ -26,6 +26,7 @@ export default async function InvestorPage() {
 
   if (!user) {
     redirect(`/login?redirect=${encodeURIComponent("/investor")}`);
+    return null;
   }
 
   try {

@@ -41,11 +41,16 @@ import { escapeHtml } from "./helpers/escape.ts";
 let Bot: any;
 try {
   // Top-level await is supported in Deno; import may fail in offline / restricted envs.
-  const grammyMod = await import("https://deno.land/x/grammy@v1.18.1/mod.ts").catch(() => null);
-  Bot = grammyMod?.Bot ?? class { constructor(..._args: any[]) {} };
+  const grammyMod = await import("https://deno.land/x/grammy@v1.18.1/mod.ts")
+    .catch(() => null);
+  Bot = grammyMod?.Bot ?? class {
+    constructor(..._args: any[]) {}
+  };
 } catch {
   // Fallback stub: minimal constructor to avoid runtime crashes where Bot is new'ed.
-  Bot = class { constructor(..._args: any[]) {} };
+  Bot = class {
+    constructor(..._args: any[]) {}
+  };
 }
 import {
   buildBaseHeaderApplier,
@@ -100,8 +105,10 @@ interface TelegramMessage {
   chat: { id: number; type?: string; title?: string };
   photo?: Array<{ file_id: string }>;
   document?: {
-    mime_type: any; file_id: string; file_name?: string 
-};
+    mime_type: any;
+    file_id: string;
+    file_name?: string;
+  };
   caption?: string;
   photo?: { file_id: string }[];
   document?: { file_id: string; mime_type?: string };
@@ -180,7 +187,7 @@ const securityStats: SecurityStats = {
   totalRequests: 0,
   blockedRequests: 0,
   suspiciousUsers: new Set(),
-  lastCleanup: Date.now()
+  lastCleanup: Date.now(),
 };
 
 // Security configuration
@@ -188,265 +195,341 @@ const SECURITY_CONFIG = {
   // Rate limits per minute
   MAX_REQUESTS_PER_MINUTE: 20,
   MAX_REQUESTS_PER_HOUR: 150,
-  
+
   // Spam protection
   MAX_IDENTICAL_MESSAGES: 3,
   MAX_COMMANDS_PER_MINUTE: 8,
   FLOOD_PROTECTION_WINDOW: 60000, // 1 minute
-  
+
   // Blocking thresholds
   SUSPICIOUS_THRESHOLD: 30, // requests per minute
   AUTO_BLOCK_DURATION: 300000, // 5 minutes
   TEMP_BLOCK_DURATION: 60000, // 1 minute for minor violations
-  
+
   // Message limits
   MAX_MESSAGE_LENGTH: 4000,
   MIN_MESSAGE_INTERVAL: 500, // 0.5 second between messages
-  
+
   // Admin exemption
   ADMIN_RATE_LIMIT_MULTIPLIER: 5,
-  
+
   // Cleanup interval
-  CLEANUP_INTERVAL: 1800000 // 30 minutes
+  CLEANUP_INTERVAL: 1800000, // 30 minutes
 };
 
 // Security functions
-function getRateLimitKey(userId: string, type: 'minute' | 'hour' | 'command' | 'message' | 'identical'): string {
+function getRateLimitKey(
+  userId: string,
+  type: "minute" | "hour" | "command" | "message" | "identical",
+): string {
   const now = new Date();
-  if (type === 'minute') {
+  if (type === "minute") {
     return `${userId}:min:${Math.floor(now.getTime() / 60000)}`;
-  } else if (type === 'hour') {
+  } else if (type === "hour") {
     return `${userId}:hr:${Math.floor(now.getTime() / 3600000)}`;
-  } else if (type === 'command') {
+  } else if (type === "command") {
     return `${userId}:cmd:${Math.floor(now.getTime() / 60000)}`;
-  } else if (type === 'identical') {
+  } else if (type === "identical") {
     return `${userId}:ident`;
   } else {
-    return `${userId}:msg:${Math.floor(now.getTime() / SECURITY_CONFIG.MIN_MESSAGE_INTERVAL)}`;
+    return `${userId}:msg:${
+      Math.floor(now.getTime() / SECURITY_CONFIG.MIN_MESSAGE_INTERVAL)
+    }`;
   }
 }
 
-function isRateLimited(userId: string, isAdmin: boolean = false, messageText?: string): { limited: boolean; reason?: string; blockDuration?: number } {
+function isRateLimited(
+  userId: string,
+  isAdmin: boolean = false,
+  messageText?: string,
+): { limited: boolean; reason?: string; blockDuration?: number } {
   const now = Date.now();
   const multiplier = isAdmin ? SECURITY_CONFIG.ADMIN_RATE_LIMIT_MULTIPLIER : 1;
-  
+
   // Check if user is temporarily blocked
   const blockKey = `block:${userId}`;
   const blockEntry = rateLimitStore.get(blockKey);
-  if (blockEntry?.blocked && blockEntry.blockUntil && now < blockEntry.blockUntil) {
+  if (
+    blockEntry?.blocked && blockEntry.blockUntil && now < blockEntry.blockUntil
+  ) {
     const remainingTime = Math.ceil((blockEntry.blockUntil - now) / 1000);
-    logSecurityEvent(userId, 'blocked_request_attempt', { remainingTime });
-    return { limited: true, reason: 'temporarily_blocked', blockDuration: remainingTime };
+    logSecurityEvent(userId, "blocked_request_attempt", { remainingTime });
+    return {
+      limited: true,
+      reason: "temporarily_blocked",
+      blockDuration: remainingTime,
+    };
   }
-  
+
   // Check for identical message spam
   if (messageText && messageText.length > 10) {
-    const identicalKey = getRateLimitKey(userId, 'identical');
-    const identicalEntry = rateLimitStore.get(identicalKey) || { count: 0, lastReset: now, identicalCount: 0 };
-    
+    const identicalKey = getRateLimitKey(userId, "identical");
+    const identicalEntry = rateLimitStore.get(identicalKey) ||
+      { count: 0, lastReset: now, identicalCount: 0 };
+
     if (identicalEntry.lastMessage === messageText) {
       identicalEntry.identicalCount = (identicalEntry.identicalCount || 0) + 1;
-      if (identicalEntry.identicalCount >= SECURITY_CONFIG.MAX_IDENTICAL_MESSAGES) {
-        logSecurityEvent(userId, 'identical_spam_detected', { message: messageText.substring(0, 100), count: identicalEntry.identicalCount });
-        
+      if (
+        identicalEntry.identicalCount >= SECURITY_CONFIG.MAX_IDENTICAL_MESSAGES
+      ) {
+        logSecurityEvent(userId, "identical_spam_detected", {
+          message: messageText.substring(0, 100),
+          count: identicalEntry.identicalCount,
+        });
+
         // Temporary block for spam
         const tempBlockEntry: RateLimitEntry = {
           count: 0,
           lastReset: now,
           blocked: true,
-          blockUntil: now + SECURITY_CONFIG.TEMP_BLOCK_DURATION
+          blockUntil: now + SECURITY_CONFIG.TEMP_BLOCK_DURATION,
         };
         rateLimitStore.set(blockKey, tempBlockEntry);
-        return { limited: true, reason: 'identical_spam', blockDuration: SECURITY_CONFIG.TEMP_BLOCK_DURATION / 1000 };
+        return {
+          limited: true,
+          reason: "identical_spam",
+          blockDuration: SECURITY_CONFIG.TEMP_BLOCK_DURATION / 1000,
+        };
       }
     } else {
       identicalEntry.identicalCount = 0;
     }
-    
+
     identicalEntry.lastMessage = messageText;
     rateLimitStore.set(identicalKey, identicalEntry);
   }
-  
+
   // Check minute rate limit
-  const minuteKey = getRateLimitKey(userId, 'minute');
-  const minuteEntry = rateLimitStore.get(minuteKey) || { count: 0, lastReset: now };
-  
+  const minuteKey = getRateLimitKey(userId, "minute");
+  const minuteEntry = rateLimitStore.get(minuteKey) ||
+    { count: 0, lastReset: now };
+
   if (now - minuteEntry.lastReset > 60000) {
     minuteEntry.count = 0;
     minuteEntry.lastReset = now;
   }
-  
-  if (minuteEntry.count >= SECURITY_CONFIG.MAX_REQUESTS_PER_MINUTE * multiplier) {
-    logSecurityEvent(userId, 'rate_limit_minute_exceeded', { count: minuteEntry.count, limit: SECURITY_CONFIG.MAX_REQUESTS_PER_MINUTE * multiplier });
-    
+
+  if (
+    minuteEntry.count >= SECURITY_CONFIG.MAX_REQUESTS_PER_MINUTE * multiplier
+  ) {
+    logSecurityEvent(userId, "rate_limit_minute_exceeded", {
+      count: minuteEntry.count,
+      limit: SECURITY_CONFIG.MAX_REQUESTS_PER_MINUTE * multiplier,
+    });
+
     // Auto-block if suspicious activity
     if (minuteEntry.count >= SECURITY_CONFIG.SUSPICIOUS_THRESHOLD && !isAdmin) {
       const blockEntry: RateLimitEntry = {
         count: 0,
         lastReset: now,
         blocked: true,
-        blockUntil: now + SECURITY_CONFIG.AUTO_BLOCK_DURATION
+        blockUntil: now + SECURITY_CONFIG.AUTO_BLOCK_DURATION,
       };
       rateLimitStore.set(blockKey, blockEntry);
       securityStats.suspiciousUsers.add(userId);
-      logSecurityEvent(userId, 'auto_blocked_suspicious', { 
-        requests: minuteEntry.count, 
-        blockDuration: SECURITY_CONFIG.AUTO_BLOCK_DURATION / 1000 
+      logSecurityEvent(userId, "auto_blocked_suspicious", {
+        requests: minuteEntry.count,
+        blockDuration: SECURITY_CONFIG.AUTO_BLOCK_DURATION / 1000,
       });
-      return { limited: true, reason: 'auto_blocked', blockDuration: SECURITY_CONFIG.AUTO_BLOCK_DURATION / 1000 };
+      return {
+        limited: true,
+        reason: "auto_blocked",
+        blockDuration: SECURITY_CONFIG.AUTO_BLOCK_DURATION / 1000,
+      };
     }
-    
-    return { limited: true, reason: 'rate_limit_minute' };
+
+    return { limited: true, reason: "rate_limit_minute" };
   }
-  
+
   // Check hourly rate limit
-  const hourKey = getRateLimitKey(userId, 'hour');
+  const hourKey = getRateLimitKey(userId, "hour");
   const hourEntry = rateLimitStore.get(hourKey) || { count: 0, lastReset: now };
-  
+
   if (now - hourEntry.lastReset > 3600000) {
     hourEntry.count = 0;
     hourEntry.lastReset = now;
   }
-  
+
   if (hourEntry.count >= SECURITY_CONFIG.MAX_REQUESTS_PER_HOUR * multiplier) {
-    logSecurityEvent(userId, 'rate_limit_hour_exceeded', { count: hourEntry.count, limit: SECURITY_CONFIG.MAX_REQUESTS_PER_HOUR * multiplier });
-    return { limited: true, reason: 'rate_limit_hour' };
+    logSecurityEvent(userId, "rate_limit_hour_exceeded", {
+      count: hourEntry.count,
+      limit: SECURITY_CONFIG.MAX_REQUESTS_PER_HOUR * multiplier,
+    });
+    return { limited: true, reason: "rate_limit_hour" };
   }
-  
+
   // Update counters
   minuteEntry.count++;
   hourEntry.count++;
   rateLimitStore.set(minuteKey, minuteEntry);
   rateLimitStore.set(hourKey, hourEntry);
-  
+
   return { limited: false };
 }
 
 function isCommandSpam(userId: string, command: string): boolean {
   const now = Date.now();
-  const commandKey = getRateLimitKey(userId, 'command');
+  const commandKey = getRateLimitKey(userId, "command");
   const entry = rateLimitStore.get(commandKey) || { count: 0, lastReset: now };
-  
+
   if (now - entry.lastReset > 60000) {
     entry.count = 0;
     entry.lastReset = now;
   }
-  
+
   if (entry.count >= SECURITY_CONFIG.MAX_COMMANDS_PER_MINUTE) {
-    logSecurityEvent(userId, 'command_spam_detected', { command, count: entry.count });
+    logSecurityEvent(userId, "command_spam_detected", {
+      command,
+      count: entry.count,
+    });
     return true;
   }
-  
+
   entry.count++;
   rateLimitStore.set(commandKey, entry);
   return false;
 }
 
-function validateMessage(text: string, userId: string): { valid: boolean; reason?: string } {
+function validateMessage(
+  text: string,
+  userId: string,
+): { valid: boolean; reason?: string } {
   // Check message length
   if (text.length > SECURITY_CONFIG.MAX_MESSAGE_LENGTH) {
-    logSecurityEvent(userId, 'message_too_long', { length: text.length, maxLength: SECURITY_CONFIG.MAX_MESSAGE_LENGTH });
-    return { valid: false, reason: 'message_too_long' };
+    logSecurityEvent(userId, "message_too_long", {
+      length: text.length,
+      maxLength: SECURITY_CONFIG.MAX_MESSAGE_LENGTH,
+    });
+    return { valid: false, reason: "message_too_long" };
   }
-  
+
   // Check for suspicious patterns
   const suspiciousPatterns = [
-    { pattern: /(.)\1{20,}/, name: 'repeated_chars' },
-    { pattern: /[^\w\s\u00C0-\u024F\u1E00-\u1EFF]{30,}/, name: 'too_many_special_chars' },
-    { pattern: /(http[s]?:\/\/[^\s]+){3,}/, name: 'multiple_urls' },
-    { pattern: /(.{1,10})\1{5,}/, name: 'repeated_patterns' },
+    { pattern: /(.)\1{20,}/, name: "repeated_chars" },
+    {
+      pattern: /[^\w\s\u00C0-\u024F\u1E00-\u1EFF]{30,}/,
+      name: "too_many_special_chars",
+    },
+    { pattern: /(http[s]?:\/\/[^\s]+){3,}/, name: "multiple_urls" },
+    { pattern: /(.{1,10})\1{5,}/, name: "repeated_patterns" },
   ];
-  
+
   for (const { pattern, name } of suspiciousPatterns) {
     if (pattern.test(text)) {
-      logSecurityEvent(userId, 'suspicious_pattern_detected', { pattern: name, message: text.substring(0, 100) });
-      return { valid: false, reason: 'suspicious_content' };
+      logSecurityEvent(userId, "suspicious_pattern_detected", {
+        pattern: name,
+        message: text.substring(0, 100),
+      });
+      return { valid: false, reason: "suspicious_content" };
     }
   }
-  
+
   return { valid: true };
 }
 
 function cleanupRateLimit(): void {
   const now = Date.now();
-  
+
   // Only cleanup if enough time has passed
   if (now - securityStats.lastCleanup < SECURITY_CONFIG.CLEANUP_INTERVAL) {
     return;
   }
-  
+
   const expiredKeys: string[] = [];
-  
+
   for (const [key, entry] of rateLimitStore.entries()) {
     // Remove entries older than 2 hours or expired blocks
-    if (now - entry.lastReset > 7200000 || (entry.blocked && entry.blockUntil && now > entry.blockUntil)) {
+    if (
+      now - entry.lastReset > 7200000 ||
+      (entry.blocked && entry.blockUntil && now > entry.blockUntil)
+    ) {
       expiredKeys.push(key);
     }
   }
-  
-  expiredKeys.forEach(key => rateLimitStore.delete(key));
-  
+
+  expiredKeys.forEach((key) => rateLimitStore.delete(key));
+
   securityStats.lastCleanup = now;
-  
+
   if (expiredKeys.length > 0) {
-    console.log(`🧹 Cleaned up ${expiredKeys.length} expired rate limit entries`);
-    console.log(`📊 Security stats - Total: ${securityStats.totalRequests}, Blocked: ${securityStats.blockedRequests}, Suspicious users: ${securityStats.suspiciousUsers.size}`);
+    console.log(
+      `🧹 Cleaned up ${expiredKeys.length} expired rate limit entries`,
+    );
+    console.log(
+      `📊 Security stats - Total: ${securityStats.totalRequests}, Blocked: ${securityStats.blockedRequests}, Suspicious users: ${securityStats.suspiciousUsers.size}`,
+    );
   }
 }
 
 function logSecurityEvent(
   userId: string,
   event: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): void {
   const timestamp = new Date().toISOString();
-  console.log(`🔒 SECURITY [${timestamp}] User: ${userId}, Event: ${event}`, details ? JSON.stringify(details) : '');
-  
+  console.log(
+    `🔒 SECURITY [${timestamp}] User: ${userId}, Event: ${event}`,
+    details ? JSON.stringify(details) : "",
+  );
+
   // Update security stats
   securityStats.totalRequests++;
-  if (event.includes('blocked') || event.includes('limited') || event.includes('spam')) {
+  if (
+    event.includes("blocked") || event.includes("limited") ||
+    event.includes("spam")
+  ) {
     securityStats.blockedRequests++;
   }
 }
 
 function getSecurityResponse(reason: string, blockDuration?: number): string {
   switch (reason) {
-    case 'temporarily_blocked':
+    case "temporarily_blocked":
       return `🛡️ You are temporarily blocked. Please wait ${blockDuration} seconds before trying again.`;
-    case 'rate_limit_minute':
-      return '⏱️ You are sending messages too quickly. Please slow down and try again in a minute.';
-    case 'rate_limit_hour':
-      return '⏰ You have reached your hourly message limit. Please try again later.';
-    case 'identical_spam':
+    case "rate_limit_minute":
+      return "⏱️ You are sending messages too quickly. Please slow down and try again in a minute.";
+    case "rate_limit_hour":
+      return "⏰ You have reached your hourly message limit. Please try again later.";
+    case "identical_spam":
       return `🚫 Please don't repeat the same message. You're blocked for ${blockDuration} seconds.`;
-    case 'auto_blocked':
+    case "auto_blocked":
       return `🚨 Suspicious activity detected. You're blocked for ${blockDuration} seconds. Contact admin if this is a mistake.`;
-    case 'command_spam':
-      return '⚡ You are using commands too frequently. Please wait a moment.';
-    case 'message_too_long':
-      return '📏 Your message is too long. Please break it into smaller messages.';
-    case 'suspicious_content':
-      return '🚨 Your message contains suspicious content and was blocked.';
+    case "command_spam":
+      return "⚡ You are using commands too frequently. Please wait a moment.";
+    case "message_too_long":
+      return "📏 Your message is too long. Please break it into smaller messages.";
+    case "suspicious_content":
+      return "🚨 Your message contains suspicious content and was blocked.";
     default:
-      return '🛡️ Request blocked by security system. Please try again later.';
+      return "🛡️ Request blocked by security system. Please try again later.";
   }
 }
 
 const BOT_TOKEN = typeof Deno !== "undefined" && Deno.env
   ? Deno.env.get("TELEGRAM_BOT_TOKEN")
-  : (typeof process !== "undefined" && process.env ? process.env.TELEGRAM_BOT_TOKEN : undefined);
+  : (typeof process !== "undefined" && process.env
+    ? process.env.TELEGRAM_BOT_TOKEN
+    : undefined);
 const SUPABASE_URL = typeof Deno !== "undefined" && Deno.env
   ? Deno.env.get("SUPABASE_URL")
-  : (typeof process !== "undefined" && process.env ? process.env.SUPABASE_URL : undefined);
+  : (typeof process !== "undefined" && process.env
+    ? process.env.SUPABASE_URL
+    : undefined);
 const SUPABASE_SERVICE_ROLE_KEY = typeof Deno !== "undefined" && Deno.env
   ? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
-  : (typeof process !== "undefined" && typeof process.env !== "undefined" ? process.env.SUPABASE_SERVICE_ROLE_KEY : undefined);
+  : (typeof process !== "undefined" && typeof process.env !== "undefined"
+    ? process.env.SUPABASE_SERVICE_ROLE_KEY
+    : undefined);
 const BOT_VERSION = typeof Deno !== "undefined" && Deno.env
   ? (Deno.env.get("BOT_VERSION") || "0.0.0")
-  : (typeof process !== "undefined" && process.env ? (process.env.BOT_VERSION || "0.0.0") : "0.0.0");
+  : (typeof process !== "undefined" && process.env
+    ? (process.env.BOT_VERSION || "0.0.0")
+    : "0.0.0");
 const WEBHOOK_SECRET = typeof Deno !== "undefined" && Deno.env
   ? Deno.env.get("TELEGRAM_WEBHOOK_SECRET")
-  : (typeof process !== "undefined" && process.env ? process.env.TELEGRAM_WEBHOOK_SECRET : undefined);
+  : (typeof process !== "undefined" && process.env
+    ? process.env.TELEGRAM_WEBHOOK_SECRET
+    : undefined);
 
 console.log("🚀 Bot starting with environment check...");
 console.log("BOT_TOKEN exists:", !!BOT_TOKEN);
@@ -471,7 +554,8 @@ const activeBotSessions = new Map(); // Track bot sessions
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // Bot startup time for status tracking
@@ -486,43 +570,45 @@ const REQUIRE_PAY_CODE = false; // can be flipped to true later
 // Session Management Functions
 async function startBotSession(
   telegramUserId: string,
-  userInfo: Record<string, unknown> = {}
+  userInfo: Record<string, unknown> = {},
 ): Promise<string> {
   try {
     console.log(`🔄 Starting session for user: ${telegramUserId}`);
-    
+
     // End any existing active sessions
     await endBotSession(telegramUserId);
-    
+
     // Create new session
     const { data, error } = await supabaseAdmin
-      .from('bot_sessions')
+      .from("bot_sessions")
       .insert({
         telegram_user_id: telegramUserId,
         session_start: new Date().toISOString(),
         session_data: userInfo,
-        activity_count: 1
+        activity_count: 1,
       })
       .select()
       .single();
 
     if (error) {
-      console.error('❌ Error creating session:', error);
-      return '';
+      console.error("❌ Error creating session:", error);
+      return "";
     }
 
     // Store in memory for quick access
     activeBotSessions.set(telegramUserId, {
       sessionId: data.id,
       startTime: new Date(),
-      activityCount: 1
+      activityCount: 1,
     });
 
-    console.log(`✅ Session started for user ${telegramUserId}, session ID: ${data.id}`);
+    console.log(
+      `✅ Session started for user ${telegramUserId}, session ID: ${data.id}`,
+    );
     return data.id;
   } catch (error) {
-    console.error('🚨 Exception starting session:', error);
-    return '';
+    console.error("🚨 Exception starting session:", error);
+    return "";
   }
   const trimmed = parseMode.trim();
   if (!trimmed) {
@@ -661,7 +747,10 @@ async function editMessage(
   }
 }
 // New auto-approval handler for bank slip uploads
-async function handleReceiptUpload(message: TelegramMessage, userId: string): Promise<void> {
+async function handleReceiptUpload(
+  message: TelegramMessage,
+  userId: string,
+): Promise<void> {
   const chatId = message.chat.id;
   try {
     // 2. Identify file
@@ -669,7 +758,10 @@ async function handleReceiptUpload(message: TelegramMessage, userId: string): Pr
       ? message.photo[message.photo.length - 1].file_id
       : message.document?.file_id;
     if (!fileId) {
-      await sendMessage(chatId, "❌ Unable to process the uploaded file. Please try again.");
+      await sendMessage(
+        chatId,
+        "❌ Unable to process the uploaded file. Please try again.",
+      );
       return;
     }
 
@@ -690,7 +782,9 @@ async function handleReceiptUpload(message: TelegramMessage, userId: string): Pr
     const arrayBuffer = await blob.arrayBuffer();
     const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join(
+      "",
+    );
 
     // 3. Duplicate guard
     const { data: dup } = await supabaseAdmin
@@ -770,7 +864,9 @@ async function handleReceiptUpload(message: TelegramMessage, userId: string): Pr
 
     // 8. Beneficiary check
     let beneficiaryOK = false;
-    const toAccount = parsed.toAccount ? normalizeAccount(parsed.toAccount) : null;
+    const toAccount = parsed.toAccount
+      ? normalizeAccount(parsed.toAccount)
+      : null;
     const toName = parsed.toName?.toLowerCase() || null;
     if (intent.expected_beneficiary_account_last4 && toAccount) {
       beneficiaryOK = toAccount.endsWith(
@@ -778,8 +874,7 @@ async function handleReceiptUpload(message: TelegramMessage, userId: string): Pr
       );
     }
     if (!beneficiaryOK && intent.expected_beneficiary_name && toName) {
-      beneficiaryOK =
-        intent.expected_beneficiary_name.toLowerCase() === toName;
+      beneficiaryOK = intent.expected_beneficiary_name.toLowerCase() === toName;
     }
     if (!beneficiaryOK && toAccount) {
       const ben = await getApprovedBeneficiaryByAccountNumber(
@@ -794,17 +889,19 @@ async function handleReceiptUpload(message: TelegramMessage, userId: string): Pr
     // 9. Decision rules
     const amountOK = parsed.amount != null &&
       Math.abs(parsed.amount - intent.expected_amount) /
-          intent.expected_amount <= AMOUNT_TOLERANCE;
+            intent.expected_amount <= AMOUNT_TOLERANCE;
     const slipTimeStr = parsed.ocrTxnDateIso ?? parsed.ocrValueDateIso;
     const timeOK = slipTimeStr
-      ? Math.abs(new Date(slipTimeStr).getTime() -
-          new Date(intent.created_at).getTime()) / 1000 <= WINDOW_SECONDS
+      ? Math.abs(
+            new Date(slipTimeStr).getTime() -
+              new Date(intent.created_at).getTime(),
+          ) / 1000 <= WINDOW_SECONDS
       : false;
     const statusOK = parsed.successWord || parsed.status === "SUCCESS";
     const payCodeOK = !REQUIRE_PAY_CODE || !intent.pay_code ||
       parsed.payCode === intent.pay_code;
-    const approved =
-      amountOK && timeOK && statusOK && beneficiaryOK && payCodeOK;
+    const approved = amountOK && timeOK && statusOK && beneficiaryOK &&
+      payCodeOK;
 
     // 10. Write receipt row
     await supabaseAdmin.from("receipts").insert({
@@ -2487,10 +2584,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   if (req.method === "GET") {
-    const uptimeMinutes = Math.floor((Date.now() - BOT_START_TIME.getTime()) / 1000 / 60);
+    const uptimeMinutes = Math.floor(
+      (Date.now() - BOT_START_TIME.getTime()) / 1000 / 60,
+    );
     return new Response(
-      `🚀 Enhanced Dynamic Capital Bot is live!\n\n⏰ Uptime: ${uptimeMinutes} minutes\n🔑 Admins: ${ADMIN_USER_IDS.size}\n💬 Sessions: ${userSessions.size}`, 
-      { status: 200, headers: corsHeaders }
+      `🚀 Enhanced Dynamic Capital Bot is live!\n\n⏰ Uptime: ${uptimeMinutes} minutes\n🔑 Admins: ${ADMIN_USER_IDS.size}\n💬 Sessions: ${userSessions.size}`,
+      { status: 200, headers: corsHeaders },
     );
   }
 
@@ -2507,9 +2606,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return new Response("OK", { status: 200 });
     }
 
-    const chatId = update.message?.chat?.id || update.callback_query?.message?.chat?.id;
+    const chatId = update.message?.chat?.id ||
+      update.callback_query?.message?.chat?.id;
     const userId = from.id.toString();
-    const firstName = from.first_name || 'Friend';
+    const firstName = from.first_name || "Friend";
     const _lastName = from.last_name;
     const username = from.username;
 
@@ -2517,22 +2617,26 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     // Run security checks FIRST
     const isUserAdmin = isAdmin(userId);
-    
+
     // Periodic cleanup of rate limit store
     cleanupRateLimit();
-    
+
     // Check rate limits and security
-    const messageText = update.message?.text || update.callback_query?.data || '';
+    const messageText = update.message?.text || update.callback_query?.data ||
+      "";
     const rateLimitResult = isRateLimited(userId, isUserAdmin, messageText);
-    
+
     if (rateLimitResult.limited) {
-      const response = getSecurityResponse(rateLimitResult.reason!, rateLimitResult.blockDuration);
+      const response = getSecurityResponse(
+        rateLimitResult.reason!,
+        rateLimitResult.blockDuration,
+      );
       if (chatId) {
         await sendMessage(chatId, response);
       }
-      logSecurityEvent(userId, 'request_blocked', { 
-        reason: rateLimitResult.reason, 
-        messageText: messageText.substring(0, 100) 
+      logSecurityEvent(userId, "request_blocked", {
+        reason: rateLimitResult.reason,
+        messageText: messageText.substring(0, 100),
       });
       return new Response("OK", { status: 200 });
     }
@@ -2551,10 +2655,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     // Track user activity for session management (after security checks pass)
     await updateBotSession(userId, {
-      message_type: update.message ? 'message' : 'callback_query',
+      message_type: update.message ? "message" : "callback_query",
       text: messageText,
       timestamp: new Date().toISOString(),
-      security_passed: true
+      security_passed: true,
     });
 
     // Handle regular messages
@@ -2564,143 +2668,180 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       // Update session activity
       await updateBotSession(userId, {
-        message_type: 'text',
+        message_type: "text",
         text: text,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Check for maintenance mode
-      const maintenanceMode = await getBotSetting('maintenance_mode');
-      if (maintenanceMode === 'true' && !isAdmin(userId)) {
+      const maintenanceMode = await getBotSetting("maintenance_mode");
+      if (maintenanceMode === "true" && !isAdmin(userId)) {
         console.log("🔧 Bot in maintenance mode for non-admin user");
-        await sendMessage(chatId, "🔧 *Bot is under maintenance*\n\n⏰ We'll be back soon! Thank you for your patience.\n\n🛟 For urgent support, contact @DynamicCapital_Support");
+        await sendMessage(
+          chatId,
+          "🔧 *Bot is under maintenance*\n\n⏰ We'll be back soon! Thank you for your patience.\n\n🛟 For urgent support, contact @DynamicCapital_Support",
+        );
         return new Response("OK", { status: 200 });
       }
 
       // Check for command spam before processing commands
-      if (text && text.startsWith('/')) {
-        const command = text.split(' ')[0].split('@')[0];
+      if (text && text.startsWith("/")) {
+        const command = text.split(" ")[0].split("@")[0];
         if (isCommandSpam(userId, command) && !isUserAdmin) {
-          const response = getSecurityResponse('command_spam');
+          const response = getSecurityResponse("command_spam");
           await sendMessage(chatId, response);
           return new Response("OK", { status: 200 });
         }
       }
 
       // Handle /start command with dynamic welcome message
-      if (text?.split(' ')[0]?.startsWith('/start')) {
+      if (text?.split(" ")[0]?.startsWith("/start")) {
         console.log(`🚀 Start command from: ${userId} (${firstName})`);
-        
+
         // Add timeout to prevent hanging
         const timeoutPromise: Promise<Response> = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Start command timeout')), 10000) // 10 second timeout
+          setTimeout(() => reject(new Error("Start command timeout")), 10000) // 10 second timeout
         );
-        
+
         const startCommandPromise = (async () => {
           try {
             console.log(`🔄 Starting bot session for user: ${userId}`);
-            await startBotSession(userId, { firstName, username, command: 'start' });
-            console.log(`✅ Bot session started successfully for user: ${userId}`);
-            
+            await startBotSession(userId, {
+              firstName,
+              username,
+              command: "start",
+            });
+            console.log(
+              `✅ Bot session started successfully for user: ${userId}`,
+            );
+
             console.log(`📄 Fetching auto reply for user: ${userId}`);
-            const autoReply = await getAutoReply('auto_reply_welcome', { firstName });
-            console.log(`📄 Auto reply result: ${autoReply ? 'found' : 'not found'}`);
-            
+            const autoReply = await getAutoReply("auto_reply_welcome", {
+              firstName,
+            });
+            console.log(
+              `📄 Auto reply result: ${autoReply ? "found" : "not found"}`,
+            );
+
             console.log(`📄 Getting welcome message for user: ${userId}`);
             const welcomeMessage: FormattedMessage = autoReply
-              ? { text: autoReply, parseMode: 'Markdown' }
+              ? { text: autoReply, parseMode: "Markdown" }
               : await getWelcomeMessage(firstName);
-            console.log(`📄 Welcome message length: ${welcomeMessage?.text.length || 0}`);
-            
+            console.log(
+              `📄 Welcome message length: ${welcomeMessage?.text.length || 0}`,
+            );
+
             console.log(`⌨️ Getting main menu keyboard for user: ${userId}`);
             const keyboard = await getMainMenuKeyboard();
-            console.log(`⌨️ Keyboard generated: ${keyboard ? 'yes' : 'no'}`);
-            
+            console.log(`⌨️ Keyboard generated: ${keyboard ? "yes" : "no"}`);
+
             console.log(`📤 Sending welcome message to user: ${userId}`);
             await sendMessage(chatId, welcomeMessage.text, keyboard, {
               parseMode: welcomeMessage.parseMode,
             });
-            console.log(`✅ Welcome message sent successfully to user: ${userId}`);
+            console.log(
+              `✅ Welcome message sent successfully to user: ${userId}`,
+            );
             if (isAdmin(userId)) {
               await handleBotStatus(chatId, userId);
             }
 
             return new Response("OK", { status: 200 });
           } catch (error) {
-            console.error(`❌ Error in /start command for user ${userId}:`, error);
-            await sendMessage(chatId, "❌ Sorry, something went wrong. Please try again in a moment.");
+            console.error(
+              `❌ Error in /start command for user ${userId}:`,
+              error,
+            );
+            await sendMessage(
+              chatId,
+              "❌ Sorry, something went wrong. Please try again in a moment.",
+            );
             return new Response("Error", { status: 500 });
           }
         })();
-        
+
         try {
-          return await Promise.race<Response>([startCommandPromise, timeoutPromise]);
+          return await Promise.race<Response>([
+            startCommandPromise,
+            timeoutPromise,
+          ]);
         } catch (error) {
-          console.error(`⏱️ Start command timeout or error for user ${userId}:`, error);
-          await sendMessage(chatId, "⏱️ The request is taking longer than expected. Please try /start again.");
+          console.error(
+            `⏱️ Start command timeout or error for user ${userId}:`,
+            error,
+          );
+          await sendMessage(
+            chatId,
+            "⏱️ The request is taking longer than expected. Please try /start again.",
+          );
           return new Response("Timeout", { status: 408 });
         }
       }
 
       // Handle /admin command
-      if (text === '/admin') {
+      if (text === "/admin") {
         console.log(`🔐 Admin command from: ${userId} (${firstName})`);
         console.log(`🔐 Admin check result: ${isAdmin(userId)}`);
-        console.log(`🔐 Current admin IDs: ${Array.from(ADMIN_USER_IDS).join(', ')}`);
-        
+        console.log(
+          `🔐 Current admin IDs: ${Array.from(ADMIN_USER_IDS).join(", ")}`,
+        );
+
         if (isAdmin(userId)) {
           await handleAdminDashboard(chatId, userId);
         } else {
-          await sendAccessDeniedMessage(chatId, `Admin privileges required.\n\n🔑 Your ID: \`${userId}\`\n🛟 Contact support if you should have admin access.`);
+          await sendAccessDeniedMessage(
+            chatId,
+            `Admin privileges required.\n\n🔑 Your ID: \`${userId}\`\n🛟 Contact support if you should have admin access.`,
+          );
         }
         return new Response("OK", { status: 200 });
       }
 
       // Handle /help command
-      if (text === '/help') {
+      if (text === "/help") {
         await handleHelpCommand(chatId, userId, firstName);
         return new Response("OK", { status: 200 });
       }
 
       // Handle /status command for admins
-      if (text === '/status' && isAdmin(userId)) {
+      if (text === "/status" && isAdmin(userId)) {
         await handleBotStatus(chatId, userId);
         return new Response("OK", { status: 200 });
       }
 
       // Handle /refresh command for admins
-      if (text === '/refresh' && isAdmin(userId)) {
+      if (text === "/refresh" && isAdmin(userId)) {
         await handleRefreshBot(chatId, userId);
         return new Response("OK", { status: 200 });
       }
 
       // Check if user is sending custom broadcast message
       const userSession = getUserSession(userId);
-      if (userSession.awaitingInput === 'custom_broadcast_message') {
+      if (userSession.awaitingInput === "custom_broadcast_message") {
         await handleCustomBroadcastSend(chatId, userId, text);
         return new Response("OK", { status: 200 });
       }
-      if (userSession.awaitingInput?.startsWith('update_setting:')) {
-        const settingKey = userSession.awaitingInput.split(':')[1];
+      if (userSession.awaitingInput?.startsWith("update_setting:")) {
+        const settingKey = userSession.awaitingInput.split(":")[1];
         userSession.awaitingInput = null;
         const success = await setBotSetting(settingKey, text, userId);
         await sendMessage(
           chatId,
           success
             ? `✅ Updated *${settingKey}* to \`${text}\``
-            : `❌ Failed to update *${settingKey}*`
+            : `❌ Failed to update *${settingKey}*`,
         );
         return new Response("OK", { status: 200 });
       }
-      if (userSession.awaitingInput?.startsWith('edit_content:')) {
-        const contentKey = userSession.awaitingInput.split(':')[1];
+      if (userSession.awaitingInput?.startsWith("edit_content:")) {
+        const contentKey = userSession.awaitingInput.split(":")[1];
         userSession.awaitingInput = null;
         await handleContentEditSave(chatId, userId, text, contentKey);
         return new Response("OK", { status: 200 });
       }
 
       // Handle /broadcast command for admins
-      if (text === '/broadcast' && isAdmin(userId)) {
+      if (text === "/broadcast" && isAdmin(userId)) {
         await handleBroadcastMenu(chatId, userId);
         return new Response("OK", { status: 200 });
       }
@@ -2713,11 +2854,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       // Check if user is waiting for promo code input before processing other message types
       const promoSession = userSessions.get(userId);
-      if (promoSession && promoSession.type === 'waiting_promo_code') {
+      if (promoSession && promoSession.type === "waiting_promo_code") {
         if (!text) {
-          await sendMessage(chatId, "❌ Promo codes must be sent as text. Please try again.");
+          await sendMessage(
+            chatId,
+            "❌ Promo codes must be sent as text. Please try again.",
+          );
         } else {
-          await handlePromoCodeInput(chatId, userId, text.trim().toUpperCase(), promoSession);
+          await handlePromoCodeInput(
+            chatId,
+            userId,
+            text.trim().toUpperCase(),
+            promoSession,
+          );
         }
         return new Response("OK", { status: 200 });
       }
@@ -2729,21 +2878,22 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       // Handle unknown commands with auto-reply
-      if (text?.startsWith('/')) {
+      if (text?.startsWith("/")) {
         await handleUnknownCommand(chatId, userId, text);
         return new Response("OK", { status: 200 });
       }
 
       // Only respond to regular messages in specific conditions
       const chatType = update.message.chat.type;
-      const isPrivateChat = chatType === 'private';
-      const isBotMentioned = text?.includes('@') && text?.toLowerCase().includes('dynamic'); // Adjust based on your bot username
-      
+      const isPrivateChat = chatType === "private";
+      const isBotMentioned = text?.includes("@") &&
+        text?.toLowerCase().includes("dynamic"); // Adjust based on your bot username
+
       // Only auto-reply if:
       // 1. It's a private chat (direct message)
       // 2. Bot is mentioned in group/channel
       if (isPrivateChat || isBotMentioned) {
-        const generalReply = await getAutoReply('auto_reply_general') || 
+        const generalReply = await getAutoReply("auto_reply_general") ||
           "🤖 Thanks for your message! Use /start to see the main menu or /help for assistance.";
         await sendMessage(chatId, generalReply);
       } else {
@@ -2754,19 +2904,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
     // Handle callback queries
     if (update.callback_query) {
       const callbackData = update.callback_query.data;
-      console.log(`🔘 Processing callback: ${callbackData} from user: ${userId}`);
+      console.log(
+        `🔘 Processing callback: ${callbackData} from user: ${userId}`,
+      );
 
       // Update session activity
       await updateBotSession(userId, {
-        message_type: 'callback',
+        message_type: "callback",
         callback_data: callbackData,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       try {
         console.log(`🔍 Processing callback switch for: ${callbackData}`);
         switch (callbackData) {
-          case 'view_vip_packages': {
+          case "view_vip_packages": {
             console.log("💎 Displaying VIP packages");
             const vipMessage = await getFormattedVipPackages();
             const vipKeyboard = await getVipPackagesKeyboard();
@@ -2774,20 +2926,22 @@ Deno.serve(async (req: Request): Promise<Response> => {
             break;
           }
 
-          case 'view_education':
+          case "view_education":
             console.log("🎓 Displaying education packages");
             await handleViewEducation(chatId, userId);
             break;
 
-          case 'view_promotions':
+          case "view_promotions":
             console.log("💰 Displaying promotions");
             await handleViewPromotions(chatId, userId);
             break;
 
-          case 'back_main': {
-            const autoReply = await getAutoReply('auto_reply_welcome', { firstName });
+          case "back_main": {
+            const autoReply = await getAutoReply("auto_reply_welcome", {
+              firstName,
+            });
             const mainMessage: FormattedMessage = autoReply
-              ? { text: autoReply, parseMode: 'Markdown' }
+              ? { text: autoReply, parseMode: "Markdown" }
               : await getWelcomeMessage(firstName);
             const mainKeyboard = await getMainMenuKeyboard();
             await sendMessage(chatId, mainMessage.text, mainKeyboard, {
@@ -2796,121 +2950,143 @@ Deno.serve(async (req: Request): Promise<Response> => {
             break;
           }
 
-          case 'admin_dashboard':
+          case "admin_dashboard":
             console.log(`🔐 Admin dashboard callback from: ${userId}`);
             await handleAdminDashboard(chatId, userId);
             break;
 
-          case 'bot_control':
+          case "bot_control":
             await handleBotControl(chatId, userId);
             break;
 
-          case 'bot_status':
+          case "bot_status":
             await handleBotStatus(chatId, userId);
             break;
 
-          case 'refresh_bot':
+          case "refresh_bot":
             await handleRefreshBot(chatId, userId);
             break;
 
           // Table Management Callbacks
-          case 'manage_tables':
+          case "manage_tables":
             await handleTableManagement(chatId, userId);
             break;
 
-          case 'manage_table_bot_users':
+          case "manage_table_bot_users":
             await handleUserTableManagement(chatId, userId);
             break;
 
-          case 'manage_table_subscription_plans':
-            console.log(`🔍 Handling subscription plans management for user ${userId}`);
+          case "manage_table_subscription_plans":
+            console.log(
+              `🔍 Handling subscription plans management for user ${userId}`,
+            );
             await handleSubscriptionPlansManagement(chatId, userId);
             break;
 
-          case 'manage_table_plan_channels':
+          case "manage_table_plan_channels":
             await handlePlanChannelsManagement(chatId, userId);
             break;
 
-          case 'manage_table_education_packages':
+          case "manage_table_education_packages":
             await handleEducationPackagesManagement(chatId, userId);
             break;
 
-          case 'manage_table_promotions':
+          case "manage_table_promotions":
             await handlePromotionsManagement(chatId, userId);
             break;
 
-          case 'manage_table_bot_content':
+          case "manage_table_bot_content":
             await handleContentManagement(chatId, userId);
             break;
 
-          case 'manage_table_bot_settings':
+          case "manage_table_bot_settings":
             await handleBotSettingsManagement(chatId, userId);
             break;
 
-          case 'table_stats_overview':
+          case "table_stats_overview":
             await handleTableStatsOverview(chatId, userId);
             break;
 
-          case 'view_sessions':
+          case "view_sessions":
             await handleViewSessions(chatId, userId);
             break;
 
-          case 'clean_cache':
+          case "clean_cache":
             if (isAdmin(userId)) {
               userSessions.clear();
-              await sendMessage(chatId, "🧹 *Cache Cleaned!*\n\n✅ All user sessions cleared\n✅ Temporary data removed");
-              await logAdminAction(userId, 'cache_clean', 'User sessions cache cleared');
+              await sendMessage(
+                chatId,
+                "🧹 *Cache Cleaned!*\n\n✅ All user sessions cleared\n✅ Temporary data removed",
+              );
+              await logAdminAction(
+                userId,
+                "cache_clean",
+                "User sessions cache cleared",
+              );
             }
             break;
 
-          case 'clean_old_sessions':
+          case "clean_old_sessions":
             if (isAdmin(userId)) {
               try {
                 // End sessions older than 24 hours
-                const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000)
+                  .toISOString();
                 const { data, error: _error } = await supabaseAdmin
-                  .from('bot_sessions')
-                  .update({ 
+                  .from("bot_sessions")
+                  .update({
                     session_end: new Date().toISOString(),
-                    duration_minutes: 1440 // 24 hours max
+                    duration_minutes: 1440, // 24 hours max
                   })
-                  .is('session_end', null)
-                  .lt('session_start', cutoffTime)
+                  .is("session_end", null)
+                  .lt("session_start", cutoffTime)
                   .select();
 
-                await sendMessage(chatId, `🧹 *Old Sessions Cleaned!*\n\n✅ Cleaned ${data?.length || 0} old sessions\n🕐 Sessions older than 24h ended`);
-                await logAdminAction(userId, 'session_cleanup', `Cleaned ${data?.length || 0} old sessions`);
+                await sendMessage(
+                  chatId,
+                  `🧹 *Old Sessions Cleaned!*\n\n✅ Cleaned ${
+                    data?.length || 0
+                  } old sessions\n🕐 Sessions older than 24h ended`,
+                );
+                await logAdminAction(
+                  userId,
+                  "session_cleanup",
+                  `Cleaned ${data?.length || 0} old sessions`,
+                );
               } catch (error) {
-                await sendMessage(chatId, `❌ Error cleaning sessions: ${(error as Error).message}`);
+                await sendMessage(
+                  chatId,
+                  `❌ Error cleaning sessions: ${(error as Error).message}`,
+                );
               }
             }
             break;
 
-          case 'quick_analytics':
+          case "quick_analytics":
             await handleQuickAnalytics(chatId, userId);
             break;
 
-          case 'report_users':
+          case "report_users":
             await handleUserAnalyticsReport(chatId, userId);
             break;
 
-          case 'report_payments':
+          case "report_payments":
             await handlePaymentReport(chatId, userId);
             break;
 
-          case 'report_packages':
+          case "report_packages":
             await handlePackageReport(chatId, userId);
             break;
 
-          case 'report_promotions':
+          case "report_promotions":
             await handlePromotionReport(chatId, userId);
             break;
 
-          case 'report_bot_usage':
+          case "report_bot_usage":
             await handleBotUsageReport(chatId, userId);
             break;
 
-            case 'report_security': {
+          case "report_security": {
             const securityReport = `🔒 **Security Report**
 
 🛡️ **Real-time Security Stats:**
@@ -2920,38 +3096,53 @@ Deno.serve(async (req: Request): Promise<Response> => {
 • Rate Limit Store: ${rateLimitStore.size} entries
 
 📊 **Security Metrics:**
-• Block Rate: ${securityStats.totalRequests > 0 ? ((securityStats.blockedRequests / securityStats.totalRequests) * 100).toFixed(2) : 0}%
+• Block Rate: ${
+              securityStats.totalRequests > 0
+                ? ((securityStats.blockedRequests /
+                  securityStats.totalRequests) * 100).toFixed(2)
+                : 0
+            }%
 • Active Sessions: ${activeBotSessions.size}
 • Memory Usage: Optimized
 
 🚨 **Recent Blocked Users:**
-${Array.from(securityStats.suspiciousUsers).slice(-5).map(u => `• User ${u}`).join('\n') || 'None'}
+${
+              Array.from(securityStats.suspiciousUsers).slice(-5).map((u) =>
+                `• User ${u}`
+              ).join("\n") || "None"
+            }
 
 ✅ **Security Status:** All systems protected
 *Last updated: ${new Date().toLocaleString()}*`;
-              await sendMessage(chatId, securityReport);
-              break;
-            }
+            await sendMessage(chatId, securityReport);
+            break;
+          }
 
-          case 'analytics_dashboard':
+          case "analytics_dashboard":
             await handleTableStatsOverview(chatId, userId);
             break;
 
-          case 'export_all_data':
-            await sendMessage(chatId, "📤 **Data Export**\n\n🔄 Generating comprehensive data export...");
-            await handleUserAnalyticsReport(chatId, userId, '30d');
-            await handlePaymentReport(chatId, userId, '30d');
-            await handleBotUsageReport(chatId, userId, '30d');
-            await sendMessage(chatId, "✅ **Export Complete!** All reports generated above.");
+          case "export_all_data":
+            await sendMessage(
+              chatId,
+              "📤 **Data Export**\n\n🔄 Generating comprehensive data export...",
+            );
+            await handleUserAnalyticsReport(chatId, userId, "30d");
+            await handlePaymentReport(chatId, userId, "30d");
+            await handleBotUsageReport(chatId, userId, "30d");
+            await sendMessage(
+              chatId,
+              "✅ **Export Complete!** All reports generated above.",
+            );
             break;
-          case 'quick_diagnostic':
+          case "quick_diagnostic":
             if (isAdmin(userId)) {
               const diagnostic = `🔧 *Quick Diagnostic*
 
 🔑 **Environment:**
-• Bot Token: ${BOT_TOKEN ? '✅' : '❌'}
-• Database: ${SUPABASE_URL ? '✅' : '❌'}
-• Service Key: ${SUPABASE_SERVICE_ROLE_KEY ? '✅' : '❌'}
+• Bot Token: ${BOT_TOKEN ? "✅" : "❌"}
+• Database: ${SUPABASE_URL ? "✅" : "❌"}
+• Service Key: ${SUPABASE_SERVICE_ROLE_KEY ? "✅" : "❌"}
 
 📊 **Current State:**
 • Admin Count: ${ADMIN_USER_IDS.size}
@@ -2968,331 +3159,374 @@ ${Array.from(securityStats.suspiciousUsers).slice(-5).map(u => `• User ${u}`).
             }
             break;
 
-          case 'admin_broadcast':
+          case "admin_broadcast":
             await handleBroadcastMenu(chatId, userId);
             break;
 
-          case 'send_greeting':
+          case "send_greeting":
             await handleSendGreeting(chatId, userId);
             break;
 
-          case 'send_channel_intro':
+          case "send_channel_intro":
             await handleSendChannelIntro(chatId, userId);
             break;
 
           // Trade Results Posting
-          case 'post_trade_results':
+          case "post_trade_results":
             await handlePostTradeResult(chatId, userId);
             break;
 
-          case 'post_winning_trade': {
-            const winningResult = await postToResultsChannel('winning_trade', {
-              pair: 'BTC/USDT',
-              entry: '42,500',
-              exit: '44,100',
-              profit: '3.8',
-              duration: '2h 15m',
-              amount: '1,680'
+          case "post_winning_trade": {
+            const winningResult = await postToResultsChannel("winning_trade", {
+              pair: "BTC/USDT",
+              entry: "42,500",
+              exit: "44,100",
+              profit: "3.8",
+              duration: "2h 15m",
+              amount: "1,680",
             });
             if (winningResult) {
-              await sendMessage(chatId, "✅ Winning trade result posted to @DynamicCapital_Results channel!");
+              await sendMessage(
+                chatId,
+                "✅ Winning trade result posted to @DynamicCapital_Results channel!",
+              );
             } else {
-              await sendMessage(chatId, "❌ Failed to post trade result. Check bot permissions in the channel.");
+              await sendMessage(
+                chatId,
+                "❌ Failed to post trade result. Check bot permissions in the channel.",
+              );
             }
             break;
           }
 
-          case 'post_losing_trade': {
-            const losingResult = await postToResultsChannel('losing_trade', {
-              pair: 'ETH/USDT',
-              entry: '2,340',
-              exit: '2,285',
-              loss: '2.3',
-              duration: '1h 30m',
-              amount: '460'
+          case "post_losing_trade": {
+            const losingResult = await postToResultsChannel("losing_trade", {
+              pair: "ETH/USDT",
+              entry: "2,340",
+              exit: "2,285",
+              loss: "2.3",
+              duration: "1h 30m",
+              amount: "460",
             });
             if (losingResult) {
-              await sendMessage(chatId, "✅ Losing trade result posted to @DynamicCapital_Results channel!");
+              await sendMessage(
+                chatId,
+                "✅ Losing trade result posted to @DynamicCapital_Results channel!",
+              );
             } else {
-              await sendMessage(chatId, "❌ Failed to post trade result. Check bot permissions in the channel.");
+              await sendMessage(
+                chatId,
+                "❌ Failed to post trade result. Check bot permissions in the channel.",
+              );
             }
             break;
           }
 
-          case 'post_weekly_summary': {
-            const weeklyResult = await postToResultsChannel('weekly_summary', {
-              week: 'Week of Jan 1-7, 2025',
-              totalTrades: '24',
-              winningTrades: '18',
-              losingTrades: '6',
-              winRate: '75',
-              totalProfit: '8,450',
-              totalLoss: '1,980',
-              netPnL: '6,470',
-              roi: '12.8'
+          case "post_weekly_summary": {
+            const weeklyResult = await postToResultsChannel("weekly_summary", {
+              week: "Week of Jan 1-7, 2025",
+              totalTrades: "24",
+              winningTrades: "18",
+              losingTrades: "6",
+              winRate: "75",
+              totalProfit: "8,450",
+              totalLoss: "1,980",
+              netPnL: "6,470",
+              roi: "12.8",
             });
             if (weeklyResult) {
-              await sendMessage(chatId, "✅ Weekly summary posted to @DynamicCapital_Results channel!");
+              await sendMessage(
+                chatId,
+                "✅ Weekly summary posted to @DynamicCapital_Results channel!",
+              );
             } else {
-              await sendMessage(chatId, "❌ Failed to post weekly summary. Check bot permissions in the channel.");
+              await sendMessage(
+                chatId,
+                "❌ Failed to post weekly summary. Check bot permissions in the channel.",
+              );
             }
             break;
           }
 
-          case 'post_monthly_report': {
-            const monthlyResult = await postToResultsChannel('monthly_report', {
-              month: 'December 2024',
-              totalTrades: '96',
-              successfulTrades: '72',
-              failedTrades: '24',
-              successRate: '75',
-              grossProfit: '34,850',
-              totalLosses: '8,200',
-              netProfit: '26,650',
-              monthlyROI: '18.5',
-              bestPairs: '• BTC/USDT: +22%\n• ETH/USDT: +18%\n• SOL/USDT: +15%\n• ADA/USDT: +12%'
+          case "post_monthly_report": {
+            const monthlyResult = await postToResultsChannel("monthly_report", {
+              month: "December 2024",
+              totalTrades: "96",
+              successfulTrades: "72",
+              failedTrades: "24",
+              successRate: "75",
+              grossProfit: "34,850",
+              totalLosses: "8,200",
+              netProfit: "26,650",
+              monthlyROI: "18.5",
+              bestPairs:
+                "• BTC/USDT: +22%\n• ETH/USDT: +18%\n• SOL/USDT: +15%\n• ADA/USDT: +12%",
             });
             if (monthlyResult) {
-              await sendMessage(chatId, "✅ Monthly report posted to @DynamicCapital_Results channel!");
+              await sendMessage(
+                chatId,
+                "✅ Monthly report posted to @DynamicCapital_Results channel!",
+              );
             } else {
-              await sendMessage(chatId, "❌ Failed to post monthly report. Check bot permissions in the channel.");
+              await sendMessage(
+                chatId,
+                "❌ Failed to post monthly report. Check bot permissions in the channel.",
+              );
             }
             break;
           }
 
-          case 'custom_broadcast':
+          case "custom_broadcast":
             await handleCustomBroadcast(chatId, userId);
             break;
 
-          case 'broadcast_history':
+          case "broadcast_history":
             await handleBroadcastHistory(chatId, userId);
             break;
 
-          case 'broadcast_settings':
+          case "broadcast_settings":
             await handleBroadcastSettings(chatId, userId);
             break;
 
-          case 'test_broadcast':
+          case "test_broadcast":
             await handleTestBroadcast(chatId, userId);
             break;
 
-          case 'admin_settings':
+          case "admin_settings":
             await handleAdminSettings(chatId, userId);
             break;
 
-          case 'admin_packages':
+          case "admin_packages":
             await handleSubscriptionPlansManagement(chatId, userId);
             break;
 
-          case 'admin_promos':
+          case "admin_promos":
             await handlePromotionsManagement(chatId, userId);
             break;
 
-          case 'admin_content':
+          case "admin_content":
             await handleContentManagement(chatId, userId);
             break;
 
-          case 'admin_analytics':
+          case "admin_analytics":
             await handleAnalyticsMenu(chatId, userId);
             break;
 
-          case 'admin_tools':
+          case "admin_tools":
             await handleBotControl(chatId, userId);
             break;
 
-          case 'admin_users':
+          case "admin_users":
             await handleUserTableManagement(chatId, userId);
             break;
 
-          case 'toggle_auto_delete':
+          case "toggle_auto_delete":
             await handleToggleAutoDelete(chatId, userId);
             break;
 
-          case 'toggle_auto_intro':
+          case "toggle_auto_intro":
             await handleToggleAutoIntro(chatId, userId);
             break;
 
-          case 'toggle_maintenance':
+          case "toggle_maintenance":
             await handleToggleMaintenance(chatId, userId);
             break;
 
-          case 'view_all_settings':
+          case "view_all_settings":
             await handleViewAllSettings(chatId, userId);
             break;
 
           // Table Management Additional Callbacks
-          case 'manage_table_daily_analytics':
-          case 'manage_table_user_sessions':
-          case 'manage_table_payments':
+          case "manage_table_daily_analytics":
+          case "manage_table_user_sessions":
+          case "manage_table_payments":
             await handlePaymentsTableManagement(chatId, userId);
             break;
 
-          case 'manage_table_broadcast_messages':
+          case "manage_table_broadcast_messages":
             await handleBroadcastTableManagement(chatId, userId);
             break;
 
-          case 'manage_table_bank_accounts':
+          case "manage_table_bank_accounts":
             await handleBankAccountsTableManagement(chatId, userId);
             break;
 
-          case 'manage_table_auto_reply_templates':
+          case "manage_table_auto_reply_templates":
             await handleAutoReplyTableManagement(chatId, userId);
             break;
 
-          case 'export_all_tables':
+          case "export_all_tables":
             if (isAdmin(userId)) {
-              await sendMessage(chatId, "📊 Exporting all table data...\n\n📋 This feature will generate CSV exports of all database tables.\n\n⏳ Coming soon!");
+              await sendMessage(
+                chatId,
+                "📊 Exporting all table data...\n\n📋 This feature will generate CSV exports of all database tables.\n\n⏳ Coming soon!",
+              );
             }
             break;
 
           // User Management Callbacks
-          case 'add_admin_user':
+          case "add_admin_user":
             await handleAddAdminUser(chatId, userId);
             break;
-          case 'search_user':
+          case "search_user":
             await handleSearchUser(chatId, userId);
             break;
-          case 'manage_vip_users':
+          case "manage_vip_users":
             await handleManageVipUsers(chatId, userId);
             break;
-          case 'export_users':
+          case "export_users":
             await handleExportUsers(chatId, userId);
             break;
 
           // VIP Plan Management Callbacks
-          case 'create_vip_plan':
+          case "create_vip_plan":
             await handleCreateVipPlan(chatId, userId);
             break;
-          case 'edit_vip_plan':
+          case "edit_vip_plan":
             await handleEditVipPlan(chatId, userId);
             break;
-          case 'delete_vip_plan':
+          case "delete_vip_plan":
             await handleDeleteVipPlan(chatId, userId);
             break;
-          case 'vip_plan_stats':
+          case "vip_plan_stats":
             await handleVipPlanStats(chatId, userId);
             break;
-          case 'update_plan_pricing':
+          case "update_plan_pricing":
             await handleUpdatePlanPricing(chatId, userId);
             break;
-          case 'manage_plan_features':
+          case "manage_plan_features":
             await handleManagePlanFeatures(chatId, userId);
             break;
 
           // Education Package Management Callbacks
-          case 'create_education_package':
-          case 'edit_education_package':
-          case 'delete_education_package':
-            await sendMessage(chatId, "🗑️ Education package deletion requires careful consideration due to enrolled students. Please contact the developer for manual deletion.");
+          case "create_education_package":
+          case "edit_education_package":
+          case "delete_education_package":
+            await sendMessage(
+              chatId,
+              "🗑️ Education package deletion requires careful consideration due to enrolled students. Please contact the developer for manual deletion.",
+            );
             break;
 
-          case 'education_package_stats':
+          case "education_package_stats":
             await handleEducationPackageStats(chatId, userId);
             break;
 
-          case 'manage_education_categories':
+          case "manage_education_categories":
             await handleEducationCategoriesManagement(chatId, userId);
             break;
 
-          case 'view_education_enrollments':
+          case "view_education_enrollments":
             await handleEducationEnrollmentsView(chatId, userId);
             break;
 
           // Promotion Management Callbacks
-          case 'create_promotion':
+          case "create_promotion":
             await handleCreatePromotion(chatId, userId);
             break;
 
-          case 'delete_promotion':
-            await sendMessage(chatId, "🗑️ Promotion deletion requires careful consideration. Please use admin dashboard to disable promotions instead.");
+          case "delete_promotion":
+            await sendMessage(
+              chatId,
+              "🗑️ Promotion deletion requires careful consideration. Please use admin dashboard to disable promotions instead.",
+            );
             break;
 
-          case 'promotion_analytics':
+          case "promotion_analytics":
             await handlePromotionReport(chatId, userId);
             break;
 
-          case 'toggle_promotion_status':
-            await sendMessage(chatId, "🔄 Use the promotions management menu to toggle promotion status.");
+          case "toggle_promotion_status":
+            await sendMessage(
+              chatId,
+              "🔄 Use the promotions management menu to toggle promotion status.",
+            );
             break;
 
-          case 'promotion_usage_stats':
+          case "promotion_usage_stats":
             await handlePromotionReport(chatId, userId);
             break;
 
           // Content Management Callbacks
-          case 'edit_content_welcome_message':
-            await handleEditContent(chatId, userId, 'welcome_message');
+          case "edit_content_welcome_message":
+            await handleEditContent(chatId, userId, "welcome_message");
             break;
-          case 'edit_content_about_us':
-            await handleEditContent(chatId, userId, 'about_us');
+          case "edit_content_about_us":
+            await handleEditContent(chatId, userId, "about_us");
             break;
-          case 'edit_content_support_message':
-            await handleEditContent(chatId, userId, 'support');
+          case "edit_content_support_message":
+            await handleEditContent(chatId, userId, "support");
             break;
-          case 'edit_content_terms_conditions':
-            await handleEditContent(chatId, userId, 'terms');
+          case "edit_content_terms_conditions":
+            await handleEditContent(chatId, userId, "terms");
             break;
-          case 'edit_content_faq_general':
-            await handleEditContent(chatId, userId, 'faq');
+          case "edit_content_faq_general":
+            await handleEditContent(chatId, userId, "faq");
             break;
-          case 'edit_content_maintenance_message':
-            await handleEditContent(chatId, userId, 'maintenance_message');
+          case "edit_content_maintenance_message":
+            await handleEditContent(chatId, userId, "maintenance_message");
             break;
-          case 'preview_all_content':
+          case "preview_all_content":
             await handlePreviewAllContent(chatId, userId);
             break;
-          case 'add_new_content':
-            await sendMessage(chatId, '➕ Adding new content is not yet supported.');
+          case "add_new_content":
+            await sendMessage(
+              chatId,
+              "➕ Adding new content is not yet supported.",
+            );
             break;
 
           // Bot Settings Callbacks
-          case 'config_session_settings':
+          case "config_session_settings":
             await promptSettingUpdate(
               chatId,
               userId,
-              'session_timeout_minutes',
-              'Enter new session timeout in minutes.'
+              "session_timeout_minutes",
+              "Enter new session timeout in minutes.",
             );
             break;
-          case 'config_payment_settings':
+          case "config_payment_settings":
             await promptSettingUpdate(
               chatId,
               userId,
-              'payment_timeout_minutes',
-              'Enter payment timeout in minutes.'
+              "payment_timeout_minutes",
+              "Enter payment timeout in minutes.",
             );
             break;
-          case 'config_notification_settings':
+          case "config_notification_settings":
             await promptSettingUpdate(
               chatId,
               userId,
-              'admin_notifications',
-              'Enable admin notifications? (true/false)'
+              "admin_notifications",
+              "Enable admin notifications? (true/false)",
             );
             break;
-          case 'config_security_settings':
+          case "config_security_settings":
             await promptSettingUpdate(
               chatId,
               userId,
-              'max_login_attempts',
-              'Enter maximum login attempts before lockout.'
+              "max_login_attempts",
+              "Enter maximum login attempts before lockout.",
             );
             break;
-          case 'reset_all_settings': {
+          case "reset_all_settings": {
             if (!isAdmin(userId)) {
               await sendAccessDeniedMessage(chatId);
               break;
             }
-            const success = await resetBotSettings(DEFAULT_BOT_SETTINGS, userId);
+            const success = await resetBotSettings(
+              DEFAULT_BOT_SETTINGS,
+              userId,
+            );
             await sendMessage(
               chatId,
               success
-                ? '✅ All settings have been reset to defaults.'
-                : '❌ Failed to reset settings.'
+                ? "✅ All settings have been reset to defaults."
+                : "❌ Failed to reset settings.",
             );
             break;
           }
-          case 'backup_settings': {
+          case "backup_settings": {
             if (!isAdmin(userId)) {
               await sendAccessDeniedMessage(chatId);
               break;
@@ -3300,35 +3534,37 @@ ${Array.from(securityStats.suspiciousUsers).slice(-5).map(u => `• User ${u}`).
             const settings = await getAllBotSettings();
             const formatted = Object.entries(settings)
               .map(([k, v]) => `${k}: ${v}`)
-              .join('\n');
+              .join("\n");
             await sendMessage(
               chatId,
-              `📦 *Current Settings Backup*\n\n${formatted || 'No settings found.'}`
+              `📦 *Current Settings Backup*\n\n${
+                formatted || "No settings found."
+              }`,
             );
             break;
           }
 
           // Additional Settings Toggles
-          case 'set_delete_delay':
+          case "set_delete_delay":
             await promptSettingUpdate(
               chatId,
               userId,
-              'auto_delete_delay_seconds',
-              'Enter auto-delete delay in seconds.'
+              "auto_delete_delay_seconds",
+              "Enter auto-delete delay in seconds.",
             );
             break;
-          case 'set_broadcast_delay':
+          case "set_broadcast_delay":
             await promptSettingUpdate(
               chatId,
               userId,
-              'broadcast_delay_ms',
-              'Enter broadcast delay in milliseconds.'
+              "broadcast_delay_ms",
+              "Enter broadcast delay in milliseconds.",
             );
             break;
-          case 'advanced_settings':
+          case "advanced_settings":
             await showAdvancedSettings(chatId, userId);
             break;
-          case 'export_settings': {
+          case "export_settings": {
             if (!isAdmin(userId)) {
               await sendAccessDeniedMessage(chatId);
               break;
@@ -3336,141 +3572,207 @@ ${Array.from(securityStats.suspiciousUsers).slice(-5).map(u => `• User ${u}`).
             const settings = await getAllBotSettings();
             const formatted = Object.entries(settings)
               .map(([k, v]) => `${k}: ${v}`)
-              .join('\n');
+              .join("\n");
             await sendMessage(
               chatId,
-              `📤 *Bot Settings Export*\n\n${formatted || 'No settings found.'}`
+              `📤 *Bot Settings Export*\n\n${
+                formatted || "No settings found."
+              }`,
             );
             break;
           }
 
           // Broadcast Management Callbacks
-          case 'edit_channels':
-          case 'auto_settings':
-          case 'broadcast_help':
-            await sendMessage(chatId, "📢 Advanced broadcast features coming soon!");
+          case "edit_channels":
+          case "auto_settings":
+          case "broadcast_help":
+            await sendMessage(
+              chatId,
+              "📢 Advanced broadcast features coming soon!",
+            );
             break;
 
           // Handle VIP package selections and other complex callbacks
           default:
-            if (callbackData.startsWith('select_vip_')) {
-              const packageId = callbackData.replace('select_vip_', '');
-              await handleVipPackageSelection(chatId, userId, packageId, firstName);
-            } else if (callbackData.startsWith('payment_method_')) {
-              console.log(`💳 Payment method callback received: ${callbackData}`);
-              const [, , packageId, method] = callbackData.split('_');
-              console.log(`💳 Parsed: packageId=${packageId}, method=${method}`);
-              await handlePaymentMethodSelection(chatId, userId, packageId, method);
-            } else if (callbackData.startsWith('approve_payment_')) {
-              const paymentId = callbackData.replace('approve_payment_', '');
+            if (callbackData.startsWith("select_vip_")) {
+              const packageId = callbackData.replace("select_vip_", "");
+              await handleVipPackageSelection(
+                chatId,
+                userId,
+                packageId,
+                firstName,
+              );
+            } else if (callbackData.startsWith("payment_method_")) {
+              console.log(
+                `💳 Payment method callback received: ${callbackData}`,
+              );
+              const [, , packageId, method] = callbackData.split("_");
+              console.log(
+                `💳 Parsed: packageId=${packageId}, method=${method}`,
+              );
+              await handlePaymentMethodSelection(
+                chatId,
+                userId,
+                packageId,
+                method,
+              );
+            } else if (callbackData.startsWith("approve_payment_")) {
+              const paymentId = callbackData.replace("approve_payment_", "");
               await handleApprovePayment(chatId, userId, paymentId);
-            } else if (callbackData.startsWith('reject_payment_')) {
-              const paymentId = callbackData.replace('reject_payment_', '');
+            } else if (callbackData.startsWith("reject_payment_")) {
+              const paymentId = callbackData.replace("reject_payment_", "");
               await handleRejectPayment(chatId, userId, paymentId);
-            } else if (callbackData.startsWith('apply_promo_')) {
-              const packageId = callbackData.replace('apply_promo_', '');
+            } else if (callbackData.startsWith("apply_promo_")) {
+              const packageId = callbackData.replace("apply_promo_", "");
               await handlePromoCodePrompt(chatId, userId, packageId);
-            } else if (callbackData.startsWith('show_payment_')) {
-              const packageId = callbackData.replace('show_payment_', '');
+            } else if (callbackData.startsWith("show_payment_")) {
+              const packageId = callbackData.replace("show_payment_", "");
               await handleShowPaymentMethods(chatId, userId, packageId);
-            } else if (callbackData.startsWith('view_user_')) {
-              const targetUserId = callbackData.replace('view_user_', '');
+            } else if (callbackData.startsWith("view_user_")) {
+              const targetUserId = callbackData.replace("view_user_", "");
               await handleViewUserProfile(chatId, userId, targetUserId);
-            } else if (callbackData.startsWith('approve_user_payments_')) {
-              const targetUserId = callbackData.replace('approve_user_payments_', '');
-              await sendMessage(chatId, `✅ All pending payments for user ${targetUserId} have been approved.`);
-            } else if (callbackData.startsWith('reject_user_payments_')) {
-              const targetUserId = callbackData.replace('reject_user_payments_', '');
-              await sendMessage(chatId, `❌ All pending payments for user ${targetUserId} have been rejected.`);
-            } else if (callbackData.startsWith('select_education_')) {
-              const packageId = callbackData.replace('select_education_', '');
-              await handleEducationPackageSelection(chatId, userId, packageId, firstName);
-            } else if (callbackData.startsWith('make_vip_')) {
-              const targetUserId = callbackData.replace('make_vip_', '');
+            } else if (callbackData.startsWith("approve_user_payments_")) {
+              const targetUserId = callbackData.replace(
+                "approve_user_payments_",
+                "",
+              );
+              await sendMessage(
+                chatId,
+                `✅ All pending payments for user ${targetUserId} have been approved.`,
+              );
+            } else if (callbackData.startsWith("reject_user_payments_")) {
+              const targetUserId = callbackData.replace(
+                "reject_user_payments_",
+                "",
+              );
+              await sendMessage(
+                chatId,
+                `❌ All pending payments for user ${targetUserId} have been rejected.`,
+              );
+            } else if (callbackData.startsWith("select_education_")) {
+              const packageId = callbackData.replace("select_education_", "");
+              await handleEducationPackageSelection(
+                chatId,
+                userId,
+                packageId,
+                firstName,
+              );
+            } else if (callbackData.startsWith("make_vip_")) {
+              const targetUserId = callbackData.replace("make_vip_", "");
               await handleMakeUserVip(chatId, userId, targetUserId);
-            } else if (callbackData.startsWith('message_user_')) {
-              const targetUserId = callbackData.replace('message_user_', '');
+            } else if (callbackData.startsWith("message_user_")) {
+              const targetUserId = callbackData.replace("message_user_", "");
               await handleMessageUser(chatId, userId, targetUserId);
             } else if (
-              callbackData.startsWith('edit_plan_') ||
-              callbackData.startsWith('editplan')
+              callbackData.startsWith("edit_plan_") ||
+              callbackData.startsWith("editplan")
             ) {
               // Support both current `edit_plan_` prefix and legacy `editplan` format
               const planId = callbackData
-                .replace('edit_plan_', '')
-                .replace('editplan', '');
+                .replace("edit_plan_", "")
+                .replace("editplan", "");
               console.log(`🔧 Admin ${userId} editing plan: ${planId}`);
-              
+
               if (!isAdmin(userId)) {
                 await sendAccessDeniedMessage(chatId);
                 return new Response("OK", { status: 200 });
               }
-              
+
               try {
                 const { data: plan, error } = await supabaseAdmin
-                  .from('subscription_plans')
-                  .select('*')
-                  .eq('id', planId)
+                  .from("subscription_plans")
+                  .select("*")
+                  .eq("id", planId)
                   .single();
-                
+
                 if (error) throw error;
-                
+
                 if (!plan) {
                   await sendMessage(chatId, "❌ Plan not found.");
                   return new Response("OK", { status: 200 });
                 }
-                
+
                 const editMessage = `✏️ **Edit Plan: ${plan.name}**
                 
 📋 **Current Details:**
 • **Name:** ${plan.name}
 • **Price:** $${plan.price} ${plan.currency}
-• **Duration:** ${plan.is_lifetime ? 'Lifetime' : `${plan.duration_months} months`}
+• **Duration:** ${
+                  plan.is_lifetime
+                    ? "Lifetime"
+                    : `${plan.duration_months} months`
+                }
 • **Features:** ${plan.features?.length || 0} items
 
 🔧 **What would you like to edit?**`;
-                
+
                 const editKeyboard = {
                   inline_keyboard: [
                     [
-                      { text: "📝 Edit Name", callback_data: `edit_plan_name_${planId}` },
-                      { text: "💰 Edit Price", callback_data: `edit_plan_price_${planId}` }
+                      {
+                        text: "📝 Edit Name",
+                        callback_data: `edit_plan_name_${planId}`,
+                      },
+                      {
+                        text: "💰 Edit Price",
+                        callback_data: `edit_plan_price_${planId}`,
+                      },
                     ],
                     [
-                      { text: "⏰ Edit Duration", callback_data: `edit_plan_duration_${planId}` },
-                      { text: "✨ Edit Features", callback_data: `edit_plan_features_${planId}` }
+                      {
+                        text: "⏰ Edit Duration",
+                        callback_data: `edit_plan_duration_${planId}`,
+                      },
+                      {
+                        text: "✨ Edit Features",
+                        callback_data: `edit_plan_features_${planId}`,
+                      },
                     ],
                     [
-                      { text: "🗑️ Delete Plan", callback_data: `delete_plan_${planId}` }
+                      {
+                        text: "🗑️ Delete Plan",
+                        callback_data: `delete_plan_${planId}`,
+                      },
                     ],
                     [
-                      { text: "🔙 Back to Plans", callback_data: "edit_vip_plan" }
-                    ]
-                  ]
+                      {
+                        text: "🔙 Back to Plans",
+                        callback_data: "edit_vip_plan",
+                      },
+                    ],
+                  ],
                 };
-                
+
                 await sendMessage(chatId, editMessage, editKeyboard);
-                await logAdminAction(userId, 'plan_edit_view', `Viewing edit options for plan: ${plan.name}`, 'subscription_plans', planId);
-                
+                await logAdminAction(
+                  userId,
+                  "plan_edit_view",
+                  `Viewing edit options for plan: ${plan.name}`,
+                  "subscription_plans",
+                  planId,
+                );
               } catch (error) {
-                console.error('🚨 Error loading plan for editing:', error);
-                await sendMessage(chatId, `❌ Error loading plan: ${(error as Error).message}`);
+                console.error("🚨 Error loading plan for editing:", error);
+                await sendMessage(
+                  chatId,
+                  `❌ Error loading plan: ${(error as Error).message}`,
+                );
               }
-            } else if (callbackData === 'about_us') {
+            } else if (callbackData === "about_us") {
               await handleAboutUs(chatId, userId);
-            } else if (callbackData === 'support') {
+            } else if (callbackData === "support") {
               await handleSupport(chatId, userId);
-            } else if (callbackData === 'view_promotions') {
+            } else if (callbackData === "view_promotions") {
               await handleViewPromotions(chatId, userId);
-            } else if (callbackData === 'trading_results') {
+            } else if (callbackData === "trading_results") {
               await handleTradingResults(chatId, userId);
-            } else if (callbackData === 'help_faq') {
+            } else if (callbackData === "help_faq") {
               await handleHelpAndFAQ(chatId, userId, firstName);
-            } else if (callbackData === 'terms') {
+            } else if (callbackData === "terms") {
               await handleTerms(chatId, userId);
-            } else if (callbackData === 'view_education') {
+            } else if (callbackData === "view_education") {
               await handleViewEducation(chatId, userId);
-            } else if (callbackData === 'view_pending_payments') {
+            } else if (callbackData === "view_pending_payments") {
               await handleViewPendingPayments(chatId, userId);
             } else {
               console.log(`❓ Unknown callback: ${callbackData}`);
@@ -3479,37 +3781,49 @@ ${Array.from(securityStats.suspiciousUsers).slice(-5).map(u => `• User ${u}`).
                 chatId,
                 callbackData,
                 firstName,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
               });
-              await sendMessage(chatId, `❓ Unknown action: "${callbackData}". Please try again or use /start for the main menu.`);
+              await sendMessage(
+                chatId,
+                `❓ Unknown action: "${callbackData}". Please try again or use /start for the main menu.`,
+              );
             }
         }
 
         // Answer callback query to remove loading state
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ callback_query_id: update.callback_query.id })
-        });
-
+        await fetch(
+          `https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              callback_query_id: update.callback_query.id,
+            }),
+          },
+        );
       } catch (error) {
-        console.error('🚨 Error handling callback:', error);
-        await sendMessage(chatId, "❌ An error occurred. Please try again or contact support.");
-        
+        console.error("🚨 Error handling callback:", error);
+        await sendMessage(
+          chatId,
+          "❌ An error occurred. Please try again or contact support.",
+        );
+
         // Still answer the callback query
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            callback_query_id: update.callback_query.id,
-            text: "Error occurred, please try again"
-          })
-        });
+        await fetch(
+          `https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              callback_query_id: update.callback_query.id,
+              text: "Error occurred, please try again",
+            }),
+          },
+        );
       }
     }
-    
+
     return new Response("OK", { status: 200 });
-    
   } catch (error) {
     console.error("🚨 Main error:", error);
     return new Response("Error", { status: 500, headers: corsHeaders });
@@ -3541,11 +3855,23 @@ function getApprovedBeneficiaryByAccountNumber(arg0: any, toAccount: any): any {
   throw new Error("Function not implemented.");
 }
 
-function sendMiniAppLink(chatId: number, arg1: { silent: boolean; }) {
+function sendMiniAppLink(chatId: number, arg1: { silent: boolean }) {
   throw new Error("Function not implemented.");
 }
 
-function notifyUser(chatId: number, text: string, arg2: { reply_markup: { inline_keyboard: { text: string; callback_data?: string; web_app?: { url: string; }; }[][]; }; }) {
+function notifyUser(
+  chatId: number,
+  text: string,
+  arg2: {
+    reply_markup: {
+      inline_keyboard: {
+        text: string;
+        callback_data?: string;
+        web_app?: { url: string };
+      }[][];
+    };
+  },
+) {
   throw new Error("Function not implemented.");
 }
 
@@ -3553,7 +3879,9 @@ function getSupabase() {
   throw new Error("Function not implemented.");
 }
 
-function loadAdminHandlers(): Promise<typeof import("c:/Users/Abdul Mumin/OneDrive/Dynamic-Capital/Dynamic-Capital/supabase/functions/telegram-bot/admin-handlers/index")> {
+function loadAdminHandlers(): Promise<
+  typeof import("c:/Users/Abdul Mumin/OneDrive/Dynamic-Capital/Dynamic-Capital/supabase/functions/telegram-bot/admin-handlers/index")
+> {
   throw new Error("Function not implemented.");
 }
 
@@ -3573,7 +3901,15 @@ function isAdmin(userId: any) {
   throw new Error("Function not implemented.");
 }
 
-function updateBotSession(userId: any, arg1: { message_type: string; text: any; timestamp: string; security_passed: boolean; }) {
+function updateBotSession(
+  userId: any,
+  arg1: {
+    message_type: string;
+    text: any;
+    timestamp: string;
+    security_passed: boolean;
+  },
+) {
   throw new Error("Function not implemented.");
 }
 
@@ -3581,7 +3917,7 @@ function getBotSetting(arg0: string) {
   throw new Error("Function not implemented.");
 }
 
-function getAutoReply(arg0: string, arg1: { firstName: any; }) {
+function getAutoReply(arg0: string, arg1: { firstName: any }) {
   throw new Error("Function not implemented.");
 }
 
@@ -3625,7 +3961,12 @@ function setBotSetting(settingKey: any, text: any, userId: any) {
   throw new Error("Function not implemented.");
 }
 
-function handleContentEditSave(chatId: any, userId: any, text: any, contentKey: any) {
+function handleContentEditSave(
+  chatId: any,
+  userId: any,
+  text: any,
+  contentKey: any,
+) {
   throw new Error("Function not implemented.");
 }
 
@@ -3637,7 +3978,12 @@ function handleNewChatMember(message: any) {
   throw new Error("Function not implemented.");
 }
 
-function handlePromoCodeInput(chatId: any, userId: any, arg2: any, promoSession: any) {
+function handlePromoCodeInput(
+  chatId: any,
+  userId: any,
+  arg2: any,
+  promoSession: any,
+) {
   throw new Error("Function not implemented.");
 }
 
@@ -3741,7 +4087,17 @@ function handlePostTradeResult(chatId: any, userId: any) {
   throw new Error("Function not implemented.");
 }
 
-function postToResultsChannel(arg0: string, arg1: { pair: string; entry: string; exit: string; profit: string; duration: string; amount: string; }) {
+function postToResultsChannel(
+  arg0: string,
+  arg1: {
+    pair: string;
+    entry: string;
+    exit: string;
+    profit: string;
+    duration: string;
+    amount: string;
+  },
+) {
   throw new Error("Function not implemented.");
 }
 
@@ -3849,7 +4205,12 @@ function handlePreviewAllContent(chatId: any, userId: any) {
   throw new Error("Function not implemented.");
 }
 
-function promptSettingUpdate(chatId: any, userId: any, arg2: string, arg3: string) {
+function promptSettingUpdate(
+  chatId: any,
+  userId: any,
+  arg2: string,
+  arg3: string,
+) {
   throw new Error("Function not implemented.");
 }
 
@@ -3865,11 +4226,21 @@ function showAdvancedSettings(chatId: any, userId: any) {
   throw new Error("Function not implemented.");
 }
 
-function handleVipPackageSelection(chatId: any, userId: any, packageId: any, firstName: any) {
+function handleVipPackageSelection(
+  chatId: any,
+  userId: any,
+  packageId: any,
+  firstName: any,
+) {
   throw new Error("Function not implemented.");
 }
 
-function handlePaymentMethodSelection(chatId: any, userId: any, packageId: any, method: any) {
+function handlePaymentMethodSelection(
+  chatId: any,
+  userId: any,
+  packageId: any,
+  method: any,
+) {
   throw new Error("Function not implemented.");
 }
 
@@ -3893,7 +4264,12 @@ function handleViewUserProfile(chatId: any, userId: any, targetUserId: any) {
   throw new Error("Function not implemented.");
 }
 
-function handleEducationPackageSelection(chatId: any, userId: any, packageId: any, firstName: any) {
+function handleEducationPackageSelection(
+  chatId: any,
+  userId: any,
+  packageId: any,
+  firstName: any,
+) {
   throw new Error("Function not implemented.");
 }
 
@@ -3928,4 +4304,3 @@ function handleTerms(chatId: any, userId: any) {
 function handleViewPendingPayments(chatId: any, userId: any) {
   throw new Error("Function not implemented.");
 }
-

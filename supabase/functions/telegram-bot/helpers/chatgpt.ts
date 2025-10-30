@@ -136,7 +136,12 @@ async function invokeOllama(question: string): Promise<string | null> {
       method: "POST",
       signal: controller.signal,
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ model, prompt: question, stream: false, options: { temperature: 0.2 } }),
+      body: JSON.stringify({
+        model,
+        prompt: question,
+        stream: false,
+        options: { temperature: 0.2 },
+      }),
     });
     if (!resp.ok) {
       console.error("[askChatGPT] ollama HTTP", resp.status);
