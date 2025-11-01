@@ -11,7 +11,7 @@ from types import MappingProxyType
 from typing import Callable, Iterable, Mapping, MutableMapping, Protocol, Sequence
 
 import json
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from urllib.request import Request, urlopen
 
 from ..supabase_sync import SupabaseTableWriter
@@ -449,16 +449,28 @@ class _TradingEconomicsAdapter:
         if not self._client_id or not self._client_secret:
             raise ProviderConfigurationError("Trading Economics credentials missing")
         indicator_code = code or indicator
-        path = f"indicators/{indicator_code}/{region}"
-        response = self._fetch_json(
-            f"{self._BASE_URL}/{path}",
-            {
-                "format": "json",
-                "c": f"{self._client_id}:{self._client_secret}",
-            },
-            None,
+        encoded_indicator = quote(indicator_code, safe="")
+        encoded_region = quote(region, safe="")
+        paths = (
+            f"indicators/country/{encoded_region}/{encoded_indicator}",
+            f"indicators/{encoded_indicator}/{encoded_region}",
         )
-        if not isinstance(response, Sequence) or not response:
+        response: Sequence[Mapping[str, object]] | None = None
+        resolved_path: str | None = None
+        for path in paths:
+            candidate = self._fetch_json(
+                f"{self._BASE_URL}/{path}",
+                {
+                    "format": "json",
+                    "c": f"{self._client_id}:{self._client_secret}",
+                },
+                None,
+            )
+            if isinstance(candidate, Sequence) and candidate:
+                response = candidate
+                resolved_path = path
+                break
+        if not response:
             return None
         latest = max(
             (entry for entry in response if isinstance(entry, Mapping)),
@@ -469,6 +481,8 @@ class _TradingEconomicsAdapter:
             "category": latest.get("Category"),
             "source": latest.get("Source"),
         }
+        if resolved_path:
+            metadata["endpoint_path"] = resolved_path
         normalised_payload: dict[str, object] = {
             "value": latest.get("LatestValue") or latest.get("Value"),
             "forecast": latest.get("LatestValueForecast"),
