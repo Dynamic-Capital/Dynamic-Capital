@@ -37,12 +37,20 @@ class DynamicTranslationEngine:
     glossary: Glossary = field(default_factory=Glossary)
     model: DynamicTranslationModel = field(default_factory=DynamicTranslationModel)
     translator: Callable[[str, str, str], str] | None = None
+    _normalised_languages: frozenset[str] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        languages = {normalise(language) for language in self.supported_languages}
-        if len(languages) != len(tuple(self.supported_languages)):
-            raise ValueError("supported_languages contains duplicates")
-        object.__setattr__(self, "supported_languages", tuple(self.supported_languages))
+        ordered_languages: list[str] = []
+        normalised_languages: set[str] = set()
+        for language in self.supported_languages:
+            canonical = normalise(language)
+            if canonical in normalised_languages:
+                raise ValueError("supported_languages contains duplicates")
+            normalised_languages.add(canonical)
+            ordered_languages.append(language)
+
+        object.__setattr__(self, "supported_languages", tuple(ordered_languages))
+        object.__setattr__(self, "_normalised_languages", frozenset(normalised_languages))
 
         if self.translator is not None:
             self.model.configure_translator(self.translator)
@@ -117,11 +125,13 @@ class DynamicTranslationEngine:
         )
 
     def _validate_languages(self, source: str, target: str) -> None:
-        normalised = {normalise(lang) for lang in self.supported_languages}
-        if normalise(source) not in normalised:
+        source_normalised = normalise(source)
+        target_normalised = normalise(target)
+
+        if source_normalised not in self._normalised_languages:
             raise ValueError(f"Unsupported source language: {source}")
-        if normalise(target) not in normalised:
+        if target_normalised not in self._normalised_languages:
             raise ValueError(f"Unsupported target language: {target}")
-        if normalise(source) == normalise(target):
+        if source_normalised == target_normalised:
             raise ValueError("Source and target languages must be different")
 
