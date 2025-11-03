@@ -1,0 +1,295 @@
+{
+  "name": "Dynamic Trading Logic",
+  "version": "2025.03",
+  "steward": "Strategy Intelligence Guild",
+  "updated": "2025-03-10",
+  "tracks": [
+    {
+      "id": "integration",
+      "label": "Integration",
+      "owner": "Strategy Router Pod",
+      "status": "in-progress",
+      "notes": [
+        "Schema handshake between DTL and DTA mock feeds validated in staging.",
+        "Persona ritual definitions under review with mentorship council."
+      ],
+      "deliverables": [
+        {
+          "id": "strategy-router-skeleton",
+          "title": "Strategy Router skeleton service",
+          "description": "Stub service emitting mock DTL/DTA intents to validate schema alignment before production wiring.",
+          "status": "in-progress",
+          "links": [
+            "docs/agi_integration_strategies.md#7-next-actions"
+          ],
+          "dependencies": []
+        },
+        {
+          "id": "supabase-rationale-store",
+          "title": "Supabase rationale store",
+          "description": "Normalized store for persona debates, rationale scoring, and audit trails shared with DTA.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#6-implementation-checklist"
+          ],
+          "dependencies": [
+            "strategy-router-skeleton"
+          ]
+        },
+        {
+          "id": "persona-rituals",
+          "title": "Persona rituals charter",
+          "description": "Documented rituals for research, execution, and risk personas covering gating and review cadence.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#7-next-actions"
+          ],
+          "dependencies": []
+        }
+      ]
+    },
+    {
+      "id": "execution",
+      "label": "Execution",
+      "owner": "Latency Ops Crew",
+      "status": "planned",
+      "notes": [
+        "Pending telemetry probes for latency and slippage baselines.",
+        "Awaiting router skeleton output before shadow deployments proceed."
+      ],
+      "deliverables": [
+        {
+          "id": "broker-bandit",
+          "title": "Broker routing bandit",
+          "description": "Exploration/exploitation bandit choosing optimal broker endpoints per strategy lane.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#6-implementation-checklist"
+          ],
+          "dependencies": [
+            "strategy-router-skeleton"
+          ]
+        },
+        {
+          "id": "latency-dashboard",
+          "title": "Latency baseline dashboards",
+          "description": "Grafana dashboards capturing order round-trip, fill latency, and slippage variance.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#7-next-actions"
+          ],
+          "dependencies": []
+        },
+        {
+          "id": "shadow-tooling",
+          "title": "Shadow deploy tooling",
+          "description": "Automation for replaying DTL intents through DTA without releasing to production brokers.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#6-implementation-checklist"
+          ],
+          "dependencies": [
+            "broker-bandit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "logic",
+      "label": "Logic",
+      "owner": "Quant Intelligence Circle",
+      "status": "in-progress",
+      "notes": [
+        "Prototype ensemble evaluation harness scoring strategies against synthetic regimes.",
+        "Anomaly detection thresholds drafted; awaiting live telemetry."
+      ],
+      "deliverables": [
+        {
+          "id": "ensemble-harness",
+          "title": "Ensemble evaluation harness",
+          "description": "Batch evaluation harness fusing multiple models to rank DTL hypotheses.",
+          "status": "in-progress",
+          "links": [
+            "docs/agi_integration_strategies.md#6-implementation-checklist"
+          ],
+          "dependencies": []
+        },
+        {
+          "id": "smc-anomaly",
+          "title": "SMC anomaly detection",
+          "description": "Detector scanning Supabase feeds for Smart Money Concepts deviations and structural drifts.",
+          "status": "planned",
+          "links": [
+            "docs/dynamic-trading-algo-improvement-checklist.md#3-analyzer--signal-enhancements"
+          ],
+          "dependencies": [
+            "ensemble-harness"
+          ]
+        },
+        {
+          "id": "decision-delta-log",
+          "title": "Decision delta log",
+          "description": "Append-only log capturing rationale deltas between persona consensus and final execution decision.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#6-implementation-checklist"
+          ],
+          "dependencies": [
+            "ensemble-harness"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "feedback",
+      "label": "Feedback",
+      "owner": "Telemetry Mesh Team",
+      "status": "in-progress",
+      "notes": [
+        "OpenTelemetry collectors configured for mock pipelines; production credentials pending.",
+        "Treasury event sync specification awaiting risk committee approval."
+      ],
+      "deliverables": [
+        {
+          "id": "otel-mesh",
+          "title": "OpenTelemetry mesh",
+          "description": "Unified telemetry mesh streaming persona metrics, broker telemetry, and mentorship scores.",
+          "status": "in-progress",
+          "links": [
+            "docs/agi_integration_strategies.md#6-implementation-checklist"
+          ],
+          "dependencies": [
+            "strategy-router-skeleton"
+          ]
+        },
+        {
+          "id": "modifier-autotune",
+          "title": "Modifier auto-tuning workflow",
+          "description": "Workflow adjusting risk and conviction modifiers from telemetry deltas without human review.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#5-continuous-learning"
+          ],
+          "dependencies": [
+            "otel-mesh"
+          ]
+        },
+        {
+          "id": "treasury-event-sync",
+          "title": "Treasury event sync",
+          "description": "Event bridge aligning treasury triggers, Oracle signals, and execution throttles.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#43-treasury-synchronization"
+          ],
+          "dependencies": [
+            "otel-mesh"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "learning",
+      "label": "Learning",
+      "owner": "Reinforcement Lab",
+      "status": "planned",
+      "notes": [
+        "Reward function drafts under review; historical fill dataset cleanup underway.",
+        "Mentorship scoring rubric waiting on feedback instrumentation."
+      ],
+      "deliverables": [
+        {
+          "id": "rl-training-loop",
+          "title": "RL training loop",
+          "description": "Offline RL training pipeline evaluating strategy intents before deployment.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#51-reinforcement-learning-on-trade-outcomes"
+          ],
+          "dependencies": []
+        },
+        {
+          "id": "mentorship-scoring",
+          "title": "Mentorship scoring rubric",
+          "description": "Rubric scoring mentorship and community feedback for backlog prioritization.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#52-mentorship--community-feedback"
+          ],
+          "dependencies": [
+            "rl-training-loop"
+          ]
+        },
+        {
+          "id": "oracle-triggers",
+          "title": "Oracle trigger webhooks",
+          "description": "Webhook suite bridging Intelligence Oracle metrics into treasury and execution notifications.",
+          "status": "planned",
+          "links": [
+            "docs/agi_integration_strategies.md#53-intelligence-oracle--tokenomics-triggers"
+          ],
+          "dependencies": [
+            "rl-training-loop",
+            "treasury-event-sync"
+          ]
+        }
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "m1",
+      "title": "Router handshake and telemetry baseline",
+      "targetDate": "2025-04-15",
+      "status": "in-progress",
+      "summary": "Mock router publishing events with latency probes captured inside the telemetry mesh.",
+      "dependencies": [
+        "strategy-router-skeleton",
+        "latency-dashboard",
+        "otel-mesh"
+      ]
+    },
+    {
+      "id": "m2",
+      "title": "Persona governance activation",
+      "targetDate": "2025-05-10",
+      "status": "planned",
+      "summary": "Persona rituals charter adopted with decision delta logs wired into Supabase.",
+      "dependencies": [
+        "persona-rituals",
+        "decision-delta-log"
+      ]
+    },
+    {
+      "id": "m3",
+      "title": "Learning loop pilot",
+      "targetDate": "2025-06-01",
+      "status": "planned",
+      "summary": "RL training loop and mentorship scoring rubric produce actionable backlog updates.",
+      "dependencies": [
+        "rl-training-loop",
+        "mentorship-scoring"
+      ]
+    }
+  ],
+  "telemetry": [
+    {
+      "metric": "Router handshake latency (p95)",
+      "target": "< 450ms",
+      "owner": "Latency Ops Crew",
+      "source": "Grafana latency baseline dashboards"
+    },
+    {
+      "metric": "Persona consensus to execution delta",
+      "target": "< 5% deviation",
+      "owner": "Quant Intelligence Circle",
+      "source": "Decision delta log"
+    },
+    {
+      "metric": "Mentorship signal uptake",
+      "target": ">= 60% of backlog items influenced",
+      "owner": "Reinforcement Lab",
+      "source": "Mentorship scoring rubric exports"
+    }
+  ]
+}
