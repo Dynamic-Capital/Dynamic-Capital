@@ -203,6 +203,10 @@ export interface Promotion {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  airdrop_campaign?: string | null;
+  airdrop_target?: string | null;
+  airdrop_bot_user_id?: string | null;
+  airdrop_metadata?: Record<string, unknown> | null;
 }
 
 export interface PromotionUsage {
