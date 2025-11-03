@@ -1,5 +1,5 @@
 import { MDXRemote, MDXRemoteProps } from "next-mdx-remote/rsc";
-import React, { ReactNode } from "react";
+import React, { Children, ReactNode } from "react";
 import { slugify as transliterate } from "transliteration";
 
 import {
@@ -86,12 +86,30 @@ function slugify(str: string): string {
   }).replace(/\-\-+/g, "-"); // Replace multiple - with single -
 }
 
+function extractTextContent(
+  children: ReactNode,
+  { trim }: { trim?: boolean } = {}
+): string {
+  const text = Children.toArray(children)
+    .map((child) => {
+      if (typeof child === "string" || typeof child === "number") {
+        return String(child);
+      }
+
+      return "";
+    })
+    .join("");
+
+  return trim ? text.trim() : text;
+}
+
 function createHeading(as: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") {
   const CustomHeading = ({
     children,
     ...props
   }: Omit<React.ComponentProps<typeof HeadingLink>, "as" | "id">) => {
-    const slug = slugify(children as string);
+    const textContent = extractTextContent(children, { trim: true });
+    const slug = textContent ? slugify(textContent) : undefined;
     return (
       <HeadingLink
         marginTop="24"
@@ -136,20 +154,69 @@ function createCodeBlock(props: any) {
     const { className, children } = props.children.props;
 
     // Extract language from className (format: language-xxx)
-    const language = className.replace("language-", "");
-    const label = language.charAt(0).toUpperCase() + language.slice(1);
+    type CodeBlockLanguage = React.ComponentProps<
+      typeof CodeBlock
+    >["codes"][number]["language"];
+    type DiffTuple = Extract<CodeBlockLanguage, ["diff", unknown]>;
+    type DiffLanguage = DiffTuple extends ["diff", infer Lang]
+      ? Lang
+      : never;
+    type SingleLanguage = Exclude<CodeBlockLanguage, DiffTuple>;
+
+    const parsedLanguage =
+      typeof className === "string" && className.startsWith("language-")
+        ? className.replace("language-", "")
+        : undefined;
+
+    const normalizedLanguage: CodeBlockLanguage | null = (() => {
+      if (!parsedLanguage) {
+        return null;
+      }
+
+      if (parsedLanguage === "diff") {
+        return parsedLanguage as SingleLanguage;
+      }
+
+      if (parsedLanguage.startsWith("diff-")) {
+        const diffTarget = parsedLanguage.slice("diff-".length);
+        if (!diffTarget) {
+          return "diff" as SingleLanguage;
+        }
+
+        return [
+          "diff",
+          diffTarget as DiffLanguage extends string ? DiffLanguage : never,
+        ] as CodeBlockLanguage;
+      }
+
+      return parsedLanguage as SingleLanguage;
+    })();
+
+    const label = normalizedLanguage
+      ? Array.isArray(normalizedLanguage)
+        ? normalizedLanguage[1].charAt(0).toUpperCase() +
+          normalizedLanguage[1].slice(1)
+        : normalizedLanguage.charAt(0).toUpperCase() +
+          normalizedLanguage.slice(1)
+      : "Code";
+
+    const code = extractTextContent(children).replace(/\r\n/g, "\n").trimEnd();
+
+    if (!normalizedLanguage) {
+      return <pre {...props} />;
+    }
+
+    const codeInstance = {
+      code,
+      label,
+      language: normalizedLanguage,
+    } satisfies React.ComponentProps<typeof CodeBlock>["codes"][number];
 
     return (
       <CodeBlock
         marginTop="8"
         marginBottom="16"
-        codes={[
-          {
-            code: children,
-            language,
-            label,
-          },
-        ]}
+        codes={[codeInstance]}
         copyButton={true}
       />
     );
