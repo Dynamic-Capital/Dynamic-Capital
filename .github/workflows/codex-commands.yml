@@ -19,7 +19,7 @@ jobs:
           if echo "$body" | grep -qi '^/codex logs'; then echo "cmd=logs" >> $GITHUB_OUTPUT; fi
       - name: Trigger Codex Feedback
         if: steps.parse.outputs.cmd == 'summary'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const prNumber = context.payload.issue.number;

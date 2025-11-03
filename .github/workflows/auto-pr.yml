@@ -23,7 +23,7 @@ jobs:
         run: deno test -A
       - name: Create pull request
         if: ${{ success() }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const branch = context.ref.replace('refs/heads/', '');
