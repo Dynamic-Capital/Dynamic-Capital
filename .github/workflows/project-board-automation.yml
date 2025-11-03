@@ -30,7 +30,7 @@ jobs:
       PROJECT_TOKEN: ${{ secrets.PROJECT_BOARD_TOKEN || secrets.GITHUB_TOKEN }}
     steps:
       - name: Move work item to Backlog
-        uses: actions/add-to-project@v0.4.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ env.PROJECT_TOKEN }}
@@ -39,7 +39,7 @@ jobs:
 
       - name: Move issue to To Do when sprint label present
         if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'sprint')
-        uses: actions/add-to-project@v0.4.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ env.PROJECT_TOKEN }}
@@ -47,7 +47,7 @@ jobs:
 
       - name: Move pull request to To Do when sprint label present
         if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'sprint')
-        uses: actions/add-to-project@v0.4.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ env.PROJECT_TOKEN }}
@@ -55,7 +55,7 @@ jobs:
 
       - name: Move pull request to In Progress when opened
         if: github.event_name == 'pull_request' && github.event.action == 'opened'
-        uses: actions/add-to-project@v0.4.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ env.PROJECT_TOKEN }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Move pull request to In Progress when reopened
         if: github.event_name == 'pull_request' && github.event.action == 'reopened'
-        uses: actions/add-to-project@v0.4.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ env.PROJECT_TOKEN }}
@@ -71,7 +71,7 @@ jobs:
 
       - name: Move pull request to Review when ready for review
         if: github.event_name == 'pull_request' && github.event.action == 'ready_for_review'
-        uses: actions/add-to-project@v0.4.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ env.PROJECT_TOKEN }}
@@ -79,7 +79,7 @@ jobs:
 
       - name: Move pull request to Review when review requested
         if: github.event_name == 'pull_request' && github.event.action == 'review_requested'
-        uses: actions/add-to-project@v0.4.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ env.PROJECT_TOKEN }}
@@ -87,7 +87,7 @@ jobs:
 
       - name: Move issue to Done when closed
         if: github.event_name == 'issues' && github.event.action == 'closed'
-        uses: actions/add-to-project@v0.4.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ env.PROJECT_TOKEN }}
@@ -95,7 +95,7 @@ jobs:
 
       - name: Move pull request to Done when merged
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
-        uses: actions/add-to-project@v0.4.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
           github-token: ${{ env.PROJECT_TOKEN }}
