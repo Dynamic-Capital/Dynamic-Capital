@@ -23,7 +23,7 @@ jobs:
       DENO_TLS_CA_STORE: system
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - id: script-flags
         name: Detect npm scripts
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Python runtime
         uses: ./.github/actions/setup-runtimes

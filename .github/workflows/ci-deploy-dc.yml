@@ -18,7 +18,7 @@ jobs:
     env:
       DENO_TLS_CA_STORE: system
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup Deno runtime
         id: setup-deno
         uses: ./.github/actions/setup-runtimes

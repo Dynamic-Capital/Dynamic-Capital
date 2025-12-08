@@ -15,7 +15,7 @@ jobs:
     outputs:
       deno_cache_hit: ${{ steps.setup-deno.outputs.deno-cache-hit }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup Deno runtime
         id: setup-deno
         uses: ./.github/actions/setup-runtimes
@@ -55,7 +55,7 @@ jobs:
     outputs:
       supabase_cli_version: ${{ steps.supabase-cli-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
