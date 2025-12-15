@@ -23,7 +23,7 @@ jobs:
         env:
           A_SUPABASE_URL: ${{ secrets.A_SUPABASE_URL }}
           A_SUPABASE_KEY: ${{ secrets.A_SUPABASE_KEY }}
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: metadata-audit
           path: .audit
