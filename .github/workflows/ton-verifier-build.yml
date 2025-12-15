@@ -52,7 +52,7 @@ jobs:
           $(bash scripts/deno_bin.sh) run -A dynamic-capital-ton/apps/tools/build-ton-verifier.ts
 
       - name: Upload verifier artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ton-verifier-dist
           path: |
@@ -61,7 +61,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload dist folder snapshot
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ton-verifier-dist-folder
           path: dynamic-capital-ton/build/verifier/dist
