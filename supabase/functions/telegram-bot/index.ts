@@ -89,6 +89,14 @@ import {
   parseBankSlip as defaultParseBankSlip,
   type ParsedSlip,
 } from "./bank-parsers.ts";
+import {
+  getApprovedBeneficiaryByAccountNumber,
+  normalizeAccount as normalizeBeneficiaryAccount,
+} from "./helpers/beneficiary.ts";
+import {
+  getApprovedBeneficiaryByAccountNumber,
+  normalizeAccount as normalizeBeneficiaryAccount,
+} from "./helpers/beneficiary.ts";
 // Type definition moved inline to avoid import issues
 interface Promotion {
   code: string;
@@ -545,6 +553,8 @@ const supabaseAdmin = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
   auth: { persistSession: false },
 });
 
+const DEFAULT_PARSE_MODE = "HTML";
+
 // Admin user IDs - including the user who's testing
 const ADMIN_USER_IDS = new Set(["225513686"]);
 
@@ -610,11 +620,18 @@ async function startBotSession(
     console.error("🚨 Exception starting session:", error);
     return "";
   }
-  const trimmed = parseMode.trim();
-  if (!trimmed) {
-    return DEFAULT_PARSE_MODE;
+}
+
+function normalizeParseMode(rawParseMode: unknown): string {
+  if (typeof rawParseMode !== "string") return DEFAULT_PARSE_MODE;
+  const trimmed = rawParseMode.trim();
+  if (!trimmed) return DEFAULT_PARSE_MODE;
+  const upper = trimmed.toUpperCase();
+  if (upper === "HTML") return "HTML";
+  if (upper === "MARKDOWN" || upper === "MARKDOWNV2") {
+    return upper === "MARKDOWNV2" ? "MarkdownV2" : "Markdown";
   }
-  return trimmed.toLowerCase() === "html" ? "HTML" : trimmed;
+  return trimmed;
 }
 
 function shouldEscapeHtml(parseMode: string): boolean {
@@ -637,7 +654,7 @@ async function getOcrTextFromBlob(): Promise<OcrTextFromBlob> {
 }
 
 export function __setReceiptParsingOverrides(overrides: {
-  ocrTextFromBlob?: typeof defaultOcrTextFromBlob;
+  ocrTextFromBlob?: OcrTextFromBlob;
   parseBankSlip?: typeof defaultParseBankSlip;
 }): void {
   if (overrides.ocrTextFromBlob) {
@@ -806,10 +823,10 @@ async function handleReceiptUpload(
     const fileUrl = storagePath; // private bucket path
 
     // 5. OCR
-    const text = await ocrTextFromBlob(blob);
+    const text = await (await getOcrTextFromBlob())(blob);
 
     // 6. Parse bank slip
-    const parsed = parseBankSlip(text);
+    const parsed = parseBankSlipImpl(text);
 
     // 7. Find intent
     let intent = null as any;
@@ -2616,7 +2633,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     console.log(`👤 Processing update for user: ${userId} (${firstName})`);
 
     // Run security checks FIRST
-    const isUserAdmin = isAdmin(userId);
+    const isUserAdmin = await isAdmin(userId);
 
     // Periodic cleanup of rate limit store
     cleanupRateLimit();
@@ -2675,7 +2692,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       // Check for maintenance mode
       const maintenanceMode = await getBotSetting("maintenance_mode");
-      if (maintenanceMode === "true" && !isAdmin(userId)) {
+      if (maintenanceMode === "true" && !isUserAdmin) {
         console.log("🔧 Bot in maintenance mode for non-admin user");
         await sendMessage(
           chatId,
@@ -2742,7 +2759,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             console.log(
               `✅ Welcome message sent successfully to user: ${userId}`,
             );
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               await handleBotStatus(chatId, userId);
             }
 
@@ -2781,12 +2798,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
       // Handle /admin command
       if (text === "/admin") {
         console.log(`🔐 Admin command from: ${userId} (${firstName})`);
-        console.log(`🔐 Admin check result: ${isAdmin(userId)}`);
+        console.log(`🔐 Admin check result: ${isUserAdmin}`);
         console.log(
           `🔐 Current admin IDs: ${Array.from(ADMIN_USER_IDS).join(", ")}`,
         );
 
-        if (isAdmin(userId)) {
+        if (isUserAdmin) {
           await handleAdminDashboard(chatId, userId);
         } else {
           await sendAccessDeniedMessage(
@@ -2804,19 +2821,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       // Handle /status command for admins
-      if (text === "/status" && isAdmin(userId)) {
+      if (text === "/status" && isUserAdmin) {
         await handleBotStatus(chatId, userId);
         return new Response("OK", { status: 200 });
       }
 
       // Handle /refresh command for admins
-      if (text === "/refresh" && isAdmin(userId)) {
+      if (text === "/refresh" && isUserAdmin) {
         await handleRefreshBot(chatId, userId);
         return new Response("OK", { status: 200 });
       }
 
       // Check if user is sending custom broadcast message
-      const userSession = getUserSession(userId);
+      const userSession = await getUserSession(userId) ?? {};
       if (userSession.awaitingInput === "custom_broadcast_message") {
         await handleCustomBroadcastSend(chatId, userId, text);
         return new Response("OK", { status: 200 });
@@ -2841,7 +2858,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       // Handle /broadcast command for admins
-      if (text === "/broadcast" && isAdmin(userId)) {
+      if (text === "/broadcast" && isUserAdmin) {
         await handleBroadcastMenu(chatId, userId);
         return new Response("OK", { status: 200 });
       }
@@ -3012,7 +3029,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             break;
 
           case "clean_cache":
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               userSessions.clear();
               await sendMessage(
                 chatId,
@@ -3027,7 +3044,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             break;
 
           case "clean_old_sessions":
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               try {
                 // End sessions older than 24 hours
                 const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000)
@@ -3136,7 +3153,7 @@ ${
             );
             break;
           case "quick_diagnostic":
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               const diagnostic = `🔧 *Quick Diagnostic*
 
 🔑 **Environment:**
@@ -3356,7 +3373,7 @@ ${
             break;
 
           case "export_all_tables":
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               await sendMessage(
                 chatId,
                 "📊 Exporting all table data...\n\n📋 This feature will generate CSV exports of all database tables.\n\n⏳ Coming soon!",
@@ -3510,7 +3527,7 @@ ${
             );
             break;
           case "reset_all_settings": {
-            if (!isAdmin(userId)) {
+            if (!isUserAdmin) {
               await sendAccessDeniedMessage(chatId);
               break;
             }
@@ -3527,7 +3544,7 @@ ${
             break;
           }
           case "backup_settings": {
-            if (!isAdmin(userId)) {
+            if (!isUserAdmin) {
               await sendAccessDeniedMessage(chatId);
               break;
             }
@@ -3565,7 +3582,7 @@ ${
             await showAdvancedSettings(chatId, userId);
             break;
           case "export_settings": {
-            if (!isAdmin(userId)) {
+            if (!isUserAdmin) {
               await sendAccessDeniedMessage(chatId);
               break;
             }
@@ -3673,7 +3690,7 @@ ${
                 .replace("editplan", "");
               console.log(`🔧 Admin ${userId} editing plan: ${planId}`);
 
-              if (!isAdmin(userId)) {
+              if (!isUserAdmin) {
                 await sendAccessDeniedMessage(chatId);
                 return new Response("OK", { status: 200 });
               }
@@ -3831,476 +3848,286 @@ ${
 });
 
 console.log("🚀 Bot is ready and listening for updates!");
-function endBotSession(telegramUserId: string) {
-  throw new Error("Function not implemented.");
+type AdminHandlers = typeof import("./admin-handlers/index.ts");
+let cachedAdminHandlers: Promise<AdminHandlers> | null = null;
+
+function getSupabase(): SupabaseClient {
+  return supabaseAdmin;
 }
 
-function normalizeParseMode(rawParseMode: unknown) {
-  throw new Error("Function not implemented.");
+async function endBotSession(telegramUserId: string): Promise<void> {
+  try {
+    const session = activeBotSessions.get(telegramUserId);
+    if (session?.sessionId) {
+      await supabaseAdmin
+        .from("bot_sessions")
+        .update({ session_end: new Date().toISOString() })
+        .eq("id", session.sessionId);
+    }
+  } catch (error) {
+    console.error("endBotSession error", error);
+  } finally {
+    activeBotSessions.delete(telegramUserId);
+  }
 }
 
-function ocrTextFromBlob(blob: Blob) {
-  throw new Error("Function not implemented.");
+async function ocrTextFromBlob(blob: Blob): Promise<string> {
+  const reader = await getOcrTextFromBlob();
+  return reader(blob);
 }
 
-function parseBankSlip(text: any) {
-  throw new Error("Function not implemented.");
+function parseBankSlip(text: string) {
+  return parseBankSlipImpl(text);
 }
 
-function normalizeAccount(toAccount: any) {
-  throw new Error("Function not implemented.");
+function normalizeAccount(toAccount: string) {
+  return normalizeBeneficiaryAccount(toAccount);
 }
 
-function getApprovedBeneficiaryByAccountNumber(arg0: any, toAccount: any): any {
-  throw new Error("Function not implemented.");
+async function sendMiniAppLink(
+  chatId: number,
+  opts: { silent?: boolean } = {},
+): Promise<string | null> {
+  const { url } = await readMiniAppEnv();
+  if (!url) return null;
+  if (!opts.silent) {
+    await sendMessage(chatId, url);
+  }
+  return url;
 }
 
-function sendMiniAppLink(chatId: number, arg1: { silent: boolean }) {
-  throw new Error("Function not implemented.");
-}
-
-function notifyUser(
+async function notifyUser(
   chatId: number,
   text: string,
-  arg2: {
-    reply_markup: {
-      inline_keyboard: {
-        text: string;
-        callback_data?: string;
-        web_app?: { url: string };
-      }[][];
-    };
-  },
-) {
-  throw new Error("Function not implemented.");
+  extra: Record<string, unknown> = {},
+): Promise<number | null> {
+  return await sendMessage(chatId, text, extra);
 }
 
-function getSupabase() {
-  throw new Error("Function not implemented.");
+async function loadAdminHandlers(): Promise<AdminHandlers> {
+  if (!cachedAdminHandlers) {
+    cachedAdminHandlers = import("./admin-handlers/index.ts");
+  }
+  return cachedAdminHandlers;
 }
 
-function loadAdminHandlers(): Promise<
-  typeof import("c:/Users/Abdul Mumin/OneDrive/Dynamic-Capital/Dynamic-Capital/supabase/functions/telegram-bot/admin-handlers/index")
-> {
-  throw new Error("Function not implemented.");
+async function hasMiniApp(): Promise<boolean> {
+  try {
+    return Boolean(await getFlag("mini_app_enabled"));
+  } catch {
+    return false;
+  }
 }
 
-function hasMiniApp() {
-  throw new Error("Function not implemented.");
+async function answerCallbackQuery(id: string, text?: string): Promise<void> {
+  if (!BOT_TOKEN) return;
+  try {
+    await fetch(
+      `https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callback_query_id: id, text }),
+      },
+    );
+  } catch (error) {
+    console.error("answerCallbackQuery error", error);
+  }
 }
 
-function answerCallbackQuery(id: string) {
-  throw new Error("Function not implemented.");
+async function checkBotVersion(): Promise<void> {
+  try {
+    const v = version();
+    console.log("Bot version", v);
+  } catch (error) {
+    console.warn("checkBotVersion warning", error);
+  }
 }
 
-function checkBotVersion() {
-  throw new Error("Function not implemented.");
+async function isAdmin(userId: string): Promise<boolean> {
+  if (!userId) return false;
+  if (ADMIN_USER_IDS.has(String(userId))) return true;
+  try {
+    const { data } = await supabaseAdmin
+      .from("bot_users")
+      .select("is_admin")
+      .eq("telegram_id", String(userId))
+      .maybeSingle();
+    return Boolean(data?.is_admin);
+  } catch {
+    return false;
+  }
 }
 
-function isAdmin(userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function updateBotSession(
-  userId: any,
-  arg1: {
+async function updateBotSession(
+  userId: string,
+  payload: {
     message_type: string;
-    text: any;
-    timestamp: string;
-    security_passed: boolean;
+    text?: string | null;
+    timestamp?: string;
+    security_passed?: boolean;
+    callback_data?: string;
   },
-) {
-  throw new Error("Function not implemented.");
+): Promise<void> {
+  try {
+    await supabaseAdmin.from("bot_sessions").upsert({
+      telegram_user_id: userId,
+      last_message: payload.text ?? null,
+      last_activity: payload.timestamp ?? new Date().toISOString(),
+      security_passed: payload.security_passed ?? true,
+    }, { onConflict: "telegram_user_id" });
+  } catch (error) {
+    console.warn("updateBotSession failed", error);
+  }
 }
 
-function getBotSetting(arg0: string) {
-  throw new Error("Function not implemented.");
+function getBotSetting(key: string): Promise<string | null> {
+  return supabaseAdmin.from("bot_settings")
+    .select("setting_value")
+    .eq("setting_key", key)
+    .maybeSingle()
+    .then(({ data }) => (data?.setting_value as string | null) ?? null)
+    .catch(() => null);
 }
 
-function getAutoReply(arg0: string, arg1: { firstName: any }) {
-  throw new Error("Function not implemented.");
+async function getAutoReply(key: string, opts: { firstName?: string }): Promise<
+  string | null
+> {
+  const msg = await getContent(key);
+  if (msg && opts.firstName) return msg.replace("{first_name}", opts.firstName);
+  return msg ?? null;
 }
 
-function getWelcomeMessage(firstName: any): any {
-  throw new Error("Function not implemented.");
+async function getWelcomeMessage(firstName: string): Promise<string> {
+  return await getAutoReply("welcome", { firstName }) ??
+    "Welcome to Dynamic Capital!";
 }
 
 function getMainMenuKeyboard() {
-  throw new Error("Function not implemented.");
-}
-
-function handleBotStatus(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleAdminDashboard(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function sendAccessDeniedMessage(chatId: any, arg1: string) {
-  throw new Error("Function not implemented.");
-}
-
-function handleHelpCommand(chatId: any, userId: any, firstName: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleRefreshBot(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function getUserSession(userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleCustomBroadcastSend(chatId: any, userId: any, text: any) {
-  throw new Error("Function not implemented.");
-}
-
-function setBotSetting(settingKey: any, text: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleContentEditSave(
-  chatId: any,
-  userId: any,
-  text: any,
-  contentKey: any,
-) {
-  throw new Error("Function not implemented.");
-}
-
-function handleBroadcastMenu(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleNewChatMember(message: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePromoCodeInput(
-  chatId: any,
-  userId: any,
-  arg2: any,
-  promoSession: any,
-) {
-  throw new Error("Function not implemented.");
-}
-
-function handleUnknownCommand(chatId: any, userId: any, text: any) {
-  throw new Error("Function not implemented.");
-}
-
-function getVipPackagesKeyboard() {
-  throw new Error("Function not implemented.");
-}
-
-function handleViewEducation(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleViewPromotions(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleBotControl(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleTableManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleUserTableManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleSubscriptionPlansManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePlanChannelsManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleEducationPackagesManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePromotionsManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleContentManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleBotSettingsManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleTableStatsOverview(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleViewSessions(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function logAdminAction(userId: any, arg1: string, arg2: string) {
-  throw new Error("Function not implemented.");
-}
-
-function handleQuickAnalytics(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleUserAnalyticsReport(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePaymentReport(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePackageReport(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePromotionReport(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleBotUsageReport(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleSendGreeting(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleSendChannelIntro(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePostTradeResult(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function postToResultsChannel(
-  arg0: string,
-  arg1: {
-    pair: string;
-    entry: string;
-    exit: string;
-    profit: string;
-    duration: string;
-    amount: string;
-  },
-) {
-  throw new Error("Function not implemented.");
-}
-
-function handleCustomBroadcast(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleBroadcastHistory(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleBroadcastSettings(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleTestBroadcast(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleAdminSettings(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleAnalyticsMenu(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleToggleAutoDelete(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleToggleAutoIntro(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleToggleMaintenance(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleViewAllSettings(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePaymentsTableManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleBroadcastTableManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleBankAccountsTableManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleAutoReplyTableManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleCreateVipPlan(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleEditVipPlan(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleDeleteVipPlan(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleVipPlanStats(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleUpdatePlanPricing(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleManagePlanFeatures(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleEducationPackageStats(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleEducationCategoriesManagement(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleEducationEnrollmentsView(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleCreatePromotion(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleEditContent(chatId: any, userId: any, arg2: string) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePreviewAllContent(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function promptSettingUpdate(
-  chatId: any,
-  userId: any,
-  arg2: string,
-  arg3: string,
-) {
-  throw new Error("Function not implemented.");
-}
-
-function resetBotSettings(DEFAULT_BOT_SETTINGS: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function getAllBotSettings() {
-  throw new Error("Function not implemented.");
-}
-
-function showAdvancedSettings(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleVipPackageSelection(
-  chatId: any,
-  userId: any,
-  packageId: any,
-  firstName: any,
-) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePaymentMethodSelection(
-  chatId: any,
-  userId: any,
-  packageId: any,
-  method: any,
-) {
-  throw new Error("Function not implemented.");
-}
-
-function handleApprovePayment(chatId: any, userId: any, paymentId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleRejectPayment(chatId: any, userId: any, paymentId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handlePromoCodePrompt(chatId: any, userId: any, packageId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleShowPaymentMethods(chatId: any, userId: any, packageId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleViewUserProfile(chatId: any, userId: any, targetUserId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleEducationPackageSelection(
-  chatId: any,
-  userId: any,
-  packageId: any,
-  firstName: any,
-) {
-  throw new Error("Function not implemented.");
-}
-
-function handleMakeUserVip(chatId: any, userId: any, targetUserId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleMessageUser(chatId: any, userId: any, targetUserId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleAboutUs(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleSupport(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleTradingResults(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleHelpAndFAQ(chatId: any, userId: any, firstName: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleTerms(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
-
-function handleViewPendingPayments(chatId: any, userId: any) {
-  throw new Error("Function not implemented.");
-}
+  return buildMainMenu();
+}
+
+function handlerProxy<K extends keyof AdminHandlers>(name: K) {
+  return async (
+    ...args: Parameters<AdminHandlers[K]>
+  ): Promise<ReturnType<AdminHandlers[K]>> => {
+    const handlers = await loadAdminHandlers();
+    const fn = handlers[name];
+    if (typeof fn !== "function") {
+      console.warn(`Admin handler missing: ${String(name)}`);
+      // @ts-ignore fall back to void
+      return undefined;
+    }
+    // @ts-ignore allow dynamic invocation
+    return fn(...args);
+  };
+}
+
+const handleBotStatus = handlerProxy("handleBotStatus");
+const handleAdminDashboard = handlerProxy("handleAdminDashboard");
+const sendAccessDeniedMessage = handlerProxy("sendAccessDeniedMessage");
+const handleHelpCommand = handlerProxy("handleHelpCommand");
+const handleRefreshBot = handlerProxy("handleRefreshBot");
+const getUserSession = handlerProxy("getUserSession");
+const handleCustomBroadcastSend = handlerProxy("handleCustomBroadcastSend");
+const setBotSetting = handlerProxy("setBotSetting");
+const handleContentEditSave = handlerProxy("handleContentEditSave");
+const handleBroadcastMenu = handlerProxy("handleBroadcastMenu");
+const handleNewChatMember = handlerProxy("handleNewChatMember");
+const handlePromoCodeInput = handlerProxy("handlePromoCodeInput");
+const handleUnknownCommand = handlerProxy("handleUnknownCommand");
+const getVipPackagesKeyboard = handlerProxy("getVipPackagesKeyboard");
+const handleViewEducation = handlerProxy("handleViewEducation");
+const handleViewPromotions = handlerProxy("handleViewPromotions");
+const handleBotControl = handlerProxy("handleBotControl");
+const handleTableManagement = handlerProxy("handleTableManagement");
+const handleUserTableManagement = handlerProxy("handleUserTableManagement");
+const handleSubscriptionPlansManagement = handlerProxy(
+  "handleSubscriptionPlansManagement",
+);
+const handlePlanChannelsManagement = handlerProxy(
+  "handlePlanChannelsManagement",
+);
+const handleEducationPackagesManagement = handlerProxy(
+  "handleEducationPackagesManagement",
+);
+const handlePromotionsManagement = handlerProxy(
+  "handlePromotionsManagement",
+);
+const handleContentManagement = handlerProxy("handleContentManagement");
+const handleBotSettingsManagement = handlerProxy("handleBotSettingsManagement");
+const handleTableStatsOverview = handlerProxy("handleTableStatsOverview");
+const handleViewSessions = handlerProxy("handleViewSessions");
+const logAdminAction = handlerProxy("logAdminAction");
+const handleQuickAnalytics = handlerProxy("handleQuickAnalytics");
+const handleUserAnalyticsReport = handlerProxy("handleUserAnalyticsReport");
+const handlePaymentReport = handlerProxy("handlePaymentReport");
+const handlePackageReport = handlerProxy("handlePackageReport");
+const handlePromotionReport = handlerProxy("handlePromotionReport");
+const handleBotUsageReport = handlerProxy("handleBotUsageReport");
+const handleSendGreeting = handlerProxy("handleSendGreeting");
+const handleSendChannelIntro = handlerProxy("handleSendChannelIntro");
+const handlePostTradeResult = handlerProxy("handlePostTradeResult");
+const postToResultsChannel = handlerProxy("postToResultsChannel");
+const handleCustomBroadcast = handlerProxy("handleCustomBroadcast");
+const handleBroadcastHistory = handlerProxy("handleBroadcastHistory");
+const handleBroadcastSettings = handlerProxy("handleBroadcastSettings");
+const handleTestBroadcast = handlerProxy("handleTestBroadcast");
+const handleAdminSettings = handlerProxy("handleAdminSettings");
+const handleAnalyticsMenu = handlerProxy("handleAnalyticsMenu");
+const handleToggleAutoDelete = handlerProxy("handleToggleAutoDelete");
+const handleToggleAutoIntro = handlerProxy("handleToggleAutoIntro");
+const handleToggleMaintenance = handlerProxy("handleToggleMaintenance");
+const handleViewAllSettings = handlerProxy("handleViewAllSettings");
+const handlePaymentsTableManagement = handlerProxy(
+  "handlePaymentsTableManagement",
+);
+const handleBroadcastTableManagement = handlerProxy(
+  "handleBroadcastTableManagement",
+);
+const handleBankAccountsTableManagement = handlerProxy(
+  "handleBankAccountsTableManagement",
+);
+const handleAutoReplyTableManagement = handlerProxy(
+  "handleAutoReplyTableManagement",
+);
+const handleCreateVipPlan = handlerProxy("handleCreateVipPlan");
+const handleEditVipPlan = handlerProxy("handleEditVipPlan");
+const handleDeleteVipPlan = handlerProxy("handleDeleteVipPlan");
+const handleVipPlanStats = handlerProxy("handleVipPlanStats");
+const handleUpdatePlanPricing = handlerProxy("handleUpdatePlanPricing");
+const handleManagePlanFeatures = handlerProxy("handleManagePlanFeatures");
+const handleEducationPackageStats = handlerProxy("handleEducationPackageStats");
+const handleEducationCategoriesManagement = handlerProxy(
+  "handleEducationCategoriesManagement",
+);
+const handleEducationEnrollmentsView = handlerProxy(
+  "handleEducationEnrollmentsView",
+);
+const handleCreatePromotion = handlerProxy("handleCreatePromotion");
+const handleEditContent = handlerProxy("handleEditContent");
+const handlePreviewAllContent = handlerProxy("handlePreviewAllContent");
+const promptSettingUpdate = handlerProxy("promptSettingUpdate");
+const resetBotSettings = handlerProxy("resetBotSettings");
+const getAllBotSettings = handlerProxy("getAllBotSettings");
+const showAdvancedSettings = handlerProxy("showAdvancedSettings");
+const handleVipPackageSelection = handlerProxy("handleVipPackageSelection");
+const handlePaymentMethodSelection = handlerProxy(
+  "handlePaymentMethodSelection",
+);
+const handleApprovePayment = handlerProxy("handleApprovePayment");
+const handleRejectPayment = handlerProxy("handleRejectPayment");
+const handlePromoCodePrompt = handlerProxy("handlePromoCodePrompt");
+const handleShowPaymentMethods = handlerProxy("handleShowPaymentMethods");
+const handleViewUserProfile = handlerProxy("handleViewUserProfile");
+const handleEducationPackageSelection = handlerProxy(
+  "handleEducationPackageSelection",
+);
+const handleMakeUserVip = handlerProxy("handleMakeUserVip");
+const handleMessageUser = handlerProxy("handleMessageUser");
+const handleAboutUs = handlerProxy("handleAboutUs");
+const handleSupport = handlerProxy("handleSupport");
+const handleTradingResults = handlerProxy("handleTradingResults");
+const handleHelpAndFAQ = handlerProxy("handleHelpAndFAQ");
+const handleTerms = handlerProxy("handleTerms");
+const handleViewPendingPayments = handlerProxy("handleViewPendingPayments");
