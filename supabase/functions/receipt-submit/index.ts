@@ -1,25 +1,21 @@
 import { createClient, createClientForRequest } from "../_shared/client.ts";
-import { bad, json, oops, unauth } from "../_shared/http.ts";
+import { bad, corsHeaders, json, oops, unauth } from "../_shared/http.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { hashBlob } from "../_shared/hash.ts";
 import { findTransferRecipient } from "../_shared/transfer-recipients.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
 export const handler = registerHandler(async (req) => {
+  const cors = corsHeaders(req, "POST,OPTIONS");
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: cors });
   }
 
   if (req.method !== "POST") {
     return new Response("Method not allowed", {
       status: 405,
-      headers: corsHeaders,
+      headers: cors,
     });
   }
 
@@ -44,7 +40,7 @@ export const handler = registerHandler(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return bad("Invalid JSON");
+    return bad("Invalid JSON", undefined, req);
   }
 
   const {
@@ -67,11 +63,11 @@ export const handler = registerHandler(async (req) => {
         const user = JSON.parse(params.get("user") || "{}");
         telegramId = String(user.id || "");
       } else {
-        return unauth("Invalid Telegram initData");
+        return unauth("Invalid Telegram initData", req);
       }
     } catch (err) {
       console.error("Error verifying Telegram initData:", err);
-      return unauth("Telegram verification failed");
+      return unauth("Telegram verification failed", req);
     }
   }
 
@@ -81,7 +77,7 @@ export const handler = registerHandler(async (req) => {
   }
 
   if (!payment_id || !file_path) {
-    return bad("Missing required fields");
+    return bad("Missing required fields", undefined, req);
   }
 
   console.log("Receipt submission:", {
@@ -104,7 +100,7 @@ export const handler = registerHandler(async (req) => {
       console.error("Payment lookup error:", paymentLookupError);
     }
     if (!payment) {
-      return oops("Payment not found");
+      return oops("Payment not found", undefined, req);
     }
 
     const storageBucket = typeof bucket === "string" && bucket
@@ -182,7 +178,7 @@ export const handler = registerHandler(async (req) => {
             "This receipt was already submitted. Please upload a new image.",
         },
         409,
-        corsHeaders,
+        cors,
       );
     }
 
@@ -381,11 +377,11 @@ export const handler = registerHandler(async (req) => {
         payment_id,
       },
       200,
-      corsHeaders,
+      cors,
     );
   } catch (error) {
     console.error("Receipt submission error:", error);
-    return oops("Internal server error");
+    return oops("Internal server error", undefined, req);
   }
 });
 
