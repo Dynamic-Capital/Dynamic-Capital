@@ -2633,7 +2633,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     console.log(`👤 Processing update for user: ${userId} (${firstName})`);
 
     // Run security checks FIRST
-    const isUserAdmin = isAdmin(userId);
+    const isUserAdmin = await isAdmin(userId);
 
     // Periodic cleanup of rate limit store
     cleanupRateLimit();
@@ -2692,7 +2692,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       // Check for maintenance mode
       const maintenanceMode = await getBotSetting("maintenance_mode");
-      if (maintenanceMode === "true" && !isAdmin(userId)) {
+      if (maintenanceMode === "true" && !isUserAdmin) {
         console.log("🔧 Bot in maintenance mode for non-admin user");
         await sendMessage(
           chatId,
@@ -2759,7 +2759,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             console.log(
               `✅ Welcome message sent successfully to user: ${userId}`,
             );
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               await handleBotStatus(chatId, userId);
             }
 
@@ -2798,12 +2798,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
       // Handle /admin command
       if (text === "/admin") {
         console.log(`🔐 Admin command from: ${userId} (${firstName})`);
-        console.log(`🔐 Admin check result: ${isAdmin(userId)}`);
+        console.log(`🔐 Admin check result: ${isUserAdmin}`);
         console.log(
           `🔐 Current admin IDs: ${Array.from(ADMIN_USER_IDS).join(", ")}`,
         );
 
-        if (isAdmin(userId)) {
+        if (isUserAdmin) {
           await handleAdminDashboard(chatId, userId);
         } else {
           await sendAccessDeniedMessage(
@@ -2821,19 +2821,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       // Handle /status command for admins
-      if (text === "/status" && isAdmin(userId)) {
+      if (text === "/status" && isUserAdmin) {
         await handleBotStatus(chatId, userId);
         return new Response("OK", { status: 200 });
       }
 
       // Handle /refresh command for admins
-      if (text === "/refresh" && isAdmin(userId)) {
+      if (text === "/refresh" && isUserAdmin) {
         await handleRefreshBot(chatId, userId);
         return new Response("OK", { status: 200 });
       }
 
       // Check if user is sending custom broadcast message
-      const userSession = getUserSession(userId);
+      const userSession = await getUserSession(userId) ?? {};
       if (userSession.awaitingInput === "custom_broadcast_message") {
         await handleCustomBroadcastSend(chatId, userId, text);
         return new Response("OK", { status: 200 });
@@ -2858,7 +2858,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       // Handle /broadcast command for admins
-      if (text === "/broadcast" && isAdmin(userId)) {
+      if (text === "/broadcast" && isUserAdmin) {
         await handleBroadcastMenu(chatId, userId);
         return new Response("OK", { status: 200 });
       }
@@ -3029,7 +3029,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             break;
 
           case "clean_cache":
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               userSessions.clear();
               await sendMessage(
                 chatId,
@@ -3044,7 +3044,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             break;
 
           case "clean_old_sessions":
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               try {
                 // End sessions older than 24 hours
                 const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000)
@@ -3153,7 +3153,7 @@ ${
             );
             break;
           case "quick_diagnostic":
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               const diagnostic = `🔧 *Quick Diagnostic*
 
 🔑 **Environment:**
@@ -3373,7 +3373,7 @@ ${
             break;
 
           case "export_all_tables":
-            if (isAdmin(userId)) {
+            if (isUserAdmin) {
               await sendMessage(
                 chatId,
                 "📊 Exporting all table data...\n\n📋 This feature will generate CSV exports of all database tables.\n\n⏳ Coming soon!",
@@ -3527,7 +3527,7 @@ ${
             );
             break;
           case "reset_all_settings": {
-            if (!isAdmin(userId)) {
+            if (!isUserAdmin) {
               await sendAccessDeniedMessage(chatId);
               break;
             }
@@ -3544,7 +3544,7 @@ ${
             break;
           }
           case "backup_settings": {
-            if (!isAdmin(userId)) {
+            if (!isUserAdmin) {
               await sendAccessDeniedMessage(chatId);
               break;
             }
@@ -3582,7 +3582,7 @@ ${
             await showAdvancedSettings(chatId, userId);
             break;
           case "export_settings": {
-            if (!isAdmin(userId)) {
+            if (!isUserAdmin) {
               await sendAccessDeniedMessage(chatId);
               break;
             }
@@ -3690,7 +3690,7 @@ ${
                 .replace("editplan", "");
               console.log(`🔧 Admin ${userId} editing plan: ${planId}`);
 
-              if (!isAdmin(userId)) {
+              if (!isUserAdmin) {
                 await sendAccessDeniedMessage(chatId);
                 return new Response("OK", { status: 200 });
               }
