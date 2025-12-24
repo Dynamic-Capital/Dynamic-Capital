@@ -1,10 +1,21 @@
 import "@testing-library/jest-dom/vitest";
 import React from "react";
-import type { ComponentPropsWithoutRef, ElementRef } from "react";
+import type {
+  ComponentPropsWithoutRef,
+  ElementRef,
+  ReactNode,
+  SVGProps,
+} from "react";
 import { vi } from "vitest";
 
-const createPrimitive = <T extends keyof React.JSX.IntrinsicElements>(tag: T) =>
-  React.forwardRef<ElementRef<T>, ComponentPropsWithoutRef<T>>(
+type PrimitiveProps<T extends keyof React.JSX.IntrinsicElements> =
+  & ComponentPropsWithoutRef<T>
+  & { children?: ReactNode };
+
+const createPrimitive = <T extends keyof React.JSX.IntrinsicElements>(
+  tag: T,
+) =>
+  React.forwardRef<ElementRef<T>, PrimitiveProps<T>>(
     ({ children, ...props }, ref) =>
       React.createElement(tag, { ref, ...props }, children),
   );
@@ -61,9 +72,11 @@ vi.mock("geist/font", () => {
 });
 
 vi.mock("lucide-react", () => {
+  type IconProps = SVGProps<SVGSVGElement> & { children?: ReactNode };
+
   const createIcon = (name: string) =>
   (
-    { children, ...props }: React.SVGProps<SVGSVGElement>,
+    { children, ...props }: IconProps,
   ) => (
     <svg data-icon={name} {...props}>
       {children}
