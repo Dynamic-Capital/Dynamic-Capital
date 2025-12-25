@@ -87,9 +87,9 @@ export const handler = registerHandler(async (req) => {
     bucket,
   });
 
-  const supa = createClient("service");
-
   try {
+    const supa = createClient("service");
+
     const { data: payment, error: paymentLookupError } = await supa
       .from("payments")
       .select("id,user_id,webhook_data")
