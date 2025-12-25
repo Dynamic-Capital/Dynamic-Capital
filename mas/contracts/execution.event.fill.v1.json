@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamic.capital/schemas/execution.event.fill.v1.json",
+  "title": "Execution Fill Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["envelope", "payload"],
+  "properties": {
+    "envelope": {"$ref": "./envelope.v1.json"},
+    "payload": {
+      "type": "object",
+      "required": [
+        "order_id",
+        "fill_id",
+        "symbol",
+        "side",
+        "filled_size",
+        "price",
+        "venue",
+        "latency_ms",
+        "idempotency_key"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "order_id": {"type": "string", "format": "uuid"},
+        "fill_id": {"type": "string", "format": "uuid"},
+        "symbol": {"type": "string", "pattern": "^[A-Z0-9_.-]{1,20}$"},
+        "side": {"type": "string", "enum": ["BUY", "SELL"]},
+        "filled_size": {"type": "number", "exclusiveMinimum": 0},
+        "price": {"type": "number", "exclusiveMinimum": 0},
+        "venue": {"type": "string"},
+        "latency_ms": {"type": "integer", "minimum": 0},
+        "slippage_bps": {"type": "number"},
+        "commission": {"type": "number"},
+        "liquidity_flag": {"type": "string", "enum": ["MAKER", "TAKER"]},
+        "idempotency_key": {"type": "string", "minLength": 16, "maxLength": 64}
+      }
+    }
+  }
+}

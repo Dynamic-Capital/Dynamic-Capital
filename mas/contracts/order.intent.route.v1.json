@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamic.capital/schemas/order.intent.route.v1.json",
+  "title": "Order Route Intent v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["envelope", "payload"],
+  "properties": {
+    "envelope": {"$ref": "./envelope.v1.json"},
+    "payload": {
+      "type": "object",
+      "required": [
+        "order_id",
+        "symbol",
+        "side",
+        "size",
+        "time_in_force",
+        "routing_plan",
+        "idempotency_key"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "order_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "symbol": {
+          "type": "string",
+          "pattern": "^[A-Z0-9_.-]{1,20}$"
+        },
+        "side": {
+          "type": "string",
+          "enum": ["BUY", "SELL"]
+        },
+        "size": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "price_limit": {
+          "type": "number"
+        },
+        "time_in_force": {
+          "type": "string",
+          "enum": ["IOC", "FOK", "GTC", "DAY"]
+        },
+        "routing_plan": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["venue", "weight"],
+            "properties": {
+              "venue": {"type": "string"},
+              "weight": {"type": "number", "minimum": 0, "maximum": 1},
+              "min_fill": {"type": "number"},
+              "max_latency_ms": {"type": "integer", "minimum": 1}
+            },
+            "additionalProperties": false
+          }
+        },
+        "risk_context": {
+          "type": "object",
+          "properties": {
+            "policy_decision_id": {"type": "string", "format": "uuid"},
+            "risk_score": {"type": "number"}
+          },
+          "additionalProperties": false
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 64
+        }
+      }
+    }
+  }
+}

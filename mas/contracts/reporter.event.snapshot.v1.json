@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamic.capital/schemas/reporter.event.snapshot.v1.json",
+  "title": "Reporter Snapshot Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["envelope", "payload"],
+  "properties": {
+    "envelope": {"$ref": "./envelope.v1.json"},
+    "payload": {
+      "type": "object",
+      "required": [
+        "snapshot_id",
+        "generated_at",
+        "metrics",
+        "audience",
+        "idempotency_key"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {"type": "string", "format": "uuid"},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "metrics": {
+          "type": "object",
+          "required": ["pnl", "drawdown_pct", "sharpe", "exposure"],
+          "additionalProperties": false,
+          "properties": {
+            "pnl": {"type": "number"},
+            "drawdown_pct": {"type": "number"},
+            "sharpe": {"type": "number"},
+            "exposure": {
+              "type": "object",
+              "additionalProperties": {"type": "number"}
+            },
+            "alerts_active": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        "audience": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["role", "channel"],
+            "properties": {
+              "role": {"type": "string"},
+              "channel": {"type": "string"},
+              "pii_scope": {"type": "string", "enum": ["NONE", "MASKED", "FULL"]}
+            },
+            "additionalProperties": false
+          }
+        },
+        "idempotency_key": {"type": "string", "minLength": 16, "maxLength": 64}
+      }
+    }
+  }
+}

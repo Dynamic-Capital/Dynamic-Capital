@@ -1,0 +1,32 @@
+name = "trading_risk.v1"
+owner = "risk@dynamic.capital"
+review_cadence_days = 7
+last_review = "2025-01-05"
+opa_bundle = "s3://dynamic-capital/policies/trading_risk/v1/bundle.tar.gz"
+
+[daily_limits]
+max_drawdown_pct = 10
+max_loss_pct = 5
+max_var_pct = 3
+
+[per_symbol.XAUUSD]
+max_position = 5.0
+max_leverage = 10
+
+[per_symbol.EURUSD]
+max_position = 8.0
+max_leverage = 9
+
+[checks]
+require_stop_loss = true
+max_order_size_notional = 2_000_000
+halt_on_breach = true
+
+[hedging]
+max_residual_exposure_pct = 1
+fallback_strategy = "synthetic_future"
+
+[alerts]
+p95_latency_ms_threshold = 120
+breach_page = true
+
