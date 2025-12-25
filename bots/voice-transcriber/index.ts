@@ -1,5 +1,5 @@
 import { Bot, GrammyError, HttpError } from "grammy";
-import type { Message } from "grammy/types";
+import type { Message, MessageEntity } from "grammy/types";
 import OpenAI from "openai";
 
 interface VoiceTranscriberConfig {
@@ -10,13 +10,32 @@ interface VoiceTranscriberConfig {
   temperature: number;
 }
 
+type TranscribableMessage =
+  | Message.VoiceMessage
+  | Message.AudioMessage
+  | Message.VideoNoteMessage
+  | Message.DocumentMessage;
+
 interface TranscriptionContext {
-  message:
-    | Message.VoiceMessage
-    | Message.AudioMessage
-    | Message.VideoNoteMessage;
+  message: TranscribableMessage;
   prompt?: string;
 }
+
+const AUDIO_VIDEO_EXTENSIONS = [
+  ".aac",
+  ".amr",
+  ".flac",
+  ".m4a",
+  ".mkv",
+  ".mov",
+  ".mp3",
+  ".mp4",
+  ".oga",
+  ".ogg",
+  ".opus",
+  ".wav",
+  ".webm",
+];
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -107,26 +126,27 @@ async function transcribeAudio(
 }
 
 function guessMimeType(
-  message:
-    | Message.VoiceMessage
-    | Message.AudioMessage
-    | Message.VideoNoteMessage,
+  message: TranscribableMessage,
 ): string {
   if (message.voice?.mime_type) return message.voice.mime_type;
   if (message.audio?.mime_type) return message.audio.mime_type;
   if (message.video_note?.mime_type) return message.video_note.mime_type;
+  if (message.document?.mime_type) return message.document.mime_type;
+
+  const inferredFromName = inferMimeTypeFromFileName(
+    message.document?.file_name,
+  );
+  if (inferredFromName) return inferredFromName;
   return "audio/ogg";
 }
 
 function getFileId(
-  message:
-    | Message.VoiceMessage
-    | Message.AudioMessage
-    | Message.VideoNoteMessage,
+  message: TranscribableMessage,
 ): string {
   if (message.voice) return message.voice.file_id;
   if (message.audio) return message.audio.file_id;
   if (message.video_note) return message.video_note.file_id;
+  if (message.document) return message.document.file_id;
   throw new Error("Message does not contain a supported audio payload");
 }
 
@@ -143,6 +163,13 @@ function extractTranscriptionPrompt(message: Message): string | undefined {
   }
 
   const reply = message.reply_to_message;
+  if (reply && "caption" in reply && typeof reply.caption === "string") {
+    const trimmedCaption = reply.caption.trim();
+    if (trimmedCaption.length > 0) {
+      return trimmedCaption;
+    }
+  }
+
   if (reply && "text" in reply && typeof reply.text === "string") {
     const trimmed = reply.text.trim();
     if (trimmed.length > 0) {
@@ -150,6 +177,67 @@ function extractTranscriptionPrompt(message: Message): string | undefined {
     }
   }
 
+  return undefined;
+}
+
+function isBotCommandMessage(message: Message): boolean {
+  const hasCommandEntity = (entities?: MessageEntity[]): boolean => {
+    return Boolean(
+      entities?.some((entity) =>
+        entity.type === "bot_command" && entity.offset === 0
+      ),
+    );
+  };
+
+  const entities = "entities" in message ? message.entities : undefined;
+  const captionEntities = "caption_entities" in message
+    ? message.caption_entities
+    : undefined;
+
+  return hasCommandEntity(entities) || hasCommandEntity(captionEntities);
+}
+
+function isTranscribableDocument(message: Message.DocumentMessage): boolean {
+  const mimeType = message.document.mime_type?.toLowerCase();
+  if (mimeType?.startsWith("audio/") || mimeType?.startsWith("video/")) {
+    return true;
+  }
+
+  const fileName = message.document.file_name?.toLowerCase();
+  return Boolean(
+    fileName &&
+      AUDIO_VIDEO_EXTENSIONS.some((extension) => fileName.endsWith(extension)),
+  );
+}
+
+function isTranscribableMessage(
+  message: Message,
+): message is TranscribableMessage {
+  if (message.voice || message.audio || message.video_note) return true;
+  if (message.document) {
+    return isTranscribableDocument(message as Message.DocumentMessage);
+  }
+  return false;
+}
+
+function inferMimeTypeFromFileName(
+  fileName?: string,
+): string | undefined {
+  if (!fileName) return undefined;
+  const lower = fileName.toLowerCase();
+
+  if (lower.endsWith(".mp3")) return "audio/mpeg";
+  if (lower.endsWith(".m4a")) return "audio/mp4";
+  if (lower.endsWith(".aac")) return "audio/aac";
+  if (lower.endsWith(".amr")) return "audio/amr";
+  if (lower.endsWith(".flac")) return "audio/flac";
+  if (lower.endsWith(".oga") || lower.endsWith(".ogg")) return "audio/ogg";
+  if (lower.endsWith(".opus")) return "audio/opus";
+  if (lower.endsWith(".wav")) return "audio/wav";
+  if (lower.endsWith(".webm")) return "video/webm";
+  if (lower.endsWith(".mp4")) return "video/mp4";
+  if (lower.endsWith(".mov")) return "video/quicktime";
+  if (lower.endsWith(".mkv")) return "video/x-matroska";
   return undefined;
 }
 
@@ -195,8 +283,21 @@ bot.command("model", async (ctx) => {
 });
 
 bot.on(
-  ["message:voice", "message:audio", "message:video_note"],
+  ["message:voice", "message:audio", "message:video_note", "message:document"],
   async (ctx) => {
+    if (!ctx.message) return;
+
+    if (ctx.message.document && !isTranscribableDocument(ctx.message)) {
+      await ctx.reply(
+        "I can transcribe audio or video documents only (mp3, m4a, wav, ogg, opus, webm, mp4).",
+      );
+      return;
+    }
+
+    if (!isTranscribableMessage(ctx.message)) {
+      return;
+    }
+
     const workingMessage = await ctx.reply("📝 Transcribing your message...");
 
     try {
@@ -205,7 +306,7 @@ bot.on(
       }
       const prompt = extractTranscriptionPrompt(ctx.message);
       const transcript = await transcribeAudio(openai, config, {
-        message: ctx.message as TranscriptionContext["message"],
+        message: ctx.message,
         prompt,
       });
 
@@ -272,11 +373,13 @@ function chunkText(text: string, limit: number): string[] {
 }
 
 bot.on("message", async (ctx) => {
-  if (!ctx.message?.voice && !ctx.message?.audio && !ctx.message?.video_note) {
-    await ctx.reply(
-      "I can only process voice notes, audio files, or video notes right now. Try sending one of those!",
-    );
-  }
+  if (!ctx.message) return;
+  if (isBotCommandMessage(ctx.message)) return;
+  if (isTranscribableMessage(ctx.message)) return;
+
+  await ctx.reply(
+    "I can process voice notes, audio files, video notes, or audio/video documents (mp3, m4a, wav, ogg, webm, mp4). Try sending one of those!",
+  );
 });
 
 async function startBot(): Promise<void> {
