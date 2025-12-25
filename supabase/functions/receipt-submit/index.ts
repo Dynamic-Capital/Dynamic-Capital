@@ -1,4 +1,8 @@
-import { createClient, createClientForRequest } from "../_shared/client.ts";
+import {
+  createClient,
+  createClientForRequest,
+  type SupabaseClient,
+} from "../_shared/client.ts";
 import { bad, corsHeaders, json, oops, unauth } from "../_shared/http.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { registerHandler } from "../_shared/serve.ts";
@@ -87,7 +91,21 @@ export const handler = registerHandler(async (req) => {
     bucket,
   });
 
-  const supa = createClient("service");
+  let supa: SupabaseClient;
+  try {
+    supa = createClient("service");
+  } catch (error) {
+    console.error("Failed to create Supabase service client", error);
+    return json(
+      {
+        ok: false,
+        error: "service_unavailable",
+        message: "Unable to process receipts right now. Please try again soon.",
+      },
+      503,
+      cors,
+    );
+  }
 
   try {
     const { data: payment, error: paymentLookupError } = await supa
