@@ -129,8 +129,13 @@ async function readFileFrom(
     const data = await Deno.readFile
       ? await Deno.readFile(url)
       : await (await import("node:fs/promises")).readFile(url);
+    const explicitMime = relPath.endsWith(".xml")
+      ? "application/xml"
+      : relPath.endsWith(".txt")
+      ? "text/plain; charset=utf-8"
+      : null;
     const h = new Headers({
-      "content-type": await mime(relPath),
+      "content-type": explicitMime ?? await mime(relPath),
       "cache-control": relPath.endsWith(".html")
         ? "no-cache"
         : "public, max-age=31536000, immutable",
