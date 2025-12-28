@@ -1,3 +1,6 @@
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 import { assertEquals } from "std/assert/mod.ts";
 import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 

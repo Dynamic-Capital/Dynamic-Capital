@@ -15,6 +15,21 @@ export function registerHandler(
     __SUPABASE_SKIP_AUTO_SERVE__?: boolean;
     __SUPABASE_EDGE_SERVER_STARTED__?: boolean;
   };
+
+  if (!globalAny.__SUPABASE_SKIP_AUTO_SERVE__) {
+    const isDenoTest = (() => {
+      try {
+        return Deno?.env?.get?.("DENO_TESTING") === "1";
+      } catch {
+        return false;
+      }
+    })();
+
+    if (isDenoTest) {
+      globalAny.__SUPABASE_SKIP_AUTO_SERVE__ = true;
+    }
+  }
+
   if (globalAny.__SUPABASE_SKIP_AUTO_SERVE__) {
     return handler;
   }

@@ -5,6 +5,9 @@ interface TestEnvGlobal {
   __TEST_ENV__?: Partial<Record<EnvKey, string>>;
 }
 
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 let originalFetch: typeof fetch | null = null;
 
 // Populate both a test-only env map and the runtime env so that code
