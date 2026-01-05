@@ -158,7 +158,7 @@
     "mime-types": "^3.0.1",
     "next-auth": "^4.24.11",
     "nodemailer": "^7.0.7",
-    "openai": "^4.67.3",
+    "openai": "^6.15.0",
     "pdf-parse": "^1.1.1",
     "posthog-js": "^1.268.8",
     "prismjs": "^1.30.0",
