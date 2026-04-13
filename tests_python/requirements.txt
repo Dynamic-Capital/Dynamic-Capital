@@ -6,4 +6,4 @@
 torch==2.8.0+cpu
 
 # Test runner pinned to guarantee consistent behaviour between local and CI runs.
-pytest==8.3.3
+pytest==9.0.3
