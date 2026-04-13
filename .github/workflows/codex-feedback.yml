@@ -60,7 +60,7 @@ jobs:
           node-version: "20"
           node-cache: pnpm
           node-cache-dependency-path: pnpm-lock.yaml
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with: { version: 9 }
       - name: Install (best-effort)
         run: pnpm i --frozen-lockfile || echo "install skipped"
