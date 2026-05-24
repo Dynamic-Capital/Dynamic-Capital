@@ -57,3 +57,12 @@ project_id = "qeejuomcapbdlhnjqjcc"
 
 [functions."dns-verify"]
   verify_jwt = false
+
+[functions.receipt-submit]
+  verify_jwt = false
+
+[functions.receipt-upload-url]
+  verify_jwt = false
+
+[functions.receipt]
+  verify_jwt = false
