@@ -2545,6 +2545,7 @@ export async function startReceiptPipeline(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "x-telegram-bot-secret": Deno.env.get("TELEGRAM_WEBHOOK_SECRET") ?? "",
       },
       body: JSON.stringify({
         telegram_id: String(chatId),
