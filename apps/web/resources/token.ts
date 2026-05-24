@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import jettonMetadata from "../../../dynamic-capital-ton/contracts/jetton/metadata.json" assert {
+import jettonMetadata from "../../../dynamic-capital-ton/contracts/jetton/metadata.json" with {
   type: "json",
 };
 import { TON_MAINNET_OPERATIONS_TREASURY } from "../../../shared/ton/mainnet-addresses";
