@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.12 (cd3cf9e)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -1090,7 +1090,7 @@ export type Database = {
           created_at: string | null
           enrollment_id: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           student_telegram_id: string
@@ -1103,7 +1103,7 @@ export type Database = {
           created_at?: string | null
           enrollment_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           student_telegram_id: string
@@ -1116,7 +1116,7 @@ export type Database = {
           created_at?: string | null
           enrollment_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           student_telegram_id?: string
@@ -1505,7 +1505,7 @@ export type Database = {
           action_type: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           session_id: string | null
           telegram_user_id: string
           user_agent: string | null
@@ -1515,7 +1515,7 @@ export type Database = {
           action_type: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           session_id?: string | null
           telegram_user_id: string
           user_agent?: string | null
@@ -1525,7 +1525,7 @@ export type Database = {
           action_type?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           session_id?: string | null
           telegram_user_id?: string
           user_agent?: string | null
@@ -1809,7 +1809,7 @@ export type Database = {
           event_data: Json | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           page_url: string | null
           referrer: string | null
           session_id: string | null
@@ -1826,7 +1826,7 @@ export type Database = {
           event_data?: Json | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           page_url?: string | null
           referrer?: string | null
           session_id?: string | null
@@ -1843,7 +1843,7 @@ export type Database = {
           event_data?: Json | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           page_url?: string | null
           referrer?: string | null
           session_id?: string | null
@@ -2097,7 +2097,82 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      pg_stat_monitor: {
+        Row: {
+          application_name: string | null
+          bucket: number | null
+          bucket_done: boolean | null
+          bucket_start_time: string | null
+          calls: number | null
+          client_ip: unknown
+          cmd_type: number | null
+          cmd_type_text: string | null
+          comments: string | null
+          cpu_sys_time: number | null
+          cpu_user_time: number | null
+          datname: string | null
+          dbid: unknown
+          elevel: number | null
+          jit_deform_count: number | null
+          jit_deform_time: number | null
+          jit_emission_count: number | null
+          jit_emission_time: number | null
+          jit_functions: number | null
+          jit_generation_time: number | null
+          jit_inlining_count: number | null
+          jit_inlining_time: number | null
+          jit_optimization_count: number | null
+          jit_optimization_time: number | null
+          local_blk_read_time: number | null
+          local_blk_write_time: number | null
+          local_blks_dirtied: number | null
+          local_blks_hit: number | null
+          local_blks_read: number | null
+          local_blks_written: number | null
+          max_exec_time: number | null
+          max_plan_time: number | null
+          mean_exec_time: number | null
+          mean_plan_time: number | null
+          message: string | null
+          min_exec_time: number | null
+          min_plan_time: number | null
+          minmax_stats_since: string | null
+          pgsm_query_id: number | null
+          planid: number | null
+          plans: number | null
+          query: string | null
+          query_plan: string | null
+          queryid: number | null
+          relations: string[] | null
+          resp_calls: string[] | null
+          rows: number | null
+          shared_blk_read_time: number | null
+          shared_blk_write_time: number | null
+          shared_blks_dirtied: number | null
+          shared_blks_hit: number | null
+          shared_blks_read: number | null
+          shared_blks_written: number | null
+          sqlcode: string | null
+          stats_since: string | null
+          stddev_exec_time: number | null
+          stddev_plan_time: number | null
+          temp_blk_read_time: number | null
+          temp_blk_write_time: number | null
+          temp_blks_read: number | null
+          temp_blks_written: number | null
+          top_query: string | null
+          top_queryid: number | null
+          toplevel: boolean | null
+          total_exec_time: number | null
+          total_plan_time: number | null
+          userid: unknown
+          username: string | null
+          wal_bytes: number | null
+          wal_fpi: number | null
+          wal_records: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_admin: {
@@ -2113,28 +2188,20 @@ export type Database = {
         Returns: undefined
       }
       check_extensions_in_public: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           extension_name: unknown
           schema_name: unknown
         }[]
       }
-      check_user_is_admin: {
-        Args: { check_user_id: string }
-        Returns: boolean
-      }
+      check_user_is_admin: { Args: { check_user_id: string }; Returns: boolean }
       cleanup_old_media_files: {
         Args: { cleanup_days?: number }
         Returns: Json
       }
-      cleanup_old_sessions: {
-        Args: { cleanup_hours?: number }
-        Returns: Json
-      }
-      generate_uuid: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      cleanup_old_sessions: { Args: { cleanup_hours?: number }; Returns: Json }
+      decode_error_level: { Args: { elevel: number }; Returns: string }
+      generate_uuid: { Args: never; Returns: string }
       get_bot_content_batch: {
         Args: { content_keys: string[] }
         Returns: {
@@ -2149,46 +2216,24 @@ export type Database = {
           setting_value: string
         }[]
       }
-      get_bot_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_current_user_telegram_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_dashboard_stats_fast: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_bot_stats: { Args: never; Returns: Json }
+      get_cmd_type: { Args: { cmd_type: number }; Returns: string }
+      get_current_user_role: { Args: never; Returns: string }
+      get_current_user_telegram_id: { Args: never; Returns: string }
+      get_dashboard_stats_fast: { Args: never; Returns: Json }
+      get_histogram_timings: { Args: never; Returns: string }
       get_masked_enrollment_info: {
         Args: { enrollment_id: string }
         Returns: Json
       }
-      get_masked_payment_info: {
-        Args: { payment_id: string }
-        Returns: Json
-      }
-      get_masked_session_info: {
-        Args: { session_id: string }
-        Returns: Json
-      }
+      get_masked_payment_info: { Args: { payment_id: string }; Returns: Json }
+      get_masked_session_info: { Args: { session_id: string }; Returns: Json }
       get_masked_subscription_info: {
         Args: { subscription_id: string }
         Returns: Json
       }
-      get_remaining_security_notes: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_security_recommendations: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_remaining_security_notes: { Args: never; Returns: string }
+      get_security_recommendations: { Args: never; Returns: string }
       get_user_analytics_summary: {
         Args: { p_days?: number; p_telegram_user_id: string }
         Returns: Json
@@ -2197,10 +2242,7 @@ export type Database = {
         Args: { telegram_user_id_param: string }
         Returns: Json
       }
-      get_user_role: {
-        Args: { user_telegram_id: string }
-        Returns: string
-      }
+      get_user_role: { Args: { user_telegram_id: string }; Returns: string }
       get_user_subscription_status: {
         Args: { telegram_user_id: string }
         Returns: {
@@ -2212,26 +2254,34 @@ export type Database = {
           subscription_end_date: string
         }[]
       }
-      is_service_role: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
+      histogram: {
+        Args: { _bucket: number; _quryid: number }
+        Returns: Record<string, unknown>[]
       }
+      is_service_role: { Args: never; Returns: boolean }
       is_telegram_admin: {
         Args: { telegram_user_id: string }
         Returns: boolean
       }
-      is_user_admin: {
-        Args: { user_telegram_id: string }
-        Returns: boolean
-      }
-      is_valid_otp_timeframe: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_user_admin: { Args: { user_telegram_id: string }; Returns: boolean }
+      is_valid_otp_timeframe: { Args: never; Returns: boolean }
       make_secure_http_request: {
         Args: { body?: string; headers?: Json; method: string; url: string }
         Returns: Json
       }
+      pg_stat_monitor_internal: {
+        Args: { showtext: boolean }
+        Returns: Record<string, unknown>[]
+      }
+      pg_stat_monitor_reset: { Args: never; Returns: undefined }
+      pg_stat_monitor_version: { Args: never; Returns: string }
+      pgsm_create_11_view: { Args: never; Returns: number }
+      pgsm_create_13_view: { Args: never; Returns: number }
+      pgsm_create_14_view: { Args: never; Returns: number }
+      pgsm_create_15_view: { Args: never; Returns: number }
+      pgsm_create_17_view: { Args: never; Returns: number }
+      pgsm_create_view: { Args: never; Returns: number }
+      range: { Args: never; Returns: string[] }
       record_promo_usage: {
         Args: { p_promotion_id: string; p_telegram_user_id: string }
         Returns: undefined
@@ -2248,10 +2298,7 @@ export type Database = {
         }
         Returns: string
       }
-      update_daily_analytics: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      update_daily_analytics: { Args: never; Returns: undefined }
       user_owns_telegram_id: {
         Args: { check_telegram_id: string; check_user_id: string }
         Returns: boolean
