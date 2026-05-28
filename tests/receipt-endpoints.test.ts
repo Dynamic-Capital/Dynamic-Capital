@@ -16,12 +16,14 @@ function setEnv() {
   process.env.SUPABASE_URL = "http://example.com";
   process.env.SUPABASE_ANON_KEY = "anon";
   process.env.SUPABASE_SERVICE_ROLE_KEY = "service";
+  process.env.TELEGRAM_WEBHOOK_SECRET = "test-secret";
 }
 
 function cleanupEnv() {
   delete process.env.SUPABASE_URL;
   delete process.env.SUPABASE_ANON_KEY;
   delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  delete process.env.TELEGRAM_WEBHOOK_SECRET;
 }
 
 test("receipt-upload-url returns signed URL", async () => {
@@ -140,7 +142,10 @@ test("receipt-submit updates payment and subscription", async () => {
     const req = new Request("http://localhost/receipt-submit", {
       method: "POST",
       body: JSON.stringify(body),
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-telegram-bot-secret": "test-secret",
+      },
     });
     const res = await handler!(req);
     assertEquals(res.status, 200);
@@ -216,7 +221,10 @@ test("receipt-submit rejects duplicate receipt uploads", async () => {
         file_path: initialPath,
         telegram_id: "123",
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-telegram-bot-secret": "test-secret",
+      },
     });
     const firstRes = await handler!(firstReq);
     assertEquals(firstRes.status, 200);
@@ -230,7 +238,10 @@ test("receipt-submit rejects duplicate receipt uploads", async () => {
         file_path: duplicatePath,
         telegram_id: "123",
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-telegram-bot-secret": "test-secret",
+      },
     });
     const dupRes = await handler!(dupReq);
     assertEquals(dupRes.status, 409);

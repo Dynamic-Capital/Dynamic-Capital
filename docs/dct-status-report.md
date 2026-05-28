@@ -21,12 +21,14 @@
   intake with credential checks and unit tests guarding typical
   flows.【F:dynamic-capital-ton/apps/miniapp/README.md†L1-L52】【F:dynamic-capital-ton/supabase/functions/link-wallet/index.ts†L1-L113】【F:dynamic-capital-ton/supabase/functions/process-subscription/index.ts†L1-L158】【F:dynamic-capital-ton/supabase/functions/link-wallet/index.test.ts†L1-L96】
 - **Quality focus:** Allocator and Supabase suites provide regression coverage,
-  but the implementation checklist still needs to be updated and routine CI
-  gates documented, as detailed in the technical
-  audit.【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L47-L96】【F:docs/dct-ton-audit.md†L5-L92】
+  the allocator implementation checklist is now marked complete, and the May 28,
+  2026 quality refresh captured fresh lint/typecheck/test evidence for the
+  broader
+  repo.【F:dynamic-capital-ton/apps/tests/pool_allocator.test.ts†L1-L194】【F:dynamic-capital-ton/IMPLEMENTATION_PLAN.md†L72-L102】【F:docs/test-reports/2026-05-28-quality-refresh.md†L1-L32】
 
 ## Follow-Up
 
-Refer to [`dct-ton-audit.md`](./dct-ton-audit.md) for a full technical audit,
-risk assessment, and launch-readiness recommendations spanning governance,
-contracts, infrastructure, and operations.【F:docs/dct-ton-audit.md†L1-L124】
+Refer to [`dct-ton-audit.md`](./dct-ton-audit.md) for the technical audit and
+use the refreshed roadmap to track remaining launch-readiness work around
+governance operations, dashboard wiring, and production
+monitoring.【F:docs/dct-ton-audit.md†L1-L124】【F:docs/ROADMAP.md†L6-L24】
