@@ -2,6 +2,9 @@ import test from "node:test";
 import { equal as assertEquals } from "node:assert/strict";
 import { freshImport } from "./utils/freshImport.ts";
 
+(globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+  .__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
 const supaState: any = { tables: {} };
 (globalThis as any).__SUPA_MOCK__ = supaState;
 
@@ -148,6 +151,62 @@ test("callback edits message instead of sending new one", async () => {
     assertEquals(calls[2].url.includes("editMessageText"), true);
     assertEquals(calls[4].url.includes("editMessageText"), true);
   } finally {
+    globalThis.fetch = originalFetch;
+    cleanup();
+  }
+});
+
+test("webhook accepts env header when bot_settings secret is stale", async () => {
+  setEnv();
+  supaState.tables = {
+    bot_users: [{ id: "u1", telegram_id: 1, menu_message_id: null }],
+  };
+  const calls: Array<{ url: string; body: string }> = [];
+  const originalFetch = globalThis.fetch;
+  const configModule = await import("../supabase/functions/_shared/config.ts");
+  const originalGetSetting = configModule.getSetting;
+  configModule.__setGetSetting(
+    (async (key: string) => {
+      if (key === "TELEGRAM_WEBHOOK_SECRET") return "stale-db-secret";
+      return null;
+    }) as typeof configModule.getSetting,
+  );
+
+  globalThis.fetch = async (
+    input: Request | string | URL,
+    init?: RequestInit,
+  ) => {
+    if (isTelegramApiRequest(input)) {
+      const url = input instanceof Request ? input.url : String(input);
+      calls.push({ url, body: init?.body ? String(init.body) : "" });
+      return new Response(
+        JSON.stringify({ ok: true, result: { message_id: 43 } }),
+        { status: 200 },
+      );
+    }
+    return new Response("{}", { status: 200 });
+  };
+
+  try {
+    const mod = await freshImport(
+      new URL("../supabase/functions/telegram-bot/index.ts", import.meta.url),
+    );
+    const reqStart = new Request("https://example.com/telegram-bot", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Telegram-Bot-Api-Secret-Token": "testsecret",
+      },
+      body: JSON.stringify({
+        message: { text: "/start", chat: { id: 1 }, from: { id: 1 } },
+      }),
+    });
+
+    const resStart = await mod.serveWebhook(reqStart);
+    assertEquals(resStart.status, 200);
+    assertEquals(calls.length > 0, true);
+  } finally {
+    configModule.__setGetSetting(originalGetSetting);
     globalThis.fetch = originalFetch;
     cleanup();
   }

@@ -2603,14 +2603,20 @@ export async function serveWebhook(req: Request): Promise<Response> {
   console.log(`📥 Request received: ${req.method} ${req.url}`);
 
   const url = new URL(req.url);
-  const querySecret = url.searchParams.get("secret");
-  if (querySecret !== WEBHOOK_SECRET) {
+  const querySecret = url.searchParams.get("secret")?.trim() || null;
+  const headerSecret = req.headers.get("x-telegram-bot-api-secret-token")
+    ?.trim() || null;
+  const envSecret = WEBHOOK_SECRET?.trim() || null;
+  const envSecretMatches = Boolean(
+    envSecret && (querySecret === envSecret || headerSecret === envSecret),
+  );
+  if (!envSecretMatches) {
     const authFailure = await validateTelegramHeader(req);
     if (authFailure) return authFailure;
   }
 
-  // Check for new deployments on each request to notify admins
-  await checkBotVersion();
+  const versionResponse = await checkBotVersion(req);
+  if (versionResponse) return versionResponse;
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -3989,12 +3995,12 @@ async function answerCallbackQuery(id: string, text?: string): Promise<void> {
   }
 }
 
-async function checkBotVersion(): Promise<void> {
+async function checkBotVersion(req: Request): Promise<Response | null> {
   try {
-    const v = version();
-    console.log("Bot version", v);
+    return version(req, "telegram-bot");
   } catch (error) {
     console.warn("checkBotVersion warning", error);
+    return null;
   }
 }
 
