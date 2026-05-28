@@ -80,7 +80,9 @@ export const handler = registerHandler(async (req) => {
     const providedSecret = req.headers.get("x-telegram-bot-secret");
     const expectedSecret = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
     if (!expectedSecret || providedSecret !== expectedSecret) {
-      console.warn("Receipt submit: telegram_id fallback rejected (bad/missing internal secret)");
+      console.warn(
+        "Receipt submit: telegram_id fallback rejected (bad/missing internal secret)",
+      );
       return unauth("Unauthorized", req);
     }
     telegramId = String(telegram_id);

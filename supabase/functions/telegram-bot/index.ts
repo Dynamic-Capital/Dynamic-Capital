@@ -36,6 +36,11 @@ import {
 } from "../_shared/telegram_membership.ts";
 import { askChatGPT } from "./helpers/chatgpt.ts";
 import { escapeHtml } from "./helpers/escape.ts";
+
+const SKIP_AUTO_SERVE = Boolean(
+  (globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
+    .__SUPABASE_SKIP_AUTO_SERVE__,
+);
 // Attempt to load grammy Bot dynamically at runtime; fall back to a minimal no-op stub
 // so the code can compile/run in environments where the remote module isn't available.
 let Bot: any;
@@ -93,10 +98,6 @@ import {
   getApprovedBeneficiaryByAccountNumber,
   normalizeAccount as normalizeBeneficiaryAccount,
 } from "./helpers/beneficiary.ts";
-import {
-  getApprovedBeneficiaryByAccountNumber,
-  normalizeAccount as normalizeBeneficiaryAccount,
-} from "./helpers/beneficiary.ts";
 // Type definition moved inline to avoid import issues
 interface Promotion {
   code: string;
@@ -107,6 +108,11 @@ interface Promotion {
   description?: string | null;
   valid_until?: string | null;
   is_active?: boolean | null;
+}
+
+interface FormattedMessage {
+  text: string;
+  parseMode?: string;
 }
 
 interface TelegramMessage {
@@ -544,13 +550,20 @@ console.log("BOT_TOKEN exists:", !!BOT_TOKEN);
 console.log("SUPABASE_URL exists:", !!SUPABASE_URL);
 console.log("SUPABASE_SERVICE_ROLE_KEY exists:", !!SUPABASE_SERVICE_ROLE_KEY);
 
-if (!BOT_TOKEN || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+if (
+  !SKIP_AUTO_SERVE &&
+  (!BOT_TOKEN || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY)
+) {
   console.error("❌ Missing required environment variables");
   throw new Error("Missing required environment variables");
 }
 
-const supabaseAdmin = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!, {
-  auth: { persistSession: false },
+const supabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(_target, property, receiver) {
+    const client = getSupabase();
+    const value = Reflect.get(client, property, receiver);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
 });
 
 const DEFAULT_PARSE_MODE = "HTML";
@@ -702,7 +715,7 @@ async function telegramFetch(
   }
 }
 
-async function sendMessage(
+export async function sendMessage(
   chatId: number,
   text: string,
   extra: Record<string, unknown> = {},
@@ -2586,12 +2599,14 @@ export async function startReceiptPipeline(
   }
 }
 // Main serve function
-Deno.serve(async (req: Request): Promise<Response> => {
+export async function serveWebhook(req: Request): Promise<Response> {
   console.log(`📥 Request received: ${req.method} ${req.url}`);
 
   const url = new URL(req.url);
-  if (url.searchParams.get("secret") !== WEBHOOK_SECRET) {
-    return new Response("Forbidden", { status: 403 });
+  const querySecret = url.searchParams.get("secret");
+  if (querySecret !== WEBHOOK_SECRET) {
+    const authFailure = await validateTelegramHeader(req);
+    if (authFailure) return authFailure;
   }
 
   // Check for new deployments on each request to notify admins
@@ -2679,6 +2694,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
       security_passed: true,
     });
 
+    if (update.callback_query) {
+      await handleCallback(update);
+      return new Response("OK", { status: 200 });
+    }
+
     // Handle regular messages
     if (update.message) {
       const text = update.message.text;
@@ -2744,9 +2764,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
             console.log(`📄 Getting welcome message for user: ${userId}`);
             const welcomeMessage: FormattedMessage = autoReply
               ? { text: autoReply, parseMode: "Markdown" }
-              : await getWelcomeMessage(firstName);
+              : {
+                text: await getWelcomeMessage(firstName),
+                parseMode: "Markdown",
+              };
             console.log(
-              `📄 Welcome message length: ${welcomeMessage?.text.length || 0}`,
+              `📄 Welcome message length: ${welcomeMessage?.text?.length || 0}`,
             );
 
             console.log(`⌨️ Getting main menu keyboard for user: ${userId}`);
@@ -2754,8 +2777,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
             console.log(`⌨️ Keyboard generated: ${keyboard ? "yes" : "no"}`);
 
             console.log(`📤 Sending welcome message to user: ${userId}`);
-            await sendMessage(chatId, welcomeMessage.text, keyboard, {
-              parseMode: welcomeMessage.parseMode,
+            await sendMessage(chatId, welcomeMessage.text, {
+              reply_markup: keyboard,
+              parse_mode: welcomeMessage.parseMode,
             });
             console.log(
               `✅ Welcome message sent successfully to user: ${userId}`,
@@ -2960,10 +2984,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
             });
             const mainMessage: FormattedMessage = autoReply
               ? { text: autoReply, parseMode: "Markdown" }
-              : await getWelcomeMessage(firstName);
+              : {
+                text: await getWelcomeMessage(firstName),
+                parseMode: "Markdown",
+              };
             const mainKeyboard = await getMainMenuKeyboard();
-            await sendMessage(chatId, mainMessage.text, mainKeyboard, {
-              parseMode: mainMessage.parseMode,
+            await sendMessage(chatId, mainMessage.text, {
+              reply_markup: mainKeyboard,
+              parse_mode: mainMessage.parseMode,
             });
             break;
           }
@@ -3846,14 +3874,17 @@ ${
     console.error("🚨 Main error:", error);
     return new Response("Error", { status: 500, headers: corsHeaders });
   }
-});
+}
 
-console.log("🚀 Bot is ready and listening for updates!");
+if (!SKIP_AUTO_SERVE) {
+  Deno.serve(serveWebhook);
+  console.log("🚀 Bot is ready and listening for updates!");
+}
 type AdminHandlers = typeof import("./admin-handlers/index.ts");
 let cachedAdminHandlers: Promise<AdminHandlers> | null = null;
 
-function getSupabase(): SupabaseClient {
-  return supabaseAdmin;
+export function getSupabase(): SupabaseClient {
+  return createClient("service");
 }
 
 async function endBotSession(telegramUserId: string): Promise<void> {
@@ -3885,16 +3916,38 @@ function normalizeAccount(toAccount: string) {
   return normalizeBeneficiaryAccount(toAccount);
 }
 
-async function sendMiniAppLink(
+export async function sendMiniAppLink(
   chatId: number,
   opts: { silent?: boolean } = {},
 ): Promise<string | null> {
-  const { url } = await readMiniAppEnv();
-  if (!url) return null;
-  if (!opts.silent) {
-    await sendMessage(chatId, url);
+  if (!BOT_TOKEN) return null;
+  if (!await hasMiniApp()) {
+    if (!opts.silent) {
+      await sendMessage(chatId, "Mini App is currently disabled.");
+    }
+    return null;
   }
-  return url;
+
+  const { url, short } = await readMiniAppEnv();
+  const botUsername = Deno.env.get("TELEGRAM_BOT_USERNAME")?.trim();
+  const deepLink = short && botUsername
+    ? `https://t.me/${botUsername.replace(/^@/, "")}/${short}`
+    : null;
+  const targetUrl = url ?? deepLink;
+  if (!targetUrl) return null;
+
+  if (!opts.silent) {
+    const buttonText = await getContent("miniapp_button_text") ??
+      "Open VIP Mini App";
+    const button = url
+      ? { text: buttonText, web_app: { url } }
+      : { text: buttonText, url: targetUrl };
+    await sendMessage(chatId, "Open the Dynamic Capital Mini App:", {
+      reply_markup: { inline_keyboard: [[button]] },
+    });
+  }
+
+  return targetUrl;
 }
 
 async function notifyUser(
@@ -4005,7 +4058,7 @@ async function getWelcomeMessage(firstName: string): Promise<string> {
 }
 
 function getMainMenuKeyboard() {
-  return buildMainMenu();
+  return buildMainMenu("dashboard");
 }
 
 function handlerProxy<K extends keyof AdminHandlers>(name: K) {

@@ -151,7 +151,7 @@ gh api 'repos/Dynamic-Capital/Dynamic-Capital/commits?author=Dynamic-Capital' -q
 
 ### Telegram Mini App
 
-- Built with **Next.js (App Router)** + **React 18** in `apps/web`.
+- Built with **Next.js (App Router)** + **React 19** in `apps/web`.
 - Hosted on DigitalOcean with Supabase as the real-time backend.
 - Provides fast bank OCR deposit capture and crypto TXID verification.
 

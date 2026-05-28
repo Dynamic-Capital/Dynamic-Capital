@@ -17,7 +17,7 @@ function setEnv() {
   process.env.SUPABASE_URL = "http://local";
   process.env.SUPABASE_ANON_KEY = "anon";
   process.env.TELEGRAM_BOT_TOKEN = "tok";
-  // Intentionally omit SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "service";
 }
 
 function cleanup() {
