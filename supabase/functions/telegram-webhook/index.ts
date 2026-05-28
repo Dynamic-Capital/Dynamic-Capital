@@ -21,6 +21,15 @@ interface TelegramUpdate {
   message?: TelegramMessage;
 }
 
+export function normalizeTelegramCommand(text: string | undefined):
+  | string
+  | null {
+  const token = text?.trim().split(/\s+/)[0];
+  if (!token?.startsWith("/")) return null;
+
+  return token.split("@")[0].toLowerCase();
+}
+
 const baseLogger = createLogger({ function: "telegram-webhook" });
 
 function getLogger(req: Request) {
@@ -427,7 +436,7 @@ export async function handler(req: Request): Promise<Response> {
       },
     };
 
-    const command = text?.split(/\s+/)[0];
+    const command = normalizeTelegramCommand(text);
     if (typeof chatId === "number" && command && handlers[command]) {
       try {
         await handlers[command](chatId);

@@ -4,11 +4,10 @@ import {
   TELEGRAM_ALLOWED_UPDATES_JSON,
 } from "../_shared/telegram_secret.ts";
 import { registerHandler } from "../_shared/serve.ts";
+import { telegramWebhookUrl } from "../_shared/edge.ts";
 
 const BOT = optionalEnv("TELEGRAM_BOT_TOKEN") || "";
-const BASE = (optionalEnv("SUPABASE_URL") || "").replace(/\/$/, "");
-const FN = "telegram-webhook";
-const url = BASE ? `${BASE}/functions/v1/${FN}` : "";
+const url = telegramWebhookUrl() || "";
 
 export const handler = registerHandler(async (req) => {
   const SECRET = await expectedSecret();
