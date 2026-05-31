@@ -80,6 +80,59 @@ type PlanDigestCache = { text: string; expiresAt: number };
 const PLAN_DIGEST_TTL_MS = 2 * 60 * 1000;
 let planDigestCache: PlanDigestCache | null = null;
 
+const PLAN_DIGEST_FIELDS =
+  "id,name,price,currency,dynamic_price_usdt,last_priced_at,performance_snapshot";
+const PLAN_DIGEST_LEGACY_FIELDS = "id,name,price,currency";
+
+type PlanDigestRow = {
+  id?: string | null;
+  name?: string | null;
+  price?: number | string | null;
+  currency?: string | null;
+  dynamic_price_usdt?: number | string | null;
+  last_priced_at?: string | null;
+  performance_snapshot?: Record<string, unknown> | null;
+};
+
+type PlanDigestQueryResult = {
+  data: PlanDigestRow[] | null;
+  error: { code?: string; message?: string } | null;
+};
+
+function isMissingPlanPricingColumn(
+  error: PlanDigestQueryResult["error"],
+): boolean {
+  if (!error) return false;
+  const message = error.message?.toLowerCase() ?? "";
+  return error.code === "42703" ||
+    (message.includes("column") &&
+      (message.includes("dynamic_price_usdt") ||
+        message.includes("last_priced_at") ||
+        message.includes("performance_snapshot")));
+}
+
+async function loadPlanDigestRows(
+  supabase: ReturnType<typeof createClient>,
+  logger: ReturnType<typeof getLogger>,
+): Promise<PlanDigestQueryResult> {
+  const queryPlans = (fields: string): Promise<PlanDigestQueryResult> =>
+    supabase
+      .from("subscription_plans")
+      .select(fields)
+      .order("price", { ascending: true }) as Promise<PlanDigestQueryResult>;
+
+  const result = await queryPlans(PLAN_DIGEST_FIELDS);
+  if (!isMissingPlanPricingColumn(result.error)) {
+    return result;
+  }
+
+  logger.warn(
+    "plan digest dynamic pricing columns are unavailable; using legacy fields",
+    { error: result.error },
+  );
+  return await queryPlans(PLAN_DIGEST_LEGACY_FIELDS);
+}
+
 function parseNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -137,12 +190,7 @@ async function buildPlanDigest(
 
   try {
     const supabase = createClient("service");
-    const { data, error } = await supabase
-      .from("subscription_plans")
-      .select(
-        "id,name,price,currency,dynamic_price_usdt,last_priced_at,performance_snapshot",
-      )
-      .order("price", { ascending: true });
+    const { data, error } = await loadPlanDigestRows(supabase, logger);
 
     if (error) {
       logger.error("failed to load subscription plans for digest", error);
