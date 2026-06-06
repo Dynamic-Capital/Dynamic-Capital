@@ -3889,8 +3889,18 @@ if (!SKIP_AUTO_SERVE) {
 type AdminHandlers = typeof import("./admin-handlers/index.ts");
 let cachedAdminHandlers: Promise<AdminHandlers> | null = null;
 
+let supabaseOverride: SupabaseClient | null = null;
+
+export function __setSupabaseForTests(client: SupabaseClient): void {
+  supabaseOverride = client;
+}
+
+export function __resetSupabaseForTests(): void {
+  supabaseOverride = null;
+}
+
 export function getSupabase(): SupabaseClient {
-  return createClient("service");
+  return supabaseOverride ?? createClient("service");
 }
 
 async function endBotSession(telegramUserId: string): Promise<void> {

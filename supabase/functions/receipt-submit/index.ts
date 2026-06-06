@@ -9,6 +9,57 @@ import { registerHandler } from "../_shared/serve.ts";
 import { hashBlob } from "../_shared/hash.ts";
 import { findTransferRecipient } from "../_shared/transfer-recipients.ts";
 
+type RuntimeEnv = {
+  Deno?: { env?: { get?: (key: string) => string | undefined } };
+  process?: { env?: Record<string, string | undefined> };
+};
+
+function envValue(key: string): string | undefined {
+  const runtime = globalThis as RuntimeEnv;
+  const denoValue = runtime.Deno?.env?.get?.(key);
+  if (denoValue !== undefined) return denoValue;
+  return runtime.process?.env?.[key];
+}
+
+function normalizeSecret(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function bearerToken(headerValue: string | null): string | null {
+  if (!headerValue) return null;
+  const [scheme, ...rest] = headerValue.trim().split(/\s+/);
+  if (scheme?.toLowerCase() !== "bearer" || rest.length === 0) return null;
+  return rest.join(" ").trim() || null;
+}
+
+function hasInternalReceiptSubmitAuth(req: Request): boolean {
+  const providedWebhookSecret = normalizeSecret(
+    req.headers.get("x-telegram-bot-secret"),
+  );
+  const expectedWebhookSecret = normalizeSecret(
+    envValue("TELEGRAM_WEBHOOK_SECRET"),
+  );
+  if (
+    expectedWebhookSecret && providedWebhookSecret &&
+    providedWebhookSecret === expectedWebhookSecret
+  ) {
+    return true;
+  }
+
+  const providedApiToken = normalizeSecret(
+    bearerToken(req.headers.get("authorization")) ?? req.headers.get("apikey"),
+  );
+  if (!providedApiToken) return false;
+
+  const serviceKeys = [
+    envValue("SUPABASE_SERVICE_ROLE_KEY"),
+    envValue("SUPABASE_SERVICE_ROLE"),
+  ].map(normalizeSecret).filter((key): key is string => Boolean(key));
+
+  return serviceKeys.some((key) => key === providedApiToken);
+}
+
 export const handler = registerHandler(async (req) => {
   const cors = corsHeaders(req, "POST,OPTIONS");
 
@@ -75,13 +126,11 @@ export const handler = registerHandler(async (req) => {
     }
   }
 
-  // Fallback to explicit telegram_id (e.g., from bot) — require shared secret
+  // Fallback to explicit telegram_id (e.g., from bot) — require internal auth.
   if (!telegramId && telegram_id) {
-    const providedSecret = req.headers.get("x-telegram-bot-secret");
-    const expectedSecret = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
-    if (!expectedSecret || providedSecret !== expectedSecret) {
+    if (!hasInternalReceiptSubmitAuth(req)) {
       console.warn(
-        "Receipt submit: telegram_id fallback rejected (bad/missing internal secret)",
+        "Receipt submit: telegram_id fallback rejected (bad/missing internal auth)",
       );
       return unauth("Unauthorized", req);
     }
