@@ -435,3 +435,86 @@ Deno.test("startReceiptPipeline stores parsed bank slip on payment", async () =>
     globalAny.__SUPABASE_SKIP_AUTO_SERVE__ = previousAutoServe;
   }
 });
+
+Deno.test("receipt-submit accepts service-role auth for bot telegram_id fallback", async () => {
+  setTestEnv({
+    SUPABASE_URL: "https://stub.supabase.co",
+    SUPABASE_SERVICE_ROLE_KEY: "service-key",
+  });
+
+  const globalAny = globalThis as {
+    __SUPABASE_SKIP_AUTO_SERVE__?: boolean;
+  };
+  const previousAutoServe = globalAny.__SUPABASE_SKIP_AUTO_SERVE__;
+  globalAny.__SUPABASE_SKIP_AUTO_SERVE__ = true;
+
+  const fakeSupabase: any = {
+    auth: {
+      async getUser() {
+        return { data: { user: null }, error: null };
+      },
+    },
+    from(table: string) {
+      if (table !== "payments") {
+        throw new Error(`unexpected table: ${table}`);
+      }
+      return {
+        select() {
+          return {
+            eq() {
+              return {
+                async maybeSingle() {
+                  return { data: null, error: null };
+                },
+              };
+            },
+          };
+        },
+      };
+    },
+  };
+
+  const clientModule = await import("../_shared/client.ts");
+  clientModule.__setCreateClientOverrideForTests(() => fakeSupabase);
+  const { default: receiptSubmitHandler } = await import(
+    "../receipt-submit/index.ts"
+  );
+
+  try {
+    const requestBody = {
+      telegram_id: "4242",
+      payment_id: "pay-1",
+      file_path: "receipts/4242/test.png",
+      bucket: "payment-receipts",
+    };
+
+    const unauthorizedResponse = await receiptSubmitHandler(
+      new Request("https://stub.supabase.co/functions/v1/receipt-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      }),
+    );
+    assertEquals(unauthorizedResponse.status, 401);
+
+    const serviceResponse = await receiptSubmitHandler(
+      new Request("https://stub.supabase.co/functions/v1/receipt-submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer service-key",
+        },
+        body: JSON.stringify(requestBody),
+      }),
+    );
+    assertEquals(serviceResponse.status, 500);
+    assertEquals(await serviceResponse.json(), {
+      ok: false,
+      error: "Payment not found",
+    });
+  } finally {
+    clientModule.__resetCreateClientOverrideForTests();
+    clearTestEnv();
+    globalAny.__SUPABASE_SKIP_AUTO_SERVE__ = previousAutoServe;
+  }
+});
