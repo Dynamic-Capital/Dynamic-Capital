@@ -127,6 +127,8 @@ def _context_snapshot(context: PreparedMarketContext) -> Dict[str, Any]:
         "resistance_level": context.resistance_level,
         "human_bias": context.human_bias,
         "human_weight": context.human_weight,
+        "symbol": context.symbol,
+        "asset_class": context.asset_class,
         "circuit_breaker": context.circuit_breaker,
     }
 
