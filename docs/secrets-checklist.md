@@ -3,7 +3,8 @@
 This checklist maps each deployment target to the environment variables it must
 provide. Only variable _names_ are listed. Configure actual values via the
 respective secrets managers (Vercel, DigitalOcean App Platform, Supabase Edge
-Functions, and DigitalOcean droplets).
+Functions, and DigitalOcean droplets). For rotation and incident response
+procedures, see [`secrets-hardening.md`](./secrets-hardening.md).
 
 ## Supabase Edge Functions
 
