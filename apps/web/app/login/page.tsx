@@ -7,6 +7,9 @@ export const metadata = {
     "Access your Dynamic Capital trading dashboard and manage VIP membership settings.",
 };
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 export default function LoginPage() {
   return (
     <>
