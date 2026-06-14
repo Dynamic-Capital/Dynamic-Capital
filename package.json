@@ -152,7 +152,7 @@
     "compressorjs": "^1.2.1",
     "framer-motion": "^12.23.22",
     "grammy": "^1.38.2",
-    "inngest": "^3.40.3",
+    "inngest": "^3.54.0",
     "lovable-tagger": "^1.1.10",
     "lucide-react": "^0.544.0",
     "mime-types": "^3.0.1",
@@ -189,7 +189,7 @@
     "supabase": "^2.92.0",
     "ton-contract-executor": "^0.8.4",
     "tsx": "^4.20.6",
-    "vitest": "^3.2.4",
+    "vitest": "^4.1.8",
     "yaml": "^2.8.3"
   },
   "overrides": {
