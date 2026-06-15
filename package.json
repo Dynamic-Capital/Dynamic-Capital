@@ -162,7 +162,7 @@
     "pdf-parse": "^1.1.1",
     "posthog-js": "^1.268.8",
     "prismjs": "^1.30.0",
-    "recharts": "^3.2.1",
+    "recharts": "^3.8.1",
     "sonner": "^2.0.7",
     "ton-core": "^0.53.0",
     "ton-crypto": "^3.2.0",
