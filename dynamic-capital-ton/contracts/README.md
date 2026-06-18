@@ -18,6 +18,17 @@ based on the standard jetton template with the following extensions:
 - **Transfer tax hook** — an optional 0-100 bps tax can be enabled and routed to
   the treasury address once the timelock action executes.
 
+## Table of Contents
+
+<!-- TOC:START -->
+
+- [Deployment checklist](#deployment-checklist)
+- [Theme collection deployment](#theme-collection-deployment)
+  - [Updating content](#updating-content)
+  - [Freezing metadata](#freezing-metadata)
+
+<!-- TOC:END -->
+
 ## Deployment checklist
 
 1. Configure the `admin`, `treasury`, and `dexRouter` addresses when deploying
