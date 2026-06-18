@@ -1355,6 +1355,10 @@ export type Database = {
       };
       promotions: {
         Row: {
+          airdrop_bot_user_id: string | null;
+          airdrop_campaign: string | null;
+          airdrop_metadata: Json | null;
+          airdrop_target: string | null;
           code: string;
           created_at: string;
           auto_created: boolean;
@@ -1372,6 +1376,10 @@ export type Database = {
           valid_until: string;
         };
         Insert: {
+          airdrop_bot_user_id?: string | null;
+          airdrop_campaign?: string | null;
+          airdrop_metadata?: Json | null;
+          airdrop_target?: string | null;
           code: string;
           created_at?: string;
           auto_created?: boolean;
@@ -1389,6 +1397,10 @@ export type Database = {
           valid_until: string;
         };
         Update: {
+          airdrop_bot_user_id?: string | null;
+          airdrop_campaign?: string | null;
+          airdrop_metadata?: Json | null;
+          airdrop_target?: string | null;
           code?: string;
           created_at?: string;
           auto_created?: boolean;
