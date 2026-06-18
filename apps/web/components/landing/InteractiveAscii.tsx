@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useMotionValue, useSpring } from "framer-motion";
+import { useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 
 const characterSets = {
   detailed:
@@ -725,6 +725,9 @@ export function InteractiveAscii({
   const [cursorImage, setCursorImage] = useState<HTMLImageElement>();
   const rngSeedRef = useRef(Math.random());
   const frameRef = useRef<number | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const [isInView, setIsInView] = useState<boolean>(false);
+  const [isDocumentVisible, setIsDocumentVisible] = useState<boolean>(true);
 
   const { x: cursorX, y: cursorY, initialized, initializedRef } =
     useFollowCursor(
@@ -917,13 +920,61 @@ export function InteractiveAscii({
   }, [cursorX, cursorY, generate]);
 
   useEffect(() => {
+    if (typeof document === "undefined") {
+      setIsDocumentVisible(true);
+      return;
+    }
+    const handleVisibilityChange = () => {
+      setIsDocumentVisible(document.visibilityState !== "hidden");
+    };
+    handleVisibilityChange();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) {
+      setIsInView(true);
+      return;
+    }
+    if (typeof IntersectionObserver === "undefined") {
+      setIsInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      setIsInView(entry?.isIntersecting ?? false);
+    });
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!staticEffect?.interval) return;
-    const interval = setInterval(() => {
+    if (prefersReducedMotion) return;
+    if (!isInView) return;
+    if (!isDocumentVisible) return;
+
+    const intervalSeconds = Math.max(staticEffect.interval, 1);
+    const interval = window.setInterval(() => {
       rngSeedRef.current = Math.random();
       generate();
-    }, staticEffect.interval * 1000);
+    }, intervalSeconds * 1000);
     return () => clearInterval(interval);
-  }, [staticEffect?.interval, generate]);
+  }, [
+    staticEffect?.interval,
+    generate,
+    prefersReducedMotion,
+    isInView,
+    isDocumentVisible,
+  ]);
 
   const updateScale = useCallback(() => {
     if (!textRef.current || !containerRef.current) return;
