@@ -7,6 +7,7 @@ from .catalog import (
 )
 from .engine import (
     DynamicSourceEngine,
+    SignalInsight,
     SourceDescriptor,
     SourceSignal,
     SourceSnapshot,
@@ -16,6 +17,7 @@ __all__ = [
     "SourceDescriptor",
     "SourceSignal",
     "SourceSnapshot",
+    "SignalInsight",
     "DynamicSourceEngine",
     "REFERENCE_SOURCE_TAXONOMY",
     "build_reference_descriptors",

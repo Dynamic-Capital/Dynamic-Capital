@@ -12,6 +12,7 @@ __all__ = [
     "SourceDescriptor",
     "SourceSignal",
     "SourceSnapshot",
+    "SignalInsight",
     "DynamicSourceEngine",
 ]
 
@@ -79,6 +80,34 @@ def _coerce_signal(value: SourceSignal | Mapping[str, object]) -> SourceSignal:
     if isinstance(value, Mapping):
         return SourceSignal(**value)
     raise TypeError("signal must be a SourceSignal or mapping")
+
+
+def _evaluate_signal(
+    signal: "SourceSignal", *, reference_time: datetime | None = None
+) -> tuple[float, float]:
+    """Return the signal score and freshness in minutes for the given signal.
+
+    The evaluation reuses a shared ``reference_time`` so that multiple signals can
+    be analysed against the same moment in time. This avoids redundant calls to
+    :func:`_utcnow` when the engine aggregates large batches of signals.
+    """
+
+    reference = reference_time or _utcnow()
+    freshness = reference - signal.timestamp
+    freshness_minutes = freshness.total_seconds() / 60.0
+    latency_penalty = (
+        1.0 if signal.latency_ms <= 0 else min(1.0, 200.0 / (signal.latency_ms + 1.0))
+    )
+    freshness_penalty = (
+        1.0 if freshness_minutes <= 1.0 else max(0.0, 1.0 - freshness_minutes / 180.0)
+    )
+    score = _clamp(
+        signal.confidence * 0.5
+        + signal.impact * 0.35
+        + latency_penalty * 0.1
+        + freshness_penalty * 0.05
+    )
+    return score, freshness_minutes
 
 
 # ---------------------------------------------------------------------------
@@ -155,11 +184,17 @@ class SourceSignal:
 
     @property
     def signal_score(self) -> float:
-        latency_penalty = 1.0 if self.latency_ms <= 0 else min(1.0, 200.0 / (self.latency_ms + 1.0))
-        freshness_penalty = 1.0 if self.freshness_minutes <= 1.0 else max(0.0, 1.0 - self.freshness_minutes / 180.0)
-        return _clamp(
-            self.confidence * 0.5 + self.impact * 0.35 + latency_penalty * 0.1 + freshness_penalty * 0.05
-        )
+        score, _ = _evaluate_signal(self)
+        return score
+
+
+@dataclass(slots=True)
+class SignalInsight:
+    """Computed metrics for a signal within a snapshot horizon."""
+
+    signal: SourceSignal
+    score: float
+    freshness_minutes: float
 
 
 @dataclass(slots=True)
@@ -168,6 +203,7 @@ class SourceSnapshot:
 
     descriptor: SourceDescriptor
     signals: tuple[SourceSignal, ...]
+    evaluations: tuple[SignalInsight, ...]
     reliability_score: float
     freshness_score: float
     readiness_score: float
@@ -183,13 +219,13 @@ class SourceSnapshot:
             "readiness_score": self.readiness_score,
             "signals": [
                 {
-                    "channel": signal.channel,
-                    "confidence": signal.confidence,
-                    "impact": signal.impact,
-                    "signal_score": signal.signal_score,
-                    "timestamp": signal.timestamp.isoformat(),
+                    "channel": insight.signal.channel,
+                    "confidence": insight.signal.confidence,
+                    "impact": insight.signal.impact,
+                    "signal_score": insight.score,
+                    "timestamp": insight.signal.timestamp.isoformat(),
                 }
-                for signal in self.signals
+                for insight in self.evaluations
             ],
             "metrics": dict(self.metrics),
         }
@@ -269,29 +305,58 @@ class DynamicSourceEngine:
             raise KeyError(f"source '{name}' is not registered")
         bucket = self._signals.get(key, deque())
         if horizon_minutes <= 0:
-            relevant = tuple(bucket)
+            relevant_signals = tuple(bucket)
         else:
             cutoff = _utcnow() - timedelta(minutes=horizon_minutes)
-            relevant = tuple(signal for signal in bucket if signal.timestamp >= cutoff)
-        if relevant:
-            reliability_score = fmean(signal.signal_score for signal in relevant)
-            freshness_penalty = min(signal.freshness_minutes for signal in relevant)
-            freshness_score = _clamp(1.0 - freshness_penalty / max(descriptor.freshness_sla_minutes, 1))
+            relevant_signals = tuple(signal for signal in bucket if signal.timestamp >= cutoff)
+
+        evaluations: list[SignalInsight] = []
+        if relevant_signals:
+            reference_time = _utcnow()
+            reliability_total = 0.0
+            freshness_penalty = float("inf")
+            confidence_total = 0.0
+            impact_total = 0.0
+            latency_total = 0.0
+            for signal in relevant_signals:
+                score, freshness_minutes = _evaluate_signal(signal, reference_time=reference_time)
+                evaluations.append(
+                    SignalInsight(signal=signal, score=score, freshness_minutes=freshness_minutes)
+                )
+                reliability_total += score
+                freshness_penalty = min(freshness_penalty, freshness_minutes)
+                confidence_total += signal.confidence
+                impact_total += signal.impact
+                latency_total += signal.latency_ms
+            count = float(len(relevant_signals))
+            reliability_score = reliability_total / count
+            freshness_score = _clamp(
+                1.0 - freshness_penalty / max(descriptor.freshness_sla_minutes, 1)
+            )
+            metrics: MutableMapping[str, float] = {
+                "total_signals": count,
+                "avg_confidence": confidence_total / count,
+                "avg_impact": impact_total / count,
+                "avg_latency_ms": latency_total / count,
+            }
         else:
             reliability_score = 0.0
             freshness_score = 0.0
+            metrics = {
+                "total_signals": 0.0,
+                "avg_confidence": 0.0,
+                "avg_impact": 0.0,
+                "avg_latency_ms": 0.0,
+            }
+            relevant_signals = ()
+            evaluations = []
         readiness_score = _clamp(
             descriptor.posture_score * 0.5 + reliability_score * 0.35 + freshness_score * 0.15
         )
-        metrics: MutableMapping[str, float] = {
-            "total_signals": float(len(relevant)),
-            "avg_confidence": fmean(signal.confidence for signal in relevant) if relevant else 0.0,
-            "avg_impact": fmean(signal.impact for signal in relevant) if relevant else 0.0,
-            "avg_latency_ms": fmean(signal.latency_ms for signal in relevant) if relevant else 0.0,
-        }
         return SourceSnapshot(
             descriptor=descriptor,
-            signals=relevant,
+            signals=relevant_signals,
+            evaluations=tuple(evaluations),
             reliability_score=reliability_score,
             freshness_score=freshness_score,
             readiness_score=readiness_score,
@@ -315,3 +380,4 @@ class DynamicSourceEngine:
             "generated_at": _utcnow().isoformat(),
         }
         return aggregated
+
