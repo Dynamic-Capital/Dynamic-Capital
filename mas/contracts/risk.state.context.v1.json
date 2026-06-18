@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dynamic.capital/schemas/risk.state.context.v1.json",
+  "title": "Risk Context State v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["envelope", "payload"],
+  "properties": {
+    "envelope": {"$ref": "./envelope.v1.json"},
+    "payload": {
+      "type": "object",
+      "required": [
+        "portfolio_var",
+        "daily_drawdown_pct",
+        "treasury_utilisation",
+        "volatility",
+        "risk_level",
+        "idempotency_key"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "portfolio_var": {
+          "type": "number",
+          "description": "1-day 99% VaR in base currency"
+        },
+        "daily_drawdown_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "treasury_utilisation": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "volatility": {
+          "type": "number",
+          "minimum": 0
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+        },
+        "breach_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 64
+        }
+      }
+    }
+  }
+}
