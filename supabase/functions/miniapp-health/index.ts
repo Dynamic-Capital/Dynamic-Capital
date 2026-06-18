@@ -7,20 +7,8 @@ import {
 } from "../_shared/health.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { version } from "../_shared/version.ts";
-
-interface SupabaseLike {
-  from: (table: string) => {
-    select: (columns: string) => {
-      eq: (col: string, value: string) => {
-        limit: (
-          n: number,
-        ) => Promise<
-          { data?: Array<Record<string, unknown>>; error?: { message: string } }
-        >;
-      };
-    };
-  };
-}
+import { getVipForTelegram } from "./vip.ts";
+import { checkMiniAppLive } from "./live.ts";
 
 async function checkEnvAdmin(telegramId: string): Promise<boolean> {
   try {
@@ -32,31 +20,7 @@ async function checkEnvAdmin(telegramId: string): Promise<boolean> {
   }
 }
 
-export async function getVipForTelegram(
-  supa: SupabaseLike,
-  tg: string,
-): Promise<boolean | null> {
-  const { data: users, error } = await supa
-    .from("bot_users")
-    .select("is_vip, subscription_expires_at")
-    .eq("telegram_id", tg)
-    .limit(1);
-  if (error) {
-    throw new Error(error.message);
-  }
-  let isVip: boolean | null = null;
-  if (users && users.length > 0) {
-    const u = users[0] as {
-      is_vip?: boolean;
-      subscription_expires_at?: string;
-    };
-    if (typeof u.is_vip === "boolean") isVip = u.is_vip;
-    if (isVip === null && u.subscription_expires_at) {
-      isVip = new Date(u.subscription_expires_at).getTime() >= Date.now();
-    }
-  }
-  return isVip;
-}
+export { getVipForTelegram };
 
 export async function handler(req: Request): Promise<Response> {
   const v = version(req, "miniapp-health");
@@ -96,6 +60,14 @@ export async function handler(req: Request): Promise<Response> {
 
   try {
     const checks = await Promise.all([
+      measureHealthCheck("miniapp_availability", async () => {
+        const result = await checkMiniAppLive();
+        return {
+          status: result.status,
+          message: result.message,
+          metadata: result.metadata,
+        };
+      }),
       measureHealthCheck("vip_lookup", async () => {
         const vip = await getVipForTelegram(supa, tg);
         isVip = vip;

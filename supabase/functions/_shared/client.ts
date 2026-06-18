@@ -1,3 +1,4 @@
+// @deno-types="../telegram-bot/vendor/esm.sh/@supabase/supabase-js@2?dts.ts"
 import {
   createClient as createSupabaseClient,
   type SupabaseClient,
