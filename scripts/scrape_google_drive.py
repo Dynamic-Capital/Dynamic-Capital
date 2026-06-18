@@ -23,10 +23,20 @@ import argparse
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 import requests
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except ModuleNotFoundError as exc:
+    raise ModuleNotFoundError(
+        "BeautifulSoup is required for HTML parsing. Install it with `pip install beautifulsoup4`."
+    ) from exc
+
+if TYPE_CHECKING:
+    from bs4 import BeautifulSoup as BeautifulSoupType
+else:  # pragma: no cover - alias for runtime typing compatibility
+    BeautifulSoupType = BeautifulSoup
 
 
 FOLDER_VIEW_URL = "https://drive.google.com/embeddedfolderview?id={id}#list"
@@ -75,7 +85,7 @@ def extract_folder_id(url_or_id: str) -> str:
     return url_or_id.strip()
 
 
-def request_folder_page(folder_id: str, *, timeout: float) -> BeautifulSoup:
+def request_folder_page(folder_id: str, *, timeout: float) -> "BeautifulSoupType":
     response = requests.get(FOLDER_VIEW_URL.format(id=folder_id), timeout=timeout)
     if response.status_code != requests.codes.ok:
         raise GoogleDriveScrapeError(
@@ -84,7 +94,7 @@ def request_folder_page(folder_id: str, *, timeout: float) -> BeautifulSoup:
     return BeautifulSoup(response.text, "html.parser")
 
 
-def is_folder_entry(entry: BeautifulSoup) -> bool:
+def is_folder_entry(entry: "BeautifulSoupType") -> bool:
     link = entry.find("a")
     if not link or not link.has_attr("href"):
         return False
@@ -119,7 +129,7 @@ class DriveEntry:
 
 
 def parse_entry(
-    entry: BeautifulSoup,
+    entry: "BeautifulSoupType",
     *,
     timeout: float,
     visited: Optional[set[str]] = None,
