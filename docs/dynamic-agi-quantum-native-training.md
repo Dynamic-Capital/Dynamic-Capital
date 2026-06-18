@@ -28,6 +28,8 @@ and cutting-edge practices, drawing upon a wealth of recent peer-reviewed
 sources, technical reports, industry announcements, and quantum AI benchmark
 studies.
 
+For a catalogue of SDKs, simulators, and operating environments that can operationalize the approaches described here, consult the [Quantum Toolchain Integration Guide](./quantum-toolchain.md), review its [Category Overview](./quantum-toolchain.md#category-overview) to align lesson plans with the right platforms, follow the [Step-by-Step Integration Playbook](./quantum-toolchain.md#step-by-step-integration-playbook) to stage experiments, operator training, and production rollout, and execute cohort labs according to the [Category Implementation Runbooks](./quantum-toolchain.md#category-implementation-runbooks).
+
 ---
 
 ## Foundational Quantum Mathematical Frameworks
