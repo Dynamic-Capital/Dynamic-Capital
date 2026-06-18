@@ -1,0 +1,21 @@
+{
+  "pdf_directory": "Dynamic-Capital/data/knowledge_base/books/raw/islam",
+  "output_dir": "Dynamic-Capital/data/knowledge_base/books/extracted/islam_saheeh_international",
+  "text_dir": "Dynamic-Capital/data/knowledge_base/books/extracted/islam_saheeh_international/text",
+  "table_dir": "Dynamic-Capital/data/knowledge_base/books/extracted/islam_saheeh_international/tables",
+  "jsonl_path": "Dynamic-Capital/data/knowledge_base/books/processed/islam_saheeh_international.jsonl",
+  "batch_size": 12,
+  "max_workers": 4,
+  "structured": false,
+  "recursive": true,
+  "skip_existing": true,
+  "stats": {
+    "total": 1,
+    "attempted": 1,
+    "succeeded": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "records_written": 712,
+  "tables_written": 0
+}
