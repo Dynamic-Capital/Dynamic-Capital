@@ -4,8 +4,11 @@ The Dynamic Capital ecosystem uses the prefix `Dynamic_` to denote specialized
 domains across technology, science, business, and philosophy. Each entry expands
 to an acronym that describes its purpose. The foundational prefix acronym is:
 
-- **D.Y.N.A.M.I.C.** — _Driving Yield of New Advancements in Minds, Innovation &
+- **D.Y.N.A.M.I.C.** — _Driving Yield of New Advancements in Minds, Intelligence &
   Creation_
+  - **Optimization focus:** Serves as the canonical orchestrator identity that
+    powers Dynamic_AGI and related knowledge systems, keeping terminology
+    aligned without repeating competing expansions.
 
 ## Abbreviation guidance for Dynamic_ concepts
 
@@ -72,8 +75,8 @@ modules aligned without sacrificing readability.
 
 - **Dynamic_AI** — _Artificial Intelligence: Augmenting Intelligence for
   adaptive decisions_
-- **Dynamic_AGI** — _Artificial General Intelligence: Adapting Global
-  Intelligence across all domains_
+- **Dynamic_AGI** — _Artificial General Intelligence: D.Y.N.A.M.I.C. orchestrator
+  optimizing global intelligence and creation workflows_
 - **Dynamic_Agents** — _Autonomous Agents: Automated Guidance for Networks,
   Tasks, and Systems_
 - **Dynamic_Algo** — _Algorithm: Automated Liquidity Generation & Optimization_
