@@ -1715,6 +1715,156 @@ export type Database = {
         };
         Relationships: [];
       };
+      mt5_account_heartbeats: {
+        Row: {
+          id: string;
+          account_login: string;
+          status: string;
+          balance: number | null;
+          equity: number | null;
+          free_margin: number | null;
+          raw_payload: Json;
+          received_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          account_login: string;
+          status?: string;
+          balance?: number | null;
+          equity?: number | null;
+          free_margin?: number | null;
+          raw_payload: Json;
+          received_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          account_login?: string;
+          status?: string;
+          balance?: number | null;
+          equity?: number | null;
+          free_margin?: number | null;
+          raw_payload?: Json;
+          received_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      mt5_commands: {
+        Row: {
+          id: string;
+          external_id: string | null;
+          account_login: string | null;
+          command_type: string;
+          symbol: string;
+          side: string | null;
+          volume: number | null;
+          price: number | null;
+          stop_loss: number | null;
+          take_profit: number | null;
+          trailing_stop: number | null;
+          ticket: string | null;
+          comment: string | null;
+          status: string;
+          status_message: string | null;
+          payload: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          external_id?: string | null;
+          account_login?: string | null;
+          command_type: string;
+          symbol: string;
+          side?: string | null;
+          volume?: number | null;
+          price?: number | null;
+          stop_loss?: number | null;
+          take_profit?: number | null;
+          trailing_stop?: number | null;
+          ticket?: string | null;
+          comment?: string | null;
+          status?: string;
+          status_message?: string | null;
+          payload: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          external_id?: string | null;
+          account_login?: string | null;
+          command_type?: string;
+          symbol?: string;
+          side?: string | null;
+          volume?: number | null;
+          price?: number | null;
+          stop_loss?: number | null;
+          take_profit?: number | null;
+          trailing_stop?: number | null;
+          ticket?: string | null;
+          comment?: string | null;
+          status?: string;
+          status_message?: string | null;
+          payload?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      mt5_risk_adjustments: {
+        Row: {
+          id: string;
+          ticket: string;
+          account_login: string | null;
+          symbol: string | null;
+          desired_stop_loss: number | null;
+          desired_take_profit: number | null;
+          trailing_stop_distance: number | null;
+          status: string;
+          status_message: string | null;
+          notes: string | null;
+          payload: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          ticket: string;
+          account_login?: string | null;
+          symbol?: string | null;
+          desired_stop_loss?: number | null;
+          desired_take_profit?: number | null;
+          trailing_stop_distance?: number | null;
+          status?: string;
+          status_message?: string | null;
+          notes?: string | null;
+          payload: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          ticket?: string;
+          account_login?: string | null;
+          symbol?: string | null;
+          desired_stop_loss?: number | null;
+          desired_take_profit?: number | null;
+          trailing_stop_distance?: number | null;
+          status?: string;
+          status_message?: string | null;
+          notes?: string | null;
+          payload?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       mt5_trade_logs: {
         Row: {
           id: string;
@@ -1729,6 +1879,7 @@ export type Database = {
           raw_payload: Json;
           received_at: string;
           updated_at: string;
+          source: string;
         };
         Insert: {
           id?: string;
@@ -1743,6 +1894,7 @@ export type Database = {
           raw_payload?: Json;
           received_at?: string;
           updated_at?: string;
+          source?: string;
         };
         Update: {
           id?: string;
@@ -1757,6 +1909,7 @@ export type Database = {
           raw_payload?: Json;
           received_at?: string;
           updated_at?: string;
+          source?: string;
         };
         Relationships: [];
       };
