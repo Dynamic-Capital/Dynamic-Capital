@@ -230,3 +230,36 @@ def test_trading_economics_adapter_parses_payload(monkeypatch: pytest.MonkeyPatc
     assert point.previous == pytest.approx(3.1)
     assert point.source_metadata["symbol"] == "USCPI"
 
+
+def test_trading_economics_adapter_falls_back_to_legacy_endpoint() -> None:
+    calls: list[str] = []
+
+    def fake_fetch(url: str, *_: object, **__: object) -> list[Mapping[str, object]]:
+        calls.append(url)
+        if len(calls) == 1:
+            return []
+        return [
+            {
+                "Value": 2.1,
+                "Date": "2024-06-01T00:00:00Z",
+                "Country": "United States",
+                "Category": "Inflation Rate",
+                "HistoricalDataSymbol": "USIRATE",
+            }
+        ]
+
+    adapter = job._TradingEconomicsAdapter(
+        client_id="id",
+        client_secret="secret",
+        fetch_json=fake_fetch,
+    )
+
+    point = adapter.fetch(indicator="Inflation Rate", region="United States")
+
+    assert len(calls) == 2
+    assert calls[0].endswith("indicators/country/United%20States/Inflation%20Rate")
+    assert calls[1].endswith("indicators/Inflation%20Rate/United%20States")
+    assert point is not None
+    assert point.actual == pytest.approx(2.1)
+    assert point.source_metadata["endpoint_path"] == "indicators/Inflation%20Rate/United%20States"
+
